@@ -387,7 +387,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @CacheEvict(value = "appInfoCache", key = "#appId")
     public int restoreDeletedApp(DSLContext dslContext, long appId) {
         val query = dslContext.update(T_APP)
-            .set(T_APP.IS_DELETED, UByte.valueOf(0))
+            .set(T_APP.IS_DELETED, UByte.valueOf(Bool.FALSE.getValue()))
             .where(T_APP.APP_ID.eq(ULong.valueOf(appId)));
         int affectedNum = query.execute();
         if (log.isDebugEnabled()) {
@@ -467,13 +467,5 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             return extract(record);
         }
         return null;
-    }
-
-    @Override
-    public void restoreApp(Long appId) {
-        context.update(T_APP)
-            .set(T_APP.IS_DELETED, UByte.valueOf(Bool.FALSE.getValue()))
-            .where(T_APP.APP_ID.eq(ULong.valueOf(appId)))
-            .execute();
     }
 }

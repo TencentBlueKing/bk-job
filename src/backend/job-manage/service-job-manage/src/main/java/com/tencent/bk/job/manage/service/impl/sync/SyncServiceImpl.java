@@ -200,8 +200,7 @@ public class SyncServiceImpl implements SyncService {
         }
         if (jobManageConfig.isEnableResourceWatch()) {
             // 开一个常驻线程监听业务资源变动事件
-            appWatchThread = new AppWatchThread(dslContext, applicationDAO, applicationService, applicationCache,
-                redisTemplate);
+            appWatchThread = new AppWatchThread(applicationService, redisTemplate);
             appWatchThread.start();
 
             // 开一个常驻线程监听主机资源变动事件
@@ -215,13 +214,12 @@ public class SyncServiceImpl implements SyncService {
             hostRelationWatchThread.start();
 
             // 开一个常驻线程监听业务集变动事件
-            bizSetWatchThread = new BizSetWatchThread(dslContext, redisTemplate, applicationCache, bizSetCmdbClient,
-                applicationDAO, tracing);
+            bizSetWatchThread = new BizSetWatchThread(redisTemplate, applicationService, bizSetCmdbClient, tracing);
             bizSetWatchThread.start();
 
             // 开一个常驻线程监听业务集与业务关系变动事件
-            bizSetRelationWatchThread = new BizSetRelationWatchThread(redisTemplate, applicationCache, bizSetCmdbClient,
-                applicationDAO, tracing);
+            bizSetRelationWatchThread = new BizSetRelationWatchThread(redisTemplate, applicationService,
+                bizSetCmdbClient, tracing);
             bizSetRelationWatchThread.start();
         } else {
             log.info("resourceWatch not enabled, you can enable it in config file");

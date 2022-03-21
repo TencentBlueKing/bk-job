@@ -99,11 +99,4 @@ public interface ApplicationDAO {
      * @return 业务
      */
     ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope);
-
-    /**
-     * 恢复被逻辑删除的业务
-     *
-     * @param appId 业务ID
-     */
-    void restoreApp(Long appId);
 }

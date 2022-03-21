@@ -39,16 +39,13 @@ import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.manager.app.ApplicationCache;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 业务集与业务关系事件监听
@@ -71,19 +68,17 @@ public class BizSetRelationWatchThread extends Thread {
     }
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final ApplicationCache applicationCache;
+    private final ApplicationService applicationService;
     private final IBizSetCmdbClient bizSetCmdbClient;
-    private final ApplicationDAO applicationDAO;
     private final Tracing tracing;
 
     public BizSetRelationWatchThread(RedisTemplate<String, String> redisTemplate,
-                                     ApplicationCache applicationCache,
+                                     ApplicationService applicationService,
                                      IBizSetCmdbClient bizSetCmdbClient,
-                                     ApplicationDAO applicationDAO, Tracing tracing) {
+                                     Tracing tracing) {
         this.redisTemplate = redisTemplate;
-        this.applicationCache = applicationCache;
+        this.applicationService = applicationService;
         this.bizSetCmdbClient = bizSetCmdbClient;
-        this.applicationDAO = applicationDAO;
         this.tracing = tracing;
         this.setName("[" + getId() + "]-BizSetRelationWatchThread-");
     }
@@ -221,21 +216,14 @@ public class BizSetRelationWatchThread extends Thread {
                     Long bizSetId = event.getDetail().getBizSetId();
                     List<Long> latestSubBizIds = event.getDetail().getBizIds();
                     ApplicationDTO cacheApplication =
-                        applicationDAO.getAppByScopeIncludingDeleted(
+                        applicationService.getAppByScopeIncludingDeleted(
                             new ResourceScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), String.valueOf(bizSetId))
                         );
                     if (cacheApplication == null || cacheApplication.isDeleted()) {
                         return;
                     }
-                    String subBizIds;
-                    if (CollectionUtils.isEmpty(latestSubBizIds)) {
-                        subBizIds = null;
-                    } else {
-                        subBizIds = latestSubBizIds.stream().map(String::valueOf).collect(Collectors.joining(";"));
-                    }
                     cacheApplication.setSubAppIds(latestSubBizIds);
-                    applicationDAO.updateSubAppIds(cacheApplication.getId(), subBizIds);
-                    applicationCache.addOrUpdateApp(cacheApplication);
+                    applicationService.updateApp(cacheApplication);
                 } catch (Throwable t) {
                     log.error("Handle biz_set_relation event fail", t);
                 }

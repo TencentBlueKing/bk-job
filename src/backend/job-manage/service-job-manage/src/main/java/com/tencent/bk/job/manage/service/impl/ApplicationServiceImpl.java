@@ -173,6 +173,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public Long createApp(ApplicationDTO application) {
         Long appId = applicationDAO.insertApp(dslContext, application);
+        application.setId(appId);
+        applicationCache.addOrUpdateApp(application);
         try {
             // 创建默认账号
             accountService.createDefaultAccounts(appId);
@@ -185,6 +187,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public Long createAppWithSpecifiedAppId(ApplicationDTO application) {
         Long appId = applicationDAO.insertAppWithSpecifiedAppId(dslContext, application);
+        application.setId(appId);
+        applicationCache.addOrUpdateApp(application);
         try {
             // 创建默认账号
             accountService.createDefaultAccounts(appId);
@@ -236,5 +240,29 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
         }
         return false;
+    }
+
+    @Override
+    public void updateApp(ApplicationDTO application) {
+        applicationDAO.updateApp(dslContext, application);
+        applicationCache.addOrUpdateApp(application);
+    }
+
+    @Override
+    public void deleteApp(Long appId) {
+        applicationDAO.deleteAppByIdSoftly(dslContext, appId);
+        applicationCache.deleteApp(appId);
+    }
+
+    @Override
+    public void restoreDeletedApp(long appId) {
+        applicationDAO.restoreDeletedApp(dslContext, appId);
+        ApplicationDTO restoredApplication = applicationDAO.getAppById(appId);
+        applicationCache.addOrUpdateApp(restoredApplication);
+    }
+
+    @Override
+    public ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope) {
+        return applicationDAO.getAppByScopeIncludingDeleted(scope);
     }
 }

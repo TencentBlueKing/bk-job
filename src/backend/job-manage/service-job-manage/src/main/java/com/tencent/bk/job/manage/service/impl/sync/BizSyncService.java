@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -48,11 +47,11 @@ public class BizSyncService extends BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
 
     @Autowired
-    public BizSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,
+    public BizSyncService(DSLContext dslContext,
+                          ApplicationDAO applicationDAO,
                           ApplicationHostDAO applicationHostDAO,
-                          ApplicationService applicationService,
-                          ApplicationCache applicationCache) {
-        super(dslContext, applicationDAO, applicationHostDAO, applicationService, applicationCache);
+                          ApplicationService applicationService) {
+        super(dslContext, applicationDAO, applicationHostDAO, applicationService);
         this.applicationDAO = applicationDAO;
     }
 

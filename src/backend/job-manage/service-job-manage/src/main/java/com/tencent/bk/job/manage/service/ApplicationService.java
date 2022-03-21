@@ -162,4 +162,33 @@ public interface ApplicationService {
      * @return 业务数量
      */
     Integer countApps();
+
+    /**
+     * 更新业务
+     *
+     * @param application 业务
+     */
+    void updateApp(ApplicationDTO application);
+
+    /**
+     * 删除业务
+     *
+     * @param appId Job业务ID
+     */
+    void deleteApp(Long appId);
+
+    /**
+     * 恢复已删除的Job业务
+     *
+     * @param appId Job业务ID
+     */
+    void restoreDeletedApp(long appId);
+
+    /**
+     * 根据资源范围获取业务，包含已经被逻辑删除的业务
+     *
+     * @param scope 资源范围
+     * @return 业务
+     */
+    ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope);
 }

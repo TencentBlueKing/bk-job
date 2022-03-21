@@ -37,11 +37,9 @@ import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.manager.app.ApplicationCache;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
@@ -67,23 +65,18 @@ public class BizSetWatchThread extends Thread {
         }
     }
 
-    private final DSLContext dslContext;
     private final RedisTemplate<String, String> redisTemplate;
-    private final ApplicationCache applicationCache;
+    private final ApplicationService applicationService;
     private final IBizSetCmdbClient bizSetCmdbClient;
-    private final ApplicationDAO applicationDAO;
     private final Tracing tracing;
 
-    public BizSetWatchThread(DSLContext dslContext,
-                             RedisTemplate<String, String> redisTemplate,
-                             ApplicationCache applicationCache,
+    public BizSetWatchThread(RedisTemplate<String, String> redisTemplate,
+                             ApplicationService applicationService,
                              IBizSetCmdbClient bizSetCmdbClient,
-                             ApplicationDAO applicationDAO, Tracing tracing) {
-        this.dslContext = dslContext;
+                             Tracing tracing) {
         this.redisTemplate = redisTemplate;
-        this.applicationCache = applicationCache;
+        this.applicationService = applicationService;
         this.bizSetCmdbClient = bizSetCmdbClient;
-        this.applicationDAO = applicationDAO;
         this.tracing = tracing;
         this.setName("[" + getId() + "]-BizSetWatchThread-");
     }
@@ -213,38 +206,39 @@ public class BizSetWatchThread extends Thread {
 
     private void handleEvent(ResourceEvent<BizSetEventDetail> event) {
         log.info("Handle BizSetEvent: {}", event);
-        ApplicationDTO application = event.getDetail().toApplicationDTO();
+        ApplicationDTO latestApp = event.getDetail().toApplicationDTO();
         String eventType = event.getEventType();
+        ApplicationDTO cachedApp =
+            applicationService.getAppByScopeIncludingDeleted(latestApp.getScope());
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 try {
-                    ApplicationDTO cachedAppInfoDTO =
-                        applicationDAO.getAppByScopeIncludingDeleted(application.getScope());
-                    if (cachedAppInfoDTO != null) {
-                        if (!cachedAppInfoDTO.isDeleted()) {
-                            applicationDAO.updateApp(dslContext, application);
+                    if (cachedApp != null) {
+                        cachedApp.updateProps(latestApp);
+                        if (!cachedApp.isDeleted()) {
+                            applicationService.updateApp(cachedApp);
                         } else {
-                            log.info("Restore deleted application: {}", application);
-                            applicationDAO.updateApp(dslContext, application);
-                            applicationDAO.restoreApp(application.getId());
+                            log.info("Restore deleted latestApp: {}", latestApp);
+                            applicationService.updateApp(latestApp);
+                            applicationService.restoreDeletedApp(latestApp.getId());
                         }
                     } else {
                         try {
-                            applicationDAO.insertApp(dslContext, application);
+                            applicationService.createApp(latestApp);
                         } catch (DataAccessException e) {
                             // 若已存在则忽略
                             log.error("Insert app fail", e);
                         }
                     }
-                    applicationCache.addOrUpdateApp(application);
                 } catch (Throwable t) {
                     log.error("Handle biz_set event fail", t);
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationDAO.deleteAppByIdSoftly(dslContext, application.getId());
-                applicationCache.deleteApp(application.getScope());
+                if (cachedApp != null) {
+                    applicationService.deleteApp(cachedApp.getId());
+                }
                 break;
             default:
                 log.info("No need to handle event: {}", event);
