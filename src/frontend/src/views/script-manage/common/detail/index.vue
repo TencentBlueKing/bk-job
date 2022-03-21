@@ -108,35 +108,42 @@
                     {{ $t('script.上线') }}
                 </auth-button>
             </jb-popover-confirm>
-            <auth-button
+            <span
                 v-if="!scriptInfo.isDraft"
                 key="create"
-                :permission="scriptInfo.canClone"
-                :resource-id="scriptInfo.id"
-                auth="script/clone"
-                class="w120 mr10"
-                @click="handleCopyAndCreate(scriptInfo)"
-                v-test="{ type: 'button', value: 'copyCreateScript' }">
-                {{ $t('script.复制并新建') }}
-            </auth-button>
+                :tippy-tips="isCopyCreateDisabled ? $t('script.已有[未上线]版本') : ''">
+                <auth-button
+                    :permission="scriptInfo.canClone"
+                    :resource-id="scriptInfo.id"
+                    auth="script/clone"
+                    :disabled="isCopyCreateDisabled"
+                    class="w120 mr10"
+                    @click="handleCopyAndCreate(scriptInfo)"
+                    v-test="{ type: 'button', value: 'copyCreateScript' }">
+                    {{ $t('script.复制并新建') }}
+                </auth-button>
+            </span>
             <bk-button
                 class="mr10"
                 @click="handleDebugScript"
                 v-test="{ type: 'button', value: 'debugScript' }">
                 {{ $t('script.调试') }}
             </bk-button>
-            <auth-button
+            <span
                 v-if="scriptInfo.isOnline"
                 key="sync"
-                :permission="scriptInfo.canManage"
-                :resource-id="scriptInfo.id"
-                auth="script/edit"
                 class="mr10"
-                :disabled="!scriptInfo.syncEnabled"
-                @click="handleGoSync"
-                v-test="{ type: 'button', value: 'syncScript' }">
-                {{ $t('script.同步') }}
-            </auth-button>
+                :tippy-tips="!scriptInfo.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
+                <auth-button
+                    :permission="scriptInfo.canManage"
+                    :resource-id="scriptInfo.id"
+                    auth="script/edit"
+                    :disabled="!scriptInfo.syncEnabled"
+                    @click="handleGoSync"
+                    v-test="{ type: 'button', value: 'syncScript' }">
+                    {{ $t('script.同步') }}
+                </auth-button>
+            </span>
             <auth-button
                 v-if="scriptInfo.isDraft"
                 key="edit"
@@ -234,6 +241,13 @@
                     log: RenderLog,
                 };
                 return comMap[this.contentTab];
+            },
+            /**
+             * @desc 已存在未上线版本不允许新建版本
+             * @returns { Boolean }
+             */
+            isCopyCreateDisabled () {
+                return !!_.find(this.scriptVersionList, scriptVersion => scriptVersion.isDraft);
             },
             contentStyles () {
                 return {

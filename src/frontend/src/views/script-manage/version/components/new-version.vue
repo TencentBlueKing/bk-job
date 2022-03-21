@@ -1,16 +1,5 @@
 <template>
     <div class="script-manage-new-version">
-        <bk-alert v-if="draftNum > 0" style="margin-bottom: 10px;">
-            <div slot="title">
-                <span>{{ $t('script.当前已有 [未上线] 版本，') }}</span>
-                <a v-if="draftNum > 1" @click="handleGoList">
-                    {{ $t('script.返回列表') }}
-                </a>
-                <a v-else @click="handleGoEdit">
-                    {{ $t('script.前往编辑') }}
-                </a>
-            </div>
-        </bk-alert>
         <jb-form
             ref="form"
             form-type="vertical"
@@ -50,7 +39,6 @@
         data () {
             return {
                 renderList: [],
-                draftNum: 0,
                 formData: {
                     scriptVersionId: '',
                 },
@@ -58,18 +46,9 @@
         },
         watch: {
             versionList: {
-                handler () {
-                    const renderList = [];
-                    let draftNum = 0;
-                    this.versionList.forEach((item) => {
-                        if (!item.isDraft) {
-                            renderList.push(item);
-                        } else {
-                            draftNum += 1;
-                        }
-                    });
-                    this.renderList = Object.freeze(renderList);
-                    this.draftNum = draftNum;
+                handler (versionList) {
+                    this.renderList = Object.freeze(versionList);
+                    this.formData.scriptVersionId = '';
                 },
                 immediate: true,
             },
@@ -86,19 +65,6 @@
             };
         },
         methods: {
-            /**
-             * @desc 只有一个未上线版本，开始编辑未上线版本脚本
-             */
-            handleGoEdit () {
-                const draftScriptVersion = _.find(this.versionList, scriptVersion => scriptVersion.isDraft);
-                this.$emit('on-edit', draftScriptVersion);
-            },
-            /**
-             * @desc 有多个未上线脚本，返回版本列表
-             */
-            handleGoList () {
-                this.$emit('on-close');
-            },
             /**
              * @desc 选中版本开始复制新建
              */
