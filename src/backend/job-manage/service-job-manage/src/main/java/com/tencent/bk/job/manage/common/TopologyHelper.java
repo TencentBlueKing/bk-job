@@ -280,7 +280,11 @@ public class TopologyHelper {
 
     public InstanceTopologyDTO getTopologyTreeByApplication(String username, ApplicationDTO applicationInfo) {
         InstanceTopologyDTO instanceTopology = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
-            .getBizInstTopology(applicationInfo.getId(), applicationInfo.getBkSupplierAccount(), username);
+            .getBizInstTopology(
+                Long.parseLong(applicationInfo.getScope().getId()),
+                applicationInfo.getBkSupplierAccount(),
+                username
+            );
         if (instanceTopology == null) {
             return null;
         }

@@ -66,7 +66,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         ServiceGetHostStatusByNodeReq req
     ) {
         List<AppTopologyTreeNode> treeNodeList = req.getTreeNodeList();
-        List<NodeInfoVO> nodeInfoVOList = hostService.getHostsByNode(username, appId, treeNodeList);
+        List<NodeInfoVO> nodeInfoVOList = hostService.getBizHostsByNode(username, appId, treeNodeList);
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
         nodeInfoVOList.parallelStream().forEach(nodeInfoVO -> {
             nodeInfoVO.getIpListStatus().forEach(hostInfoVO -> {
@@ -89,7 +89,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         ServiceGetHostStatusByDynamicGroupReq req
     ) {
         List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
-        List<DynamicGroupInfoDTO> dynamicGroupInfoDTOList = hostService.getDynamicGroupHostList(
+        List<DynamicGroupInfoDTO> dynamicGroupInfoDTOList = hostService.getBizDynamicGroupHostList(
             username,
             appId,
             dynamicGroupIdList
