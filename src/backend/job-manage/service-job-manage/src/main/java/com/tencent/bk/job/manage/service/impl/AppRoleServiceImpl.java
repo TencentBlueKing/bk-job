@@ -36,6 +36,7 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -51,7 +52,7 @@ public class AppRoleServiceImpl implements AppRoleService {
     private final ApplicationService applicationService;
 
     @Autowired
-    public AppRoleServiceImpl(ApplicationService applicationService) {
+    public AppRoleServiceImpl(@Lazy ApplicationService applicationService) {
         this.applicationService = applicationService;
     }
 
