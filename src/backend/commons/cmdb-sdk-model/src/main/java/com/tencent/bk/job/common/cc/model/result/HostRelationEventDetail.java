@@ -35,7 +35,7 @@ public class HostRelationEventDetail {
     private Long hostId;
 
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
 
     @JsonProperty("bk_set_id")
     private Long setId;

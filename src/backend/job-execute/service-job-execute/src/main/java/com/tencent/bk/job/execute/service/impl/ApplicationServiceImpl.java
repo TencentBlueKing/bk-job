@@ -24,11 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.cc.config.CmdbConfig;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.ApplicationResourceClient;
@@ -36,7 +32,6 @@ import com.tencent.bk.job.execute.client.SyncResourceClient;
 import com.tencent.bk.job.execute.model.db.CacheAppDO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,32 +50,20 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final ApplicationResourceClient applicationResourceClient;
     private final SyncResourceClient syncResourceClient;
     private final RedisTemplate redisTemplate;
-    private final BizCmdbClient ccClient;
 
     @Autowired
     public ApplicationServiceImpl(ApplicationResourceClient applicationResourceClient,
                                   @Qualifier("jsonRedisTemplate") RedisTemplate redisTemplate,
-                                  EsbConfig esbConfig,
-                                  CmdbConfig cmdbConfig,
-                                  QueryAgentStatusClient queryAgentStatusClient,
-                                  SyncResourceClient syncResourceClient,
-                                  MeterRegistry meterRegistry) {
+                                  SyncResourceClient syncResourceClient) {
         this.applicationResourceClient = applicationResourceClient;
         this.redisTemplate = redisTemplate;
-        this.ccClient = new BizCmdbClient(esbConfig, cmdbConfig, queryAgentStatusClient, meterRegistry);
         this.syncResourceClient = syncResourceClient;
     }
 
     @Override
     public ApplicationDTO getAppById(long appId) {
         ServiceApplicationDTO returnApp = applicationResourceClient.queryAppById(appId);
-        if (returnApp == null) {
-            ApplicationDTO appInfo = ccClient.getAppById(appId, null, null);
-            log.info("Query app from cmdb, appId:{}, app:{}", appId, appInfo);
-            return appInfo;
-        } else {
-            return convertToApplicationInfoDTO(returnApp);
-        }
+        return convertToApplicationInfoDTO(returnApp);
     }
 
     private ApplicationDTO convertToApplicationInfoDTO(ServiceApplicationDTO app) {

@@ -864,7 +864,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 hostTopoDTOList.parallelStream().map(HostTopoDTO::getModuleId).collect(Collectors.toList());
             List<Long> moduleTypes = moduleIds.parallelStream().map(it -> 1L).collect(Collectors.toList());
             if (!hostTopoDTOList.isEmpty()) {
-                hostInfoDTO.setAppId(hostTopoDTOList.get(0).getAppId());
+                hostInfoDTO.setAppId(hostTopoDTOList.get(0).getBizId());
             }
             hostInfoDTO.setSetId(setIds);
             hostInfoDTO.setModuleId(moduleIds);

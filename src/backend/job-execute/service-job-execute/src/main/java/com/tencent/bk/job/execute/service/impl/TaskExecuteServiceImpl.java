@@ -74,11 +74,9 @@ import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInfo;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
-import com.tencent.bk.job.execute.service.ServerService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -144,13 +142,11 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 @Service
 @Slf4j
 public class TaskExecuteServiceImpl implements TaskExecuteService {
-    private final ApplicationService applicationService;
     private final AccountService accountService;
     private final ScriptService scriptService;
     private final TaskExecuteControlMsgSender controlMsgSender;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final ServerService serverService;
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final TaskOperationLogService taskOperationLogService;
     private final TaskInstanceService taskInstanceService;
@@ -165,13 +161,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
     @Autowired
-    public TaskExecuteServiceImpl(ApplicationService applicationService,
-                                  AccountService accountService,
+    public TaskExecuteServiceImpl(AccountService accountService,
                                   TaskInstanceService taskInstanceService,
                                   TaskExecuteControlMsgSender controlMsgSender,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
-                                  ServerService serverService,
                                   QueryAgentStatusClient queryAgentStatusClient,
                                   TaskOperationLogService taskOperationLogService,
                                   ScriptService scriptService,
@@ -182,13 +176,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   DangerousScriptCheckService dangerousScriptCheckService,
                                   JobExecuteConfig jobExecuteConfig,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
-        this.applicationService = applicationService;
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.controlMsgSender = controlMsgSender;
         this.taskPlanService = taskPlanService;
         this.taskInstanceVariableService = taskInstanceVariableService;
-        this.serverService = serverService;
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.taskOperationLogService = taskOperationLogService;
         this.scriptService = scriptService;
@@ -1716,7 +1708,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         List<DynamicServerGroupDTO> dynamicServerGroups = servers.getDynamicServerGroups();
         if (dynamicServerGroups != null) {
             for (DynamicServerGroupDTO group : dynamicServerGroups) {
-                List<IpDTO> groupIps = serverService.getIpByDynamicGroupId(appId, group.getGroupId());
+                List<IpDTO> groupIps = hostService.getIpByDynamicGroupId(appId, group.getGroupId());
                 if (CollectionUtils.isEmpty(groupIps)) {
                     servers.addInvalidDynamicServerGroup(group);
                 } else {
@@ -1729,7 +1721,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (topoNodes != null && !topoNodes.isEmpty()) {
             if (topoNodes.size() < 10) {
                 for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
-                    List<IpDTO> topoIps = serverService.getIpByTopoNodes(appId,
+                    List<IpDTO> topoIps = hostService.getIpByTopoNodes(appId,
                         Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
                     if (CollectionUtils.isEmpty(topoIps)) {
                         servers.addInvalidTopoNodeDTO(topoNode);
@@ -2121,7 +2113,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         @Override
         public Pair<DynamicServerTopoNodeDTO, List<IpDTO>> call() {
             try {
-                List<IpDTO> topoIps = serverService.getIpByTopoNodes(appId,
+                List<IpDTO> topoIps = hostService.getIpByTopoNodes(appId,
                     Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
                 return new ImmutablePair<>(topoNode, topoIps);
             } catch (Throwable e) {

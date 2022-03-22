@@ -34,7 +34,7 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class GetHostByIpInput {
-    public long appId;
+    public long bizId;
     public String owner;
     public String uin;
     public List<String> ipList;

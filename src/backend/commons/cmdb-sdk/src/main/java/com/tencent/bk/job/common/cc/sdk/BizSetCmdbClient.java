@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * ESB-CC接口调用客户端
+ * cmdb API Client - 业务集相关
  */
 @Slf4j
 public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmdbClient {

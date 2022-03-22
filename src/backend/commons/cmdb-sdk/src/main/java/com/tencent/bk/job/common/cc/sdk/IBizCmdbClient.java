@@ -37,9 +37,7 @@ import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.FindHostBizRelationsResult;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ListBizHostsTopoResult;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -49,122 +47,103 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @since 11/11/2019 12:06
+ * cmdb API Client - 业务相关
  */
 public interface IBizCmdbClient {
     /**
-     * 获取topo
+     * 获取业务topo
      *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @return
-     * @throws ServiceException
+     * @param bizId cmdb业务ID
      */
-    InstanceTopologyDTO getBizInstTopology(long appId, String owner, String uin) throws ServiceException;
+    InstanceTopologyDTO getBizInstTopology(long bizId);
 
     /**
      * 获取业务完整拓扑树（含空闲机/故障机模块）
      *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @return
-     * @throws ServiceException
+     * @param bizId cmdb业务ID
      */
-    InstanceTopologyDTO getBizInstCompleteTopology(long appId, String owner, String uin) throws ServiceException;
+    InstanceTopologyDTO getBizInstCompleteTopology(long bizId);
 
     /**
-     * 获取业务内部模块
+     * 查询业务内置模块（空闲机/故障机等）
      *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @return
-     * @throws ServiceException
+     * @param bizId cmdb业务ID
+     * @return 只有一个Set，根节点为Set的Topo树
      */
-    InstanceTopologyDTO getBizInternalModule(long appId, String owner, String uin) throws ServiceException;
+    InstanceTopologyDTO getBizInternalModule(long bizId);
 
     /**
      * 根据topo实例获取hosts
      *
+     * @param bizId      cmdb业务ID
      * @param ccInstList topo节点列表
      * @return 主机
      */
-    List<ApplicationHostDTO> getHosts(long appId, List<CcInstanceDTO> ccInstList);
+    List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList);
 
     /**
      * 根据topo实例获取hosts
      *
+     * @param bizId      cmdb业务ID
      * @param ccInstList topo节点列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> getHostsByTopology(long appId, List<CcInstanceDTO> ccInstList);
+    List<ApplicationHostDTO> getHostsByTopology(long bizId, List<CcInstanceDTO> ccInstList);
 
     /**
      * 根据module获取hosts
      *
-     * @param uin
-     * @param owner
-     * @return
+     * @param bizId        cmdb业务ID
+     * @param moduleIdList 模块ID列表
+     * @return 主机
      */
-    List<ApplicationHostDTO> findHostByModule(long appId, List<Long> moduleIdList, String uin, String owner);
-
-    /**
-     * 获取业务下的主机与拓扑
-     */
-    List<ListBizHostsTopoResult.HostInfo> listBizHostsTopo(long appId, String uin, String owner);
+    List<ApplicationHostDTO> findHostByModule(long bizId, List<Long> moduleIdList);
 
     /**
      * 从CC获取所有业务信息
      *
-     * @return
+     * @return 业务
      */
     List<ApplicationDTO> getAllBizApps();
 
     /**
-     * 获取用户的业务
+     * 获取业务详情
      *
-     * @param uin
-     * @param owner
-     * @return
-     * @throws ServiceException
+     * @param bizId cmdb业务ID
+     * @return 业务
      */
-    List<ApplicationDTO> getAppByUser(String uin, String owner) throws ServiceException;
+    ApplicationDTO getBizAppById(long bizId);
 
     /**
-     * 获取业务详细信息
+     * 查询业务下的动态分组
      *
-     * @param appId
-     * @param uin
-     * @param owner
-     * @return
+     * @param bizId cmdb业务ID
+     * @return 动态分组
      */
-    ApplicationDTO getAppById(long appId, String owner, String uin);
+    List<CcGroupDTO> getCustomGroupList(long bizId);
 
     /**
-     * 查询自定义分组
+     * 获取自定义分组下面的主机
      *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @return
+     * @param bizId   cmdb业务ID
+     * @param groupId 动态分组ID
+     * @return 自定义分组下的主机
      */
-    List<CcGroupDTO> getCustomGroupList(long appId, String owner, String uin);
+    List<CcGroupHostPropDTO> getCustomGroupIp(long bizId, String groupId);
 
     /**
-     * 获取自定义分组下面的IP
+     * 获取云区域
      *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @param groupId
-     * @return
+     * @return 云区域列表
      */
-    List<CcGroupHostPropDTO> getCustomGroupIp(long appId, String owner, String uin, String groupId);
-
     List<CcCloudAreaInfoDTO> getCloudAreaList();
 
+    /**
+     * 根据IP查询主机
+     *
+     * @param input 查询条件
+     * @return 主机
+     */
     List<ApplicationHostDTO> getHostByIp(GetHostByIpInput input);
 
     /**
@@ -176,46 +155,36 @@ public interface IBizCmdbClient {
      */
     ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip);
 
-    List<ApplicationHostDTO> listAppHosts(long appId, Collection<IpDTO> ipList);
+    /**
+     * 批量获取业务下的主机列表
+     *
+     * @param bizId  cmdb业务ID
+     * @param ipList 主机IP列表
+     * @return 主机
+     */
+    List<ApplicationHostDTO> listBizHosts(long bizId, Collection<IpDTO> ipList);
 
     List<FindHostBizRelationsResult> findHostBizRelations(String uin, List<Long> hostIdList);
-
-    /**
-     * 根据IP获取主机信息
-     * 注意：拿不到app_id属性，统一设为-1L，需调其他接口获取
-     *
-     * @param uin
-     * @param ipList
-     * @return
-     */
-    List<ApplicationHostDTO> getHostByIpWithoutAppId(String uin, List<String> ipList);
 
     /**
      * 获取CMDB对象属性信息列表
      *
      * @param objId cmdb对象ID
-     * @return
-     * @throws ServiceException
      */
-    List<CcObjAttributeDTO> getObjAttributeList(String objId) throws ServiceException;
+    List<CcObjAttributeDTO> getObjAttributeList(String objId);
 
     /**
      * 根据cmdb业务角色获取人员
      *
      * @param appId 业务ID
      * @param role  业务角色
-     * @return
-     * @throws ServiceException
      */
-    Set<String> getAppUsersByRole(Long appId, String role) throws ServiceException;
+    Set<String> getAppUsersByRole(Long appId, String role);
 
     /**
      * 获取CMDB业务角色列表
-     *
-     * @return
-     * @throws ServiceException
      */
-    List<AppRoleDTO> getAppRoleList() throws ServiceException;
+    List<AppRoleDTO> getAppRoleList();
 
     /**
      * 批量获取topo节点层级
@@ -228,22 +197,16 @@ public interface IBizCmdbClient {
 
     /**
      * 监听CMDB主机事件
-     *
-     * @return
      */
     ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor);
 
     /**
      * 监听CMDB主机拓扑关系事件
-     *
-     * @return
      */
     ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor);
 
     /**
      * 监听CMDB业务事件
-     *
-     * @return
      */
     ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor);
 }

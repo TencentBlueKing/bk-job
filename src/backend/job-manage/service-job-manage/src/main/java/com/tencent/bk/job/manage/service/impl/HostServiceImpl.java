@@ -360,7 +360,7 @@ public class HostServiceImpl implements HostService {
                 topologyHelper.getAppSetSubAppIds(appInfo)));
             return ccTopologyNodeVO;
         }
-        InstanceTopologyDTO instanceTopology = topologyHelper.getTopologyTreeByApplication(username, appInfo);
+        InstanceTopologyDTO instanceTopology = topologyHelper.getTopologyTreeByApplication(appInfo);
         return TopologyHelper.convertToCcTopologyTree(instanceTopology);
     }
 
@@ -388,9 +388,7 @@ public class HostServiceImpl implements HostService {
         // 查业务拓扑树
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
         InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
-            Long.parseLong(appResourceScope.getId()),
-            appInfo.getBkSupplierAccount(),
-            username
+            Long.parseLong(appResourceScope.getId())
         );
         List<AppTopologyTreeNode> nodeList = ConcurrencyUtil.getResultWithThreads(treeNodeList, 5, treeNode -> {
             CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
@@ -425,15 +423,9 @@ public class HostServiceImpl implements HostService {
     public List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
                                                              Long bizId,
                                                              List<InstanceTopologyDTO> nodeList) {
-        // 查出业务
-        ApplicationDTO appInfo = applicationService.getAppByScope(
-            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
-        );
         // 查业务拓扑树
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
-        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
-            bizId, appInfo.getBkSupplierAccount(), username
-        );
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
         // 搜索路径
         return TopologyHelper.findTopoPaths(appTopologyTree, nodeList);
     }
@@ -458,15 +450,9 @@ public class HostServiceImpl implements HostService {
         if (treeNodeList == null || treeNodeList.isEmpty()) {
             return nodeHostInfoList;
         }
-        // 查出业务
-        ApplicationDTO appInfo = applicationService.getAppByScope(
-            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
-        );
         // 查业务拓扑树
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
-        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
-            bizId, appInfo.getBkSupplierAccount(), username
-        );
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
         final List<String> allIpWithCloudIdList = Collections.synchronizedList(new ArrayList<>());
         nodeHostInfoList = ConcurrencyUtil.getResultWithThreads(treeNodeList, 5, treeNode -> {
             CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
@@ -522,13 +508,11 @@ public class HostServiceImpl implements HostService {
         Map<Long, List<String>> appId2GroupIdMap = new HashMap<>();
         if (ResourceScopeTypeEnum.BIZ_SET == appResourceScope.getType()) {
             for (long subAppId : applicationInfo.getSubAppIds()) {
-                getCustomGroupListByAppId(subAppId, applicationInfo, username, ccGroupInfoMap, appId2GroupIdMap);
+                getCustomGroupListByAppId(subAppId, ccGroupInfoMap, appId2GroupIdMap);
             }
         } else {
             getCustomGroupListByAppId(
                 Long.parseLong(appResourceScope.getId()),
-                applicationInfo,
-                username,
                 ccGroupInfoMap,
                 appId2GroupIdMap
             );
@@ -549,10 +533,10 @@ public class HostServiceImpl implements HostService {
         Map<Long, List<String>> appId2GroupIdMap = new HashMap<>();
         if (ResourceScopeTypeEnum.BIZ_SET == applicationInfo.getScope().getType()) {
             for (long subAppId : applicationInfo.getSubAppIds()) {
-                getCustomGroupListByAppId(subAppId, applicationInfo, username, ccGroupInfoMap, appId2GroupIdMap);
+                getCustomGroupListByAppId(subAppId, ccGroupInfoMap, appId2GroupIdMap);
             }
         } else {
-            getCustomGroupListByAppId(appId, applicationInfo, username, ccGroupInfoMap, appId2GroupIdMap);
+            getCustomGroupListByAppId(appId, ccGroupInfoMap, appId2GroupIdMap);
         }
 
         for (Map.Entry<Long, List<String>> entry : appId2GroupIdMap.entrySet()) {
@@ -563,7 +547,7 @@ public class HostServiceImpl implements HostService {
                     continue;
                 }
                 List<CcGroupHostPropDTO> ccGroupHostProps = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
-                    .getCustomGroupIp(groupAppId, applicationInfo.getBkSupplierAccount(), maintainer, customerGroupId);
+                    .getCustomGroupIp(groupAppId, customerGroupId);
                 List<String> ipList = new ArrayList<>();
                 for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
                     if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
@@ -1078,17 +1062,17 @@ public class HostServiceImpl implements HostService {
         return hostInfoList;
     }
 
-    private void getCustomGroupListByAppId(Long appId, ApplicationDTO applicationInfo, String userName,
+    private void getCustomGroupListByAppId(Long bizId,
                                            Map<String, DynamicGroupInfoDTO> ccGroupInfoList,
-                                           Map<Long, List<String>> appId2GroupIdMap) {
+                                           Map<Long, List<String>> bizId2GroupIdMap) {
         List<String> groupIdList = new ArrayList<>();
         List<CcGroupDTO> ccGroupList = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
-            .getCustomGroupList(appId, applicationInfo.getBkSupplierAccount(), userName);
+            .getCustomGroupList(bizId);
         ccGroupList.forEach(ccGroupDTO -> {
             ccGroupInfoList.put(ccGroupDTO.getId(), ccGroupDTO.toDynamicGroupInfo());
             groupIdList.add(ccGroupDTO.getId());
         });
-        appId2GroupIdMap.put(appId, groupIdList);
+        bizId2GroupIdMap.put(bizId, groupIdList);
     }
 
     private void fillAppInfo(Map<String, DynamicGroupInfoDTO> ccGroupInfoMap) {
@@ -1138,9 +1122,7 @@ public class HostServiceImpl implements HostService {
         List<Long> moduleIds = new ArrayList<>();
         // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
         // 查业务拓扑树
-        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId,
-            appInfo.getBkSupplierAccount(),
-            username);
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
         if (appTopologyTree == null) {
             throw new InternalException("Fail to getBizTopo of bizId " + bizId + " from CMDB",
                 ErrorCode.INTERNAL_ERROR);
@@ -1177,9 +1159,7 @@ public class HostServiceImpl implements HostService {
             // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
             // 查业务拓扑树
             InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
-                Long.parseLong(appInfo.getScope().getId()),
-                appInfo.getBkSupplierAccount(),
-                username
+                Long.parseLong(appInfo.getScope().getId())
             );
             for (AppTopologyTreeNode treeNode : appTopoNodeList) {
                 CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());

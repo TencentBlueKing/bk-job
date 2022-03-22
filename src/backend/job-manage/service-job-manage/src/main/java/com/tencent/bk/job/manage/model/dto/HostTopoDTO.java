@@ -43,20 +43,20 @@ public class HostTopoDTO {
      */
     private Long hostId;
     /**
-     * SetId
+     * 业务ID
      */
-    private Long appId;
+    private Long bizId;
     /**
-     * SetId
+     * 集群ID
      */
     private Long setId;
     /**
-     * ModuleId
+     * 模块ID
      */
     private Long moduleId;
 
     public static HostTopoDTO fromHostRelationEvent(HostRelationEventDetail eventDetail) {
-        return new HostTopoDTO(eventDetail.getHostId(), eventDetail.getAppId(), eventDetail.getSetId(),
+        return new HostTopoDTO(eventDetail.getHostId(), eventDetail.getBizId(), eventDetail.getSetId(),
             eventDetail.getModuleId());
     }
 }
