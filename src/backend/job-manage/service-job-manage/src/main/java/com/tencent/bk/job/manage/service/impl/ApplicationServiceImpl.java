@@ -145,6 +145,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public List<ApplicationDTO> listBizAppsByBizIds(Collection<Long> bizIds) {
+        return applicationDAO.listBizAppsByBizIds(bizIds);
+    }
+
+    @Override
     public List<Long> getBizSetAppIdsForBiz(Long appId) {
         //1.查找包含当前业务的业务集、全业务
         List<Long> fullAppIds = new ArrayList<>();
@@ -152,7 +157,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         List<ApplicationDTO> appSets = applicationDAO.listAppsByType(AppTypeEnum.APP_SET);
         if (appSets != null && !appSets.isEmpty()) {
             appSets.forEach(appSet -> {
-                List<Long> subAppIds = topologyHelper.getAppSetSubAppIds(appSet);
+                List<Long> subAppIds = topologyHelper.getBizSetSubBizIds(appSet);
                 if (subAppIds.contains(appId)) {
                     fullAppIds.add(appSet.getId());
                 }

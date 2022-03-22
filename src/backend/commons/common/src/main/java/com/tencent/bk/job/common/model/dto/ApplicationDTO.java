@@ -131,6 +131,7 @@ public class ApplicationDTO implements Serializable {
      *
      * @return cmdb业务ID
      */
+    @JsonIgnore
     public Long getBizIdIfBizApp() {
         return Long.valueOf(this.scope.getId());
     }
@@ -140,6 +141,7 @@ public class ApplicationDTO implements Serializable {
      *
      * @return cmdb业务集ID
      */
+    @JsonIgnore
     public Long getBizSetIdIfBizSetApp() {
         return Long.valueOf(this.scope.getId());
     }

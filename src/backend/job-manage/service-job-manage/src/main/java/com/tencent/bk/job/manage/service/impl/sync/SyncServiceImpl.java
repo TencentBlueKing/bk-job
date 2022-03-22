@@ -425,7 +425,9 @@ public class SyncServiceImpl implements SyncService {
                     //删除已移除业务的主机，部分测试主机放在业务集下，不删除
                     if (!localNormalApps.isEmpty()) {
                         applicationHostDAO.deleteBizHostInfoNotInBizs(dslContext,
-                            localApps.stream().map(ApplicationDTO::getId).collect(Collectors.toSet()));
+                            localApps.stream().map(
+                                app -> Long.parseLong(app.getScope().getId())
+                            ).collect(Collectors.toSet()));
                     }
                     Long cmdbInterfaceTimeConsuming = 0L;
                     Long writeToDBTimeConsuming = 0L;

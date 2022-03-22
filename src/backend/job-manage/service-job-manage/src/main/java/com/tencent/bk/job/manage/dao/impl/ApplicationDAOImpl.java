@@ -52,6 +52,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -177,20 +178,19 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<Long> getNormalAppIdsByOptDeptId(Long optDeptId) {
+    public List<Long> getBizIdsByOptDeptId(Long optDeptId) {
         List<Condition> conditions = getBasicNotDeletedConditions();
-        conditions.add(T_APP.APP_TYPE.eq(JooqDataTypeUtil.getByteFromInteger(AppTypeEnum.NORMAL.getValue())));
-        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())));
+        conditions.add(T_APP.BK_SCOPE_TYPE.eq(ResourceScopeTypeEnum.BIZ.getValue()));
         if (optDeptId == null) {
             conditions.add(T_APP.BK_OPERATE_DEPT_ID.isNull());
         } else {
             conditions.add(T_APP.BK_OPERATE_DEPT_ID.eq(optDeptId));
         }
-        val records = context.select(T_APP.APP_ID).from(T_APP).where(conditions).fetch();
+        val records = context.select(T_APP.BK_SCOPE_ID).from(T_APP).where(conditions).fetch();
         if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
-            return records.map(it -> it.component1().longValue());
+            return records.map(it -> Long.parseLong(it.component1()));
         }
     }
 
@@ -227,6 +227,17 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_ID.in(appIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listBizAppsByBizIds(Collection<Long> bizIdList) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.eq(ResourceScopeTypeEnum.BIZ.getValue()));
+        conditions.add(
+            T_APP.BK_SCOPE_ID.in(bizIdList.parallelStream().map(Object::toString)
+                .collect(Collectors.toList()))
+        );
         return listAppsByConditions(conditions);
     }
 

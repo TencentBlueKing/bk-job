@@ -25,12 +25,12 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
@@ -57,14 +57,8 @@ import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -121,10 +115,10 @@ public class IndexServiceImpl implements IndexService {
 
     @Override
     public AgentStatistics getAgentStatistics(String username, Long appId) {
-        Long normalNum = applicationHostDAO.countHostInfoBySearchContents(getQueryConditionAppIds(appId),
+        Long normalNum = applicationHostDAO.countHostInfoBySearchContents(getQueryConditionBizIds(appId),
             null, null,
             null, 1);
-        Long abnormalNum = applicationHostDAO.countHostInfoBySearchContents(getQueryConditionAppIds(appId),
+        Long abnormalNum = applicationHostDAO.countHostInfoBySearchContents(getQueryConditionBizIds(appId),
             null, null, null, 0);
         AgentStatistics result = new AgentStatistics(normalNum.intValue(), abnormalNum.intValue());
         return result;
@@ -136,20 +130,21 @@ public class IndexServiceImpl implements IndexService {
      * @param appId
      * @return
      */
-    private List<Long> getQueryConditionAppIds(Long appId) {
+    private List<Long> getQueryConditionBizIds(Long appId) {
         // 查出业务
         ApplicationDTO appInfo = applicationDAO.getCacheAppById(appId);
-        List<Long> appIds = null;
-        if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
-            appIds = Collections.singletonList(appId);
-        } else if (appInfo.getAppType() == AppTypeEnum.APP_SET) {
+        List<Long> bizIds = null;
+        if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+            bizIds = Collections.singletonList(Long.valueOf(appInfo.getScope().getId()));
+        } else if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
             // 业务集：仅根据业务查主机
             // 查出对应的所有普通业务
-            appIds = topologyHelper.getAppSetSubAppIds(appInfo);
+            bizIds = topologyHelper.getBizSetSubBizIds(appInfo);
         } else if (appInfo.getAppType() == AppTypeEnum.ALL_APP) {
+            // 兼容发布过程中子业务字段未同步完成时的查询
             // 全业务：仅根据具体的条件查主机
         }
-        return appIds;
+        return bizIds;
     }
 
     // DB分页
@@ -161,51 +156,14 @@ public class IndexServiceImpl implements IndexService {
         start = pagePair.getLeft();
         pageSize = pagePair.getRight();
         List<Long> moduleIds = null;
-        List<Long> appIds = getQueryConditionAppIds(appId);
+        List<Long> bizIds = getQueryConditionBizIds(appId);
         List<HostInfoVO> hostInfoVOList;
         val hosts = applicationHostDAO.listHostInfoBySearchContents(
-            appIds, null, null, null, status, start, pageSize);
+            bizIds, null, null, null, status, start, pageSize);
         Long count = applicationHostDAO.countHostInfoBySearchContents(
-            appIds, null, null, null, status);
+            bizIds, null, null, null, status);
         hostInfoVOList = hosts.parallelStream().map(TopologyHelper::convertToHostInfoVO).collect(Collectors.toList());
         return new PageData<>(start.intValue(), pageSize.intValue(), count, hostInfoVOList);
-    }
-
-    // 内存分页
-    public PageData<HostInfoVO> listHostsByAgentStatusBak(String username, Long appId, Integer status, Integer start,
-                                                          Integer pageSize) {
-        if (start == null || start <= 0) {
-            start = 0;
-        }
-        List<HostInfoVO> hostInfoVOList = new ArrayList<>();
-        val hosts = applicationHostDAO.listHostInfoByBizId(appId);
-        //建立反映射Map
-        Map<String, ApplicationHostDTO> map = new HashMap<>();
-        Set<String> ipSet = new HashSet<>();
-        for (ApplicationHostDTO host : hosts) {
-            String ipWithCloudArea = host.getCloudAreaId() + ":" + host.getIp();
-            map.put(ipWithCloudArea, host);
-            ipSet.add(ipWithCloudArea);
-        }
-        Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-            queryAgentStatusClient.batchGetAgentStatus(new ArrayList<>(ipSet));
-        for (Map.Entry<String, QueryAgentStatusClient.AgentStatus> entry : agentStatusMap.entrySet()) {
-            String ip = entry.getKey();
-            QueryAgentStatusClient.AgentStatus agentStatus = entry.getValue();
-            ApplicationHostDTO host = map.get(ip);
-            if (agentStatus.status == status) {
-                host.setGseAgentAlive(status == 1);
-                hostInfoVOList.add(TopologyHelper.convertToHostInfoVO(host));
-            }
-        }
-        hostInfoVOList.sort(Comparator.comparing(HostInfoVO::getIp));
-        int size = hostInfoVOList.size();
-        if (pageSize != null && pageSize > 0 && size > 0) {
-            int end = start + pageSize;
-            end = end <= size ? end : size;
-            hostInfoVOList = hostInfoVOList.subList(start, end);
-        }
-        return new PageData<>(start, pageSize, (long) size, hostInfoVOList);
     }
 
     @Override
