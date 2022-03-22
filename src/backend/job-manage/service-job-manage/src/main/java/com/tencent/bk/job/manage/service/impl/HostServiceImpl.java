@@ -132,7 +132,7 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public List<ApplicationHostDTO> getHostsByAppId(Long appId) {
-        return applicationHostDAO.listHostInfoByAppId(appId);
+        return applicationHostDAO.listHostInfoByBizId(appId);
     }
 
     private boolean insertOrUpdateOneAppHost(Long appId, ApplicationHostDTO infoDTO) {
@@ -148,7 +148,7 @@ public class HostServiceImpl implements HostService {
                     applicationHostDAO.getHostById(infoDTO.getHostId())), e);
                 try {
                     // 插入失败了就应当更新，以后来的数据为准
-                    applicationHostDAO.updateAppHostInfoByHostId(dslContext, appId, infoDTO);
+                    applicationHostDAO.updateBizHostInfoByHostId(dslContext, appId, infoDTO);
                 } catch (Throwable t) {
                     log.error(String.format("update after insert fail:appId=%d,hostInfo=%s", appId, infoDTO), t);
                     return false;
@@ -165,7 +165,7 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<Long> insertHostsToApp(Long appId, List<ApplicationHostDTO> insertList) {
+    public List<Long> insertHostsToBiz(Long bizId, List<ApplicationHostDTO> insertList) {
         StopWatch watch = new StopWatch();
         // 插入主机
         watch.start("insertAppHostInfo");
@@ -190,7 +190,7 @@ public class HostServiceImpl implements HostService {
             }
             //批量插入失败，尝试逐条插入
             for (ApplicationHostDTO infoDTO : insertList) {
-                if (!insertOrUpdateOneAppHost(appId, infoDTO)) {
+                if (!insertOrUpdateOneAppHost(bizId, infoDTO)) {
                     insertFailHostIds.add(infoDTO.getHostId());
                 }
             }
@@ -200,17 +200,17 @@ public class HostServiceImpl implements HostService {
             watch.start("log insertAppHostInfo");
             if (!insertFailHostIds.isEmpty()) {
                 log.warn(String.format("appId=%s,insertFailHostIds.size=%d,insertFailHostIds=%s",
-                    appId, insertFailHostIds.size(), String.join(",",
+                    bizId, insertFailHostIds.size(), String.join(",",
                         insertFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
             }
             watch.stop();
         }
-        log.debug("Performance:insertHostsToApp:appId={},{}", appId, watch.prettyPrint());
+        log.debug("Performance:insertHostsToApp:appId={},{}", bizId, watch.prettyPrint());
         return insertFailHostIds;
     }
 
     @Override
-    public List<Long> updateHostsInApp(Long appId, List<ApplicationHostDTO> hostInfoList) {
+    public List<Long> updateHostsInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList) {
         StopWatch watch = new StopWatch();
         watch.start("updateAppHostInfo");
         // 更新主机
@@ -223,7 +223,7 @@ public class HostServiceImpl implements HostService {
         try {
             // 尝试批量更新
             if (!hostInfoList.isEmpty()) {
-                applicationHostDAO.batchUpdateAppHostInfoByHostId(dslContext, hostInfoList);
+                applicationHostDAO.batchUpdateBizHostInfoByHostId(dslContext, hostInfoList);
             }
             batchUpdated = true;
         } catch (Throwable throwable) {
@@ -241,14 +241,14 @@ public class HostServiceImpl implements HostService {
             for (ApplicationHostDTO hostInfoDTO : hostInfoList) {
                 try {
                     if (!applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO)) {
-                        applicationHostDAO.updateAppHostInfoByHostId(dslContext, hostInfoDTO.getAppId(), hostInfoDTO);
+                        applicationHostDAO.updateBizHostInfoByHostId(dslContext, hostInfoDTO.getBizId(), hostInfoDTO);
                         updateCount += 1;
                         updateHostIds.add(hostInfoDTO.getHostId());
                     } else {
                         notChangeCount += 1;
                     }
                 } catch (Throwable t) {
-                    log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", appId, hostInfoDTO), t);
+                    log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", bizId, hostInfoDTO), t);
                     errorCount += 1;
                     errorHostIds.add(hostInfoDTO.getHostId());
                 }
@@ -259,15 +259,15 @@ public class HostServiceImpl implements HostService {
             watch.start("log updateAppHostInfo");
             log.info("Update host of appId={},errorCount={}," +
                     "updateCount={},notChangeCount={},errorHostIds={},updateHostIds={}",
-                appId, errorCount, updateCount, notChangeCount, errorHostIds, updateHostIds);
+                bizId, errorCount, updateCount, notChangeCount, errorHostIds, updateHostIds);
             watch.stop();
         }
-        log.debug("Performance:updateHostsInApp:appId={},{}", appId, watch.prettyPrint());
+        log.debug("Performance:updateHostsInApp:appId={},{}", bizId, watch.prettyPrint());
         return errorHostIds;
     }
 
     @Override
-    public List<Long> deleteHostsFromApp(Long appId, List<ApplicationHostDTO> deleteList) {
+    public List<Long> deleteHostsFromBiz(Long bizId, List<ApplicationHostDTO> deleteList) {
         StopWatch watch = new StopWatch();
         // 删除主机
         watch.start("deleteAppHostInfo");
@@ -276,7 +276,7 @@ public class HostServiceImpl implements HostService {
         try {
             // 尝试批量删除
             if (!deleteList.isEmpty()) {
-                applicationHostDAO.batchDeleteAppHostInfoById(dslContext, appId,
+                applicationHostDAO.batchDeleteBizHostInfoById(dslContext, bizId,
                     deleteList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList()));
             }
             batchDeleted = true;
@@ -285,9 +285,9 @@ public class HostServiceImpl implements HostService {
             // 批量删除失败，尝试逐条删除
             for (ApplicationHostDTO ApplicationHostDTO : deleteList) {
                 try {
-                    applicationHostDAO.deleteAppHostInfoById(dslContext, appId, ApplicationHostDTO.getHostId());
+                    applicationHostDAO.deleteBizHostInfoById(dslContext, bizId, ApplicationHostDTO.getHostId());
                 } catch (Throwable t) {
-                    log.error("deleteHost fail:appId={},hostInfo={}", appId,
+                    log.error("deleteHost fail:appId={},hostInfo={}", bizId,
                         ApplicationHostDTO, t);
                     deleteFailHostIds.add(ApplicationHostDTO.getHostId());
                 }
@@ -298,12 +298,12 @@ public class HostServiceImpl implements HostService {
             watch.start("log deleteAppHostInfo");
             if (!deleteFailHostIds.isEmpty()) {
                 log.warn(String.format("appId=%s,deleteFailHostIds.size=%d,deleteFailHostIds=%s",
-                    appId, deleteFailHostIds.size(), String.join(",",
+                    bizId, deleteFailHostIds.size(), String.join(",",
                         deleteFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
             }
             watch.stop();
         }
-        log.debug("Performance:deleteHostsFromApp:appId={},{}", appId, watch.prettyPrint());
+        log.debug("Performance:deleteHostsFromApp:appId={},{}", bizId, watch.prettyPrint());
         return deleteFailHostIds;
     }
 
@@ -356,7 +356,7 @@ public class HostServiceImpl implements HostService {
             ccTopologyNodeVO.setObjectId("业务");
             ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
             ccTopologyNodeVO.setInstanceName(appInfo.getName());
-            ccTopologyNodeVO.setCount((int) applicationHostDAO.countHostsByAppIds(dslContext,
+            ccTopologyNodeVO.setCount((int) applicationHostDAO.countHostsByBizIds(dslContext,
                 topologyHelper.getAppSetSubAppIds(appInfo)));
             return ccTopologyNodeVO;
         }
@@ -591,11 +591,11 @@ public class HostServiceImpl implements HostService {
         watch.stop();
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
             watch.start("fillHostInfo");
-            fillHostInfo(username, appResourceScope.getAppId(), topologyTree, true);
+            fillHostInfo(username, Long.valueOf(appResourceScope.getId()), topologyTree, true);
             watch.stop();
         } else {
             topologyTree.setIpListStatus(
-                listHostByBizTopologyNodes(
+                listHostByAppTopologyNodes(
                     username, appResourceScope.getAppId(), Collections.singletonList(
                         new AppTopologyTreeNode(
                             "biz",
@@ -664,7 +664,7 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    public void fillHostInfo(String username, Long appId, CcTopologyNodeVO topologyTree, boolean updateAgentStatus) {
+    public void fillHostInfo(String username, Long bizId, CcTopologyNodeVO topologyTree, boolean updateAgentStatus) {
         if (topologyTree == null) {
             return;
         }
@@ -681,7 +681,7 @@ public class HostServiceImpl implements HostService {
         watch.stop();
         watch.start("getHosts of Module:" + topologyTree.getInstanceId());
         // 从DB拿主机
-        List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByAppId(appId);
+        List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByBizId(bizId);
         log.info("find {} hosts from DB", dbHosts.size());
         List<ApplicationHostDTO> hosts = dbHosts;
         watch.stop();
@@ -760,7 +760,7 @@ public class HostServiceImpl implements HostService {
         watch.stop();
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
             watch.start("fillHostInfo");
-            fillHostInfo(username, appResourceScope.getAppId(), topologyTree, false);
+            fillHostInfo(username, Long.valueOf(appResourceScope.getId()), topologyTree, false);
             watch.stop();
             watch.start("clearHosts");
             clearHosts(topologyTree);
@@ -790,7 +790,7 @@ public class HostServiceImpl implements HostService {
     public PageData<String> listIPByBizTopologyNodes(String username,
                                                      AppResourceScope appResourceScope,
                                                      ListHostByBizTopologyNodesReq req) {
-        PageData<HostInfoVO> hostInfoVOResult = listHostByBizTopologyNodes(username, appResourceScope, req);
+        PageData<HostInfoVO> hostInfoVOResult = listHostByAppTopologyNodes(username, appResourceScope, req);
         List<String> data =
             hostInfoVOResult.getData().parallelStream()
                 .map(it -> it.getCloudAreaInfo().getId().toString() + ":" + it.getIp())
@@ -825,7 +825,7 @@ public class HostServiceImpl implements HostService {
 
     // DB分页
     @Override
-    public PageData<HostInfoVO> listHostByBizTopologyNodes(String username,
+    public PageData<HostInfoVO> listHostByAppTopologyNodes(String username,
                                                            AppResourceScope appResourceScope,
                                                            ListHostByBizTopologyNodesReq req) {
         StopWatch watch = new StopWatch("listHostByBizTopologyNodes");
@@ -928,7 +928,8 @@ public class HostServiceImpl implements HostService {
         }
         ResourceScopeTypeEnum scopeType = appInfo.getScope().getType();
         if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
-            hostInfoList.addAll(applicationHostDAO.listHostInfoByIps(appId, ipList));
+            hostInfoList.addAll(applicationHostDAO.listHostInfoByIps(
+                Long.valueOf(appInfo.getScope().getId()), ipList));
         } else if (scopeType == ResourceScopeTypeEnum.BIZ_SET) {
             List<Long> subAppIds = topologyHelper.getAppSetSubAppIds(appInfo);
             // 直接使用本地缓存数据
@@ -1103,9 +1104,9 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<HostInfoVO> listHostByBizTopologyNodes(String username, Long appId,
+    public List<HostInfoVO> listHostByAppTopologyNodes(String username, Long appId,
                                                        List<AppTopologyTreeNode> appTopoNodeList) {
-        return listHostByBizTopologyNodes(username, appId, appTopoNodeList, null, null);
+        return listHostByAppTopologyNodes(username, appId, appTopoNodeList, null, null);
     }
 
     private List<Long> getBizModuleIdsByTopoNodes(String username,
@@ -1142,7 +1143,7 @@ public class HostServiceImpl implements HostService {
         return moduleIds;
     }
 
-    private List<HostInfoVO> listHostByBizTopologyNodes(String username,
+    private List<HostInfoVO> listHostByAppTopologyNodes(String username,
                                                         Long appId,
                                                         List<AppTopologyTreeNode> appTopoNodeList,
                                                         Long start,
@@ -1182,7 +1183,7 @@ public class HostServiceImpl implements HostService {
             // 业务集：仅根据业务查主机
             // 查出对应的所有普通业务
             List<Long> allNormalAppIds = topologyHelper.getAppSetSubAppIds(appInfo);
-            hosts = applicationHostDAO.listHostInfoByNormalAppIds(allNormalAppIds, start, limit);
+            hosts = applicationHostDAO.listHostInfoByBizIds(allNormalAppIds, start, limit);
         }
 
         // 查出节点下主机与Agent状态
@@ -1236,7 +1237,7 @@ public class HostServiceImpl implements HostService {
         List<HostInfoVO> hostsByIp = getHostsByIp(username, appId, null, agentStatisticsReq.getIpList());
         log.debug("hostsByIp={}", hostsByIp);
         Set<HostInfoVO> allHostsSet = new HashSet<>(hostsByIp);
-        List<HostInfoVO> hostsByNodes = listHostByBizTopologyNodes(username, appId,
+        List<HostInfoVO> hostsByNodes = listHostByAppTopologyNodes(username, appId,
             agentStatisticsReq.getAppTopoNodeList());
         log.debug("hostsByNodes={}", hostsByNodes);
         allHostsSet.addAll(hostsByNodes);
@@ -1302,7 +1303,7 @@ public class HostServiceImpl implements HostService {
                     IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
                     notExistHosts.remove(hostIp);
                     hostCache.addOrUpdateHost(appHost);
-                    if (!includeAppIds.contains(appHost.getAppId())) {
+                    if (!includeAppIds.contains(appHost.getBizId())) {
                         hostsNotInApp.add(hostIp);
                     }
                 }

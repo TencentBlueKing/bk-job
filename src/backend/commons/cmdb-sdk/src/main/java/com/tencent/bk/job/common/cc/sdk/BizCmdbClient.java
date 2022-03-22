@@ -642,7 +642,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         }
         //包装为ApplicationHostInfoDTO
         ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
-        applicationHostDTO.setAppId(bizId);
+        applicationHostDTO.setBizId(bizId);
         applicationHostDTO.setDisplayIp(multiIp);
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         applicationHostDTO.setHostId(host.getHostId());

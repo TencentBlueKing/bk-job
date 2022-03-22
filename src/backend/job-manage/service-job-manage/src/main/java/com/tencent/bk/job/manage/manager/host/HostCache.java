@@ -87,7 +87,7 @@ public class HostCache {
     public void addOrUpdateHost(ApplicationHostDTO applicationHostDTO) {
         String hostKey = buildHostKey(applicationHostDTO);
         CacheHostDO cacheHost = new CacheHostDO();
-        cacheHost.setAppId(applicationHostDTO.getAppId());
+        cacheHost.setAppId(applicationHostDTO.getBizId());
         cacheHost.setCloudAreaId(applicationHostDTO.getCloudAreaId());
         cacheHost.setIp(applicationHostDTO.getIp());
         cacheHost.setHostId(applicationHostDTO.getHostId());

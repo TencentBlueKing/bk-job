@@ -55,7 +55,7 @@ public class AppHostsSyncer extends Thread {
             try {
                 Long appId = queue.take();
                 ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
-                Pair<Long, Long> timeConsumingPair = hostSyncService.syncAppHostsAtOnce(applicationDTO);
+                Pair<Long, Long> timeConsumingPair = hostSyncService.syncBizHostsAtOnce(applicationDTO);
                 Long cmdbInterfaceTimeConsuming = timeConsumingPair.getFirst();
                 Long writeToDBTimeConsuming = timeConsumingPair.getSecond();
                 log.info("Sync appHosts of {}:cmdbInterfaceTimeConsuming={}ms,writeToDBTimeConsuming={}ms," +

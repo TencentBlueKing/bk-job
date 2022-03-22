@@ -41,25 +41,25 @@ public interface ApplicationHostDAO {
 
     ApplicationHostDTO getHostById(Long hostId);
 
-    List<ApplicationHostDTO> listHostInfoByIps(Long appId, List<String> ips);
+    List<ApplicationHostDTO> listHostInfoByIps(Long bizId, List<String> ips);
 
-    List<ApplicationHostDTO> listHostInfoByAppId(long appId);
+    List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
 
     List<ApplicationHostDTO> listAllHostInfo(Long start, Long limit);
 
-    List<ApplicationHostDTO> listHostInfoByNormalAppIds(Collection<Long> appIds, Long start, Long limit);
+    List<ApplicationHostDTO> listHostInfoByBizIds(Collection<Long> bizIds, Long start, Long limit);
 
     List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds);
 
-    List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> appIds, Collection<Long> moduleIds,
+    List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                                           Collection<Long> cloudAreaIds,
                                                           List<String> searchContents, Integer agentStatus,
                                                           Long start, Long limit);
 
-    Long countHostInfoBySearchContents(Collection<Long> appIds, Collection<Long> moduleIds,
+    Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                        Collection<Long> cloudAreaIds, List<String> searchContents, Integer agentStatus);
 
-    List<ApplicationHostDTO> listHostInfo(Collection<Long> appIds, Collection<String> ips);
+    List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips);
 
     List<ApplicationHostDTO> listHostInfoBySourceAndIps(long cloudAreaId, Set<String> ips);
 
@@ -76,23 +76,23 @@ public interface ApplicationHostDAO {
 
     boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId);
 
-    int updateAppHostInfoByHostId(DSLContext dslContext, Long appId, ApplicationHostDTO applicationHostDTO);
+    int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId, ApplicationHostDTO applicationHostDTO);
 
-    int batchUpdateAppHostInfoByHostId(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
+    int batchUpdateBizHostInfoByHostId(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
 
-    int deleteAppHostInfoById(DSLContext dslContext, Long appId, Long appHostId);
+    int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long appHostId);
 
-    int batchDeleteAppHostInfoById(DSLContext dslContext, Long appId, List<Long> appHostIdList);
+    int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> appHostIdList);
 
-    int deleteAppHostInfoByAppId(DSLContext dslContext, long appId);
+    int deleteBizHostInfoByBizId(DSLContext dslContext, long bizId);
 
-    int deleteAppHostInfoNotInApps(DSLContext dslContext, Set<Long> notInAppIds);
+    int deleteBizHostInfoNotInBizs(DSLContext dslContext, Set<Long> notInBizIds);
 
-    boolean existsHost(DSLContext dslContext, long appId, String ip);
+    boolean existsHost(DSLContext dslContext, long bizId, String ip);
 
-    ApplicationHostDTO getLatestHost(DSLContext dslContext, long appId, long cloudAreaId, String ip);
+    ApplicationHostDTO getLatestHost(DSLContext dslContext, long bizId, long cloudAreaId, String ip);
 
-    long countHostsByAppIds(DSLContext dslContext, Collection<Long> appIds);
+    long countHostsByBizIds(DSLContext dslContext, Collection<Long> bizIds);
 
     long countAllHosts();
 

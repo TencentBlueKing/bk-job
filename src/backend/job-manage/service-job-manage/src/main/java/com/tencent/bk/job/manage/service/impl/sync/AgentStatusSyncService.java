@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -60,48 +60,48 @@ public class AgentStatusSyncService {
         this.hostService = hostService;
     }
 
-    private Pair<Long, Long> syncAppHostAgentStatus(Long appId) {
+    private Pair<Long, Long> syncBizHostAgentStatus(Long bizId) {
         long gseInterfaceTimeConsuming = 0L;
         long writeToDBTimeConsuming = 0L;
         StopWatch appHostAgentStatusWatch = new StopWatch();
         appHostAgentStatusWatch.start("listHostInfoByAppId");
-        List<ApplicationHostDTO> localAppHosts = applicationHostDAO.listHostInfoByAppId(appId);
+        List<ApplicationHostDTO> localBizAppHosts = applicationHostDAO.listHostInfoByBizId(bizId);
         appHostAgentStatusWatch.stop();
         appHostAgentStatusWatch.start("getAgentStatusByAppInfo from GSE");
         long startTime = System.currentTimeMillis();
-        hostService.fillAgentStatus(localAppHosts);
+        hostService.fillAgentStatus(localBizAppHosts);
         gseInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
         appHostAgentStatusWatch.stop();
         appHostAgentStatusWatch.start("updateHosts to local DB");
         startTime = System.currentTimeMillis();
-        hostService.updateHostsInApp(appId, localAppHosts);
+        hostService.updateHostsInBiz(bizId, localBizAppHosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
         appHostAgentStatusWatch.stop();
-        log.debug("Performance:syncAppHostAgentStatus:appId={},{}", appId, appHostAgentStatusWatch);
+        log.debug("Performance:syncAppHostAgentStatus:bizId={},{}", bizId, appHostAgentStatusWatch);
         return Pair.of(gseInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
 
     public void syncAgentStatusFromGSE() {
         log.info(Thread.currentThread().getName() + ":begin to sync agentStatus from GSE");
-        List<ApplicationDTO> localApps = applicationDAO.listAllBizApps();
-        Set<Long> localAppIds =
-            localApps.stream().filter(app ->
-                    app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)
+        List<ApplicationDTO> localBizApps = applicationDAO.listAllBizApps();
+        Set<Long> localBizIds =
+            localBizApps.stream().filter(bizApp ->
+                    bizApp.getScope().getType() == ResourceScopeTypeEnum.BIZ)
+                .map(bizApp -> Long.valueOf(bizApp.getScope().getId()))
                 .collect(Collectors.toSet());
-        log.info(String.format("localAppIds:%s", String.join(",",
-            localAppIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-        List<ApplicationDTO> localNormalApps =
-            localApps.stream().filter(app ->
-                app.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
+        log.info(String.format("localBizIds:%s", String.join(",",
+            localBizIds.stream().map(Object::toString).collect(Collectors.toSet()))));
         long gseInterfaceTimeConsuming = 0L;
         long writeToDBTimeConsuming = 0L;
-        for (ApplicationDTO applicationDTO : localNormalApps) {
+        for (ApplicationDTO applicationDTO : localBizApps) {
             try {
-                Pair<Long, Long> timeConsumingPair = syncAppHostAgentStatus(applicationDTO.getId());
+                Pair<Long, Long> timeConsumingPair = syncBizHostAgentStatus(
+                    Long.valueOf(applicationDTO.getScope().getId())
+                );
                 gseInterfaceTimeConsuming += timeConsumingPair.getFirst();
                 writeToDBTimeConsuming += timeConsumingPair.getSecond();
             } catch (Throwable t) {
-                log.error("syncAgentStatus of app fail:appId=" + applicationDTO.getId(), t);
+                log.error("syncAgentStatus of app fail:bizId=" + applicationDTO.getScope().getId(), t);
             }
         }
         log.info(Thread.currentThread().getName() + ":Finished:sync agentStatus from GSE," +

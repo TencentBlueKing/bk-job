@@ -54,29 +54,29 @@ public interface HostService {
     /**
      * 新增业务下的主机
      *
-     * @param appId      业务ID
+     * @param bizId      业务ID
      * @param insertList 主机信息
      * @return 新增失败的主机ID
      */
-    List<Long> insertHostsToApp(Long appId, List<ApplicationHostDTO> insertList);
+    List<Long> insertHostsToBiz(Long bizId, List<ApplicationHostDTO> insertList);
 
     /**
      * 更新业务下的主机
      *
-     * @param appId        业务ID
+     * @param bizId        业务ID
      * @param hostInfoList 主机信息
      * @return 更新失败的主机ID
      */
-    List<Long> updateHostsInApp(Long appId, List<ApplicationHostDTO> hostInfoList);
+    List<Long> updateHostsInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList);
 
     /**
      * 删除业务下的主机
      *
-     * @param appId      业务ID
+     * @param bizId      业务ID
      * @param deleteList 主机信息
      * @return 删除失败的主机ID
      */
-    List<Long> deleteHostsFromApp(Long appId, List<ApplicationHostDTO> deleteList);
+    List<Long> deleteHostsFromBiz(Long bizId, List<ApplicationHostDTO> deleteList);
 
     long countHostsByOsType(String osType);
 
@@ -117,7 +117,7 @@ public interface HostService {
      */
     CcTopologyNodeVO listAppTopologyHostCountTree(String username, AppResourceScope appResourceScope);
 
-    PageData<HostInfoVO> listHostByBizTopologyNodes(String username,
+    PageData<HostInfoVO> listHostByAppTopologyNodes(String username,
                                                     AppResourceScope appResourceScope,
                                                     ListHostByBizTopologyNodesReq req);
 
@@ -171,7 +171,7 @@ public interface HostService {
                                   ActionScopeEnum actionScope,
                                   List<String> checkIpList);
 
-    List<HostInfoVO> listHostByBizTopologyNodes(String username,
+    List<HostInfoVO> listHostByAppTopologyNodes(String username,
                                                 Long bizId,
                                                 List<AppTopologyTreeNode> appTopoNodeList);
 

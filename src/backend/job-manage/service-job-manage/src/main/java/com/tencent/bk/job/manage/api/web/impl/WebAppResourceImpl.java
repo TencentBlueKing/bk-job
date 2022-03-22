@@ -196,7 +196,7 @@ public class WebAppResourceImpl implements WebAppResource {
                                                       Long moduleType,
                                                       String ipCondition) {
         ApplicationHostDTO applicationHostInfoCondition = new ApplicationHostDTO();
-        applicationHostInfoCondition.setAppId(appResourceScope.getAppId());
+        applicationHostInfoCondition.setBizId(appResourceScope.getAppId());
         applicationHostInfoCondition.setIp(ipCondition);
         if (moduleType != null) {
             applicationHostInfoCondition.getModuleType().add(moduleType);
@@ -258,7 +258,7 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                      String scopeId,
                                                                      ListHostByBizTopologyNodesReq req) {
         return Response.buildSuccessResp(
-            hostService.listHostByBizTopologyNodes(
+            hostService.listHostByAppTopologyNodes(
                 username, appResourceScope, req
             )
         );

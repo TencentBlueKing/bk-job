@@ -63,7 +63,7 @@ public class BasicAppSyncService {
     protected void deleteApp(ApplicationDTO applicationDTO) {
         log.info("deleteAppFromDb:" + applicationDTO.getId());
         //先删Job业务对应主机
-        applicationHostDAO.deleteAppHostInfoByAppId(dslContext, applicationDTO.getId());
+        applicationHostDAO.deleteBizHostInfoByBizId(dslContext, applicationDTO.getId());
         //再删Job业务本身
         applicationService.deleteApp(applicationDTO.getId());
     }
