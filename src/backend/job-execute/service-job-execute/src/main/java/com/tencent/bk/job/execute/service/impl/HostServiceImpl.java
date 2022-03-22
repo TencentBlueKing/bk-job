@@ -79,7 +79,7 @@ public class HostServiceImpl implements HostService {
             build(new CacheLoader<Long, String>() {
                 @Override
                 public String load(Long cloudAreaId) {
-                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
                     List<CcCloudAreaInfoDTO> cloudAreaList = bizCmdbClient.getCloudAreaList();
                     if (cloudAreaList == null || cloudAreaList.isEmpty()) {
                         log.warn("Get all cloud area return empty!");
@@ -190,7 +190,7 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public List<IpDTO> getIpByDynamicGroupId(long appId, String groupId) throws ObtainHostServiceException {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         try {
             ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
             List<CcGroupHostPropDTO> cmdbGroupHostList =
@@ -224,7 +224,7 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances) {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         long bizId = Long.parseLong(resourceScope.getId());
         List<ApplicationHostDTO> appHosts = bizCmdbClient.getHosts(bizId, ccInstances);
