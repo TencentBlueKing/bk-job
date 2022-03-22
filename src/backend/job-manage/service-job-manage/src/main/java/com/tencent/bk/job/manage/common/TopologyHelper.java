@@ -297,7 +297,6 @@ public class TopologyHelper {
     /**
      * 根据拓扑节点 ID 和类型获取节点名称
      *
-     * @param username 用户名
      * @param appId    业务 ID
      * @param nodeId   节点 ID
      * @param nodeType 节点类型
@@ -384,7 +383,7 @@ public class TopologyHelper {
         for (String ip : ipList) {
             ApplicationHostDTO ipInfo = new ApplicationHostDTO();
             ipInfo.setCloudAreaId(Long.valueOf(ip.split(":")[0]));
-            ipInfo.setAppId(appId);
+            ipInfo.setBizId(appId);
             ipInfo.setIp(ip.split(":")[1]);
             ipInfo.setGseAgentAlive(agentStatusMap.get(ip) != null && (agentStatusMap.get(ip).status == 1));
             ipInfoList.add(ipInfo);

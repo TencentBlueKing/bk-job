@@ -27,8 +27,10 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import brave.Tracing;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -226,11 +228,11 @@ public class SyncServiceImpl implements SyncService {
         }
     }
 
-    public boolean addExtraSyncAppHostsTask(Long appId) {
-        if (extraSyncAppQueue.contains(appId)) {
+    public boolean addExtraSyncBizHostsTask(Long bizId) {
+        if (extraSyncAppQueue.contains(bizId)) {
             return true;
         } else if (extraSyncAppQueue.remainingCapacity() > 0) {
-            boolean result = extraSyncAppQueue.add(appId);
+            boolean result = extraSyncAppQueue.add(bizId);
             if (extraSyncAppQueue.size() > 10) {
                 log.warn("extraSyncAppQueue.size={},queue={}", extraSyncAppQueue.size(), extraSyncAppQueue.toString());
             } else {
@@ -369,7 +371,7 @@ public class SyncServiceImpl implements SyncService {
 
     private Future<Pair<Long, Long>> arrangeSyncAppHostsTask(ApplicationDTO applicationDTO) {
         return syncHostExecutor.submit(() ->
-            hostSyncService.syncAppHostsAtOnce(applicationDTO));
+            hostSyncService.syncBizHostsAtOnce(applicationDTO));
     }
 
     @Override
@@ -413,7 +415,7 @@ public class SyncServiceImpl implements SyncService {
                     List<ApplicationDTO> localApps = applicationDAO.listAllBizApps();
                     Set<Long> localAppIds =
                         localApps.stream().filter(app ->
-                            app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)
+                                app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)
                             .collect(Collectors.toSet());
                     log.info(String.format("localAppIds:%s", String.join(",",
                         localAppIds.stream().map(Object::toString).collect(Collectors.toSet()))));
@@ -422,7 +424,7 @@ public class SyncServiceImpl implements SyncService {
                             app.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
                     //删除已移除业务的主机，部分测试主机放在业务集下，不删除
                     if (!localNormalApps.isEmpty()) {
-                        applicationHostDAO.deleteAppHostInfoNotInApps(dslContext,
+                        applicationHostDAO.deleteBizHostInfoNotInBizs(dslContext,
                             localApps.stream().map(ApplicationDTO::getId).collect(Collectors.toSet()));
                     }
                     Long cmdbInterfaceTimeConsuming = 0L;
@@ -473,13 +475,13 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public Future<Pair<Long, Long>> arrangeSyncAppHostsTask(Long appId) {
-        log.info("arrangeSyncAppHostsTask:appId={}", appId);
-        return arrangeSyncAppHostsTask(applicationDAO.getAppById(appId));
+    public Future<Pair<Long, Long>> arrangeSyncBizHostsTask(Long bizId) {
+        log.info("arrangeSyncAppHostsTask:appId={}", bizId);
+        return arrangeSyncAppHostsTask(applicationDAO.getAppById(bizId));
     }
 
     @Override
-    public Boolean enableAppWatch() {
+    public Boolean enableBizWatch() {
         if (appWatchThread != null) {
             log.info("appWatch enabled by op");
             appWatchThread.setWatchFlag(true);
@@ -490,7 +492,7 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public Boolean disableAppWatch() {
+    public Boolean disableBizWatch() {
         if (appWatchThread != null) {
             log.info("appWatch disabled by op");
             appWatchThread.setWatchFlag(false);
@@ -561,13 +563,15 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public Boolean syncAppHosts(Long appId) {
-        log.info("syncAppHosts:appId={}", appId);
-        ApplicationDTO applicationDTO = applicationDAO.getAppById(appId);
-        Pair<Long, Long> pair = hostSyncService.syncAppHostsAtOnce(applicationDTO);
+    public Boolean syncBizHosts(Long bizId) {
+        log.info("syncBizHosts:bizId={}", bizId);
+        ApplicationDTO applicationDTO = applicationDAO.getAppByScope(
+            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
+        );
+        Pair<Long, Long> pair = hostSyncService.syncBizHostsAtOnce(applicationDTO);
         Long cmdbInterfaceTimeConsuming = pair.getFirst();
         Long writeToDBTimeConsuming = pair.getSecond();
-        log.info("syncAppHosts:cmdbInterfaceTimeConsuming={},writeToDBTimeConsuming={}", cmdbInterfaceTimeConsuming,
+        log.info("syncBizHosts:cmdbInterfaceTimeConsuming={},writeToDBTimeConsuming={}", cmdbInterfaceTimeConsuming,
             writeToDBTimeConsuming);
         return true;
     }

@@ -46,11 +46,7 @@ public class ApplicationHostDTO {
      */
     private Long hostId;
     /**
-     * Job业务ID
-     */
-    private Long appId;
-    /**
-     * cmdb业务ID
+     * 业务ID
      */
     private Long bizId;
     /**

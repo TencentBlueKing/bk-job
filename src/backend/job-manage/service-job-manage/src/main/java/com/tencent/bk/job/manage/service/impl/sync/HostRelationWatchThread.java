@@ -146,7 +146,7 @@ public class HostRelationWatchThread extends Thread {
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
         Long appId = hostTopoDTO.getBizId();
         try {
-            appHostsUpdateHelper.waitAndStartAppHostsUpdating(appId);
+            appHostsUpdateHelper.waitAndStartBizHostsUpdating(appId);
             StopWatch watch = new StopWatch();
             watch.start("handleOneEventIndeed");
             handleOneEventIndeed(event);
@@ -159,7 +159,7 @@ public class HostRelationWatchThread extends Thread {
         } catch (Throwable t) {
             log.error(String.format("Fail to handle hostRelationEvent of appId %d, event:%s", appId, event), t);
         } finally {
-            appHostsUpdateHelper.endToUpdateAppHosts(appId);
+            appHostsUpdateHelper.endToUpdateBizHosts(appId);
         }
     }
 
@@ -187,7 +187,7 @@ public class HostRelationWatchThread extends Thread {
                     log.warn("cannot find hostInfo by hostId:{}, trigger extra sync of appId:{}",
                         hostTopoDTO.getHostId(), hostTopoDTO.getBizId());
                     // 转出业务的主机删除先被同步到了导致主机信息缺失，立即触发转入业务主机同步，避免一个同步周期的等待
-                    boolean result = syncService.addExtraSyncAppHostsTask(hostTopoDTO.getBizId());
+                    boolean result = syncService.addExtraSyncBizHostsTask(hostTopoDTO.getBizId());
                     if (!result) {
                         log.warn("Fail to trigger extra sync of appId:{}", hostTopoDTO.getBizId());
                     }

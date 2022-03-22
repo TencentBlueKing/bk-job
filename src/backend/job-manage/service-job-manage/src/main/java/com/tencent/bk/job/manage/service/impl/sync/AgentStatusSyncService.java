@@ -65,7 +65,7 @@ public class AgentStatusSyncService {
         long writeToDBTimeConsuming = 0L;
         StopWatch appHostAgentStatusWatch = new StopWatch();
         appHostAgentStatusWatch.start("listHostInfoByAppId");
-        List<ApplicationHostDTO> localAppHosts = applicationHostDAO.listHostInfoByAppId(appId);
+        List<ApplicationHostDTO> localAppHosts = applicationHostDAO.listHostInfoByBizId(appId);
         appHostAgentStatusWatch.stop();
         appHostAgentStatusWatch.start("getAgentStatusByAppInfo from GSE");
         long startTime = System.currentTimeMillis();
@@ -74,7 +74,7 @@ public class AgentStatusSyncService {
         appHostAgentStatusWatch.stop();
         appHostAgentStatusWatch.start("updateHosts to local DB");
         startTime = System.currentTimeMillis();
-        hostService.updateHostsInApp(appId, localAppHosts);
+        hostService.updateHostsInBiz(appId, localAppHosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
         appHostAgentStatusWatch.stop();
         log.debug("Performance:syncAppHostAgentStatus:appId={},{}", appId, appHostAgentStatusWatch);

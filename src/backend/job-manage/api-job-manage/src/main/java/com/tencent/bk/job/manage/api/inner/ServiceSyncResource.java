@@ -75,7 +75,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/syncHost/app/{appId}")
     @ApiOperation(value = "根据业务ID同步主机", produces = "application/json")
-    InternalResponse<Boolean> syncHostByAppId(
+    InternalResponse<Boolean> syncHostByBizId(
         @ApiParam(value = "业务ID", required = true)
         @PathVariable("appId") Long appId);
 
@@ -86,7 +86,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/appWatch/enable")
     @ApiOperation(value = "开启业务事件监听", produces = "application/json")
-    InternalResponse<Boolean> enableAppWatch();
+    InternalResponse<Boolean> enableBizWatch();
 
     /**
      * 关闭业务事件监听
@@ -95,7 +95,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/appWatch/disable")
     @ApiOperation(value = "关闭业务事件监听", produces = "application/json")
-    InternalResponse<Boolean> disableAppWatch();
+    InternalResponse<Boolean> disableBizWatch();
 
     /**
      * 开启主机事件监听

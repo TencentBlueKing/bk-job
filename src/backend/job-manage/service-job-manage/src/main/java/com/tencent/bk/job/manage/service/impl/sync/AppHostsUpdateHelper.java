@@ -61,7 +61,7 @@ public class AppHostsUpdateHelper {
         return redisTemplate.opsForValue().get(runningMachineKey);
     }
 
-    public void waitAndStartAppHostsUpdating(Long appId) {
+    public void waitAndStartBizHostsUpdating(Long appId) {
         waitForAppHostsUpdatingLock(appId);
         startToUpdateAppHosts(appId);
     }
@@ -112,7 +112,7 @@ public class AppHostsUpdateHelper {
         heartBeatThreadMap.put(Thread.currentThread().getName(), appHostUpdateRedisKeyHeartBeatThread);
     }
 
-    public void endToUpdateAppHosts(Long appId) {
+    public void endToUpdateBizHosts(Long appId) {
         String key = Thread.currentThread().getName();
         RedisKeyHeartBeatThread heartBeatThread = heartBeatThreadMap.get(key);
         if (heartBeatThread != null) {

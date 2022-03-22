@@ -178,7 +178,7 @@ public class IndexServiceImpl implements IndexService {
             start = 0;
         }
         List<HostInfoVO> hostInfoVOList = new ArrayList<>();
-        val hosts = applicationHostDAO.listHostInfoByAppId(appId);
+        val hosts = applicationHostDAO.listHostInfoByBizId(appId);
         //建立反映射Map
         Map<String, ApplicationHostDTO> map = new HashMap<>();
         Set<String> ipSet = new HashSet<>();

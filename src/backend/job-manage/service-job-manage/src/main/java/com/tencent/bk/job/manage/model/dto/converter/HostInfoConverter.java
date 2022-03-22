@@ -33,7 +33,7 @@ public class HostInfoConverter {
             return null;
         }
         ServiceHostInfoDTO serviceHostInfoDTO = new ServiceHostInfoDTO();
-        serviceHostInfoDTO.setAppId(applicationHostDTO.getAppId());
+        serviceHostInfoDTO.setAppId(applicationHostDTO.getBizId());
         serviceHostInfoDTO.setCloudAreaId(applicationHostDTO.getCloudAreaId());
         serviceHostInfoDTO.setHostId(applicationHostDTO.getHostId());
         serviceHostInfoDTO.setIp(applicationHostDTO.getIp());
