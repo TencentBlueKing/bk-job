@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.manage.manager.host;
 
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.db.CacheHostDO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,11 +48,14 @@ import java.util.stream.Collectors;
 public class HostCache {
 
     private final RedisTemplate redisTemplate;
+    private final AppScopeMappingService appScopeMappingService;
     private final String HOST_KEY_PREFIX = "job:manage:host:";
 
     @Autowired
-    public HostCache(@Qualifier("jsonRedisTemplate") RedisTemplate<Object, Object> redisTemplate) {
+    public HostCache(@Qualifier("jsonRedisTemplate") RedisTemplate<Object, Object> redisTemplate,
+                     AppScopeMappingService appScopeMappingService) {
         this.redisTemplate = redisTemplate;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     /**
@@ -87,7 +92,13 @@ public class HostCache {
     public void addOrUpdateHost(ApplicationHostDTO applicationHostDTO) {
         String hostKey = buildHostKey(applicationHostDTO);
         CacheHostDO cacheHost = new CacheHostDO();
-        cacheHost.setAppId(applicationHostDTO.getBizId());
+        cacheHost.setBizId(applicationHostDTO.getBizId());
+        if (applicationHostDTO.getAppId() == null) {
+            cacheHost.setAppId(appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(),
+                String.valueOf(applicationHostDTO.getAppId())));
+        } else {
+            cacheHost.setAppId(applicationHostDTO.getAppId());
+        }
         cacheHost.setCloudAreaId(applicationHostDTO.getCloudAreaId());
         cacheHost.setIp(applicationHostDTO.getIp());
         cacheHost.setHostId(applicationHostDTO.getHostId());
