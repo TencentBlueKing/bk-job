@@ -116,7 +116,7 @@ public class HostRelationWatchThread extends Thread {
 
     private void dispatchEvent(ResourceEvent<HostRelationEventDetail> event) {
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
-        Long appId = hostTopoDTO.getAppId();
+        Long appId = hostTopoDTO.getBizId();
         List<AppHostRelationEventsHandler> idleHandlerList = new ArrayList<>();
         for (AppHostRelationEventsHandler handler : eventsHandlerList) {
             if (appId.equals(handler.getAppId())) {
@@ -144,7 +144,7 @@ public class HostRelationWatchThread extends Thread {
 
     private void handleOneEvent(ResourceEvent<HostRelationEventDetail> event) {
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
-        Long appId = hostTopoDTO.getAppId();
+        Long appId = hostTopoDTO.getBizId();
         try {
             appHostsUpdateHelper.waitAndStartAppHostsUpdating(appId);
             StopWatch watch = new StopWatch();
@@ -185,11 +185,11 @@ public class HostRelationWatchThread extends Thread {
                     log.info("no hosts synced topo");
                 } else if (affectedNum < 0) {
                     log.warn("cannot find hostInfo by hostId:{}, trigger extra sync of appId:{}",
-                        hostTopoDTO.getHostId(), hostTopoDTO.getAppId());
+                        hostTopoDTO.getHostId(), hostTopoDTO.getBizId());
                     // 转出业务的主机删除先被同步到了导致主机信息缺失，立即触发转入业务主机同步，避免一个同步周期的等待
-                    boolean result = syncService.addExtraSyncAppHostsTask(hostTopoDTO.getAppId());
+                    boolean result = syncService.addExtraSyncAppHostsTask(hostTopoDTO.getBizId());
                     if (!result) {
-                        log.warn("Fail to trigger extra sync of appId:{}", hostTopoDTO.getAppId());
+                        log.warn("Fail to trigger extra sync of appId:{}", hostTopoDTO.getBizId());
                     }
                 }
                 break;
@@ -198,7 +198,7 @@ public class HostRelationWatchThread extends Thread {
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
                 // 删除
-                hostTopoDAO.deleteHostTopo(dslContext, hostTopoDTO.getHostId(), hostTopoDTO.getAppId(),
+                hostTopoDAO.deleteHostTopo(dslContext, hostTopoDTO.getHostId(), hostTopoDTO.getBizId(),
                     hostTopoDTO.getSetId(), hostTopoDTO.getModuleId());
                 break;
             default:

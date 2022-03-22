@@ -65,7 +65,7 @@ public class HostSyncService {
 
     private List<ApplicationHostDTO> getHostsByAppInfo(IBizCmdbClient bizCmdbClient, ApplicationDTO applicationDTO) {
         List<CcInstanceDTO> ccInstanceDTOList = new ArrayList<>();
-        ccInstanceDTOList.add(new CcInstanceDTO(CcNodeTypeEnum.BIZ.getType(), applicationDTO.getId()));
+        ccInstanceDTOList.add(new CcInstanceDTO(CcNodeTypeEnum.BIZ.getType(), applicationDTO.getBizIdIfBizApp()));
         List<ApplicationHostDTO> hosts = bizCmdbClient.getHosts(applicationDTO.getBizIdIfBizApp(),
             ccInstanceDTOList);
         // 获取Agent状态
