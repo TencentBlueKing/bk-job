@@ -96,12 +96,20 @@ public interface ApplicationService {
     ApplicationDTO getAppByScope(String scopeType, String scopeId);
 
     /**
-     * 根据业务ID批量查询业务
+     * 根据Job业务ID批量查询Job业务
      *
-     * @param appIds 业务Id列表
-     * @return 业务列表
+     * @param appIds Job业务Id列表
+     * @return Job业务列表
      */
     List<ApplicationDTO> listAppsByAppIds(Collection<Long> appIds);
+
+    /**
+     * 根据业务ID批量查询业务
+     *
+     * @param bizIds 业务Id列表
+     * @return 业务列表
+     */
+    List<ApplicationDTO> listBizAppsByBizIds(Collection<Long> bizIds);
 
     /**
      * 根据当前业务Id查询包含该业务的业务集

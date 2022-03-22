@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import org.jooq.DSLContext;
 
+import java.util.Collection;
 import java.util.List;
 
 
@@ -42,9 +43,11 @@ public interface ApplicationDAO {
 
     List<Long> getSubAppIds(long appId);
 
-    List<Long> getNormalAppIdsByOptDeptId(Long optDeptId);
+    List<Long> getBizIdsByOptDeptId(Long optDeptId);
 
     List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
+
+    List<ApplicationDTO> listBizAppsByBizIds(Collection<Long> bizIdList);
 
     List<ApplicationDTO> listAllApps();
 
