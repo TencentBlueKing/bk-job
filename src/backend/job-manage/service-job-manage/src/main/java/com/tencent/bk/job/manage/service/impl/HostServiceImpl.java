@@ -144,6 +144,7 @@ public class HostServiceImpl implements HostService {
     private boolean insertOrUpdateOneAppHost(Long bizId, ApplicationHostDTO infoDTO) {
         try {
             applicationHostDAO.insertAppHostInfo(dslContext, infoDTO);
+            hostCache.addOrUpdateHost(infoDTO);
         } catch (DataAccessException e) {
             String errorMessage = e.getMessage();
             if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
@@ -181,6 +182,7 @@ public class HostServiceImpl implements HostService {
             //尝试批量插入
             if (!insertList.isEmpty()) {
                 applicationHostDAO.batchInsertAppHostInfo(dslContext, insertList);
+                insertList.forEach(hostCache::addOrUpdateHost);
             }
             batchInserted = true;
         } catch (Throwable throwable) {
@@ -230,6 +232,7 @@ public class HostServiceImpl implements HostService {
             // 尝试批量更新
             if (!hostInfoList.isEmpty()) {
                 applicationHostDAO.batchUpdateBizHostInfoByHostId(dslContext, hostInfoList);
+                hostInfoList.forEach(hostCache::addOrUpdateHost);
             }
             batchUpdated = true;
         } catch (Throwable throwable) {
@@ -248,6 +251,7 @@ public class HostServiceImpl implements HostService {
                 try {
                     if (!applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO)) {
                         applicationHostDAO.updateBizHostInfoByHostId(dslContext, hostInfoDTO.getBizId(), hostInfoDTO);
+                        hostCache.addOrUpdateHost(hostInfoDTO);
                         updateCount += 1;
                         updateHostIds.add(hostInfoDTO.getHostId());
                     } else {

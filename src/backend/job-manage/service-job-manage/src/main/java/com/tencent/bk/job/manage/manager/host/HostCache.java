@@ -94,8 +94,8 @@ public class HostCache {
         CacheHostDO cacheHost = new CacheHostDO();
         cacheHost.setBizId(applicationHostDTO.getBizId());
         if (applicationHostDTO.getAppId() == null) {
-            cacheHost.setAppId(appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(),
-                String.valueOf(applicationHostDTO.getAppId())));
+            cacheHost.setAppId(appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(),
+                String.valueOf(applicationHostDTO.getBizId())));
         } else {
             cacheHost.setAppId(applicationHostDTO.getAppId());
         }
