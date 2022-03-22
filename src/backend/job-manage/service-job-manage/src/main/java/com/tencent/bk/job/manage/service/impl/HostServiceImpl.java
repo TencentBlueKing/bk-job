@@ -132,7 +132,13 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public List<ApplicationHostDTO> getHostsByAppId(Long appId) {
-        return applicationHostDAO.listHostInfoByBizId(appId);
+        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
+        ResourceScope scope = applicationDTO.getScope();
+        if (scope.getType() == ResourceScopeTypeEnum.BIZ) {
+            return applicationHostDAO.listHostInfoByBizId(Long.parseLong(scope.getId()));
+        } else {
+            return applicationHostDAO.listHostInfoByBizIds(applicationDTO.getSubAppIds(), null, null);
+        }
     }
 
     private boolean insertOrUpdateOneAppHost(Long bizId, ApplicationHostDTO infoDTO) {
@@ -544,7 +550,7 @@ public class HostServiceImpl implements HostService {
                 }
                 List<CcGroupHostPropDTO> ccGroupHostProps =
                     CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
-                    .getCustomGroupIp(groupBizId, customerGroupId);
+                        .getCustomGroupIp(groupBizId, customerGroupId);
                 List<String> ipList = new ArrayList<>();
                 for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
                     if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
