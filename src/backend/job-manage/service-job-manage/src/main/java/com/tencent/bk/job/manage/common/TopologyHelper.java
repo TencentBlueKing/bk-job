@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.cc.model.TopologyNodeInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -250,13 +251,12 @@ public class TopologyHelper {
             return null;
         }
         DynamicGroupInfoVO dynamicGroupInfoVO = new DynamicGroupInfoVO();
-        dynamicGroupInfoVO.setAppId(dynamicGroupInfoDTO.getAppId());
+        dynamicGroupInfoVO.setAppId(dynamicGroupInfoDTO.getBizId());
         AppScopeMappingService appScopeMappingService =
             ApplicationContextRegister.getBean(AppScopeMappingService.class);
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(dynamicGroupInfoDTO.getAppId());
-        dynamicGroupInfoVO.setScopeType(resourceScope.getType().getValue());
-        dynamicGroupInfoVO.setScopeId(resourceScope.getId());
-        dynamicGroupInfoVO.setAppName(dynamicGroupInfoDTO.getAppName());
+        dynamicGroupInfoVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+        dynamicGroupInfoVO.setScopeId(dynamicGroupInfoDTO.getBizId().toString());
+        dynamicGroupInfoVO.setAppName(dynamicGroupInfoDTO.getBizName());
         dynamicGroupInfoVO.setId(dynamicGroupInfoDTO.getId());
         dynamicGroupInfoVO.setOwner(dynamicGroupInfoDTO.getOwner());
         dynamicGroupInfoVO.setOwnerName(dynamicGroupInfoDTO.getOwnerName());
@@ -328,16 +328,17 @@ public class TopologyHelper {
         return String.valueOf(nodeId);
     }
 
-    public List<Long> getAppSetSubAppIds(ApplicationDTO appInfo) {
+    public List<Long> getBizSetSubBizIds(ApplicationDTO appInfo) {
         List<Long> subAppIds = appInfo.getSubAppIds();
+        // 兼容发布过程中未完成子业务字段同步的部门型业务集
         Long optDeptId = appInfo.getOperateDeptId();
         if (subAppIds == null || subAppIds.isEmpty() && optDeptId != null) {
             // 使用OperateDeptId
-            subAppIds = applicationDAO.getNormalAppIdsByOptDeptId(optDeptId);
+            subAppIds = applicationDAO.getBizIdsByOptDeptId(optDeptId);
         } else {
             // subAppIds与OperateDeptId同时生效
             if (optDeptId != null) {
-                subAppIds.addAll(applicationDAO.getNormalAppIdsByOptDeptId(optDeptId));
+                subAppIds.addAll(applicationDAO.getBizIdsByOptDeptId(optDeptId));
             }
         }
         // 去重

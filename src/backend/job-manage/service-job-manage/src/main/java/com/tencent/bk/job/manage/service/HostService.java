@@ -47,7 +47,7 @@ import java.util.List;
  * 主机、topo相关服务
  */
 public interface HostService {
-    boolean existHost(long appId, String ip);
+    boolean existHost(long bizId, String ip);
 
     List<ApplicationHostDTO> getHostsByAppId(Long appId);
 
@@ -150,12 +150,12 @@ public interface HostService {
      * 根据动态分组 ID 列表批量获取带主机信息的动态分组信息列表
      *
      * @param username           用户名
-     * @param appId              业务 ID
+     * @param bizId              业务 ID
      * @param dynamicGroupIdList 动态分组 ID 列表
      * @return 带主机信息的动态分组信息列表
      */
     List<DynamicGroupInfoDTO> getBizDynamicGroupHostList(String username,
-                                                         Long appId,
+                                                         Long bizId,
                                                          List<String> dynamicGroupIdList);
 
     /**
@@ -182,7 +182,7 @@ public interface HostService {
     void fillAgentStatus(List<ApplicationHostDTO> hosts);
 
 
-    Boolean existsHost(Long appId, String ip);
+    Boolean existsHost(Long bizId, String ip);
 
     /**
      * 检查主机是否在业务下
