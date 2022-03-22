@@ -278,7 +278,7 @@ public class HostRelationWatchThread extends Thread {
                 StopWatch watch = new StopWatch("hostRelationWatch");
                 watch.start("total");
                 try {
-                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
                     ResourceWatchResult<HostRelationEventDetail> hostRelationWatchResult;
                     while (hostRelationWatchFlag.get()) {
                         if (cursor == null) {
