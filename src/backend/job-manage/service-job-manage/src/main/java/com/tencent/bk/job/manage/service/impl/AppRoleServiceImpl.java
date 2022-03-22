@@ -27,17 +27,33 @@ package com.tencent.bk.job.manage.service.impl;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.service.AppRoleService;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Slf4j
 @Service
 public class AppRoleServiceImpl implements AppRoleService {
+
+    private final ApplicationService applicationService;
+
+    @Autowired
+    public AppRoleServiceImpl(ApplicationService applicationService) {
+        this.applicationService = applicationService;
+    }
 
     @Override
     public List<AppRoleDTO> listAppRoles(String lang) {
@@ -47,7 +63,22 @@ public class AppRoleServiceImpl implements AppRoleService {
 
     @Override
     public Set<String> listAppUsersByRole(Long appId, String role) {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
-        return bizCmdbClient.getAppUsersByRole(appId, role);
+        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
+        ResourceScope scope = applicationDTO.getScope();
+        if (scope.getType() == ResourceScopeTypeEnum.BIZ) {
+            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+            return bizCmdbClient.getAppUsersByRole(appId, role);
+        } else if (scope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
+            // 业务集当前只支持运维人员
+            if ("bk_biz_maintainer".equals(role)) {
+                String maintainerStr = applicationDTO.getMaintainers();
+                if (StringUtils.isNotBlank(maintainerStr)) {
+                    return new HashSet<>(Arrays.asList(maintainerStr.split("[,;]")));
+                }
+            }
+        } else {
+            log.warn("Not supported resourceScope:{}", scope);
+        }
+        return Collections.emptySet();
     }
 }
