@@ -392,7 +392,7 @@ public class HostServiceImpl implements HostService {
         // 查出业务
         ApplicationDTO appInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
         // 查业务拓扑树
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
         InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
             Long.parseLong(appResourceScope.getId())
         );
@@ -430,7 +430,7 @@ public class HostServiceImpl implements HostService {
                                                              Long bizId,
                                                              List<InstanceTopologyDTO> nodeList) {
         // 查业务拓扑树
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
         InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
         // 搜索路径
         return TopologyHelper.findTopoPaths(appTopologyTree, nodeList);
@@ -457,7 +457,7 @@ public class HostServiceImpl implements HostService {
             return nodeHostInfoList;
         }
         // 查业务拓扑树
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
         InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
         final List<String> allIpWithCloudIdList = Collections.synchronizedList(new ArrayList<>());
         nodeHostInfoList = ConcurrencyUtil.getResultWithThreads(treeNodeList, 5, treeNode -> {
@@ -549,7 +549,7 @@ public class HostServiceImpl implements HostService {
                     continue;
                 }
                 List<CcGroupHostPropDTO> ccGroupHostProps =
-                    CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
+                    CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
                         .getCustomGroupIp(groupBizId, customerGroupId);
                 List<String> ipList = new ArrayList<>();
                 for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
@@ -1070,7 +1070,7 @@ public class HostServiceImpl implements HostService {
                                            Map<String, DynamicGroupInfoDTO> ccGroupInfoList,
                                            Map<Long, List<String>> bizId2GroupIdMap) {
         List<String> groupIdList = new ArrayList<>();
-        List<CcGroupDTO> ccGroupList = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
+        List<CcGroupDTO> ccGroupList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
             .getCustomGroupList(bizId);
         ccGroupList.forEach(ccGroupDTO -> {
             ccGroupInfoList.put(ccGroupDTO.getId(), ccGroupDTO.toDynamicGroupInfo());
@@ -1118,7 +1118,7 @@ public class HostServiceImpl implements HostService {
         if (appTopoNodeList == null || appTopoNodeList.isEmpty()) {
             return Collections.emptyList();
         }
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
         // 查出业务
         ApplicationDTO appInfo = applicationService.getAppByScope(
             new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
@@ -1154,7 +1154,7 @@ public class HostServiceImpl implements HostService {
         if (appTopoNodeList == null || appTopoNodeList.isEmpty()) {
             return Collections.emptyList();
         }
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
         // 查出业务
         ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         Set<Long> moduleIds = new HashSet<>();

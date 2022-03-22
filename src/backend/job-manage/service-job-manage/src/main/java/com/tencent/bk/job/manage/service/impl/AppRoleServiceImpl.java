@@ -57,7 +57,7 @@ public class AppRoleServiceImpl implements AppRoleService {
 
     @Override
     public List<AppRoleDTO> listAppRoles(String lang) {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(lang);
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
         return bizCmdbClient.getAppRoleList();
     }
 
@@ -66,7 +66,7 @@ public class AppRoleServiceImpl implements AppRoleService {
         ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
         ResourceScope scope = applicationDTO.getScope();
         if (scope.getType() == ResourceScopeTypeEnum.BIZ) {
-            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
             return bizCmdbClient.getAppUsersByRole(appId, role);
         } else if (scope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             // 业务集当前只支持运维人员
