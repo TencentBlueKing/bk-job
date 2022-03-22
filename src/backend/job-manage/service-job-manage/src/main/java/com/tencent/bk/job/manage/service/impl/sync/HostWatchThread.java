@@ -28,16 +28,17 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.manager.host.HostCache;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
@@ -73,20 +74,25 @@ public class HostWatchThread extends Thread {
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final RedisTemplate<String, String> redisTemplate;
     private final AppHostsUpdateHelper appHostsUpdateHelper;
+    private final HostCache hostCache;
     private final String REDIS_KEY_RESOURCE_WATCH_HOST_JOB_RUNNING_MACHINE = "resource-watch-host-job-running-machine";
     private final List<AppHostEventsHandler> eventsHandlerList;
     private final BlockingQueue<ResourceEvent<HostEventDetail>> appHostEventQueue = new LinkedBlockingQueue<>(10000);
     private final Integer MAX_HANDLER_NUM = 1;
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
 
-    public HostWatchThread(DSLContext dslContext, ApplicationHostDAO applicationHostDAO,
-                           QueryAgentStatusClient queryAgentStatusClient, RedisTemplate<String, String> redisTemplate
-        , AppHostsUpdateHelper appHostsUpdateHelper) {
+    public HostWatchThread(DSLContext dslContext,
+                           ApplicationHostDAO applicationHostDAO,
+                           QueryAgentStatusClient queryAgentStatusClient,
+                           RedisTemplate<String, String> redisTemplate,
+                           AppHostsUpdateHelper appHostsUpdateHelper,
+                           HostCache hostCache) {
         this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.redisTemplate = redisTemplate;
         this.appHostsUpdateHelper = appHostsUpdateHelper;
+        this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostWatchThread-" + instanceNum.getAndIncrement());
         this.eventsHandlerList = new ArrayList<>();
         // 初始内置1个Handler
@@ -108,10 +114,10 @@ public class HostWatchThread extends Thread {
     }
 
     private void dispatchEvent(ResourceEvent<HostEventDetail> event) {
-        ApplicationHostInfoDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
+        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
         Long hostId = hostInfoDTO.getHostId();
-        ApplicationHostInfoDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
-        Long appId = oldHostInfoDTO.getAppId();
+        ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
+        Long appId = oldHostInfoDTO.getBizId();
         List<AppHostEventsHandler> idleHandlerList = new ArrayList<>();
         for (AppHostEventsHandler handler : eventsHandlerList) {
             if (appId.equals(handler.getAppId())) {
@@ -137,25 +143,25 @@ public class HostWatchThread extends Thread {
     }
 
     private void handleOneEventRelatedToApp(ResourceEvent<HostEventDetail> event) {
-        ApplicationHostInfoDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
+        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
         Long hostId = hostInfoDTO.getHostId();
-        ApplicationHostInfoDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
-        Long appId = oldHostInfoDTO.getAppId();
+        ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
+        Long appId = oldHostInfoDTO.getBizId();
         try {
-            appHostsUpdateHelper.waitAndStartAppHostsUpdating(appId);
+            appHostsUpdateHelper.waitAndStartBizHostsUpdating(appId);
             handleOneEventIndeed(event);
         } catch (Throwable t) {
             log.error(String.format("Fail to handle hostEvent of appId %d, event:%s", appId, event), t);
         } finally {
-            appHostsUpdateHelper.endToUpdateAppHosts(appId);
+            appHostsUpdateHelper.endToUpdateBizHosts(appId);
         }
     }
 
     private void handleOneEvent(ResourceEvent<HostEventDetail> event) {
-        ApplicationHostInfoDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
+        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
         Long hostId = hostInfoDTO.getHostId();
-        ApplicationHostInfoDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
-        if (oldHostInfoDTO != null && oldHostInfoDTO.getAppId() != null) {
+        ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
+        if (oldHostInfoDTO != null && oldHostInfoDTO.getBizId() != null) {
             dispatchEvent(event);
         } else {
             handleOneEventIndeed(event);
@@ -164,13 +170,13 @@ public class HostWatchThread extends Thread {
 
     private void handleOneEventIndeed(ResourceEvent<HostEventDetail> event) {
         String eventType = event.getEventType();
-        ApplicationHostInfoDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
+        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 //去除没有IP的主机信息
                 if (StringUtils.isBlank(hostInfoDTO.getDisplayIp())) {
-                    applicationHostDAO.deleteAppHostInfoById(dslContext, null, hostInfoDTO.getHostId());
+                    applicationHostDAO.deleteBizHostInfoById(dslContext, null, hostInfoDTO.getHostId());
                     break;
                 }
                 //找出Agent有效的IP，并设置Agent状态
@@ -178,26 +184,23 @@ public class HostWatchThread extends Thread {
                 String ip = queryAgentStatusClient.getHostIpByAgentStatus(hostInfoDTO.getDisplayIp(), cloudAreaId);
                 hostInfoDTO.setIp(ip);
                 if (!ip.contains(":")) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(cloudAreaId);
-                    sb.append(":");
-                    sb.append(ip);
-                    hostInfoDTO.setGseAgentAlive(queryAgentStatusClient.getAgentStatus(sb.toString()).status == 1);
+                    String cloudIp = cloudAreaId + ":" + ip;
+                    hostInfoDTO.setGseAgentAlive(queryAgentStatusClient.getAgentStatus(cloudIp).status == 1);
                 } else {
                     hostInfoDTO.setGseAgentAlive(queryAgentStatusClient.getAgentStatus(ip).status == 1);
                 }
                 try {
                     if (applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO.getHostId())) {
-                        ApplicationHostInfoDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostInfoDTO.getHostId());
+                        ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostInfoDTO.getHostId());
                         // 不变化的字段需要原样保留
-                        hostInfoDTO.setAppId(oldHostInfoDTO.getAppId());
+                        hostInfoDTO.setBizId(oldHostInfoDTO.getBizId());
                         hostInfoDTO.setSetId(oldHostInfoDTO.getSetId());
                         hostInfoDTO.setModuleId(oldHostInfoDTO.getModuleId());
                         hostInfoDTO.setModuleType(oldHostInfoDTO.getModuleType());
-                        applicationHostDAO.updateAppHostInfoByHostId(dslContext, oldHostInfoDTO.getAppId(),
+                        applicationHostDAO.updateBizHostInfoByHostId(dslContext, oldHostInfoDTO.getBizId(),
                             hostInfoDTO);
                     } else {
-                        hostInfoDTO.setAppId(-1L);
+                        hostInfoDTO.setBizId(-1L);
                         try {
                             applicationHostDAO.insertAppHostWithoutTopo(dslContext, hostInfoDTO);
                         } catch (DataAccessException e) {
@@ -215,15 +218,16 @@ public class HostWatchThread extends Thread {
                     // 从拓扑表向主机表同步拓扑数据
                     applicationHostDAO.syncHostTopo(dslContext, hostInfoDTO.getHostId());
                 }
+                hostCache.addOrUpdateHost(hostInfoDTO);
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationHostDAO.deleteAppHostInfoById(dslContext, null, hostInfoDTO.getHostId());
+                applicationHostDAO.deleteBizHostInfoById(dslContext, null, hostInfoDTO.getHostId());
+                hostCache.deleteHost(hostInfoDTO);
                 break;
             default:
                 break;
         }
         HostEventDetail detail = event.getDetail();
-        log.debug("eventType=" + eventType);
         log.debug(JsonUtils.toJson(detail));
     }
 
@@ -304,14 +308,14 @@ public class HostWatchThread extends Thread {
                 StopWatch watch = new StopWatch("hostWatch");
                 watch.start("total");
                 try {
-                    CcClient ccClient = CcClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
                     ResourceWatchResult<HostEventDetail> hostWatchResult;
                     while (hostWatchFlag.get()) {
                         if (cursor == null) {
                             log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
-                            hostWatchResult = ccClient.getHostEvents(startTime, cursor);
+                            hostWatchResult = bizCmdbClient.getHostEvents(startTime, cursor);
                         } else {
-                            hostWatchResult = ccClient.getHostEvents(null, cursor);
+                            hostWatchResult = bizCmdbClient.getHostEvents(null, cursor);
                         }
                         log.info("hostWatchResult={}", JsonUtils.toJson(hostWatchResult));
                         cursor = handleHostWatchResult(hostWatchResult);

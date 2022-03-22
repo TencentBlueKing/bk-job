@@ -172,11 +172,11 @@
 <script>
     import I18n from '@/i18n';
     import FileSourceModel from '@model/file/file-source';
-    import FileManageService from '@service/file-source-manage';
-    import FileSourceType from '@service/file-source-type';
-    import TicketService from '@service/ticket-manage';
-    import FileWorker from '@service/file-worker';
-    import AppService from '@service/app-manage';
+    import FileSourceManageService from '@service/file-source-manage';
+    import FileSourceTypeService from '@service/file-source-type';
+    import TicketManageService from '@service/ticket-manage';
+    import FileWorkerService from '@service/file-worker';
+    import AppManageService from '@service/app-manage';
     import {
         fileSourceAliasNameRule,
     } from '@utils/validator';
@@ -322,7 +322,7 @@
                         trigger: 'blur',
                     },
                     {
-                        validator: alias => FileManageService.fetchAliasCheck({
+                        validator: alias => FileSourceManageService.fetchAliasCheck({
                             fileSourceId: this.formData.id,
                             alias,
                         }),
@@ -356,7 +356,7 @@
              * @desc 获取文件源类型列表
              */
             fetchSourceTypeList () {
-                return FileSourceType.sourceTypeList()
+                return FileSourceTypeService.sourceTypeList()
                     .then((data) => {
                         this.sourceTypeList = Object.freeze(data);
                         if (!this.formData.fileSourceTypeCode && this.sourceTypeList.length > 0) {
@@ -368,7 +368,7 @@
              * @desc 获取业务列表数据
              */
             fetchAppList () {
-                return AppService.fetchAppList()
+                return AppManageService.fetchAppList()
                     .then((data) => {
                         this.appList = Object.freeze(data);
                     });
@@ -377,7 +377,7 @@
              * @desc 获取身份凭证列表数据
              */
             fetchTicketList () {
-                return TicketService.fetchList()
+                return TicketManageService.fetchList()
                     .then((res) => {
                         this.fileFourceTicketList = Object.freeze(res.data);
                     });
@@ -386,7 +386,7 @@
              * @desc 获取接入点列表数据
              */
             fetchWorkersList () {
-                return FileWorker.workersList({
+                return FileWorkerService.workersList({
                     workerSelectScope: this.formData.workerSelectScope,
                 }).then((data) => {
                     this.workersList = Object.freeze(data);
@@ -396,7 +396,7 @@
              * @desc 获取文件源详情
              */
             fetchFileSourceDetail () {
-                return FileManageService.getSourceInfo({
+                return FileSourceManageService.getSourceInfo({
                     id: this.formData.id,
                 }).then((data) => {
                     const {
@@ -470,13 +470,13 @@
                         }
 
                         if (params.id < 0) {
-                            return FileManageService.addSource(params)
+                            return FileSourceManageService.addSource(params)
                                 .then(() => {
                                     this.messageSuccess(I18n.t('file.创建成功'));
                                     this.$emit('on-change');
                                 });
                         }
-                        return FileManageService.updateSource(params)
+                        return FileSourceManageService.updateSource(params)
                             .then(() => {
                                 this.messageSuccess(I18n.t('file.更新成功'));
                                 this.$emit('on-change');

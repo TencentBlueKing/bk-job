@@ -111,6 +111,8 @@ export default class TaskInstance {
         this.templateId = payload.templateId;
         this.debugTask = payload.debugTask;
         this.appId = payload.appId;
+        this.scopeType = payload.scopeType;
+        this.scopeId = payload.scopeId;
         this.name = payload.name;
         this.operator = payload.operator;
         this.startupMode = payload.startupMode;

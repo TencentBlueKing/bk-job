@@ -63,6 +63,14 @@ public interface ApplicationService {
     Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds);
 
     /**
+     * 批量根据资源范围获取业务ID
+     *
+     * @param scopeList 资源范围列表
+     * @return 资源范围与业务ID的映射关系Map
+     */
+    Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList);
+
+    /**
      * 根据Job业务ID获取Job业务
      *
      * @param appId Job业务ID
@@ -140,9 +148,47 @@ public interface ApplicationService {
     Long createApp(ApplicationDTO application);
 
     /**
+     * 创建业务-指定业务ID
+     *
+     * @param application 业务
+     * @return 业务ID
+     */
+    @DeprecatedAppLogic
+    Long createAppWithSpecifiedAppId(ApplicationDTO application);
+
+    /**
      * 获取Job业务数量
      *
      * @return 业务数量
      */
     Integer countApps();
+
+    /**
+     * 更新业务
+     *
+     * @param application 业务
+     */
+    void updateApp(ApplicationDTO application);
+
+    /**
+     * 删除业务
+     *
+     * @param appId Job业务ID
+     */
+    void deleteApp(Long appId);
+
+    /**
+     * 恢复已删除的Job业务
+     *
+     * @param appId Job业务ID
+     */
+    void restoreDeletedApp(long appId);
+
+    /**
+     * 根据资源范围获取业务，包含已经被逻辑删除的业务
+     *
+     * @param scope 资源范围
+     * @return 业务
+     */
+    ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope);
 }

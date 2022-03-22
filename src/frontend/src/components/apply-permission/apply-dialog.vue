@@ -72,7 +72,7 @@
                 isLoading: false,
                 isShowDialog: false,
                 isAppleFlag: true,
-                authParams: '',
+                authParams: null,
                 authResult: {},
             };
         },
@@ -99,9 +99,11 @@
             fetchPermission () {
                 this.isLoading = true;
                 PermissionCheckService.fetchPermission({
-                    ...this.authParams,
-                    appId: window.PROJECT_CONFIG.APP_ID,
+                    scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
+                    scopeId: window.PROJECT_CONFIG.SCOPE_ID,
                     returnPermissionDetail: true,
+                    ...this.authParams,
+                    // appId: window.PROJECT_CONFIG.APP_ID,
                 }).then((data) => {
                     this.authResult = data;
                 })

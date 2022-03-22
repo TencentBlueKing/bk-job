@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.service.impl;
 import brave.Tracing;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AbortedException;
@@ -44,7 +43,6 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.ArrayUtil;
-import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -75,13 +73,10 @@ import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInfo;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.db.CacheAppDO;
 import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
-import com.tencent.bk.job.execute.service.ServerService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -147,13 +142,11 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 @Service
 @Slf4j
 public class TaskExecuteServiceImpl implements TaskExecuteService {
-    private final ApplicationService applicationService;
     private final AccountService accountService;
     private final ScriptService scriptService;
     private final TaskExecuteControlMsgSender controlMsgSender;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final ServerService serverService;
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final TaskOperationLogService taskOperationLogService;
     private final TaskInstanceService taskInstanceService;
@@ -168,13 +161,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
     @Autowired
-    public TaskExecuteServiceImpl(ApplicationService applicationService,
-                                  AccountService accountService,
+    public TaskExecuteServiceImpl(AccountService accountService,
                                   TaskInstanceService taskInstanceService,
                                   TaskExecuteControlMsgSender controlMsgSender,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
-                                  ServerService serverService,
                                   QueryAgentStatusClient queryAgentStatusClient,
                                   TaskOperationLogService taskOperationLogService,
                                   ScriptService scriptService,
@@ -185,13 +176,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   DangerousScriptCheckService dangerousScriptCheckService,
                                   JobExecuteConfig jobExecuteConfig,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
-        this.applicationService = applicationService;
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.controlMsgSender = controlMsgSender;
         this.taskPlanService = taskPlanService;
         this.taskInstanceVariableService = taskInstanceVariableService;
-        this.serverService = serverService;
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.taskOperationLogService = taskOperationLogService;
         this.scriptService = scriptService;
@@ -639,14 +628,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void checkHosts(List<StepInstanceDTO> stepInstanceList, boolean ignoreInvalidHost)
         throws ServiceException {
         long appId = stepInstanceList.get(0).getAppId();
-        CacheAppDO cacheApp = applicationService.getAppPreferCache(appId);
-        if (cacheApp == null) {
-            throw new FailedPreconditionException(ErrorCode.WRONG_APP_ID);
-        }
-        // 如果是全业务，则不需要判断权限
-        if (cacheApp.getAppType() == AppTypeEnum.ALL_APP.getValue()) {
-            return;
-        }
 
         Set<IpDTO> checkHosts = new HashSet<>();
         addNeedCheckHosts(stepInstanceList, checkHosts);
@@ -655,7 +636,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         // 检查是否在当前业务下
-        Collection<IpDTO> unavailableHosts = checkHostsNotInApp(cacheApp, checkHosts);
+        Collection<IpDTO> unavailableHosts = checkHostsNotInApp(appId, checkHosts);
         if (unavailableHosts.isEmpty()) {
             return;
         }
@@ -774,17 +755,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void checkHosts(StepInstanceDTO stepInstance, boolean ignoreInvalidHost) throws ServiceException {
         long appId = stepInstance.getAppId();
-        if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
-            return;
-        }
-        CacheAppDO cacheApp = applicationService.getAppPreferCache(appId);
-        if (cacheApp == null) {
-            throw new FailedPreconditionException(ErrorCode.WRONG_APP_ID);
-        }
-        // 如果是全业务，则不需要判断权限
-        if (cacheApp.getAppType() == AppTypeEnum.ALL_APP.getValue()) {
-            return;
-        }
         ServersDTO targetServers = stepInstance.getTargetServers();
         if (targetServers == null || targetServers.getIpList() == null || targetServers.getIpList().isEmpty()) {
             log.warn("Empty target server");
@@ -792,7 +762,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         List<IpDTO> ipList = targetServers.getIpList();
-        Collection<IpDTO> notInAppHosts = checkHostsNotInApp(cacheApp, ipList);
+        Collection<IpDTO> notInAppHosts = checkHostsNotInApp(appId, ipList);
         if (notInAppHosts.isEmpty()) {
             return;
         }
@@ -824,51 +794,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         throw new FailedPreconditionException(ErrorCode.SERVER_UNREGISTERED, new Object[]{ipListStr});
     }
 
-    private Collection<IpDTO> checkHostsNotInApp(CacheAppDO cacheApp, Collection<IpDTO> hosts) {
-        List<Long> appIdList = new ArrayList<>();
-        boolean isNormalApp = cacheApp.getAppType() == AppTypeEnum.NORMAL.getValue();
-        if (isNormalApp) {
-            appIdList.add(cacheApp.getId());
-        } else {
-            if (cacheApp.getSubAppIds() != null) {
-                appIdList.addAll(cacheApp.getSubAppIds());
-            }
+    private Collection<IpDTO> checkHostsNotInApp(Long appId, Collection<IpDTO> hosts) {
+        List<IpDTO> notInAppHosts = hostService.checkAppHosts(appId, hosts);
+        if (CollectionUtils.isNotEmpty(notInAppHosts)) {
+            log.info("Check host, appId:{}, not in current app hosts:{}", appId, notInAppHosts);
         }
-        if (appIdList.isEmpty()) {
-            log.warn("App is not exist or appSet contains no app,appId:{}", cacheApp.getId());
-            return hosts;
-        }
-
-        Pair<List<IpDTO>, List<IpDTO>> cachedNotInAppHosts = hostService.checkHostsNotInAppByCache(appIdList,
-            new ArrayList<>(hosts));
-        List<IpDTO> hostsInOtherApp = cachedNotInAppHosts.getLeft();
-        List<IpDTO> hostsNotInCache = cachedNotInAppHosts.getRight();
-        if (CustomCollectionUtils.isEmptyCollection(hostsInOtherApp)
-            && CustomCollectionUtils.isEmptyCollection(hostsNotInCache)) {
-            return Collections.emptyList();
-        }
-
-        log.info("Check host, appId:{}, hostsInOtherApp:{}, hostsNotInCache:{}", cacheApp.getId(), hostsInOtherApp,
-            hostsNotInCache);
-
-        List<IpDTO> notInAppHosts = new ArrayList<>();
-        if (isNormalApp) {
-            // 普通业务，再次去cmdb实时检查
-            List<IpDTO> recheckedHosts = new ArrayList<>();
-            recheckedHosts.addAll((hostsInOtherApp));
-            recheckedHosts.addAll((hostsNotInCache));
-            List<IpDTO> notInCmdbAppHosts = hostService.checkHostsNotInAppByCmdb(cacheApp.getId(), recheckedHosts);
-            log.info("Check host from cmdb, appId:{}, hostsNotInCache:{}, notInCmdbAppHosts:{}", cacheApp.getId(),
-                recheckedHosts, notInCmdbAppHosts);
-            if (notInCmdbAppHosts != null && !notInCmdbAppHosts.isEmpty()) {
-                notInAppHosts.addAll(notInCmdbAppHosts);
-            }
-        } else {
-            notInAppHosts.addAll((hostsInOtherApp));
-            notInAppHosts.addAll((hostsNotInCache));
-        }
-
-        log.info("Check host, appId:{}, not in current app hosts:{}", cacheApp.getId(), notInAppHosts);
         return notInAppHosts;
     }
 
@@ -1778,7 +1708,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         List<DynamicServerGroupDTO> dynamicServerGroups = servers.getDynamicServerGroups();
         if (dynamicServerGroups != null) {
             for (DynamicServerGroupDTO group : dynamicServerGroups) {
-                List<IpDTO> groupIps = serverService.getIpByDynamicGroupId(appId, group.getGroupId());
+                List<IpDTO> groupIps = hostService.getIpByDynamicGroupId(appId, group.getGroupId());
                 if (CollectionUtils.isEmpty(groupIps)) {
                     servers.addInvalidDynamicServerGroup(group);
                 } else {
@@ -1791,7 +1721,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (topoNodes != null && !topoNodes.isEmpty()) {
             if (topoNodes.size() < 10) {
                 for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
-                    List<IpDTO> topoIps = serverService.getIpByTopoNodes(appId,
+                    List<IpDTO> topoIps = hostService.getIpByTopoNodes(appId,
                         Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
                     if (CollectionUtils.isEmpty(topoIps)) {
                         servers.addInvalidTopoNodeDTO(topoNode);
@@ -2183,7 +2113,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         @Override
         public Pair<DynamicServerTopoNodeDTO, List<IpDTO>> call() {
             try {
-                List<IpDTO> topoIps = serverService.getIpByTopoNodes(appId,
+                List<IpDTO> topoIps = hostService.getIpByTopoNodes(appId,
                     Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
                 return new ImmutablePair<>(topoNode, topoIps);
             } catch (Throwable e) {

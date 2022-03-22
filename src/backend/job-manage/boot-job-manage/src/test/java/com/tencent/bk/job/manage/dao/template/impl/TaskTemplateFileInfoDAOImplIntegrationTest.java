@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.template.impl;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.dao.TaskFileInfoDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
@@ -42,7 +42,11 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,7 +75,7 @@ class TaskTemplateFileInfoDAOImplIntegrationTest {
     void initTest() {
         TaskTargetDTO target1 = new TaskTargetDTO();
         target1.setHostNodeList(new TaskHostNodeDTO());
-        target1.getHostNodeList().setHostList(Collections.singletonList(new ApplicationHostInfoDTO()));
+        target1.getHostNodeList().setHostList(Collections.singletonList(new ApplicationHostDTO()));
         target1.getHostNodeList().getHostList().get(0).setIp("1.1.1.1");
 
         FILE_INFO_1.setId(1L);
@@ -94,7 +98,7 @@ class TaskTemplateFileInfoDAOImplIntegrationTest {
 
         TaskTargetDTO target2 = new TaskTargetDTO();
         target2.setHostNodeList(new TaskHostNodeDTO());
-        target2.getHostNodeList().setHostList(Collections.singletonList(new ApplicationHostInfoDTO()));
+        target2.getHostNodeList().setHostList(Collections.singletonList(new ApplicationHostDTO()));
         target2.getHostNodeList().getHostList().get(0).setIp("2.2.2.2");
         FILE_INFO_3.setId(3L);
         FILE_INFO_3.setStepId(2000L);

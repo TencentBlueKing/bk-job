@@ -65,8 +65,8 @@ import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.ServerService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
@@ -99,16 +99,19 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final GseTaskLogService gseTaskLogService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final GseTaskIpLogDAO gseTaskIpLogDAO;
-    private final ServerService serverService;
+    private final HostService hostService;
     private final LogService logService;
     private final ExecuteAuthService executeAuthService;
     private final TaskOperationLogService operationLogService;
 
     @Autowired
-    public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO, StepInstanceDAO stepInstanceDAO,
-                                 GseTaskLogService gseTaskLogService, FileSourceTaskLogDAO fileSourceTaskLogDAO,
+    public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO,
+                                 StepInstanceDAO stepInstanceDAO,
+                                 GseTaskLogService gseTaskLogService,
+                                 FileSourceTaskLogDAO fileSourceTaskLogDAO,
                                  GseTaskIpLogDAO gseTaskIpLogDAO,
-                                 ServerService serverService, LogService logService,
+                                 HostService hostService,
+                                 LogService logService,
                                  ExecuteAuthService executeAuthService,
                                  TaskOperationLogService operationLogService) {
         this.taskInstanceDAO = taskInstanceDAO;
@@ -116,7 +119,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.gseTaskLogService = gseTaskLogService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
         this.gseTaskIpLogDAO = gseTaskIpLogDAO;
-        this.serverService = serverService;
+        this.hostService = hostService;
         this.logService = logService;
         this.executeAuthService = executeAuthService;
         this.operationLogService = operationLogService;
@@ -409,7 +412,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         agentTaskExecution.setCloudIp(gseTaskIpLog.getCloudAreaAndIp());
         long cloudAreaId = Long.parseLong(gseTaskIpLog.getCloudAreaAndIp().split(":")[0]);
         agentTaskExecution.setCloudAreaId(cloudAreaId);
-        agentTaskExecution.setCloudAreaName(serverService.getCloudAreaName(appId, cloudAreaId));
+        agentTaskExecution.setCloudAreaName(hostService.getCloudAreaName(cloudAreaId));
         agentTaskExecution.setDisplayIp(gseTaskIpLog.getDisplayIp());
         agentTaskExecution.setStatus(gseTaskIpLog.getStatus());
         agentTaskExecution.setTag(gseTaskIpLog.getTag());
@@ -478,7 +481,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                     agentTaskExecutionDTO.setCloudIp(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp());
                     Long cloudAreaId = ipDTO.getCloudAreaId();
                     agentTaskExecutionDTO.setCloudAreaId(cloudAreaId);
-                    agentTaskExecutionDTO.setCloudAreaName(serverService.getCloudAreaName(appId, cloudAreaId));
+                    agentTaskExecutionDTO.setCloudAreaName(hostService.getCloudAreaName(cloudAreaId));
                     agentTaskExecutionDTO.setDisplayIp(ipDTO.getIp());
                     agentTaskExecutionDTO.setStatus(IpStatus.WAITING.getValue());
                     agentTaskExecutionDTO.setTag(null);

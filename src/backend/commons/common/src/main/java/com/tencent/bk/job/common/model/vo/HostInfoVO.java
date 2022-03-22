@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -70,11 +70,11 @@ public class HostInfoVO {
     @ApiModelProperty("操作系统")
     private String os;
 
-    public static ApplicationHostInfoDTO toDTO(HostInfoVO hostInfo) {
+    public static ApplicationHostDTO toDTO(HostInfoVO hostInfo) {
         if (hostInfo == null) {
             return null;
         }
-        ApplicationHostInfoDTO hostInfoDTO = new ApplicationHostInfoDTO();
+        ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
         hostInfoDTO.setHostId(hostInfo.getHostId());
         hostInfoDTO.setIp(hostInfo.getIp());
         hostInfoDTO.setDisplayIp(hostInfo.getDisplayIp());

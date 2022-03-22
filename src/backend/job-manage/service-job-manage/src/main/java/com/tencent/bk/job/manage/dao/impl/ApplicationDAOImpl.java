@@ -25,6 +25,8 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.Bool;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
@@ -41,6 +43,7 @@ import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Application;
+import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,7 +75,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         T_APP.SUB_APP_IDS,
         T_APP.TIMEZONE,
         T_APP.BK_OPERATE_DEPT_ID,
-        T_APP.LANGUAGE
+        T_APP.LANGUAGE,
+        T_APP.IS_DELETED
     };
 
     private final DSLContext context;
@@ -90,7 +94,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public ApplicationDTO getAppById(long appId) {
-        Record record = context.select(ALL_FIELDS).from(T_APP).where(T_APP.APP_ID.eq(ULong.valueOf(appId))).fetchOne();
+        Record record = context.select(ALL_FIELDS)
+            .from(T_APP)
+            .where(T_APP.APP_ID.eq(ULong.valueOf(appId)))
+            .and(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())))
+            .fetchOne();
         if (record != null) {
             return extract(record);
         }
@@ -101,20 +109,20 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         if (record == null) {
             return null;
         }
-        Application table = Application.APPLICATION;
         ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setId(record.get(table.APP_ID).longValue());
-        String scopeType = record.get(table.BK_SCOPE_TYPE);
-        String scopeId = record.get(table.BK_SCOPE_ID);
+        applicationDTO.setId(record.get(T_APP.APP_ID).longValue());
+        String scopeType = record.get(T_APP.BK_SCOPE_TYPE);
+        String scopeId = record.get(T_APP.BK_SCOPE_ID);
         applicationDTO.setScope(new ResourceScope(scopeType, scopeId));
-        applicationDTO.setName(record.get(table.APP_NAME));
-        applicationDTO.setMaintainers(record.get(table.MAINTAINERS));
-        applicationDTO.setBkSupplierAccount(record.get(table.BK_SUPPLIER_ACCOUNT));
-        applicationDTO.setAppType(AppTypeEnum.valueOf(record.get(table.APP_TYPE)));
-        applicationDTO.setSubAppIds(splitSubAppIds(record.get(table.SUB_APP_IDS)));
-        applicationDTO.setTimeZone(record.get(table.TIMEZONE));
-        applicationDTO.setOperateDeptId(record.get(table.BK_OPERATE_DEPT_ID));
-        applicationDTO.setLanguage(record.get(table.LANGUAGE));
+        applicationDTO.setName(record.get(T_APP.APP_NAME));
+        applicationDTO.setMaintainers(record.get(T_APP.MAINTAINERS));
+        applicationDTO.setBkSupplierAccount(record.get(T_APP.BK_SUPPLIER_ACCOUNT));
+        applicationDTO.setAppType(AppTypeEnum.valueOf(record.get(T_APP.APP_TYPE)));
+        applicationDTO.setSubAppIds(splitSubAppIds(record.get(T_APP.SUB_APP_IDS)));
+        applicationDTO.setTimeZone(record.get(T_APP.TIMEZONE));
+        applicationDTO.setOperateDeptId(record.get(T_APP.BK_OPERATE_DEPT_ID));
+        applicationDTO.setLanguage(record.get(T_APP.LANGUAGE));
+        applicationDTO.setDeleted(Bool.isTrue(record.get(T_APP.IS_DELETED).intValue()));
         return applicationDTO;
     }
 
@@ -135,6 +143,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public AppTypeEnum getAppTypeById(long appId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_APP.APP_ID.eq(ULong.valueOf(appId)));
+        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())));
         Record1<Byte> record = context.select(T_APP.APP_TYPE).from(T_APP).where(conditions).fetchOne();
         if (record != null) {
             return AppTypeEnum.valueOf(record.get(T_APP.APP_TYPE));
@@ -148,6 +157,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_APP.APP_ID.eq(ULong.valueOf(appId)));
         conditions.add(T_APP.APP_TYPE.eq(JooqDataTypeUtil.getByteFromInteger(AppTypeEnum.APP_SET.getValue())));
+        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())));
         Record1<String> record = context.select(T_APP.SUB_APP_IDS).from(T_APP).where(conditions).fetchOne();
         if (record != null && StringUtils.isNotBlank(record.get(T_APP.SUB_APP_IDS))) {
             List<Long> subAppIds = new ArrayList<>();
@@ -160,10 +170,17 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
     }
 
+    private List<Condition> getBasicNotDeletedConditions() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(0)));
+        return conditions;
+    }
+
     @Override
     public List<Long> getNormalAppIdsByOptDeptId(Long optDeptId) {
-        List<Condition> conditions = new ArrayList<>();
+        List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_TYPE.eq(JooqDataTypeUtil.getByteFromInteger(AppTypeEnum.NORMAL.getValue())));
+        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())));
         if (optDeptId == null) {
             conditions.add(T_APP.BK_OPERATE_DEPT_ID.isNull());
         } else {
@@ -177,10 +194,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
     }
 
-    @Override
-    public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(T_APP.APP_ID.in(appIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+    private List<ApplicationDTO> listAppsByConditions(List<Condition> conditions) {
+        if (conditions == null) {
+            conditions = new ArrayList<>();
+        }
+        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())));
         Result<Record> result = context
             .select(ALL_FIELDS)
             .from(T_APP)
@@ -195,35 +213,59 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public List<ApplicationDTO> listAllApps() {
-        Result<Record> result = context
-            .select(ALL_FIELDS)
-            .from(T_APP)
-            .fetch();
-        List<ApplicationDTO> applicationList = new ArrayList<>();
-        if (result.size() > 0) {
-            result.map(record -> applicationList.add(extract(record)));
-        }
-        return applicationList;
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllAppsWithDeleted() {
+        List<Condition> conditions = new ArrayList<>();
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.APP_ID.in(appIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllBizApps() {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllBizAppsWithDeleted() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllBizSetApps() {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllBizSetAppsWithDeleted() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
+        return listAppsByConditions(conditions);
     }
 
     @Override
     public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
-        Result<Record> result = context
-            .select(ALL_FIELDS)
-            .from(T_APP)
-            .where(T_APP.APP_TYPE.eq((byte) appType.getValue()))
-            .fetch();
-        List<ApplicationDTO> applicationInfoList = new ArrayList<>();
-        if (result.size() > 0) {
-            result.map(record -> applicationInfoList.add(extract(record)));
-        }
-        return applicationInfoList;
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.APP_TYPE.eq((byte) appType.getValue()));
+        return listAppsByConditions(conditions);
     }
 
     private void setDefaultValue(ApplicationDTO applicationDTO) {
-        if (applicationDTO.getId() == null) {
-            applicationDTO.setId(-1L);
-        }
         if (applicationDTO.getAppType() == null) {
             applicationDTO.setAppType(AppTypeEnum.NORMAL);
         }
@@ -240,6 +282,50 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         if (subAppIds != null) {
             subAppIdsStr = subAppIds.stream().map(Object::toString).collect(Collectors.joining(";"));
         }
+        ResourceScope scope = applicationDTO.getScope();
+        val query = dslContext.insertInto(T_APP,
+            T_APP.APP_NAME,
+            T_APP.APP_TYPE,
+            T_APP.BK_SUPPLIER_ACCOUNT,
+            T_APP.MAINTAINERS,
+            T_APP.SUB_APP_IDS,
+            T_APP.TIMEZONE,
+            T_APP.BK_OPERATE_DEPT_ID,
+            T_APP.LANGUAGE,
+            T_APP.BK_SCOPE_TYPE,
+            T_APP.BK_SCOPE_ID,
+            T_APP.IS_DELETED
+        ).values(
+            applicationDTO.getName(),
+            (byte) (applicationDTO.getAppType().getValue()),
+            applicationDTO.getBkSupplierAccount(),
+            applicationDTO.getMaintainers(),
+            subAppIdsStr,
+            applicationDTO.getTimeZone(),
+            applicationDTO.getOperateDeptId(),
+            applicationDTO.getLanguage(),
+            scope == null ? null : scope.getType().getValue(),
+            scope == null ? null : scope.getId(),
+            UByte.valueOf(Bool.FALSE.getValue())
+        );
+        try {
+            query.execute();
+        } catch (Exception e) {
+            log.info("Fail to insertAppInfo:SQL={}", query.getSQL(ParamType.INLINED), e);
+        }
+        return applicationDTO.getId();
+    }
+
+    @Override
+    public Long insertAppWithSpecifiedAppId(DSLContext dslContext,
+                                            ApplicationDTO applicationDTO) {
+        setDefaultValue(applicationDTO);
+        val subAppIds = applicationDTO.getSubAppIds();
+        String subAppIdsStr = null;
+        if (subAppIds != null) {
+            subAppIdsStr = subAppIds.stream().map(Object::toString).collect(Collectors.joining(";"));
+        }
+        ResourceScope scope = applicationDTO.getScope();
         val query = dslContext.insertInto(T_APP,
             T_APP.APP_ID,
             T_APP.APP_NAME,
@@ -249,9 +335,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             T_APP.SUB_APP_IDS,
             T_APP.TIMEZONE,
             T_APP.BK_OPERATE_DEPT_ID,
-            T_APP.LANGUAGE
+            T_APP.LANGUAGE,
+            T_APP.BK_SCOPE_TYPE,
+            T_APP.BK_SCOPE_ID,
+            T_APP.IS_DELETED
         ).values(
-            ULong.valueOf(applicationDTO.getId()),
+            JooqDataTypeUtil.buildULong(applicationDTO.getId()),
             applicationDTO.getName(),
             (byte) (applicationDTO.getAppType().getValue()),
             applicationDTO.getBkSupplierAccount(),
@@ -259,11 +348,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             subAppIdsStr,
             applicationDTO.getTimeZone(),
             applicationDTO.getOperateDeptId(),
-            applicationDTO.getLanguage()
+            applicationDTO.getLanguage(),
+            scope == null ? null : scope.getType().getValue(),
+            scope == null ? null : scope.getId(),
+            UByte.valueOf(Bool.FALSE.getValue())
         );
-        if (log.isDebugEnabled()) {
-            log.info("SQL={}", query.getSQL(ParamType.INLINED));
-        }
         try {
             query.execute();
         } catch (Exception e) {
@@ -276,9 +365,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @CacheEvict(value = "appInfoCache", key = "#applicationDTO.getId()")
     public int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
         setDefaultValue(applicationDTO);
-        if (applicationDTO.getId() == -1L) {
-            return -1;
-        }
         val subAppIds = applicationDTO.getSubAppIds();
         String subAppIdsStr = null;
         if (subAppIds != null) {
@@ -294,6 +380,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .set(T_APP.BK_OPERATE_DEPT_ID, applicationDTO.getOperateDeptId())
             .set(T_APP.LANGUAGE, applicationDTO.getLanguage())
             .where(T_APP.APP_ID.eq(ULong.valueOf(applicationDTO.getId())));
+        return query.execute();
+    }
+
+    @Override
+    @CacheEvict(value = "appInfoCache", key = "#appId")
+    public int restoreDeletedApp(DSLContext dslContext, long appId) {
+        val query = dslContext.update(T_APP)
+            .set(T_APP.IS_DELETED, UByte.valueOf(Bool.FALSE.getValue()))
+            .where(T_APP.APP_ID.eq(ULong.valueOf(appId)));
         int affectedNum = query.execute();
         if (log.isDebugEnabled()) {
             log.debug("SQL={}", query.getSQL(ParamType.INLINED));
@@ -303,8 +398,20 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     @CacheEvict(value = "appInfoCache", key = "#appId")
-    public int deleteAppInfoById(DSLContext dslContext, long appId) {
-        return dslContext.deleteFrom(T_APP)
+    public int deleteAppByIdSoftly(DSLContext dslContext, long appId) {
+        val query = dslContext.update(T_APP)
+            .set(T_APP.IS_DELETED, UByte.valueOf(1))
+            .where(T_APP.APP_ID.eq(ULong.valueOf(appId)));
+        int affectedNum = query.execute();
+        if (log.isDebugEnabled()) {
+            log.debug("SQL={}", query.getSQL(ParamType.INLINED));
+        }
+        return affectedNum;
+    }
+
+    public int deleteAppInfoByIdHardly(DSLContext dslContext, long appId) {
+        return dslContext.update(T_APP)
+            .set(T_APP.IS_DELETED, UByte.valueOf(Bool.TRUE.getValue()))
             .where(T_APP.APP_ID.eq(ULong.valueOf(appId)))
             .execute();
     }
@@ -329,11 +436,28 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public Integer countApps() {
-        return context.selectCount().from(T_APP).fetchOne(0, Integer.class);
+        return context.selectCount()
+            .from(T_APP)
+            .where(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())))
+            .fetchOne(0, Integer.class);
     }
 
     @Override
     public ApplicationDTO getAppByScope(ResourceScope scope) {
+        Record record = context.select(ALL_FIELDS)
+            .from(T_APP)
+            .where(T_APP.BK_SCOPE_TYPE.eq(scope.getType().getValue()))
+            .and(T_APP.BK_SCOPE_ID.eq(scope.getId()))
+            .and(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())))
+            .fetchOne();
+        if (record != null) {
+            return extract(record);
+        }
+        return null;
+    }
+
+    @Override
+    public ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope) {
         Record record = context.select(ALL_FIELDS)
             .from(T_APP)
             .where(T_APP.BK_SCOPE_TYPE.eq(scope.getType().getValue()))

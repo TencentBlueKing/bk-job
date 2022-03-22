@@ -48,6 +48,24 @@ BEGIN
                     AND INDEX_NAME = 'uk_scope_id_scope_type') THEN
         ALTER TABLE application ADD UNIQUE INDEX uk_scope_id_scope_type(`bk_scope_id`,`bk_scope_type`);
     END IF;
+
+    ALTER TABLE `application` MODIFY `app_id` BIGINT(20) UNSIGNED AUTO_INCREMENT;
+	
+	IF NOT EXISTS(SELECT 1
+                  FROM information_schema.columns
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'host'
+                    AND COLUMN_NAME = 'cloud_ip') THEN
+        ALTER TABLE host ADD COLUMN cloud_ip VARCHAR(65) NOT NULL DEFAULT '';
+    END IF;
+	UPDATE host SET cloud_ip = concat(cloud_area_id,':',ip);
+	IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'host'
+                    AND INDEX_NAME = 'idx_cloud_ip') THEN
+        ALTER TABLE host ADD INDEX idx_cloud_ip(`cloud_ip`);
+    END IF;
 	
     COMMIT;
 END <JOB_UBF>

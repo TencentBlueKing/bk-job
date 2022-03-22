@@ -48,13 +48,41 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAllApps();
 
+    List<ApplicationDTO> listAllAppsWithDeleted();
+
+    List<ApplicationDTO> listAllBizApps();
+
+    List<ApplicationDTO> listAllBizSetApps();
+
+    List<ApplicationDTO> listAllBizAppsWithDeleted();
+
+    List<ApplicationDTO> listAllBizSetAppsWithDeleted();
+
     List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
 
     Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
 
+    Long insertAppWithSpecifiedAppId(DSLContext dslContext, ApplicationDTO applicationDTO);
+
     int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
 
-    int deleteAppInfoById(DSLContext dslContext, long appId);
+    /**
+     * 恢复已删除的Job业务
+     *
+     * @param dslContext DB操作删上下文
+     * @param appId      Job业务ID
+     * @return 受影响数据行数
+     */
+    int restoreDeletedApp(DSLContext dslContext, long appId);
+
+    /**
+     * 对Job业务进行软删除
+     *
+     * @param dslContext DB操作删上下文
+     * @param appId      Job业务ID
+     * @return 受影响数据行数
+     */
+    int deleteAppByIdSoftly(DSLContext dslContext, long appId);
 
     int updateMaintainers(long appId, String maintainers);
 
@@ -63,4 +91,12 @@ public interface ApplicationDAO {
     Integer countApps();
 
     ApplicationDTO getAppByScope(ResourceScope scope);
+
+    /**
+     * 根据资源范围获取业务，包含已经被逻辑删除的业务
+     *
+     * @param scope 资源范围
+     * @return 业务
+     */
+    ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope);
 }
