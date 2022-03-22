@@ -25,6 +25,8 @@
 package com.tencent.bk.job.common.model.dto;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -38,14 +40,17 @@ import java.util.StringJoiner;
 @Getter
 @Setter
 @NoArgsConstructor
+@ApiModel("资源范围实体")
 public class ResourceScope {
     /**
      * 资源范围类型
      */
+    @ApiModelProperty(value = "枚举，资源范围类型", required = true)
     private ResourceScopeTypeEnum type;
     /**
      * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
      */
+    @ApiModelProperty(value = "资源范围Id", required = true)
     private String id;
 
     public ResourceScope(String type, String id) {

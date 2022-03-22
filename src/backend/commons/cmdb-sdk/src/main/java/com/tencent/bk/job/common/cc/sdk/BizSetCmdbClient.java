@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.cc.sdk;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.bizset.BizInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
@@ -34,6 +34,10 @@ import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessSetResp;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetResp;
+import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
+import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
+import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -44,15 +48,17 @@ import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpPost;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * ESB-CC接口调用客户端
+ * cmdb API Client - 业务集相关
  */
 @Slf4j
 public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmdbClient {
@@ -61,13 +67,14 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
 
     private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
     private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_in_business_set/";
+    private static final String RESOURCE_WATCH = "/api/c/compapi/v2/cc/resource_watch/";
 
-    public static CcConfig ccConfig = null;
+    public static CmdbConfig cmdbConfig = null;
 
-    public BizSetCmdbClient(EsbConfig esbConfig, CcConfig ccConfig) {
+    public BizSetCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig) {
         super(esbConfig.getEsbUrl(), esbConfig.getAppCode(),
             esbConfig.getAppSecret(), null, esbConfig.isUseEsbTestEnv());
-        this.cmdbSupplierAccount = ccConfig.getDefaultSupplierAccount();
+        this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
     }
 
     public <T extends EsbReq> T makeCmdbBaseReq(Class<T> reqClass) {
@@ -264,5 +271,54 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
             }
             return convertToBizSetApp(bizSetInfo);
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public ResourceWatchResult<BizSetEventDetail> getBizSetEvents(Long startTime, String cursor) {
+        ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
+        req.setFields(Arrays.asList("bk_biz_set_id", "bk_biz_set_name", "bk_biz_maintainer", "time_zone",
+            "language"));
+        req.setResource("biz_set");
+        req.setCursor(cursor);
+        req.setStartTime(startTime);
+        try {
+            EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = getEsbRespByReq(
+                HttpPost.METHOD_NAME,
+                RESOURCE_WATCH,
+                req,
+                new TypeReference<EsbResp<ResourceWatchResult<BizSetEventDetail>>>() {
+                },
+                HttpHelperFactory.getLongRetryableHttpHelper());
+            if (!resp.getResult()) {
+                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
+            }
+            return resp.getData();
+        } catch (Exception e) {
+            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+        }
+    }
+
+    @Override
+    public ResourceWatchResult<BizSetRelationEventDetail> getBizSetRelationEvents(Long startTime, String cursor) {
+        ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
+        req.setFields(Arrays.asList("bk_biz_set_id", "bk_biz_ids"));
+        req.setResource("biz_set_relation");
+        req.setCursor(cursor);
+        req.setStartTime(startTime);
+        try {
+            EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = getEsbRespByReq(
+                HttpPost.METHOD_NAME,
+                RESOURCE_WATCH,
+                req,
+                new TypeReference<EsbResp<ResourceWatchResult<BizSetRelationEventDetail>>>() {
+                },
+                HttpHelperFactory.getLongRetryableHttpHelper());
+            if (!resp.getResult()) {
+                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
+            }
+            return resp.getData();
+        } catch (Exception e) {
+            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+        }
     }
 }

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.model.inner;
 
-import com.tencent.bk.job.common.model.dto.CCTopoNodeDTO;
+import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -45,7 +45,7 @@ public class ServiceTargetServers {
     private List<String> dynamicGroupIds;
 
     @ApiModelProperty(value = "分布式拓扑节点列表", required = false)
-    private List<CCTopoNodeDTO> topoNodes;
+    private List<CmdbTopoNodeDTO> topoNodes;
 
 
 }

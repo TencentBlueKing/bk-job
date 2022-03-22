@@ -99,18 +99,18 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
     }
 
     @Override
-    public InternalResponse<Boolean> syncHostByAppId(Long appId) {
-        return InternalResponse.buildSuccessResp(syncService.syncAppHosts(appId));
+    public InternalResponse<Boolean> syncHostByBizId(Long bizId) {
+        return InternalResponse.buildSuccessResp(syncService.syncBizHosts(bizId));
     }
 
     @Override
-    public InternalResponse<Boolean> enableAppWatch() {
-        return InternalResponse.buildSuccessResp(syncService.enableAppWatch());
+    public InternalResponse<Boolean> enableBizWatch() {
+        return InternalResponse.buildSuccessResp(syncService.enableBizWatch());
     }
 
     @Override
-    public InternalResponse<Boolean> disableAppWatch() {
-        return InternalResponse.buildSuccessResp(syncService.disableAppWatch());
+    public InternalResponse<Boolean> disableBizWatch() {
+        return InternalResponse.buildSuccessResp(syncService.disableBizWatch());
     }
 
     @Override

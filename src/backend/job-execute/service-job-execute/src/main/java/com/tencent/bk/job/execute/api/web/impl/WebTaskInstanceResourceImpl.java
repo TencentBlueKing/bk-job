@@ -39,7 +39,6 @@ import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.execute.api.web.WebTaskInstanceResource;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -67,7 +66,7 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
-import com.tencent.bk.job.execute.service.ServerService;
+import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
@@ -88,7 +87,7 @@ import java.util.List;
 public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private final TaskInstanceService taskInstanceService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final ServerService serverService;
+    private final HostService hostService;
     private final TaskOperationLogService taskOperationLogService;
     private final MessageI18nService i18nService;
     private final ExecuteAuthService executeAuthService;
@@ -97,15 +96,14 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     @Autowired
     public WebTaskInstanceResourceImpl(TaskInstanceService taskInstanceService,
                                        TaskInstanceVariableService taskInstanceVariableService,
-                                       ServerService serverService,
+                                       HostService hostService,
                                        TaskOperationLogService taskOperationLogService,
                                        MessageI18nService i18nService,
                                        ExecuteAuthService executeAuthService,
-                                       AuthService authService,
-                                       AppScopeMappingService appScopeMappingService) {
+                                       AuthService authService) {
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
-        this.serverService = serverService;
+        this.hostService = hostService;
         this.taskOperationLogService = taskOperationLogService;
         this.i18nService = i18nService;
         this.executeAuthService = executeAuthService;
@@ -346,7 +344,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                     host.setIp(ip.getIp());
                     host.setAlive(ip.getAlive());
                     ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getCloudAreaId(),
-                        serverService.getCloudAreaName(appId, ip.getCloudAreaId()));
+                        hostService.getCloudAreaName(ip.getCloudAreaId()));
                     host.setCloudAreaInfo(cloudAreaInfoVO);
                     hosts.add(host);
                 }

@@ -22,41 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.common.cc.config;
 
-import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
+@Data
+@Component
+public class CmdbConfig {
 
-/**
- * 服务器service
- */
-public interface ServerService {
-    /**
-     * 获取动态分组主机
-     *
-     * @param appId   业务ID
-     * @param groupId 动态分组ID
-     * @return
-     */
-    List<IpDTO> getIpByDynamicGroupId(long appId, String groupId);
+    @Value("${cmdb.default.supplier.account:0}")
+    private String defaultSupplierAccount;
 
-    /**
-     * 根据topo节点获取主机
-     *
-     * @param appId   业务ID
-     * @param ccInsts topo节点列表
-     * @return 主机列表
-     */
-    List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInsts);
+    @Value("${cmdb.query.threads.num:20}")
+    private int cmdbQueryThreadsNum;
 
-    /**
-     * 获取主机云区域名称
-     *
-     * @param appId       业务ID
-     * @param cloudAreaId 云区域ID
-     * @return 云区域名称
-     */
-    String getCloudAreaName(long appId, long cloudAreaId);
+    @Value("${cmdb.interface.briefCacheTopo.enabled:false}")
+    private Boolean enableInterfaceBriefCacheTopo;
+
+    @Value("${cmdb.interface.retry.enabled:false}")
+    private Boolean enableInterfaceRetry;
+
+    @Value("${cmdb.interface.findHostRelation.longTerm.concurrency:20}")
+    private Integer findHostRelationLongTermConcurrency;
+
+    @Value("${cmdb.interface.optimize.lock.enabled:false}")
+    private Boolean enableLockOptimize;
+
+    @Value("${cmdb.interface.flowControl.enabled:false}")
+    private Boolean enableFlowControl;
+
+    @Value("${cmdb.interface.flowControl.precision:20}")
+    private Integer flowControlPrecision;
+
+    @Value("${cmdb.interface.flowControl.default.limit:500}")
+    private Integer flowControlDefaultLimit;
+
+    @Value("${cmdb.interface.flowControl.resources:get_biz_brief_cache_topo:1500}")
+    private String flowControlResourcesStr;
 }

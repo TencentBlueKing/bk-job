@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.common.cc.sdk;
 
+import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
+import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 
 import java.util.List;
@@ -39,4 +42,22 @@ public interface IBizSetCmdbClient {
      * @return 业务集App列表
      */
     List<ApplicationDTO> getAllBizSetApps();
+
+    /**
+     * 根据游标获取业务集事件
+     *
+     * @param startTime 监听事件的起始时间
+     * @param cursor    监听事件的游标
+     * @return 事件
+     */
+    ResourceWatchResult<BizSetEventDetail> getBizSetEvents(Long startTime, String cursor);
+
+    /**
+     * 根据游标获取业务集与业务关系事件
+     *
+     * @param startTime 监听事件的起始时间
+     * @param cursor    监听事件的游标
+     * @return 事件
+     */
+    ResourceWatchResult<BizSetRelationEventDetail> getBizSetRelationEvents(Long startTime, String cursor);
 }

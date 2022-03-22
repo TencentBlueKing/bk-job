@@ -47,7 +47,8 @@ public class BizSyncService extends BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
 
     @Autowired
-    public BizSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,
+    public BizSyncService(DSLContext dslContext,
+                          ApplicationDAO applicationDAO,
                           ApplicationHostDAO applicationHostDAO,
                           ApplicationService applicationService) {
         super(dslContext, applicationDAO, applicationHostDAO, applicationService);
@@ -56,14 +57,14 @@ public class BizSyncService extends BasicAppSyncService {
 
     public void syncBizFromCMDB() {
         log.info(Thread.currentThread().getName() + ":begin to sync biz from cc");
-        List<ApplicationDTO> ccBizApps = ccClient.getAllBizApps();
+        List<ApplicationDTO> ccBizApps = bizCmdbClient.getAllBizApps();
 
         // 对比业务信息，分出要新增的/要改的/要删的分别处理
         List<ApplicationDTO> insertList;
         List<ApplicationDTO> updateList;
         List<ApplicationDTO> deleteList;
         // 对比库中数据与接口数据
-        List<ApplicationDTO> localBizApps = applicationDAO.listAllBizApps();
+        List<ApplicationDTO> localBizApps = applicationDAO.listAllBizAppsWithDeleted();
         // CMDB业务ScopeId
         Set<String> ccBizAppScopeIds = ccBizApps.stream()
             .map(ccBizApp -> ccBizApp.getScope().getId())
@@ -92,7 +93,7 @@ public class BizSyncService extends BasicAppSyncService {
         // 本地&CMDB交集：计算需要更新的业务
         updateList =
             ccBizApps.stream().filter(ccBizAppInfoDTO ->
-                    localBizAppScopeIds.contains(ccBizAppInfoDTO.getScope().getId()))
+                localBizAppScopeIds.contains(ccBizAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("biz app updateList scopeIds:%s", String.join(",",
             updateList.stream().map(applicationInfoDTO ->
@@ -100,9 +101,7 @@ public class BizSyncService extends BasicAppSyncService {
         // 本地-CMDB：计算需要删除的业务
         deleteList =
             localBizApps.stream().filter(bizAppInfoDTO ->
-                    // TODO:暂时兼容获取全部Job业务的底层方法
-                    bizAppInfoDTO.isBiz()
-                        && !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("app deleteList scopeIds:%s", String.join(",",
             deleteList.stream().map(applicationInfoDTO ->

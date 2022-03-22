@@ -38,7 +38,7 @@ import java.util.List;
 @ToString
 public class ListBizHostsTopoReq extends EsbReq {
     @JsonProperty("bk_biz_id")
-    private long appId;
+    private long bizId;
 
     @JsonProperty("fields")
     private List<String> fields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name",

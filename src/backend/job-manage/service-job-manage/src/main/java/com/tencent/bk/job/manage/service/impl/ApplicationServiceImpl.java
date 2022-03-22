@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,11 +72,19 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
-        return getAppByScope(resourceScope).getId();
+        ApplicationDTO applicationDTO = getAppByScope(resourceScope);
+        if (applicationDTO == null) {
+            return null;
+        }
+        return applicationDTO.getId();
     }
 
     @Override
     public ResourceScope getScopeByAppId(Long appId) {
+        ApplicationDTO applicationDTO = getAppByAppId(appId);
+        if (applicationDTO == null) {
+            return null;
+        }
         return getAppByAppId(appId).getScope();
     }
 
@@ -83,6 +92,18 @@ public class ApplicationServiceImpl implements ApplicationService {
     public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
         List<ApplicationDTO> applications = listAppsByAppIds(appIds);
         return applications.stream().collect(Collectors.toMap(ApplicationDTO::getId, ApplicationDTO::getScope));
+    }
+
+    @Override
+    public Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList) {
+        Map<ResourceScope, Long> map = new HashMap<>();
+        for (ResourceScope resourceScope : scopeList) {
+            ApplicationDTO appDTO = applicationCache.getApplication(resourceScope);
+            if (appDTO != null) {
+                map.put(resourceScope, appDTO.getId());
+            }
+        }
+        return map;
     }
 
     @Override
@@ -173,6 +194,22 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public Long createApp(ApplicationDTO application) {
         Long appId = applicationDAO.insertApp(dslContext, application);
+        application.setId(appId);
+        applicationCache.addOrUpdateApp(application);
+        try {
+            // 创建默认账号
+            accountService.createDefaultAccounts(appId);
+        } catch (Exception e) {
+            log.warn("Fail to create default accounts for appId={}", appId);
+        }
+        return appId;
+    }
+
+    @Override
+    public Long createAppWithSpecifiedAppId(ApplicationDTO application) {
+        Long appId = applicationDAO.insertAppWithSpecifiedAppId(dslContext, application);
+        application.setId(appId);
+        applicationCache.addOrUpdateApp(application);
         try {
             // 创建默认账号
             accountService.createDefaultAccounts(appId);
@@ -189,7 +226,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public List<ApplicationDTO> listAllApps() {
-        return applicationDAO.listAllBizApps();
+        return applicationDAO.listAllApps();
     }
 
     @Override
@@ -224,5 +261,29 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
         }
         return false;
+    }
+
+    @Override
+    public void updateApp(ApplicationDTO application) {
+        applicationDAO.updateApp(dslContext, application);
+        applicationCache.addOrUpdateApp(application);
+    }
+
+    @Override
+    public void deleteApp(Long appId) {
+        applicationDAO.deleteAppByIdSoftly(dslContext, appId);
+        applicationCache.deleteApp(appId);
+    }
+
+    @Override
+    public void restoreDeletedApp(long appId) {
+        applicationDAO.restoreDeletedApp(dslContext, appId);
+        ApplicationDTO restoredApplication = applicationDAO.getAppById(appId);
+        applicationCache.addOrUpdateApp(restoredApplication);
+    }
+
+    @Override
+    public ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope) {
+        return applicationDAO.getAppByScopeIncludingDeleted(scope);
     }
 }

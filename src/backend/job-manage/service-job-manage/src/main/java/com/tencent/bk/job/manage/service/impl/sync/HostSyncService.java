@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -63,27 +63,27 @@ public class HostSyncService {
         this.hostService = hostService;
     }
 
-    private List<ApplicationHostDTO> getHostsByAppInfo(CcClient ccClient, ApplicationDTO applicationDTO) {
+    private List<ApplicationHostDTO> getHostsByAppInfo(IBizCmdbClient bizCmdbClient, ApplicationDTO applicationDTO) {
         List<CcInstanceDTO> ccInstanceDTOList = new ArrayList<>();
-        ccInstanceDTOList.add(new CcInstanceDTO(CcNodeTypeEnum.BIZ.getType(), applicationDTO.getId()));
-        List<ApplicationHostDTO> ApplicationHostDTOList = ccClient.getHosts(applicationDTO.getId(),
+        ccInstanceDTOList.add(new CcInstanceDTO(CcNodeTypeEnum.BIZ.getType(), applicationDTO.getBizIdIfBizApp()));
+        List<ApplicationHostDTO> hosts = bizCmdbClient.getHosts(applicationDTO.getBizIdIfBizApp(),
             ccInstanceDTOList);
         // 获取Agent状态
-        hostService.fillAgentStatus(ApplicationHostDTOList);
-        return ApplicationHostDTOList;
+        hostService.fillAgentStatus(hosts);
+        return hosts;
     }
 
     private List<ApplicationHostDTO> computeInsertList(
-        Long appId,
-        Set<Long> localAppHostIds,
+        Long bizId,
+        Set<Long> localBizHostIds,
         List<ApplicationHostDTO> applicationHostDTOList
     ) {
         StopWatch watch = new StopWatch();
         List<ApplicationHostDTO> insertList =
             applicationHostDTOList.stream().filter(ApplicationHostDTO ->
-                !localAppHostIds.contains(ApplicationHostDTO.getHostId())).collect(Collectors.toList());
+                !localBizHostIds.contains(ApplicationHostDTO.getHostId())).collect(Collectors.toList());
         watch.start("log insertList");
-        log.info(String.format("appId=%s,insertHostIds=%s", appId, String.join(",",
+        log.info(String.format("bizId=%s,insertHostIds=%s", bizId, String.join(",",
             insertList.stream().map(ApplicationHostDTO::getHostId).map(Object::toString)
                 .collect(Collectors.toSet()))));
         watch.stop();
@@ -94,16 +94,16 @@ public class HostSyncService {
     }
 
     private List<ApplicationHostDTO> computeUpdateList(
-        Long appId,
-        Set<Long> localAppHostIds,
+        Long bizId,
+        Set<Long> localBizHostIds,
         List<ApplicationHostDTO> applicationHostDTOList
     ) {
         StopWatch watch = new StopWatch();
         List<ApplicationHostDTO> updateList =
             applicationHostDTOList.stream().filter(ApplicationHostDTO ->
-                localAppHostIds.contains(ApplicationHostDTO.getHostId())).collect(Collectors.toList());
+                localBizHostIds.contains(ApplicationHostDTO.getHostId())).collect(Collectors.toList());
         watch.start("log updateList");
-        log.info(String.format("appId=%s,updateHostIds=%s", appId, String.join(",",
+        log.info(String.format("bizId=%s,updateHostIds=%s", bizId, String.join(",",
             updateList.stream().map(ApplicationHostDTO::getHostId)
                 .map(Object::toString).collect(Collectors.toSet()))));
         watch.stop();
@@ -114,16 +114,16 @@ public class HostSyncService {
     }
 
     private List<ApplicationHostDTO> computeDeleteList(
-        Long appId,
-        Set<Long> ccAppHostIds,
-        List<ApplicationHostDTO> localAppHosts
+        Long bizId,
+        Set<Long> ccBizHostIds,
+        List<ApplicationHostDTO> localBizHosts
     ) {
         StopWatch watch = new StopWatch();
         List<ApplicationHostDTO> deleteList =
-            localAppHosts.stream().filter(ApplicationHostDTO ->
-                !ccAppHostIds.contains(ApplicationHostDTO.getHostId())).collect(Collectors.toList());
+            localBizHosts.stream().filter(ApplicationHostDTO ->
+                !ccBizHostIds.contains(ApplicationHostDTO.getHostId())).collect(Collectors.toList());
         watch.start("log deleteList");
-        log.info(String.format("appId=%s,deleteHostIds=%s", appId, String.join(",",
+        log.info(String.format("bizId=%s,deleteHostIds=%s", bizId, String.join(",",
             deleteList.stream().map(ApplicationHostDTO::getHostId).map(Object::toString)
                 .collect(Collectors.toSet()))));
         watch.stop();
@@ -133,99 +133,99 @@ public class HostSyncService {
         return deleteList;
     }
 
-    private void refreshAppHosts(Long appId,
+    private void refreshBizHosts(Long bizId,
                                  List<ApplicationHostDTO> applicationHostDTOList) {
         StopWatch watch = new StopWatch();
         //找出要删除的/更新的/新增的分别处理
         //对比库中数据与接口数据
-        watch.start("listHostInfoByAppId");
-        List<ApplicationHostDTO> localAppHosts = applicationHostDAO.listHostInfoByAppId(appId);
+        watch.start("listHostInfoByBizId");
+        List<ApplicationHostDTO> localBizHosts = applicationHostDAO.listHostInfoByBizId(bizId);
         watch.stop();
-        watch.start("mapTo ccAppHostIds");
-        Set<Long> ccAppHostIds =
+        watch.start("mapTo ccBizHostIds");
+        Set<Long> ccBizHostIds =
             applicationHostDTOList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
         watch.stop();
-        watch.start("mapTo localAppHostIds");
-        Set<Long> localAppHostIds =
-            localAppHosts.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
+        watch.start("mapTo localBizHostIds");
+        Set<Long> localBizHostIds =
+            localBizHosts.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
         watch.stop();
-        watch.start("log ccAppHostIds");
-        log.info(String.format("appId=%s,ccAppHostIds=%s", appId, String.join(",",
-            ccAppHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
+        watch.start("log ccBizHostIds");
+        log.info(String.format("bizId=%s,ccBizHostIds=%s", bizId, String.join(",",
+            ccBizHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
         watch.stop();
-        watch.start("log localAppHostIds");
-        log.info(String.format("appId=%s,localAppHostIds=%s", appId, String.join(",",
-            localAppHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
+        watch.start("log localBizHostIds");
+        log.info(String.format("bizId=%s,localBizHostIds=%s", bizId, String.join(",",
+            localBizHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
         watch.stop();
         watch.start("compute insertList");
-        List<ApplicationHostDTO> insertList = computeInsertList(appId, localAppHostIds, applicationHostDTOList);
+        List<ApplicationHostDTO> insertList = computeInsertList(bizId, localBizHostIds, applicationHostDTOList);
         watch.stop();
         watch.start("compute updateList");
-        List<ApplicationHostDTO> updateList = computeUpdateList(appId, localAppHostIds, applicationHostDTOList);
+        List<ApplicationHostDTO> updateList = computeUpdateList(bizId, localBizHostIds, applicationHostDTOList);
         watch.stop();
         watch.start("compute deleteList");
-        List<ApplicationHostDTO> deleteList = computeDeleteList(appId, ccAppHostIds, localAppHosts);
+        List<ApplicationHostDTO> deleteList = computeDeleteList(bizId, ccBizHostIds, localBizHosts);
         watch.stop();
-        watch.start("deleteHostsFromApp");
+        watch.start("deleteHostsFromBiz");
         // 记录一次业务主机同步过程中所有更新失败的主机ID
         // 需要删除的主机
-        List<Long> deleteFailHostIds = hostService.deleteHostsFromApp(appId, deleteList);
+        List<Long> deleteFailHostIds = hostService.deleteHostsFromBiz(bizId, deleteList);
         watch.stop();
         watch.start("insertHostsToApp");
         // 需要新增的主机
-        List<Long> insertFailHostIds = hostService.insertHostsToApp(appId, insertList);
+        List<Long> insertFailHostIds = hostService.insertHostsToBiz(bizId, insertList);
         watch.stop();
         watch.start("updateHostsInApp");
         // 需要更新的主机
-        List<Long> updateFailHostIds = hostService.updateHostsInApp(appId, updateList);
+        List<Long> updateFailHostIds = hostService.updateHostsInBiz(bizId, updateList);
         watch.stop();
         if (watch.getTotalTimeMillis() > 10000) {
-            log.info("Performance:refreshAppHosts:appId={},{}", appId, watch.prettyPrint());
+            log.info("Performance:refreshBizHosts:bizId={},{}", bizId, watch.prettyPrint());
         } else {
-            log.debug("Performance:refreshAppHosts:appId={},{}", appId, watch.prettyPrint());
+            log.debug("Performance:refreshBizHosts:bizId={},{}", bizId, watch.prettyPrint());
         }
         log.info(
             Thread.currentThread().getName() +
-                ":Finished:Statistics:appId={}:insertFailHostIds={}," +
+                ":Finished:Statistics:bizId={}:insertFailHostIds={}," +
                 "updateFailHostIds={},deleteFailHostIds={}",
-            appId,
+            bizId,
             insertFailHostIds,
             updateFailHostIds,
             deleteFailHostIds
         );
     }
 
-    private Pair<Long, Long> syncAppHostsIndeed(ApplicationDTO applicationDTO) {
-        Long appId = applicationDTO.getId();
+    private Pair<Long, Long> syncBizHostsIndeed(ApplicationDTO applicationDTO) {
+        Long bizId = Long.valueOf(applicationDTO.getScope().getId());
         Long cmdbInterfaceTimeConsuming = 0L;
         Long writeToDBTimeConsuming = 0L;
-        CcClient ccClient = CcClientFactory.getCcClient();
-        StopWatch appHostsWatch = new StopWatch();
-        appHostsWatch.start("getHostsByAppInfo from CMDB");
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+        StopWatch bizHostsWatch = new StopWatch();
+        bizHostsWatch.start("getHostsByAppInfo from CMDB");
         Long startTime = System.currentTimeMillis();
-        log.info("begin to syncAppHosts:appId={}", appId);
-        List<ApplicationHostDTO> hosts = getHostsByAppInfo(ccClient, applicationDTO);
+        log.info("begin to syncBizHosts:bizId={}", bizId);
+        List<ApplicationHostDTO> hosts = getHostsByAppInfo(bizCmdbClient, applicationDTO);
         cmdbInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
-        appHostsWatch.stop();
-        appHostsWatch.start("updateHosts to local DB");
+        bizHostsWatch.stop();
+        bizHostsWatch.start("updateHosts to local DB");
         startTime = System.currentTimeMillis();
-        refreshAppHosts(appId, hosts);
+        refreshBizHosts(bizId, hosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
-        appHostsWatch.stop();
-        log.info("Performance:syncAppHosts:appId={},{}", appId, appHostsWatch);
+        bizHostsWatch.stop();
+        log.info("Performance:syncBizHosts:bizId={},{}", bizId, bizHostsWatch);
         return Pair.of(cmdbInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
 
-    public Pair<Long, Long> syncAppHostsAtOnce(ApplicationDTO applicationDTO) {
-        Long appId = applicationDTO.getId();
+    public Pair<Long, Long> syncBizHostsAtOnce(ApplicationDTO applicationDTO) {
+        Long bizId = Long.valueOf(applicationDTO.getScope().getId());
         try {
-            appHostsUpdateHelper.waitAndStartAppHostsUpdating(appId);
-            return syncAppHostsIndeed(applicationDTO);
+            appHostsUpdateHelper.waitAndStartBizHostsUpdating(bizId);
+            return syncBizHostsIndeed(applicationDTO);
         } catch (Throwable t) {
-            log.error("Fail to syncAppHosts of appId " + appId, t);
+            log.error("Fail to syncBizHosts of bizId " + bizId, t);
             return null;
         } finally {
-            appHostsUpdateHelper.endToUpdateAppHosts(appId);
+            appHostsUpdateHelper.endToUpdateBizHosts(bizId);
         }
     }
 

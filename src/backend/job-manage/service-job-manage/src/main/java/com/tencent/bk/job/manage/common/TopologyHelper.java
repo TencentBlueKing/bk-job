@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.common;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.TopologyNodeInfoDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
@@ -278,9 +278,9 @@ public class TopologyHelper {
 
     }
 
-    public InstanceTopologyDTO getTopologyTreeByApplication(String username, ApplicationDTO applicationInfo) {
-        InstanceTopologyDTO instanceTopology = CcClientFactory.getCcClient(JobContextUtil.getUserLang())
-            .getBizInstTopology(applicationInfo.getId(), applicationInfo.getBkSupplierAccount(), username);
+    public InstanceTopologyDTO getTopologyTreeByApplication(ApplicationDTO applicationInfo) {
+        InstanceTopologyDTO instanceTopology = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
+            .getBizInstTopology(Long.parseLong(applicationInfo.getScope().getId()));
         if (instanceTopology == null) {
             return null;
         }
@@ -297,20 +297,19 @@ public class TopologyHelper {
     /**
      * 根据拓扑节点 ID 和类型获取节点名称
      *
-     * @param username 用户名
      * @param appId    业务 ID
      * @param nodeId   节点 ID
      * @param nodeType 节点类型
      * @return 节点名称
      */
-    public String getTopologyNodeName(String username, Long appId, Long nodeId, String nodeType) {
+    public String getTopologyNodeName(Long appId, Long nodeId, String nodeType) {
         Map<String, Map<Long, String>> nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
         ApplicationDTO appInfo = applicationDAO.getCacheAppById(appId);
         if (appInfo == null) {
             return String.valueOf(nodeId);
         }
         if (nodeTypeNameMap == null || nodeTypeNameMap.get(nodeType) == null) {
-            InstanceTopologyDTO topology = getTopologyTreeByApplication(username, appInfo);
+            InstanceTopologyDTO topology = getTopologyTreeByApplication(appInfo);
             processTopologyNodeName(topology, null);
         }
         if (CcNodeTypeEnum.BIZ.getType().equals(nodeType)) {
@@ -384,7 +383,7 @@ public class TopologyHelper {
         for (String ip : ipList) {
             ApplicationHostDTO ipInfo = new ApplicationHostDTO();
             ipInfo.setCloudAreaId(Long.valueOf(ip.split(":")[0]));
-            ipInfo.setAppId(appId);
+            ipInfo.setBizId(appId);
             ipInfo.setIp(ip.split(":")[1]);
             ipInfo.setGseAgentAlive(agentStatusMap.get(ip) != null && (agentStatusMap.get(ip).status == 1));
             ipInfoList.add(ipInfo);

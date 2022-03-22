@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -116,7 +116,7 @@ public class HostRelationWatchThread extends Thread {
 
     private void dispatchEvent(ResourceEvent<HostRelationEventDetail> event) {
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
-        Long appId = hostTopoDTO.getAppId();
+        Long appId = hostTopoDTO.getBizId();
         List<AppHostRelationEventsHandler> idleHandlerList = new ArrayList<>();
         for (AppHostRelationEventsHandler handler : eventsHandlerList) {
             if (appId.equals(handler.getAppId())) {
@@ -144,9 +144,9 @@ public class HostRelationWatchThread extends Thread {
 
     private void handleOneEvent(ResourceEvent<HostRelationEventDetail> event) {
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
-        Long appId = hostTopoDTO.getAppId();
+        Long appId = hostTopoDTO.getBizId();
         try {
-            appHostsUpdateHelper.waitAndStartAppHostsUpdating(appId);
+            appHostsUpdateHelper.waitAndStartBizHostsUpdating(appId);
             StopWatch watch = new StopWatch();
             watch.start("handleOneEventIndeed");
             handleOneEventIndeed(event);
@@ -159,7 +159,7 @@ public class HostRelationWatchThread extends Thread {
         } catch (Throwable t) {
             log.error(String.format("Fail to handle hostRelationEvent of appId %d, event:%s", appId, event), t);
         } finally {
-            appHostsUpdateHelper.endToUpdateAppHosts(appId);
+            appHostsUpdateHelper.endToUpdateBizHosts(appId);
         }
     }
 
@@ -185,11 +185,11 @@ public class HostRelationWatchThread extends Thread {
                     log.info("no hosts synced topo");
                 } else if (affectedNum < 0) {
                     log.warn("cannot find hostInfo by hostId:{}, trigger extra sync of appId:{}",
-                        hostTopoDTO.getHostId(), hostTopoDTO.getAppId());
+                        hostTopoDTO.getHostId(), hostTopoDTO.getBizId());
                     // 转出业务的主机删除先被同步到了导致主机信息缺失，立即触发转入业务主机同步，避免一个同步周期的等待
-                    boolean result = syncService.addExtraSyncAppHostsTask(hostTopoDTO.getAppId());
+                    boolean result = syncService.addExtraSyncBizHostsTask(hostTopoDTO.getBizId());
                     if (!result) {
-                        log.warn("Fail to trigger extra sync of appId:{}", hostTopoDTO.getAppId());
+                        log.warn("Fail to trigger extra sync of appId:{}", hostTopoDTO.getBizId());
                     }
                 }
                 break;
@@ -198,7 +198,7 @@ public class HostRelationWatchThread extends Thread {
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
                 // 删除
-                hostTopoDAO.deleteHostTopo(dslContext, hostTopoDTO.getHostId(), hostTopoDTO.getAppId(),
+                hostTopoDAO.deleteHostTopo(dslContext, hostTopoDTO.getHostId(), hostTopoDTO.getBizId(),
                     hostTopoDTO.getSetId(), hostTopoDTO.getModuleId());
                 break;
             default:
@@ -278,13 +278,13 @@ public class HostRelationWatchThread extends Thread {
                 StopWatch watch = new StopWatch("hostRelationWatch");
                 watch.start("total");
                 try {
-                    CcClient ccClient = CcClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
                     ResourceWatchResult<HostRelationEventDetail> hostRelationWatchResult;
                     while (hostRelationWatchFlag.get()) {
                         if (cursor == null) {
-                            hostRelationWatchResult = ccClient.getHostRelationEvents(startTime, cursor);
+                            hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(startTime, cursor);
                         } else {
-                            hostRelationWatchResult = ccClient.getHostRelationEvents(null, cursor);
+                            hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(null, cursor);
                         }
                         log.info("hostRelationWatchResult={}", JsonUtils.toJson(hostRelationWatchResult));
                         cursor = handleHostRelationWatchResult(hostRelationWatchResult);

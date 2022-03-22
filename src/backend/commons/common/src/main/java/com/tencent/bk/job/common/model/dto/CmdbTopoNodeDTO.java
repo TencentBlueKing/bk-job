@@ -35,29 +35,29 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @ApiModel("业务拓扑节点")
-public class CCTopoNodeDTO {
+public class CmdbTopoNodeDTO {
     @ApiModelProperty("节点ID")
     private Long id;
     @ApiModelProperty("节点类型，module-模块，set-集群，biz-业务")
     private String nodeType;
 
-    public static TargetNodeVO toVO(CCTopoNodeDTO ccTopoNode) {
-        if (ccTopoNode == null) {
+    public static TargetNodeVO toVO(CmdbTopoNodeDTO cmdbTopoNodeDTO) {
+        if (cmdbTopoNodeDTO == null) {
             return null;
         }
         TargetNodeVO targetNode = new TargetNodeVO();
-        targetNode.setId(ccTopoNode.getId());
-        targetNode.setType(ccTopoNode.getNodeType());
+        targetNode.setId(cmdbTopoNodeDTO.getId());
+        targetNode.setType(cmdbTopoNodeDTO.getNodeType());
         return targetNode;
     }
 
-    public static CCTopoNodeDTO fromVO(TargetNodeVO targetNode) {
+    public static CmdbTopoNodeDTO fromVO(TargetNodeVO targetNode) {
         if (targetNode == null) {
             return null;
         }
-        CCTopoNodeDTO ccTopoNode = new CCTopoNodeDTO();
-        ccTopoNode.setId(targetNode.getId());
-        ccTopoNode.setNodeType(targetNode.getType());
-        return ccTopoNode;
+        CmdbTopoNodeDTO cmdbTopoNodeDTO = new CmdbTopoNodeDTO();
+        cmdbTopoNodeDTO.setId(targetNode.getId());
+        cmdbTopoNodeDTO.setNodeType(targetNode.getType());
+        return cmdbTopoNodeDTO;
     }
 }

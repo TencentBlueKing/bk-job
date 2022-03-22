@@ -255,8 +255,7 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取文件分发步骤IP对应的日志", produces = "application/json")
     @GetMapping(value = {"/app/{appId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/{ip}",
-        "/scope/{scopeType}/{scopeId}/{appId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount" +
-            "}/{ip}"})
+        "/scope/{scopeType}/{scopeId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/{ip}"})
     Response<IpFileLogContentVO> getFileLogContentByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -287,7 +286,8 @@ public interface WebTaskExecutionResultResource {
     @ApiOperation(value = "获取文件分发步骤文件任务ID对应的执行日志", produces = "application/json")
     @PostMapping(value = {
         "/app/{appId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/query-by-ids",
-        "/scope/{scopeType}/{scopeId}/{appId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/query-by-ids"})
+        "/scope/{scopeType}/{scopeId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/query-by" +
+            "-ids"})
     Response<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")

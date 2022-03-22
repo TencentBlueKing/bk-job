@@ -48,6 +48,8 @@ BEGIN
                     AND INDEX_NAME = 'uk_scope_id_scope_type') THEN
         ALTER TABLE application ADD UNIQUE INDEX uk_scope_id_scope_type(`bk_scope_id`,`bk_scope_type`);
     END IF;
+
+    ALTER TABLE `application` MODIFY `app_id` BIGINT(20) UNSIGNED AUTO_INCREMENT;
 	
 	IF NOT EXISTS(SELECT 1
                   FROM information_schema.columns

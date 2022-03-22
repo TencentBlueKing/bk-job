@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -47,10 +47,11 @@ public class BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final ApplicationService applicationService;
-    protected final CcClient ccClient = CcClientFactory.getCcClient();
+    protected final IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
 
     @Autowired
-    public BasicAppSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,
+    public BasicAppSyncService(DSLContext dslContext,
+                               ApplicationDAO applicationDAO,
                                ApplicationHostDAO applicationHostDAO,
                                ApplicationService applicationService) {
         this.dslContext = dslContext;
@@ -59,18 +60,12 @@ public class BasicAppSyncService {
         this.applicationService = applicationService;
     }
 
-    protected void deleteAppFromDb(ApplicationDTO applicationDTO) {
+    protected void deleteApp(ApplicationDTO applicationDTO) {
         log.info("deleteAppFromDb:" + applicationDTO.getId());
         //先删Job业务对应主机
-        applicationHostDAO.deleteAppHostInfoByAppId(dslContext, applicationDTO.getId());
+        applicationHostDAO.deleteBizHostInfoByBizId(dslContext, applicationDTO.getId());
         //再删Job业务本身
-        applicationDAO.deleteAppInfoById(dslContext, applicationDTO.getId());
-    }
-
-    protected void addAppToDb(ApplicationDTO applicationDTO) {
-        //先添加Job业务本身
-        log.info("insertAppInfo:" + JsonUtils.toJson(applicationDTO));
-        applicationService.createApp(applicationDTO);
+        applicationService.deleteApp(applicationDTO.getId());
     }
 
     protected void applyAppsChangeByScope(List<ApplicationDTO> insertList,
@@ -78,21 +73,23 @@ public class BasicAppSyncService {
                                           List<ApplicationDTO> updateList) {
         insertList.forEach(applicationInfoDTO -> {
             try {
-                addAppToDb(applicationInfoDTO);
+                log.info("insertAppInfo:" + JsonUtils.toJson(applicationInfoDTO));
+                applicationService.createApp(applicationInfoDTO);
             } catch (Throwable t) {
                 log.error("FATAL: insertApp fail:appId=" + applicationInfoDTO.getId(), t);
             }
         });
         updateList.forEach(applicationInfoDTO -> {
             try {
-                applicationDAO.updateApp(dslContext, applicationInfoDTO);
+                applicationService.updateApp(applicationInfoDTO);
+                applicationDAO.restoreDeletedApp(dslContext, applicationInfoDTO.getId());
             } catch (Throwable t) {
                 log.error("FATAL: updateApp fail:appId=" + applicationInfoDTO.getId(), t);
             }
         });
         deleteList.forEach(applicationInfoDTO -> {
             try {
-                deleteAppFromDb(applicationInfoDTO);
+                deleteApp(applicationInfoDTO);
             } catch (Throwable t) {
                 log.error("FATAL: deleteApp fail:appId=" + applicationInfoDTO.getId(), t);
             }

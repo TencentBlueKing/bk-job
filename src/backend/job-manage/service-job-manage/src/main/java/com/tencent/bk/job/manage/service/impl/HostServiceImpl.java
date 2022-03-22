@@ -29,11 +29,10 @@ import com.tencent.bk.job.common.cc.model.CcGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -41,10 +40,12 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
@@ -131,7 +132,7 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public List<ApplicationHostDTO> getHostsByAppId(Long appId) {
-        return applicationHostDAO.listHostInfoByAppId(appId);
+        return applicationHostDAO.listHostInfoByBizId(appId);
     }
 
     private boolean insertOrUpdateOneAppHost(Long appId, ApplicationHostDTO infoDTO) {
@@ -147,7 +148,7 @@ public class HostServiceImpl implements HostService {
                     applicationHostDAO.getHostById(infoDTO.getHostId())), e);
                 try {
                     // 插入失败了就应当更新，以后来的数据为准
-                    applicationHostDAO.updateAppHostInfoByHostId(dslContext, appId, infoDTO);
+                    applicationHostDAO.updateBizHostInfoByHostId(dslContext, appId, infoDTO);
                 } catch (Throwable t) {
                     log.error(String.format("update after insert fail:appId=%d,hostInfo=%s", appId, infoDTO), t);
                     return false;
@@ -164,7 +165,7 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<Long> insertHostsToApp(Long appId, List<ApplicationHostDTO> insertList) {
+    public List<Long> insertHostsToBiz(Long bizId, List<ApplicationHostDTO> insertList) {
         StopWatch watch = new StopWatch();
         // 插入主机
         watch.start("insertAppHostInfo");
@@ -189,7 +190,7 @@ public class HostServiceImpl implements HostService {
             }
             //批量插入失败，尝试逐条插入
             for (ApplicationHostDTO infoDTO : insertList) {
-                if (!insertOrUpdateOneAppHost(appId, infoDTO)) {
+                if (!insertOrUpdateOneAppHost(bizId, infoDTO)) {
                     insertFailHostIds.add(infoDTO.getHostId());
                 }
             }
@@ -199,17 +200,17 @@ public class HostServiceImpl implements HostService {
             watch.start("log insertAppHostInfo");
             if (!insertFailHostIds.isEmpty()) {
                 log.warn(String.format("appId=%s,insertFailHostIds.size=%d,insertFailHostIds=%s",
-                    appId, insertFailHostIds.size(), String.join(",",
+                    bizId, insertFailHostIds.size(), String.join(",",
                         insertFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
             }
             watch.stop();
         }
-        log.debug("Performance:insertHostsToApp:appId={},{}", appId, watch.prettyPrint());
+        log.debug("Performance:insertHostsToApp:appId={},{}", bizId, watch.prettyPrint());
         return insertFailHostIds;
     }
 
     @Override
-    public List<Long> updateHostsInApp(Long appId, List<ApplicationHostDTO> hostInfoList) {
+    public List<Long> updateHostsInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList) {
         StopWatch watch = new StopWatch();
         watch.start("updateAppHostInfo");
         // 更新主机
@@ -222,7 +223,7 @@ public class HostServiceImpl implements HostService {
         try {
             // 尝试批量更新
             if (!hostInfoList.isEmpty()) {
-                applicationHostDAO.batchUpdateAppHostInfoByHostId(dslContext, hostInfoList);
+                applicationHostDAO.batchUpdateBizHostInfoByHostId(dslContext, hostInfoList);
             }
             batchUpdated = true;
         } catch (Throwable throwable) {
@@ -240,14 +241,14 @@ public class HostServiceImpl implements HostService {
             for (ApplicationHostDTO hostInfoDTO : hostInfoList) {
                 try {
                     if (!applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO)) {
-                        applicationHostDAO.updateAppHostInfoByHostId(dslContext, hostInfoDTO.getAppId(), hostInfoDTO);
+                        applicationHostDAO.updateBizHostInfoByHostId(dslContext, hostInfoDTO.getBizId(), hostInfoDTO);
                         updateCount += 1;
                         updateHostIds.add(hostInfoDTO.getHostId());
                     } else {
                         notChangeCount += 1;
                     }
                 } catch (Throwable t) {
-                    log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", appId, hostInfoDTO), t);
+                    log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", bizId, hostInfoDTO), t);
                     errorCount += 1;
                     errorHostIds.add(hostInfoDTO.getHostId());
                 }
@@ -258,15 +259,15 @@ public class HostServiceImpl implements HostService {
             watch.start("log updateAppHostInfo");
             log.info("Update host of appId={},errorCount={}," +
                     "updateCount={},notChangeCount={},errorHostIds={},updateHostIds={}",
-                appId, errorCount, updateCount, notChangeCount, errorHostIds, updateHostIds);
+                bizId, errorCount, updateCount, notChangeCount, errorHostIds, updateHostIds);
             watch.stop();
         }
-        log.debug("Performance:updateHostsInApp:appId={},{}", appId, watch.prettyPrint());
+        log.debug("Performance:updateHostsInApp:appId={},{}", bizId, watch.prettyPrint());
         return errorHostIds;
     }
 
     @Override
-    public List<Long> deleteHostsFromApp(Long appId, List<ApplicationHostDTO> deleteList) {
+    public List<Long> deleteHostsFromBiz(Long bizId, List<ApplicationHostDTO> deleteList) {
         StopWatch watch = new StopWatch();
         // 删除主机
         watch.start("deleteAppHostInfo");
@@ -275,7 +276,7 @@ public class HostServiceImpl implements HostService {
         try {
             // 尝试批量删除
             if (!deleteList.isEmpty()) {
-                applicationHostDAO.batchDeleteAppHostInfoById(dslContext, appId,
+                applicationHostDAO.batchDeleteBizHostInfoById(dslContext, bizId,
                     deleteList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList()));
             }
             batchDeleted = true;
@@ -284,9 +285,9 @@ public class HostServiceImpl implements HostService {
             // 批量删除失败，尝试逐条删除
             for (ApplicationHostDTO ApplicationHostDTO : deleteList) {
                 try {
-                    applicationHostDAO.deleteAppHostInfoById(dslContext, appId, ApplicationHostDTO.getHostId());
+                    applicationHostDAO.deleteBizHostInfoById(dslContext, bizId, ApplicationHostDTO.getHostId());
                 } catch (Throwable t) {
-                    log.error("deleteHost fail:appId={},hostInfo={}", appId,
+                    log.error("deleteHost fail:appId={},hostInfo={}", bizId,
                         ApplicationHostDTO, t);
                     deleteFailHostIds.add(ApplicationHostDTO.getHostId());
                 }
@@ -297,12 +298,12 @@ public class HostServiceImpl implements HostService {
             watch.start("log deleteAppHostInfo");
             if (!deleteFailHostIds.isEmpty()) {
                 log.warn(String.format("appId=%s,deleteFailHostIds.size=%d,deleteFailHostIds=%s",
-                    appId, deleteFailHostIds.size(), String.join(",",
+                    bizId, deleteFailHostIds.size(), String.join(",",
                         deleteFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
             }
             watch.stop();
         }
-        log.debug("Performance:deleteHostsFromApp:appId={},{}", appId, watch.prettyPrint());
+        log.debug("Performance:deleteHostsFromApp:appId={},{}", bizId, watch.prettyPrint());
         return deleteFailHostIds;
     }
 
@@ -343,56 +344,52 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public CcTopologyNodeVO listAppTopologyTree(String username, Long appId) {
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
+    public CcTopologyNodeVO listAppTopologyTree(String username, AppResourceScope appResourceScope) {
+        ApplicationDTO appInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
         if (appInfo == null) {
             throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
-        if (appInfo.getAppType() == AppTypeEnum.ALL_APP) {
-            // 全业务
-            CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
-            ccTopologyNodeVO.setObjectId("biz");
-            ccTopologyNodeVO.setObjectId("业务");
-            ccTopologyNodeVO.setInstanceId(appId);
-            ccTopologyNodeVO.setInstanceName(appInfo.getName());
-            ccTopologyNodeVO.setCount((int) applicationHostDAO.countAllHosts());
-            return ccTopologyNodeVO;
-        } else if (appInfo.getAppType() == AppTypeEnum.APP_SET) {
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             // 业务集
             CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
             ccTopologyNodeVO.setObjectId("biz");
             ccTopologyNodeVO.setObjectId("业务");
-            ccTopologyNodeVO.setInstanceId(appId);
+            ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
             ccTopologyNodeVO.setInstanceName(appInfo.getName());
-            ccTopologyNodeVO.setCount((int) applicationHostDAO.countHostsByAppIds(dslContext,
+            ccTopologyNodeVO.setCount((int) applicationHostDAO.countHostsByBizIds(dslContext,
                 topologyHelper.getAppSetSubAppIds(appInfo)));
             return ccTopologyNodeVO;
         }
-        InstanceTopologyDTO instanceTopology = topologyHelper.getTopologyTreeByApplication(username, appInfo);
+        InstanceTopologyDTO instanceTopology = topologyHelper.getTopologyTreeByApplication(appInfo);
         return TopologyHelper.convertToCcTopologyTree(instanceTopology);
     }
 
     /**
      * 入参只需objectId与instanceId即可，其余字段可为空
      *
-     * @param username
-     * @param appId
-     * @param treeNodeList
-     * @return
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param treeNodeList     拓扑节点列表
+     * @return 拓扑节点详情
      */
     @Override
-    public List<AppTopologyTreeNode> getAppTopologyTreeNodeDetail(String username, Long appId,
+    public List<AppTopologyTreeNode> getAppTopologyTreeNodeDetail(String username,
+                                                                  AppResourceScope appResourceScope,
                                                                   List<AppTopologyTreeNode> treeNodeList) {
-        log.info("Input(username={},appId={},treeNodeList={})", username, appId, JsonUtils.toJson(treeNodeList));
+        log.info(
+            "Input(username={},appResourceScope={},treeNodeList={})",
+            username, appResourceScope, JsonUtils.toJson(treeNodeList)
+        );
         if (treeNodeList == null || treeNodeList.isEmpty()) {
             return Collections.emptyList();
         }
         // 查出业务
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
+        ApplicationDTO appInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
         // 查业务拓扑树
-        CcClient ccClient = CcClientFactory.getCcClient(JobContextUtil.getUserLang());
-        InstanceTopologyDTO appTopologyTree = ccClient.getBizInstTopology(appId, appInfo.getBkSupplierAccount(),
-            username);
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
+            Long.parseLong(appResourceScope.getId())
+        );
         List<AppTopologyTreeNode> nodeList = ConcurrencyUtil.getResultWithThreads(treeNodeList, 5, treeNode -> {
             CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
             // 查拓扑节点完整信息
@@ -423,14 +420,12 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<List<InstanceTopologyDTO>> queryNodePaths(String username, Long appId,
-                                                          List<InstanceTopologyDTO> nodeList) {
-        // 查出业务
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
+    public List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
+                                                             Long bizId,
+                                                             List<InstanceTopologyDTO> nodeList) {
         // 查业务拓扑树
-        CcClient ccClient = CcClientFactory.getCcClient(JobContextUtil.getUserLang());
-        InstanceTopologyDTO appTopologyTree = ccClient.getBizInstTopology(appId, appInfo.getBkSupplierAccount(),
-            username);
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
         // 搜索路径
         return TopologyHelper.findTopoPaths(appTopologyTree, nodeList);
     }
@@ -438,24 +433,26 @@ public class HostServiceImpl implements HostService {
     /**
      * 入参只需objectId与instanceId即可，其余字段可为空
      *
-     * @param username
-     * @param appId
-     * @param treeNodeList
-     * @return
+     * @param username     用户名
+     * @param bizId        业务ID
+     * @param treeNodeList 拓扑节点列表
+     * @return 节点详情
      */
     @Override
-    public List<NodeInfoVO> getHostsByNode(String username, Long appId, List<AppTopologyTreeNode> treeNodeList) {
-        log.info("Input(username={},appId={},treeNodeList={})", username, appId, JsonUtils.toJson(treeNodeList));
+    public List<NodeInfoVO> getBizHostsByNode(String username,
+                                              Long bizId,
+                                              List<AppTopologyTreeNode> treeNodeList) {
+        log.info(
+            "Input(username={},bizId={},treeNodeList={})",
+            username, bizId, JsonUtils.toJson(treeNodeList)
+        );
         List<NodeInfoVO> nodeHostInfoList = new ArrayList<>();
         if (treeNodeList == null || treeNodeList.isEmpty()) {
             return nodeHostInfoList;
         }
-        // 查出业务
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         // 查业务拓扑树
-        CcClient ccClient = CcClientFactory.getCcClient(JobContextUtil.getUserLang());
-        InstanceTopologyDTO appTopologyTree = ccClient.getBizInstTopology(appId, appInfo.getBkSupplierAccount(),
-            username);
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
         final List<String> allIpWithCloudIdList = Collections.synchronizedList(new ArrayList<>());
         nodeHostInfoList = ConcurrencyUtil.getResultWithThreads(treeNodeList, 5, treeNode -> {
             CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
@@ -469,7 +466,7 @@ public class HostServiceImpl implements HostService {
             // 构造条件查主机
             List<CcInstanceDTO> conditions = new ArrayList<>();
             conditions.add(ccInstanceDTO);
-            List<ApplicationHostDTO> hosts = ccClient.getHosts(appId, conditions);
+            List<ApplicationHostDTO> hosts = bizCmdbClient.getHosts(bizId, conditions);
             List<HostInfoVO> hostInfoVOList = hosts.stream().map(it -> {
                 HostInfoVO hostInfoVO = new HostInfoVO();
                 hostInfoVO.setHostId(it.getHostId());
@@ -503,19 +500,22 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<DynamicGroupInfoDTO> getDynamicGroupList(String username, Long appId) {
-        ApplicationDTO applicationInfo = applicationService.getAppByAppId(appId);
+    public List<DynamicGroupInfoDTO> getAppDynamicGroupList(String username,
+                                                            AppResourceScope appResourceScope) {
+        ApplicationDTO applicationInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
 
         Map<String, DynamicGroupInfoDTO> ccGroupInfoMap = new HashMap<>();
         Map<Long, List<String>> appId2GroupIdMap = new HashMap<>();
-        if (AppTypeEnum.ALL_APP == applicationInfo.getAppType()) {
-            return new ArrayList<>(ccGroupInfoMap.values());
-        } else if (AppTypeEnum.APP_SET == applicationInfo.getAppType()) {
+        if (ResourceScopeTypeEnum.BIZ_SET == appResourceScope.getType()) {
             for (long subAppId : applicationInfo.getSubAppIds()) {
-                getCustomGroupListByAppId(subAppId, applicationInfo, username, ccGroupInfoMap, appId2GroupIdMap);
+                getCustomGroupListByAppId(subAppId, ccGroupInfoMap, appId2GroupIdMap);
             }
         } else {
-            getCustomGroupListByAppId(appId, applicationInfo, username, ccGroupInfoMap, appId2GroupIdMap);
+            getCustomGroupListByAppId(
+                Long.parseLong(appResourceScope.getId()),
+                ccGroupInfoMap,
+                appId2GroupIdMap
+            );
         }
 
         fillAppInfo(ccGroupInfoMap);
@@ -524,21 +524,19 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<DynamicGroupInfoDTO> getDynamicGroupHostList(String username, Long appId,
-                                                             List<String> dynamicGroupIdList) {
+    public List<DynamicGroupInfoDTO> getBizDynamicGroupHostList(String username, Long appId,
+                                                                List<String> dynamicGroupIdList) {
         ApplicationDTO applicationInfo = applicationService.getAppByAppId(appId);
         String maintainer = applicationInfo.getMaintainers().split("[,;]")[0];
 
         Map<String, DynamicGroupInfoDTO> ccGroupInfoMap = new HashMap<>();
         Map<Long, List<String>> appId2GroupIdMap = new HashMap<>();
-        if (AppTypeEnum.ALL_APP == applicationInfo.getAppType()) {
-            return new ArrayList<>(ccGroupInfoMap.values());
-        } else if (AppTypeEnum.APP_SET == applicationInfo.getAppType()) {
+        if (ResourceScopeTypeEnum.BIZ_SET == applicationInfo.getScope().getType()) {
             for (long subAppId : applicationInfo.getSubAppIds()) {
-                getCustomGroupListByAppId(subAppId, applicationInfo, username, ccGroupInfoMap, appId2GroupIdMap);
+                getCustomGroupListByAppId(subAppId, ccGroupInfoMap, appId2GroupIdMap);
             }
         } else {
-            getCustomGroupListByAppId(appId, applicationInfo, username, ccGroupInfoMap, appId2GroupIdMap);
+            getCustomGroupListByAppId(appId, ccGroupInfoMap, appId2GroupIdMap);
         }
 
         for (Map.Entry<Long, List<String>> entry : appId2GroupIdMap.entrySet()) {
@@ -548,8 +546,8 @@ public class HostServiceImpl implements HostService {
                     ccGroupInfoMap.remove(customerGroupId);
                     continue;
                 }
-                List<CcGroupHostPropDTO> ccGroupHostProps = CcClientFactory.getCcClient(JobContextUtil.getUserLang())
-                    .getCustomGroupIp(groupAppId, applicationInfo.getBkSupplierAccount(), maintainer, customerGroupId);
+                List<CcGroupHostPropDTO> ccGroupHostProps = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
+                    .getCustomGroupIp(groupAppId, customerGroupId);
                 List<String> ipList = new ArrayList<>();
                 for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
                     if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
@@ -585,26 +583,30 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public CcTopologyNodeVO listAppTopologyHostTree(String username, Long appId) {
+    public CcTopologyNodeVO listAppTopologyHostTree(String username, AppResourceScope appResourceScope) {
         StopWatch watch = new StopWatch("listAppTopologyHostTree");
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
+        ApplicationDTO appInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
         watch.start("listAppTopologyTree");
-        CcTopologyNodeVO topologyTree = this.listAppTopologyTree(username, appId);
+        CcTopologyNodeVO topologyTree = this.listAppTopologyTree(username, appResourceScope);
         watch.stop();
-        if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
             watch.start("fillHostInfo");
-            fillHostInfo(username, appId, topologyTree, true);
+            fillHostInfo(username, Long.valueOf(appResourceScope.getId()), topologyTree, true);
             watch.stop();
         } else {
-            topologyTree.setIpListStatus(listHostByBizTopologyNodes(username, appId, Collections.singletonList(
-                new AppTopologyTreeNode(
-                    "biz",
-                    "biz",
-                    appId,
-                    appInfo.getName(),
-                    null
+            topologyTree.setIpListStatus(
+                listHostByAppTopologyNodes(
+                    username, appResourceScope.getAppId(), Collections.singletonList(
+                        new AppTopologyTreeNode(
+                            "biz",
+                            "biz",
+                            Long.parseLong(appResourceScope.getId()),
+                            appInfo.getName(),
+                            null
+                        )
+                    )
                 )
-            )));
+            );
         }
         log.debug(watch.toString());
         return topologyTree;
@@ -662,7 +664,7 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    public void fillHostInfo(String username, Long appId, CcTopologyNodeVO topologyTree, boolean updateAgentStatus) {
+    public void fillHostInfo(String username, Long bizId, CcTopologyNodeVO topologyTree, boolean updateAgentStatus) {
         if (topologyTree == null) {
             return;
         }
@@ -679,7 +681,7 @@ public class HostServiceImpl implements HostService {
         watch.stop();
         watch.start("getHosts of Module:" + topologyTree.getInstanceId());
         // 从DB拿主机
-        List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByAppId(appId);
+        List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByBizId(bizId);
         log.info("find {} hosts from DB", dbHosts.size());
         List<ApplicationHostDTO> hosts = dbHosts;
         watch.stop();
@@ -750,15 +752,15 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public CcTopologyNodeVO listAppTopologyHostCountTree(String username, Long appId) {
+    public CcTopologyNodeVO listAppTopologyHostCountTree(String username,
+                                                         AppResourceScope appResourceScope) {
         StopWatch watch = new StopWatch("listAppTopologyHostCountTree");
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         watch.start("listAppTopologyHostCountTree");
-        CcTopologyNodeVO topologyTree = this.listAppTopologyTree(username, appId);
+        CcTopologyNodeVO topologyTree = this.listAppTopologyTree(username, appResourceScope);
         watch.stop();
-        if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
             watch.start("fillHostInfo");
-            fillHostInfo(username, appId, topologyTree, false);
+            fillHostInfo(username, Long.valueOf(appResourceScope.getId()), topologyTree, false);
             watch.stop();
             watch.start("clearHosts");
             clearHosts(topologyTree);
@@ -785,19 +787,24 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public PageData<String> listIPByBizTopologyNodes(String username, Long appId, ListHostByBizTopologyNodesReq req) {
-        PageData<HostInfoVO> hostInfoVOResult = listHostByBizTopologyNodes(username, appId, req);
+    public PageData<String> listIPByBizTopologyNodes(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     ListHostByBizTopologyNodesReq req) {
+        PageData<HostInfoVO> hostInfoVOResult = listHostByAppTopologyNodes(username, appResourceScope, req);
         List<String> data =
             hostInfoVOResult.getData().parallelStream()
                 .map(it -> it.getCloudAreaInfo().getId().toString() + ":" + it.getIp())
                 .collect(Collectors.toList());
-        PageData<String> result = new PageData<>(hostInfoVOResult.getStart(), hostInfoVOResult.getPageSize(),
-            hostInfoVOResult.getTotal(), data);
-        return result;
+        return new PageData<>(
+            hostInfoVOResult.getStart(),
+            hostInfoVOResult.getPageSize(),
+            hostInfoVOResult.getTotal(),
+            data
+        );
     }
 
     public List<HostInfoVO> getHostInfoVOsByHostInfoDTOs(List<ApplicationHostDTO> hosts) {
-        List<HostInfoVO> hostInfoVOList = hosts.stream().map(it -> {
+        return hosts.stream().map(it -> {
             String ip = it.getIp();
             HostInfoVO hostInfoVO = new HostInfoVO();
             hostInfoVO.setHostId(it.getHostId());
@@ -814,30 +821,30 @@ public class HostServiceImpl implements HostService {
             }
             return hostInfoVO;
         }).collect(Collectors.toList());
-        return hostInfoVOList;
     }
 
     // DB分页
     @Override
-    public PageData<HostInfoVO> listHostByBizTopologyNodes(String username, Long appId,
+    public PageData<HostInfoVO> listHostByAppTopologyNodes(String username,
+                                                           AppResourceScope appResourceScope,
                                                            ListHostByBizTopologyNodesReq req) {
         StopWatch watch = new StopWatch("listHostByBizTopologyNodes");
         watch.start("genConditions");
         String searchContent = req.getSearchContent();
         Integer agentStatus = req.getAgentStatus();
         // 查出业务
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
+        ApplicationDTO appInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
         List<Long> moduleIds = null;
         List<Long> appIds = null;
-        if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
+        if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
             // 普通业务需要以moduleIds作为查询条件
-            moduleIds = getModuleIdsByTopoNodes(username, appId, req.getAppTopoNodeList());
-        } else if (appInfo.getAppType() == AppTypeEnum.APP_SET) {
+            moduleIds = getBizModuleIdsByTopoNodes(
+                username, Long.valueOf(appInfo.getScope().getId()), req.getAppTopoNodeList()
+            );
+        } else if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
             // 业务集：仅根据业务查主机
             // 查出对应的所有普通业务
             appIds = topologyHelper.getAppSetSubAppIds(appInfo);
-        } else if (appInfo.getAppType() == AppTypeEnum.ALL_APP) {
-            // 全业务：仅根据具体的条件查主机
         }
 
         //获取所有云区域，找出名称符合条件的所有CloudAreaId
@@ -871,7 +878,7 @@ public class HostServiceImpl implements HostService {
         List<HostInfoVO> finalHostInfoVOList = getHostInfoVOsByHostInfoDTOs(hosts);
         watch.stop();
         if (watch.getTotalTimeMillis() > 5000) {
-            log.info("listHostByBizTopologyNodes is slow:{}", watch.toString());
+            log.info("listHostByBizTopologyNodes is slow:{}", watch);
         }
         return new PageData<>(pagePair.getLeft().intValue(), pagePair.getRight().intValue(), count,
             finalHostInfoVOList);
@@ -919,18 +926,17 @@ public class HostServiceImpl implements HostService {
         if (appInfo == null) {
             return hostInfoList;
         }
-        AppTypeEnum appType = appInfo.getAppType();
-        if (appType == AppTypeEnum.NORMAL) {
-            hostInfoList.addAll(applicationHostDAO.listHostInfoByIps(appId, ipList));
-        } else if (appType == AppTypeEnum.APP_SET) {
+        ResourceScopeTypeEnum scopeType = appInfo.getScope().getType();
+        if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+            hostInfoList.addAll(applicationHostDAO.listHostInfoByIps(
+                Long.valueOf(appInfo.getScope().getId()), ipList));
+        } else if (scopeType == ResourceScopeTypeEnum.BIZ_SET) {
             List<Long> subAppIds = topologyHelper.getAppSetSubAppIds(appInfo);
             // 直接使用本地缓存数据
             log.debug("subAppIdsSize={}, get host from local db", subAppIds.size());
             hostInfoList.addAll(applicationHostDAO.listHostInfo(subAppIds, ipList));
-        } else if (appType == AppTypeEnum.ALL_APP) {
-            hostInfoList.addAll(applicationHostDAO.listHostInfoByIps(null, ipList));
         } else {
-            log.warn("Not supported AppType:{}", appType.name());
+            log.warn("Not supported scopeType:{}", scopeType);
         }
         return hostInfoList;
     }
@@ -1057,17 +1063,17 @@ public class HostServiceImpl implements HostService {
         return hostInfoList;
     }
 
-    private void getCustomGroupListByAppId(Long appId, ApplicationDTO applicationInfo, String userName,
+    private void getCustomGroupListByAppId(Long bizId,
                                            Map<String, DynamicGroupInfoDTO> ccGroupInfoList,
-                                           Map<Long, List<String>> appId2GroupIdMap) {
+                                           Map<Long, List<String>> bizId2GroupIdMap) {
         List<String> groupIdList = new ArrayList<>();
-        List<CcGroupDTO> ccGroupList = CcClientFactory.getCcClient(JobContextUtil.getUserLang())
-            .getCustomGroupList(appId, applicationInfo.getBkSupplierAccount(), userName);
+        List<CcGroupDTO> ccGroupList = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
+            .getCustomGroupList(bizId);
         ccGroupList.forEach(ccGroupDTO -> {
             ccGroupInfoList.put(ccGroupDTO.getId(), ccGroupDTO.toDynamicGroupInfo());
             groupIdList.add(ccGroupDTO.getId());
         });
-        appId2GroupIdMap.put(appId, groupIdList);
+        bizId2GroupIdMap.put(bizId, groupIdList);
     }
 
     private void fillAppInfo(Map<String, DynamicGroupInfoDTO> ccGroupInfoMap) {
@@ -1098,62 +1104,64 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<HostInfoVO> listHostByBizTopologyNodes(String username, Long appId,
+    public List<HostInfoVO> listHostByAppTopologyNodes(String username, Long appId,
                                                        List<AppTopologyTreeNode> appTopoNodeList) {
-        return listHostByBizTopologyNodes(username, appId, appTopoNodeList, null, null);
+        return listHostByAppTopologyNodes(username, appId, appTopoNodeList, null, null);
     }
 
-    private List<Long> getModuleIdsByTopoNodes(String username, Long appId, List<AppTopologyTreeNode> appTopoNodeList) {
+    private List<Long> getBizModuleIdsByTopoNodes(String username,
+                                                  Long bizId,
+                                                  List<AppTopologyTreeNode> appTopoNodeList) {
         if (appTopoNodeList == null || appTopoNodeList.isEmpty()) {
             return Collections.emptyList();
         }
-        CcClient ccClient = CcClientFactory.getCcClient(JobContextUtil.getUserLang());
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
         // 查出业务
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
+        ApplicationDTO appInfo = applicationService.getAppByScope(
+            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
+        );
         List<Long> moduleIds = new ArrayList<>();
-        if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
-            // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
-            // 查业务拓扑树
-            InstanceTopologyDTO appTopologyTree = ccClient.getBizInstTopology(appId, appInfo.getBkSupplierAccount(),
-                username);
-            if (appTopologyTree == null) {
-                throw new InternalException("Fail to getBizTopo of appId " + appId + " from CMDB",
-                    ErrorCode.INTERNAL_ERROR);
-            }
-            for (AppTopologyTreeNode treeNode : appTopoNodeList) {
-                CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
-                // 查拓扑节点完整信息
-                InstanceTopologyDTO completeNode = TopologyUtil.findNodeFromTopo(appTopologyTree, ccInstanceDTO);
-                if (completeNode == null) {
-                    log.warn("Cannot find node in topo, node:{}, topo:", JsonUtils.toJson(ccInstanceDTO));
-                    TopologyUtil.printTopo(appTopologyTree);
-                    throw new InternalException("Fail to find node {objectId:" + ccInstanceDTO.getObjectType() + "," +
-                        "instanceId:" + ccInstanceDTO.getInstanceId() + ") from app topo", ErrorCode.INTERNAL_ERROR);
-                }
-                moduleIds.addAll(TopologyUtil.findModuleIdsFromTopo(completeNode));
-            }
-            return moduleIds;
-        } else {
-            return null;
+        // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
+        // 查业务拓扑树
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
+        if (appTopologyTree == null) {
+            throw new InternalException("Fail to getBizTopo of bizId " + bizId + " from CMDB",
+                ErrorCode.INTERNAL_ERROR);
         }
+        for (AppTopologyTreeNode treeNode : appTopoNodeList) {
+            CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
+            // 查拓扑节点完整信息
+            InstanceTopologyDTO completeNode = TopologyUtil.findNodeFromTopo(appTopologyTree, ccInstanceDTO);
+            if (completeNode == null) {
+                log.warn("Cannot find node in topo, node:{}, topo:", JsonUtils.toJson(ccInstanceDTO));
+                TopologyUtil.printTopo(appTopologyTree);
+                throw new InternalException("Fail to find node {objectId:" + ccInstanceDTO.getObjectType() + "," +
+                    "instanceId:" + ccInstanceDTO.getInstanceId() + ") from app topo", ErrorCode.INTERNAL_ERROR);
+            }
+            moduleIds.addAll(TopologyUtil.findModuleIdsFromTopo(completeNode));
+        }
+        return moduleIds;
     }
 
-    private List<HostInfoVO> listHostByBizTopologyNodes(String username, Long appId,
-                                                        List<AppTopologyTreeNode> appTopoNodeList, Long start,
+    private List<HostInfoVO> listHostByAppTopologyNodes(String username,
+                                                        Long appId,
+                                                        List<AppTopologyTreeNode> appTopoNodeList,
+                                                        Long start,
                                                         Long limit) {
         if (appTopoNodeList == null || appTopoNodeList.isEmpty()) {
             return Collections.emptyList();
         }
-        CcClient ccClient = CcClientFactory.getCcClient(JobContextUtil.getUserLang());
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
         // 查出业务
         ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         Set<Long> moduleIds = new HashSet<>();
         List<ApplicationHostDTO> hosts = new ArrayList<>();
-        if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
+        if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
             // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
             // 查业务拓扑树
-            InstanceTopologyDTO appTopologyTree = ccClient.getBizInstTopology(appId, appInfo.getBkSupplierAccount(),
-                username);
+            InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
+                Long.parseLong(appInfo.getScope().getId())
+            );
             for (AppTopologyTreeNode treeNode : appTopoNodeList) {
                 CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
                 // 查拓扑节点完整信息
@@ -1171,14 +1179,11 @@ public class HostServiceImpl implements HostService {
             List<Long> hostIdList =
                 hostTopoDTOList.parallelStream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
             hosts = applicationHostDAO.listHostInfoByHostIds(hostIdList);
-        } else if (appInfo.getAppType() == AppTypeEnum.ALL_APP) {
-            // 全业务：仅根据业务查主机
-            hosts = applicationHostDAO.listAllHostInfo(start, limit);
-        } else if (appInfo.getAppType() == AppTypeEnum.APP_SET) {
+        } else if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
             // 业务集：仅根据业务查主机
             // 查出对应的所有普通业务
             List<Long> allNormalAppIds = topologyHelper.getAppSetSubAppIds(appInfo);
-            hosts = applicationHostDAO.listHostInfoByNormalAppIds(allNormalAppIds, start, limit);
+            hosts = applicationHostDAO.listHostInfoByBizIds(allNormalAppIds, start, limit);
         }
 
         // 查出节点下主机与Agent状态
@@ -1232,15 +1237,15 @@ public class HostServiceImpl implements HostService {
         List<HostInfoVO> hostsByIp = getHostsByIp(username, appId, null, agentStatisticsReq.getIpList());
         log.debug("hostsByIp={}", hostsByIp);
         Set<HostInfoVO> allHostsSet = new HashSet<>(hostsByIp);
-        List<HostInfoVO> hostsByNodes = listHostByBizTopologyNodes(username, appId,
+        List<HostInfoVO> hostsByNodes = listHostByAppTopologyNodes(username, appId,
             agentStatisticsReq.getAppTopoNodeList());
         log.debug("hostsByNodes={}", hostsByNodes);
         allHostsSet.addAll(hostsByNodes);
         // 只有普通业务才查动态分组
-        if (applicationDTO.getAppType() == AppTypeEnum.NORMAL) {
+        if (applicationDTO.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
             List<ApplicationHostDTO> hostDTOsByDynamicGroupIds = new ArrayList<>();
             List<DynamicGroupInfoDTO> dynamicGroupList =
-                getDynamicGroupHostList(username, appId, agentStatisticsReq.getDynamicGroupIds());
+                getBizDynamicGroupHostList(username, appId, agentStatisticsReq.getDynamicGroupIds());
             dynamicGroupList.forEach(dynamicGroupInfoDTO -> {
                 List<ApplicationHostDTO> applicationHostDTOList = dynamicGroupInfoDTO.getIpListStatus();
                 if (applicationHostDTOList != null && !applicationHostDTOList.isEmpty()) {
@@ -1297,8 +1302,8 @@ public class HostServiceImpl implements HostService {
                 for (ApplicationHostDTO appHost : appHosts) {
                     IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
                     notExistHosts.remove(hostIp);
-                    hostCache.addOrUpdateApp(appHost);
-                    if (!includeAppIds.contains(appHost.getAppId())) {
+                    hostCache.addOrUpdateHost(appHost);
+                    if (!includeAppIds.contains(appHost.getBizId())) {
                         hostsNotInApp.add(hostIp);
                     }
                 }

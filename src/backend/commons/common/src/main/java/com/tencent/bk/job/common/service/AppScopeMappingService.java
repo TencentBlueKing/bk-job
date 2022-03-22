@@ -46,6 +46,14 @@ public interface AppScopeMappingService {
     Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds);
 
     /**
+     * 批量根据资源范围获取业务ID
+     *
+     * @param scopeList 资源范围列表
+     * @return 资源范围与业务ID的映射关系Map
+     */
+    Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList);
+
+    /**
      * 根据业务ID或者scopeType&scopeId获取AppResourceScope
      *
      * @param appId     业务ID

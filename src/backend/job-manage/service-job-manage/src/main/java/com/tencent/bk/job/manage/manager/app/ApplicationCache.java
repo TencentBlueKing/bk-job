@@ -133,9 +133,9 @@ public class ApplicationCache {
     /**
      * 从缓存中删除业务
      *
-     * @param scope 资源范围
+     * @param appId 业务ID
      */
-    public void deleteApp(ResourceScope scope) {
+    public void deleteApp(Long appId) {
         String requestId = null;
         try {
             requestId = lock();
@@ -143,11 +143,12 @@ public class ApplicationCache {
                 return;
             }
 
-            String scopeKey = buildScopeKey(scope);
-            CacheAppDO cacheApp = redisTemplate.<String, CacheAppDO>opsForHash().get(SCOPE_HASH_KEY, scopeKey);
+            CacheAppDO cacheApp = redisTemplate.<String, CacheAppDO>opsForHash().get(APP_HASH_KEY,
+                String.valueOf(appId));
             if (cacheApp != null) {
-                redisTemplate.<String, CacheAppDO>opsForHash().delete(SCOPE_HASH_KEY, scopeKey);
                 redisTemplate.<String, CacheAppDO>opsForHash().delete(APP_HASH_KEY, String.valueOf(cacheApp.getId()));
+                String scopeKey = buildScopeKey(cacheApp.getScopeType(), cacheApp.getScopeId());
+                redisTemplate.<String, CacheAppDO>opsForHash().delete(SCOPE_HASH_KEY, scopeKey);
             }
             log.info("Delete app from cache successfully! app: {}", cacheApp);
         } finally {
@@ -218,7 +219,7 @@ public class ApplicationCache {
                 return;
             }
 
-            List<ApplicationDTO> allApps = applicationDAO.listAllBizApps();
+            List<ApplicationDTO> allApps = applicationDAO.listAllApps();
             if (CollectionUtils.isEmpty(allApps)) {
                 log.warn("Get empty app list from MySQL, skip refresh");
                 return;
@@ -308,6 +309,10 @@ public class ApplicationCache {
 
     private String buildScopeKey(ResourceScope scope) {
         return scope.getType().getValue() + ":" + scope.getId();
+    }
+
+    private String buildScopeKey(String scopeType, String scopeId) {
+        return scopeType + ":" + scopeId;
     }
 
 

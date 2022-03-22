@@ -44,7 +44,7 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class AbstractCcReq extends EsbReq {
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
     private Map<String, Object> condition;
     private PageDTO page;
     private List<String> fields;

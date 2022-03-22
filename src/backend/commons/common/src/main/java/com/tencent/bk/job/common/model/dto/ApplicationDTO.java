@@ -99,10 +99,49 @@ public class ApplicationDTO implements Serializable {
      */
     private String language;
 
+    /**
+     * 业务是否已经被删除
+     */
+    private boolean isDeleted;
+
     @JsonIgnore
     public boolean isBiz() {
         return (scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ) ||
             getAppType() == AppTypeEnum.NORMAL;
+    }
+
+    /**
+     * 更新业务信息
+     *
+     * @param updateApplication 更新的业务
+     */
+    public void updateProps(ApplicationDTO updateApplication) {
+        this.name = updateApplication.getName();
+        this.appType = updateApplication.getAppType();
+        this.subAppIds = updateApplication.getSubAppIds();
+        this.bkSupplierAccount = updateApplication.getBkSupplierAccount();
+        this.maintainers = updateApplication.getMaintainers();
+        this.timeZone = updateApplication.getTimeZone();
+        this.operateDeptId = updateApplication.getOperateDeptId();
+        this.language = updateApplication.getLanguage();
+    }
+
+    /**
+     * 返回对应的cmdb业务ID
+     *
+     * @return cmdb业务ID
+     */
+    public Long getBizIdIfBizApp() {
+        return Long.valueOf(this.scope.getId());
+    }
+
+    /**
+     * 返回对应的cmdb业务集ID
+     *
+     * @return cmdb业务集ID
+     */
+    public Long getBizSetIdIfBizSetApp() {
+        return Long.valueOf(this.scope.getId());
     }
 
 }

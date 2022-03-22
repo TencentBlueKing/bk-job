@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.cc.config;
 
-import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.redis.util.RedisSlideWindowFlowController;
 import com.tencent.bk.job.common.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -45,12 +45,12 @@ public class CMDBFlowControllerConfig {
 
     private final RedisSlideWindowFlowController cmdbGlobalFlowController;
     private final StringRedisTemplate redisTemplate;
-    private final CcConfig ccConfig;
+    private final CmdbConfig cmdbConfig;
 
     @Autowired
-    public CMDBFlowControllerConfig(StringRedisTemplate redisTemplate, CcConfig ccConfig) {
+    public CMDBFlowControllerConfig(StringRedisTemplate redisTemplate, CmdbConfig cmdbConfig) {
         this.redisTemplate = redisTemplate;
-        this.ccConfig = ccConfig;
+        this.cmdbConfig = cmdbConfig;
         cmdbGlobalFlowController = new RedisSlideWindowFlowController();
     }
 
@@ -61,11 +61,11 @@ public class CMDBFlowControllerConfig {
     }
 
     public void initCMDBGlobalFlowController() {
-        if (!ccConfig.getEnableFlowControl()) {
+        if (!cmdbConfig.getEnableFlowControl()) {
             log.info("FlowControl not enabled, do not init flowController.");
             return;
         }
-        String flowControlResourcesStr = ccConfig.getFlowControlResourcesStr();
+        String flowControlResourcesStr = cmdbConfig.getFlowControlResourcesStr();
         flowControlResourcesStr = flowControlResourcesStr.trim();
         Map<String, Integer> map = new HashMap<>();
         try {
@@ -82,10 +82,10 @@ public class CMDBFlowControllerConfig {
         }
         try {
             log.info("CMDB Flow control initializing,map={},flowControlDefaultLimit={},getFlowControlPrecision={}",
-                map, ccConfig.getFlowControlDefaultLimit(), ccConfig.getFlowControlPrecision());
-            cmdbGlobalFlowController.init(redisTemplate, map, ccConfig.getFlowControlDefaultLimit(),
-                ccConfig.getFlowControlPrecision());
-            EsbCcClient.setGlobalFlowController(cmdbGlobalFlowController);
+                map, cmdbConfig.getFlowControlDefaultLimit(), cmdbConfig.getFlowControlPrecision());
+            cmdbGlobalFlowController.init(redisTemplate, map, cmdbConfig.getFlowControlDefaultLimit(),
+                cmdbConfig.getFlowControlPrecision());
+            BizCmdbClient.setGlobalFlowController(cmdbGlobalFlowController);
         } catch (Exception e) {
             log.error("Fail to init globalFlowController", e);
         }

@@ -25,23 +25,20 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
-import com.tencent.bk.job.common.cc.model.result.AppEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
@@ -66,23 +63,14 @@ public class AppWatchThread extends Thread {
         }
     }
 
-    private final DSLContext dslContext;
-    private final ApplicationDAO applicationDAO;
     private final ApplicationService applicationService;
-    private final ApplicationCache applicationCache;
     private final RedisTemplate<String, String> redisTemplate;
     private final String REDIS_KEY_RESOURCE_WATCH_APP_JOB_RUNNING_MACHINE = "resource-watch-app-job-running-machine";
     private final AtomicBoolean appWatchFlag = new AtomicBoolean(true);
 
-    public AppWatchThread(DSLContext dslContext,
-                          ApplicationDAO applicationDAO,
-                          ApplicationService applicationService,
-                          ApplicationCache applicationCache,
+    public AppWatchThread(ApplicationService applicationService,
                           RedisTemplate<String, String> redisTemplate) {
-        this.dslContext = dslContext;
-        this.applicationDAO = applicationDAO;
         this.applicationService = applicationService;
-        this.applicationCache = applicationCache;
         this.redisTemplate = redisTemplate;
         this.setName("[" + getId() + "]-AppWatchThread-" + instanceNum.getAndIncrement());
     }
@@ -91,52 +79,51 @@ public class AppWatchThread extends Thread {
         appWatchFlag.set(value);
     }
 
-    private void handleOneEvent(ResourceEvent<AppEventDetail> event) {
+    private void handleOneEvent(ResourceEvent<BizEventDetail> event) {
         String eventType = event.getEventType();
-        ApplicationDTO appInfoDTO = AppEventDetail.toAppInfoDTO(event.getDetail());
+        ApplicationDTO newestApp = BizEventDetail.toAppInfoDTO(event.getDetail());
+        ApplicationDTO cachedApp = applicationService.getAppByScope(newestApp.getScope());
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 try {
-                    ApplicationDTO oldAppInfoDTO = applicationDAO.getAppById(appInfoDTO.getId());
-                    if (oldAppInfoDTO != null) {
-                        applicationDAO.updateApp(dslContext, appInfoDTO);
+                    if (cachedApp != null) {
+                        cachedApp.updateProps(newestApp);
+                        applicationService.updateApp(cachedApp);
                     } else {
                         try {
-                            applicationService.createApp(appInfoDTO);
+                            applicationService.createApp(newestApp);
                         } catch (DataAccessException e) {
                             String errorMessage = e.getMessage();
                             if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
                                 // 若已存在则忽略
                             } else {
-                                log.error("insertApp fail:appInfo=" + appInfoDTO, e);
+                                log.error("insertApp fail:appInfo=" + newestApp, e);
                             }
                         }
                     }
-                    applicationCache.addOrUpdateApp(appInfoDTO);
                 } catch (Throwable t) {
                     log.error("handle app event fail", t);
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationDAO.deleteAppInfoById(dslContext, appInfoDTO.getId());
-                applicationCache.deleteApp(appInfoDTO.getScope());
+                applicationService.deleteApp(cachedApp.getId());
                 break;
             default:
                 break;
         }
-        AppEventDetail detail = event.getDetail();
+        BizEventDetail detail = event.getDetail();
         log.debug("eventType=" + eventType);
         log.debug(JsonUtils.toJson(detail));
     }
 
-    public String handleAppWatchResult(ResourceWatchResult<AppEventDetail> appWatchResult) {
+    public String handleAppWatchResult(ResourceWatchResult<BizEventDetail> appWatchResult) {
         String cursor = null;
         boolean isWatched = appWatchResult.getWatched();
         if (isWatched) {
-            List<ResourceEvent<AppEventDetail>> events = appWatchResult.getEvents();
+            List<ResourceEvent<BizEventDetail>> events = appWatchResult.getEvents();
             //解析事件，进行处理
-            for (ResourceEvent<AppEventDetail> event : events) {
+            for (ResourceEvent<BizEventDetail> event : events) {
                 handleOneEvent(event);
             }
             if (events.size() > 0) {
@@ -148,7 +135,7 @@ public class AppWatchThread extends Thread {
             }
         } else {
             // 只有一个无实际意义的事件，用于换取bk_cursor
-            List<ResourceEvent<AppEventDetail>> events = appWatchResult.getEvents();
+            List<ResourceEvent<BizEventDetail>> events = appWatchResult.getEvents();
             if (events != null && events.size() > 0) {
                 cursor = events.get(0).getCursor();
                 log.info("refresh cursor(fail):{}", cursor);
@@ -207,13 +194,13 @@ public class AppWatchThread extends Thread {
                 StopWatch watch = new StopWatch("appWatch");
                 watch.start("total");
                 try {
-                    CcClient ccClient = CcClientFactory.getCcClient();
-                    ResourceWatchResult<AppEventDetail> appWatchResult;
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+                    ResourceWatchResult<BizEventDetail> appWatchResult;
                     while (appWatchFlag.get()) {
                         if (cursor == null) {
-                            appWatchResult = ccClient.getAppEvents(startTime, cursor);
+                            appWatchResult = bizCmdbClient.getAppEvents(startTime, cursor);
                         } else {
-                            appWatchResult = ccClient.getAppEvents(null, cursor);
+                            appWatchResult = bizCmdbClient.getAppEvents(null, cursor);
                         }
                         log.info("appWatchResult={}", JsonUtils.toJson(appWatchResult));
                         cursor = handleAppWatchResult(appWatchResult);

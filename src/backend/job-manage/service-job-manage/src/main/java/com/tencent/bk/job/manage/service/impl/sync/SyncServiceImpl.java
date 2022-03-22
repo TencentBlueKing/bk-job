@@ -24,9 +24,13 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import brave.Tracing;
+import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -114,6 +118,8 @@ public class SyncServiceImpl implements SyncService {
     private AppWatchThread appWatchThread = null;
     private HostWatchThread hostWatchThread = null;
     private HostRelationWatchThread hostRelationWatchThread = null;
+    private BizSetWatchThread bizSetWatchThread = null;
+    private BizSetRelationWatchThread bizSetRelationWatchThread;
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
@@ -121,6 +127,8 @@ public class SyncServiceImpl implements SyncService {
     private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final AgentStatusSyncService agentStatusSyncService;
     private final HostCache hostCache;
+    private final IBizSetCmdbClient bizSetCmdbClient;
+    private final Tracing tracing;
 
     @Autowired
     public SyncServiceImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
@@ -137,7 +145,7 @@ public class SyncServiceImpl implements SyncService {
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           HostCache hostCache) {
+                           HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient, Tracing tracing) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -156,6 +164,8 @@ public class SyncServiceImpl implements SyncService {
         this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.agentStatusSyncService = agentStatusSyncService;
         this.hostCache = hostCache;
+        this.bizSetCmdbClient = bizSetCmdbClient;
+        this.tracing = tracing;
         // 同步业务的线程池配置
         syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(20), (r, executor) ->
@@ -192,27 +202,37 @@ public class SyncServiceImpl implements SyncService {
         }
         if (jobManageConfig.isEnableResourceWatch()) {
             // 开一个常驻线程监听业务资源变动事件
-            appWatchThread = new AppWatchThread(dslContext, applicationDAO, applicationService, applicationCache,
-                redisTemplate);
+            appWatchThread = new AppWatchThread(applicationService, redisTemplate);
             appWatchThread.start();
+
             // 开一个常驻线程监听主机资源变动事件
             hostWatchThread = new HostWatchThread(dslContext, applicationHostDAO, queryAgentStatusClient,
                 redisTemplate, appHostsUpdateHelper, hostCache);
             hostWatchThread.start();
+
             // 开一个常驻线程监听主机关系资源变动事件
             hostRelationWatchThread = new HostRelationWatchThread(dslContext, applicationHostDAO, hostTopoDAO,
                 redisTemplate, this, appHostsUpdateHelper);
             hostRelationWatchThread.start();
+
+            // 开一个常驻线程监听业务集变动事件
+            bizSetWatchThread = new BizSetWatchThread(redisTemplate, applicationService, bizSetCmdbClient, tracing);
+            bizSetWatchThread.start();
+
+            // 开一个常驻线程监听业务集与业务关系变动事件
+            bizSetRelationWatchThread = new BizSetRelationWatchThread(redisTemplate, applicationService,
+                bizSetCmdbClient, tracing);
+            bizSetRelationWatchThread.start();
         } else {
             log.info("resourceWatch not enabled, you can enable it in config file");
         }
     }
 
-    public boolean addExtraSyncAppHostsTask(Long appId) {
-        if (extraSyncAppQueue.contains(appId)) {
+    public boolean addExtraSyncBizHostsTask(Long bizId) {
+        if (extraSyncAppQueue.contains(bizId)) {
             return true;
         } else if (extraSyncAppQueue.remainingCapacity() > 0) {
-            boolean result = extraSyncAppQueue.add(appId);
+            boolean result = extraSyncAppQueue.add(bizId);
             if (extraSyncAppQueue.size() > 10) {
                 log.warn("extraSyncAppQueue.size={},queue={}", extraSyncAppQueue.size(), extraSyncAppQueue.toString());
             } else {
@@ -351,7 +371,7 @@ public class SyncServiceImpl implements SyncService {
 
     private Future<Pair<Long, Long>> arrangeSyncAppHostsTask(ApplicationDTO applicationDTO) {
         return syncHostExecutor.submit(() ->
-            hostSyncService.syncAppHostsAtOnce(applicationDTO));
+            hostSyncService.syncBizHostsAtOnce(applicationDTO));
     }
 
     @Override
@@ -404,7 +424,7 @@ public class SyncServiceImpl implements SyncService {
                             app.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
                     //删除已移除业务的主机，部分测试主机放在业务集下，不删除
                     if (!localNormalApps.isEmpty()) {
-                        applicationHostDAO.deleteAppHostInfoNotInApps(dslContext,
+                        applicationHostDAO.deleteBizHostInfoNotInBizs(dslContext,
                             localApps.stream().map(ApplicationDTO::getId).collect(Collectors.toSet()));
                     }
                     Long cmdbInterfaceTimeConsuming = 0L;
@@ -455,13 +475,13 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public Future<Pair<Long, Long>> arrangeSyncAppHostsTask(Long appId) {
-        log.info("arrangeSyncAppHostsTask:appId={}", appId);
-        return arrangeSyncAppHostsTask(applicationDAO.getAppById(appId));
+    public Future<Pair<Long, Long>> arrangeSyncBizHostsTask(Long bizId) {
+        log.info("arrangeSyncAppHostsTask:appId={}", bizId);
+        return arrangeSyncAppHostsTask(applicationDAO.getAppById(bizId));
     }
 
     @Override
-    public Boolean enableAppWatch() {
+    public Boolean enableBizWatch() {
         if (appWatchThread != null) {
             log.info("appWatch enabled by op");
             appWatchThread.setWatchFlag(true);
@@ -472,7 +492,7 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public Boolean disableAppWatch() {
+    public Boolean disableBizWatch() {
         if (appWatchThread != null) {
             log.info("appWatch disabled by op");
             appWatchThread.setWatchFlag(false);
@@ -543,13 +563,15 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public Boolean syncAppHosts(Long appId) {
-        log.info("syncAppHosts:appId={}", appId);
-        ApplicationDTO applicationDTO = applicationDAO.getAppById(appId);
-        Pair<Long, Long> pair = hostSyncService.syncAppHostsAtOnce(applicationDTO);
+    public Boolean syncBizHosts(Long bizId) {
+        log.info("syncBizHosts:bizId={}", bizId);
+        ApplicationDTO applicationDTO = applicationDAO.getAppByScope(
+            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
+        );
+        Pair<Long, Long> pair = hostSyncService.syncBizHostsAtOnce(applicationDTO);
         Long cmdbInterfaceTimeConsuming = pair.getFirst();
         Long writeToDBTimeConsuming = pair.getSecond();
-        log.info("syncAppHosts:cmdbInterfaceTimeConsuming={},writeToDBTimeConsuming={}", cmdbInterfaceTimeConsuming,
+        log.info("syncBizHosts:cmdbInterfaceTimeConsuming={},writeToDBTimeConsuming={}", cmdbInterfaceTimeConsuming,
             writeToDBTimeConsuming);
         return true;
     }

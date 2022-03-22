@@ -28,7 +28,11 @@ import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.jooq.*;
+import org.jooq.BatchBindStep;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Query;
+import org.jooq.Result;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.HostTopo;
 import org.jooq.generated.tables.records.HostTopoRecord;
@@ -61,7 +65,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             defaultTable.MODULE_ID
         ).values(
             ULong.valueOf(hostTopoDTO.getHostId()),
-            ULong.valueOf(hostTopoDTO.getAppId()),
+            ULong.valueOf(hostTopoDTO.getBizId()),
             hostTopoDTO.getSetId(),
             hostTopoDTO.getModuleId()
         );
@@ -102,7 +106,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             for (HostTopoDTO hostTopoDTO : subList) {
                 batchQuery = batchQuery.bind(
                     ULong.valueOf(hostTopoDTO.getHostId()),
-                    hostTopoDTO.getAppId(),
+                    hostTopoDTO.getBizId(),
                     hostTopoDTO.getSetId(),
                     hostTopoDTO.getModuleId()
                 );

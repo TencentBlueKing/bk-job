@@ -28,7 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.model.BaseConditionDTO;
 import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
@@ -55,14 +55,13 @@ import com.tencent.bk.job.common.cc.model.req.GetCloudAreaInfoReq;
 import com.tencent.bk.job.common.cc.model.req.GetObjAttributeReq;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.model.req.ListBizHostReq;
-import com.tencent.bk.job.common.cc.model.req.ListBizHostsTopoReq;
 import com.tencent.bk.job.common.cc.model.req.ListHostsWithoutBizReq;
 import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
-import com.tencent.bk.job.common.cc.model.result.AppEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ExecuteDynamicGroupHostResult;
 import com.tencent.bk.job.common.cc.model.result.FindHostBizRelationsResult;
 import com.tencent.bk.job.common.cc.model.result.FindModuleHostRelationResult;
@@ -70,7 +69,6 @@ import com.tencent.bk.job.common.cc.model.result.GetBizInternalModuleResult;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ListBizHostResult;
-import com.tencent.bk.job.common.cc.model.result.ListBizHostsTopoResult;
 import com.tencent.bk.job.common.cc.model.result.ListHostsWithoutBizResult;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.model.result.SearchAppResult;
@@ -86,7 +84,6 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -131,10 +128,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
- * ESB-CC接口调用客户端
+ * ESB-CMDB接口调用客户端
  */
 @Slf4j
-public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
+public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClient {
 
     private static final String SEARCH_BIZ_INST_TOPO = "/api/c/compapi/v2/cc/search_biz_inst_topo/";
     private static final String GET_BIZ_INTERNAL_MODULE = "/api/c/compapi/v2/cc/get_biz_internal_module/";
@@ -153,15 +150,15 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     private static final String GET_BIZ_BRIEF_CACHE_TOPO = "/api/c/compapi/v2/cc/get_biz_brief_cache_topo/";
 
     private static final Map<String, String> interfaceNameMap = new HashMap<>();
-    private static final ConcurrentHashMap<String, Pair<InstanceTopologyDTO, Long>> bizInstTopoMap =
+    private static final ConcurrentHashMap<Long, Pair<InstanceTopologyDTO, Long>> bizInstTopoMap =
         new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, ReentrantLock> bizInstTopoLockMap = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, Pair<InstanceTopologyDTO, Long>> bizInternalTopoMap =
+    private static final ConcurrentHashMap<Long, ReentrantLock> bizInstTopoLockMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Long, Pair<InstanceTopologyDTO, Long>> bizInternalTopoMap =
         new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, ReentrantLock> bizInternalTopoLockMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Long, ReentrantLock> bizInternalTopoLockMap = new ConcurrentHashMap<>();
     public static ThreadPoolExecutor threadPoolExecutor = null;
     public static ThreadPoolExecutor longTermThreadPoolExecutor = null;
-    public static CcConfig ccConfig = null;
+    public static CmdbConfig cmdbConfig = null;
     /**
      * 对整个应用中所有的CMDB调用进行限流
      */
@@ -188,28 +185,27 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     protected String defaultSupplierAccount;
     protected String defaultUin = "admin";
     private QueryAgentStatusClient queryAgentStatusClient;
-    private MeterRegistry meterRegistry;
-    private LoadingCache<String, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
+    private final MeterRegistry meterRegistry;
+    private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-        build(new CacheLoader<String, InstanceTopologyDTO>() {
-                  @Override
-                  public InstanceTopologyDTO load(String searchKey) throws Exception {
-                      String[] keys = searchKey.split(":");
-                      return getBizInstCompleteTopology(Long.parseLong(keys[0]), keys[1], keys[2]);
+            build(new CacheLoader<Long, InstanceTopologyDTO>() {
+                      @Override
+                      public InstanceTopologyDTO load(Long bizId) {
+                          return getBizInstCompleteTopology(bizId);
+                      }
                   }
-              }
-        );
+            );
 
-    public EsbCcClient(EsbConfig esbConfig, CcConfig ccConfig, QueryAgentStatusClient queryAgentStatusClient,
-                       MeterRegistry meterRegistry) {
-        this(esbConfig, ccConfig, null, queryAgentStatusClient, meterRegistry);
+    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
+                         MeterRegistry meterRegistry) {
+        this(esbConfig, cmdbConfig, null, queryAgentStatusClient, meterRegistry);
     }
 
-    public EsbCcClient(EsbConfig esbConfig, CcConfig ccConfig, String lang,
-                       QueryAgentStatusClient queryAgentStatusClient, MeterRegistry meterRegistry) {
+    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, String lang,
+                         QueryAgentStatusClient queryAgentStatusClient, MeterRegistry meterRegistry) {
         super(esbConfig.getEsbUrl(), esbConfig.getAppCode(), esbConfig.getAppSecret(), lang,
             esbConfig.isUseEsbTestEnv());
-        this.defaultSupplierAccount = ccConfig.getDefaultSupplierAccount();
+        this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.meterRegistry = meterRegistry;
     }
@@ -236,90 +232,67 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     public static void init() {
-        initThreadPoolExecutor(ccConfig.getCmdbQueryThreadsNum(), ccConfig.getFindHostRelationLongTermConcurrency());
+        initThreadPoolExecutor(cmdbConfig.getCmdbQueryThreadsNum(),
+            cmdbConfig.getFindHostRelationLongTermConcurrency());
     }
 
-    public static void setCcConfig(CcConfig ccConfig) {
-        EsbCcClient.ccConfig = ccConfig;
+    public static void setCcConfig(CmdbConfig cmdbConfig) {
+        BizCmdbClient.cmdbConfig = cmdbConfig;
     }
 
     public void setQueryAgentStatusClient(QueryAgentStatusClient queryAgentStatusClient) {
         this.queryAgentStatusClient = queryAgentStatusClient;
     }
 
-    /**
-     * 获取业务完整topo（含内置模块空闲机/故障机等）
-     *
-     * @param appId
-     * @param uin
-     * @param owner
-     * @return
-     * @throws ServiceException
-     */
     @Override
-    public InstanceTopologyDTO getBizInstCompleteTopology(long appId, String owner,
-                                                          String uin) throws ServiceException {
+    public InstanceTopologyDTO getBizInstCompleteTopology(long bizId) {
         InstanceTopologyDTO completeTopologyDTO;
-        if (ccConfig.getEnableInterfaceBriefCacheTopo()) {
-            log.debug("getBriefCacheTopo({},{},{})", appId, owner, uin);
-            completeTopologyDTO = getBriefCacheTopo(appId, owner, uin);
+        if (cmdbConfig.getEnableInterfaceBriefCacheTopo()) {
+            completeTopologyDTO = getBriefCacheTopo(bizId);
         } else {
-            InstanceTopologyDTO topologyDTO = getBizInstTopologyWithoutInternalTopo(appId, owner, uin);
-            InstanceTopologyDTO internalTopologyDTO = getBizInternalModule(appId, owner, uin);
+            InstanceTopologyDTO topologyDTO = getBizInstTopologyWithoutInternalTopo(bizId);
+            InstanceTopologyDTO internalTopologyDTO = getBizInternalModule(bizId);
             completeTopologyDTO = TopologyUtil.mergeTopology(topologyDTO, internalTopologyDTO);
         }
         return completeTopologyDTO;
     }
 
-    public InstanceTopologyDTO getCachedBizInstCompleteTopology(long appId, String owner,
-                                                                String uin) throws ServiceException {
+    public InstanceTopologyDTO getCachedBizInstCompleteTopology(long bizId) {
         try {
-            return bizInstCompleteTopologyCache.get("" + appId + ":" + owner + ":" + uin);
+            return bizInstCompleteTopologyCache.get(bizId);
         } catch (ExecutionException e) {
             throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
     }
 
     @Override
-    public InstanceTopologyDTO getBizInstTopology(long appId, String owner, String uin) throws ServiceException {
-        return getCachedBizInstCompleteTopology(appId, owner, uin);
+    public InstanceTopologyDTO getBizInstTopology(long bizId) {
+        return getCachedBizInstCompleteTopology(bizId);
     }
 
-    public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopo(long appId, String owner,
-                                                                     String uin) throws ServiceException {
-        if (ccConfig.getEnableLockOptimize()) {
-            return getBizInstTopologyWithoutInternalTopoWithLock(appId, owner, uin);
+    public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopo(long bizId) {
+        if (cmdbConfig.getEnableLockOptimize()) {
+            return getBizInstTopologyWithoutInternalTopoWithLock(bizId);
         } else {
-            return getBizInstTopologyWithoutInternalTopoFromCMDB(appId, owner, uin);
+            return getBizInstTopologyWithoutInternalTopoFromCMDB(bizId);
         }
     }
 
-    /**
-     * 防止参数完全相同的请求在并发时多次请求CMDB，降低对CMDB的请求量
-     *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @return
-     * @throws ServiceException
-     */
-    public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopoWithLock(long appId, String owner,
-                                                                             String uin) throws ServiceException {
-        String key = "" + appId + ":" + owner + ":" + uin;
+    public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopoWithLock(long bizId) {
         ReentrantLock lock = null;
-        if (bizInstTopoMap.containsKey(key)
-            && bizInstTopoMap.get(key).getRight() > System.currentTimeMillis() - 30 * 1000) {
-            return bizInstTopoMap.get(key).getLeft();
+        if (bizInstTopoMap.containsKey(bizId)
+            && bizInstTopoMap.get(bizId).getRight() > System.currentTimeMillis() - 30 * 1000) {
+            return bizInstTopoMap.get(bizId).getLeft();
         } else {
-            lock = bizInstTopoLockMap.computeIfAbsent(key, s -> new ReentrantLock());
+            lock = bizInstTopoLockMap.computeIfAbsent(bizId, s -> new ReentrantLock());
             lock.lock();
             try {
-                if (bizInstTopoMap.containsKey(key)
-                    && bizInstTopoMap.get(key).getRight() > System.currentTimeMillis() - 30 * 1000) {
-                    return bizInstTopoMap.get(key).getLeft();
+                if (bizInstTopoMap.containsKey(bizId)
+                    && bizInstTopoMap.get(bizId).getRight() > System.currentTimeMillis() - 30 * 1000) {
+                    return bizInstTopoMap.get(bizId).getLeft();
                 } else {
-                    InstanceTopologyDTO topo = getBizInstTopologyWithoutInternalTopoFromCMDB(appId, owner, uin);
-                    bizInstTopoMap.put(key, Pair.of(topo, System.currentTimeMillis()));
+                    InstanceTopologyDTO topo = getBizInstTopologyWithoutInternalTopoFromCMDB(bizId);
+                    bizInstTopoMap.put(bizId, Pair.of(topo, System.currentTimeMillis()));
                     return topo;
                 }
             } finally {
@@ -328,31 +301,18 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         }
     }
 
-    public InstanceTopologyDTO getBriefCacheTopo(long appId, String owner, String uin) {
-        if (owner == null) {
-            owner = defaultSupplierAccount;
-        }
-        if (uin == null) {
-            uin = defaultUin;
-        }
-        GetBriefCacheTopoReq req = makeBaseReq(GetBriefCacheTopoReq.class, uin, owner);
-        req.setAppId(appId);
+    public InstanceTopologyDTO getBriefCacheTopo(long bizId) {
+        GetBriefCacheTopoReq req = makeBaseReq(GetBriefCacheTopoReq.class, defaultUin, defaultSupplierAccount);
+        req.setBizId(bizId);
         EsbResp<BriefTopologyDTO> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, GET_BIZ_BRIEF_CACHE_TOPO, req,
             new TypeReference<EsbResp<BriefTopologyDTO>>() {
             });
         return TopologyUtil.convert(esbResp.getData());
     }
 
-    public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopoFromCMDB(long appId, String owner,
-                                                                             String uin) {
-        if (owner == null) {
-            owner = defaultSupplierAccount;
-        }
-        if (uin == null) {
-            uin = defaultUin;
-        }
-        GetBizInstTopoReq req = makeBaseReq(GetBizInstTopoReq.class, uin, owner);
-        req.setAppId(appId);
+    public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopoFromCMDB(long bizId) {
+        GetBizInstTopoReq req = makeBaseReq(GetBizInstTopoReq.class, defaultUin, defaultSupplierAccount);
+        req.setBizId(bizId);
         EsbResp<List<InstanceTopologyDTO>> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, SEARCH_BIZ_INST_TOPO,
             req, new TypeReference<EsbResp<List<InstanceTopologyDTO>>>() {
             });
@@ -377,7 +337,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                                          ExtHttpHelper httpHelper) {
 
         String resourceId = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
-        if (ccConfig != null && ccConfig.getEnableFlowControl()) {
+        if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
             if (globalFlowController != null) {
                 log.debug("Flow control resourceId={}", resourceId);
                 long startTime = System.currentTimeMillis();
@@ -414,50 +374,33 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         }
     }
 
-    /**
-     * 查询业务内置模块（空闲机/故障机等）
-     *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @return 只有一个Set，根节点为Set的Topo树
-     * @throws ServiceException
-     */
     @Override
-    public InstanceTopologyDTO getBizInternalModule(long appId, String owner, String uin) throws ServiceException {
-        if (ccConfig.getEnableLockOptimize()) {
-            return getBizInternalModuleWithLock(appId, owner, uin);
+    public InstanceTopologyDTO getBizInternalModule(long bizId) {
+        if (cmdbConfig.getEnableLockOptimize()) {
+            return getBizInternalModuleWithLock(bizId);
         } else {
-            return getBizInternalModuleFromCMDB(appId, owner, uin);
+            return getBizInternalModuleFromCMDB(bizId);
         }
     }
 
     /**
      * 防止参数完全相同的请求在并发时多次请求CMDB，降低对CMDB的请求量
-     *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @return
-     * @throws ServiceException
      */
-    public InstanceTopologyDTO getBizInternalModuleWithLock(long appId, String owner,
-                                                            String uin) throws ServiceException {
-        String key = "" + appId + ":" + owner + ":" + uin;
+    public InstanceTopologyDTO getBizInternalModuleWithLock(long bizId) {
         ReentrantLock lock = null;
-        if (bizInternalTopoMap.containsKey(key)
-            && bizInternalTopoMap.get(key).getRight() > System.currentTimeMillis() - 30 * 1000) {
-            return bizInternalTopoMap.get(key).getLeft();
+        if (bizInternalTopoMap.containsKey(bizId)
+            && bizInternalTopoMap.get(bizId).getRight() > System.currentTimeMillis() - 30 * 1000) {
+            return bizInternalTopoMap.get(bizId).getLeft();
         } else {
-            lock = bizInternalTopoLockMap.computeIfAbsent(key, s -> new ReentrantLock());
+            lock = bizInternalTopoLockMap.computeIfAbsent(bizId, s -> new ReentrantLock());
             lock.lock();
             try {
-                if (bizInternalTopoMap.containsKey(key)
-                    && bizInternalTopoMap.get(key).getRight() > System.currentTimeMillis() - 30 * 1000) {
-                    return bizInternalTopoMap.get(key).getLeft();
+                if (bizInternalTopoMap.containsKey(bizId)
+                    && bizInternalTopoMap.get(bizId).getRight() > System.currentTimeMillis() - 30 * 1000) {
+                    return bizInternalTopoMap.get(bizId).getLeft();
                 } else {
-                    InstanceTopologyDTO topo = getBizInternalModuleFromCMDB(appId, owner, uin);
-                    bizInternalTopoMap.put(key, Pair.of(topo, System.currentTimeMillis()));
+                    InstanceTopologyDTO topo = getBizInternalModuleFromCMDB(bizId);
+                    bizInternalTopoMap.put(bizId, Pair.of(topo, System.currentTimeMillis()));
                     return topo;
                 }
             } finally {
@@ -466,16 +409,9 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         }
     }
 
-    public InstanceTopologyDTO getBizInternalModuleFromCMDB(long appId, String owner,
-                                                            String uin) throws ServiceException {
-        if (owner == null) {
-            owner = defaultSupplierAccount;
-        }
-        if (uin == null) {
-            uin = defaultUin;
-        }
-        GetBizInternalModuleReq req = makeBaseReq(GetBizInternalModuleReq.class, uin, owner);
-        req.setAppId(appId);
+    public InstanceTopologyDTO getBizInternalModuleFromCMDB(long bizId) {
+        GetBizInternalModuleReq req = makeBaseReq(GetBizInternalModuleReq.class, defaultUin, defaultSupplierAccount);
+        req.setBizId(bizId);
         EsbResp<GetBizInternalModuleResult> esbResp = requestCmdbApi(HttpGet.METHOD_NAME,
             GET_BIZ_INTERNAL_MODULE, req, new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
             });
@@ -504,16 +440,15 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
 
     @Override
-    public List<ApplicationHostDTO> getHosts(long appId, List<CcInstanceDTO> ccInstList) {
-        return getHostsByTopology(appId, ccInstList);
+    public List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList) {
+        return getHostsByTopology(bizId, ccInstList);
     }
 
     @Override
-    public List<ApplicationHostDTO> getHostsByTopology(long appId, List<CcInstanceDTO> ccInstList) {
+    public List<ApplicationHostDTO> getHostsByTopology(long bizId, List<CcInstanceDTO> ccInstList) {
         StopWatch watch = new StopWatch("getHostsByTopology");
         watch.start("getCachedBizInstCompleteTopology");
-        InstanceTopologyDTO appCompleteTopology = getCachedBizInstCompleteTopology(appId, defaultSupplierAccount,
-            defaultUin);
+        InstanceTopologyDTO appCompleteTopology = getCachedBizInstCompleteTopology(bizId);
         watch.stop();
 
         watch.start("findModuleIdsFromTopo");
@@ -532,20 +467,19 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
         //根据module找主机
         watch.start("findHostByModule");
-        List<ApplicationHostDTO> applicationHostDTOList = findHostByModule(appId,
-            new ArrayList<>(moduleIdSet), defaultUin, defaultSupplierAccount);
+        List<ApplicationHostDTO> applicationHostDTOList = findHostByModule(bizId,
+            new ArrayList<>(moduleIdSet));
         watch.stop();
 
         if (watch.getTotalTimeMillis() > 1000L) {
-            log.warn("Get hosts by topo is slow, appId: {}, ccInsts: {}, watchInfo: {}", appId, ccInstList,
+            log.warn("Get hosts by topo is slow, bizId: {}, ccInsts: {}, watchInfo: {}", bizId, ccInstList,
                 watch.prettyPrint());
         }
         return applicationHostDTOList;
     }
 
     @Override
-    public List<ApplicationHostDTO> findHostByModule(long appId, List<Long> moduleIdList, String uin,
-                                                     String owner) {
+    public List<ApplicationHostDTO> findHostByModule(long bizId, List<Long> moduleIdList) {
         //moduleId分批
         List<ApplicationHostDTO> resultList = new ArrayList<>();
         int batchSize = 200;
@@ -557,7 +491,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             List<Long> moduleIdSubList = moduleIdList.subList(start, end);
             if (moduleIdSubList.size() > 0) {
                 // 使用find_module_host_relation接口
-                resultList.addAll(findModuleHostRelationConcurrently(appId, moduleIdSubList, uin, owner));
+                resultList.addAll(findModuleHostRelationConcurrently(bizId, moduleIdSubList));
             }
             start += batchSize;
             end = start + batchSize;
@@ -573,10 +507,11 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return esbResp.getData();
     }
 
-    private FindModuleHostRelationReq genFindModuleHostRelationReq(long appId, List<Long> moduleIdList, int start,
-                                                                   int limit, String uin, String owner) {
-        FindModuleHostRelationReq req = makeBaseReq(FindModuleHostRelationReq.class, uin, owner);
-        req.setAppId(appId);
+    private FindModuleHostRelationReq genFindModuleHostRelationReq(long bizId, List<Long> moduleIdList, int start,
+                                                                   int limit) {
+        FindModuleHostRelationReq req = makeBaseReq(FindModuleHostRelationReq.class, defaultUin,
+            defaultSupplierAccount);
+        req.setBizId(bizId);
         req.setModuleIdList(moduleIdList);
         Page page = new Page(start, limit);
         req.setPage(page);
@@ -586,49 +521,44 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     /**
      * 并发：按模块加载主机
      *
-     * @param appId
-     * @param moduleIdList
-     * @param uin
-     * @param owner
-     * @return
+     * @param bizId        cmdb业务ID
+     * @param moduleIdList 模块ID列表
+     * @return 主机列表
      */
-    public List<ApplicationHostDTO> findModuleHostRelationConcurrently(long appId, List<Long> moduleIdList,
-                                                                       String uin, String owner) {
+    private List<ApplicationHostDTO> findModuleHostRelationConcurrently(long bizId, List<Long> moduleIdList) {
         if (moduleIdList == null || moduleIdList.isEmpty()) {
             return Collections.emptyList();
         }
-        owner = defaultSupplierAccount;
-        uin = defaultUin;
-        LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue = new LinkedBlockingQueue<>();
 
         List<ApplicationHostDTO> applicationHostDTOList;
         int start = 0;
         //已调优
         int limit = 500;
-        FindModuleHostRelationReq req = genFindModuleHostRelationReq(appId, moduleIdList, start, limit, uin, owner);
+        FindModuleHostRelationReq req = genFindModuleHostRelationReq(bizId, moduleIdList, start, limit);
         //先拉一次获取总数
         FindModuleHostRelationResult pageData = getHostsByReq(req);
         List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList = pageData.getRelation();
-        resultQueue.addAll(hostWithModulesList);
+        LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue =
+            new LinkedBlockingQueue<>(hostWithModulesList);
         // 如果该页未达到limit，说明是最后一页
         if (pageData.getCount() <= limit) {
-            log.info("appId {}:{} hosts in total, {} hosts indeed", appId, pageData.getCount(), resultQueue.size());
+            log.info("bizId {}:{} hosts in total, {} hosts indeed", bizId, pageData.getCount(), resultQueue.size());
         } else if (pageData.getCount() > limit && hostWithModulesList.size() <= limit) {
             int totalCount = pageData.getCount() - limit;
-            List<Future> futures = new ArrayList<>();
+            List<Future<?>> futures = new ArrayList<>();
             Long startTime = System.currentTimeMillis();
             while (totalCount > 0) {
                 start += limit;
                 FindModuleHostRelationTask task = new FindModuleHostRelationTask(resultQueue,
-                    genFindModuleHostRelationReq(appId, moduleIdList, start, limit, uin, owner),
+                    genFindModuleHostRelationReq(bizId, moduleIdList, start, limit),
                     JobContextUtil.getRequestId());
                 if (totalCount > 10000) {
                     //主机数太多，防止将CMDB拉挂了
-                    Future future = longTermThreadPoolExecutor.submit(task);
+                    Future<?> future = longTermThreadPoolExecutor.submit(task);
                     futures.add(future);
                 } else {
                     // 默认采用多个并发线程拉取
-                    Future future = threadPoolExecutor.submit(task);
+                    Future<?> future = threadPoolExecutor.submit(task);
                     futures.add(future);
                 }
                 totalCount -= limit;
@@ -646,11 +576,11 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             log.info("find module hosts concurrently time consuming:" + (endTime - startTime));
         } else {
             //limit参数不起效，可能拉到了全量数据，直接跳出
-            log.warn("appId {}:{} hosts in total, {} hosts indeed, CMDB interface params invalid", appId,
+            log.warn("bizId {}:{} hosts in total, {} hosts indeed, CMDB interface params invalid", bizId,
                 pageData.getCount(), resultQueue.size());
         }
         Long startTime = System.currentTimeMillis();
-        applicationHostDTOList = convertToHostInfoDTOList(appId, new ArrayList<>(resultQueue));
+        applicationHostDTOList = convertToHostInfoDTOList(bizId, new ArrayList<>(resultQueue));
         Long endTime = System.currentTimeMillis();
         long timeConsuming = endTime - startTime;
         if (timeConsuming >= 1000) {
@@ -700,7 +630,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     private ApplicationHostDTO convertToHostInfoDTO(
-        Long appId,
+        Long bizId,
         FindModuleHostRelationResult.HostWithModules hostWithModules
     ) {
         FindModuleHostRelationResult.HostProp host = hostWithModules.getHost();
@@ -708,11 +638,11 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         if (multiIp != null) {
             multiIp = multiIp.trim();
         } else {
-            log.warn("multiIp is null, appId={}, host={}", appId, hostWithModules);
+            log.warn("multiIp is null, bizId={}, host={}", bizId, hostWithModules);
         }
         //包装为ApplicationHostInfoDTO
         ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
-        applicationHostDTO.setAppId(appId);
+        applicationHostDTO.setBizId(bizId);
         applicationHostDTO.setDisplayIp(multiIp);
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         applicationHostDTO.setHostId(host.getHostId());
@@ -752,7 +682,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     private List<ApplicationHostDTO> convertToHostInfoDTOList(
-        long appId,
+        long bizId,
         List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList) {
         List<ApplicationHostDTO> applicationHostDTOList = new ArrayList<>();
         Set<String> ipSet = new HashSet<>();
@@ -765,7 +695,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             ipSet.add(host.getCloudAreaId() + ":" + host.getIp());
             String multiIp = host.getIp();
             if (!StringUtils.isBlank(multiIp)) {
-                ApplicationHostDTO applicationHostDTO = convertToHostInfoDTO(appId, hostWithModules);
+                ApplicationHostDTO applicationHostDTO = convertToHostInfoDTO(bizId, hostWithModules);
                 applicationHostDTOList.add(applicationHostDTO);
             } else {
                 log.info("bk_host_innerip is blank, ignore, hostId={},host={}", host.getHostId(),
@@ -776,44 +706,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return applicationHostDTOList;
     }
 
-    @Override
-    public List<ListBizHostsTopoResult.HostInfo> listBizHostsTopo(long appId, String uin, String owner) {
-        if (StringUtils.isBlank(owner)) {
-            owner = defaultSupplierAccount;
-        }
-        if (StringUtils.isBlank(uin)) {
-            uin = defaultUin;
-        }
-        List<ListBizHostsTopoResult.HostInfo> hostInfoList = new ArrayList<>();
-        ListBizHostsTopoReq req = makeBaseReq(ListBizHostsTopoReq.class, uin, owner);
-        req.setAppId(appId);
-
-        int limit = 200;
-        int start = 0;
-        boolean isLastPage = false;
-        while (!isLastPage) {
-            Page page = new Page(start, limit);
-            req.setPage(page);
-            EsbResp<ListBizHostsTopoResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS_TOPO,
-                req, new TypeReference<EsbResp<ListBizHostsTopoResult>>() {
-                });
-            ListBizHostsTopoResult pageData = esbResp.getData();
-            hostInfoList.addAll(pageData.getInfo());
-            // 如果该页未达到limit，说明是最后一页
-            if (pageData.getInfo().size() < limit) {
-                isLastPage = true;
-            } else {
-                start += limit;
-            }
-        }
-        Set<String> ipSet = new HashSet<>();
-        hostInfoList.forEach(hostInfo -> {
-            ipSet.add(hostInfo.getHost().getCloudId() + ":" + hostInfo.getHost().getIp());
-        });
-        return hostInfoList;
-    }
-
-    private ApplicationHostDTO convertHost(long appId, CcHostInfoDTO hostInfo) {
+    private ApplicationHostDTO convertHost(long bizId, CcHostInfoDTO hostInfo) {
         ApplicationHostDTO ipInfo = new ApplicationHostDTO();
         ipInfo.setHostId(hostInfo.getHostId());
         // 部分从cmdb同步过来的资源没有ip，需要过滤掉
@@ -838,17 +731,12 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         } else {
             ipInfo.setIp(hostInfo.getIp());
         }
-        ipInfo.setAppId(appId);
+        ipInfo.setBizId(bizId);
         ipInfo.setIpDesc(hostInfo.getHostName());
 
         return ipInfo;
     }
 
-    /**
-     * 从CC获取所有业务信息
-     *
-     * @return
-     */
     @Override
     public List<ApplicationDTO> getAllBizApps() {
         List<ApplicationDTO> appList = new ArrayList<>();
@@ -857,8 +745,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         boolean isLastPage = false;
         String orderField = "bk_biz_id";
         while (!isLastPage) {
-            String owner = defaultSupplierAccount;
-            GetAppReq req = makeBaseReq(GetAppReq.class, defaultUin, owner);
+            GetAppReq req = makeBaseReq(GetAppReq.class, defaultUin, defaultSupplierAccount);
             PageDTO page = new PageDTO(start, limit, orderField);
             req.setPage(page);
             EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
@@ -886,90 +773,24 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return appList;
     }
 
-    @Override
-    public List<ApplicationDTO> getAllBizSetApps() {
-        // TODO:拉取CMDB业务集
-        return Collections.emptyList();
-    }
-
     private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
         ApplicationDTO appInfo = new ApplicationDTO();
-        appInfo.setId(businessInfo.getAppId());
-        appInfo.setName(businessInfo.getAppName());
+        appInfo.setName(businessInfo.getBizName());
         appInfo.setMaintainers(VersionCompatUtil.convertMaintainers(businessInfo.getMaintainers()));
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
         appInfo.setAppType(AppTypeEnum.NORMAL);
-        appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, appInfo.getId().toString()));
+        appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
         appInfo.setOperateDeptId(businessInfo.getOperateDeptId());
         appInfo.setLanguage(businessInfo.getLanguage());
         return appInfo;
     }
 
-    /**
-     * 获取用户的业务
-     *
-     * @param uin
-     * @param owner
-     * @return
-     * @throws ServiceException
-     */
     @Override
-    public List<ApplicationDTO> getAppByUser(String uin, String owner) throws ServiceException {
-        List<ApplicationDTO> appList = new ArrayList<>();
-        boolean isLastPage = false;
-        int limit = 200;
-        int start = 0;
-        String orderField = "bk_biz_id";
-        while (!isLastPage) {
-            GetAppReq req = makeBaseReq(GetAppReq.class, uin, owner);
-            PageDTO page = new PageDTO(start, limit, orderField);
-            req.setPage(page);
-            Map<String, Object> conditionMap = new HashMap<>();
-            Map<String, Object> filedPattern = new HashMap<>();
-            filedPattern.put("$regex", uin);
-            conditionMap.put("bk_biz_maintainer", filedPattern);
-            req.setCondition(conditionMap);
-            EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
-                new TypeReference<EsbResp<SearchAppResult>>() {
-                });
-            SearchAppResult data = esbResp.getData();
-            if (data == null) {
-                appList.clear();
-                throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
-            }
-            List<BusinessInfoDTO> businessInfos = data.getInfo();
-            if (businessInfos != null && !businessInfos.isEmpty()) {
-                for (BusinessInfoDTO businessInfo : businessInfos) {
-                    if (businessInfo.getDefaultApp() == 0) {
-                        appList.add(convertToAppInfo(businessInfo));
-                    }
-                    start++;
-                }
-            }
-            // 如果该页未达到limit，说明是最后一页
-            if (businessInfos == null || businessInfos.size() < limit) {
-                isLastPage = true;
-            }
-        }
-        return appList;
-    }
-
-    /**
-     * 获取业务详细信息
-     *
-     * @param uin
-     * @param appId
-     * @param owner
-     * @return
-     */
-    @Override
-    public ApplicationDTO getAppById(long appId, String owner, String uin) {
-        owner = defaultSupplierAccount;
-        uin = defaultUin;
-        GetAppReq req = makeBaseReq(GetAppReq.class, uin, owner);
+    public ApplicationDTO getBizAppById(long bizId) {
+        GetAppReq req = makeBaseReq(GetAppReq.class, defaultUin, defaultSupplierAccount);
         Map<String, Object> conditionMap = new HashMap<>();
-        conditionMap.put("bk_biz_id", appId);
+        conditionMap.put("bk_biz_id", bizId);
         req.setCondition(conditionMap);
         EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
             new TypeReference<EsbResp<SearchAppResult>>() {
@@ -985,25 +806,11 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return convertToAppInfo(businessInfos.get(0));
     }
 
-    /**
-     * 查询自定义分组
-     *
-     * @param owner
-     * @param uin
-     * @param appId
-     * @return
-     */
     @Override
-    public List<CcGroupDTO> getCustomGroupList(long appId, String owner, String uin) {
-        // Job只需要目标资源为主机类型的动态分组
-        return getHostDynamicGroupListFromCMDB(appId, owner, uin);
-    }
-
-    public List<CcGroupDTO> getHostDynamicGroupListFromCMDB(long appId, String owner, String uin) {
-        owner = defaultSupplierAccount;
-        uin = defaultUin;
-        SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, uin, owner);
-        req.setAppId(appId);
+    public List<CcGroupDTO> getCustomGroupList(long bizId) {
+        SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, defaultUin,
+            defaultSupplierAccount);
+        req.setBizId(bizId);
         int start = 0;
         int limit = 200;
         req.getPage().setStart(start);
@@ -1027,40 +834,26 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                 }
             }
         }
-        List<CcGroupDTO> ccGroupDTOList =
-            ccDynamicGroupList.parallelStream().map(this::convertToCcGroupDTO).collect(Collectors.toList());
-        return ccGroupDTOList;
+        return ccDynamicGroupList.parallelStream().map(this::convertToCcGroupDTO).collect(Collectors.toList());
     }
 
     private CcGroupDTO convertToCcGroupDTO(CcDynamicGroupDTO ccDynamicGroupDTO) {
         CcGroupDTO ccGroupDTO = new CcGroupDTO();
-        ccGroupDTO.setAppId(ccDynamicGroupDTO.getAppId());
+        ccGroupDTO.setBizId(ccDynamicGroupDTO.getBizId());
         ccGroupDTO.setId(ccDynamicGroupDTO.getId());
         ccGroupDTO.setName(ccDynamicGroupDTO.getName());
         return ccGroupDTO;
     }
 
-    /**
-     * 获取自定义分组下面的IP
-     *
-     * @param owner
-     * @param uin
-     * @param appId
-     * @param groupId
-     * @return
-     */
+
     @Override
-    public List<CcGroupHostPropDTO> getCustomGroupIp(long appId, String owner, String uin,
-                                                     String groupId) throws ServiceException {
-        return getDynamicGroupIpFromCMDB(appId, owner, uin, groupId);
+    public List<CcGroupHostPropDTO> getCustomGroupIp(long bizId, String groupId) {
+        return getDynamicGroupIpFromCMDB(bizId, groupId);
     }
 
-    public List<CcGroupHostPropDTO> getDynamicGroupIpFromCMDB(long appId, String owner, String uin,
-                                                              String groupId) throws ServiceException {
-        owner = defaultSupplierAccount;
-        uin = defaultUin;
-        ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, uin, owner);
-        req.setAppId(appId);
+    private List<CcGroupHostPropDTO> getDynamicGroupIpFromCMDB(long bizId, String groupId) {
+        ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, defaultUin, defaultSupplierAccount);
+        req.setBizId(bizId);
         req.setGroupId(groupId);
         int limit = 200;
         int start = 0;
@@ -1151,11 +944,11 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public List<ApplicationHostDTO> listAppHosts(long appId, Collection<IpDTO> ipList) {
+    public List<ApplicationHostDTO> listBizHosts(long bizId, Collection<IpDTO> ipList) {
         if (ipList == null || ipList.isEmpty()) {
             return Collections.emptyList();
         }
-        List<ApplicationHostDTO> appHosts = getHostByIp(new GetHostByIpInput(appId, null, null,
+        List<ApplicationHostDTO> appHosts = getHostByIp(new GetHostByIpInput(bizId, null, null,
             ipList.stream().map(IpDTO::getIp).collect(Collectors.toList())));
         if (appHosts == null || appHosts.isEmpty()) {
             return Collections.emptyList();
@@ -1166,9 +959,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     @Override
     public List<FindHostBizRelationsResult> findHostBizRelations(String uin, List<Long> hostIdList) {
-        String owner = defaultSupplierAccount;
-        uin = defaultUin;
-        FindHostBizRelationsReq req = makeBaseReq(FindHostBizRelationsReq.class, uin, owner);
+        FindHostBizRelationsReq req = makeBaseReq(FindHostBizRelationsReq.class, defaultUin, defaultSupplierAccount);
         req.setHostIdList(hostIdList);
         EsbResp<List<FindHostBizRelationsResult>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
             FIND_HOST_BIZ_RELATIONS, req, new TypeReference<EsbResp<List<FindHostBizRelationsResult>>>() {
@@ -1181,76 +972,10 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public List<ApplicationHostDTO> getHostByIpWithoutAppId(String uin, List<String> ipList) {
-        //ipList分批
-        List<ApplicationHostDTO> resultList = new ArrayList<>();
-        int batchSize = 500;
-        int start = 0;
-        int end = start + batchSize;
-        int ipListSize = ipList.size();
-        end = Math.min(end, ipListSize);
-        do {
-            List<String> ipSubList = ipList.subList(start, end);
-            resultList.addAll(getHostByIpWithoutAppIdOnce(uin, ipSubList));
-            start += batchSize;
-            end = start + batchSize;
-            end = Math.min(end, ipListSize);
-        } while (start < ipListSize);
-        return resultList;
-    }
-
-    private List<ApplicationHostDTO> getHostByIpWithoutAppIdOnce(String uin, List<String> ipList) {
-        String owner = defaultSupplierAccount;
-        uin = defaultUin;
-        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
-        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, uin, owner);
-        ConditionDTO condition = new ConditionDTO();
-        condition.setCondition("AND");
-        List<BaseConditionDTO> rules = new ArrayList<>();
-        ipList.removeIf(StringUtils::isBlank);
-        BaseConditionDTO baseConditionDTO = new BaseConditionDTO();
-        baseConditionDTO.setField("bk_host_innerip");
-        baseConditionDTO.setOperator("in");
-        baseConditionDTO.setValue(ipList);
-        rules.add(baseConditionDTO);
-        condition.setRules(rules);
-        req.setCondition(condition);
-
-        int limit = 200;
-        int start = 0;
-        boolean isLastPage = false;
-        while (!isLastPage) {
-            PageDTO page = new PageDTO(start, limit, "");
-            req.setPage(page);
-            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
-                LIST_HOSTS_WITHOUT_BIZ, req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
-                });
-            ListHostsWithoutBizResult pageData = esbResp.getData();
-            if (esbResp.getData() == null) {
-                return Collections.emptyList();
-            }
-            for (CcHostInfoDTO hostInfo : pageData.getInfo()) {
-                start++;
-                ApplicationHostDTO host = convertHost(-1L, hostInfo);
-                if (host != null) {
-                    hostInfoList.add(host);
-                }
-            }
-            // 如果该页未达到limit，说明是最后一页
-            if (pageData.getInfo().size() < limit) {
-                isLastPage = true;
-            }
-        }
-        return hostInfoList;
-    }
-
-    @Override
     public List<ApplicationHostDTO> getHostByIp(GetHostByIpInput input) {
-        input.owner = defaultSupplierAccount;
-        input.uin = defaultUin;
         List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
-        ListBizHostReq req = makeBaseReq(ListBizHostReq.class, input.uin, input.owner);
-        req.setAppId(input.appId);
+        ListBizHostReq req = makeBaseReq(ListBizHostReq.class, defaultUin, defaultSupplierAccount);
+        req.setBizId(input.getBizId());
         ConditionDTO condition = new ConditionDTO();
         condition.setCondition("AND");
         List<BaseConditionDTO> rules = new ArrayList<>();
@@ -1278,7 +1003,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             }
             for (CcHostInfoDTO hostInfo : pageData.getInfo()) {
                 start++;
-                ApplicationHostDTO host = convertHost(input.appId, hostInfo);
+                ApplicationHostDTO host = convertHost(input.getBizId(), hostInfo);
                 if (host != null) {
                     hostInfoList.add(host);
                 }
@@ -1293,9 +1018,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     @Override
     public ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip) {
-        String owner = defaultSupplierAccount;
-        String uin = defaultUin;
-        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, uin, owner);
+        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
         ConditionDTO condition = new ConditionDTO();
         condition.setCondition("AND");
         List<BaseConditionDTO> rules = new ArrayList<>();
@@ -1327,7 +1050,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public List<CcObjAttributeDTO> getObjAttributeList(String objId) throws ServiceException {
+    public List<CcObjAttributeDTO> getObjAttributeList(String objId) {
         GetObjAttributeReq req = makeBaseReqByWeb(
             GetObjAttributeReq.class, null, defaultUin, defaultSupplierAccount);
         req.setObjId(objId);
@@ -1338,11 +1061,11 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public Set<String> getAppUsersByRole(Long appId, String role) throws ServiceException {
+    public Set<String> getAppUsersByRole(Long bizId, String role) {
         CcCountInfo searchResult;
         GetAppReq req = makeBaseReqByWeb(GetAppReq.class, null, defaultUin, defaultSupplierAccount);
         Map<String, Object> condition = new HashMap<>();
-        condition.put("bk_biz_id", appId);
+        condition.put("bk_biz_id", bizId);
         req.setCondition(condition);
         req.setFields(Collections.singletonList(role));
         EsbResp<CcCountInfo> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
@@ -1382,7 +1105,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public List<AppRoleDTO> getAppRoleList() throws ServiceException {
+    public List<AppRoleDTO> getAppRoleList() {
         List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("biz");
         return esbObjAttributeDTO.stream().filter(it ->
             it.getBkPropertyGroup().equals("role")
@@ -1395,9 +1118,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     @Override
     public List<InstanceTopologyDTO> getTopoInstancePath(GetTopoNodePathReq getTopoNodePathReq) {
-        String owner = defaultSupplierAccount;
-        String uin = defaultUin;
-        GetTopoNodePathReq req = makeBaseReq(GetTopoNodePathReq.class, uin, owner);
+        GetTopoNodePathReq req = makeBaseReq(GetTopoNodePathReq.class, defaultUin, defaultSupplierAccount);
 
         // 由于cmdb传入业务节点(topo根节点)会报错，所以job自己处理
         List<InstanceTopologyDTO> nonAppNodes = new ArrayList<>();
@@ -1411,7 +1132,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         }
 
         req.setTopoNodes(nonAppNodes);
-        req.setAppId(getTopoNodePathReq.getAppId());
+        req.setBizId(getTopoNodePathReq.getBizId());
 
         List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
         if (!nonAppNodes.isEmpty()) {
@@ -1439,10 +1160,10 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             });
         }
         if (!appNodes.isEmpty()) {
-            appNodes.forEach(appId -> {
+            appNodes.forEach(bizId -> {
                 InstanceTopologyDTO hierarchyTopo = new InstanceTopologyDTO();
                 hierarchyTopo.setObjectId("biz");
-                hierarchyTopo.setInstanceId(appId);
+                hierarchyTopo.setInstanceId(bizId);
                 hierarchyTopoList.add(hierarchyTopo);
             });
         }
@@ -1479,7 +1200,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public ResourceWatchResult<AppEventDetail> getAppEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_biz_maintainer", "bk_supplier_account",
@@ -1487,8 +1208,8 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         req.setResource("biz");
         req.setCursor(cursor);
         req.setStartTime(startTime);
-        EsbResp<ResourceWatchResult<AppEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
-            req, new TypeReference<EsbResp<ResourceWatchResult<AppEventDetail>>>() {
+        EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
+            req, new TypeReference<EsbResp<ResourceWatchResult<BizEventDetail>>>() {
             }, HttpHelperFactory.getLongRetryableHttpHelper());
         return esbResp.getData();
     }

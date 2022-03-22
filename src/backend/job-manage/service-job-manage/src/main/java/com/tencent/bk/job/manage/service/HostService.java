@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -53,29 +54,29 @@ public interface HostService {
     /**
      * 新增业务下的主机
      *
-     * @param appId      业务ID
+     * @param bizId      业务ID
      * @param insertList 主机信息
      * @return 新增失败的主机ID
      */
-    List<Long> insertHostsToApp(Long appId, List<ApplicationHostDTO> insertList);
+    List<Long> insertHostsToBiz(Long bizId, List<ApplicationHostDTO> insertList);
 
     /**
      * 更新业务下的主机
      *
-     * @param appId        业务ID
+     * @param bizId        业务ID
      * @param hostInfoList 主机信息
      * @return 更新失败的主机ID
      */
-    List<Long> updateHostsInApp(Long appId, List<ApplicationHostDTO> hostInfoList);
+    List<Long> updateHostsInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList);
 
     /**
      * 删除业务下的主机
      *
-     * @param appId      业务ID
+     * @param bizId      业务ID
      * @param deleteList 主机信息
      * @return 删除失败的主机ID
      */
-    List<Long> deleteHostsFromApp(Long appId, List<ApplicationHostDTO> deleteList);
+    List<Long> deleteHostsFromBiz(Long bizId, List<ApplicationHostDTO> deleteList);
 
     long countHostsByOsType(String osType);
 
@@ -92,49 +93,58 @@ public interface HostService {
     /**
      * 查询指定业务的拓扑树
      *
-     * @param username 用户名
-     * @param appId    业务 ID
+     * @param username         用户名
+     * @param appResourceScope 资源范围
      * @return 拓扑结构树
      */
-    CcTopologyNodeVO listAppTopologyTree(String username, Long appId);
+    CcTopologyNodeVO listAppTopologyTree(String username, AppResourceScope appResourceScope);
 
     /**
      * 查询带主机信息的业务的拓扑树
      *
-     * @param username 用户名
-     * @param appId    业务 ID
+     * @param username         用户名
+     * @param appResourceScope 资源范围
      * @return 带主机信息的拓扑结构树
      */
-    CcTopologyNodeVO listAppTopologyHostTree(String username, Long appId);
+    CcTopologyNodeVO listAppTopologyHostTree(String username, AppResourceScope appResourceScope);
 
     /**
      * 查询带主机数量信息的业务拓扑树
      *
-     * @param username 用户名
-     * @param appId    业务 ID
+     * @param username         用户名
+     * @param appResourceScope 资源范围
      * @return 带主机数量信息的拓扑结构树
      */
-    CcTopologyNodeVO listAppTopologyHostCountTree(String username, Long appId);
+    CcTopologyNodeVO listAppTopologyHostCountTree(String username, AppResourceScope appResourceScope);
 
-    PageData<HostInfoVO> listHostByBizTopologyNodes(String username, Long appId, ListHostByBizTopologyNodesReq req);
+    PageData<HostInfoVO> listHostByAppTopologyNodes(String username,
+                                                    AppResourceScope appResourceScope,
+                                                    ListHostByBizTopologyNodesReq req);
 
-    PageData<String> listIPByBizTopologyNodes(String username, Long appId, ListHostByBizTopologyNodesReq req);
+    PageData<String> listIPByBizTopologyNodes(String username,
+                                              AppResourceScope appResourceScope,
+                                              ListHostByBizTopologyNodesReq req);
 
-    List<AppTopologyTreeNode> getAppTopologyTreeNodeDetail(String username, Long appId,
+    List<AppTopologyTreeNode> getAppTopologyTreeNodeDetail(String username,
+                                                           AppResourceScope appResourceScope,
                                                            List<AppTopologyTreeNode> treeNodeList);
 
-    List<List<InstanceTopologyDTO>> queryNodePaths(String username, Long appId, List<InstanceTopologyDTO> nodeList);
+    List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
+                                                      Long bizId,
+                                                      List<InstanceTopologyDTO> nodeList);
 
-    List<NodeInfoVO> getHostsByNode(String username, Long appId, List<AppTopologyTreeNode> treeNodeList);
+    List<NodeInfoVO> getBizHostsByNode(String username,
+                                       Long bizId,
+                                       List<AppTopologyTreeNode> treeNodeList);
 
     /**
      * 获取业务下动态分组列表
      *
-     * @param appId    业务 ID
-     * @param username 用户名
+     * @param appResourceScope 资源范围
+     * @param username         用户名
      * @return 动态分组信息列表
      */
-    List<DynamicGroupInfoDTO> getDynamicGroupList(String username, Long appId);
+    List<DynamicGroupInfoDTO> getAppDynamicGroupList(String username, AppResourceScope appResourceScope);
 
     /**
      * 根据动态分组 ID 列表批量获取带主机信息的动态分组信息列表
@@ -144,7 +154,9 @@ public interface HostService {
      * @param dynamicGroupIdList 动态分组 ID 列表
      * @return 带主机信息的动态分组信息列表
      */
-    List<DynamicGroupInfoDTO> getDynamicGroupHostList(String username, Long appId, List<String> dynamicGroupIdList);
+    List<DynamicGroupInfoDTO> getBizDynamicGroupHostList(String username,
+                                                         Long appId,
+                                                         List<String> dynamicGroupIdList);
 
     /**
      * 根据 IP 列表查询主机信息
@@ -154,11 +166,18 @@ public interface HostService {
      * @param checkIpList 待查询的 IP 列表
      * @return 主机信息列表
      */
-    List<HostInfoVO> getHostsByIp(String username, Long appId, ActionScopeEnum actionScope, List<String> checkIpList);
+    List<HostInfoVO> getHostsByIp(String username,
+                                  Long appId,
+                                  ActionScopeEnum actionScope,
+                                  List<String> checkIpList);
 
-    List<HostInfoVO> listHostByBizTopologyNodes(String username, Long appId, List<AppTopologyTreeNode> appTopoNodeList);
+    List<HostInfoVO> listHostByAppTopologyNodes(String username,
+                                                Long bizId,
+                                                List<AppTopologyTreeNode> appTopoNodeList);
 
-    AgentStatistics getAgentStatistics(String username, Long appId, AgentStatisticsReq agentStatisticsReq);
+    AgentStatistics getAgentStatistics(String username,
+                                       Long appId,
+                                       AgentStatisticsReq agentStatisticsReq);
 
     void fillAgentStatus(List<ApplicationHostDTO> hosts);
 

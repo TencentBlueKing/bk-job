@@ -24,12 +24,13 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -115,7 +116,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostInfoByIps(Long appId, List<String> ips) {
+    public List<ApplicationHostDTO> listHostInfoByIps(Long bizId, List<String> ips) {
         List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
         // 分批，防止SQL超长
         int batchSize = 30000;
@@ -125,7 +126,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         end = Math.min(end, ipSize);
         do {
             List<String> ipSubList = ips.subList(start, end);
-            hostInfoList.addAll(listHostInfoByIpsIndeed(appId, ipSubList));
+            hostInfoList.addAll(listHostInfoByIpsIndeed(bizId, ipSubList));
             start += batchSize;
             end = start + batchSize;
             end = Math.min(end, ipSize);
@@ -133,18 +134,18 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return hostInfoList;
     }
 
-    private List<ApplicationHostDTO> listHostInfoByIpsIndeed(Long appId, Collection<String> ips) {
+    private List<ApplicationHostDTO> listHostInfoByIpsIndeed(Long bizId, Collection<String> ips) {
         List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.addAll(buildAppIdCondition(appId));
+        if (bizId != null) {
+            conditions.addAll(buildBizIdCondition(bizId));
         }
         conditions.add(TABLE.IP.in(ips));
         return queryHostsByCondition(conditions);
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostInfoByAppId(long appId) {
-        List<Condition> conditions = buildAppIdCondition(appId);
+    public List<ApplicationHostDTO> listHostInfoByBizId(long bizId) {
+        List<Condition> conditions = buildBizIdCondition(bizId);
         return listHostInfoByConditions(conditions);
     }
 
@@ -184,17 +185,17 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostInfo(Collection<Long> appIds, Collection<String> ips) {
+    public List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.in(appIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
         conditions.add(TABLE.IP.in(ips.parallelStream().map(String::trim).collect(Collectors.toList())));
         return listHostInfoByConditions(conditions);
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostInfoByNormalAppIds(Collection<Long> appIds, Long start, Long limit) {
+    public List<ApplicationHostDTO> listHostInfoByBizIds(Collection<Long> bizIds, Long start, Long limit) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.in(appIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
         return listHostInfoByConditions(conditions, start, limit);
     }
 
@@ -206,23 +207,23 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public Long countHostInfoBySearchContents(Collection<Long> appIds, Collection<Long> moduleIds,
+    public Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                               Collection<Long> cloudAreaIds, List<String> searchContents,
                                               Integer agentStatus) {
-        List<Long> hostIdList = getHostIdListBySearchContents(appIds, moduleIds, cloudAreaIds, searchContents,
+        List<Long> hostIdList = getHostIdListBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
             agentStatus, null, null);
         return (long) (hostIdList.size());
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> appIds,
+    public List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,
                                                                  Collection<Long> moduleIds,
                                                                  Collection<Long> cloudAreaIds,
                                                                  List<String> searchContents,
                                                                  Integer agentStatus,
                                                                  Long start,
                                                                  Long limit) {
-        List<Long> hostIdList = getHostIdListBySearchContents(appIds, moduleIds, cloudAreaIds, searchContents,
+        List<Long> hostIdList = getHostIdListBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
             agentStatus, start, limit);
         return listHostInfoByHostIds(hostIdList);
     }
@@ -326,7 +327,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     @Override
     public PageData<ApplicationHostDTO> listHostInfoByPage(ApplicationHostDTO applicationHostInfoCondition,
                                                            BaseSearchCondition baseSearchCondition) {
-        List<Condition> conditions = buildAppIdCondition(applicationHostInfoCondition.getAppId());
+        List<Condition> conditions = buildBizIdCondition(applicationHostInfoCondition.getBizId());
         conditions.addAll(buildCondition(applicationHostInfoCondition, baseSearchCondition));
 
         long hostCount = getPageHostInfoCount(conditions);
@@ -360,8 +361,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (applicationHostDTO.getHostId() == null) {
             applicationHostDTO.setHostId(-1L);
         }
-        if (applicationHostDTO.getAppId() == null) {
-            applicationHostDTO.setAppId(-1L);
+        if (applicationHostDTO.getBizId() == null) {
+            applicationHostDTO.setBizId(-1L);
         }
         if (applicationHostDTO.getCloudAreaId() == null) {
             applicationHostDTO.setCloudAreaId(-1L);
@@ -391,7 +392,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             List<HostTopoDTO> hostTopoDTOList = new ArrayList<>();
             for (int i = 0; i < setIdList.size(); i++) {
                 hostTopoDTOList.add(new HostTopoDTO(applicationHostDTO.getHostId(),
-                    applicationHostDTO.getAppId(), setIdList.get(i), moduleIdList.get(i)));
+                    applicationHostDTO.getBizId(), setIdList.get(i), moduleIdList.get(i)));
             }
             return hostTopoDTOList;
         }
@@ -447,7 +448,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.CLOUD_IP
             ).values(
                 ULong.valueOf(applicationHostDTO.getHostId()),
-                ULong.valueOf(applicationHostDTO.getAppId()),
+                ULong.valueOf(applicationHostDTO.getBizId()),
                 applicationHostDTO.getIp(),
                 applicationHostDTO.getIpDesc(),
                 finalSetIdsStr,
@@ -468,7 +469,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             }
             if (insertTopo) {
                 List<HostTopoDTO> hostTopoDTOList = genHostTopoDTOList(applicationHostDTO);
-                hostTopoDAO.deleteHostTopoByHostId(context, applicationHostDTO.getAppId(),
+                hostTopoDAO.deleteHostTopoByHostId(context, applicationHostDTO.getBizId(),
                     applicationHostDTO.getHostId());
                 hostTopoDAO.batchInsertHostTopo(context, hostTopoDTOList);
             }
@@ -539,7 +540,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     }
                     batchQuery = batchQuery.bind(
                         ULong.valueOf(applicationHostDTO.getHostId()),
-                        ULong.valueOf(applicationHostDTO.getAppId()),
+                        ULong.valueOf(applicationHostDTO.getBizId()),
                         applicationHostDTO.getIp(),
                         applicationHostDTO.getIpDesc(),
                         setIdsStr,
@@ -578,7 +579,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         String moduleTypeStr =
             applicationHostDTO.getModuleType().stream().map(Object::toString).collect(Collectors.joining(","));
         val query = dslContext.selectCount().from(TABLE)
-            .where(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getAppId())))
+            .where(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getBizId())))
             .and(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())))
             .and(TABLE.IP.eq(applicationHostDTO.getIp()))
             .and(TABLE.IP_DESC.eq(applicationHostDTO.getIpDesc()))
@@ -610,7 +611,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public int updateAppHostInfoByHostId(DSLContext dslContext, Long appId,
+    public int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId,
                                          ApplicationHostDTO applicationHostDTO) {
         setDefaultValue(applicationHostDTO);
         if (applicationHostDTO.getHostId() == -1L) {
@@ -624,8 +625,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             applicationHostDTO.getModuleType().stream().map(Object::toString).collect(Collectors.joining(","));
         int[] affectedNum = new int[]{-1};
         List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
+        if (bizId != null) {
+            conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
         }
         Long hostId = applicationHostDTO.getHostId();
         if (hostId != null) {
@@ -634,7 +635,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         dslContext.transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
             val query = context.update(TABLE)
-                .set(TABLE.APP_ID, ULong.valueOf(applicationHostDTO.getAppId()))
+                .set(TABLE.APP_ID, ULong.valueOf(applicationHostDTO.getBizId()))
                 .set(TABLE.IP, applicationHostDTO.getIp())
                 .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
                 .set(TABLE.SET_IDS, setIdsStr)
@@ -653,14 +654,14 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 throw t;
             }
             List<HostTopoDTO> hostTopoDTOList = genHostTopoDTOList(applicationHostDTO);
-            hostTopoDAO.deleteHostTopoByHostId(context, appId, hostId);
+            hostTopoDAO.deleteHostTopoByHostId(context, bizId, hostId);
             hostTopoDAO.batchInsertHostTopo(context, hostTopoDTOList);
         });
         return affectedNum[0];
     }
 
     @Override
-    public int batchUpdateAppHostInfoByHostId(DSLContext dslContext,
+    public int batchUpdateBizHostInfoByHostId(DSLContext dslContext,
                                               List<ApplicationHostDTO> applicationHostDTOList) {
         int batchSize = 1000;
         int size = applicationHostDTOList.size();
@@ -691,7 +692,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         applicationHostDTO.getModuleType().stream().map(Object::toString)
                             .collect(Collectors.joining(","));
                     queryList.add(dslContext.update(TABLE)
-                        .set(TABLE.APP_ID, ULong.valueOf(applicationHostDTO.getAppId()))
+                        .set(TABLE.APP_ID, ULong.valueOf(applicationHostDTO.getBizId()))
                         .set(TABLE.IP, applicationHostDTO.getIp())
                         .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
                         .set(TABLE.SET_IDS, setIdsStr)
@@ -703,7 +704,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         .set(TABLE.MODULE_TYPE, moduleTypeStr)
                         .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
                         .where(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())))
-                        .and(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getAppId())))
+                        .and(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getBizId())))
                     );
                     hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
                 }
@@ -723,11 +724,11 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public int deleteAppHostInfoById(DSLContext dslContext, Long appId, Long appHostId) {
+    public int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long appHostId) {
         int[] affectedNum = new int[]{-1};
         List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
+        if (bizId != null) {
+            conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
         }
         if (appHostId != null) {
             conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(appHostId)));
@@ -737,13 +738,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             affectedNum[0] = context.deleteFrom(TABLE)
                 .where(conditions)
                 .execute();
-            hostTopoDAO.deleteHostTopoByHostId(context, appId, appHostId);
+            hostTopoDAO.deleteHostTopoByHostId(context, bizId, appHostId);
         });
         return affectedNum[0];
     }
 
     @Override
-    public int batchDeleteAppHostInfoById(DSLContext dslContext, Long appId, List<Long> appHostIdList) {
+    public int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> appHostIdList) {
         int[] affectedNum = new int[]{0};
         int batchSize = 1000;
         int size = appHostIdList.size();
@@ -757,10 +758,10 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 end = start + batchSize;
                 end = Math.min(end, size);
                 List<Long> subList = appHostIdList.subList(start, end);
-                if (appId != null) {
+                if (bizId != null) {
                     queryList.add(context.deleteFrom(TABLE)
                         .where(TABLE.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList())))
-                        .and(TABLE.APP_ID.eq(ULong.valueOf(appId)))
+                        .and(TABLE.APP_ID.eq(ULong.valueOf(bizId)))
                     );
                 } else {
                     queryList.add(context.deleteFrom(TABLE)
@@ -790,36 +791,36 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public int deleteAppHostInfoByAppId(DSLContext dslContext, long appId) {
+    public int deleteBizHostInfoByBizId(DSLContext dslContext, long bizId) {
         // 先查出所有的hostId
-        List<Long> hostIds = getHostIdListBySearchContents(Collections.singleton(appId), null, null, null, null, null
+        List<Long> hostIds = getHostIdListBySearchContents(Collections.singleton(bizId), null, null, null, null, null
             , null);
         // 删除拓扑信息+主机信息
-        return batchDeleteAppHostInfoById(dslContext, appId, hostIds);
+        return batchDeleteBizHostInfoById(dslContext, bizId, hostIds);
     }
 
     @Override
-    public int deleteAppHostInfoNotInApps(DSLContext dslContext, Set<Long> notInAppIds) {
+    public int deleteBizHostInfoNotInBizs(DSLContext dslContext, Set<Long> notInBizIds) {
         val records = dslContext.select(TABLE.HOST_ID).from(TABLE)
-            .where(TABLE.APP_ID.notIn(notInAppIds.stream().map(ULong::valueOf).collect(Collectors.toSet())))
+            .where(TABLE.APP_ID.notIn(notInBizIds.stream().map(ULong::valueOf).collect(Collectors.toSet())))
             .fetch();
         if (CollectionUtils.isNotEmpty(records)) {
             List<Long> hostIds = records.map(it -> it.get(0, Long.class));
             // 删除拓扑信息+主机信息
-            return batchDeleteAppHostInfoById(dslContext, null, hostIds);
+            return batchDeleteBizHostInfoById(dslContext, null, hostIds);
         }
         return 0;
     }
 
     @Override
-    public boolean existsHost(DSLContext dslContext, long appId, String ip) {
-        return dslContext.fetchExists(TABLE, TABLE.APP_ID.eq(ULong.valueOf(appId)).and(TABLE.IP.eq(ip)));
+    public boolean existsHost(DSLContext dslContext, long bizId, String ip) {
+        return dslContext.fetchExists(TABLE, TABLE.APP_ID.eq(ULong.valueOf(bizId)).and(TABLE.IP.eq(ip)));
     }
 
     @Override
-    public ApplicationHostDTO getLatestHost(DSLContext dslContext, long appId, long cloudAreaId, String ip) {
+    public ApplicationHostDTO getLatestHost(DSLContext dslContext, long bizId, long cloudAreaId, String ip) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
+        conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
         conditions.add(TABLE.CLOUD_AREA_ID.eq(ULong.valueOf(cloudAreaId)));
         conditions.add(TABLE.IP.eq(ip));
         Record record = context
@@ -832,9 +833,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public long countHostsByAppIds(DSLContext dslContext, Collection<Long> appIds) {
+    public long countHostsByBizIds(DSLContext dslContext, Collection<Long> bizIds) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.in(appIds));
+        conditions.add(TABLE.APP_ID.in(bizIds));
         return getPageHostInfoCount(conditions);
     }
 
@@ -864,12 +865,12 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 hostTopoDTOList.parallelStream().map(HostTopoDTO::getModuleId).collect(Collectors.toList());
             List<Long> moduleTypes = moduleIds.parallelStream().map(it -> 1L).collect(Collectors.toList());
             if (!hostTopoDTOList.isEmpty()) {
-                hostInfoDTO.setAppId(hostTopoDTOList.get(0).getAppId());
+                hostInfoDTO.setBizId(hostTopoDTOList.get(0).getBizId());
             }
             hostInfoDTO.setSetId(setIds);
             hostInfoDTO.setModuleId(moduleIds);
             hostInfoDTO.setModuleType(moduleTypes);
-            return updateAppHostInfoByHostId(dslContext, null, hostInfoDTO);
+            return updateBizHostInfoByHostId(dslContext, null, hostInfoDTO);
         }
         return -1L;
     }
@@ -884,23 +885,24 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return context.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
     }
 
-    private List<Condition> buildAppIdCondition(long appId) {
-        ApplicationDTO appInfo = applicationDAO.getAppById(appId);
-        AppTypeEnum appType = appInfo.getAppType();
+    private List<Condition> buildBizIdCondition(long bizId) {
+        ApplicationDTO appInfo = applicationDAO.getAppByScope(
+            new ResourceScope(ResourceScopeTypeEnum.BIZ, "" + bizId)
+        );
+        ResourceScope resourceScope = appInfo.getScope();
         List<Condition> conditions = new ArrayList<>();
-        if (appType == null) {
-            conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
+        if (resourceScope == null) {
+            conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
             return conditions;
         }
-        switch (appType) {
-            case NORMAL:
-                conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
+        switch (resourceScope.getType()) {
+            case BIZ:
+                conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
                 break;
-            case APP_SET:
+            case BIZ_SET:
                 List<Long> subAppIds = topologyHelper.getAppSetSubAppIds(appInfo);
                 conditions.add(TABLE.APP_ID.in(subAppIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
                 break;
-            case ALL_APP:
             default:
                 break;
         }
@@ -963,7 +965,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
 
         ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
-        applicationHostDTO.setAppId(record.get(TABLE.APP_ID).longValue());
+        applicationHostDTO.setBizId(record.get(TABLE.APP_ID).longValue());
         applicationHostDTO.setIp(record.get(TABLE.IP));
         applicationHostDTO.setIpDesc(record.get(TABLE.IP_DESC));
         applicationHostDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue() == 1);

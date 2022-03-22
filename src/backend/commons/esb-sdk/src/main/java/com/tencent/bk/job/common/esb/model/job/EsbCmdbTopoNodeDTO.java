@@ -22,43 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.config;
+package com.tencent.bk.job.common.esb.model.job;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
+/**
+ * ESB接口 CMDB topo节点实体类
+ */
 @Data
-@Component
-public class CcConfig {
+public class EsbCmdbTopoNodeDTO {
+    /**
+     * topo节点ID
+     */
+    @JsonProperty("id")
+    private Long id;
 
-    @Value("${cmdb.default.supplier.account:0}")
-    private String defaultSupplierAccount;
+    /**
+     * topo节点类型
+     */
+    @JsonProperty("node_type")
+    private String nodeType;
 
-    @Value("${cmdb.query.threads.num:20}")
-    private int cmdbQueryThreadsNum;
-
-    @Value("${cmdb.interface.briefCacheTopo.enabled:false}")
-    private Boolean enableInterfaceBriefCacheTopo;
-
-    @Value("${cmdb.interface.retry.enabled:false}")
-    private Boolean enableInterfaceRetry;
-
-    @Value("${cmdb.interface.findHostRelation.longTerm.concurrency:20}")
-    private Integer findHostRelationLongTermConcurrency;
-
-    @Value("${cmdb.interface.optimize.lock.enabled:false}")
-    private Boolean enableLockOptimize;
-
-    @Value("${cmdb.interface.flowControl.enabled:false}")
-    private Boolean enableFlowControl;
-
-    @Value("${cmdb.interface.flowControl.precision:20}")
-    private Integer flowControlPrecision;
-
-    @Value("${cmdb.interface.flowControl.default.limit:500}")
-    private Integer flowControlDefaultLimit;
-
-    @Value("${cmdb.interface.flowControl.resources:get_biz_brief_cache_topo:1500}")
-    private String flowControlResourcesStr;
+    public static EsbCmdbTopoNodeDTO fromCmdbTopoNode(CmdbTopoNodeDTO ccTopoNode) {
+        if (ccTopoNode == null) {
+            return null;
+        }
+        EsbCmdbTopoNodeDTO esbCmdbTopoNodeDTO = new EsbCmdbTopoNodeDTO();
+        esbCmdbTopoNodeDTO.setId(ccTopoNode.getId());
+        esbCmdbTopoNodeDTO.setNodeType(ccTopoNode.getNodeType());
+        return esbCmdbTopoNodeDTO;
+    }
 }
