@@ -143,6 +143,13 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     private void addAppResourceScope(HttpServletRequest request) {
         AppResourceScope appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
         log.debug("Scope from path:{}", appResourceScope);
+        if (appResourceScope == null) {
+            appResourceScope = parseAppResourceScopeFromQueryStringOrBody(request);
+            log.debug("scope from query/body:{}", appResourceScope);
+        }
+        if (appResourceScope != null) {
+            JobContextUtil.setAppResourceScope(appResourceScope);
+        }
         if (appResourceScope != null) {
             request.setAttribute("appResourceScope", appResourceScope);
             JobContextUtil.setAppResourceScope(appResourceScope);
@@ -194,6 +201,21 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
 
     private String parseUsernameFromQueryStringOrBody(HttpServletRequest request) {
         return parseValueFromQueryStringOrBody(request, "bk_username");
+    }
+
+    private AppResourceScope parseAppResourceScopeFromQueryStringOrBody(HttpServletRequest request) {
+        String scopeType = parseValueFromQueryStringOrBody(request, "bk_scope_type");
+        String scopeId = parseValueFromQueryStringOrBody(request, "bk_scope_id");
+        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            return new AppResourceScope(scopeType, scopeId, null);
+        } else {
+            // 兼容当前业务ID参数
+            String bizId = parseValueFromQueryStringOrBody(request, "bk_biz_id");
+            if (StringUtils.isNotBlank(bizId)) {
+                return new AppResourceScope(Long.valueOf(bizId));
+            }
+        }
+        return null;
     }
 
     private String parseValueFromQueryStringOrBody(HttpServletRequest request, String key) {

@@ -94,7 +94,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     @Override
     public EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronList(String username,
                                                                 String appCode,
-                                                   Long bkBizId,
+                                                                Long bkBizId,
                                                                 String scopeType,
                                                                 String scopeId,
                                                                 Long id,
