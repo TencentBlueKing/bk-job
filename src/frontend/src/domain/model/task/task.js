@@ -63,8 +63,7 @@ export default class Task {
         this.canDebug = payload.canDebug;
         this.canDelete = payload.canDelete;
         this.canEdit = payload.canEdit;
-        // this.canView = payload.canView;
-        this.canView = false;
+        this.canView = payload.canView;
         this.canCreate = payload.canCreate;
     }
 
