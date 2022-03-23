@@ -178,14 +178,14 @@ public class EsbGetJobInstanceStatusResourceImpl
     @Override
     public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatus(String appCode,
                                                                  String username,
-                                                                 Long appId,
+                                                                 Long bizId,
                                                                  String scopeType,
                                                                  String scopeId,
                                                                  Long taskInstanceId) {
         EsbGetJobInstanceStatusRequest req = new EsbGetJobInstanceStatusRequest();
         req.setAppCode(appCode);
         req.setUserName(username);
-        req.setBizId(appId);
+        req.setBizId(bizId);
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
