@@ -28,6 +28,7 @@ import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -210,9 +211,19 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             return new AppResourceScope(scopeType, scopeId, null);
         } else {
             // 兼容当前业务ID参数
-            String bizId = parseValueFromQueryStringOrBody(request, "bk_biz_id");
-            if (StringUtils.isNotBlank(bizId)) {
-                return new AppResourceScope(Long.valueOf(bizId));
+            String bizIdStr = parseValueFromQueryStringOrBody(request, "bk_biz_id");
+            if (StringUtils.isNotBlank(bizIdStr)) {
+                Long appId;
+                Long bizId = Long.parseLong(bizIdStr);
+                // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
+                scopeId = bizIdStr;
+                if (bizId >= 8000000L && bizId <= 9999999L) {
+                    appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), scopeId);
+                    return new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, scopeId, appId);
+                } else {
+                    appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(), scopeId);
+                    return new AppResourceScope(ResourceScopeTypeEnum.BIZ, scopeId, appId);
+                }
             }
         }
         return null;

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.file_gateway.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
@@ -199,8 +198,8 @@ public class FileWorkerDTO {
             fileWorkerVO.setScopeId(resourceScope.getId());
         } else {
             // 非具体业务的公共FileWorker
-            fileWorkerVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
-            fileWorkerVO.setScopeId(appId == null ? null : appId.toString());
+            fileWorkerVO.setScopeType(null);
+            fileWorkerVO.setScopeId(null);
         }
 
         fileWorkerVO.setName(name);
