@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
@@ -189,11 +190,18 @@ public class FileWorkerDTO {
         fileWorkerVO.setId(id);
 
         fileWorkerVO.setAppId(appId);
-        AppScopeMappingService appScopeMappingService =
-            ApplicationContextRegister.getBean(AppScopeMappingService.class);
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
-        fileWorkerVO.setScopeType(resourceScope.getType().getValue());
-        fileWorkerVO.setScopeId(resourceScope.getId());
+        if (appId != null && appId > 0) {
+            // 具体的业务/业务集
+            AppScopeMappingService appScopeMappingService =
+                ApplicationContextRegister.getBean(AppScopeMappingService.class);
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+            fileWorkerVO.setScopeType(resourceScope.getType().getValue());
+            fileWorkerVO.setScopeId(resourceScope.getId());
+        } else {
+            // 非具体业务的公共FileWorker
+            fileWorkerVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+            fileWorkerVO.setScopeId(appId == null ? null : appId.toString());
+        }
 
         fileWorkerVO.setName(name);
         fileWorkerVO.setDescription(description);
