@@ -26,6 +26,7 @@ package com.tencent.bk.job.crontab.auth.impl;
 
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -88,5 +89,10 @@ public class CronAuthServiceImpl implements CronAuthService {
             appResourceScope, ResourceTypeEnum.CRON,
             cronIdList.parallelStream().map(Objects::toString).collect(Collectors.toList()));
         return allowedIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean registerCron(Long id, String name, String creator) {
+        return authService.registerResource(id.toString(), name, ResourceTypeId.CRON, creator, null);
     }
 }

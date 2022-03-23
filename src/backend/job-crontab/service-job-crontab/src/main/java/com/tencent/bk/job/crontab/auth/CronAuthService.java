@@ -67,4 +67,14 @@ public interface CronAuthService {
     List<Long> batchAuthManageCron(String username,
                                    AppResourceScope appResourceScope,
                                    List<Long> cronIdList);
+
+    /**
+     * 注册定时任务实例
+     *
+     * @param id      资源实例 ID
+     * @param name    资源实例名称
+     * @param creator 资源实例创建者
+     * @return 是否注册成功
+     */
+    boolean registerCron(Long id, String name, String creator);
 }

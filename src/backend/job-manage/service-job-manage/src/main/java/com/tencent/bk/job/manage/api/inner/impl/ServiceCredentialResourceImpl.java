@@ -24,17 +24,15 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.inner.ServiceCredentialResource;
+import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceBasicCredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.service.CredentialService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,12 +43,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class ServiceCredentialResourceImpl implements ServiceCredentialResource {
 
-    private final AuthService authService;
+    private final TicketAuthService ticketAuthService;
     private final CredentialService credentialService;
 
     @Autowired
-    public ServiceCredentialResourceImpl(AuthService authService, CredentialService credentialService) {
-        this.authService = authService;
+    public ServiceCredentialResourceImpl(TicketAuthService ticketAuthService, CredentialService credentialService) {
+        this.ticketAuthService = ticketAuthService;
         this.credentialService = credentialService;
     }
 
@@ -83,7 +81,7 @@ public class ServiceCredentialResourceImpl implements ServiceCredentialResource 
         Long appId,
         CredentialCreateUpdateReq createUpdateReq
     ) {
-        AuthResult authResult = null;
+        AuthResult authResult;
         if (StringUtils.isBlank(createUpdateReq.getId())) {
             authResult = checkCreateTicketPermission(username, appId);
         } else {
@@ -98,13 +96,11 @@ public class ServiceCredentialResourceImpl implements ServiceCredentialResource 
 
     public AuthResult checkCreateTicketPermission(String username, Long appId) {
         // 需要拥有在业务下创建凭证的权限
-        return authService.auth(true, username, ActionId.CREATE_TICKET, ResourceTypeEnum.BUSINESS,
-            appId.toString(), null);
+        return ticketAuthService.authCreateTicket(username, new AppResourceScope(appId));
     }
 
     public AuthResult checkManageTicketPermission(String username, Long appId, String credentialId) {
         // 需要拥有在业务下管理某个具体凭证的权限
-        return authService.auth(true, username, ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET,
-            credentialId, PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
+        return ticketAuthService.authManageTicket(username, new AppResourceScope(appId), credentialId, null);
     }
 }
