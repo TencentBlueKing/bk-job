@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -849,6 +850,10 @@ public class NotifyServiceImpl implements NotifyService {
         return userSet.size();
     }
 
+    private String getDisplayIdStr(ResourceScope scope) {
+        return scope.getType().getValue() + ":" + scope.getId();
+    }
+
     private ServiceNotificationMessage getNotificationMessageFromTemplate(
         Long appId,
         NotifyTemplateDTO templateDTO,
@@ -890,9 +895,10 @@ public class NotifyServiceImpl implements NotifyService {
             content = templateDTO.getContent();
         }
         //添加默认变量
+        ResourceScope scope = applicationDTO.getScope();
         variablesMap.putIfAbsent("BASE_HOST", jobManageConfig.getJobWebUrl());
-        variablesMap.putIfAbsent("APP_ID", appId.toString());
-        variablesMap.putIfAbsent("task.bk_biz_id", appId.toString());
+        variablesMap.putIfAbsent("APP_ID", getDisplayIdStr(scope));
+        variablesMap.putIfAbsent("task.bk_biz_id", scope.getId());
         variablesMap.putIfAbsent("APP_NAME", appName);
         variablesMap.putIfAbsent("task.bk_biz_name", appName);
         String pattern = "(\\{\\{(.*?)\\}\\})";
