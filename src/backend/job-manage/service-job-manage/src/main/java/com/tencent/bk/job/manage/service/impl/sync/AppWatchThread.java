@@ -194,7 +194,7 @@ public class AppWatchThread extends Thread {
                 StopWatch watch = new StopWatch("appWatch");
                 watch.start("total");
                 try {
-                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
                     ResourceWatchResult<BizEventDetail> appWatchResult;
                     while (appWatchFlag.get()) {
                         if (cursor == null) {

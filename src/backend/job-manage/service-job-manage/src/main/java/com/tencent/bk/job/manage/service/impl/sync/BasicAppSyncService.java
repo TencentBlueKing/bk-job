@@ -51,7 +51,7 @@ public class BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final ApplicationService applicationService;
-    protected final IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+    protected final IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
 
     @Autowired
     public BasicAppSyncService(DSLContext dslContext,

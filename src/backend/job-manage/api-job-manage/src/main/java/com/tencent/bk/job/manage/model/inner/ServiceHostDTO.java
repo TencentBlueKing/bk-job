@@ -52,16 +52,21 @@ public class ServiceHostDTO {
      */
     private String ip;
 
-
     /**
      * 业务ID
      */
     private Long appId;
 
-    public ServiceHostDTO(Long hostId, Long cloudAreaId, String ip, Long appId) {
+    /**
+     * CMDB 业务ID
+     */
+    private Long bizId;
+
+    public ServiceHostDTO(Long hostId, Long cloudAreaId, String ip, Long appId, Long bizId) {
         this.hostId = hostId;
         this.cloudAreaId = cloudAreaId;
         this.ip = ip;
         this.appId = appId;
+        this.bizId = bizId;
     }
 }

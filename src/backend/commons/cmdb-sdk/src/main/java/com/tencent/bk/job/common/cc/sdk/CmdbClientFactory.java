@@ -71,18 +71,18 @@ public class CmdbClientFactory {
         );
     }
 
-    public static IBizCmdbClient getCcClient() {
-        return getCcClient(LocaleUtils.LANG_EN_US);
+    public static IBizCmdbClient getCmdbClient() {
+        return getCmdbClient(LocaleUtils.LANG_EN_US);
     }
 
-    public static IBizCmdbClient getCcClient(String language) {
+    public static IBizCmdbClient getCmdbClient(String language) {
         if (language == null) {
             language = LocaleUtils.LANG_EN_US;
         }
-        IBizCmdbClient iccClient = CMDB_CLIENT_MAPS.get(language);
-        if (iccClient == null) {
-            iccClient = CMDB_CLIENT_MAPS.get(LocaleUtils.LANG_EN_US);
+        IBizCmdbClient icmdbClient = CMDB_CLIENT_MAPS.get(language);
+        if (icmdbClient == null) {
+            icmdbClient = CMDB_CLIENT_MAPS.get(LocaleUtils.LANG_EN_US);
         }
-        return iccClient;
+        return icmdbClient;
     }
 }
