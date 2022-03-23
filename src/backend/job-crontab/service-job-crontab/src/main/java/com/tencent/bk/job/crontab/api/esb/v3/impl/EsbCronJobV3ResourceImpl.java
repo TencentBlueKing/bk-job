@@ -150,12 +150,6 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     public EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronListUsingPost(EsbGetCronListV3Request request) {
         request.fillAppResourceScope(appScopeMappingService);
         if (request.validate()) {
-            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
-                ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
-            if (!authResult.isPass()) {
-                return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
-            }
-
             if (request.getId() != null && request.getId() > 0) {
                 CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
                 cronJobInfoById.setVariableValue(null);
@@ -350,11 +344,6 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     @Override
     public EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(EsbGetCronDetailV3Request request) {
         request.fillAppResourceScope(appScopeMappingService);
-        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
         if (request.validate()) {
             CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
             return EsbResp.buildSuccessResp(CronJobInfoDTO.toEsbCronInfoV3(cronJobInfoById));

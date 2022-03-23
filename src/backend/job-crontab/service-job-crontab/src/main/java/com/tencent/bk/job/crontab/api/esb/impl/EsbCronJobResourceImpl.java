@@ -86,12 +86,6 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     public EsbResp<List<EsbCronInfoResponse>> getCronList(EsbGetCronListRequest request) {
         request.fillAppResourceScope(appScopeMappingService);
         if (request.validate()) {
-            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
-                ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
-            if (!authResult.isPass()) {
-                return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
-            }
-
             if (request.getId() != null && request.getId() > 0) {
                 CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
                 return EsbResp
