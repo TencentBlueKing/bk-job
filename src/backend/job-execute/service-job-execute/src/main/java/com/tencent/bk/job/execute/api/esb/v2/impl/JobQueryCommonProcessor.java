@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -42,9 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class JobQueryCommonProcessor {
     @Autowired
     protected ExecuteAuthService executeAuthService;
-
-    @Autowired
-    protected AuthService authService;
 
     /**
      * 查看作业实例鉴权

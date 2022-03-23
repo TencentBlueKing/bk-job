@@ -31,11 +31,9 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -91,7 +89,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private final TaskOperationLogService taskOperationLogService;
     private final MessageI18nService i18nService;
     private final ExecuteAuthService executeAuthService;
-    private final AuthService authService;
+    private final BusinessAuthService businessAuthService;
 
     @Autowired
     public WebTaskInstanceResourceImpl(TaskInstanceService taskInstanceService,
@@ -100,14 +98,14 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                        TaskOperationLogService taskOperationLogService,
                                        MessageI18nService i18nService,
                                        ExecuteAuthService executeAuthService,
-                                       AuthService authService) {
+                                       BusinessAuthService businessAuthService) {
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.hostService = hostService;
         this.taskOperationLogService = taskOperationLogService;
         this.i18nService = i18nService;
         this.executeAuthService = executeAuthService;
-        this.authService = authService;
+        this.businessAuthService = businessAuthService;
     }
 
     @Override
@@ -489,8 +487,9 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         if (taskInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
-        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, taskInstance.getAppId().toString(), null);
+        AuthResult authResult = businessAuthService.authAccessBusiness(
+            username, new AppResourceScope(taskInstance.getAppId())
+        );
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }

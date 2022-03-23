@@ -31,14 +31,13 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
@@ -97,19 +96,19 @@ public class CronJobServiceImpl implements CronJobService {
     private final AbstractQuartzTaskHandler quartzTaskHandler;
     private final TaskPlanService taskPlanService;
 
-    private final AuthService authService;
+    private final CronAuthService cronAuthService;
 
     private final ExecuteTaskService executeTaskService;
 
     @Autowired
     public CronJobServiceImpl(CronJobDAO cronJobDAO, TaskExecuteResultService taskExecuteResultService,
                               AbstractQuartzTaskHandler quartzTaskHandler, TaskPlanService taskPlanService,
-                              AuthService authService, ExecuteTaskService executeTaskService) {
+                              CronAuthService cronAuthService, ExecuteTaskService executeTaskService) {
         this.cronJobDAO = cronJobDAO;
         this.taskExecuteResultService = taskExecuteResultService;
         this.quartzTaskHandler = quartzTaskHandler;
         this.taskPlanService = taskPlanService;
-        this.authService = authService;
+        this.cronAuthService = cronAuthService;
         this.executeTaskService = executeTaskService;
     }
 
@@ -182,8 +181,7 @@ public class CronJobServiceImpl implements CronJobService {
             cronJobInfo.setCreateTime(DateUtils.currentTimeSeconds());
             cronJobInfo.setEnable(false);
             Long id = cronJobDAO.insertCronJob(cronJobInfo);
-            authService.registerResource(id.toString(), cronJobInfo.getName(), ResourceTypeId.CRON,
-                                         cronJobInfo.getCreator(), null);
+            cronAuthService.registerCron(id, cronJobInfo.getName(), cronJobInfo.getCreator());
             return id;
         } else {
             checkCronJobVariableValue(cronJobInfo);

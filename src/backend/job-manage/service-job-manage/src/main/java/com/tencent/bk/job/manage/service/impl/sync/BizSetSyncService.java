@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -35,9 +34,7 @@ import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,18 +103,7 @@ public class BizSetSyncService extends BasicAppSyncService {
             updateList.stream().map(applicationInfoDTO ->
                 applicationInfoDTO.getScope().getId()).collect(Collectors.toSet()))));
         // 将本地业务集的appId赋给CMDB拿到的业务集
-        Map<String, Long> scopeAppIdMap = new HashMap<>();
-        for (ApplicationDTO localBizSetApp : localBizSetApps) {
-            ResourceScope scope = localBizSetApp.getScope();
-            scopeAppIdMap.put(
-                scope.getType().getValue() + "_" + scope.getId(),
-                localBizSetApp.getId()
-            );
-        }
-        for (ApplicationDTO appDTO : updateList) {
-            ResourceScope scope = appDTO.getScope();
-            appDTO.setId(scopeAppIdMap.get(scope.getType().getValue() + "_" + scope.getId()));
-        }
+        updateAppIdByScope(updateList, genScopeAppIdMap(localBizSetApps));
         // 本地-CMDB：计算需要删除的业务集
         deleteList =
             localBizSetApps.stream().filter(bizSetAppInfoDTO ->

@@ -48,6 +48,6 @@ public class EsbDTOAppScopeMappingHelper {
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         esbAppScopeDTO.setScopeType(resourceScope.getType().getValue());
         esbAppScopeDTO.setScopeId(resourceScope.getId());
-        esbAppScopeDTO.setBkBizId(Long.valueOf(resourceScope.getId()));
+        esbAppScopeDTO.setBizId(Long.valueOf(resourceScope.getId()));
     }
 }

@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
@@ -36,7 +37,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Job业务操作公共逻辑
@@ -59,6 +62,25 @@ public class BasicAppSyncService {
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
+    }
+
+    protected Map<String, Long> genScopeAppIdMap(List<ApplicationDTO> appList) {
+        Map<String, Long> scopeAppIdMap = new HashMap<>();
+        for (ApplicationDTO app : appList) {
+            ResourceScope scope = app.getScope();
+            scopeAppIdMap.put(
+                scope.getType().getValue() + "_" + scope.getId(),
+                app.getId()
+            );
+        }
+        return scopeAppIdMap;
+    }
+
+    protected void updateAppIdByScope(List<ApplicationDTO> appList, Map<String, Long> scopeAppIdMap) {
+        for (ApplicationDTO appDTO : appList) {
+            ResourceScope scope = appDTO.getScope();
+            appDTO.setId(scopeAppIdMap.get(scope.getType().getValue() + "_" + scope.getId()));
+        }
     }
 
     protected void deleteApp(ApplicationDTO applicationDTO) {
