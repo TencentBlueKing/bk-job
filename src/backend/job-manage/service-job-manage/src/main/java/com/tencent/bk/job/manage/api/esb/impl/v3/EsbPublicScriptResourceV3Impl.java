@@ -102,7 +102,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_public_script_list"})
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptListUsingPost(EsbGetScriptListV3Req request) {
-        request.setBkBizId(JobConstants.PUBLIC_APP_ID);
+        request.setBizId(JobConstants.PUBLIC_APP_ID);
         return esbScriptV3Resource.getScriptListUsingPost(request);
     }
 
@@ -111,14 +111,14 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionListUsingPost(
         EsbGetScriptVersionListV3Req request
     ) {
-        request.setBkBizId(JobConstants.PUBLIC_APP_ID);
+        request.setBizId(JobConstants.PUBLIC_APP_ID);
         return esbScriptV3Resource.getScriptVersionListUsingPost(request);
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_public_script_version_detail"})
     public EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetailUsingPost(EsbGetScriptVersionDetailV3Req request) {
-        request.setBkBizId(JobConstants.PUBLIC_APP_ID);
+        request.setBizId(JobConstants.PUBLIC_APP_ID);
         return esbScriptV3Resource.getScriptVersionDetailUsingPost(request);
     }
 }

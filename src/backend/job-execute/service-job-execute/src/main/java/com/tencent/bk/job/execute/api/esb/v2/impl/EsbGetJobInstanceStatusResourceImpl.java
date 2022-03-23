@@ -185,7 +185,7 @@ public class EsbGetJobInstanceStatusResourceImpl
         EsbGetJobInstanceStatusRequest req = new EsbGetJobInstanceStatusRequest();
         req.setAppCode(appCode);
         req.setUserName(username);
-        req.setBkBizId(appId);
+        req.setBizId(appId);
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
