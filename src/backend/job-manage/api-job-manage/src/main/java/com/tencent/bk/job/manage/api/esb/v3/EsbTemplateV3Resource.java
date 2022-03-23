@@ -51,7 +51,7 @@ public interface EsbTemplateV3Resource {
     EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "creator", required = false) String creator,

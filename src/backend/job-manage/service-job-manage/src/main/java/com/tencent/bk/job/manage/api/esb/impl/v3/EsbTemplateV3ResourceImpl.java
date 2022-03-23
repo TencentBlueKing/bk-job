@@ -70,7 +70,7 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     @Override
     public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateList(String username,
                                                                              String appCode,
-                                                                             Long bkBizId,
+                                                                             Long bizId,
                                                                              String scopeType,
                                                                              String scopeId,
                                                                              String creator,
@@ -85,7 +85,7 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         EsbGetTemplateListV3Request request = new EsbGetTemplateListV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setCreator(creator);

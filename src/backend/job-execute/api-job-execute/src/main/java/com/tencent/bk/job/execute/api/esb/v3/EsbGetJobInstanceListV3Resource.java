@@ -58,7 +58,7 @@ public interface EsbGetJobInstanceListV3Resource {
     EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "create_time_start") Long createTimeStart,

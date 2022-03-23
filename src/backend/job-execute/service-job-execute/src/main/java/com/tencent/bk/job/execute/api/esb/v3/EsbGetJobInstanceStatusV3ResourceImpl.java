@@ -168,7 +168,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
     @Override
     public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatus(String username,
                                                                    String appCode,
-                                                                  Long bkBizId,
+                                                                   Long bizId,
                                                                    String scopeType,
                                                                    String scopeId,
                                                                    Long taskInstanceId,
@@ -176,7 +176,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
         EsbGetJobInstanceStatusV3Request request = new EsbGetJobInstanceStatusV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);

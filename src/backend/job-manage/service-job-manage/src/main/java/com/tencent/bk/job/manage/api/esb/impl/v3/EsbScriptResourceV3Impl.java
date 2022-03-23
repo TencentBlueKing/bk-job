@@ -80,7 +80,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptList(String username,
                                                                 String appCode,
-                                                                Long bkBizId,
+                                                                Long bizId,
                                                                 String scopeType,
                                                                 String scopeId,
                                                                 String name,
@@ -90,7 +90,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         EsbGetScriptListV3Req request = new EsbGetScriptListV3Req();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setName(name);
@@ -103,7 +103,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionList(String username,
                                                                                     String appCode,
-                                                                                    Long bkBizId,
+                                                                                    Long bizId,
                                                                                     String scopeType,
                                                                                     String scopeId,
                                                                                     String scriptId,
@@ -113,7 +113,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         EsbGetScriptVersionListV3Req request = new EsbGetScriptVersionListV3Req();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setScriptId(scriptId);
@@ -126,7 +126,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetail(String username,
                                                                        String appCode,
-                                                                       Long bkBizId,
+                                                                       Long bizId,
                                                                        String scopeType,
                                                                        String scopeId,
                                                                        Long scriptVersionId,
@@ -135,7 +135,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         EsbGetScriptVersionDetailV3Req request = new EsbGetScriptVersionDetailV3Req();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setId(scriptVersionId);

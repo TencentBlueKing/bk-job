@@ -124,14 +124,14 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
     @Override
     public EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValue(String username,
                                                                                    String appCode,
-                                                                  Long bkBizId,
+                                                                                   Long bizId,
                                                                                    String scopeType,
                                                                                    String scopeId,
                                                                                    Long taskInstanceId) {
         EsbGetJobInstanceGlobalVarValueV3Request request = new EsbGetJobInstanceGlobalVarValueV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);

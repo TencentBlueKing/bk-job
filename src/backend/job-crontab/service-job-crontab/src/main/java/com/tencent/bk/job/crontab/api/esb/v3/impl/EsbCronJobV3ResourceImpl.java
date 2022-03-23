@@ -93,7 +93,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     @Override
     public EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronList(String username,
                                                                 String appCode,
-                                                                Long bkBizId,
+                                                                Long bizId,
                                                                 String scopeType,
                                                                 String scopeId,
                                                                 Long id,
@@ -110,7 +110,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         EsbGetCronListV3Request request = new EsbGetCronListV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setId(id);
@@ -130,14 +130,14 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     @Override
     public EsbResp<EsbCronInfoV3DTO> getCronDetail(String username,
                                                    String appCode,
-                                                   Long bkBizId,
+                                                   Long bizId,
                                                    String scopeType,
                                                    String scopeId,
                                                    Long id) {
         EsbGetCronDetailV3Request request = new EsbGetCronDetailV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setId(id);

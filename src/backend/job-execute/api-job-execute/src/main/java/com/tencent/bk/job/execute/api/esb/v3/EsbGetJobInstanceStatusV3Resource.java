@@ -57,7 +57,7 @@ public interface EsbGetJobInstanceStatusV3Resource {
     EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatus(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "job_instance_id") Long taskInstanceId,

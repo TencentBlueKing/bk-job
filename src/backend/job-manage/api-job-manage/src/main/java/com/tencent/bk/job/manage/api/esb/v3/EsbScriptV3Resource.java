@@ -54,7 +54,7 @@ public interface EsbScriptV3Resource {
     EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "name", required = false) String name,
@@ -66,7 +66,7 @@ public interface EsbScriptV3Resource {
     EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "script_id") String scriptId,
@@ -79,7 +79,7 @@ public interface EsbScriptV3Resource {
     EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetail(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "id", required = false) Long scriptVersionId,
