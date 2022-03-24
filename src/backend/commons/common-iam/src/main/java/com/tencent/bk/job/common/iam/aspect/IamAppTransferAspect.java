@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.iam.aspect;
 
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,10 @@ public class IamAppTransferAspect {
                     log.debug("after  appTransfer:scope={}", appResourceScope);
                 }
             }
+        } catch (ServiceException e) {
+            // 对于Job自定义的业务异常，需要抛出给上层的ExceptionAdvise处理
+            log.error("Fail to execute transferResourceScope");
+            throw e;
         } catch (Throwable throwable) {
             throw new Exception("Fail to execute transferResourceScope", throwable);
         }
