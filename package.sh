@@ -165,6 +165,9 @@ for m in "${PACKAGE_MODULES[@]}"; do
   fi
 done
 # Package Templates by modules
+cd support-files/tools
+python renderTemplates.py ${JOB_EDITION} w
+cd ../..
 if [[ -d "support-files/templates" ]]; then
   if [[ ! -d "release/job/support-files/templates" ]]; then
     mkdir -p release/job/support-files/templates
