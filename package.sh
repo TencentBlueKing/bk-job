@@ -166,6 +166,7 @@ for m in "${PACKAGE_MODULES[@]}"; do
 done
 # Package Templates by modules
 cd support-files/tools
+export PYTHONIOENCODING=utf8
 python renderTemplates.py ${JOB_EDITION} w
 cd ../..
 if [[ -d "support-files/templates" ]]; then
