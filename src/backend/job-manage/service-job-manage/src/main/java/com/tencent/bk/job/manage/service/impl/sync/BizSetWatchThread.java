@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
+import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
@@ -227,7 +228,7 @@ public class BizSetWatchThread extends Thread {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 try {
                     if (cachedApp != null) {
-                        cachedApp.updateProps(latestApp);
+                        updateBizSetProps(cachedApp, latestApp);
                         if (!cachedApp.isDeleted()) {
                             applicationService.updateApp(cachedApp);
                         } else {
@@ -256,6 +257,14 @@ public class BizSetWatchThread extends Thread {
                 log.info("No need to handle event: {}", event);
                 break;
         }
+    }
+
+    private void updateBizSetProps(ApplicationDTO originApp, ApplicationDTO updateApp) {
+        originApp.setName(updateApp.getName());
+        originApp.setBkSupplierAccount(updateApp.getBkSupplierAccount());
+        originApp.setLanguage(updateApp.getLanguage());
+        originApp.setMaintainers(updateApp.getMaintainers());
+        originApp.setTimeZone(updateApp.getTimeZone());
     }
 
 }
