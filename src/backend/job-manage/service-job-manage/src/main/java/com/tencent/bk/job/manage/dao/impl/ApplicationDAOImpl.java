@@ -198,7 +198,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         if (conditions == null) {
             conditions = new ArrayList<>();
         }
-        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())));
         Result<Record> result = context
             .select(ALL_FIELDS)
             .from(T_APP)
