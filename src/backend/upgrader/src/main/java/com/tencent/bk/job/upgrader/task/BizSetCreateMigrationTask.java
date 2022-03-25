@@ -24,6 +24,13 @@
 
 package com.tencent.bk.job.upgrader.task;
 
+import com.tencent.bk.job.common.cc.model.bizset.BasicBizSet;
+import com.tencent.bk.job.common.cc.model.bizset.BizSetAttr;
+import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
+import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
+import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
+import com.tencent.bk.job.common.cc.model.bizset.CreateBizSetReq;
+import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -38,16 +45,10 @@ import com.tencent.bk.job.upgrader.anotation.UpgradeTaskInputParam;
 import com.tencent.bk.job.upgrader.client.EsbCmdbClient;
 import com.tencent.bk.job.upgrader.client.JobClient;
 import com.tencent.bk.job.upgrader.model.AppInfo;
-import com.tencent.bk.job.common.cc.model.bizset.BasicBizSet;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetAttr;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
-import com.tencent.bk.job.common.cc.model.bizset.CreateBizSetReq;
-import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.util.CollectionUtils;
@@ -189,6 +190,19 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
     }
 
     /**
+     * 获取业务集最终在CMDB中的ID，用于判定存在性决定是否创建
+     *
+     * @param appInfo 业务信息
+     * @return 业务集ID
+     */
+    private long getFinalBizSetId(AppInfo appInfo) {
+        if (StringUtils.isNotBlank(appInfo.getScopeId())) {
+            return Long.parseLong(appInfo.getScopeId());
+        }
+        return appInfo.getId();
+    }
+
+    /**
      * 根据Job中现存业务集/全业务信息向CMDB创建业务集/全业务
      *
      * @param appInfo 业务集/全业务信息
@@ -198,7 +212,7 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
         String desc = "Auto created by bk-job migration";
         String supplierAccount = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_CMDB_DEFAULT_SUPPLIER_ACCOUNT);
         BizSetAttr attr = BizSetAttr.builder()
-            .id(appInfo.getId())
+            .id(getFinalBizSetId(appInfo))
             .name(appInfo.getName())
             .desc(desc)
             .maintainer(buildMaintainerStr(appInfo.getMaintainers()))
