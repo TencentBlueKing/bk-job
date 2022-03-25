@@ -69,8 +69,6 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_in_business_set/";
     private static final String RESOURCE_WATCH = "/api/c/compapi/v2/cc/resource_watch/";
 
-    public static CmdbConfig cmdbConfig = null;
-
     public BizSetCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig) {
         super(esbConfig.getEsbUrl(), esbConfig.getAppCode(),
             esbConfig.getAppSecret(), null, esbConfig.isUseEsbTestEnv());
