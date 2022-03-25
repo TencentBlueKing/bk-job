@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,19 +48,29 @@ public class BizSetSyncService extends BasicAppSyncService {
 
     private final ApplicationDAO applicationDAO;
     protected final IBizSetCmdbClient bizSetCmdbClient;
+    private final BizSetService bizSetService;
 
     @Autowired
     public BizSetSyncService(DSLContext dslContext,
                              ApplicationDAO applicationDAO,
                              ApplicationHostDAO applicationHostDAO,
                              ApplicationService applicationService,
-                             IBizSetCmdbClient bizSetCmdbClient) {
+                             IBizSetCmdbClient bizSetCmdbClient,
+                             BizSetService bizSetService) {
         super(dslContext, applicationDAO, applicationHostDAO, applicationService);
         this.applicationDAO = applicationDAO;
         this.bizSetCmdbClient = bizSetCmdbClient;
+        this.bizSetService = bizSetService;
     }
 
     public void syncBizSetFromCMDB() {
+        if (!bizSetService.isBizSetMigratedToCMDB()) {
+            log.warn("Job BizSets have not been migrated to CMDB, " +
+                "do not sync bizSet from CMDB, " +
+                "please use upgrader in package to migrate as soon as possible"
+            );
+            return;
+        }
         log.info("[{}] Begin to sync bizSet from cmdb", Thread.currentThread().getName());
         List<ApplicationDTO> ccBizSetApps = bizSetCmdbClient.getAllBizSetApps();
 

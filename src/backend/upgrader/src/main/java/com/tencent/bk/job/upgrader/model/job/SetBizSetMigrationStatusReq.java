@@ -22,22 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.globalsetting;
+package com.tencent.bk.job.upgrader.model.job;
 
-import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
-import org.jooq.DSLContext;
+import com.tencent.bk.job.common.util.http.BasicHttpReq;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface GlobalSettingDAO {
-
-    int upsertGlobalSetting(GlobalSettingDTO globalSettingDTO);
-
-    int insertGlobalSetting(DSLContext dslContext, GlobalSettingDTO globalSettingDTO);
-
-    int updateGlobalSetting(DSLContext dslContext, GlobalSettingDTO globalSettingDTO);
-
-    int deleteGlobalSetting(DSLContext dslContext, String key);
-
-    GlobalSettingDTO getGlobalSetting(DSLContext dslContext, String key);
-
-    GlobalSettingDTO getGlobalSetting(String key);
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class SetBizSetMigrationStatusReq extends BasicHttpReq {
+    private Boolean migrated;
 }

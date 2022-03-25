@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.model.AppInfo;
 import com.tencent.bk.job.upgrader.model.BasicAppInfo;
+import com.tencent.bk.job.upgrader.model.job.SetBizSetMigrationStatusReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
@@ -56,6 +57,8 @@ public class JobClient extends AbstractJobClient {
     private static final String URL_LIST_NORMAL_APPS = "/service/app/list/normal";
 
     private static final String URL_LIST_BIZ_SET_APPS = "/service/app/list/bizSet";
+
+    private static final String URL_SET_BIZ_SET_MIGRATION_STATUS = "/migration/action/setBizSetMigrationStatus";
 
     private static final JsonMapper JSON_MAPPER = JsonMapper.nonDefaultMapper();
 
@@ -150,5 +153,22 @@ public class JobClient extends AbstractJobClient {
             new TypeReference<Response<List<AppInfo>>>() {
             });
         return resp.getData();
+    }
+
+    /**
+     * 设置业务集迁移完成状态
+     *
+     * @param isMigrated 是否已完成迁移
+     * @return 当前迁移状态
+     */
+    public boolean setBizSetMigrationStatus(boolean isMigrated) {
+        SetBizSetMigrationStatusReq req = new SetBizSetMigrationStatusReq(isMigrated);
+        Response<Boolean> resp = getJobRespByReq(
+            HttpPost.METHOD_NAME,
+            URL_SET_BIZ_SET_MIGRATION_STATUS,
+            req,
+            new TypeReference<Response<Boolean>>() {
+            });
+        return resp.getData() == null ? false : resp.getData();
     }
 }

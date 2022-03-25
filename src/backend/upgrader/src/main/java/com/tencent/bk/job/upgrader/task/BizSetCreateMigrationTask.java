@@ -206,6 +206,7 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
      * 根据Job中现存业务集/全业务信息向CMDB创建业务集/全业务
      *
      * @param appInfo 业务集/全业务信息
+     * @return 业务集是否已存在于CMDB中
      */
     private boolean createCMDBResourceForApp(AppInfo appInfo) {
         CreateBizSetReq createBizSetReq = esbCmdbClient.makeCmdbBaseReq(CreateBizSetReq.class);
@@ -239,11 +240,10 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
             if (CollectionUtils.isEmpty(bizSetList)) {
                 Long bizSetId = esbCmdbClient.createBizSet(createBizSetReq);
                 log.info("bizSet {} created", bizSetId);
-                return true;
             } else {
                 log.warn("bizSet {} already exists, ignore", attr.getId());
-                return false;
             }
+            return true;
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format("Fail to create bizSet {}", createBizSetReq);
             log.error(msg.getMessage(), e);
@@ -255,10 +255,24 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         List<BasicBizSet> bizSetList = new ArrayList<>();
+        int successCount = 0;
         for (AppInfo appInfo : bizSetAppInfoList) {
             // 1.调用CMDB接口创建业务集/全业务
-            createCMDBResourceForApp(appInfo);
-            bizSetList.add(new BasicBizSet(appInfo.getId(), appInfo.getName()));
+            if (createCMDBResourceForApp(appInfo)) {
+                successCount += 1;
+                bizSetList.add(new BasicBizSet(appInfo.getId(), appInfo.getName()));
+            }
+        }
+        if (successCount == bizSetList.size()) {
+            log.info("all {} bizSets migrated to CMDB", successCount);
+            log.info("BizSet migration status:{}", jobManageClient.setBizSetMigrationStatus(true));
+        } else {
+            log.warn(
+                "{}/{} bizSets migrated to CMDB, please check log to confirm failed bizSets",
+                successCount,
+                bizSetList.size()
+            );
+            log.info("BizSet migration status:{}", jobManageClient.setBizSetMigrationStatus(false));
         }
         // 2.生成更新CMDB数据库的业务集信息Json文件
         String content = JsonUtils.toJson(bizSetList);
