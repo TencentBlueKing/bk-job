@@ -239,9 +239,14 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
             List<BizSetInfo> bizSetList = esbCmdbClient.searchBizSetById(attr.getId());
             if (CollectionUtils.isEmpty(bizSetList)) {
                 Long bizSetId = esbCmdbClient.createBizSet(createBizSetReq);
-                log.info("bizSet {} created", bizSetId);
+                if (bizSetId != null && bizSetId > 0) {
+                    log.info("bizSet {} created", bizSetId);
+                } else {
+                    log.warn("fail to create bizSet {}", attr.getId());
+                    return false;
+                }
             } else {
-                log.warn("bizSet {} already exists, ignore", attr.getId());
+                log.info("bizSet {} already exists, ignore", attr.getId());
             }
             return true;
         } catch (Exception e) {

@@ -33,6 +33,7 @@ import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -79,7 +80,7 @@ public class MigrationResource {
      * 设置迁移业务集的状态
      */
     @PostMapping("/action/setBizSetMigrationStatus")
-    public Response<Boolean> setBizSetMigrationStatus(SetBizSetMigrationStatusReq req) {
+    public Response<Boolean> setBizSetMigrationStatus(@RequestBody SetBizSetMigrationStatusReq req) {
         return Response.buildSuccessResp(bizSetService.setBizSetMigratedToCMDB(req.getMigrated()));
     }
 }
