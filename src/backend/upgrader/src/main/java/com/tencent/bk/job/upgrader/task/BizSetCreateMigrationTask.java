@@ -260,7 +260,7 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
             // 1.调用CMDB接口创建业务集/全业务
             if (createCMDBResourceForApp(appInfo)) {
                 successCount += 1;
-                bizSetList.add(new BasicBizSet(appInfo.getId(), appInfo.getName()));
+                bizSetList.add(new BasicBizSet(getFinalBizSetId(appInfo), appInfo.getName()));
             }
         }
         if (successCount == bizSetList.size()) {
