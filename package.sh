@@ -149,6 +149,7 @@ log "Packaging support-files ..."
 if [[ ! -d "release/job/support-files" ]]; then
   mkdir -p release/job/support-files
 fi
+cp -r support-files/bk-cmdb/ release/job/support-files/
 cp -r support-files/bkiam/ release/job/support-files/
 cp -r support-files/dependJarInfo/ release/job/support-files/
 # Package dependJarLists

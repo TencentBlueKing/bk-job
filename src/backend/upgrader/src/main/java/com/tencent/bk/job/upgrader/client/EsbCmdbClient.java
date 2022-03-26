@@ -25,9 +25,6 @@
 package com.tencent.bk.job.upgrader.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.CreateBizSetReq;
@@ -35,8 +32,10 @@ import com.tencent.bk.job.common.cc.model.bizset.Page;
 import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetResp;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 
 import java.util.ArrayList;
@@ -49,7 +48,7 @@ public class EsbCmdbClient extends AbstractEsbSdkClient {
 
     private static final String FIELD_KEY_BIZ_SET_ID = "bk_biz_set_id";
 
-    private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/search_business_set/";
+    private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
     private static final String CREATE_BUSINESS_SET = "/api/c/compapi/v2/cc/create_business_set/";
 
     public EsbCmdbClient(String esbHostUrl,
@@ -81,7 +80,7 @@ public class EsbCmdbClient extends AbstractEsbSdkClient {
         filter.setRules(rules);
         req.setFilter(filter);
         EsbResp<SearchBizSetResp> resp = getEsbRespByReq(
-            HttpGet.METHOD_NAME,
+            HttpPost.METHOD_NAME,
             SEARCH_BUSINESS_SET,
             req,
             new TypeReference<EsbResp<SearchBizSetResp>>() {

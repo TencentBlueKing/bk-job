@@ -72,7 +72,7 @@ public class BizSetAttr {
     /**
      * 时区
      */
-    @JsonProperty("timezone")
+    @JsonProperty("time_zone")
     private String timeZone;
 
     /**
