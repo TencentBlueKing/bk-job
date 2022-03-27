@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.api.web;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
@@ -91,8 +92,12 @@ public interface WebPermissionResource {
     Response<AuthResultVO> checkOperationPermission(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = false)
+        @DeprecatedAppLogic @ApiParam(value = "业务ID", required = false)
         @RequestParam(value = "appId", required = false) Long appId,
+        @ApiParam(value = "业务范围类型，biz-业务，biz_set-业务集")
+        @RequestParam(value = "scopeType", required = false) String scopeType,
+        @ApiParam(value = "范畴ID", required = false)
+        @RequestParam(value = "scopeId", required = false) String scopeId,
         @ApiParam("操作ID,取值为: [cron/create,cron/view,cron/edit,cron/delete,cron/manage")
         @RequestParam(value = "operation") String operation,
         @ApiParam(value = "资源ID,比如定时任务ID;对于部分不需要资源ID的操作(新建),不需要传参")

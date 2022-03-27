@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.iam.impl;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.manage.api.iam.IamScriptCallbackResource;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
@@ -39,10 +40,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 public class IamScriptCallbackResourceImpl implements IamScriptCallbackResource {
-    private ScriptCallbackHelper scriptCallbackHelper;
+
+    private final ScriptCallbackHelper scriptCallbackHelper;
+    private final ApplicationService applicationService;
 
     @Autowired
-    public IamScriptCallbackResourceImpl(ScriptService scriptService) {
+    public IamScriptCallbackResourceImpl(ScriptService scriptService,
+                                         ApplicationService applicationService) {
         this.scriptCallbackHelper = new ScriptCallbackHelper(scriptService, new ScriptCallbackHelper.IGetBasicInfo() {
             @Override
             public Pair<ScriptQuery, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -53,7 +57,8 @@ public class IamScriptCallbackResourceImpl implements IamScriptCallbackResource 
             public boolean isPublicScript() {
                 return false;
             }
-        });
+        }, applicationService);
+        this.applicationService = applicationService;
     }
 
     private Pair<ScriptQuery, BaseSearchCondition> getBasicQueryConditionImpl(CallbackRequestDTO callbackRequest) {
@@ -63,7 +68,9 @@ public class IamScriptCallbackResourceImpl implements IamScriptCallbackResource 
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         ScriptQuery scriptQuery = new ScriptQuery();
-        scriptQuery.setAppId(searchCondition.getAppIdList().get(0));
+        Long appId =
+            applicationService.getAppIdByScope(scriptCallbackHelper.extractResourceScopeCondition(searchCondition));
+        scriptQuery.setAppId(appId);
         return Pair.of(scriptQuery, baseSearchCondition);
     }
 

@@ -26,14 +26,21 @@ package com.tencent.bk.job.common.web.interceptor;
 
 import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
@@ -45,13 +52,29 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @since 6/11/2019 10:46
+ * Job通用拦截器
  */
 @Slf4j
 @Component
 public class JobCommonInterceptor extends HandlerInterceptorAdapter {
+    private static final Pattern SCOPE_PATTERN = Pattern.compile("/scope/(\\w+)/(\\d+)");
+    @DeprecatedAppLogic
     private static final Pattern APP_ID_PATTERN = Pattern.compile("/app/(\\d+)");
+
     private final Tracer tracer;
+
+    private AppScopeMappingService appScopeMappingService;
+
+    /**
+     * 通过Set方式，同时使用@Lazy，避免Bean循环依赖
+     *
+     * @param appScopeMappingService 依赖的AppScopeMappingService
+     */
+    @Autowired(required = false)
+    @Lazy
+    public void setAppScopeMappingService(AppScopeMappingService appScopeMappingService) {
+        this.appScopeMappingService = appScopeMappingService;
+    }
 
     @Autowired
     public JobCommonInterceptor(Tracer tracer) {
@@ -59,20 +82,36 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-        throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         JobContextUtil.setStartTime();
+        JobContextUtil.setRequest(request);
+        JobContextUtil.setResponse(response);
 
-        String traceId = tracer.currentSpan().context().traceIdString();
-        JobContextUtil.setRequestId(traceId);
+        addRequestId();
 
         if (!shouldFilter(request)) {
             return true;
         }
 
-        JobContextUtil.setRequest(request);
-        JobContextUtil.setResponse(response);
+        addUsername(request);
+        addLang(request);
+        addAppResourceScope(request);
 
+        return true;
+    }
+
+    private boolean shouldFilter(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        // 只拦截web/service/esb的API请求
+        return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
+    }
+
+    private void addRequestId() {
+        String traceId = tracer.currentSpan().context().traceIdString();
+        JobContextUtil.setRequestId(traceId);
+    }
+
+    private void addUsername(HttpServletRequest request) {
         // Web接口Header
         String username = request.getHeader("username");
         // ESB接口Header
@@ -90,7 +129,9 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         if (StringUtils.isNotBlank(username)) {
             JobContextUtil.setUsername(username);
         }
+    }
 
+    private void addLang(HttpServletRequest request) {
         String userLang = request.getHeader(LocaleUtils.COMMON_LANG_HEADER);
 
         if (StringUtils.isNotBlank(userLang)) {
@@ -98,52 +139,92 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         } else {
             JobContextUtil.setUserLang(LocaleUtils.LANG_ZH_CN);
         }
+    }
 
-        Long appId = parseAppIdFromPath(request.getRequestURI());
-        log.debug("appId from path:{}", appId);
-        if (appId == null) {
-            appId = parseAppIdFromQueryStringOrBody(request);
-            log.debug("appId from query/body:{}", appId);
+    private void addAppResourceScope(HttpServletRequest request) {
+        AppResourceScope appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
+        log.debug("Scope from path:{}", appResourceScope);
+        if (appResourceScope == null) {
+            appResourceScope = parseAppResourceScopeFromQueryStringOrBody(request);
+            log.debug("scope from query/body:{}", appResourceScope);
         }
+        if (appResourceScope != null) {
+            JobContextUtil.setAppResourceScope(appResourceScope);
+        }
+        if (appResourceScope != null) {
+            request.setAttribute("appResourceScope", appResourceScope);
+            JobContextUtil.setAppResourceScope(appResourceScope);
+        }
+    }
+
+    private AppResourceScope parseAppResourceScopeFromPath(String requestURI) {
+        ResourceScope resourceScope = parseResourceScopeFromURI(requestURI);
+        if (resourceScope != null) {
+            return buildAppResourceScope(resourceScope);
+        }
+
+        // 兼容当前业务ID路径模式
+        Long appId = parseAppIdFromURI(requestURI);
         if (appId != null) {
-            JobContextUtil.setAppId(appId);
+            return buildAppResourceScope(appId);
         }
-        return true;
-    }
 
-    private boolean shouldFilter(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        // 只拦截web/service/esb的API请求
-        return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
-    }
-
-    private Long parseAppIdFromPath(String requestURI) {
-        Matcher matcher = APP_ID_PATTERN.matcher(requestURI);
-        if (matcher.find()) {
-            String appIdStr = matcher.group(1);
-            Long appId = null;
-            try {
-                appId = Long.parseLong(appIdStr);
-            } catch (NumberFormatException e) {
-                log.error("Error while parse app id!|{}|{}", requestURI, appIdStr);
-            }
-            return appId;
-        }
         return null;
+    }
+
+    private ResourceScope parseResourceScopeFromURI(String requestURI) {
+        ResourceScope resourceScope = null;
+        Matcher scopeMatcher = SCOPE_PATTERN.matcher(requestURI);
+        if (scopeMatcher.find()) {
+            resourceScope = new ResourceScope(scopeMatcher.group(1), scopeMatcher.group(2));
+        }
+        return resourceScope;
+    }
+
+    private Long parseAppIdFromURI(String requestURI) {
+        Matcher appIdMatcher = APP_ID_PATTERN.matcher(requestURI);
+        Long appId = null;
+        if (appIdMatcher.find()) {
+            appId = Long.valueOf(appIdMatcher.group(1));
+        }
+        return appId;
+    }
+
+    private AppResourceScope buildAppResourceScope(ResourceScope resourceScope) {
+        Long appId = appScopeMappingService.getAppIdByScope(resourceScope);
+        return new AppResourceScope(appId, resourceScope);
+    }
+
+    private AppResourceScope buildAppResourceScope(Long appId) {
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        return new AppResourceScope(appId, resourceScope);
     }
 
     private String parseUsernameFromQueryStringOrBody(HttpServletRequest request) {
         return parseValueFromQueryStringOrBody(request, "bk_username");
     }
 
-    private Long parseAppIdFromQueryStringOrBody(HttpServletRequest request) {
-        String appIdStr = null;
-        try {
-            appIdStr = parseValueFromQueryStringOrBody(request, "bk_biz_id");
-            if (appIdStr == null) return null;
-            return Long.parseLong(appIdStr);
-        } catch (Exception e) {
-            log.warn("Fail to parse appId from {}", appIdStr, e);
+    private AppResourceScope parseAppResourceScopeFromQueryStringOrBody(HttpServletRequest request) {
+        String scopeType = parseValueFromQueryStringOrBody(request, "bk_scope_type");
+        String scopeId = parseValueFromQueryStringOrBody(request, "bk_scope_id");
+        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            return new AppResourceScope(scopeType, scopeId, null);
+        } else {
+            // 兼容当前业务ID参数
+            String bizIdStr = parseValueFromQueryStringOrBody(request, "bk_biz_id");
+            if (StringUtils.isNotBlank(bizIdStr)) {
+                Long appId;
+                Long bizId = Long.parseLong(bizIdStr);
+                // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
+                scopeId = bizIdStr;
+                if (bizId >= 8000000L && bizId <= 9999999L) {
+                    appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), scopeId);
+                    return new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, scopeId, appId);
+                } else {
+                    appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(), scopeId);
+                    return new AppResourceScope(ResourceScopeTypeEnum.BIZ, scopeId, appId);
+                }
+            }
         }
         return null;
     }
@@ -181,7 +262,8 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
                            ModelAndView modelAndView) {
         if (log.isDebugEnabled()) {
-            log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), JobContextUtil.getAppId(),
+            log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(),
+                JobContextUtil.getAppResourceScope(),
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI());
         }
@@ -191,21 +273,27 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
                                 Object handler,
                                 Exception ex) {
-        int status = response.getStatus();
-        if (status >= 400) {
-            log.warn("status {} given by {}", status, handler);
+        try {
+            if (isClientOrServerError(response)) {
+                log.warn("status {} given by {}", response.getStatus(), handler);
+            }
+            if (ex != null) {
+                log.error("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
+                    JobContextUtil.getAppResourceScope(),
+                    JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
+                    request.getRequestURI(), ex);
+            } else {
+                log.debug("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
+                    JobContextUtil.getAppResourceScope(),
+                    JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
+                    request.getRequestURI());
+            }
+        } finally {
+            JobContextUtil.unsetContext();
         }
-        if (ex != null) {
-            log.error("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
-                JobContextUtil.getAppId(),
-                JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
-                request.getRequestURI(), ex);
-        } else {
-            log.debug("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
-                JobContextUtil.getAppId(),
-                JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
-                request.getRequestURI());
-        }
-        JobContextUtil.unsetContext();
+    }
+
+    private boolean isClientOrServerError(HttpServletResponse response) {
+        return response.getStatus() > HttpStatus.SC_BAD_REQUEST;
     }
 }

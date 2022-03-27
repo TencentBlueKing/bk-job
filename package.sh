@@ -149,6 +149,7 @@ log "Packaging support-files ..."
 if [[ ! -d "release/job/support-files" ]]; then
   mkdir -p release/job/support-files
 fi
+cp -r support-files/bk-cmdb/ release/job/support-files/
 cp -r support-files/bkiam/ release/job/support-files/
 cp -r support-files/dependJarInfo/ release/job/support-files/
 # Package dependJarLists
@@ -165,6 +166,10 @@ for m in "${PACKAGE_MODULES[@]}"; do
   fi
 done
 # Package Templates by modules
+cd support-files/tools
+export PYTHONIOENCODING=utf8
+python renderTemplates.py ${JOB_EDITION} w
+cd ../..
 if [[ -d "support-files/templates" ]]; then
   if [[ ! -d "release/job/support-files/templates" ]]; then
     mkdir -p release/job/support-files/templates

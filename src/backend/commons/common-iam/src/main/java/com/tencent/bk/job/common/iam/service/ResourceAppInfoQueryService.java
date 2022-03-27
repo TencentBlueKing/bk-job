@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 
 /**
- * 根据ID获取资源所属业务信息
+ * 根据ID获取资源所属Job业务信息
  */
 public interface ResourceAppInfoQueryService {
     ResourceAppInfo getResourceAppInfo(ResourceTypeEnum resourceType, String resourceId);

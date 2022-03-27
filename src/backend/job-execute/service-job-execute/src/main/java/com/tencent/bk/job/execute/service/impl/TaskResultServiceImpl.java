@@ -32,7 +32,9 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.StepRunModeEnum;
@@ -64,11 +66,10 @@ import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.service.AgentTaskService;
-import com.tencent.bk.job.execute.service.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
-import com.tencent.bk.job.execute.service.ServerService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskResultService;
@@ -102,7 +103,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final GseTaskService gseTaskService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final AgentTaskDAO agentTaskDAO;
-    private final ServerService serverService;
+    private final HostService hostService;
     private final LogService logService;
     private final ExecuteAuthService executeAuthService;
     private final TaskOperationLogService operationLogService;
@@ -116,7 +117,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                                  GseTaskService gseTaskService,
                                  FileSourceTaskLogDAO fileSourceTaskLogDAO,
                                  AgentTaskDAO agentTaskDAO,
-                                 ServerService serverService,
+                                 HostService hostService,
                                  LogService logService,
                                  ExecuteAuthService executeAuthService,
                                  TaskOperationLogService operationLogService,
@@ -128,7 +129,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.gseTaskService = gseTaskService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
         this.agentTaskDAO = agentTaskDAO;
-        this.serverService = serverService;
+        this.hostService = hostService;
         this.logService = logService;
         this.executeAuthService = executeAuthService;
         this.operationLogService = operationLogService;
@@ -232,7 +233,9 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private void authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
-        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId, taskInstance);
+
+        AuthResult authResult = executeAuthService.authViewTaskInstance(
+            username, new AppResourceScope(appId), taskInstance);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -243,7 +246,9 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (username.equals(operator)) {
             return;
         }
-        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId,
+
+        AuthResult authResult = executeAuthService.authViewTaskInstance(
+            username, new AppResourceScope(appId),
             stepInstance.getTaskInstanceId());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -430,7 +435,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                     agentTask.setCloudIp(targetServer.getCloudAreaId() + ":" + targetServer.getIp());
                     Long cloudAreaId = targetServer.getCloudAreaId();
                     agentTask.setCloudId(cloudAreaId);
-                    agentTask.setCloudName(serverService.getCloudAreaName(appId, cloudAreaId));
+                    agentTask.setCloudName(hostService.getCloudAreaName(cloudAreaId));
                     agentTask.setDisplayIp(targetServer.getIp());
                     agentTask.setStatus(IpStatus.WAITING.getValue());
                     agentTask.setTag(null);
@@ -540,8 +545,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                     query.getBatch());
             resultGroups.forEach(
                 resultGroup -> resultGroup.getAgentTasks().forEach(
-                    agentTask -> agentTask.setCloudName(serverService.getCloudAreaName(stepInstance.getAppId(),
-                        agentTask.getCloudId()))));
+                    agentTask -> agentTask.setCloudName(hostService.getCloudAreaName(agentTask.getCloudId()))));
 
             if (CollectionUtils.isNotEmpty(query.getMatchIps())) {
                 filterAgentTasksByMatchIp(resultGroups, query.getMatchIps());

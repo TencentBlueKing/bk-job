@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.esb.model.job;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.AllArgsConstructor;
@@ -55,7 +55,7 @@ public class EsbIpDTO {
         message = "{validation.constraints.InvalidIp.message}")
     private String ip;
 
-    public static EsbIpDTO fromApplicationHostInfo(ApplicationHostInfoDTO applicationHostInfo) {
+    public static EsbIpDTO fromApplicationHostInfo(ApplicationHostDTO applicationHostInfo) {
         if (applicationHostInfo == null) {
             return null;
         }

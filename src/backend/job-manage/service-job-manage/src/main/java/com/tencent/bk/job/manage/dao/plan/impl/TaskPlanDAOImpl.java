@@ -31,6 +31,7 @@ import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,6 +41,7 @@ import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record1;
 import org.jooq.Record13;
+import org.jooq.Record6;
 import org.jooq.Result;
 import org.jooq.SelectJoinStep;
 import org.jooq.TableField;
@@ -53,6 +55,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -191,6 +194,14 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
      */
     private long getPageTaskPlanCount(List<Condition> conditions) {
         return context.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
+    }
+
+    private List<Condition> buildTaskPlanIdsCondition(Collection<Long> planIds) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
+        conditions.add(TABLE.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getType())));
+        conditions.add(TABLE.ID.in(planIds));
+        return conditions;
     }
 
     private List<Condition> buildTaskPlanQueryCondition(TaskPlanQueryDTO taskPlanQuery,
@@ -368,12 +379,33 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
                 .where(conditions).fetch();
 
         List<TaskPlanInfoDTO> taskPlanInfoList = new ArrayList<>();
-        if (result != null && result.size() > 0) {
+        if (result.size() > 0) {
             result.map(record ->
                 taskPlanInfoList.add(DbRecordMapper.convertRecordToPlanInfo(record)));
         }
         return taskPlanInfoList;
+    }
 
+    @Override
+    public List<TaskPlanBasicInfoDTO> listTaskPlanBasicInfoByIds(Collection<Long> planIds) {
+        List<Condition> conditions = buildTaskPlanIdsCondition(planIds);
+        Result<Record6<ULong, String, String, ULong, ULong, UByte>> result =
+            context.select(
+                TABLE.ID,
+                TABLE.NAME,
+                TABLE.VERSION,
+                TABLE.APP_ID,
+                TABLE.TEMPLATE_ID,
+                TABLE.TYPE
+            ).from(TABLE)
+                .where(conditions).fetch();
+
+        List<TaskPlanBasicInfoDTO> taskPlanBasicInfoList = new ArrayList<>();
+        if (result.size() > 0) {
+            result.map(record ->
+                taskPlanBasicInfoList.add(DbRecordMapper.convertRecordToPlanBasicInfo(record)));
+        }
+        return taskPlanBasicInfoList;
     }
 
     @Override

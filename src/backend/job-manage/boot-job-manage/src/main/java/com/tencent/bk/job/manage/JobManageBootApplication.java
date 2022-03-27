@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage;
 
-import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
@@ -41,10 +42,11 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
+@EnableConfigurationProperties
 @EnableCaching
 @EnableFeignClients
 @EnableScheduling
-@DependsOn({"applicationContextRegister", "ccConfigSetter"})
+@DependsOn({"applicationContextRegister", "cmdbConfigSetter"})
 public class JobManageBootApplication {
 
     public static void main(String[] args) {
@@ -52,10 +54,10 @@ public class JobManageBootApplication {
     }
 
     @Bean
-    CloudAreaService buildCloudAreaService(@Autowired EsbConfig esbConfig, @Autowired CcConfig ccConfig) {
+    CloudAreaService buildCloudAreaService(@Autowired EsbConfig esbConfig, @Autowired CmdbConfig cmdbConfig) {
         QueryAgentStatusClient queryAgentStatusClient =
             ApplicationContextRegister.getBean(QueryAgentStatusClient.class);
         MeterRegistry meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
-        return new CloudAreaService(esbConfig, ccConfig, queryAgentStatusClient, meterRegistry);
+        return new CloudAreaService(esbConfig, cmdbConfig, queryAgentStatusClient, meterRegistry);
     }
 }

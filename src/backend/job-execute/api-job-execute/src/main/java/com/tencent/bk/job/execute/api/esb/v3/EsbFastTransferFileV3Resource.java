@@ -44,7 +44,10 @@ public interface EsbFastTransferFileV3Resource {
 
     @PostMapping("/fast_transfer_file")
     EsbResp<EsbJobExecuteV3DTO> fastTransferFile(
-        @RequestBody @Validated EsbFastTransferFileV3Request request);
+        @RequestBody
+        @Validated
+            EsbFastTransferFileV3Request request
+    );
 
 
 }

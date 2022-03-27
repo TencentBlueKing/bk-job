@@ -40,6 +40,7 @@ import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
@@ -59,6 +60,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -183,6 +185,11 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public List<TaskPlanBasicInfoDTO> listTaskPlanByIds(Collection<Long> planIds) {
+        return taskPlanDAO.listTaskPlanBasicInfoByIds(planIds);
     }
 
     @Override

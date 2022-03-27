@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -161,6 +163,11 @@ public class FileSourceServiceImpl implements FileSourceService {
     @Override
     public FileSourceDTO getFileSourceById(Integer id) {
         return fileSourceDAO.getFileSourceById(dslContext, id);
+    }
+
+    @Override
+    public List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids) {
+        return fileSourceDAO.listFileSourceByIds(dslContext, ids);
     }
 
     @Override

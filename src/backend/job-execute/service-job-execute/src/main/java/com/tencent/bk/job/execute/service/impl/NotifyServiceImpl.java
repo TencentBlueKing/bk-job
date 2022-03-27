@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -270,10 +270,10 @@ public class NotifyServiceImpl implements NotifyService {
         }
         // 国际化处理
         Long appId = taskNotifyDTO.getAppId();
-        ApplicationInfoDTO applicationInfoDTO = applicationService.getAppById(appId);
+        ApplicationDTO applicationDTO = applicationService.getAppById(appId);
         String userLang = JobContextUtil.getUserLang();
         if (userLang == null) {
-            String appLang = applicationInfoDTO.getLanguage();
+            String appLang = applicationDTO.getLanguage();
             if ("1".equals(appLang)) {
                 userLang = LocaleUtils.LANG_ZH_CN;
             } else if ("2".equals(appLang)) {

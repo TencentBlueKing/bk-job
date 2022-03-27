@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.api.web.impl;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.web.WebDangerousRecordResource;
 import com.tencent.bk.job.execute.model.DangerousRecordDTO;
@@ -45,19 +46,29 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebDangerousRecordResourceImpl implements WebDangerousRecordResource {
     private final DangerousRecordService dangerousRecordService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    public WebDangerousRecordResourceImpl(
-        DangerousRecordService dangerousRecordService) {
+    public WebDangerousRecordResourceImpl(DangerousRecordService dangerousRecordService,
+                                          AppScopeMappingService appScopeMappingService) {
         this.dangerousRecordService = dangerousRecordService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<PageData<DangerousRecordVO>> pageListDangerousRecords(String username, Long id, Long appId,
-                                                                          Long ruleId, String ruleExpression,
-                                                                          String startTime, String endTime,
-                                                                          Integer start, Integer pageSize,
-                                                                          Integer startupMode, Integer mode,
-                                                                          String operator, String client) {
+    public Response<PageData<DangerousRecordVO>> pageListDangerousRecords(String username,
+                                                                          Long id,
+                                                                          String scopeType,
+                                                                          String scopeId,
+                                                                          Long ruleId,
+                                                                          String ruleExpression,
+                                                                          String startTime,
+                                                                          String endTime,
+                                                                          Integer start,
+                                                                          Integer pageSize,
+                                                                          Integer startupMode,
+                                                                          Integer mode,
+                                                                          String operator,
+                                                                          String client) {
         DangerousRecordDTO query = new DangerousRecordDTO();
         query.setId(id);
         query.setRuleId(ruleId);
@@ -66,7 +77,9 @@ public class WebDangerousRecordResourceImpl implements WebDangerousRecordResourc
         query.setAction(mode);
         query.setOperator(operator);
         query.setClient(client);
-        query.setAppId(appId);
+        if (StringUtils.isNotEmpty(scopeType) && StringUtils.isNotEmpty(scopeId)) {
+            query.setAppId(appScopeMappingService.getAppIdByScope(scopeType, scopeId));
+        }
 
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         if (StringUtils.isNotBlank(startTime)) {

@@ -33,6 +33,7 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionDetailV
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,7 +54,9 @@ public interface EsbScriptV3Resource {
     EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "name", required = false) String name,
         @RequestParam(value = "script_language", required = false) Integer scriptLanguage,
         @RequestParam(value = "start", required = false) Integer start,
@@ -63,7 +66,9 @@ public interface EsbScriptV3Resource {
     EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "script_id") String scriptId,
         @RequestParam(value = "return_script_content", required = false, defaultValue = "false")
             boolean returnScriptContent,
@@ -74,21 +79,32 @@ public interface EsbScriptV3Resource {
     EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetail(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "id", required = false) Long scriptVersionId,
         @RequestParam(value = "script_id", required = false) String scriptId,
         @RequestParam(value = "version", required = false) String version);
 
     @PostMapping("/get_script_list")
     EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptListUsingPost(
-        @RequestBody EsbGetScriptListV3Req request);
+        @RequestBody
+        @Validated
+            EsbGetScriptListV3Req request
+    );
 
     @PostMapping("/get_script_version_list")
     EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionListUsingPost(
-        @RequestBody EsbGetScriptVersionListV3Req request);
+        @RequestBody
+        @Validated
+            EsbGetScriptVersionListV3Req request
+    );
 
     @PostMapping("/get_script_version_detail")
     EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetailUsingPost(
-        @RequestBody EsbGetScriptVersionDetailV3Req request);
+        @RequestBody
+        @Validated
+            EsbGetScriptVersionDetailV3Req request
+    );
 
 }

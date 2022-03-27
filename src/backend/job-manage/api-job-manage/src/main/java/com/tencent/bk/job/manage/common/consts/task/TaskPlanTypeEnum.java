@@ -54,4 +54,8 @@ public enum TaskPlanTypeEnum {
         }
         throw new InvalidParamException(ErrorCode.INTERNAL_ERROR);
     }
+
+    public int getValue() {
+        return type;
+    }
 }

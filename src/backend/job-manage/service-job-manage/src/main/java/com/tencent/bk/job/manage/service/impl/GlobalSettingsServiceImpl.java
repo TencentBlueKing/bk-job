@@ -113,17 +113,17 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private static final Pattern PATTERN = Pattern.compile("^([+\\-]?\\d+)([a-zA-Z]{0,2})$");
     private static final String STRING_TPL_KEY_CURRENT_VERSION = "current_ver";
     private static final String STRING_TPL_KEY_CURRENT_YEAR = "current_year";
-    private DSLContext dslContext;
-    private NotifyEsbChannelDAO notifyEsbChannelDAO;
-    private AvailableEsbChannelDAO availableEsbChannelDAO;
-    private NotifyService notifyService;
-    private GlobalSettingDAO globalSettingDAO;
-    private NotifyTemplateDAO notifyTemplateDAO;
-    private MessageI18nService i18nService;
-    private JobManageConfig jobManageConfig;
-    private LocalFileConfigForManage localFileConfigForManage;
-    private NotifyTemplateConverter notifyTemplateConverter;
-    private BuildProperties buildProperties;
+    private final DSLContext dslContext;
+    private final NotifyEsbChannelDAO notifyEsbChannelDAO;
+    private final AvailableEsbChannelDAO availableEsbChannelDAO;
+    private final NotifyService notifyService;
+    private final GlobalSettingDAO globalSettingDAO;
+    private final NotifyTemplateDAO notifyTemplateDAO;
+    private final MessageI18nService i18nService;
+    private final JobManageConfig jobManageConfig;
+    private final LocalFileConfigForManage localFileConfigForManage;
+    private final NotifyTemplateConverter notifyTemplateConverter;
+    private final BuildProperties buildProperties;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
     @Value("${job.feature.file-manage.enabled:false}")
@@ -438,7 +438,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
         fileUploadSettingDTO.setKey(GlobalSettingKeys.KEY_FILE_UPLOAD_MAX_SIZE);
         fileUploadSettingDTO.setValue(uploadMaxSize.toString() + unit.name());
-        int affectedRows = globalSettingDAO.upsertGlobalSetting(dslContext, fileUploadSettingDTO);
+        int affectedRows = globalSettingDAO.upsertGlobalSetting(fileUploadSettingDTO);
         return affectedRows > 0;
     }
 
@@ -526,19 +526,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         } else {
             return getCEDefaultTitleFooterVO();
         }
-    }
-
-    private TitleFooterVO getInnerDefaultTitleFooterVO() {
-        String currentYear = TimeUtil.getCurrentTimeStr("yyyy");
-        return new TitleFooterVO(
-            i18nService.getI18n("job.manage.globalsettings.defaultTitleHead")
-            , "|"
-            , String.format(
-            "[" + i18nService.getI18n("job.manage.globalsettings.contactBKHelper") + "](%s) | ["
-                + i18nService.getI18n("job.manage.globalsettings.BKDesktop") + "](%s)"
-            , jobManageConfig.getBkHelperUrl()
-            , jobManageConfig.getPaasServerUrl())
-            , String.format("Copyright © 2012-%s Tencent BlueKing. All Rights Reserved.", currentYear));
     }
 
     @Override
@@ -749,8 +736,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             removeSuffixBackSlash(jobManageConfig.getCmdbServerUrl()) + jobManageConfig.getCmdbAppIndexPath());
         urlMap.put(RelatedUrlKeys.KEY_BK_NODEMAN_ROOT_URL, getNodemanRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_DOC_CENTER_ROOT_URL, getDocCenterBaseUrl());
-        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, removeSuffixBackSlash(getDocCenterBaseUrl()) + "/markdown" +
-            "/产品白皮书/Introduction/What-is-Job.md");
+        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocCenterBaseUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_FEED_BACK_ROOT_URL, getFeedBackRootUrl());
         return urlMap;
     }

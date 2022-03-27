@@ -35,8 +35,14 @@ import lombok.Data;
 @ApiModel("业务")
 public class ServiceAppBaseInfoDTO {
 
-    @ApiModelProperty("业务ID")
-    private Long id;
+    @ApiModelProperty("资源范围类型")
+    private String scopeType;
+
+    @ApiModelProperty("资源范围ID")
+    private String scopeId;
+
+    @ApiModelProperty("Job业务ID")
+    private Long appId;
 
     /**
      * 业务名称

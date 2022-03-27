@@ -33,6 +33,7 @@ import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptScopeEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
+import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record6;
 import org.jooq.Result;
 import org.jooq.SortField;
 import org.jooq.generated.tables.Script;
@@ -96,7 +98,7 @@ public class ScriptDAOImpl implements ScriptDAO {
                 } else {
                     orderFields.add(TB_SCRIPT.TYPE.desc());
                 }
-            }else if ("creator".equals(orderField)) {
+            } else if ("creator".equals(orderField)) {
                 if (baseSearchCondition.getOrder() == 1) {
                     orderFields.add(TB_SCRIPT.CREATOR.asc());
                 } else {
@@ -169,6 +171,20 @@ public class ScriptDAOImpl implements ScriptDAO {
     }
 
     @Override
+    public List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds) {
+        Result<Record6<String, ULong, String, UByte, UByte, UByte>> records = create.select(
+            TB_SCRIPT.ID,
+            TB_SCRIPT.APP_ID,
+            TB_SCRIPT.NAME,
+            TB_SCRIPT.CATEGORY,
+            TB_SCRIPT.TYPE,
+            TB_SCRIPT.IS_PUBLIC
+        ).from(Script.SCRIPT)
+            .where(TB_SCRIPT.ID.in(scriptIds)).fetch();
+        return records.map(this::extractScriptBasicDTO);
+    }
+
+    @Override
     public ScriptDTO getScriptVersionById(long id) {
         Script tbScript = Script.SCRIPT.as("t1");
         ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
@@ -180,7 +196,7 @@ public class ScriptDAOImpl implements ScriptDAO {
             tbScriptVersion.VERSION_DESC).from(tbScriptVersion).join(tbScript)
             .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
             .where(tbScriptVersion.ID.eq(ULong.valueOf(id))
-            .and(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0))))
+                .and(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0))))
             .fetchOne();
         return extractScriptVersionData(record);
     }
@@ -425,6 +441,26 @@ public class ScriptDAOImpl implements ScriptDAO {
     private void deleteScriptVersionByScriptIdSoftly(String scriptId) {
         create.update(TB_SCRIPT_VERSION).set(TB_SCRIPT_VERSION.IS_DELETED, UByte.valueOf(1))
             .where(TB_SCRIPT_VERSION.SCRIPT_ID.eq(scriptId)).execute();
+    }
+
+    private ScriptBasicDTO extractScriptBasicDTO(Record record) {
+        if (record == null) {
+            return null;
+        }
+        ScriptBasicDTO scriptBasicDTO = new ScriptBasicDTO();
+        scriptBasicDTO.setId(record.get(TB_SCRIPT.ID));
+        scriptBasicDTO.setName(record.get(TB_SCRIPT.NAME));
+        scriptBasicDTO.setAppId(record.get(TB_SCRIPT.APP_ID).longValue());
+
+        int scriptScopeValue = record.get(TB_SCRIPT.IS_PUBLIC, Integer.class);
+        boolean isPublic = false;
+        if (scriptScopeValue == ScriptScopeEnum.PUBLIC.getValue()) {
+            isPublic = true;
+        }
+        scriptBasicDTO.setPublicScript(isPublic);
+        scriptBasicDTO.setType(record.get(TB_SCRIPT.TYPE, Integer.class));
+        scriptBasicDTO.setCategory(record.get(TB_SCRIPT.CATEGORY, Integer.class));
+        return scriptBasicDTO;
     }
 
     private ScriptDTO extractScriptData(Record record) {

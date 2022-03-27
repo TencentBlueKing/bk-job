@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ScriptRelateTaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptRelatedTaskPlanDTO;
@@ -72,7 +73,8 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .join(T_TASK_PLAN)
             .on(T_TASK_PLAN_STEP_SCRIPT.PLAN_ID.eq(T_TASK_PLAN.ID))
             .where(T_TASK_PLAN_STEP_SCRIPT.SCRIPT_ID.eq(scriptId))
-            .and(T_TASK_PLAN.IS_DELETED.eq(UByte.valueOf(0)));
+            .and(T_TASK_PLAN.IS_DELETED.eq(UByte.valueOf(0)))
+            .and(T_TASK_PLAN.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getValue())));
         try {
             Result<Record1<Integer>> records = query.fetch();
             if (records != null) {
@@ -92,7 +94,8 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .on(T_TASK_PLAN_STEP_SCRIPT.PLAN_ID.eq(T_TASK_PLAN.ID))
             .where(T_TASK_PLAN_STEP_SCRIPT.SCRIPT_VERSION_ID.eq(JooqDataTypeUtil.buildULong(scriptVersionId)))
             .and(T_TASK_PLAN_STEP_SCRIPT.SCRIPT_ID.eq(scriptId))
-            .and(T_TASK_PLAN.IS_DELETED.eq(UByte.valueOf(0)));
+            .and(T_TASK_PLAN.IS_DELETED.eq(UByte.valueOf(0)))
+            .and(T_TASK_PLAN.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getValue())));
         try {
             Result<Record1<Integer>> records = query.fetch();
             if (records != null) {
@@ -135,6 +138,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .on(T_TASK_PLAN_STEP_SCRIPT.SCRIPT_VERSION_ID.eq(T_SCRIPT_VERSION.ID))
             .and(T_TASK_PLAN_STEP_SCRIPT.PLAN_ID.eq(T_TASK_PLAN.ID))
             .and(T_TASK_PLAN.IS_DELETED.eq(UByte.valueOf(0)))
+            .and(T_TASK_PLAN.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getValue())))
             .fetch();
         List<ScriptRelatedTaskPlanDTO> relatedPlans = new ArrayList<>();
         if (result.size() > 0) {
@@ -174,6 +178,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .and(T_TASK_PLAN_STEP_SCRIPT.SCRIPT_VERSION_ID.eq(ULong.valueOf(scriptVersionId)))
             .and(T_TASK_PLAN_STEP_SCRIPT.PLAN_ID.eq(T_TASK_PLAN.ID))
             .and(T_TASK_PLAN.IS_DELETED.eq(UByte.valueOf(0)))
+            .and(T_TASK_PLAN.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getValue())))
             .fetch();
         List<ScriptRelatedTaskPlanDTO> relatedPlans = new ArrayList<>();
         if (result.size() > 0) {

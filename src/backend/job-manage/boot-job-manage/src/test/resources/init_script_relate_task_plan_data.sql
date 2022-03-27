@@ -35,11 +35,11 @@ VALUES (1, 1, 1, 1, '1000', 1000, null, 1, 'a=a', 600, 1, null, 0, 1),
        (4, 3, 4, 1, '1000', 1001, null, 1, 'a=a', 600, 1, null, 0, 0),
        (5, 3, 4, 1, '2000', 2001, null, 1, 'a=a', 600, 1, null, 0, 0);
 
-INSERT INTO `task_plan` (id, app_id, template_id, name, creator, last_modify_user)
-VALUES (1, 2, 1, 'plan1', 'admin', 'admin'),
-(2, 2, 2, 'plan2', 'admin', 'admin'),
-(3, 2, 3, 'plan3', 'admin', 'admin'),
-(4, 2, 4, 'plan4', 'admin', 'admin');
+INSERT INTO `task_plan` (id, app_id, template_id, name, creator, type, last_modify_user)
+VALUES (1, 2, 1, 'plan1', 'admin', 0, 'admin'),
+(2, 2, 2, 'plan2', 'admin', 0, 'admin'),
+(3, 2, 3, 'plan3', 'admin', 0, 'admin'),
+(4, 2, 4, 'plan4', 'admin', 0, 'admin');
 
 INSERT INTO `job_manage`.`script_version`(`id`, `row_create_time`, `row_update_time`, `script_id`, `content`, `creator`, `create_time`, `last_modify_user`, `last_modify_time`, `version`, `is_deleted`, `status`, `version_desc`) VALUES (1000, '2019-12-27 12:05:15', '2020-05-06 14:20:03', '1000', '', 'admin', 1577390716, 'admin', 1577390716, 'v1.0.0', 0, 1, NULL);
 INSERT INTO `job_manage`.`script_version`(`id`, `row_create_time`, `row_update_time`, `script_id`, `content`, `creator`, `create_time`, `last_modify_user`, `last_modify_time`, `version`, `is_deleted`, `status`, `version_desc`) VALUES (1001, '2019-12-27 12:05:15', '2020-05-06 14:20:03', '1000', '', 'admin', 1577390716, 'admin', 1577390716, 'v1.0.0', 0, 1, NULL);

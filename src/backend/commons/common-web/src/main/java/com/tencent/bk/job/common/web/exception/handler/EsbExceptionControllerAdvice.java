@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.web.exception.handler;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -85,8 +86,13 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     ResponseEntity<?> handleException(HttpServletRequest request, Throwable ex) {
         log.error("Handle exception", ex);
         // esb请求错误统一返回200，具体的错误信息放在返回数据里边
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ErrorCode.INTERNAL_ERROR),
-            HttpStatus.OK);
+        if (ex instanceof UncheckedExecutionException) {
+            if (ex.getCause() instanceof ServiceException) {
+                ServiceException e = (ServiceException) ex.getCause();
+                return new ResponseEntity<>(EsbResp.buildSuccessResp(e.getErrorCode(), e.getMessage()), HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ErrorCode.INTERNAL_ERROR), HttpStatus.OK);
     }
 
     @ExceptionHandler(ServiceException.class)
@@ -111,8 +117,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     ResponseEntity<?> handlePermissionDeniedException(HttpServletRequest request, PermissionDeniedException ex) {
         log.info("Handle PermissionDeniedException", ex);
         // esb请求错误统一返回200，具体的错误信息放在返回数据里边
-        return new ResponseEntity<>(authService.buildEsbAuthFailResp(ex),
-            HttpStatus.OK);
+        return new ResponseEntity<>(authService.buildEsbAuthFailResp(ex), HttpStatus.OK);
     }
 
     @ExceptionHandler({InvalidParamException.class})
@@ -158,8 +163,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers,
-                                                                  HttpStatus status,
+                                                                  HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
         log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
@@ -169,8 +173,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
-    ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request,
-                                                         ConstraintViolationException ex) {
+    ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request, ConstraintViolationException ex) {
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
         log.warn("handleConstraintViolationException - errorDetail: {}", errorDetail);
         EsbResp<?> resp = EsbResp.buildValidateFailResp(errorDetail);
@@ -305,7 +308,6 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
-
 
     @Override
     @SuppressWarnings("all")

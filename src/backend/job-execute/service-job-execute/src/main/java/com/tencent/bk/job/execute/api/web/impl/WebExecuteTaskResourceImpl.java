@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -101,16 +102,21 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public Response<TaskExecuteVO> executeTask(String username, Long appId, WebTaskExecuteRequest request) {
+    public Response<TaskExecuteVO> executeTask(String username,
+                                               AppResourceScope appResourceScope,
+                                               String scopeType,
+                                               String scopeId,
+                                               WebTaskExecuteRequest request) {
         log.info("Execute task, request={}", request);
+
         if (!checkExecuteTaskRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
 
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
-            TaskExecuteParam.builder().appId(appId).planId(request.getTaskId()).operator(username)
-                .executeVariableValues(executeVariableValues)
+            TaskExecuteParam.builder().appId(appResourceScope.getAppId()).planId(request.getTaskId())
+                .operator(username).executeVariableValues(executeVariableValues)
                 .startupMode(TaskStartupModeEnum.NORMAL).build());
 
         TaskExecuteVO result = new TaskExecuteVO();
@@ -141,13 +147,19 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public Response<TaskExecuteVO> redoTask(String username, Long appId, RedoTaskRequest request) {
+    public Response<TaskExecuteVO> redoTask(String username,
+                                            AppResourceScope appResourceScope,
+                                            String scopeType,
+                                            String scopeId,
+                                            RedoTaskRequest request) {
         log.info("Redo task, request={}", request);
+
         if (!checkRedoTaskRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
+
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
-        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForRedo(appId,
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForRedo(appResourceScope.getAppId(),
             request.getTaskInstanceId(), username, executeVariableValues);
 
         TaskExecuteVO result = new TaskExecuteVO();
@@ -201,16 +213,20 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public Response<StepExecuteVO> fastExecuteScript(String username, Long appId,
+    public Response<StepExecuteVO> fastExecuteScript(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     String scopeType,
+                                                     String scopeId,
                                                      WebFastExecuteScriptRequest request) {
-        log.debug("Fast execute script, appId={}, operator={}, request={}", appId, username, request);
+        log.debug("Fast execute script, scope={}, operator={}, request={}", appResourceScope, username, request);
+
         if (!checkFastExecuteScriptRequest(request)) {
             log.warn("Fast execute script request is illegal!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
-        TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(username, appId, request);
-        StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, appId, request);
+        TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(username, appResourceScope.getAppId(), request);
+        StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, appResourceScope.getAppId(), request);
         String decodeScriptContent = new String(Base64.decodeBase64(request.getContent()), StandardCharsets.UTF_8);
         stepInstance.setScriptContent(decodeScriptContent);
         RollingConfigDTO rollingConfig = null;
@@ -339,15 +355,19 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public Response<StepExecuteVO> fastPushFile(String username, Long appId, WebFastPushFileRequest request) {
-        log.debug("Fast send file, appId={}, operator={}, request={}", appId, username, request);
+    public Response<StepExecuteVO> fastPushFile(String username,
+                                                AppResourceScope appResourceScope,
+                                                String scopeType,
+                                                String scopeId,
+                                                WebFastPushFileRequest request) {
+        log.debug("Fast send file, scope={}, operator={}, request={}", appResourceScope, username, request);
         if (!checkFastPushFileRequest(request)) {
             log.warn("Fast send file request is illegal!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
-        TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appId, request);
-        StepInstanceDTO stepInstance = buildFastFileStepInstance(username, appId, request);
+        TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appResourceScope.getAppId(), request);
+        StepInstanceDTO stepInstance = buildFastFileStepInstance(username, appResourceScope.getAppId(), request);
         RollingConfigDTO rollingConfig = null;
         if (request.isRollingEnabled()) {
             rollingConfig = buildRollingConfig(request.getRollingConfig());
@@ -541,7 +561,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public Response<StepOperationVO> doStepOperation(String username, Long appId, Long stepInstanceId,
+    public Response<StepOperationVO> doStepOperation(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     String scopeType,
+                                                     String scopeId,
+                                                     Long stepInstanceId,
                                                      WebStepOperation operation) {
         StepOperationEnum stepOperationEnum = StepOperationEnum.getStepOperation(operation.getOperationCode());
         if (stepOperationEnum == null) {
@@ -551,17 +575,21 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepOperation.setStepInstanceId(stepInstanceId);
         stepOperation.setOperation(stepOperationEnum);
         stepOperation.setConfirmReason(operation.getConfirmReason());
-        int executeCount = taskExecuteService.doStepOperation(appId, username, stepOperation);
+        int executeCount = taskExecuteService.doStepOperation(appResourceScope.getAppId(), username, stepOperation);
         StepOperationVO stepOperationVO = new StepOperationVO(stepInstanceId, executeCount);
         return Response.buildSuccessResp(stepOperationVO);
     }
 
     @Override
-    public Response terminateJob(String username, Long appId, Long taskInstanceId) {
+    public Response terminateJob(String username,
+                                 AppResourceScope appResourceScope,
+                                 String scopeType,
+                                 String scopeId,
+                                 Long taskInstanceId) {
         if (taskInstanceId == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        taskExecuteService.terminateJob(username, appId, taskInstanceId);
+        taskExecuteService.terminateJob(username, appResourceScope.getAppId(), taskInstanceId);
         return Response.buildSuccessResp(null);
     }
 }

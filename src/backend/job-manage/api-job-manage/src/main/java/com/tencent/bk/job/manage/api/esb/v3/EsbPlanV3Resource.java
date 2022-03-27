@@ -32,6 +32,7 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPlanDetailV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPlanListV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbPlanBasicInfoV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbPlanInfoV3DTO;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,7 +53,9 @@ public interface EsbPlanV3Resource {
     EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>> getPlanList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "job_template_id", required = false) Long templateId,
         @RequestParam(value = "creator", required = false) String creator,
         @RequestParam(value = "name", required = false) String name,
@@ -68,14 +71,22 @@ public interface EsbPlanV3Resource {
     EsbResp<EsbPlanInfoV3DTO> getPlanDetail(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "job_plan_id") Long planId);
 
     @PostMapping("/get_job_plan_list")
     EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>> getPlanListUsingPost(
-        @RequestBody EsbGetPlanListV3Request request);
+        @RequestBody
+        @Validated
+            EsbGetPlanListV3Request request
+    );
 
     @PostMapping("/get_job_plan_detail")
     EsbResp<EsbPlanInfoV3DTO> getPlanDetailUsingPost(
-        @RequestBody EsbGetPlanDetailV3Request request);
+        @RequestBody
+        @Validated
+            EsbGetPlanDetailV3Request request
+    );
 }

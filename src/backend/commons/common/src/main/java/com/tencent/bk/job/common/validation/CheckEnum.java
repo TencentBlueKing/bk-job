@@ -94,7 +94,7 @@ public @interface CheckEnum {
                     return false;
                 }
                 Boolean result = (Boolean) method.invoke(null, value);
-                return result == null ? false : result;
+                return result != null && result;
             } catch (Exception e) {
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }

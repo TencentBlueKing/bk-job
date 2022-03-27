@@ -122,7 +122,6 @@ public class CronJobDAOImpl implements CronJobDAO {
                     TABLE.IS_DELETED, TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME,
                     TABLE.END_TIME, TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER, TABLE.NOTIFY_CHANNEL)
                 .from(TABLE).where(conditions).orderBy(orderFields).limit(start, length).fetch();
-
         List<CronJobInfoDTO> cronJobInfoList = new ArrayList<>();
         if (records != null && records.size() >= 1) {
             records.map(record -> cronJobInfoList.add(convertToCronJobDTO(record)));

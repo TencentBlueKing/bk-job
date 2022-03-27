@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -66,7 +66,7 @@ public class CacheAppDO {
      */
     private Long operateDeptId;
 
-    public static CacheAppDO fromApplicationInfoDTO(ApplicationInfoDTO application) {
+    public static CacheAppDO fromApplicationInfoDTO(ApplicationDTO application) {
         CacheAppDO cacheAppDO = new CacheAppDO();
         cacheAppDO.setId(application.getId());
         cacheAppDO.setName(application.getName());

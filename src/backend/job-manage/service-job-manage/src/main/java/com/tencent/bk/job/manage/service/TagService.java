@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -37,12 +38,20 @@ import java.util.Map;
  */
 public interface TagService {
     /**
-     * 根据业务 ID 和 Tag ID 查询 Tag 信息
+     * 根据 Tag ID 查询 Tag 信息
      *
      * @param tagId Tag ID
      * @return TagDTO Tag 信息
      */
     TagDTO getTagInfoById(Long tagId);
+
+    /**
+     * 根据 Tag IDs 批量查询 Tag 信息
+     *
+     * @param tagIds Tag IDs
+     * @return Tag列表
+     */
+    List<TagDTO> listTagInfoByIds(Collection<Long> tagIds);
 
     /**
      * 根据业务 ID 和 Tag ID 查询 Tag 信息

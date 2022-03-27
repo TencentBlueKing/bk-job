@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbFastPushFileResource;
@@ -76,19 +77,25 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
 
     private final AccountService accountService;
 
+    private final AppScopeMappingService appScopeMappingService;
+
 
     @Autowired
     public EsbFastPushFileResourceImpl(TaskExecuteService taskExecuteService,
                                        MessageI18nService i18nService,
-                                       AccountService accountService) {
+                                       AccountService accountService,
+                                       AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
         this.i18nService = i18nService;
         this.accountService = accountService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_fast_push_file"})
     public EsbResp<EsbJobExecuteDTO> fastPushFile(EsbFastPushFileRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
+
         ValidateResult checkResult = checkFastPushFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -112,10 +119,6 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
     }
 
     private ValidateResult checkFastPushFileRequest(EsbFastPushFileRequest request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("Fast transfer file, appId invalid!appId is empty or invalid!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (!validateFileSystemPath(request.getTargetPath())) {
             log.warn("Fast transfer file, target path is invalid!path={}", request.getTargetPath());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "file_target_path");

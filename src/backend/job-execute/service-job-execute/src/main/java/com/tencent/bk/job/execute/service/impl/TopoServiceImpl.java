@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
-import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
@@ -42,26 +42,26 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
-@DependsOn({"ccConfigSetter"})
+@DependsOn({"cmdbConfigSetter"})
 @Service
 @Slf4j
 public class TopoServiceImpl implements TopoService {
-    private final EsbCcClient ccClient;
+    private final BizCmdbClient ccClient;
 
     @Autowired
     public TopoServiceImpl(
         EsbConfig esbConfig,
-        CcConfig ccConfig,
+        CmdbConfig cmdbConfig,
         QueryAgentStatusClient queryAgentStatusClient,
         MeterRegistry meterRegistry
     ) {
-        ccClient = new EsbCcClient(esbConfig, ccConfig, queryAgentStatusClient, meterRegistry);
+        ccClient = new BizCmdbClient(esbConfig, cmdbConfig, queryAgentStatusClient, meterRegistry);
     }
 
     @Override
     public List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long appId, List<DynamicServerTopoNodeDTO> topoNodes) {
         GetTopoNodePathReq req = new GetTopoNodePathReq();
-        req.setAppId(appId);
+        req.setBizId(appId);
         topoNodes.forEach(topoNode -> req.add(topoNode.getNodeType(), topoNode.getTopoNodeId()));
         List<InstanceTopologyDTO> hierarchyNodes = ccClient.getTopoInstancePath(req);
         log.debug("Get topo node hierarchy, req:{}, result:{}", req, hierarchyNodes);

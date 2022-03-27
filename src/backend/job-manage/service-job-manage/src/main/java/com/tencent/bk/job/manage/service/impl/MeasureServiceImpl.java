@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.manage.dao.AccountDAO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPRecordDAO;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -49,7 +49,7 @@ public class MeasureServiceImpl implements MeasureService {
 
     private final MeterRegistry meterRegistry;
     private final AccountDAO accountDAO;
-    private final ApplicationInfoDAO applicationInfoDAO;
+    private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final ScriptDAO scriptDAO;
     private final WhiteIPRecordDAO whiteIPRecordDAO;
@@ -59,13 +59,13 @@ public class MeasureServiceImpl implements MeasureService {
 
     @Autowired
     public MeasureServiceImpl(MeterRegistry meterRegistry, AccountDAO accountDAO,
-                              ApplicationInfoDAO applicationInfoDAO, ApplicationHostDAO applicationHostDAO,
+                              ApplicationDAO applicationDAO, ApplicationHostDAO applicationHostDAO,
                               ScriptDAO scriptDAO, WhiteIPRecordDAO whiteIPRecordDAO,
                               TaskTemplateService taskTemplateService, TaskPlanService taskPlanService,
                               SyncService syncService) {
         this.meterRegistry = meterRegistry;
         this.accountDAO = accountDAO;
-        this.applicationInfoDAO = applicationInfoDAO;
+        this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.scriptDAO = scriptDAO;
         this.whiteIPRecordDAO = whiteIPRecordDAO;
@@ -80,11 +80,11 @@ public class MeasureServiceImpl implements MeasureService {
         meterRegistry.gauge(
             MetricsConstants.NAME_APPLICATION_COUNT,
             Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_APPLICATION)),
-            this.applicationInfoDAO,
-            new ToDoubleFunction<ApplicationInfoDAO>() {
+            this.applicationDAO,
+            new ToDoubleFunction<ApplicationDAO>() {
                 @Override
-                public double applyAsDouble(ApplicationInfoDAO applicationInfoDAO) {
-                    return applicationInfoDAO.countApps();
+                public double applyAsDouble(ApplicationDAO applicationDAO) {
+                    return applicationDAO.countApps();
                 }
             }
         );

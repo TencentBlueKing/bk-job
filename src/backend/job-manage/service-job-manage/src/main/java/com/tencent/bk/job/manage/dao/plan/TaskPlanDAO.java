@@ -28,8 +28,10 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -44,6 +46,7 @@ public interface TaskPlanDAO {
      * @return 执行方案ID列表
      */
     List<Long> listTaskPlanIds(Long templateId);
+
     /**
      * 根据模版 ID 拉取关联的执行方案信息
      *
@@ -130,6 +133,14 @@ public interface TaskPlanDAO {
      */
     List<TaskPlanInfoDTO> listTaskPlanByIds(Long appId, List<Long> planIdList, TaskPlanQueryDTO taskPlanQuery,
                                             BaseSearchCondition baseSearchCondition);
+
+    /**
+     * 根据执行方案IDs批量查询执行方案基础信息
+     *
+     * @param planIds 执行方案IDs
+     * @return 执行方案基础信息列表
+     */
+    List<TaskPlanBasicInfoDTO> listTaskPlanBasicInfoByIds(Collection<Long> planIds);
 
     /**
      * 检查执行方案名称是否可用

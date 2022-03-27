@@ -92,6 +92,7 @@
 <script>
     import I18n from '@/i18n';
     import ScriptService from '@service/script-manage';
+    import PublicScriptService from '@service/public-script-manage';
     import TaskStepModel from '@model/task/task-step';
     import ComposeFormItem from '@components/compose-form-item';
 
@@ -238,11 +239,10 @@
              * @desc 获公共脚本列表
              */
             fetchPublicScriptList () {
-                ScriptService.getOnlineScriptList({
-                    publicScript: true,
-                }).then((data) => {
-                    this.publicScripList = data;
-                });
+                PublicScriptService.getOnlineScriptList()
+                    .then((data) => {
+                        this.publicScripList = data;
+                    });
             },
             /**
              * @desc 初始化脚本来源

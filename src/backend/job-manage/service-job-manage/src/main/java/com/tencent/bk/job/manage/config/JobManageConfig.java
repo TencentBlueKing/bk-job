@@ -87,7 +87,7 @@ public class JobManageConfig {
     @Value("${cmdb.server.url:}")
     private String cmdbServerUrl;
 
-    @Value("${cmdb.app.index.path:/#/business/{appId}/index}")
+    @Value("${cmdb.app.index.path:/#/{scopeType}/{scopeId}/index}")
     private String cmdbAppIndexPath;
 
     //---------------------------- Paas Config ---------------------------------

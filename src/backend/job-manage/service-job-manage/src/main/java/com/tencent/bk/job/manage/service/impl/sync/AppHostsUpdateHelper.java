@@ -28,15 +28,20 @@ import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 业务主机更新辅助工具类
+ */
 @Slf4j
+@Service
 public class AppHostsUpdateHelper {
-
 
     private static final String machineIp = IpUtils.getFirstMachineIP();
     private static final String REDIS_KEY_UPDATE_APP_HOSTS_LOCK_PREFIX = "update-app-hosts-lock:";
@@ -46,6 +51,7 @@ public class AppHostsUpdateHelper {
         Collections.synchronizedMap(new HashMap<>());
     private final RedisTemplate<String, String> redisTemplate;
 
+    @Autowired
     public AppHostsUpdateHelper(RedisTemplate<String, String> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
@@ -55,7 +61,7 @@ public class AppHostsUpdateHelper {
         return redisTemplate.opsForValue().get(runningMachineKey);
     }
 
-    public void waitAndStartAppHostsUpdating(Long appId) {
+    public void waitAndStartBizHostsUpdating(Long appId) {
         waitForAppHostsUpdatingLock(appId);
         startToUpdateAppHosts(appId);
     }
@@ -106,7 +112,7 @@ public class AppHostsUpdateHelper {
         heartBeatThreadMap.put(Thread.currentThread().getName(), appHostUpdateRedisKeyHeartBeatThread);
     }
 
-    public void endToUpdateAppHosts(Long appId) {
+    public void endToUpdateBizHosts(Long appId) {
         String key = Thread.currentThread().getName();
         RedisKeyHeartBeatThread heartBeatThread = heartBeatThreadMap.get(key);
         if (heartBeatThread != null) {

@@ -32,6 +32,7 @@ import org.jooq.DSLContext;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.GlobalSetting;
 import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,12 +46,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class GlobalSettingDAOImpl implements GlobalSettingDAO {
 
+    private final DSLContext defaultDSLContext;
+
     private static final GlobalSetting defaultTable = GlobalSetting.GLOBAL_SETTING;
 
+    @Autowired
+    public GlobalSettingDAOImpl(DSLContext dslContext) {
+        this.defaultDSLContext = dslContext;
+    }
+
     @Override
-    public int upsertGlobalSetting(DSLContext dslContext, GlobalSettingDTO globalSettingDTO) {
+    public int upsertGlobalSetting(GlobalSettingDTO globalSettingDTO) {
         AtomicInteger affectedNum = new AtomicInteger(0);
-        dslContext.transaction(configuration -> {
+        defaultDSLContext.transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
             deleteGlobalSetting(context, globalSettingDTO.getKey());
             affectedNum.set(insertGlobalSetting(context, globalSettingDTO));
@@ -98,6 +106,11 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.KEY.eq(key)
         ).execute();
+    }
+
+    @Override
+    public GlobalSettingDTO getGlobalSetting(String key) {
+        return getGlobalSetting(defaultDSLContext, key);
     }
 
     @Override

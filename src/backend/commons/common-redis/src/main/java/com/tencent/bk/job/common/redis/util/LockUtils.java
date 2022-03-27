@@ -101,15 +101,13 @@ public class LockUtils {
     /**
      * 获取分布式锁(阻塞)
      *
-     * @param prefix           锁前缀
      * @param lockKey          锁名称
      * @param requestId        请求标识
      * @param expireTimeMillis 锁过期时间(毫秒)
      * @param timeoutSeconds   获取锁超时时间(秒)
      * @return 是否获取成功
      */
-    public static boolean lock(String prefix, String lockKey, String requestId, long expireTimeMillis,
-                               int timeoutSeconds) {
+    public static boolean lock(String lockKey, String requestId, long expireTimeMillis, int timeoutSeconds) {
         while (timeoutSeconds > 0) {
             boolean result = tryGetDistributedLock(lockKey, requestId, expireTimeMillis);
             if (!result) {

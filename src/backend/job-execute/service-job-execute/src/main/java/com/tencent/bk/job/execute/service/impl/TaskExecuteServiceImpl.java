@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.service.impl;
 import brave.Tracing;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AbortedException;
@@ -41,11 +40,12 @@ import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.ArrayUtil;
-import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.client.ServiceUserResourceClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -76,15 +76,11 @@ import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInfo;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.db.CacheAppDO;
 import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
-import com.tencent.bk.job.execute.service.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptService;
-import com.tencent.bk.job.execute.service.ServerService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -151,13 +147,11 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 @Service
 @Slf4j
 public class TaskExecuteServiceImpl implements TaskExecuteService {
-    private final ApplicationService applicationService;
     private final AccountService accountService;
     private final ScriptService scriptService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final ServerService serverService;
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final TaskOperationLogService taskOperationLogService;
     private final TaskInstanceService taskInstanceService;
@@ -174,13 +168,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
     @Autowired
-    public TaskExecuteServiceImpl(ApplicationService applicationService,
-                                  AccountService accountService,
+    public TaskExecuteServiceImpl(AccountService accountService,
                                   TaskInstanceService taskInstanceService,
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
-                                  ServerService serverService,
                                   QueryAgentStatusClient queryAgentStatusClient,
                                   TaskOperationLogService taskOperationLogService,
                                   ScriptService scriptService,
@@ -193,13 +185,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   JobExecuteConfig jobExecuteConfig,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   RollingConfigService rollingConfigService) {
-        this.applicationService = applicationService;
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.taskPlanService = taskPlanService;
         this.taskInstanceVariableService = taskInstanceVariableService;
-        this.serverService = serverService;
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.taskOperationLogService = taskOperationLogService;
         this.scriptService = scriptService;
@@ -525,7 +515,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (accountId == null) {
             return AuthResult.fail();
         }
-        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(username, appId, accountId);
+
+        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(username, new AppResourceScope(appId)
+            , accountId);
 
         AuthResult serverAuthResult;
         ServersDTO servers = stepInstance.getTargetServers().clone();
@@ -537,12 +529,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ScriptSourceEnum scriptSource = ScriptSourceEnum.getScriptSourceEnum(stepInstance.getScriptSource());
         if (scriptSource == ScriptSourceEnum.CUSTOM) {
             // 快速执行脚本鉴权
-            serverAuthResult = executeAuthService.authFastExecuteScript(username, appId, servers);
+
+            serverAuthResult = executeAuthService.authFastExecuteScript(
+                username, new AppResourceScope(appId), servers);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_APP) {
-            serverAuthResult = executeAuthService.authExecuteAppScript(username, appId, stepInstance.getScriptId(),
+
+            serverAuthResult = executeAuthService.authExecuteAppScript(
+                username, new AppResourceScope(appId), stepInstance.getScriptId(),
                 stepInstance.getScriptName(), servers);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_PUBLIC) {
-            serverAuthResult = executeAuthService.authExecutePublicScript(username, appId, stepInstance.getScriptId()
+
+            serverAuthResult = executeAuthService.authExecutePublicScript(
+                username, new AppResourceScope(appId), stepInstance.getScriptId()
                 , stepInstance.getScriptName(), servers);
         } else {
             serverAuthResult = AuthResult.fail();
@@ -600,7 +598,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .forEach(fileSource -> {
                 accounts.add(fileSource.getAccountId());
             });
-        AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(username, appId, accounts);
+
+        AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
+            username, new AppResourceScope(appId), accounts);
 
         ServersDTO servers = stepInstance.getTargetServers().clone();
         stepInstance.getFileSourceList().stream()
@@ -615,7 +615,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 如果主机为空，无需对主机进行权限
             return accountAuthResult;
         }
-        AuthResult serverAuthResult = executeAuthService.authFastPushFile(username, appId, servers);
+
+        AuthResult serverAuthResult = executeAuthService.authFastPushFile(
+            username, new AppResourceScope(appId), servers);
 
         return accountAuthResult.mergeAuthResult(serverAuthResult);
     }
@@ -655,14 +657,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void checkHosts(List<StepInstanceDTO> stepInstanceList, boolean ignoreInvalidHost)
         throws ServiceException {
         long appId = stepInstanceList.get(0).getAppId();
-        CacheAppDO cacheApp = applicationService.getAppPreferCache(appId);
-        if (cacheApp == null) {
-            throw new FailedPreconditionException(ErrorCode.WRONG_APP_ID);
-        }
-        // 如果是全业务，则不需要判断权限
-        if (cacheApp.getAppType() == AppTypeEnum.ALL_APP.getValue()) {
-            return;
-        }
 
         Set<IpDTO> checkHosts = new HashSet<>();
         addNeedCheckHosts(stepInstanceList, checkHosts);
@@ -671,7 +665,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         // 检查是否在当前业务下
-        Collection<IpDTO> unavailableHosts = checkHostsNotInApp(cacheApp, checkHosts);
+        Collection<IpDTO> unavailableHosts = checkHostsNotInApp(appId, checkHosts);
         if (unavailableHosts.isEmpty()) {
             return;
         }
@@ -790,17 +784,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void checkHosts(StepInstanceDTO stepInstance, boolean ignoreInvalidHost) throws ServiceException {
         long appId = stepInstance.getAppId();
-        if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
-            return;
-        }
-        CacheAppDO cacheApp = applicationService.getAppPreferCache(appId);
-        if (cacheApp == null) {
-            throw new FailedPreconditionException(ErrorCode.WRONG_APP_ID);
-        }
-        // 如果是全业务，则不需要判断权限
-        if (cacheApp.getAppType() == AppTypeEnum.ALL_APP.getValue()) {
-            return;
-        }
         ServersDTO targetServers = stepInstance.getTargetServers();
         if (targetServers == null || targetServers.getIpList() == null || targetServers.getIpList().isEmpty()) {
             log.warn("Empty target server");
@@ -808,7 +791,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         List<IpDTO> ipList = targetServers.getIpList();
-        Collection<IpDTO> notInAppHosts = checkHostsNotInApp(cacheApp, ipList);
+        Collection<IpDTO> notInAppHosts = checkHostsNotInApp(appId, ipList);
         if (notInAppHosts.isEmpty()) {
             return;
         }
@@ -840,51 +823,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         throw new FailedPreconditionException(ErrorCode.SERVER_UNREGISTERED, new Object[]{ipListStr});
     }
 
-    private Collection<IpDTO> checkHostsNotInApp(CacheAppDO cacheApp, Collection<IpDTO> hosts) {
-        List<Long> appIdList = new ArrayList<>();
-        boolean isNormalApp = cacheApp.getAppType() == AppTypeEnum.NORMAL.getValue();
-        if (isNormalApp) {
-            appIdList.add(cacheApp.getId());
-        } else {
-            if (cacheApp.getSubAppIds() != null) {
-                appIdList.addAll(cacheApp.getSubAppIds());
-            }
+    private Collection<IpDTO> checkHostsNotInApp(Long appId, Collection<IpDTO> hosts) {
+        List<IpDTO> notInAppHosts = hostService.checkAppHosts(appId, hosts);
+        if (CollectionUtils.isNotEmpty(notInAppHosts)) {
+            log.info("Check host, appId:{}, not in current app hosts:{}", appId, notInAppHosts);
         }
-        if (appIdList.isEmpty()) {
-            log.warn("App is not exist or appSet contains no app,appId:{}", cacheApp.getId());
-            return hosts;
-        }
-
-        Pair<List<IpDTO>, List<IpDTO>> cachedNotInAppHosts = hostService.checkHostsNotInAppByCache(appIdList,
-            new ArrayList<>(hosts));
-        List<IpDTO> hostsInOtherApp = cachedNotInAppHosts.getLeft();
-        List<IpDTO> hostsNotInCache = cachedNotInAppHosts.getRight();
-        if (CustomCollectionUtils.isEmptyCollection(hostsInOtherApp)
-            && CustomCollectionUtils.isEmptyCollection(hostsNotInCache)) {
-            return Collections.emptyList();
-        }
-
-        log.info("Check host, appId:{}, hostsInOtherApp:{}, hostsNotInCache:{}", cacheApp.getId(), hostsInOtherApp,
-            hostsNotInCache);
-
-        List<IpDTO> notInAppHosts = new ArrayList<>();
-        if (isNormalApp) {
-            // 普通业务，再次去cmdb实时检查
-            List<IpDTO> recheckedHosts = new ArrayList<>();
-            recheckedHosts.addAll((hostsInOtherApp));
-            recheckedHosts.addAll((hostsNotInCache));
-            List<IpDTO> notInCmdbAppHosts = hostService.checkHostsNotInAppByCmdb(cacheApp.getId(), recheckedHosts);
-            log.info("Check host from cmdb, appId:{}, hostsNotInCache:{}, notInCmdbAppHosts:{}", cacheApp.getId(),
-                recheckedHosts, notInCmdbAppHosts);
-            if (notInCmdbAppHosts != null && !notInCmdbAppHosts.isEmpty()) {
-                notInAppHosts.addAll(notInCmdbAppHosts);
-            }
-        } else {
-            notInAppHosts.addAll((hostsInOtherApp));
-            notInAppHosts.addAll((hostsNotInCache));
-        }
-
-        log.info("Check host, appId:{}, not in current app hosts:{}", cacheApp.getId(), notInAppHosts);
         return notInAppHosts;
     }
 
@@ -1153,7 +1096,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
 
-        AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(username, appId, accountIds);
+
+        AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
+            username, new AppResourceScope(appId), accountIds);
 
         AuthResult authResult;
         if (authServers.isEmpty()) {
@@ -1164,11 +1109,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             AuthResult serverAuthResult = null;
             if (isDebugTask) {
                 // 鉴权调试
-                serverAuthResult = executeAuthService.authDebugTemplate(username, appId, plan.getTaskTemplateId(),
+
+                serverAuthResult = executeAuthService.authDebugTemplate(
+                    username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     authServers);
             } else {
                 // 鉴权执行方案
-                serverAuthResult = executeAuthService.authExecutePlan(username, appId, plan.getTaskTemplateId(),
+
+                serverAuthResult = executeAuthService.authExecutePlan(
+                    username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     plan.getId(), plan.getName(), authServers);
             }
             authResult = accountAuthResult.mergeAuthResult(serverAuthResult);
@@ -1797,7 +1746,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         List<DynamicServerGroupDTO> dynamicServerGroups = servers.getDynamicServerGroups();
         if (dynamicServerGroups != null) {
             for (DynamicServerGroupDTO group : dynamicServerGroups) {
-                List<IpDTO> groupIps = serverService.getIpByDynamicGroupId(appId, group.getGroupId());
+                List<IpDTO> groupIps = hostService.getIpByDynamicGroupId(appId, group.getGroupId());
                 if (CollectionUtils.isEmpty(groupIps)) {
                     servers.addInvalidDynamicServerGroup(group);
                 } else {
@@ -1810,7 +1759,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (topoNodes != null && !topoNodes.isEmpty()) {
             if (topoNodes.size() < 10) {
                 for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
-                    List<IpDTO> topoIps = serverService.getIpByTopoNodes(appId,
+                    List<IpDTO> topoIps = hostService.getIpByTopoNodes(appId,
                         Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
                     if (CollectionUtils.isEmpty(topoIps)) {
                         servers.addInvalidTopoNodeDTO(topoNode);
@@ -2202,7 +2151,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         @Override
         public Pair<DynamicServerTopoNodeDTO, List<IpDTO>> call() {
             try {
-                List<IpDTO> topoIps = serverService.getIpByTopoNodes(appId,
+                List<IpDTO> topoIps = hostService.getIpByTopoNodes(appId,
                     Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
                 return new ImmutablePair<>(topoNode, topoIps);
             } catch (Throwable e) {

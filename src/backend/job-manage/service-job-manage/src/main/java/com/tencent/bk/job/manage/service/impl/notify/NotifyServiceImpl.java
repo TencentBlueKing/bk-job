@@ -28,7 +28,8 @@ import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -46,7 +47,7 @@ import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.config.JobManageConfig;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
@@ -146,7 +147,7 @@ public class NotifyServiceImpl implements NotifyService {
     private NotifyTemplateDAO notifyTemplateDAO;
     private ScriptDAO scriptDAO;
     private TaskPlanDAO taskPlanDAO;
-    private ApplicationInfoDAO applicationInfoDAO;
+    private ApplicationDAO applicationDAO;
     private JobManageConfig jobManageConfig;
     private PaaSService paaSService;
     private AppRoleService roleService;
@@ -170,7 +171,7 @@ public class NotifyServiceImpl implements NotifyService {
         NotifyTemplateDAO notifyTemplateDAO,
         ScriptDAO scriptDAO,
         TaskPlanDAO taskPlanDAO,
-        ApplicationInfoDAO applicationInfoDAO,
+        ApplicationDAO applicationDAO,
         JobManageConfig jobManageConfig,
         MeterRegistry meterRegistry
     ) {
@@ -190,7 +191,7 @@ public class NotifyServiceImpl implements NotifyService {
         this.notifyTemplateDAO = notifyTemplateDAO;
         this.scriptDAO = scriptDAO;
         this.taskPlanDAO = taskPlanDAO;
-        this.applicationInfoDAO = applicationInfoDAO;
+        this.applicationDAO = applicationDAO;
         this.jobManageConfig = jobManageConfig;
         meterRegistry.gauge(
             MetricsConstants.NAME_NOTIFY_POOL_SIZE,
@@ -781,7 +782,7 @@ public class NotifyServiceImpl implements NotifyService {
             } else {
                 // CMDB中的业务角色，获取角色对应人员
                 try {
-                    ApplicationInfoDTO appInfo = applicationInfoDAO.getAppInfoById(appId);
+                    ApplicationDTO appInfo = applicationDAO.getAppById(appId);
                     if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
                         userSet.addAll(roleService.listAppUsersByRole(appId, role));
                     } else {
@@ -849,23 +850,27 @@ public class NotifyServiceImpl implements NotifyService {
         return userSet.size();
     }
 
+    private String getDisplayIdStr(ResourceScope scope) {
+        return scope.getType().getValue() + ":" + scope.getId();
+    }
+
     private ServiceNotificationMessage getNotificationMessageFromTemplate(
         Long appId,
         NotifyTemplateDTO templateDTO,
         Map<String, String> variablesMap
     ) {
-        ApplicationInfoDTO applicationInfoDTO = applicationInfoDAO.getCacheAppInfoById(appId);
-        if (applicationInfoDTO == null) {
+        ApplicationDTO applicationDTO = applicationDAO.getCacheAppById(appId);
+        if (applicationDTO == null) {
             log.error("cannot find applicationInfo of appId:{}", appId);
             return null;
         }
-        String appName = applicationInfoDTO.getName();
+        String appName = applicationDTO.getName();
         //国际化
         String title;
         String content;
         String userLang = JobContextUtil.getUserLang();
         if (userLang == null) {
-            String appLang = applicationInfoDTO.getLanguage();
+            String appLang = applicationDTO.getLanguage();
             if ("1".equals(appLang)) {
                 userLang = LocaleUtils.LANG_ZH_CN;
             } else if ("2".equals(appLang)) {
@@ -890,9 +895,10 @@ public class NotifyServiceImpl implements NotifyService {
             content = templateDTO.getContent();
         }
         //添加默认变量
+        ResourceScope scope = applicationDTO.getScope();
         variablesMap.putIfAbsent("BASE_HOST", jobManageConfig.getJobWebUrl());
-        variablesMap.putIfAbsent("APP_ID", appId.toString());
-        variablesMap.putIfAbsent("task.bk_biz_id", appId.toString());
+        variablesMap.putIfAbsent("APP_ID", getDisplayIdStr(scope));
+        variablesMap.putIfAbsent("task.bk_biz_id", scope.getId());
         variablesMap.putIfAbsent("APP_NAME", appName);
         variablesMap.putIfAbsent("task.bk_biz_name", appName);
         String pattern = "(\\{\\{(.*?)\\}\\})";

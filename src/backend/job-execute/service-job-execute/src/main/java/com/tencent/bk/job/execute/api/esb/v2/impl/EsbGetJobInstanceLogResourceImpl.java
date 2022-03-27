@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
@@ -59,23 +60,28 @@ import java.util.List;
 public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor implements EsbGetJobInstanceLogResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskService gseTaskService;
+    private final AppScopeMappingService appScopeMappingService;
     private final AgentTaskService agentTaskService;
+    private final GseTaskService gseTaskService;
     private final LogService logService;
 
-    public EsbGetJobInstanceLogResourceImpl(GseTaskService gseTaskService,
-                                            TaskInstanceService taskInstanceService,
+    public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
+                                            AppScopeMappingService appScopeMappingService,
                                             AgentTaskService agentTaskService,
+                                            GseTaskService gseTaskService,
                                             LogService logService) {
-        this.gseTaskService = gseTaskService;
         this.taskInstanceService = taskInstanceService;
+        this.appScopeMappingService = appScopeMappingService;
         this.agentTaskService = agentTaskService;
+        this.gseTaskService = gseTaskService;
         this.logService = logService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_log"})
     public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(EsbGetJobInstanceLogRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
+
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance log request is illegal!");
@@ -84,7 +90,7 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
 
         long taskInstanceId = request.getTaskInstanceId();
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
+        authViewTaskInstance(request.getUserName(), request.getAppResourceScope(), taskInstance);
 
         List<StepInstanceBaseDTO> stepInstanceList =
             taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
@@ -148,10 +154,6 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
     }
 
     private ValidateResult checkRequest(EsbGetJobInstanceLogRequest request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("App is empty or illegal, appId={}", request.getAppId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (request.getTaskInstanceId() == null || request.getTaskInstanceId() < 1) {
             log.warn("TaskInstanceId is empty or illegal, taskInstanceId={}", request.getTaskInstanceId());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
@@ -177,12 +179,18 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
     }
 
     @Override
-    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(String appCode, String username,
-                                                                        Long appId, Long taskInstanceId) {
+    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(String appCode,
+                                                                        String username,
+                                                                        Long appId,
+                                                                        String scopeType,
+                                                                        String scopeId,
+                                                                        Long taskInstanceId) {
         EsbGetJobInstanceLogRequest req = new EsbGetJobInstanceLogRequest();
         req.setAppCode(appCode);
         req.setUserName(username);
-        req.setAppId(appId);
+        req.setBizId(appId);
+        req.setScopeType(scopeType);
+        req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
         return getJobInstanceLogUsingPost(req);
     }

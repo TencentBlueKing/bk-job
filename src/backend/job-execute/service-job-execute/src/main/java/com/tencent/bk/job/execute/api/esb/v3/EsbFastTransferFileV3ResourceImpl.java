@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.FileSourceResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
@@ -80,21 +81,27 @@ public class EsbFastTransferFileV3ResourceImpl
 
     private final ArtifactoryLocalFileService artifactoryLocalFileService;
 
+    private final AppScopeMappingService appScopeMappingService;
+
 
     @Autowired
     public EsbFastTransferFileV3ResourceImpl(TaskExecuteService taskExecuteService,
                                              FileSourceResourceClient fileSourceService,
                                              MessageI18nService i18nService,
-                                             ArtifactoryLocalFileService artifactoryLocalFileService) {
+                                             ArtifactoryLocalFileService artifactoryLocalFileService,
+                                             AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
         this.fileSourceService = fileSourceService;
         this.i18nService = i18nService;
         this.artifactoryLocalFileService = artifactoryLocalFileService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_fast_transfer_file"})
     public EsbResp<EsbJobExecuteV3DTO> fastTransferFile(EsbFastTransferFileV3Request request) {
+        request.fillAppResourceScope(appScopeMappingService);
+
         ValidateResult checkResult = checkFastTransferFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -166,10 +173,6 @@ public class EsbFastTransferFileV3ResourceImpl
     }
 
     private ValidateResult checkFastTransferFileRequest(EsbFastTransferFileV3Request request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("Fast transfer file, appId invalid!appId is empty or invalid!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (!validateFileSystemPath(request.getTargetPath())) {
             log.warn("Fast transfer file, target path is invalid!path={}", request.getTargetPath());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "file_target_path");

@@ -27,14 +27,12 @@ package com.tencent.bk.job.crontab.api.web.impl;
 import com.google.common.base.CaseFormat;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -43,6 +41,7 @@ import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.crontab.api.web.WebCronJobResource;
+import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
@@ -57,8 +56,6 @@ import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -73,45 +70,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * @since 31/12/2019 16:36
- */
 @Slf4j
 @RestController
 public class WebCronJobResourceImpl implements WebCronJobResource {
 
     private final CronJobService cronJobService;
     private final CronJobHistoryService cronJobHistoryService;
-    private final AuthService authService;
+    private final CronAuthService cronAuthService;
 
     @Autowired
     public WebCronJobResourceImpl(CronJobService cronJobService,
                                   CronJobHistoryService cronJobHistoryService,
-                                  AuthService authService) {
+                                  CronAuthService cronAuthService) {
         this.cronJobService = cronJobService;
         this.cronJobHistoryService = cronJobHistoryService;
-        this.authService = authService;
+        this.cronAuthService = cronAuthService;
     }
 
     @Override
-    public Response<PageData<CronJobVO>> listCronJobs(
-        String username,
-        Long appId,
-        Long cronJobId,
-        Long planId,
-        String name,
-        String creator,
-        String lastModifyUser,
-        Integer start,
-        Integer pageSize,
-        String orderField,
-        Integer order
-    ) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+    public Response<PageData<CronJobVO>> listCronJobs(String username,
+                                                      AppResourceScope appResourceScope,
+                                                      String scopeType,
+                                                      String scopeId,
+                                                      Long cronJobId,
+                                                      Long planId,
+                                                      String name,
+                                                      String creator,
+                                                      String lastModifyUser,
+                                                      Integer start,
+                                                      Integer pageSize,
+                                                      String orderField,
+                                                      Integer order) {
+        Long appId = appResourceScope.getAppId();
 
         CronJobInfoDTO cronJobCondition = new CronJobInfoDTO();
         cronJobCondition.setAppId(appId);
@@ -137,9 +127,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         PageData<CronJobInfoDTO> cronJobInfoPageData =
             cronJobService.listPageCronJobInfos(cronJobCondition, baseSearchCondition);
         List<CronJobVO> resultCronJobs = new ArrayList<>();
-        if (cronJobInfoPageData != null) {
-            cronJobInfoPageData.getData().forEach(cronJobInfo -> resultCronJobs.add(CronJobInfoDTO.toVO(cronJobInfo)));
-        }
+        cronJobInfoPageData.getData().forEach(cronJobInfo -> resultCronJobs.add(CronJobInfoDTO.toVO(cronJobInfo)));
 
         PageData<CronJobVO> resultPageData = new PageData<>();
         resultPageData.setStart(cronJobInfoPageData.getStart());
@@ -148,20 +136,18 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         resultPageData.setData(resultCronJobs);
         resultPageData.setExistAny(cronJobService.isExistAnyAppCronJob(appId));
 
-        processCronJobPermission(cronJobCondition.getAppId(), resultPageData);
+        processCronJobPermission(appResourceScope, resultPageData);
 
-        Response<PageData<CronJobVO>> resp = Response.buildSuccessResp(resultPageData);
-
-        return resp;
+        return Response.buildSuccessResp(resultPageData);
     }
 
     @Override
-    public Response<List<CronJobVO>> listCronJobStatistic(String username, Long appId, List<Long> cronJobId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+    public Response<List<CronJobVO>> listCronJobStatistic(String username,
+                                                          AppResourceScope appResourceScope,
+                                                          String scopeType,
+                                                          String scopeId,
+                                                          List<Long> cronJobId) {
+        Long appId = appResourceScope.getAppId();
 
         List<CronJobInfoDTO> cronJobInfoList = cronJobService.listCronJobByIds(appId, cronJobId);
         List<CronJobVO> resultCronJobs = new ArrayList<>();
@@ -179,21 +165,18 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         return Response.buildSuccessResp(resultCronJobs);
     }
 
-    private void processCronJobPermission(Long appId, PageData<CronJobVO> resultPageData) {
-
+    private void processCronJobPermission(AppResourceScope appResourceScope, PageData<CronJobVO> resultPageData) {
         resultPageData.setCanCreate(
-            authService.auth(false, JobContextUtil.getUsername(), ActionId.CREATE_CRON,
-                ResourceTypeEnum.BUSINESS, appId.toString(), null).isPass());
+            cronAuthService.authCreateCron(JobContextUtil.getUsername(), appResourceScope).isPass());
 
-        processCronJobPermission(appId, resultPageData.getData());
+        processCronJobPermission(appResourceScope, resultPageData.getData());
     }
 
-    private void processCronJobPermission(Long appId, List<CronJobVO> cronJobList) {
-        List<String> cronJobIdList = new ArrayList<>();
-        cronJobList.forEach(cronJob -> cronJobIdList.add(cronJob.getId().toString()));
-        List<Long> allowedCronJob = authService
-            .batchAuth(JobContextUtil.getUsername(), ActionId.MANAGE_CRON, appId, ResourceTypeEnum.CRON, cronJobIdList)
-            .parallelStream().map(Long::valueOf).collect(Collectors.toList());
+    private void processCronJobPermission(AppResourceScope appResourceScope, List<CronJobVO> cronJobList) {
+        List<Long> cronJobIdList = new ArrayList<>();
+        cronJobList.forEach(cronJob -> cronJobIdList.add(cronJob.getId()));
+        List<Long> allowedCronJob = cronAuthService.batchAuthManageCron(
+            JobContextUtil.getUsername(), appResourceScope, cronJobIdList);
         cronJobList.forEach(cronJob -> {
             cronJob.setCanManage(allowedCronJob.contains(cronJob.getId()));
             if (!cronJob.getCanManage()) {
@@ -206,8 +189,8 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         if (CollectionUtils.isEmpty(resultCronJobs)) {
             return;
         }
-        Map<Long, ServiceCronTaskExecuteResultStatistics> cronJobExecuteHistory = null;
-        Map<Long, CronJobLaunchResultStatistics> cronJobLaunchHistory = null;
+        Map<Long, ServiceCronTaskExecuteResultStatistics> cronJobExecuteHistory;
+        Map<Long, CronJobLaunchResultStatistics> cronJobLaunchHistory;
         try {
             List<Long> cronJobIdList =
                 resultCronJobs.parallelStream().map(CronJobVO::getId).collect(Collectors.toList());
@@ -238,11 +221,9 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         }
     }
 
-    private void fillStatisticInfo(
-        CronJobVO resultCronJob,
-        ServiceCronTaskExecuteResultStatistics cronTaskExecuteResult,
-        CronJobLaunchResultStatistics launchHistory
-    ) {
+    private void fillStatisticInfo(CronJobVO resultCronJob,
+                                   ServiceCronTaskExecuteResultStatistics cronTaskExecuteResult,
+                                   CronJobLaunchResultStatistics launchHistory) {
         List<Long> lastFailTimeList = new ArrayList<>();
         resultCronJob.setTotalCount(0);
         resultCronJob.setFailCount(0);
@@ -308,11 +289,9 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         fillStatisticInfoWithLaunchHistory(resultCronJob, lastFailTimeList, launchHistory);
     }
 
-    private void fillStatisticInfoWithLaunchHistory(
-        CronJobVO resultCronJob,
-        List<Long> lastFailTimeList,
-        CronJobLaunchResultStatistics launchHistory
-    ) {
+    private void fillStatisticInfoWithLaunchHistory(CronJobVO resultCronJob,
+                                                    List<Long> lastFailTimeList,
+                                                    CronJobLaunchResultStatistics launchHistory) {
         if (launchHistory != null) {
             List<CronJobHistoryDTO> lastLaunchRecords = launchHistory.getLast24HourExecuteRecords();
             if (CollectionUtils.isEmpty(lastLaunchRecords)) {
@@ -345,12 +324,17 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     @Override
-    public Response<CronJobVO> getCronJobById(String username, Long appId, Long cronJobId) {
+    public Response<CronJobVO> getCronJobById(String username,
+                                              AppResourceScope appResourceScope,
+                                              String scopeType,
+                                              String scopeId,
+                                              Long cronJobId) {
+        Long appId = appResourceScope.getAppId();
 
         CronJobVO cronJobVO = CronJobInfoDTO.toVO(cronJobService.getCronJobInfoById(appId, cronJobId));
 
-        AuthResult authResult = authService.auth(true, username, ActionId.MANAGE_CRON,
-            ResourceTypeEnum.CRON, cronJobId.toString(), buildCronJobPathInfo(appId));
+        AuthResult authResult = cronAuthService.authManageCron(username,
+            appResourceScope, cronJobId, cronJobVO.getName());
         if (authResult.isPass()) {
             return Response.buildSuccessResp(cronJobVO);
         } else {
@@ -359,19 +343,25 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     @Override
-    public Response<Long> saveCronJob(String username, Long appId, Long cronJobId,
+    public Response<Long> saveCronJob(String username,
+                                      AppResourceScope appResourceScope,
+                                      String scopeType,
+                                      String scopeId,
+                                      Long cronJobId,
                                       CronJobCreateUpdateReq cronJobCreateUpdateReq) {
+
+        Long appId = appResourceScope.getAppId();
 
         if (cronJobId > 0) {
             cronJobCreateUpdateReq.setId(cronJobId);
-            AuthResult authResult = authService.auth(true, username, ActionId.MANAGE_CRON,
-                ResourceTypeEnum.CRON, cronJobId.toString(), buildCronJobPathInfo(appId));
+            AuthResult authResult = cronAuthService.authManageCron(username,
+                appResourceScope, cronJobId, null);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
         } else {
-            AuthResult authResult = authService.auth(true, username, ActionId.CREATE_CRON,
-                ResourceTypeEnum.BUSINESS, appId.toString(), null);
+            AuthResult authResult = cronAuthService.authCreateCron(username,
+                appResourceScope);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
@@ -399,9 +389,15 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     @Override
-    public Response<Boolean> deleteCronJob(String username, Long appId, Long cronJobId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.MANAGE_CRON,
-            ResourceTypeEnum.CRON, cronJobId.toString(), buildCronJobPathInfo(appId));
+    public Response<Boolean> deleteCronJob(String username,
+                                           AppResourceScope appResourceScope,
+                                           String scopeType,
+                                           String scopeId,
+                                           Long cronJobId) {
+        Long appId = appResourceScope.getAppId();
+
+        AuthResult authResult = cronAuthService.authManageCron(username,
+            appResourceScope, cronJobId, null);
         if (authResult.isPass()) {
             return Response.buildSuccessResp(cronJobService.deleteCronJobInfo(appId, cronJobId));
         } else {
@@ -410,10 +406,16 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     @Override
-    public Response<Boolean> changeCronJobEnableStatus(String username, Long appId, Long cronJobId,
+    public Response<Boolean> changeCronJobEnableStatus(String username,
+                                                       AppResourceScope appResourceScope,
+                                                       String scopeType,
+                                                       String scopeId,
+                                                       Long cronJobId,
                                                        Boolean enable) {
-        AuthResult authResult = authService.auth(true, username, ActionId.MANAGE_CRON,
-            ResourceTypeEnum.CRON, cronJobId.toString(), buildCronJobPathInfo(appId));
+        Long appId = appResourceScope.getAppId();
+
+        AuthResult authResult = cronAuthService.authManageCron(username,
+            new AppResourceScope(appId), cronJobId, null);
         if (authResult.isPass()) {
             try {
                 return Response
@@ -426,29 +428,30 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         }
     }
 
-    private PathInfoDTO buildCronJobPathInfo(Long appId) {
-        return PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build();
-    }
-
     @Override
-    public Response<Boolean> checkCronJobName(String username, Long appId, Long cronJobId, String name) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+    public Response<Boolean> checkCronJobName(String username,
+                                              AppResourceScope appResourceScope,
+                                              String scopeType,
+                                              String scopeId,
+                                              Long cronJobId,
+                                              String name) {
+        Long appId = appResourceScope.getAppId();
         return Response.buildSuccessResp(cronJobService.checkCronJobName(appId, cronJobId, name));
     }
 
     @Override
-    public Response<Boolean> batchUpdateCronJob(String username, Long appId,
+    public Response<Boolean> batchUpdateCronJob(String username,
+                                                AppResourceScope appResourceScope,
+                                                String scopeType,
+                                                String scopeId,
                                                 BatchUpdateCronJobReq batchUpdateCronJobReq) {
-        List<String> cronJobInstanceList = new ArrayList<>();
+        Long appId = appResourceScope.getAppId();
+
+        List<Long> cronJobInstanceList = new ArrayList<>();
         batchUpdateCronJobReq.getCronJobInfoList()
-            .forEach(cronJobCreateUpdateReq -> cronJobInstanceList.add(cronJobCreateUpdateReq.getId().toString()));
+            .forEach(cronJobCreateUpdateReq -> cronJobInstanceList.add(cronJobCreateUpdateReq.getId()));
         List<Long> allowed =
-            authService.batchAuth(username, ActionId.MANAGE_CRON, appId, ResourceTypeEnum.CRON, cronJobInstanceList)
-                .parallelStream().map(Long::valueOf).collect(Collectors.toList());
+            cronAuthService.batchAuthManageCron(username, appResourceScope, cronJobInstanceList);
         if (allowed.size() == cronJobInstanceList.size()) {
             return Response.buildSuccessResp(cronJobService.batchUpdateCronJob(appId, batchUpdateCronJobReq));
         } else {
@@ -457,18 +460,18 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     @Override
-    public Response<List<CronJobVO>> getCronJobListByPlanId(String username, Long appId, Long planId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+    public Response<List<CronJobVO>> getCronJobListByPlanId(String username,
+                                                            AppResourceScope appResourceScope,
+                                                            String scopeType,
+                                                            String scopeId,
+                                                            Long planId) {
+        Long appId = appResourceScope.getAppId();
 
         List<CronJobInfoDTO> cronJobInfoList = cronJobService.listCronJobByPlanId(appId, planId);
         if (CollectionUtils.isNotEmpty(cronJobInfoList)) {
             List<CronJobVO> cronJobList =
                 cronJobInfoList.parallelStream().map(CronJobInfoDTO::toBasicVO).collect(Collectors.toList());
-            processCronJobPermission(appId, cronJobList);
+            processCronJobPermission(appResourceScope, cronJobList);
             return Response.buildSuccessResp(cronJobList);
         } else {
             return Response.buildSuccessResp(Collections.emptyList());
@@ -476,13 +479,12 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     @Override
-    public Response<Map<Long, List<CronJobVO>>> getCronJobListByPlanIdList(String username, Long appId,
+    public Response<Map<Long, List<CronJobVO>>> getCronJobListByPlanIdList(String username,
+                                                                           AppResourceScope appResourceScope,
+                                                                           String scopeType,
+                                                                           String scopeId,
                                                                            List<Long> planIdList) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+        Long appId = appResourceScope.getAppId();
 
         Map<Long, List<CronJobInfoDTO>> cronJobInfoMap = cronJobService.listCronJobByPlanIds(appId, planIdList);
         if (MapUtils.isNotEmpty(cronJobInfoMap)) {
@@ -491,7 +493,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                 List<CronJobInfoDTO> cronJobInfoList = cronJobInfoListEntity.getValue();
                 List<CronJobVO> cronJobList =
                     cronJobInfoList.parallelStream().map(CronJobInfoDTO::toBasicVO).collect(Collectors.toList());
-                processCronJobPermission(appId, cronJobList);
+                processCronJobPermission(appResourceScope, cronJobList);
                 cronJobMap.put(cronJobInfoListEntity.getKey(), cronJobList);
             }
             return Response.buildSuccessResp(cronJobMap);
@@ -501,14 +503,14 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     @Override
-    public Response<PageData<CronJobLaunchHistoryVO>> getCronJobLaunchHistory(String username, Long appId,
-                                                                              Long cronJobId, Integer start,
+    public Response<PageData<CronJobLaunchHistoryVO>> getCronJobLaunchHistory(String username,
+                                                                              AppResourceScope appResourceScope,
+                                                                              String scopeType,
+                                                                              String scopeId,
+                                                                              Long cronJobId,
+                                                                              Integer start,
                                                                               Integer pageSize) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+        Long appId = appResourceScope.getAppId();
 
         CronJobInfoDTO cronJobInfo = cronJobService.getCronJobInfoById(appId, cronJobId);
         if (cronJobInfo != null) {

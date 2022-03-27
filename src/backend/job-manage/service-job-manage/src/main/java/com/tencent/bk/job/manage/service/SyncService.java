@@ -53,15 +53,15 @@ public interface SyncService {
 
     ThreadPoolExecutor getSyncAgentStatusExecutor();
 
-    Boolean syncAppHosts(Long appId);
+    Boolean syncBizHosts(Long bizId);
 
-    boolean addExtraSyncAppHostsTask(Long appId);
+    boolean addExtraSyncBizHostsTask(Long bizId);
 
-    Future<Pair<Long, Long>> arrangeSyncAppHostsTask(Long appId);
+    Future<Pair<Long, Long>> arrangeSyncBizHostsTask(Long bizId);
 
-    Boolean enableAppWatch();
+    Boolean enableBizWatch();
 
-    Boolean disableAppWatch();
+    Boolean disableBizWatch();
 
     Boolean enableHostWatch();
 
