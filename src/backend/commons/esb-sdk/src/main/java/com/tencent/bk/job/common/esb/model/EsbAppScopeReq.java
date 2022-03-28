@@ -113,6 +113,6 @@ public class EsbAppScopeReq extends EsbReq {
     }
 
     public AppResourceScope getAppResourceScope() {
-        return new AppResourceScope(this.scopeType, this.scopeId, this.bizId);
+        return new AppResourceScope(this.scopeType, this.scopeId, this.appId);
     }
 }

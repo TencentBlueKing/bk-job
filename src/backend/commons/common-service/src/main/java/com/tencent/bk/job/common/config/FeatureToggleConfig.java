@@ -39,14 +39,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FeatureToggleConfig {
 
-    private ToggleConfig pullFileResultByIp = new ToggleConfig();
-
     private ToggleConfig cmdbBizSet = new ToggleConfig();
-
-    public void setPullFileResultByIp(ToggleConfig pullFileResultByIp) {
-        this.pullFileResultByIp = pullFileResultByIp;
-        log.info("FeatureToggleConfig.pullFileResultByIp:{}", pullFileResultByIp);
-    }
 
     public void setCmdbBizSet(ToggleConfig cmdbBizSet) {
         this.cmdbBizSet = cmdbBizSet;
@@ -88,11 +81,6 @@ public class FeatureToggleConfig {
                     .map(Long::valueOf).collect(Collectors.toSet()));
             }
         }
-    }
-
-    public boolean enablePullFileResultByIp(Long appId) {
-        return pullFileResultByIp.enabled
-            && (!pullFileResultByIp.gray || pullFileResultByIp.grayAppList.contains(appId));
     }
 
     /**

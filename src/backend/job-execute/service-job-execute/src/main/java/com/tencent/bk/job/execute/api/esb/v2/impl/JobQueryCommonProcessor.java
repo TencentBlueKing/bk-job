@@ -53,9 +53,12 @@ public class JobQueryCommonProcessor {
                                         TaskInstanceDTO taskInstance)
         throws PermissionDeniedException {
         if (taskInstance == null) {
+            log.info("TaskInstance is null");
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
         if (!appResourceScope.getAppId().equals(taskInstance.getAppId())) {
+            log.info("TaskInstance {}|{} is not in resource scope : {}", taskInstance.getAppId(),
+                taskInstance.getId(), appResourceScope);
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
