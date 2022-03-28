@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.result;
 import com.google.common.collect.Sets;
 import com.tencent.bk.gse.taskapi.api_map_rsp;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.util.FeatureToggleConfigHolder;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
