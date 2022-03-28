@@ -226,9 +226,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     @Override
     GseLogBatchPullResult<api_map_rsp> pullGseTaskLogInBatches() {
         api_map_rsp gseLog;
-        if (FeatureToggleConfigHolder.get().enablePullFileResultByIp(taskInstance.getAppId())
-            && (CollectionUtils.isNotEmpty(this.analyseFinishedSourceIpSet)
-            || CollectionUtils.isNotEmpty(this.analyseFinishedIpSet))) {
+        if (CollectionUtils.isNotEmpty(this.analyseFinishedSourceIpSet)
+            || CollectionUtils.isNotEmpty(this.analyseFinishedIpSet)) {
             Set<String> notFinishedIps = new HashSet<>();
             notFinishedIps.addAll(notStartedFileSourceIpSet);
             notFinishedIps.addAll(runningFileSourceIpSet);
