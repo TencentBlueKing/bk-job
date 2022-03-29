@@ -42,6 +42,7 @@ public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequence
 
     @Override
     public List<Class<?>> getValidationGroups(EsbAppScopeReq req) {
+        log.info("getValidationGroups, req: {}", req);
         List<Class<?>> validationGroups = new ArrayList<>();
         validationGroups.add(EsbAppScopeReq.class);
         if (req != null) {
@@ -49,17 +50,17 @@ public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequence
             // 如果不兼容bk_biz_id，那么使用bk_scope_type+bk_scope_id参数校验方式
             if (!esbConfig.isBkBizIdEnabled()) {
                 validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
-                log.debug("Param bk_biz_id is disabled, using bk_scope_type/bk_scope_id param");
+                log.info("Param bk_biz_id is disabled, using bk_scope_type/bk_scope_id param");
                 return validationGroups;
             }
 
             // 如果参数中包含bk_scope_type/bk_scope_id,那么优先使用bk_scope_type+bk_scope_id
             if (StringUtils.isNotEmpty(req.getScopeType()) || StringUtils.isNotEmpty(req.getScopeId())) {
                 validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
-                log.debug("Param bk_scope_type/bk_scope_id is provided, using bk_scope_type/bk_scope_id param");
+                log.info("Param bk_scope_type/bk_scope_id is provided, using bk_scope_type/bk_scope_id param");
             } else if (req.getBizId() != null) {
                 validationGroups.add(EsbAppScopeReq.UseBkBizIdParam.class);
-                log.debug("Param bk_biz_id is provided, using bk_biz_id param");
+                log.info("Param bk_biz_id is provided, using bk_biz_id param");
             }
         }
         return validationGroups;

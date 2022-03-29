@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.config;
 
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -55,7 +56,7 @@ public class FeatureToggleConfig {
 
     @PostConstruct
     public void print() {
-        log.info("FeatureToggleConfig init: {}", toString());
+        log.info("FeatureToggleConfig init: {}", JsonUtils.toJson(this));
     }
 
 }
