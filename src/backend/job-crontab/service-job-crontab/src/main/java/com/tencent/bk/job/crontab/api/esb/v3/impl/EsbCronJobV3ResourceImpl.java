@@ -152,7 +152,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
                 esbPageDataV3.setTotal(1L);
                 esbPageDataV3.setStart(request.getStart());
                 esbPageDataV3.setLength(request.getLength());
-                if (request.getStart() == 0) {
+                if (request.getStart() == null || request.getStart() == 0) {
                     esbPageDataV3.setData(data);
                 } else {
                     esbPageDataV3.setData(Collections.emptyList());
