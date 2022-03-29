@@ -24,6 +24,13 @@
 
 package com.tencent.bk.job.upgrader.task;
 
+import com.tencent.bk.job.common.cc.model.bizset.BasicBizSet;
+import com.tencent.bk.job.common.cc.model.bizset.BizSetAttr;
+import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
+import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
+import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
+import com.tencent.bk.job.common.cc.model.bizset.CreateBizSetReq;
+import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -38,16 +45,10 @@ import com.tencent.bk.job.upgrader.anotation.UpgradeTaskInputParam;
 import com.tencent.bk.job.upgrader.client.EsbCmdbClient;
 import com.tencent.bk.job.upgrader.client.JobClient;
 import com.tencent.bk.job.upgrader.model.AppInfo;
-import com.tencent.bk.job.common.cc.model.bizset.BasicBizSet;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetAttr;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
-import com.tencent.bk.job.common.cc.model.bizset.CreateBizSetReq;
-import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.util.CollectionUtils;
@@ -189,16 +190,30 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
     }
 
     /**
+     * 获取业务集最终在CMDB中的ID，用于判定存在性决定是否创建
+     *
+     * @param appInfo 业务信息
+     * @return 业务集ID
+     */
+    private long getFinalBizSetId(AppInfo appInfo) {
+        if (StringUtils.isNotBlank(appInfo.getScopeId())) {
+            return Long.parseLong(appInfo.getScopeId());
+        }
+        return appInfo.getId();
+    }
+
+    /**
      * 根据Job中现存业务集/全业务信息向CMDB创建业务集/全业务
      *
      * @param appInfo 业务集/全业务信息
+     * @return 业务集是否已存在于CMDB中
      */
     private boolean createCMDBResourceForApp(AppInfo appInfo) {
         CreateBizSetReq createBizSetReq = esbCmdbClient.makeCmdbBaseReq(CreateBizSetReq.class);
         String desc = "Auto created by bk-job migration";
         String supplierAccount = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_CMDB_DEFAULT_SUPPLIER_ACCOUNT);
         BizSetAttr attr = BizSetAttr.builder()
-            .id(appInfo.getId())
+            .id(getFinalBizSetId(appInfo))
             .name(appInfo.getName())
             .desc(desc)
             .maintainer(buildMaintainerStr(appInfo.getMaintainers()))
@@ -224,12 +239,16 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
             List<BizSetInfo> bizSetList = esbCmdbClient.searchBizSetById(attr.getId());
             if (CollectionUtils.isEmpty(bizSetList)) {
                 Long bizSetId = esbCmdbClient.createBizSet(createBizSetReq);
-                log.info("bizSet {} created", bizSetId);
-                return true;
+                if (bizSetId != null && bizSetId > 0) {
+                    log.info("bizSet {} created", bizSetId);
+                } else {
+                    log.warn("fail to create bizSet {}", attr.getId());
+                    return false;
+                }
             } else {
-                log.warn("bizSet {} already exists, ignore", attr.getId());
-                return false;
+                log.info("bizSet {} already exists, ignore", attr.getId());
             }
+            return true;
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format("Fail to create bizSet {}", createBizSetReq);
             log.error(msg.getMessage(), e);
@@ -241,10 +260,24 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         List<BasicBizSet> bizSetList = new ArrayList<>();
+        int successCount = 0;
         for (AppInfo appInfo : bizSetAppInfoList) {
             // 1.调用CMDB接口创建业务集/全业务
-            createCMDBResourceForApp(appInfo);
-            bizSetList.add(new BasicBizSet(appInfo.getId(), appInfo.getName()));
+            if (createCMDBResourceForApp(appInfo)) {
+                successCount += 1;
+                bizSetList.add(new BasicBizSet(getFinalBizSetId(appInfo), appInfo.getName()));
+            }
+        }
+        if (successCount == bizSetList.size()) {
+            log.info("all {} bizSets migrated to CMDB", successCount);
+            log.info("BizSet migration status:{}", jobManageClient.setBizSetMigrationStatus(true));
+        } else {
+            log.warn(
+                "{}/{} bizSets migrated to CMDB, please check log to confirm failed bizSets",
+                successCount,
+                bizSetList.size()
+            );
+            log.info("BizSet migration status:{}", jobManageClient.setBizSetMigrationStatus(false));
         }
         // 2.生成更新CMDB数据库的业务集信息Json文件
         String content = JsonUtils.toJson(bizSetList);

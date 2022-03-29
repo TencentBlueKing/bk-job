@@ -22,40 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.bizset;
+package com.tencent.bk.job.manage.model.migration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-import java.util.Arrays;
-import java.util.List;
-
-/**
- * CMDB接口请求实体类，用于搜索业务集
- */
-@Setter
-@Getter
-@ToString
-public class SearchBizSetReq extends EsbReq {
-
-    /**
-     * 业务集过滤器
-     */
-    @JsonProperty("bk_biz_set_filter")
-    private BizSetFilter filter;
-
-    /**
-     * 查询字段
-     */
-    private List<String> fields = Arrays.asList("bk_biz_set_id", "bk_biz_set_name", "bk_biz_set_desc",
-        "bk_biz_maintainer", "bk_supplier_account", "bk_operate_dept_id", "create_time", "last_time", "time_zone", "language");
-
-    /**
-     * 分页参数
-     */
-    private Page page;
-
+@Data
+public class SetBizSetMigrationStatusReq {
+    private Boolean migrated;
 }

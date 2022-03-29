@@ -43,6 +43,7 @@ import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.SyncService;
+import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
@@ -128,6 +129,7 @@ public class SyncServiceImpl implements SyncService {
     private final AgentStatusSyncService agentStatusSyncService;
     private final HostCache hostCache;
     private final IBizSetCmdbClient bizSetCmdbClient;
+    private final BizSetService bizSetService;
     private final Tracing tracing;
 
     @Autowired
@@ -145,7 +147,8 @@ public class SyncServiceImpl implements SyncService {
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient, Tracing tracing) {
+                           HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient,
+                           BizSetService bizSetService, Tracing tracing) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -165,6 +168,7 @@ public class SyncServiceImpl implements SyncService {
         this.agentStatusSyncService = agentStatusSyncService;
         this.hostCache = hostCache;
         this.bizSetCmdbClient = bizSetCmdbClient;
+        this.bizSetService = bizSetService;
         this.tracing = tracing;
         // 同步业务的线程池配置
         syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
@@ -218,12 +222,15 @@ public class SyncServiceImpl implements SyncService {
             hostRelationWatchThread.start();
 
             // 开一个常驻线程监听业务集变动事件
-            bizSetWatchThread = new BizSetWatchThread(redisTemplate, applicationService, bizSetCmdbClient, tracing);
+            bizSetWatchThread = new BizSetWatchThread(
+                redisTemplate, applicationService, bizSetCmdbClient, bizSetService, tracing
+            );
             bizSetWatchThread.start();
 
             // 开一个常驻线程监听业务集与业务关系变动事件
-            bizSetRelationWatchThread = new BizSetRelationWatchThread(redisTemplate, applicationService,
-                bizSetCmdbClient, tracing);
+            bizSetRelationWatchThread = new BizSetRelationWatchThread(
+                redisTemplate, applicationService, bizSetCmdbClient, bizSetService, tracing
+            );
             bizSetRelationWatchThread.start();
         } else {
             log.info("resourceWatch not enabled, you can enable it in config file");
@@ -417,7 +424,7 @@ public class SyncServiceImpl implements SyncService {
                     List<ApplicationDTO> localApps = applicationDAO.listAllBizApps();
                     Set<Long> localAppIds =
                         localApps.stream().filter(app ->
-                                app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)
+                            app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)
                             .collect(Collectors.toSet());
                     log.info(String.format("localAppIds:%s", String.join(",",
                         localAppIds.stream().map(Object::toString).collect(Collectors.toSet()))));

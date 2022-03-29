@@ -60,6 +60,11 @@ public class BizSetEventDetail {
     @JsonProperty("bk_biz_maintainer")
     private String maintainers;
     /**
+     * 供应商
+     */
+    @JsonProperty("bk_supplier_account")
+    private String supplierAccount;
+    /**
      * 时区
      */
     @JsonProperty("time_zone")
@@ -76,6 +81,7 @@ public class BizSetEventDetail {
         applicationDTO.setScope(resourceScope);
         applicationDTO.setAppType(AppTypeEnum.APP_SET);
         applicationDTO.setName(bizSetName);
+        applicationDTO.setBkSupplierAccount(supplierAccount);
         applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(maintainers));
         applicationDTO.setTimeZone(timezone);
         applicationDTO.setLanguage(language);
