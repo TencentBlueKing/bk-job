@@ -150,6 +150,27 @@ public class ActionScopeDAOImpl implements ActionScopeDAO {
             .execute();
     }
 
+    @Override
+    public List<ActionScopeDTO> getActionScopeByIds(List<Long> scopeIdSet) {
+        val records = defaultDslContext.selectFrom(T_ACTION_SCOPE)
+            .where(T_ACTION_SCOPE.ID.in(scopeIdSet)).fetch();
+        if (records == null) {
+            return new ArrayList<>();
+        }
+        return records.stream().map(record ->
+            new ActionScopeDTO(
+                record.getId(),
+                record.getCode(),
+                record.getName(),
+                record.getDescription(),
+                record.getCreator(),
+                record.getCreateTime().longValue(),
+                record.getLastModifyUser(),
+                record.getLastModifyTime().longValue()
+            )
+        ).collect(Collectors.toList());
+    }
+
     private ActionScopeDTO convert(ActionScopeRecord record) {
         if (record == null) return null;
         return new ActionScopeDTO(

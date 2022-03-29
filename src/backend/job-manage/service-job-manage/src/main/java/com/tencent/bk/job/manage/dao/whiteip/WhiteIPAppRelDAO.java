@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.whiteip;
 
+import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPAppRelDTO;
 import org.jooq.DSLContext;
 
 import java.util.List;
@@ -36,4 +37,6 @@ public interface WhiteIPAppRelDAO {
     int deleteWhiteIPAppRelByAppId(DSLContext dslContext, Long appId);
 
     List<Long> listAppIdByRecordId(DSLContext dslContext, Long recordId);
+
+    List<WhiteIPAppRelDTO> listAppRelByRecordIds(DSLContext dslContext, List<Long> recordIdList);
 }

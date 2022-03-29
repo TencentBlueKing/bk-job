@@ -133,4 +133,27 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
             .where(T_WHITE_IP_IP.ID.eq(whiteIPIPDTO.getId()))
             .execute();
     }
+
+    @Override
+    public List<WhiteIPIPDTO> listWhiteIPIPByRecordIds(DSLContext dslContext, List<Long> recordIdList) {
+        val records =
+            dslContext.selectFrom(T_WHITE_IP_IP).where(
+                T_WHITE_IP_IP.RECORD_ID.in(recordIdList)
+            ).fetch();
+        if (records == null) {
+            return new ArrayList<>();
+        }
+        return records.stream().map(record ->
+            new WhiteIPIPDTO(
+                record.getId(),
+                record.getRecordId(),
+                record.getCloudAreaId(),
+                record.getIp(),
+                record.getCreator(),
+                record.getCreateTime().longValue(),
+                record.getLastModifyUser(),
+                record.getLastModifyTime().longValue()
+            )
+        ).collect(Collectors.toList());
+    }
 }
