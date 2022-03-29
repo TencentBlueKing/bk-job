@@ -26,17 +26,32 @@ package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
 
-public class FeatureToggleConfigHolder {
+/**
+ * 特性开关
+ */
+public class FeatureToggle {
 
-    private FeatureToggleConfigHolder() {
+    private FeatureToggle() {
     }
 
-    public static FeatureToggleConfig get() {
+    private static FeatureToggleConfig get() {
         return Inner.instance;
     }
 
     private static class Inner {
         private static final FeatureToggleConfig instance =
             ApplicationContextRegister.getBean(FeatureToggleConfig.class);
+    }
+
+    /**
+     * 是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     *
+     * @param appId Job业务ID
+     */
+    public static boolean isCmdbBizSetEnabled(Long appId) {
+        FeatureToggleConfig featureToggleConfig = get();
+        FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
+        return cmdbBizSetConfig.isEnabled()
+            && (!cmdbBizSetConfig.isGray() || cmdbBizSetConfig.getGrayApps().contains(appId));
     }
 }
