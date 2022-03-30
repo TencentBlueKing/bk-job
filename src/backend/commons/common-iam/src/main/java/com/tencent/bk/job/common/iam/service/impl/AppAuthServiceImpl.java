@@ -33,9 +33,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
@@ -62,10 +60,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -117,7 +113,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
             log.debug("{} is maintainer of job biz_set {}", username, appResourceScope.getAppId());
             return AuthResult.pass();
         }
-        boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstance(appResourceScope));
+        boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstanceWithPath(appResourceScope));
         if (isAllowed) {
             return AuthResult.pass();
         } else {
@@ -182,7 +178,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         return IamUtil.buildScopePathInfo(appResourceScope);
     }
 
-    private InstanceDTO buildInstance(AppResourceScope appResourceScope) {
+    private InstanceDTO buildInstanceWithPath(AppResourceScope appResourceScope) {
         InstanceDTO instance = new InstanceDTO();
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
             instance.setId(appResourceScope.getId());
@@ -202,6 +198,14 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         return instance;
     }
 
+    private InstanceDTO buildInstance(AppResourceScope appResourceScope) {
+        InstanceDTO instance = new InstanceDTO();
+        instance.setId(appResourceScope.getId());
+        ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
+        instance.setType(resourceType.getId());
+        instance.setSystem(resourceType.getSystemId());
+        return instance;
+    }
 
     @Override
     public List<String> batchAuth(String username,
@@ -313,43 +317,17 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         return instances;
     }
 
-    private Map<String, Map<String, List<PermissionResource>>> groupResourcesByActionAndResourceType(
-        List<PermissionActionResource> permissionActionResources) {
-        Map<String, Map<String, List<PermissionResource>>> resourcesGroupByActionAndType = new HashMap<>();
-        permissionActionResources.forEach(actionResource ->
-            resourcesGroupByActionAndType.compute(actionResource.getActionId(), (actionId, resourcesGroupByType) -> {
-                if (resourcesGroupByType == null) {
-                    resourcesGroupByType = new HashMap<>();
-                }
-                for (PermissionResourceGroup resourceGroup : actionResource.getResourceGroups()) {
-                    resourcesGroupByType.compute(resourceGroup.getResourceType().getId(), (resourceType, resources) -> {
-                        if (resources == null) {
-                            resources = new ArrayList<>();
-                        }
-                        resources.addAll(resourceGroup.getPermissionResources());
-                        return resources;
-                    });
-                }
-                return resourcesGroupByType;
-            }));
-        return resourcesGroupByActionAndType;
-    }
-
     @Override
-    public String getBusinessApplyUrl(Long appId) {
+    public String getBusinessApplyUrl(AppResourceScope appResourceScope) {
         ActionDTO action = new ActionDTO();
         action.setId(ActionId.ACCESS_BUSINESS);
         List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
         RelatedResourceTypeDTO businessResourceTypeDTO = new RelatedResourceTypeDTO();
         businessResourceTypeDTO.setType(ResourceTypeEnum.BUSINESS.getId());
         businessResourceTypeDTO.setSystemId(SystemId.CMDB);
-        if (appId != null) {
+        if (appResourceScope != null) {
             List<InstanceDTO> instanceDTOList = new ArrayList<>();
-            InstanceDTO instanceDTO = new InstanceDTO();
-            instanceDTO.setSystem(SystemId.CMDB);
-            instanceDTO.setType(ResourceTypeEnum.BUSINESS.getId());
-            instanceDTO.setId(appId.toString());
-            instanceDTOList.add(instanceDTO);
+            instanceDTOList.add(buildInstance(appResourceScope));
             businessResourceTypeDTO.setInstance(Collections.singletonList(instanceDTOList));
         } else {
             businessResourceTypeDTO.setInstance(Collections.emptyList());
