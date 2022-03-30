@@ -62,16 +62,16 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
             String username = userScopePair.getLeft();
             AppResourceScope appResourceScope = userScopePair.getRight();
             if (appResourceScope != null) {
-                log.debug("auth {} access_business {}", username, appResourceScope);
+                log.debug("Auth {} access_business {}", username, appResourceScope);
                 AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
             } else {
-                log.debug("ignore auth {} access_business public scope", username);
+                log.debug("Ignore auth {} access_business public scope", username);
             }
         } else {
-            log.debug("can not find username/scope for url:{}", url);
+            log.debug("Can not find username/scope for url:{}", url);
         }
         return true;
     }

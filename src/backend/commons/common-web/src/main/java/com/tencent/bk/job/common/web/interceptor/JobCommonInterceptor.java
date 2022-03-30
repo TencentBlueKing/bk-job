@@ -206,7 +206,6 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         String scopeType = parseValueFromQueryStringOrBody(request, "bk_scope_type");
         String scopeId = parseValueFromQueryStringOrBody(request, "bk_scope_id");
         if (StringUtils.isNotBlank(scopeType) || StringUtils.isNotBlank(scopeId)) {
-            log.info("Using scope param");
             return new AppResourceScope(scopeType, scopeId, null);
         } else {
             // 兼容当前业务ID参数
@@ -216,7 +215,8 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                 // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
                 scopeId = bizIdStr;
                 if (bizId >= 8000000L && bizId <= 9999999L) {
-                    Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), scopeId);
+                    Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(),
+                        scopeId);
                     return new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, scopeId, appId);
                 } else {
                     Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(), scopeId);
@@ -243,13 +243,6 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                     }
                     JsonNode valueNode = jsonBody.get(key);
                     String value = (valueNode == null || valueNode.isNull()) ? null : jsonBody.get(key).asText();
-                    if (value == null) {
-                        log.info("Value is null");
-                    } else if (value.equalsIgnoreCase("null")) {
-                        log.info("Value is null str");
-                    } else {
-                        log.info("Value is not null");
-                    }
                     log.debug("Parsed from POST/PUT: {}={}", key, value);
                     return value;
                 }
