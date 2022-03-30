@@ -165,8 +165,16 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         if (returnApplyUrl) {
             authResult.setApplyUrl(getApplyUrl(actionId, appResourceScope));
         }
-        // TODO
-        authResult.addRequiredPermission(actionId, new PermissionResource(resourceType, resourceId, resourceName));
+        PermissionResource permissionResource = new PermissionResource(
+            ResourceTypeEnum.BUSINESS, resourceId, resourceName
+        );
+        if (resourceType == ResourceTypeEnum.BUSINESS_SET) {
+            // 层级节点资源类型
+            permissionResource.setType(ResourceTypeId.BUSINESS_SET);
+            permissionResource.setSubResourceType(resourceType.getId());
+        }
+        permissionResource.setPathInfo(buildResourceScopePath(appResourceScope));
+        authResult.addRequiredPermission(actionId, permissionResource);
         return authResult;
     }
 
