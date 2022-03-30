@@ -44,6 +44,6 @@ public class EsbConfig {
     @Value("${esb.use.test.env:false}")
     private boolean useEsbTestEnv;
 
-    @Value("${esb.api.bk_biz_id.enabled:true}")
+    @Value("${esb.api.bk_biz_id.enabled:false}")
     private boolean bkBizIdEnabled;
 }

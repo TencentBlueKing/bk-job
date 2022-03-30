@@ -78,7 +78,6 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_fast_execute_script"})
     public EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(EsbFastExecuteScriptV3Request request)
         throws ServiceException {
-        log.info("EsbFastExecuteScriptV3Request: {}", request);
         request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkFastExecuteScriptRequest(request);
         if (!checkResult.isPass()) {

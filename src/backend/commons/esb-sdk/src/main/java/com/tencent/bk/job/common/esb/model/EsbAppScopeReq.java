@@ -89,7 +89,7 @@ public class EsbAppScopeReq extends EsbReq {
      * @param appScopeMappingService 业务与资源范围映射公共接口
      */
     public void fillAppResourceScope(AppScopeMappingService appScopeMappingService) {
-        boolean isExistScopeParam = StringUtils.isNotEmpty(this.scopeType) &&
+        boolean isExistScopeParam = StringUtils.isNotEmpty(this.scopeType) ||
             StringUtils.isNotEmpty(this.scopeId);
         boolean isExistBkBizIdParam = this.bizId != null;
         if (isExistScopeParam) {
@@ -106,9 +106,6 @@ public class EsbAppScopeReq extends EsbReq {
                     String.valueOf(this.bizId));
                 this.scopeType = ResourceScopeTypeEnum.BIZ.getValue();
             }
-        } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-                new String[]{"bk_biz_id/bk_scope_type/bk_scope_id"});
         }
     }
 
