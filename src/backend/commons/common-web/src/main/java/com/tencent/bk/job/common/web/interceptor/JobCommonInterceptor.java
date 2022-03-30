@@ -207,6 +207,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         log.info("scopeType: {}, scopeId：{}", scopeType == null ? "NULL" : scopeType, scopeId == null ? "NULL" :
             scopeId);
         if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            log.info("Using scope param");
             return new AppResourceScope(scopeType, scopeId, null);
         } else {
             // 兼容当前业务ID参数
@@ -243,6 +244,13 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                         return null;
                     }
                     String value = jsonBody.get(key) == null ? null : jsonBody.get(key).asText();
+                    if (value == null) {
+                        log.info("Value is null");
+                    } else if (value.equalsIgnoreCase("null")) {
+                        log.info("Value is null str");
+                    } else {
+                        log.info("Value is not null");
+                    }
                     log.debug("parsed from POST/PUT: {}={}", key, value);
                     return value;
                 }
