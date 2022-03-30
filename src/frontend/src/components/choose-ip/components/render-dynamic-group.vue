@@ -189,7 +189,7 @@
             fetchCMDBUrl () {
                 return QueryGlobalSettingService.fetchRelatedSystemUrls()
                     .then((data) => {
-                        this.CMDBCreateGroupUrl = `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.APP_ID}/custom-query`;
+                        this.CMDBCreateGroupUrl = `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`;
                     });
             },
             /**
