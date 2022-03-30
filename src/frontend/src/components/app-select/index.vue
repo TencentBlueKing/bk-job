@@ -182,7 +182,6 @@
             return {
                 isFocus: false,
                 renderList: [],
-                // appId: window.PROJECT_CONFIG.APP_ID,
                 scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
                 scopeId: window.PROJECT_CONFIG.SCOPE_ID,
                 appName: '',

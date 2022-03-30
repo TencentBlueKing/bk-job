@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.result;
 import com.google.common.collect.Sets;
 import com.tencent.bk.gse.taskapi.api_map_rsp;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.util.FeatureToggleConfigHolder;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
@@ -226,9 +225,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     @Override
     GseLogBatchPullResult<api_map_rsp> pullGseTaskLogInBatches() {
         api_map_rsp gseLog;
-        if (FeatureToggleConfigHolder.get().enablePullFileResultByIp(taskInstance.getAppId())
-            && (CollectionUtils.isNotEmpty(this.analyseFinishedSourceIpSet)
-            || CollectionUtils.isNotEmpty(this.analyseFinishedIpSet))) {
+        if (CollectionUtils.isNotEmpty(this.analyseFinishedSourceIpSet)
+            || CollectionUtils.isNotEmpty(this.analyseFinishedIpSet)) {
             Set<String> notFinishedIps = new HashSet<>();
             notFinishedIps.addAll(notStartedFileSourceIpSet);
             notFinishedIps.addAll(runningFileSourceIpSet);
