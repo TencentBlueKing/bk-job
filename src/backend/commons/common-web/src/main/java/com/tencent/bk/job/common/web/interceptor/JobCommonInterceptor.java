@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.web.interceptor;
 
 import brave.Tracer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
@@ -204,24 +205,21 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     private AppResourceScope parseAppResourceScopeFromQueryStringOrBody(HttpServletRequest request) {
         String scopeType = parseValueFromQueryStringOrBody(request, "bk_scope_type");
         String scopeId = parseValueFromQueryStringOrBody(request, "bk_scope_id");
-        log.info("scopeType: {}, scopeId：{}", scopeType == null ? "NULL" : scopeType, scopeId == null ? "NULL" :
-            scopeId);
-        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+        if (StringUtils.isNotBlank(scopeType) || StringUtils.isNotBlank(scopeId)) {
             log.info("Using scope param");
             return new AppResourceScope(scopeType, scopeId, null);
         } else {
             // 兼容当前业务ID参数
             String bizIdStr = parseValueFromQueryStringOrBody(request, "bk_biz_id");
             if (StringUtils.isNotBlank(bizIdStr)) {
-                Long appId;
                 long bizId = Long.parseLong(bizIdStr);
                 // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
                 scopeId = bizIdStr;
                 if (bizId >= 8000000L && bizId <= 9999999L) {
-                    appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), scopeId);
+                    Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), scopeId);
                     return new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, scopeId, appId);
                 } else {
-                    appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(), scopeId);
+                    Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(), scopeId);
                     return new AppResourceScope(ResourceScopeTypeEnum.BIZ, scopeId, appId);
                 }
             }
@@ -243,7 +241,8 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                     if (jsonBody == null) {
                         return null;
                     }
-                    String value = jsonBody.get(key) == null ? null : jsonBody.get(key).asText();
+                    JsonNode valueNode = jsonBody.get(key);
+                    String value = (valueNode == null || valueNode.isNull()) ? null : jsonBody.get(key).asText();
                     if (value == null) {
                         log.info("Value is null");
                     } else if (value.equalsIgnoreCase("null")) {
@@ -251,12 +250,12 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                     } else {
                         log.info("Value is not null");
                     }
-                    log.debug("parsed from POST/PUT: {}={}", key, value);
+                    log.debug("Parsed from POST/PUT: {}={}", key, value);
                     return value;
                 }
             } else if (request.getMethod().equals(HttpMethod.GET.name())) {
                 String value = request.getParameter(key);
-                log.debug("parsed from GET: {}={}", key, value);
+                log.debug("Parsed from GET: {}={}", key, value);
                 return value;
             }
         } catch (Exception e) {
