@@ -68,7 +68,7 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
                     throw new PermissionDeniedException(authResult);
                 }
             } else {
-                log.info("ignore auth {} access_business public scope {}", username, appResourceScope);
+                log.debug("ignore auth {} access_business public scope", username);
             }
         } else {
             log.debug("can not find username/scope for url:{}", url);

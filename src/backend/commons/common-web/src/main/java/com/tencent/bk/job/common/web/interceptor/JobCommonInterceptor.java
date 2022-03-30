@@ -146,10 +146,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         log.debug("Scope from path:{}", appResourceScope);
         if (appResourceScope == null) {
             appResourceScope = parseAppResourceScopeFromQueryStringOrBody(request);
-            log.debug("scope from query/body:{}", appResourceScope);
-        }
-        if (appResourceScope != null) {
-            JobContextUtil.setAppResourceScope(appResourceScope);
+            log.debug("Scope from query/body:{}", appResourceScope);
         }
         if (appResourceScope != null) {
             request.setAttribute("appResourceScope", appResourceScope);
@@ -207,6 +204,8 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     private AppResourceScope parseAppResourceScopeFromQueryStringOrBody(HttpServletRequest request) {
         String scopeType = parseValueFromQueryStringOrBody(request, "bk_scope_type");
         String scopeId = parseValueFromQueryStringOrBody(request, "bk_scope_id");
+        log.info("scopeType: {}, scopeId：{}", scopeType == null ? "NULL" : scopeType, scopeId == null ? "NULL" :
+            scopeId);
         if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
             return new AppResourceScope(scopeType, scopeId, null);
         } else {
@@ -214,7 +213,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             String bizIdStr = parseValueFromQueryStringOrBody(request, "bk_biz_id");
             if (StringUtils.isNotBlank(bizIdStr)) {
                 Long appId;
-                Long bizId = Long.parseLong(bizIdStr);
+                long bizId = Long.parseLong(bizIdStr);
                 // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
                 scopeId = bizIdStr;
                 if (bizId >= 8000000L && bizId <= 9999999L) {
