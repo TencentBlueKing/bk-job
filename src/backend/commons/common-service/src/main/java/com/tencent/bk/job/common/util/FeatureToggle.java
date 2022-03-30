@@ -44,14 +44,24 @@ public class FeatureToggle {
     }
 
     /**
-     * 是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     * 业务是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
      *
      * @param appId Job业务ID
      */
-    public static boolean isCmdbBizSetEnabled(Long appId) {
+    public static boolean isCmdbBizSetEnabledForApp(Long appId) {
         FeatureToggleConfig featureToggleConfig = get();
         FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
         return cmdbBizSetConfig.isEnabled()
             && (!cmdbBizSetConfig.isGray() || cmdbBizSetConfig.getGrayApps().contains(appId));
+    }
+
+    /**
+     * 是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     *
+     */
+    public static boolean isCmdbBizSetEnabled() {
+        FeatureToggleConfig featureToggleConfig = get();
+        FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
+        return cmdbBizSetConfig.isEnabled();
     }
 }
