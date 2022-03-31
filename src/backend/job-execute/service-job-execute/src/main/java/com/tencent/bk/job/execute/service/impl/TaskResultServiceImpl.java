@@ -498,6 +498,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                 watch.start("setRollingTasksForStep");
                 setRollingInfoForStep(stepInstance, stepExecutionDetail);
                 watch.stop();
+            } else {
+                stepExecutionDetail.setRunMode(StepRunModeEnum.RUN_ALL);
             }
 
 
