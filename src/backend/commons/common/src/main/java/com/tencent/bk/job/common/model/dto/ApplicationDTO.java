@@ -111,26 +111,11 @@ public class ApplicationDTO implements Serializable {
     }
 
     /**
-     * 更新业务信息
-     *
-     * @param updateApplication 更新的业务
-     */
-    public void updateProps(ApplicationDTO updateApplication) {
-        this.name = updateApplication.getName();
-        this.appType = updateApplication.getAppType();
-        this.subAppIds = updateApplication.getSubAppIds();
-        this.bkSupplierAccount = updateApplication.getBkSupplierAccount();
-        this.maintainers = updateApplication.getMaintainers();
-        this.timeZone = updateApplication.getTimeZone();
-        this.operateDeptId = updateApplication.getOperateDeptId();
-        this.language = updateApplication.getLanguage();
-    }
-
-    /**
      * 返回对应的cmdb业务ID
      *
      * @return cmdb业务ID
      */
+    @JsonIgnore
     public Long getBizIdIfBizApp() {
         return Long.valueOf(this.scope.getId());
     }
@@ -140,6 +125,7 @@ public class ApplicationDTO implements Serializable {
      *
      * @return cmdb业务集ID
      */
+    @JsonIgnore
     public Long getBizSetIdIfBizSetApp() {
         return Long.valueOf(this.scope.getId());
     }

@@ -900,7 +900,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
                 break;
             case BIZ_SET:
-                List<Long> subAppIds = topologyHelper.getAppSetSubAppIds(appInfo);
+                List<Long> subAppIds = topologyHelper.getBizSetSubBizIds(appInfo);
                 conditions.add(TABLE.APP_ID.in(subAppIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
                 break;
             default:

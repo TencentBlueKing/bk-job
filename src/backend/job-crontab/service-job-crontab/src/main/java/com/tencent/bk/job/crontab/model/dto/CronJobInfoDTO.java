@@ -352,26 +352,16 @@ public class CronJobInfoDTO {
         return esbCronInfoV3DTO;
     }
 
-    public static ServiceTemplateNotificationDTO buildNotifyInfo(CronJobInfoDTO cronJobInfo) {
-        ServiceTemplateNotificationDTO notifyInfo = new ServiceTemplateNotificationDTO();
-        notifyInfo.setTriggerUser(cronJobInfo.getLastModifyUser());
-        notifyInfo.setAppId(cronJobInfo.getAppId());
-        notifyInfo.setReceiverInfo(cronJobInfo.getNotifyUser());
-        notifyInfo.setActiveChannels(cronJobInfo.getNotifyChannel());
-
-        Map<String, String> variableMap = new HashMap<>(8);
+    private static void addTaskBaseInfoToVarMap(Map<String, String> variableMap, CronJobInfoDTO cronJobInfo) {
         variableMap.put("task.id", cronJobInfo.getId().toString());
         variableMap.put("task.name", cronJobInfo.getName());
         variableMap.put("cron_name", cronJobInfo.getName());
         String notifyTimeStr = String.valueOf(cronJobInfo.getNotifyOffset() / 60);
         variableMap.put("notify_time", notifyTimeStr);
+        variableMap.put("task.cron.notify_time", notifyTimeStr);
         variableMap.put("cron_updater", cronJobInfo.getLastModifyUser());
         variableMap.put("task.operator", cronJobInfo.getLastModifyUser());
-        String cronUri =
-            "/" + cronJobInfo.getAppId() + "/cron/list?cronJobId=" + cronJobInfo.getId() + "&mode=detail";
-        variableMap.put("cron_uri", cronUri);
         variableMap.put("task.type", "定时任务");
-        variableMap.put("task.url", "{{BASE_HOST}}" + cronUri);
         variableMap.put("task.cron.plan_id", cronJobInfo.getTaskPlanId().toString());
         TaskPlanService taskPlanService = ApplicationContextRegister.getBean(TaskPlanService.class);
         ServiceTaskPlanDTO serviceTaskPlanDTO =
@@ -380,7 +370,31 @@ public class CronJobInfoDTO {
             throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         variableMap.put("task.cron.plan_name", serviceTaskPlanDTO.getName());
-        variableMap.put("task.cron.notify_time", notifyTimeStr);
+    }
+
+    private static void addTaskUrlToVarMap(Map<String, String> variableMap, CronJobInfoDTO cronJobInfo) {
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(cronJobInfo.getAppId());
+        String cronUri = "/" + resourceScope.getType().getValue() + "/" + resourceScope.getId() +
+            "/cron/list?cronJobId=" + cronJobInfo.getId() + "&mode=detail";
+        variableMap.put("task.url", "{{BASE_HOST}}" + cronUri);
+        variableMap.put("cron_uri", cronUri);
+    }
+
+    public static ServiceTemplateNotificationDTO buildNotifyInfo(CronJobInfoDTO cronJobInfo) {
+        ServiceTemplateNotificationDTO notifyInfo = new ServiceTemplateNotificationDTO();
+        notifyInfo.setTriggerUser(cronJobInfo.getLastModifyUser());
+        notifyInfo.setAppId(cronJobInfo.getAppId());
+        notifyInfo.setReceiverInfo(cronJobInfo.getNotifyUser());
+        notifyInfo.setActiveChannels(cronJobInfo.getNotifyChannel());
+
+        Map<String, String> variableMap = new HashMap<>(8);
+        // 添加任务基础信息
+        addTaskBaseInfoToVarMap(variableMap, cronJobInfo);
+        // 添加任务链接
+        addTaskUrlToVarMap(variableMap, cronJobInfo);
+
         long triggerTime;
         if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
             // 结束前通知
@@ -429,21 +443,10 @@ public class CronJobInfoDTO {
         notifyInfo.setTemplateCode(NotifyConsts.NOTIFY_TEMPLATE_CODE_CRON_EXECUTE_FAILED);
 
         Map<String, String> variableMap = new HashMap<>(8);
-        variableMap.put("task.id", cronJobInfo.getId().toString());
-        variableMap.put("task.name", cronJobInfo.getName());
-        variableMap.put("task.operator", cronJobInfo.getLastModifyUser());
-        String cronUri =
-            "/" + cronJobInfo.getAppId() + "/cron/list?cronJobId=" + cronJobInfo.getId() + "&mode=detail";
-        variableMap.put("task.type", "定时任务");
-        variableMap.put("task.url", "{{BASE_HOST}}" + cronUri);
-        variableMap.put("task.cron.plan_id", cronJobInfo.getTaskPlanId().toString());
-        TaskPlanService taskPlanService = ApplicationContextRegister.getBean(TaskPlanService.class);
-        ServiceTaskPlanDTO serviceTaskPlanDTO =
-            taskPlanService.getPlanBasicInfoById(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId());
-        if (serviceTaskPlanDTO == null) {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        }
-        variableMap.put("task.cron.plan_name", serviceTaskPlanDTO.getName());
+        // 添加任务基础信息
+        addTaskBaseInfoToVarMap(variableMap, cronJobInfo);
+        // 添加任务链接
+        addTaskUrlToVarMap(variableMap, cronJobInfo);
 
         if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
             // 结束前通知

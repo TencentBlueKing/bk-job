@@ -88,7 +88,7 @@ public class AppWatchThread extends Thread {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 try {
                     if (cachedApp != null) {
-                        cachedApp.updateProps(newestApp);
+                        updateBizProps(cachedApp, newestApp);
                         applicationService.updateApp(cachedApp);
                     } else {
                         try {
@@ -115,6 +115,14 @@ public class AppWatchThread extends Thread {
         BizEventDetail detail = event.getDetail();
         log.debug("eventType=" + eventType);
         log.debug(JsonUtils.toJson(detail));
+    }
+
+    private void updateBizProps(ApplicationDTO originApp, ApplicationDTO updateApp) {
+        originApp.setName(updateApp.getName());
+        originApp.setBkSupplierAccount(updateApp.getBkSupplierAccount());
+        originApp.setLanguage(updateApp.getLanguage());
+        originApp.setMaintainers(updateApp.getMaintainers());
+        originApp.setTimeZone(updateApp.getTimeZone());
     }
 
     public String handleAppWatchResult(ResourceWatchResult<BizEventDetail> appWatchResult) {
@@ -194,7 +202,7 @@ public class AppWatchThread extends Thread {
                 StopWatch watch = new StopWatch("appWatch");
                 watch.start("total");
                 try {
-                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
                     ResourceWatchResult<BizEventDetail> appWatchResult;
                     while (appWatchFlag.get()) {
                         if (cursor == null) {

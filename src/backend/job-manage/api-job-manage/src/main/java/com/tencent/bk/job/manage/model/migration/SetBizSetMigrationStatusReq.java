@@ -22,33 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.validate;
+package com.tencent.bk.job.manage.model.migration;
 
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * EsbAppScopeReq 参数联合校验
- */
-@Slf4j
-public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequenceProvider<EsbAppScopeReq> {
-
-    @Override
-    public List<Class<?>> getValidationGroups(EsbAppScopeReq req) {
-        List<Class<?>> validationGroups = new ArrayList<>();
-        validationGroups.add(EsbAppScopeReq.class);
-        if (req != null) {
-            if (StringUtils.isNotEmpty(req.getScopeType()) || StringUtils.isNotEmpty(req.getScopeId())) {
-                validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
-            } else if (req.getBizId() != null) {
-                validationGroups.add(EsbAppScopeReq.UseBkBizIdParam.class);
-            }
-        }
-        return validationGroups;
-    }
+@Data
+public class SetBizSetMigrationStatusReq {
+    private Boolean migrated;
 }

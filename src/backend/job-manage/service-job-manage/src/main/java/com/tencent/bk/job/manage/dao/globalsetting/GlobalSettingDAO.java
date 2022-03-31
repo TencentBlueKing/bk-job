@@ -29,7 +29,7 @@ import org.jooq.DSLContext;
 
 public interface GlobalSettingDAO {
 
-    int upsertGlobalSetting(DSLContext dslContext, GlobalSettingDTO globalSettingDTO);
+    int upsertGlobalSetting(GlobalSettingDTO globalSettingDTO);
 
     int insertGlobalSetting(DSLContext dslContext, GlobalSettingDTO globalSettingDTO);
 
@@ -38,4 +38,6 @@ public interface GlobalSettingDAO {
     int deleteGlobalSetting(DSLContext dslContext, String key);
 
     GlobalSettingDTO getGlobalSetting(DSLContext dslContext, String key);
+
+    GlobalSettingDTO getGlobalSetting(String key);
 }

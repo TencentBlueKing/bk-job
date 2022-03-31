@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -61,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -367,12 +369,18 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                       AppResourceScope appResourceScope,
                                                                       String scopeType,
                                                                       String scopeId, List<String> dynamicGroupIds) {
-        List<DynamicGroupInfoDTO> dynamicGroupList =
-            hostService.getBizDynamicGroupHostList(username, appResourceScope.getAppId(), dynamicGroupIds);
-        List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
-            .map(TopologyHelper::convertToDynamicGroupInfoVO)
-            .collect(Collectors.toList());
-        return Response.buildSuccessResp(dynamicGroupInfoList);
+        // 目前只有业务支持动态分组
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
+            List<DynamicGroupInfoDTO> dynamicGroupList =
+                hostService.getBizDynamicGroupHostList(
+                    username, Long.parseLong(appResourceScope.getId()), dynamicGroupIds
+                );
+            List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
+                .map(TopologyHelper::convertToDynamicGroupInfoVO)
+                .collect(Collectors.toList());
+            return Response.buildSuccessResp(dynamicGroupInfoList);
+        }
+        return Response.buildSuccessResp(Collections.emptyList());
     }
 
     @Override

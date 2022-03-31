@@ -206,6 +206,26 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         }
     }
 
+    @SuppressWarnings("all")
+    private int countHostTopoByConditions(DSLContext dslContext, Collection<Condition> conditions) {
+        return dslContext.selectCount()
+            .from(defaultTable)
+            .where(conditions)
+            .fetchOne(0, Integer.class);
+    }
+
+    @Override
+    public int countHostTopo(DSLContext dslContext, Long bizId, Long hostId) {
+        List<Condition> conditions = new ArrayList<>();
+        if (hostId != null) {
+            conditions.add(defaultTable.HOST_ID.eq(ULong.valueOf(hostId)));
+        }
+        if (bizId != null) {
+            conditions.add(defaultTable.APP_ID.eq(ULong.valueOf(bizId)));
+        }
+        return countHostTopoByConditions(dslContext, conditions);
+    }
+
     @Override
     public List<HostTopoDTO> listHostTopoByHostId(DSLContext dslContext, Long hostId) {
         List<Condition> conditions = new ArrayList<>();

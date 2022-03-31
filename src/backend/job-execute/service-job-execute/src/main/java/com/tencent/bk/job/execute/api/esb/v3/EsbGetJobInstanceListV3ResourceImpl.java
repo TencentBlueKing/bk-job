@@ -161,7 +161,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
     @Override
     public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceList(String username,
                                                                            String appCode,
-                                                                           Long bkBizId,
+                                                                           Long bizId,
                                                                            String scopeType,
                                                                            String scopeId,
                                                                            Long createTimeStart,
@@ -178,7 +178,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         EsbGetJobInstanceListV3Request request = new EsbGetJobInstanceListV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setCreateTimeStart(createTimeStart);

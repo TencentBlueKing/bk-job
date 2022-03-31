@@ -103,10 +103,16 @@ public class BaseHttpHelper implements HttpHelper {
             int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.info(
-                    "Post request fail, statusCode={}, errorReason={}, url={}, headers={}",
+                HttpEntity entity = httpResponse.getEntity();
+                String content = "";
+                if (entity != null && entity.getContent() != null) {
+                    content = new String(EntityUtils.toByteArray(entity), CHARSET);
+                }
+                log.warn(
+                    "Post request fail, statusCode={}, errorReason={}, body={}, url={}, headers={}",
                     statusCode,
                     message,
+                    content,
                     url,
                     headers
                 );

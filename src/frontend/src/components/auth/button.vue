@@ -105,7 +105,6 @@
                 PermissionCheckService.fetchPermission({
                     operation: this.auth,
                     resourceId: this.resourceId,
-                    // appId: window.PROJECT_CONFIG.APP_ID,
                     scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
                     scopeId: window.PROJECT_CONFIG.SCOPE_ID,
                     returnPermissionDetail: true,

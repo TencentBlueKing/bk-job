@@ -97,7 +97,7 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
     @Override
     public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountList(String username,
                                                                   String appCode,
-                                                                  Long bkBizId,
+                                                                  Long bizId,
                                                                   String scopeType,
                                                                   String scopeId,
                                                                   Integer category,
@@ -106,7 +106,7 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
         EsbGetAccountListV3Req request = new EsbGetAccountListV3Req();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setCategory(category);

@@ -33,17 +33,15 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.model.PermissionActionResource;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.dao.ScriptCitedTaskTemplateDAO;
@@ -69,7 +67,6 @@ import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.job.manage.service.template.impl.TemplateStatusUpdateService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -86,7 +83,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -109,7 +105,7 @@ public class ScriptServiceImpl implements ScriptService {
     private final TaskScriptStepDAO taskScriptStepDAO;
     private final TaskTemplateDAO taskTemplateDAO;
     private final TemplateStatusUpdateService templateStatusUpdateService;
-    private final AuthService authService;
+    private final TemplateAuthService templateAuthService;
     private final MessageI18nService i18nService;
     private final DSLContext dslContext;
     private TaskTemplateService taskTemplateService;
@@ -127,7 +123,7 @@ public class ScriptServiceImpl implements ScriptService {
         @Qualifier("TaskTemplateScriptStepDAOImpl") TaskScriptStepDAO taskScriptStepDAO,
         TaskTemplateDAO taskTemplateDAO,
         TemplateStatusUpdateService templateStatusUpdateService,
-        AuthService authService,
+        TemplateAuthService templateAuthService,
         MessageI18nService i18nService) {
         this.dslContext = dslContext;
         this.scriptDAO = scriptDAO;
@@ -139,7 +135,7 @@ public class ScriptServiceImpl implements ScriptService {
         this.taskScriptStepDAO = taskScriptStepDAO;
         this.taskTemplateDAO = taskTemplateDAO;
         this.templateStatusUpdateService = templateStatusUpdateService;
-        this.authService = authService;
+        this.templateAuthService = templateAuthService;
         this.i18nService = i18nService;
     }
 
@@ -825,9 +821,7 @@ public class ScriptServiceImpl implements ScriptService {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
         // 鉴权
-        Set<Long> authTemplateIds = new HashSet<>();
-        PermissionActionResource actionResource = new PermissionActionResource();
-        actionResource.setActionId(ActionId.EDIT_JOB_TEMPLATE);
+        List<Long> authTemplateIds = new ArrayList<>();
         templateStepIDs.forEach(step -> {
             TaskTemplateInfoDTO taskTemplate = taskTemplateService.getTaskTemplateBasicInfoById(step.getTemplateId());
             if (appId > 0 && taskTemplate != null && !taskTemplate.getAppId().equals(appId)) {
@@ -837,16 +831,13 @@ public class ScriptServiceImpl implements ScriptService {
                 step.setAppId(taskTemplate.getAppId());
                 if (!authTemplateIds.contains(step.getTemplateId())) {
                     authTemplateIds.add(step.getTemplateId());
-                    actionResource.addResource(ResourceTypeEnum.TEMPLATE, String.valueOf(step.getTemplateId()),
-                        PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(),
-                            String.valueOf(taskTemplate.getAppId())).build());
                 }
             }
         });
-        AuthResult authResult = authService.auth(
-            true,
+        AuthResult authResult = templateAuthService.batchAuthResultEditJobTemplate(
             username,
-            Collections.singletonList(actionResource)
+            new AppResourceScope(appId),
+            authTemplateIds
         );
         if (!authResult.isPass()) {
             log.info("Sync script to template auth fail, scriptId: {}, syncScriptVersionId: {}, template steps: {}",

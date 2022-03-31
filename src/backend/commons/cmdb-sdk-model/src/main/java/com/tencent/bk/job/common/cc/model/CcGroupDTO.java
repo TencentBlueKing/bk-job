@@ -52,7 +52,7 @@ public class CcGroupDTO {
     public DynamicGroupInfoDTO toDynamicGroupInfo() {
         DynamicGroupInfoDTO dynamicGroupInfoDTO = new DynamicGroupInfoDTO();
         dynamicGroupInfoDTO.setId(this.getId());
-        dynamicGroupInfoDTO.setAppId(this.getBizId());
+        dynamicGroupInfoDTO.setBizId(this.getBizId());
         dynamicGroupInfoDTO.setName(this.getName());
         return dynamicGroupInfoDTO;
     }

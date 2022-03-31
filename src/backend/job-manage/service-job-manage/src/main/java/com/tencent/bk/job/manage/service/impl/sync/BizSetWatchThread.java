@@ -34,10 +34,12 @@ import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.exception.DataAccessException;
@@ -68,15 +70,17 @@ public class BizSetWatchThread extends Thread {
     private final RedisTemplate<String, String> redisTemplate;
     private final ApplicationService applicationService;
     private final IBizSetCmdbClient bizSetCmdbClient;
+    private final BizSetService bizSetService;
     private final Tracing tracing;
 
     public BizSetWatchThread(RedisTemplate<String, String> redisTemplate,
                              ApplicationService applicationService,
                              IBizSetCmdbClient bizSetCmdbClient,
-                             Tracing tracing) {
+                             BizSetService bizSetService, Tracing tracing) {
         this.redisTemplate = redisTemplate;
         this.applicationService = applicationService;
         this.bizSetCmdbClient = bizSetCmdbClient;
+        this.bizSetService = bizSetService;
         this.tracing = tracing;
         this.setName("[" + getId() + "]-BizSetWatchThread-");
     }
@@ -89,6 +93,14 @@ public class BizSetWatchThread extends Thread {
             // 从10分钟前开始watch
             long startTime = System.currentTimeMillis() / 1000 - 10 * 60;
             try {
+                if (!bizSetService.isBizSetMigratedToCMDB()) {
+                    log.warn("Job BizSets have not been migrated to CMDB, " +
+                        "do not watch bizSet event from CMDB, " +
+                        "please use upgrader in package to migrate as soon as possible"
+                    );
+                    ThreadUtils.sleep(5000);
+                    continue;
+                }
                 boolean lockGotten = LockUtils.tryGetDistributedLock(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK,
                     machineIp, 50);
                 if (!lockGotten) {
@@ -215,7 +227,7 @@ public class BizSetWatchThread extends Thread {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 try {
                     if (cachedApp != null) {
-                        cachedApp.updateProps(latestApp);
+                        updateBizSetProps(cachedApp, latestApp);
                         if (!cachedApp.isDeleted()) {
                             applicationService.updateApp(cachedApp);
                         } else {
@@ -244,6 +256,14 @@ public class BizSetWatchThread extends Thread {
                 log.info("No need to handle event: {}", event);
                 break;
         }
+    }
+
+    private void updateBizSetProps(ApplicationDTO originApp, ApplicationDTO updateApp) {
+        originApp.setName(updateApp.getName());
+        originApp.setBkSupplierAccount(updateApp.getBkSupplierAccount());
+        originApp.setLanguage(updateApp.getLanguage());
+        originApp.setMaintainers(updateApp.getMaintainers());
+        originApp.setTimeZone(updateApp.getTimeZone());
     }
 
 }

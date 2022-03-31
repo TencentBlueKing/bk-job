@@ -157,7 +157,7 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
         EsbGetJobInstanceLogRequest req = new EsbGetJobInstanceLogRequest();
         req.setAppCode(appCode);
         req.setUserName(username);
-        req.setBkBizId(appId);
+        req.setBizId(appId);
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);

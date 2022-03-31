@@ -98,6 +98,8 @@ public class BizSyncService extends BasicAppSyncService {
         log.info(String.format("biz app updateList scopeIds:%s", String.join(",",
             updateList.stream().map(applicationInfoDTO ->
                 applicationInfoDTO.getScope().getId()).collect(Collectors.toSet()))));
+        // 将本地业务的appId赋给CMDB拿到的业务
+        updateAppIdByScope(updateList, genScopeAppIdMap(localBizApps));
         // 本地-CMDB：计算需要删除的业务
         deleteList =
             localBizApps.stream().filter(bizAppInfoDTO ->

@@ -54,7 +54,7 @@ public interface EsbCronJobV3Resource {
     EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "id", required = false) Long id,
@@ -72,7 +72,7 @@ public interface EsbCronJobV3Resource {
     @GetMapping("/get_cron_detail")
     EsbResp<EsbCronInfoV3DTO> getCronDetail(@RequestHeader(value = JobCommonHeaders.USERNAME) String username,
                                             @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-                                            @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+                                            @RequestParam(value = "bk_biz_id", required = false) Long bizId,
                                             @RequestParam(value = "bk_scope_type", required = false) String scopeType,
                                             @RequestParam(value = "bk_scope_id", required = false) String scopeId,
                                             @RequestParam(value = "id") Long id);

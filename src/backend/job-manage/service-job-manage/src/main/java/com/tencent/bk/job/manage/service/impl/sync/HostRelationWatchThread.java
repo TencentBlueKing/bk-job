@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -37,6 +38,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
@@ -79,21 +81,29 @@ public class HostRelationWatchThread extends Thread {
     private final SyncService syncService;
     private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final List<AppHostRelationEventsHandler> eventsHandlerList;
+    private final HostCache hostCache;
+
     private final BlockingQueue<ResourceEvent<HostRelationEventDetail>> appHostRelationEventQueue =
         new LinkedBlockingQueue<>(10000);
+
     private final Integer MAX_HANDLER_NUM = 1;
     private final String REDIS_KEY_RESOURCE_WATCH_HOST_RELATION_JOB_RUNNING_MACHINE = "resource-watch-host-relation" +
         "-job-running-machine";
 
-    public HostRelationWatchThread(DSLContext dslContext, ApplicationHostDAO applicationHostDAO,
-                                   HostTopoDAO hostTopoDAO, RedisTemplate<String, String> redisTemplate,
-                                   SyncService syncService, AppHostsUpdateHelper appHostsUpdateHelper) {
+    public HostRelationWatchThread(DSLContext dslContext,
+                                   ApplicationHostDAO applicationHostDAO,
+                                   HostTopoDAO hostTopoDAO,
+                                   RedisTemplate<String, String> redisTemplate,
+                                   SyncService syncService,
+                                   AppHostsUpdateHelper appHostsUpdateHelper,
+                                   HostCache hostCache) {
         this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.redisTemplate = redisTemplate;
         this.syncService = syncService;
         this.appHostsUpdateHelper = appHostsUpdateHelper;
+        this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostRelationWatchThread-" + instanceNum.getAndIncrement());
         this.eventsHandlerList = new ArrayList<>();
         // 初始内置1个Handler
@@ -166,6 +176,7 @@ public class HostRelationWatchThread extends Thread {
     private void handleOneEventIndeed(ResourceEvent<HostRelationEventDetail> event) {
         String eventType = event.getEventType();
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
+        ApplicationHostDTO host;
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
                 // 尝试插入
@@ -192,6 +203,10 @@ public class HostRelationWatchThread extends Thread {
                         log.warn("Fail to trigger extra sync of appId:{}", hostTopoDTO.getBizId());
                     }
                 }
+                host = applicationHostDAO.getHostById(hostTopoDTO.getHostId());
+                if (host != null) {
+                    hostCache.addOrUpdateHost(host);
+                }
                 break;
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 log.warn("Unexpected event:hostRelation Update");
@@ -200,6 +215,25 @@ public class HostRelationWatchThread extends Thread {
                 // 删除
                 hostTopoDAO.deleteHostTopo(dslContext, hostTopoDTO.getHostId(), hostTopoDTO.getBizId(),
                     hostTopoDTO.getSetId(), hostTopoDTO.getModuleId());
+                host = applicationHostDAO.getHostById(hostTopoDTO.getHostId());
+                if (host == null) {
+                    return;
+                }
+                int curAppRelationCount = hostTopoDAO.countHostTopo(
+                    dslContext, hostTopoDTO.getBizId(), hostTopoDTO.getHostId()
+                );
+                int hostRelationCount = hostTopoDAO.countHostTopo(
+                    dslContext, null, hostTopoDTO.getHostId()
+                );
+                if (curAppRelationCount == 0) {
+                    if (hostRelationCount == 0) {
+                        // 主机被移除
+                        hostCache.deleteHost(host);
+                    } else {
+                        // 主机被转移到其他业务下
+                        hostCache.addOrUpdateHost(host);
+                    }
+                }
                 break;
             default:
                 break;
@@ -278,7 +312,7 @@ public class HostRelationWatchThread extends Thread {
                 StopWatch watch = new StopWatch("hostRelationWatch");
                 watch.start("total");
                 try {
-                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
                     ResourceWatchResult<HostRelationEventDetail> hostRelationWatchResult;
                     while (hostRelationWatchFlag.get()) {
                         if (cursor == null) {

@@ -199,7 +199,7 @@ public class HostSyncService {
         Long bizId = Long.valueOf(applicationDTO.getScope().getId());
         Long cmdbInterfaceTimeConsuming = 0L;
         Long writeToDBTimeConsuming = 0L;
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         StopWatch bizHostsWatch = new StopWatch();
         bizHostsWatch.start("getHostsByAppInfo from CMDB");
         Long startTime = System.currentTimeMillis();

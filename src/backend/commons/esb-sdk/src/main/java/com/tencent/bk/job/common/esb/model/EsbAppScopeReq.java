@@ -54,7 +54,7 @@ public class EsbAppScopeReq extends EsbReq {
     @CompatibleImplementation(explain = "兼容字段,表示业务ID或者业务集ID", version = "3.6.x")
     @JsonProperty("bk_biz_id")
     @Min(value = 1L, message = "{validation.constraints.InvalidBkBizId.message}", groups = UseBkBizIdParam.class)
-    private Long bkBizId;
+    private Long bizId;
 
     /**
      * 资源范围类型
@@ -91,19 +91,19 @@ public class EsbAppScopeReq extends EsbReq {
     public void fillAppResourceScope(AppScopeMappingService appScopeMappingService) {
         boolean isExistScopeParam = StringUtils.isNotEmpty(this.scopeType) &&
             StringUtils.isNotEmpty(this.scopeId);
-        boolean isExistBkBizIdParam = this.bkBizId != null;
+        boolean isExistBkBizIdParam = this.bizId != null;
         if (isExistScopeParam) {
             this.appId = appScopeMappingService.getAppIdByScope(this.scopeType, this.scopeId);
         } else if (isExistBkBizIdParam) {
-            // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bkBizId解析为业务集
-            this.scopeId = String.valueOf(this.bkBizId);
-            if (this.bkBizId >= 8000000L && this.bkBizId <= 9999999L) {
+            // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
+            this.scopeId = String.valueOf(this.bizId);
+            if (this.bizId >= 8000000L && this.bizId <= 9999999L) {
                 this.appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(),
-                    String.valueOf(this.bkBizId));
+                    String.valueOf(this.bizId));
                 this.scopeType = ResourceScopeTypeEnum.BIZ_SET.getValue();
             } else {
                 this.appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(),
-                    String.valueOf(this.bkBizId));
+                    String.valueOf(this.bizId));
                 this.scopeType = ResourceScopeTypeEnum.BIZ.getValue();
             }
         } else {
@@ -113,6 +113,6 @@ public class EsbAppScopeReq extends EsbReq {
     }
 
     public AppResourceScope getAppResourceScope() {
-        return new AppResourceScope(this.scopeType, this.scopeId, this.bkBizId);
+        return new AppResourceScope(this.scopeType, this.scopeId, this.appId);
     }
 }

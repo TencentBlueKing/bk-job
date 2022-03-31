@@ -189,11 +189,18 @@ public class FileWorkerDTO {
         fileWorkerVO.setId(id);
 
         fileWorkerVO.setAppId(appId);
-        AppScopeMappingService appScopeMappingService =
-            ApplicationContextRegister.getBean(AppScopeMappingService.class);
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
-        fileWorkerVO.setScopeType(resourceScope.getType().getValue());
-        fileWorkerVO.setScopeId(resourceScope.getId());
+        if (appId != null && appId > 0) {
+            // 具体的业务/业务集
+            AppScopeMappingService appScopeMappingService =
+                ApplicationContextRegister.getBean(AppScopeMappingService.class);
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+            fileWorkerVO.setScopeType(resourceScope.getType().getValue());
+            fileWorkerVO.setScopeId(resourceScope.getId());
+        } else {
+            // 非具体业务的公共FileWorker
+            fileWorkerVO.setScopeType(null);
+            fileWorkerVO.setScopeId(null);
+        }
 
         fileWorkerVO.setName(name);
         fileWorkerVO.setDescription(description);

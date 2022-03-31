@@ -26,7 +26,9 @@ package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
@@ -35,7 +37,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Job业务操作公共逻辑
@@ -47,7 +51,7 @@ public class BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final ApplicationService applicationService;
-    protected final IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+    protected final IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
 
     @Autowired
     public BasicAppSyncService(DSLContext dslContext,
@@ -60,10 +64,33 @@ public class BasicAppSyncService {
         this.applicationService = applicationService;
     }
 
+    protected Map<String, Long> genScopeAppIdMap(List<ApplicationDTO> appList) {
+        Map<String, Long> scopeAppIdMap = new HashMap<>();
+        for (ApplicationDTO app : appList) {
+            ResourceScope scope = app.getScope();
+            scopeAppIdMap.put(
+                scope.getType().getValue() + "_" + scope.getId(),
+                app.getId()
+            );
+        }
+        return scopeAppIdMap;
+    }
+
+    protected void updateAppIdByScope(List<ApplicationDTO> appList, Map<String, Long> scopeAppIdMap) {
+        for (ApplicationDTO appDTO : appList) {
+            ResourceScope scope = appDTO.getScope();
+            appDTO.setId(scopeAppIdMap.get(scope.getType().getValue() + "_" + scope.getId()));
+        }
+    }
+
     protected void deleteApp(ApplicationDTO applicationDTO) {
         log.info("deleteAppFromDb:" + applicationDTO.getId());
         //先删Job业务对应主机
-        applicationHostDAO.deleteBizHostInfoByBizId(dslContext, applicationDTO.getId());
+        if (applicationDTO.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+            applicationHostDAO.deleteBizHostInfoByBizId(
+                dslContext, Long.parseLong(applicationDTO.getScope().getId())
+            );
+        }
         //再删Job业务本身
         applicationService.deleteApp(applicationDTO.getId());
     }

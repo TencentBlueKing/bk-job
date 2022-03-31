@@ -75,7 +75,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
     @Override
     public EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>> getPlanList(String username,
                                                                      String appCode,
-                                                                  Long bkBizId,
+                                                                     Long bizId,
                                                                      String scopeType,
                                                                      String scopeId,
                                                                      Long templateId,
@@ -91,7 +91,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
         EsbGetPlanListV3Request request = new EsbGetPlanListV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTemplateId(templateId);
@@ -108,12 +108,12 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
     }
 
     @Override
-    public EsbResp<EsbPlanInfoV3DTO> getPlanDetail(String username, String appCode, Long bkBizId,
+    public EsbResp<EsbPlanInfoV3DTO> getPlanDetail(String username, String appCode, Long bizId,
                                                    String scopeType, String scopeId, Long planId) {
         EsbGetPlanDetailV3Request request = new EsbGetPlanDetailV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setPlanId(planId);

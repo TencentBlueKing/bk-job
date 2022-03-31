@@ -205,7 +205,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
     @Override
     public EsbResp<EsbIpLogV3DTO> getJobInstanceIpLog(String username,
                                                       String appCode,
-                                                   Long bkBizId,
+                                                      Long bizId,
                                                       String scopeType,
                                                       String scopeId,
                                                       Long taskInstanceId,
@@ -215,7 +215,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
         EsbGetJobInstanceIpLogV3Request request = new EsbGetJobInstanceIpLogV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setBkBizId(bkBizId);
+        request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);

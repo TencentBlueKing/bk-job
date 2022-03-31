@@ -103,12 +103,6 @@ public class EsbGetCronListV3Request extends EsbAppScopeReq {
 
     public boolean validate() {
 
-        if (id != null && id > 0) {
-            return true;
-        } else {
-            id = null;
-        }
-
         if (StringUtils.isEmpty(name)) {
             name = null;
         }
@@ -143,6 +137,12 @@ public class EsbGetCronListV3Request extends EsbAppScopeReq {
 
         if (length == null || length < 0) {
             length = 20;
+        }
+
+        if (id != null && id > 0) {
+            return true;
+        } else {
+            id = null;
         }
 
         return true;
