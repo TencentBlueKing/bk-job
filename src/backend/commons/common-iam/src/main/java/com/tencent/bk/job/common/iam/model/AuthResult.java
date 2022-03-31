@@ -84,14 +84,17 @@ public class AuthResult {
             return;
         }
 
+        // 根据actionId从已经添加过的权限操作资源中找出已有的actionId相同的资源，没有则创建一个新的
         PermissionActionResource actionResource = createOrGetPermissionActionResource(actionId);
 
         PermissionResourceGroup resourceGroup = null;
+        // 找出已经添加过的同类别依赖资源分组
         for (PermissionResourceGroup existedResourceGroup : actionResource.getResourceGroups()) {
             if (existedResourceGroup.getResourceType() == permissionResource.getResourceType()) {
                 resourceGroup = existedResourceGroup;
             }
         }
+        // 第一次添加权限依赖资源
         if (resourceGroup == null) {
             resourceGroup = new PermissionResourceGroup();
             resourceGroup.setResourceType(permissionResource.getResourceType());
