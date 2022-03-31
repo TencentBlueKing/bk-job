@@ -145,22 +145,48 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public List<ApplicationDTO> listBizAppsByBizIds(Collection<Long> bizIds) {
+        return applicationDAO.listBizAppsByBizIds(bizIds);
+    }
+
+    @Override
     public List<Long> getBizSetAppIdsForBiz(Long appId) {
         //1.查找包含当前业务的业务集、全业务
         List<Long> fullAppIds = new ArrayList<>();
         fullAppIds.add(appId);
-        List<ApplicationDTO> appSets = applicationDAO.listAppsByType(AppTypeEnum.APP_SET);
-        if (appSets != null && !appSets.isEmpty()) {
-            appSets.forEach(appSet -> {
-                List<Long> subAppIds = topologyHelper.getAppSetSubAppIds(appSet);
+        //获取所有业务
+        List<ApplicationDTO> allAppList = applicationDAO.listAllApps();
+        if (allAppList != null && !allAppList.isEmpty()) {
+            //根据AppTypeEnum分组
+            Map<AppTypeEnum, List<ApplicationDTO>> allAppTypeGroupMap =
+                allAppList.stream().collect(Collectors.groupingBy(ApplicationDTO::getAppType));
+
+            //获取普通业务
+            List<ApplicationDTO> normalAppList = allAppTypeGroupMap.get(AppTypeEnum.NORMAL) == null ?
+                allAppTypeGroupMap.get(AppTypeEnum.NORMAL) : new ArrayList<ApplicationDTO>();
+
+            //普通业务按部门分组
+            Map<Long, List<ApplicationDTO>> normalAppGroupMap = normalAppList.stream().collect(
+                Collectors.groupingBy(ApplicationDTO::getOperateDeptId));
+
+            //查找包含当前业务的业务集
+            allAppTypeGroupMap.get(AppTypeEnum.APP_SET).stream().forEach(appSet -> {
+                List<Long> subAppIds = appSet.getSubAppIds() == null ? new ArrayList<Long>() : appSet.getSubAppIds();
+                Long optDeptId = appSet.getOperateDeptId();
+                if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
+                    List<Long> normalAppIdList =
+                        normalAppGroupMap.get(optDeptId).stream().map(a -> a.getId()).collect(Collectors.toList());
+                    subAppIds.addAll(normalAppIdList);
+                }
                 if (subAppIds.contains(appId)) {
                     fullAppIds.add(appSet.getId());
                 }
             });
-        }
-        List<ApplicationDTO> allAppRecords = applicationDAO.listAppsByType(AppTypeEnum.ALL_APP);
-        if (allAppRecords != null && !allAppRecords.isEmpty()) {
-            allAppRecords.forEach(record -> fullAppIds.add(record.getId()));
+            //处理全业务
+            List<ApplicationDTO> allAppSetList = allAppTypeGroupMap.get(AppTypeEnum.NORMAL);
+            if (allAppSetList != null && !allAppSetList.isEmpty()) {
+                allAppSetList.forEach(record -> fullAppIds.add(record.getId()));
+            }
         }
         return fullAppIds;
     }
