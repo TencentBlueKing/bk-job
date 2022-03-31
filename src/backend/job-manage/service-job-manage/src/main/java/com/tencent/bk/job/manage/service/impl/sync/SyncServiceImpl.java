@@ -234,10 +234,10 @@ public class SyncServiceImpl implements SyncService {
                 bizSetRelationWatchThread = new BizSetRelationWatchThread(
                     redisTemplate, applicationService, bizSetCmdbClient, bizSetService, tracing
                 );
+                bizSetRelationWatchThread.start();
             } else {
                 log.info("Cmdb biz set is disabled, ignore related event");
             }
-            bizSetRelationWatchThread.start();
         } else {
             log.info("resourceWatch not enabled, you can enable it in config file");
         }
