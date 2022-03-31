@@ -72,7 +72,7 @@ import java.util.Properties;
 })
 @UpgradeTask(
     dataStartVersion = "3.0.0.0",
-    targetVersion = "3.5.0.0",
+    targetVersion = "3.5.0",
     targetExecuteTime = ExecuteTimeEnum.AFTER_UPDATE_JOB)
 public class BizSetCreateMigrationTask extends BaseUpgradeTask {
 

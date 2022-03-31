@@ -137,7 +137,7 @@
                 QueryGlobalSettingService.fetchApplyBusinessUrl({
                     scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
                     scopeId: window.PROJECT_CONFIG.SCOPE_ID,
-                    // appId: window.PROJECT_CONFIG.APP_ID,
+                    resourceId: window.PROJECT_CONFIG.SCOPE_ID,
                 }).then((data) => {
                     window.open(data);
                 })

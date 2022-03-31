@@ -302,6 +302,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
 
     private Map<String, Map<String, List<PermissionResource>>> groupResourcesByActionAndResourceType(
         List<PermissionActionResource> permissionActionResources) {
+        // Map<actionId, Map<resourceType, resourceList>>
         Map<String, Map<String, List<PermissionResource>>> resourcesGroupByActionAndType = new HashMap<>();
         permissionActionResources.forEach(actionResource ->
             resourcesGroupByActionAndType.compute(actionResource.getActionId(), (actionId, resourcesGroupByType) -> {
