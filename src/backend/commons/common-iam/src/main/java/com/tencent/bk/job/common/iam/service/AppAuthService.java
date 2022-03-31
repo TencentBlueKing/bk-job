@@ -90,5 +90,5 @@ public interface AppAuthService {
 
     AppResourceScopeResult getAppResourceScopeList(String username, List<AppResourceScope> allAppResourceScopeList);
 
-    String getBusinessApplyUrl(Long appId);
+    String getBusinessApplyUrl(AppResourceScope appResourceScope);
 }
