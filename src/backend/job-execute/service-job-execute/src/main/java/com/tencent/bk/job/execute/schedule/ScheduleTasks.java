@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.schedule;
 
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.execute.schedule.tasks.SyncAppAndRefreshCacheTask;
-import com.tencent.bk.job.execute.schedule.tasks.SyncAppHostAndRefreshCacheTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -37,24 +36,11 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 @Slf4j
 public class ScheduleTasks {
-    private final SyncAppHostAndRefreshCacheTask syncAppHostAndRefreshCacheTask;
     private final SyncAppAndRefreshCacheTask syncAppAndRefreshCacheTask;
 
     @Autowired
-    public ScheduleTasks(SyncAppHostAndRefreshCacheTask SyncAppHostAndRefreshCacheTask,
-                         SyncAppAndRefreshCacheTask syncAppAndRefreshCacheTask) {
-        this.syncAppHostAndRefreshCacheTask = SyncAppHostAndRefreshCacheTask;
+    public ScheduleTasks(SyncAppAndRefreshCacheTask syncAppAndRefreshCacheTask) {
         this.syncAppAndRefreshCacheTask = syncAppAndRefreshCacheTask;
-    }
-
-    @Scheduled(cron = "0 0/5 * * * ?")
-    public void syncAndRefreshHost() {
-        if (!LockUtils.tryGetDistributedLock("job-execute-sync-host", "sync-host", 60_000)) {
-            log.info("Fail to get sync host lock!Skip sync.");
-            return;
-        }
-        log.info("Get job-execute-sync-host lock successfully!");
-        syncAppHostAndRefreshCacheTask.execute();
     }
 
     @Scheduled(cron = "0 * * * * ?")

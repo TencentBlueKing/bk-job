@@ -28,10 +28,10 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbCredentialV3Resource;
 import com.tencent.bk.job.manage.api.inner.ServiceCredentialResource;
 import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
@@ -49,38 +49,30 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
     private final ServiceCredentialResource credentialService;
-    private final AuthService authService;
-    private final MessageI18nService i18nService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbCredentialResourceV3Impl(ServiceCredentialResource credentialService, AuthService authService,
-                                       MessageI18nService i18nService) {
+    public EsbCredentialResourceV3Impl(ServiceCredentialResource credentialService,
+                                       AppScopeMappingService appScopeMappingService) {
         this.credentialService = credentialService;
-        this.authService = authService;
-        this.i18nService = i18nService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public EsbResp<EsbCredentialSimpleInfoV3DTO> createCredential(EsbCreateOrUpdateCredentialV3Req req) {
+        req.fillAppResourceScope(appScopeMappingService);
         checkCreateParam(req);
         return saveCredential(req);
     }
 
     @Override
     public EsbResp<EsbCredentialSimpleInfoV3DTO> updateCredential(EsbCreateOrUpdateCredentialV3Req req) {
+        req.fillAppResourceScope(appScopeMappingService);
         checkUpdateParam(req);
         return saveCredential(req);
     }
 
-    private void checkAppId(Long appId) {
-        if (appId == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"bk_biz_id", "bk_biz_id cannot be null"});
-        }
-    }
-
     private void checkCreateParam(EsbCreateOrUpdateCredentialV3Req req) {
-        checkAppId(req.getAppId());
         String name = req.getName();
         String type = req.getType();
         if (StringUtils.isBlank(name)) {
@@ -94,7 +86,6 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
     }
 
     private void checkUpdateParam(EsbCreateOrUpdateCredentialV3Req req) {
-        checkAppId(req.getAppId());
         if (StringUtils.isBlank(req.getId())) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"id", "id cannot be null or blank"});
@@ -118,9 +109,7 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
             );
         }
         if (resp.getAuthResult() != null) {
-            return authService.buildEsbAuthFailResp(
-                AuthResult.fromAuthResultDTO(resp.getAuthResult()).getRequiredActionResources()
-            );
+            throw new PermissionDeniedException(AuthResult.fromAuthResultDTO(resp.getAuthResult()));
         } else if (!resp.isSuccess()) {
             throw new InternalException(resp.getCode());
         }

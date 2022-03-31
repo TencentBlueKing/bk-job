@@ -191,7 +191,7 @@
                 // 列表为空
                 if (this.list.length < 1) {
                     return (
-                    <div class="jb-bk-search-list-loading">{ this.searchSelect.remoteEmptyText }</div>
+                    <div class="search-loading">{ this.searchSelect.remoteEmptyText }</div>
                     );
                 }
 

@@ -24,21 +24,21 @@
 */
 
 import _ from 'lodash';
-import { ROUTER_HISTORY_CACHE } from '@utils/constants';
 
-export const appIdCache = {
-    key: 'job_app_id',
+export const scopeCache = {
+    key: 'scope',
     setItem (value) {
-        localStorage.setItem(appIdCache.key, value);
+        localStorage.setItem(scopeCache.key, JSON.stringify(value));
     },
     getItem () {
-        return ~~localStorage.getItem(appIdCache.key);
+        return JSON.parse(localStorage.getItem(scopeCache.key) || '{}');
     },
 };
 
 export const routerCache = {
+    key: 'router_history',
     setItem (key, value) {
-        let cacheMap = JSON.parse(localStorage.getItem(ROUTER_HISTORY_CACHE));
+        let cacheMap = JSON.parse(localStorage.getItem(routerCache.key));
         if (_.isPlainObject(cacheMap)) {
             cacheMap[key] = value;
         } else {
@@ -46,10 +46,10 @@ export const routerCache = {
                 [key]: value,
             };
         }
-        localStorage.setItem(ROUTER_HISTORY_CACHE, JSON.stringify(cacheMap));
+        localStorage.setItem(routerCache.key, JSON.stringify(cacheMap));
     },
     getItem (key) {
-        const cacheMap = JSON.parse(localStorage.getItem(ROUTER_HISTORY_CACHE));
+        const cacheMap = JSON.parse(localStorage.getItem(routerCache.key));
         if (_.isPlainObject(cacheMap)) {
             if (!key) {
                 return cacheMap;
@@ -64,7 +64,7 @@ export const routerCache = {
         if (!key) {
             return false;
         }
-        const cacheMap = JSON.parse(localStorage.getItem(ROUTER_HISTORY_CACHE));
+        const cacheMap = JSON.parse(localStorage.getItem(routerCache.key));
         if (!cacheMap) {
             return false;
         }
@@ -72,7 +72,7 @@ export const routerCache = {
             return true;
         }
         delete cacheMap[key];
-        localStorage.setItem(ROUTER_HISTORY_CACHE, JSON.stringify(cacheMap));
+        localStorage.setItem(routerCache.key, JSON.stringify(cacheMap));
         return true;
     },
 };

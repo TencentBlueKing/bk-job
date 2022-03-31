@@ -25,9 +25,9 @@
 package com.tencent.bk.job.manage.dao.whiteip.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPActionScopeDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPAppRelDAO;
@@ -42,6 +42,7 @@ import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -99,17 +100,18 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     private WhiteIPAppRelDAO whiteIPAppRelDAO;
     private ActionScopeDAO actionScopeDAO;
     private WhiteIPActionScopeDAO whiteIPActionScopeDAO;
-    private ApplicationInfoDAO applicationInfoDAO;
+    private ApplicationDAO applicationDAO;
+
     @Autowired
     public WhiteIPRecordDAOImpl(WhiteIPIPDAO whiteIPIPDAO, WhiteIPAppRelDAO whiteIPAppRelDAO,
                                 ActionScopeDAO actionScopeDAO, WhiteIPActionScopeDAO whiteIPActionScopeDAO,
-                                ApplicationInfoDAO applicationInfoDAO,
+                                ApplicationDAO applicationDAO,
                                 @Qualifier("job-manage-dsl-context") DSLContext defaultContext) {
         this.whiteIPIPDAO = whiteIPIPDAO;
         this.whiteIPAppRelDAO = whiteIPAppRelDAO;
         this.actionScopeDAO = actionScopeDAO;
         this.whiteIPActionScopeDAO = whiteIPActionScopeDAO;
-        this.applicationInfoDAO = applicationInfoDAO;
+        this.applicationDAO = applicationDAO;
         this.defaultContext = defaultContext;
     }
 
@@ -283,7 +285,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             tWhiteIPRecord.ID
         ).from(tWhiteIPRecord);
         val records = query.fetch();
-        if (records != null && records.isNotEmpty()) {
+        if (CollectionUtils.isNotEmpty(records)) {
             recordIdList = records.map(it -> it.get(tWhiteIPRecord.ID)).parallelStream().collect(Collectors.toList());
         }
         return recordIdList;
@@ -355,7 +357,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             .limit(start, length);
         LOG.info(query.getSQL(true));
         val records = query.fetch();
-        if (records != null && records.size() > 0) {
+        if (records.size() > 0) {
             return records.map(record -> {
                 val actionScopeIdListStr = (String) record.get(KEY_ACTION_SCOPE_ID_LIST);
                 List<String> actionScopeIdList = CustomCollectionUtils.getNoDuplicateList(actionScopeIdListStr, ",");
@@ -364,17 +366,21 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 ).collect(Collectors.toList());
                 val appIdListStr = (String) record.get(KEY_APP_ID_LIST);
                 List<String> appIdList = CustomCollectionUtils.getNoDuplicateList(appIdListStr, ",");
-                List<AppVO> appVOList = appIdList.stream().map(appId -> {
-                    ApplicationInfoDTO applicationInfoDTO =
-                        applicationInfoDAO.getCacheAppInfoById(Long.parseLong(appId));
-                    return new AppVO(
-                        applicationInfoDTO.getId(),
-                        applicationInfoDTO.getName(),
-                        applicationInfoDTO.getAppType().getValue(),
-                        null,
-                        null,
-                        null
-                    );
+                List<AppVO> appVOList = appIdList.stream().map(appIdStr -> {
+                    Long appId = Long.parseLong(appIdStr);
+                    ApplicationDTO applicationDTO =
+                        applicationDAO.getCacheAppById(appId);
+                    AppVO appVO = new AppVO();
+                    if (applicationDTO == null) {
+                        appVO.setId(appId);
+                        appVO.setName("[Deleted:" + appId + "]");
+                    } else {
+                        appVO.setName(applicationDTO.getName());
+                        appVO.setScopeType(applicationDTO.getScope().getType().getValue());
+                        appVO.setScopeId(applicationDTO.getScope().getId());
+                        appVO.setType(applicationDTO.getAppType().getValue());
+                    }
+                    return appVO;
                 }).collect(Collectors.toList());
                 val recordId = (Long) record.get(KEY_ID);
                 return new WhiteIPRecordVO(

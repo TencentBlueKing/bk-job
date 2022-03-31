@@ -25,8 +25,11 @@
 package com.tencent.bk.job.crontab.model.dto;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -186,6 +189,11 @@ public class CronJobInfoDTO {
         CronJobVO cronJobVO = new CronJobVO();
         cronJobVO.setId(cronJobInfo.getId());
         cronJobVO.setAppId(cronJobInfo.getAppId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(cronJobInfo.getAppId());
+        cronJobVO.setScopeType(resourceScope.getType().getValue());
+        cronJobVO.setScopeId(resourceScope.getId());
         cronJobVO.setName(cronJobInfo.getName());
         cronJobVO.setCreator(cronJobInfo.getCreator());
         cronJobVO.setCreateTime(cronJobInfo.getCreateTime());
@@ -225,6 +233,11 @@ public class CronJobInfoDTO {
         CronJobVO cronJobVO = new CronJobVO();
         cronJobVO.setId(cronJobInfo.getId());
         cronJobVO.setAppId(cronJobInfo.getAppId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(cronJobInfo.getAppId());
+        cronJobVO.setScopeType(resourceScope.getType().getValue());
+        cronJobVO.setScopeId(resourceScope.getId());
         cronJobVO.setName(cronJobInfo.getName());
         cronJobVO.setTaskTemplateId(cronJobInfo.getTaskTemplateId());
         cronJobVO.setTaskPlanId(cronJobInfo.getTaskPlanId());
@@ -288,7 +301,7 @@ public class CronJobInfoDTO {
         }
         EsbCronInfoResponse esbCronInfoResponse = new EsbCronInfoResponse();
         esbCronInfoResponse.setId(cronJobInfoDTO.getId());
-        esbCronInfoResponse.setAppId(cronJobInfoDTO.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(cronJobInfoDTO.getAppId(), esbCronInfoResponse);
         esbCronInfoResponse.setPlanId(cronJobInfoDTO.getTaskPlanId());
         esbCronInfoResponse.setName(cronJobInfoDTO.getName());
         esbCronInfoResponse.setStatus(cronJobInfoDTO.getEnable() ? 1 : 2);
@@ -311,7 +324,10 @@ public class CronJobInfoDTO {
         }
         EsbCronInfoV3DTO esbCronInfoV3DTO = new EsbCronInfoV3DTO();
         esbCronInfoV3DTO.setId(cronJobInfoDTO.getId());
-        esbCronInfoV3DTO.setAppId(cronJobInfoDTO.getAppId());
+
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(cronJobInfoDTO.getAppId(),
+            esbCronInfoV3DTO);
+
         esbCronInfoV3DTO.setPlanId(cronJobInfoDTO.getTaskPlanId());
         esbCronInfoV3DTO.setName(cronJobInfoDTO.getName());
         esbCronInfoV3DTO.setStatus(cronJobInfoDTO.getEnable() ? 1 : 2);
@@ -336,26 +352,16 @@ public class CronJobInfoDTO {
         return esbCronInfoV3DTO;
     }
 
-    public static ServiceTemplateNotificationDTO buildNotifyInfo(CronJobInfoDTO cronJobInfo) {
-        ServiceTemplateNotificationDTO notifyInfo = new ServiceTemplateNotificationDTO();
-        notifyInfo.setTriggerUser(cronJobInfo.getLastModifyUser());
-        notifyInfo.setAppId(cronJobInfo.getAppId());
-        notifyInfo.setReceiverInfo(cronJobInfo.getNotifyUser());
-        notifyInfo.setActiveChannels(cronJobInfo.getNotifyChannel());
-
-        Map<String, String> variableMap = new HashMap<>(8);
+    private static void addTaskBaseInfoToVarMap(Map<String, String> variableMap, CronJobInfoDTO cronJobInfo) {
         variableMap.put("task.id", cronJobInfo.getId().toString());
         variableMap.put("task.name", cronJobInfo.getName());
         variableMap.put("cron_name", cronJobInfo.getName());
         String notifyTimeStr = String.valueOf(cronJobInfo.getNotifyOffset() / 60);
         variableMap.put("notify_time", notifyTimeStr);
+        variableMap.put("task.cron.notify_time", notifyTimeStr);
         variableMap.put("cron_updater", cronJobInfo.getLastModifyUser());
         variableMap.put("task.operator", cronJobInfo.getLastModifyUser());
-        String cronUri =
-            "/" + cronJobInfo.getAppId() + "/cron/list?cronJobId=" + cronJobInfo.getId() + "&mode=detail";
-        variableMap.put("cron_uri", cronUri);
         variableMap.put("task.type", "定时任务");
-        variableMap.put("task.url", "{{BASE_HOST}}" + cronUri);
         variableMap.put("task.cron.plan_id", cronJobInfo.getTaskPlanId().toString());
         TaskPlanService taskPlanService = ApplicationContextRegister.getBean(TaskPlanService.class);
         ServiceTaskPlanDTO serviceTaskPlanDTO =
@@ -364,7 +370,31 @@ public class CronJobInfoDTO {
             throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         variableMap.put("task.cron.plan_name", serviceTaskPlanDTO.getName());
-        variableMap.put("task.cron.notify_time", notifyTimeStr);
+    }
+
+    private static void addTaskUrlToVarMap(Map<String, String> variableMap, CronJobInfoDTO cronJobInfo) {
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(cronJobInfo.getAppId());
+        String cronUri = "/" + resourceScope.getType().getValue() + "/" + resourceScope.getId() +
+            "/cron/list?cronJobId=" + cronJobInfo.getId() + "&mode=detail";
+        variableMap.put("task.url", "{{BASE_HOST}}" + cronUri);
+        variableMap.put("cron_uri", cronUri);
+    }
+
+    public static ServiceTemplateNotificationDTO buildNotifyInfo(CronJobInfoDTO cronJobInfo) {
+        ServiceTemplateNotificationDTO notifyInfo = new ServiceTemplateNotificationDTO();
+        notifyInfo.setTriggerUser(cronJobInfo.getLastModifyUser());
+        notifyInfo.setAppId(cronJobInfo.getAppId());
+        notifyInfo.setReceiverInfo(cronJobInfo.getNotifyUser());
+        notifyInfo.setActiveChannels(cronJobInfo.getNotifyChannel());
+
+        Map<String, String> variableMap = new HashMap<>(8);
+        // 添加任务基础信息
+        addTaskBaseInfoToVarMap(variableMap, cronJobInfo);
+        // 添加任务链接
+        addTaskUrlToVarMap(variableMap, cronJobInfo);
+
         long triggerTime;
         if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
             // 结束前通知
@@ -413,21 +443,10 @@ public class CronJobInfoDTO {
         notifyInfo.setTemplateCode(NotifyConsts.NOTIFY_TEMPLATE_CODE_CRON_EXECUTE_FAILED);
 
         Map<String, String> variableMap = new HashMap<>(8);
-        variableMap.put("task.id", cronJobInfo.getId().toString());
-        variableMap.put("task.name", cronJobInfo.getName());
-        variableMap.put("task.operator", cronJobInfo.getLastModifyUser());
-        String cronUri =
-            "/" + cronJobInfo.getAppId() + "/cron/list?cronJobId=" + cronJobInfo.getId() + "&mode=detail";
-        variableMap.put("task.type", "定时任务");
-        variableMap.put("task.url", "{{BASE_HOST}}" + cronUri);
-        variableMap.put("task.cron.plan_id", cronJobInfo.getTaskPlanId().toString());
-        TaskPlanService taskPlanService = ApplicationContextRegister.getBean(TaskPlanService.class);
-        ServiceTaskPlanDTO serviceTaskPlanDTO =
-            taskPlanService.getPlanBasicInfoById(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId());
-        if (serviceTaskPlanDTO == null) {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        }
-        variableMap.put("task.cron.plan_name", serviceTaskPlanDTO.getName());
+        // 添加任务基础信息
+        addTaskBaseInfoToVarMap(variableMap, cronJobInfo);
+        // 添加任务链接
+        addTaskUrlToVarMap(variableMap, cronJobInfo);
 
         if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
             // 结束前通知
@@ -461,7 +480,10 @@ public class CronJobInfoDTO {
         }
         EsbCronInfoV3DTO esbCronInfoResponse = new EsbCronInfoV3DTO();
         esbCronInfoResponse.setId(cronJobInfoDTO.getId());
-        esbCronInfoResponse.setAppId(cronJobInfoDTO.getAppId());
+
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(cronJobInfoDTO.getAppId(),
+            esbCronInfoResponse);
+
         esbCronInfoResponse.setPlanId(cronJobInfoDTO.getTaskPlanId());
         esbCronInfoResponse.setName(cronJobInfoDTO.getName());
         esbCronInfoResponse.setStatus(cronJobInfoDTO.getEnable() ? 1 : 0);

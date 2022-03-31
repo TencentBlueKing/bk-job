@@ -57,7 +57,7 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
 
     @Override
     public Long insertAnalysisTask(DSLContext dslContext, AnalysisTaskDTO analysisTaskDTO) {
-        String appIdsStr = StringUtil.listToStr(analysisTaskDTO.getAppIdList(), ",");
+        String appIdsStr = StringUtil.concatCollection(analysisTaskDTO.getAppIdList(), ",");
         val query = dslContext.insertInto(defaultTable,
             defaultTable.ID,
             defaultTable.CODE,
@@ -102,7 +102,7 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
     public int updateAnalysisTaskById(DSLContext dslContext, AnalysisTaskDTO analysisTaskDTO) {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.CODE, analysisTaskDTO.getCode())
-            .set(defaultTable.APP_IDS, StringUtil.listToStr(analysisTaskDTO.getAppIdList(), ","))
+            .set(defaultTable.APP_IDS, StringUtil.concatCollection(analysisTaskDTO.getAppIdList(), ","))
             .set(defaultTable.RESULT_DESCRIPTION_TEMPLATE, analysisTaskDTO.getResultDescriptionTemplate())
             .set(defaultTable.RESULT_DESCRIPTION_TEMPLATE_EN, analysisTaskDTO.getResultDescriptionTemplateEn())
             .set(defaultTable.RESULT_ITEM_TEMPLATE, analysisTaskDTO.getResultItemTemplate())

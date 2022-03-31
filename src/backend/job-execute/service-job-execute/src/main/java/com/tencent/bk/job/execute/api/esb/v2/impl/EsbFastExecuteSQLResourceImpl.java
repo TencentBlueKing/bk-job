@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -72,20 +73,26 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
 
     private final ScriptService scriptService;
 
+    private final AppScopeMappingService appScopeMappingService;
+
     @Autowired
     public EsbFastExecuteSQLResourceImpl(TaskExecuteService taskExecuteService,
                                          AccountService accountService,
                                          MessageI18nService i18nService,
-                                         ScriptService scriptService) {
+                                         ScriptService scriptService,
+                                         AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.i18nService = i18nService;
         this.scriptService = scriptService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_fast_execute_sql"})
     public EsbResp<EsbJobExecuteDTO> fastExecuteSQL(EsbFastExecuteSQLRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
+
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
         if (!validateResult.isPass()) {
             log.warn("Fast execute SQL request is illegal!");

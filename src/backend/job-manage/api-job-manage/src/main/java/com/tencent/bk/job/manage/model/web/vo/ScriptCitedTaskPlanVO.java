@@ -35,8 +35,17 @@ import lombok.ToString;
 @ToString
 @ApiModel("引用脚本的作业执行方案")
 public class ScriptCitedTaskPlanVO {
-    @ApiModelProperty("业务ID")
-    private Long appId;
+    /**
+     * 资源范围类型
+     */
+    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    private String scopeType;
+
+    /**
+     * 资源范围ID
+     */
+    @ApiModelProperty("资源范围ID")
+    private String scopeId;
     @ApiModelProperty("脚本版本号")
     private String scriptVersion;
     @ApiModelProperty("脚本状态")

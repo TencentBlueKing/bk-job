@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.manage.model.esb.EsbDBAccountDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetDBAccountListRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +46,9 @@ public interface EsbGetDBAccountListResource {
 
     @PostMapping("/get_own_db_account_list")
     EsbResp<List<EsbDBAccountDTO>> getUserOwnDbAccountList(
-        @RequestBody EsbGetDBAccountListRequest request);
+        @RequestBody
+        @Validated
+            EsbGetDBAccountListRequest request
+    );
 
 }

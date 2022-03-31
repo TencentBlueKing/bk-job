@@ -27,13 +27,13 @@ package com.tencent.bk.job.manage.api.inner.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
-import com.tencent.bk.job.manage.service.ApplicationHostService;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,21 +47,21 @@ import java.util.stream.Collectors;
 @RestController
 public class ServiceSyncResourceImpl implements ServiceSyncResource {
     private final ApplicationService applicationService;
-    private final ApplicationHostService applicationHostService;
+    private final HostService hostService;
     private final SyncService syncService;
 
 
     @Autowired
     public ServiceSyncResourceImpl(ApplicationService applicationService,
-                                   ApplicationHostService applicationHostService, SyncService syncService) {
+                                   HostService hostService, SyncService syncService) {
         this.applicationService = applicationService;
-        this.applicationHostService = applicationHostService;
+        this.hostService = hostService;
         this.syncService = syncService;
     }
 
     @Override
     public List<ServiceApplicationDTO> listAllApps() {
-        List<ApplicationInfoDTO> apps = applicationService.listAllAppsFromLocalDB();
+        List<ApplicationDTO> apps = applicationService.listAllApps();
         if (apps == null) {
             return null;
         }
@@ -69,7 +69,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
         return apps.stream().map(this::convertToServiceApp).collect(Collectors.toList());
     }
 
-    private ServiceApplicationDTO convertToServiceApp(ApplicationInfoDTO appInfo) {
+    private ServiceApplicationDTO convertToServiceApp(ApplicationDTO appInfo) {
         ServiceApplicationDTO app = new ServiceApplicationDTO();
         app.setName(appInfo.getName());
         app.setId(appInfo.getId());
@@ -85,7 +85,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
     @Override
     public InternalResponse<List<ServiceHostInfoDTO>> getHostByAppId(Long appId) {
         try {
-            List<ApplicationHostInfoDTO> hosts = applicationHostService.getHostsByAppId(appId);
+            List<ApplicationHostDTO> hosts = hostService.getHostsByAppId(appId);
             List<ServiceHostInfoDTO> serviceHosts = new ArrayList<>();
             if (hosts != null) {
                 serviceHosts =
@@ -99,18 +99,18 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
     }
 
     @Override
-    public InternalResponse<Boolean> syncHostByAppId(Long appId) {
-        return InternalResponse.buildSuccessResp(syncService.syncAppHosts(appId));
+    public InternalResponse<Boolean> syncHostByBizId(Long bizId) {
+        return InternalResponse.buildSuccessResp(syncService.syncBizHosts(bizId));
     }
 
     @Override
-    public InternalResponse<Boolean> enableAppWatch() {
-        return InternalResponse.buildSuccessResp(syncService.enableAppWatch());
+    public InternalResponse<Boolean> enableBizWatch() {
+        return InternalResponse.buildSuccessResp(syncService.enableBizWatch());
     }
 
     @Override
-    public InternalResponse<Boolean> disableAppWatch() {
-        return InternalResponse.buildSuccessResp(syncService.disableAppWatch());
+    public InternalResponse<Boolean> disableBizWatch() {
+        return InternalResponse.buildSuccessResp(syncService.disableBizWatch());
     }
 
     @Override
@@ -153,7 +153,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
         return InternalResponse.buildSuccessResp(syncService.disableSyncAgentStatus());
     }
 
-    private ServiceHostInfoDTO convertToServiceHostInfo(long appId, ApplicationHostInfoDTO hostInfo) {
+    private ServiceHostInfoDTO convertToServiceHostInfo(long appId, ApplicationHostDTO hostInfo) {
         ServiceHostInfoDTO serviceHostInfo = new ServiceHostInfoDTO();
         serviceHostInfo.setAppId(appId);
         serviceHostInfo.setCloudAreaId(hostInfo.getCloudAreaId());

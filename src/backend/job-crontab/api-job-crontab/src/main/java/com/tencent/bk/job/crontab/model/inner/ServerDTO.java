@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.crontab.model.inner;
 
-import com.tencent.bk.job.common.esb.model.job.EsbCCTopoNodeDTO;
+import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
-import com.tencent.bk.job.common.model.dto.CCTopoNodeDTO;
+import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
@@ -70,7 +70,7 @@ public class ServerDTO {
      * 拓扑节点列表
      */
     @ApiModelProperty(value = "分布式拓扑节点列表")
-    private List<CCTopoNodeDTO> topoNodes;
+    private List<CmdbTopoNodeDTO> topoNodes;
 
     public static TaskTargetVO toTargetVO(ServerDTO server) {
         if (server == null) {
@@ -87,7 +87,7 @@ public class ServerDTO {
         }
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
             taskHostNode.setTopoNodeList(server.getTopoNodes().parallelStream()
-                .map(CCTopoNodeDTO::toVO).collect(Collectors.toList()));
+                .map(CmdbTopoNodeDTO::toVO).collect(Collectors.toList()));
         }
         taskTarget.setHostNodeInfo(taskHostNode);
         return taskTarget;
@@ -110,7 +110,7 @@ public class ServerDTO {
             }
             if (CollectionUtils.isNotEmpty(hostNodeInfo.getTopoNodeList())) {
                 server.setTopoNodes(hostNodeInfo.getTopoNodeList().parallelStream()
-                    .map(CCTopoNodeDTO::fromVO).collect(Collectors.toList()));
+                    .map(CmdbTopoNodeDTO::fromVO).collect(Collectors.toList()));
             }
         }
         return server;
@@ -122,8 +122,8 @@ public class ServerDTO {
         }
         ServerDTO serverDTO = new ServerDTO();
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
-            List<CCTopoNodeDTO> topoNodes = new ArrayList<>();
-            server.getTopoNodes().forEach(topoNode -> topoNodes.add(new CCTopoNodeDTO(topoNode.getId(),
+            List<CmdbTopoNodeDTO> topoNodes = new ArrayList<>();
+            server.getTopoNodes().forEach(topoNode -> topoNodes.add(new CmdbTopoNodeDTO(topoNode.getId(),
                 topoNode.getNodeType())));
             serverDTO.setTopoNodes(topoNodes);
         }
@@ -158,7 +158,7 @@ public class ServerDTO {
         }
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
             esbServer.setTopoNodes(server.getTopoNodes().parallelStream()
-                .map(EsbCCTopoNodeDTO::fromCCTopoNode).collect(Collectors.toList()));
+                .map(EsbCmdbTopoNodeDTO::fromCmdbTopoNode).collect(Collectors.toList()));
         }
         return esbServer;
     }

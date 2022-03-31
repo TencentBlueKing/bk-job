@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.schedule.tasks;
 
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.execute.model.db.CacheAppDO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
@@ -57,9 +57,9 @@ public class SyncAppAndRefreshCacheTask {
         this.redisTemplate = redisTemplate;
     }
 
-    private Map<Long, Set<Long>> getDeptAppMap(List<ApplicationInfoDTO> allApps) {
+    private Map<Long, Set<Long>> getDeptAppMap(List<ApplicationDTO> allApps) {
         Map<Long, Set<Long>> deptAppMap = new HashMap<>();
-        for (ApplicationInfoDTO app : allApps) {
+        for (ApplicationDTO app : allApps) {
             if (app.getAppType() == AppTypeEnum.NORMAL) {
                 if (app.getOperateDeptId() != null && app.getOperateDeptId() > 0) {
                     Set<Long> deptApps = deptAppMap.computeIfAbsent(app.getOperateDeptId(), k -> new HashSet<>());
@@ -70,8 +70,8 @@ public class SyncAppAndRefreshCacheTask {
         return deptAppMap;
     }
 
-    private void calcRealSubAppIds(List<ApplicationInfoDTO> allApps, Map<Long, Set<Long>> deptAppMap) {
-        for (ApplicationInfoDTO app : allApps) {
+    private void calcRealSubAppIds(List<ApplicationDTO> allApps, Map<Long, Set<Long>> deptAppMap) {
+        for (ApplicationDTO app : allApps) {
             if (app.getAppType() == AppTypeEnum.APP_SET) {
                 log.info("AppSet:{}, deptId:{}, subAppIds:{}", app.getId(), app.getOperateDeptId(),
                     app.getSubAppIds());
@@ -96,7 +96,7 @@ public class SyncAppAndRefreshCacheTask {
         try {
             log.info("Get all apps from job-manage!");
             watch.start("get-apps-from-job-manage");
-            List<ApplicationInfoDTO> allApps = applicationService.listAllApps();
+            List<ApplicationDTO> allApps = applicationService.listAllApps();
             log.debug("Get all apps from job-manage, result:{}", allApps);
             watch.stop();
 
@@ -128,7 +128,7 @@ public class SyncAppAndRefreshCacheTask {
 
             watch.start("refresh-cache-app");
             Map<String, CacheAppDO> cacheApps = new HashMap<>();
-            for (ApplicationInfoDTO app : allApps) {
+            for (ApplicationDTO app : allApps) {
                 CacheAppDO cacheAppDO = CacheAppDO.fromApplicationInfoDTO(app);
                 cacheApps.put(String.valueOf(app.getId()), cacheAppDO);
             }

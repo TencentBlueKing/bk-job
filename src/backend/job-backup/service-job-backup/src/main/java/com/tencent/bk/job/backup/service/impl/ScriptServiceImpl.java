@@ -25,7 +25,6 @@
 package com.tencent.bk.job.backup.service.impl;
 
 import com.tencent.bk.job.backup.client.ServiceScriptResourceClient;
-import com.tencent.bk.job.backup.client.WebScriptResourceClient;
 import com.tencent.bk.job.backup.service.ScriptService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
@@ -39,13 +38,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class ScriptServiceImpl implements ScriptService {
-    private final WebScriptResourceClient webScriptResourceClient;
     private final ServiceScriptResourceClient serviceScriptResourceClient;
 
     @Autowired
-    public ScriptServiceImpl(WebScriptResourceClient webScriptResourceClient,
-                             ServiceScriptResourceClient serviceScriptResourceClient) {
-        this.webScriptResourceClient = webScriptResourceClient;
+    public ScriptServiceImpl(ServiceScriptResourceClient serviceScriptResourceClient) {
         this.serviceScriptResourceClient = serviceScriptResourceClient;
     }
 

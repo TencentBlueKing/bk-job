@@ -27,12 +27,10 @@
 
 package com.tencent.bk.job.common.iam.interceptor;
 
-import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -48,42 +46,41 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class AuthAppInterceptor extends HandlerInterceptorAdapter {
 
-    private final AuthService authService;
+    private final BusinessAuthService businessAuthService;
 
     @Autowired
-    public AuthAppInterceptor(AuthService authService) {
-        this.authService = authService;
+    public AuthAppInterceptor(BusinessAuthService businessAuthService) {
+        this.businessAuthService = businessAuthService;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String url = request.getRequestURI();
-        Pair<String, Long> userAppIdPair = null;
-        userAppIdPair = findUserAndAppId();
-        if (userAppIdPair != null) {
-            String username = userAppIdPair.getLeft();
-            Long appId = userAppIdPair.getRight();
-            if (appId != JobConstants.PUBLIC_APP_ID && appId > 0) {
-                log.debug("auth {} access_business {}", username, appId);
-                AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
-                    ResourceTypeEnum.BUSINESS, appId.toString(), null);
+        Pair<String, AppResourceScope> userScopePair;
+        userScopePair = findUserAndScope();
+        if (userScopePair != null) {
+            String username = userScopePair.getLeft();
+            AppResourceScope appResourceScope = userScopePair.getRight();
+            if (appResourceScope != null) {
+                log.debug("Auth {} access_business {}", username, appResourceScope);
+                AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
             } else {
-                log.info("ignore auth {} access_business public app {}", username, appId);
+                log.debug("Ignore auth {} access_business public scope", username);
             }
         } else {
-            log.debug("can not find username/appId for url:{}", url);
+            log.debug("Can not find username/scope for url:{}", url);
         }
         return true;
     }
 
-    private Pair<String, Long> findUserAndAppId() {
+    private Pair<String, AppResourceScope> findUserAndScope() {
         String username = JobContextUtil.getUsername();
-        Long appId = JobContextUtil.getAppId();
-        if (username != null && appId != null) {
-            return Pair.of(username, appId);
+        AppResourceScope appResourceScope = JobContextUtil.getAppResourceScope();
+        if (username != null && appResourceScope != null) {
+            return Pair.of(username, appResourceScope);
         }
         return null;
     }

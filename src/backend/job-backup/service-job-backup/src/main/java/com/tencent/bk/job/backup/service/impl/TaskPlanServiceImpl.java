@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.backup.service.impl;
 
+import com.tencent.bk.job.backup.client.ServiceBackupTmpResourceClient;
 import com.tencent.bk.job.backup.client.ServicePlanResourceClient;
-import com.tencent.bk.job.backup.client.WebPlanResourceClient;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
@@ -48,13 +48,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class TaskPlanServiceImpl implements TaskPlanService {
-    private final WebPlanResourceClient webPlanResourceClient;
+    private final ServiceBackupTmpResourceClient serviceBackupTmpResourceClient;
     private final ServicePlanResourceClient servicePlanResourceClient;
 
     @Autowired
-    public TaskPlanServiceImpl(WebPlanResourceClient webPlanResourceClient,
+    public TaskPlanServiceImpl(ServiceBackupTmpResourceClient serviceBackupTmpResourceClient,
                                ServicePlanResourceClient servicePlanResourceClient) {
-        this.webPlanResourceClient = webPlanResourceClient;
+        this.serviceBackupTmpResourceClient = serviceBackupTmpResourceClient;
         this.servicePlanResourceClient = servicePlanResourceClient;
     }
 
@@ -72,7 +72,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 }
                 log.debug("Fetching plan {}/{}/{} using {}", appId, templateId, planId, username);
                 Response<TaskPlanVO> planByIdResponse =
-                    webPlanResourceClient.getPlanById(username, appId, templateId, planId);
+                    serviceBackupTmpResourceClient.getPlanById(username, appId, templateId, planId);
                 if (planByIdResponse != null) {
                     if (0 == planByIdResponse.getCode()) {
                         taskPlanList.add(planByIdResponse.getData());
@@ -94,7 +94,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     public List<TaskPlanVO> listPlans(String username, Long appId, Long templateId) {
         try {
             Response<List<TaskPlanVO>> planListResponse =
-                webPlanResourceClient.listPlans(username, appId, templateId);
+                serviceBackupTmpResourceClient.listPlans(username, appId, templateId);
             if (planListResponse != null) {
                 if (0 == planListResponse.getCode()) {
                     log.debug("Fetching plan list of {}/{} finished.", appId, templateId);

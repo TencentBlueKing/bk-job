@@ -110,7 +110,8 @@
 <script>
     import _ from 'lodash';
     import I18n from '@/i18n';
-    import ScriptService from '@service/script-manage';
+    import ScriptManageService from '@service/script-manage';
+    import PublicScriptManageService from '@service/public-script-manage';
     import TaskStepModel from '@model/task/task-step';
     import ComposeFormItem from '@components/compose-form-item';
 
@@ -262,7 +263,7 @@
              * @desc 获取业务脚本列表
              */
             fetchScriptList () {
-                ScriptService.getOnlineScriptList()
+                ScriptManageService.getOnlineScriptList()
                     .then((data) => {
                         this.scriptGroup = [data];
                         this.scriptListMemo = data;
@@ -273,20 +274,19 @@
              * @desc 获公共脚本列表
              */
             fetchPublicScriptList () {
-                ScriptService.getOnlineScriptList({
-                    publicScript: true,
-                }).then((data) => {
-                    this.publicScriptGroup = [data];
-                    this.publicScriptListMemo = data;
-                    this.composeGroup();
-                });
+                PublicScriptManageService.getOnlineScriptList()
+                    .then((data) => {
+                        this.publicScriptGroup = [data];
+                        this.publicScriptListMemo = data;
+                        this.composeGroup();
+                    });
             },
             /**
              * @desc 获取指定的脚本版本数据
              * @param {Object} params 脚本数据
              */
             fetchScriptVersionDetail (params) {
-                return ScriptService.versionDetail(params);
+                return ScriptManageService.versionDetail(params);
             },
             /**
              * @desc 初始化脚本来源

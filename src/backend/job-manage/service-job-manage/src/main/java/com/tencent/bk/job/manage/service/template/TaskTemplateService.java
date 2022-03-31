@@ -121,6 +121,16 @@ public interface TaskTemplateService {
     TaskTemplateInfoDTO getTaskTemplateBasicInfoById(Long templateId);
 
     /**
+     * 根据作业模版 IDs 批量查询模版基础信息
+     * <p>
+     * 不包含步骤、变量信息
+     *
+     * @param templateIds 作业模版 IDs
+     * @return 模版基础信息列表
+     */
+    List<TaskTemplateInfoDTO> listTaskTemplateBasicInfoByIds(List<Long> templateIds);
+
+    /**
      * 根据模版 ID 列表批量查询模版基础信息
      * <p>
      * 不包含步骤、变量信息

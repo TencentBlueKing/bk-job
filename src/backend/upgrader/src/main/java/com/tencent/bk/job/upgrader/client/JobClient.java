@@ -27,14 +27,15 @@ package com.tencent.bk.job.upgrader.client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.BasicHttpReq;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.model.AppInfo;
+import com.tencent.bk.job.upgrader.model.BasicAppInfo;
+import com.tencent.bk.job.upgrader.model.job.SetBizSetMigrationStatusReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
@@ -54,6 +55,10 @@ public class JobClient extends AbstractJobClient {
     private static final int RESULT_OK = 0;
 
     private static final String URL_LIST_NORMAL_APPS = "/service/app/list/normal";
+
+    private static final String URL_LIST_BIZ_SET_APPS = "/service/app/list/bizSet";
+
+    private static final String URL_SET_BIZ_SET_MIGRATION_STATUS = "/migration/action/setBizSetMigrationStatus";
 
     private static final JsonMapper JSON_MAPPER = JsonMapper.nonDefaultMapper();
 
@@ -92,7 +97,7 @@ public class JobClient extends AbstractJobClient {
             }
             R result =
                 JSON_MAPPER.fromJson(respStr, typeReference);
-            InternalResponse jobResp = (InternalResponse) result;
+            Response jobResp = (Response) result;
             if (jobResp == null) {
                 log.error("fail:jobResp is null after parse|method={}|uri={}|reqStr={}|respStr={}", method, uri,
                     reqStr, respStr);
@@ -130,13 +135,40 @@ public class JobClient extends AbstractJobClient {
         }
     }
 
-    public List<AppInfo> listNormalApps() {
-        Response<List<AppInfo>> resp = getJobRespByReq(
+    public List<BasicAppInfo> listNormalApps() {
+        Response<List<BasicAppInfo>> resp = getJobRespByReq(
             HttpGet.METHOD_NAME,
             URL_LIST_NORMAL_APPS,
+            new BasicHttpReq(),
+            new TypeReference<Response<List<BasicAppInfo>>>() {
+            });
+        return resp.getData();
+    }
+
+    public List<AppInfo> listBizSetApps() {
+        Response<List<AppInfo>> resp = getJobRespByReq(
+            HttpGet.METHOD_NAME,
+            URL_LIST_BIZ_SET_APPS,
             new BasicHttpReq(),
             new TypeReference<Response<List<AppInfo>>>() {
             });
         return resp.getData();
+    }
+
+    /**
+     * 设置业务集迁移完成状态
+     *
+     * @param isMigrated 是否已完成迁移
+     * @return 当前迁移状态
+     */
+    public boolean setBizSetMigrationStatus(boolean isMigrated) {
+        SetBizSetMigrationStatusReq req = new SetBizSetMigrationStatusReq(isMigrated);
+        Response<Boolean> resp = getJobRespByReq(
+            HttpPost.METHOD_NAME,
+            URL_SET_BIZ_SET_MIGRATION_STATUS,
+            req,
+            new TypeReference<Response<Boolean>>() {
+            });
+        return resp.getData() == null ? false : resp.getData();
     }
 }

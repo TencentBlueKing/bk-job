@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.iam.impl;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.manage.api.iam.IamPublicScriptCallbackResource;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
@@ -39,10 +40,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 public class IamPublicScriptCallbackResourceImpl implements IamPublicScriptCallbackResource {
-    private ScriptCallbackHelper scriptCallbackHelper;
+
+    private final ScriptCallbackHelper scriptCallbackHelper;
 
     @Autowired
-    public IamPublicScriptCallbackResourceImpl(ScriptService scriptService) {
+    public IamPublicScriptCallbackResourceImpl(ScriptService scriptService,
+                                               ApplicationService applicationService) {
         this.scriptCallbackHelper = new ScriptCallbackHelper(scriptService, new ScriptCallbackHelper.IGetBasicInfo() {
             @Override
             public Pair<ScriptQuery, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -53,7 +56,7 @@ public class IamPublicScriptCallbackResourceImpl implements IamPublicScriptCallb
             public boolean isPublicScript() {
                 return true;
             }
-        });
+        }, applicationService);
     }
 
     private Pair<ScriptQuery, BaseSearchCondition> getBasicQueryConditionImpl(CallbackRequestDTO callbackRequest) {

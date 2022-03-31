@@ -44,7 +44,9 @@ public interface EsbFastExecuteScriptV3Resource {
 
     @PostMapping("/fast_execute_script")
     EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(
-        @RequestBody @Validated EsbFastExecuteScriptV3Request request);
-
+        @RequestBody
+        @Validated
+            EsbFastExecuteScriptV3Request request
+    );
 
 }

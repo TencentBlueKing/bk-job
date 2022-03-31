@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.util.JooqTypeUtil;
 import io.micrometer.core.instrument.util.StringUtils;
@@ -264,6 +265,14 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
         } else {
             return convertRecordToDto(record);
         }
+    }
+
+    @Override
+    public List<FileSourceBasicInfoDTO> listFileSourceByIds(DSLContext dslContext, Collection<Integer> ids) {
+        val records = dslContext.selectFrom(defaultTable).where(
+            defaultTable.ID.in(ids)
+        ).fetch();
+        return records.map(this::convertRecordToBasicInfoDto);
     }
 
     @Override
@@ -548,5 +557,14 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
             }));
         }
         return fileSourceDTO;
+    }
+
+    private FileSourceBasicInfoDTO convertRecordToBasicInfoDto(Record record) {
+        FileSourceBasicInfoDTO fileSourceBasicInfoDTO = new FileSourceBasicInfoDTO();
+        fileSourceBasicInfoDTO.setId(record.get(defaultTable.ID));
+        fileSourceBasicInfoDTO.setAppId(record.get(defaultTable.APP_ID));
+        fileSourceBasicInfoDTO.setCode(record.get(defaultTable.CODE));
+        fileSourceBasicInfoDTO.setAlias(record.get(defaultTable.ALIAS));
+        return fileSourceBasicInfoDTO;
     }
 }

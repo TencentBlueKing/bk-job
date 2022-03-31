@@ -535,6 +535,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
+    public List<TaskTemplateInfoDTO> listTaskTemplateBasicInfoByIds(List<Long> templateIds) {
+        return taskTemplateDAO.listTaskTemplateBasicInfoByIds(templateIds);
+    }
+
+    @Override
     public List<TaskTemplateInfoDTO> listTaskTemplateBasicInfoByIds(Long appId, List<Long> templateIdList) {
         TaskTemplateQuery query = TaskTemplateQuery.builder().appId(appId).ids(templateIdList).build();
         List<TaskTemplateInfoDTO> templates = taskTemplateDAO.listTaskTemplates(query);

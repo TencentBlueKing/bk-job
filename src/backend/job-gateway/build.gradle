@@ -42,10 +42,11 @@ dependencies {
     implementation 'org.springframework:spring-webflux'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    // CVE-2022-22947
+    implementation 'org.springframework.cloud:spring-cloud-gateway-server:3.0.7'
     implementation 'redis.clients:jedis'
     implementation 'commons-io:commons-io'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-//    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'joda-time:joda-time'
     implementation 'org.apache.httpcomponents:httpclient'
     compileOnly 'org.projectlombok:lombok'

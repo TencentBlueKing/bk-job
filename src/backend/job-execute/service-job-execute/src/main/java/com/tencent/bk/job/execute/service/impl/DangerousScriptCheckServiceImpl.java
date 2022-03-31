@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.execute.client.ScriptCheckResourceClient;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.model.DangerousRecordDTO;
@@ -134,7 +134,7 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
         record.setRuleExpression(checkResultItem.getRuleExpression());
         record.setAction(checkResultItem.getAction());
         record.setAppId(taskInstance.getAppId());
-        ApplicationInfoDTO app = applicationService.getAppById(taskInstance.getAppId());
+        ApplicationDTO app = applicationService.getAppById(taskInstance.getAppId());
         if (app != null) {
             record.setAppName(app.getName());
         }

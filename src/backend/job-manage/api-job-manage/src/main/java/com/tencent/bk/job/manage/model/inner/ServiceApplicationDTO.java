@@ -41,6 +41,15 @@ public class ServiceApplicationDTO {
     private Long id;
 
     /**
+     * 资源范围类型
+     */
+    private String scopeType;
+    /**
+     * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
+     */
+    private String scopeId;
+
+    /**
      * 业务名称
      */
     @ApiModelProperty("业务名称")

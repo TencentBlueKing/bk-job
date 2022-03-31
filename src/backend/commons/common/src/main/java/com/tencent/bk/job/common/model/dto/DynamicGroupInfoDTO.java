@@ -41,9 +41,9 @@ import java.util.List;
 @AllArgsConstructor
 public class DynamicGroupInfoDTO {
 
-    private Long appId;
+    private Long bizId;
 
-    private String appName;
+    private String bizName;
 
     private String id;
 
@@ -57,6 +57,6 @@ public class DynamicGroupInfoDTO {
 
     private List<String> ipList;
 
-    private List<ApplicationHostInfoDTO> ipListStatus = new ArrayList<>();
+    private List<ApplicationHostDTO> ipListStatus = new ArrayList<>();
 
 }

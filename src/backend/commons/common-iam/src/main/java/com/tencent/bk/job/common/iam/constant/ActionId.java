@@ -28,27 +28,27 @@ package com.tencent.bk.job.common.iam.constant;
  * @since 9/6/2020 15:20
  */
 public class ActionId {
+    // job-manage资源范围相关操作
+    // 业务查看
+    public static final String ACCESS_BUSINESS = "access_business";
     // 脚本
     public static final String CREATE_SCRIPT = "create_script";
     public static final String VIEW_SCRIPT = "view_script";
     public static final String MANAGE_SCRIPT = "manage_script";
     public static final String EXECUTE_SCRIPT = "execute_script";
+    // 作业模板
+    public static final String CREATE_JOB_TEMPLATE = "create_job_template";
     public static final String VIEW_JOB_TEMPLATE = "view_job_template";
     public static final String EDIT_JOB_TEMPLATE = "edit_job_template";
     public static final String DELETE_JOB_TEMPLATE = "delete_job_template";
     public static final String DEBUG_JOB_TEMPLATE = "debug_job_template";
-    // 方案
+    // 执行方案
     public static final String CREATE_JOB_PLAN = "create_job_plan";
     public static final String VIEW_JOB_PLAN = "view_job_plan";
     public static final String EDIT_JOB_PLAN = "edit_job_plan";
     public static final String DELETE_JOB_PLAN = "delete_job_plan";
     public static final String LAUNCH_JOB_PLAN = "launch_job_plan";
     public static final String SYNC_JOB_PLAN = "sync_job_plan";
-    // 定时任务
-    public static final String CREATE_CRON = "create_cron";
-    public static final String MANAGE_CRON = "manage_cron";
-    // 执行历史
-    public static final String VIEW_HISTORY = "view_history";
     // 账号
     public static final String CREATE_ACCOUNT = "create_account";
     public static final String MANAGE_ACCOUNT = "manage_account";
@@ -56,40 +56,47 @@ public class ActionId {
     // 标签
     public static final String CREATE_TAG = "create_tag";
     public static final String MANAGE_TAG = "manage_tag";
+    // 文件源
+    public static final String CREATE_FILE_SOURCE = "create_file_source";
+    public static final String VIEW_FILE_SOURCE = "view_file_source";
+    public static final String MANAGE_FILE_SOURCE = "manage_file_source";
+    // 凭证
+    public static final String CREATE_TICKET = "create_ticket";
+    public static final String MANAGE_TICKET = "manage_ticket";
+    public static final String USE_TICKET = "use_ticket";
+    // 通知设置
+    public static final String NOTIFICATION_SETTING = "notification_setting";
+
+    // job-manage资源范围无关操作
     // 白名单
     public static final String CREATE_WHITELIST = "create_whitelist";
     public static final String MANAGE_WHITELIST = "manage_whitelist";
     // 公共脚本
     public static final String CREATE_PUBLIC_SCRIPT = "create_public_script";
-    public static final String EXECUTE_PUBLIC_SCRIPT = "execute_public_script";
     public static final String MANAGE_PUBLIC_SCRIPT_INSTANCE = "manage_public_script_instance";
-    // 快速脚本执行
-    public static final String QUICK_EXECUTE_SCRIPT = "quick_execute_script";
-    // 快速文件分发
-    public static final String QUICK_TRANSFER_FILE = "quick_transfer_file";
-    // 通知设置
-    public static final String NOTIFICATION_SETTING = "notification_setting";
+    public static final String EXECUTE_PUBLIC_SCRIPT = "execute_public_script";
     // 全局设置
     public static final String GLOBAL_SETTINGS = "global_settings";
     // 运营视图查看
     public static final String DASHBOARD_VIEW = "dashboard_view";
     // 服务状态查看
     public static final String SERVICE_STATE_ACCESS = "service_state_access";
-    // 作业
-    public static final String CREATE_JOB_TEMPLATE = "create_job_template";
-    // 业务查看
-    public static final String LIST_BUSINESS = "access_business";
-    // 文件源
-    public static final String VIEW_FILE_SOURCE = "view_file_source";
-    public static final String CREATE_FILE_SOURCE = "create_file_source";
-    public static final String MANAGE_FILE_SOURCE = "manage_file_source";
-    // 凭证
-    public static final String USE_TICKET = "use_ticket";
-    public static final String CREATE_TICKET = "create_ticket";
-    public static final String MANAGE_TICKET = "manage_ticket";
     // 高危语句
     // 高危语句规则管理
     public static final String HIGH_RISK_DETECT_RULE = "high-risk_detect_rule";
     // 高危语句拦截记录查看
     public static final String HIGH_RISK_DETECT_RECORD = "high-risk_detect_record";
+
+    // job-crontab资源范围相关操作
+    // 定时任务
+    public static final String CREATE_CRON = "create_cron";
+    public static final String MANAGE_CRON = "manage_cron";
+
+    // job-execute资源范围相关操作
+    // 快速脚本执行
+    public static final String QUICK_EXECUTE_SCRIPT = "quick_execute_script";
+    // 快速文件分发
+    public static final String QUICK_TRANSFER_FILE = "quick_transfer_file";
+    // 执行历史
+    public static final String VIEW_HISTORY = "view_history";
 }

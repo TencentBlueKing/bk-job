@@ -122,7 +122,7 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
         int length = baseSearchCondition.getLengthOrDefault(10);
 
         SelectJoinStep<Record13<ULong, ULong, String, String, String, UByte, ULong, String, ULong, ULong, ULong,
-                    String, UByte>> selectJoinStep =
+            String, UByte>> selectJoinStep =
             context.select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR, TABLE.STATUS,
                 TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
                 TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.SCRIPT_STATUS).from(TABLE);
@@ -200,6 +200,14 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
     }
 
     @Override
+    public List<TaskTemplateInfoDTO> listTaskTemplateBasicInfoByIds(List<Long> templateIds) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.ID.in(templateIds));
+        conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
+        return listTaskTemplate(conditions);
+    }
+
+    @Override
     public TaskTemplateInfoDTO getDeletedTaskTemplateById(Long templateId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.ID.equal(ULong.valueOf(templateId)));
@@ -219,6 +227,16 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
         } else {
             return null;
         }
+    }
+
+    private List<TaskTemplateInfoDTO> listTaskTemplate(List<Condition> conditions) {
+        Result<Record13<ULong, ULong, String, String, String, UByte, ULong, String, ULong, ULong, ULong, String,
+            UByte>> records = context.select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR,
+            TABLE.STATUS,
+            TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
+            TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.SCRIPT_STATUS)
+            .from(TABLE).where(conditions).fetch();
+        return records.map(DbRecordMapper::convertRecordToTemplateInfo);
     }
 
     private long getPageTaskTemplateCount(List<Condition> conditions) {

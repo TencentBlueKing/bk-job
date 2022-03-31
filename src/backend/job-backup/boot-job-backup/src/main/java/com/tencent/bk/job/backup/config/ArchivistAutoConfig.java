@@ -46,9 +46,10 @@ public class ArchivistAutoConfig {
 
     @Bean(name = "execute-read-dao")
     @ConditionalOnExpression("${job.execute.archive.enabled:false} || ${job.execute.archive.delete.enabled:false}")
-    public JobExecuteDAO executeReadDAO(@Qualifier("job-execute-dsl-context") DSLContext context) {
+    public JobExecuteDAO executeReadDAO(@Qualifier("job-execute-dsl-context") DSLContext context,
+                                        ArchiveConfig archiveConfig) {
         log.info("Init JobExecuteDAO");
-        return new JobExecuteDAOImpl(context);
+        return new JobExecuteDAOImpl(context, archiveConfig);
     }
 
     @Bean(name = "execute-archive-dao")

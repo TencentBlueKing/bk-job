@@ -32,6 +32,8 @@ export default class Plan {
         this.id = payload.id;
         this.name = payload.name;
         this.appId = payload.appId;
+        this.scopeType = payload.scopeType;
+        this.scopeId = payload.scopeId;
         this.favored = Boolean(payload.favored);
         this.cronJobCount = payload.cronJobCount || 0;
         this.hasCronJob = Boolean(payload.hasCronJob);

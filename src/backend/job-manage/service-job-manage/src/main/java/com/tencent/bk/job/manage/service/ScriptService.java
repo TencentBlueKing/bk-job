@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptRelatedTaskPlanDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptSyncTemplateStepDTO;
@@ -42,6 +43,7 @@ import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +110,15 @@ public interface ScriptService {
      * @throws ServiceException 业务异常
      */
     ScriptDTO getScriptByScriptId(String scriptId) throws ServiceException;
+
+    /**
+     * 根据scriptIds批量查询脚本基础信息
+     *
+     * @param scriptIds 脚本ID集合
+     * @return 脚本
+     * @throws ServiceException 业务异常
+     */
+    List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds) throws ServiceException;
 
     /**
      * 根据scriptId查询脚本基本信息,不包含标签信息

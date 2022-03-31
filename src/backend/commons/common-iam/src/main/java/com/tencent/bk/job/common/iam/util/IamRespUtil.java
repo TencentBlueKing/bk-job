@@ -23,31 +23,31 @@ public class IamRespUtil {
     }
 
     public static <T> ListInstanceResponseDTO getListInstanceRespFromPageData(
-        PageData<T> tagDTOPageData,
+        PageData<T> pageData,
         InstanceInfoDTOConverter<T> converter
     ) {
-        List<InstanceInfoDTO> instanceInfoList = convertToInstanceList(tagDTOPageData.getData(), converter);
+        List<InstanceInfoDTO> instanceInfoList = convertToInstanceList(pageData.getData(), converter);
 
         ListInstanceResponseDTO instanceResponse = new ListInstanceResponseDTO();
         instanceResponse.setCode(0L);
         BaseDataResponseDTO<InstanceInfoDTO> baseDataResponse = new BaseDataResponseDTO<>();
         baseDataResponse.setResult(instanceInfoList);
-        baseDataResponse.setCount(tagDTOPageData.getTotal());
+        baseDataResponse.setCount(pageData.getTotal());
         instanceResponse.setData(baseDataResponse);
         return instanceResponse;
     }
 
     public static <T> SearchInstanceResponseDTO getSearchInstanceRespFromPageData(
-        PageData<T> tagDTOPageData,
+        PageData<T> pageData,
         InstanceInfoDTOConverter<T> converter
     ) {
-        List<InstanceInfoDTO> instanceInfoList = convertToInstanceList(tagDTOPageData.getData(), converter);
+        List<InstanceInfoDTO> instanceInfoList = convertToInstanceList(pageData.getData(), converter);
 
         SearchInstanceResponseDTO instanceResponse = new SearchInstanceResponseDTO();
         instanceResponse.setCode(0L);
         BaseDataResponseDTO<InstanceInfoDTO> baseDataResponse = new BaseDataResponseDTO<>();
         baseDataResponse.setResult(instanceInfoList);
-        baseDataResponse.setCount(tagDTOPageData.getTotal());
+        baseDataResponse.setCount(pageData.getTotal());
         instanceResponse.setData(baseDataResponse);
         return instanceResponse;
     }

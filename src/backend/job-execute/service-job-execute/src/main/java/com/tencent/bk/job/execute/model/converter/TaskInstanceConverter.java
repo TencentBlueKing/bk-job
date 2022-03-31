@@ -25,6 +25,9 @@
 package com.tencent.bk.job.execute.model.converter;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -36,11 +39,19 @@ import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 public class TaskInstanceConverter {
-    public static TaskInstanceVO convertToTaskInstanceVO(@NotNull TaskInstanceDTO taskInstanceDTO,
-                                                         @NotNull MessageI18nService i18nService) {
+    public static TaskInstanceVO convertToTaskInstanceVO(TaskInstanceDTO taskInstanceDTO) {
+        MessageI18nService i18nService = ApplicationContextRegister.getBean(MessageI18nService.class);
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+
         TaskInstanceVO taskInstanceVO = new TaskInstanceVO();
         taskInstanceVO.setId(taskInstanceDTO.getId());
+
         taskInstanceVO.setAppId(taskInstanceDTO.getAppId());
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(taskInstanceDTO.getAppId());
+        taskInstanceVO.setScopeType(resourceScope.getType().getValue());
+        taskInstanceVO.setScopeId(resourceScope.getId());
+
         taskInstanceVO.setName(taskInstanceDTO.getName());
         taskInstanceVO.setOperator(taskInstanceDTO.getOperator());
         taskInstanceVO.setStartupMode(taskInstanceDTO.getStartupMode());

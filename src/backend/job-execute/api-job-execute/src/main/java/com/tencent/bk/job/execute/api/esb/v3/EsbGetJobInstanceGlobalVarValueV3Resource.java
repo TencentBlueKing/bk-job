@@ -49,13 +49,18 @@ public interface EsbGetJobInstanceGlobalVarValueV3Resource {
 
     @PostMapping("/get_job_instance_global_var_value")
     EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValueUsingPost(
-        @RequestBody EsbGetJobInstanceGlobalVarValueV3Request request);
+        @RequestBody
+        @Validated
+            EsbGetJobInstanceGlobalVarValueV3Request request
+    );
 
     @GetMapping("/get_job_instance_global_var_value")
     EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValue(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "job_instance_id") Long taskInstanceId);
 
 

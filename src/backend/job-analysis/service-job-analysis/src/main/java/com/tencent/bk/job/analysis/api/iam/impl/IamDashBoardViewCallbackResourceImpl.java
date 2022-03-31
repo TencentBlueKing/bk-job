@@ -26,7 +26,7 @@ package com.tencent.bk.job.analysis.api.iam.impl;
 
 import com.tencent.bk.job.analysis.api.iam.IamDashBoardViewCallbackResource;
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -111,7 +111,7 @@ public class IamDashBoardViewCallbackResourceImpl extends BaseIamCallbackService
                 // 拓扑路径构建
                 List<PathInfoDTO> path = new ArrayList<>();
                 PathInfoDTO rootNode = new PathInfoDTO();
-                rootNode.setType(ResourceId.DASHBOARD_VIEW);
+                rootNode.setType(ResourceTypeId.DASHBOARD_VIEW);
                 rootNode.setId(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
                 path.add(rootNode);
                 // 实例组装

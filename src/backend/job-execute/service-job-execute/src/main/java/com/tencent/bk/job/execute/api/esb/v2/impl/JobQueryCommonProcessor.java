@@ -28,10 +28,9 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.ExecuteAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -43,42 +42,28 @@ public class JobQueryCommonProcessor {
     @Autowired
     protected ExecuteAuthService executeAuthService;
 
-    @Autowired
-    protected AuthService authService;
-
-    /**
-     * 查看步骤实例鉴权
-     *
-     * @param username     用户名
-     * @param appId        业务ID
-     * @param stepInstance 步骤实例
-     * @return 鉴权结果
-     */
-    protected AuthResult authViewStepInstance(String username, Long appId, StepInstanceBaseDTO stepInstance) {
-        String operator = stepInstance.getOperator();
-        if (username.equals(operator)) {
-            return AuthResult.pass();
-        }
-        return executeAuthService.authViewTaskInstance(username, appId, stepInstance.getTaskInstanceId());
-    }
-
     /**
      * 查看作业实例鉴权
      *
-     * @param username     用户名
-     * @param appId        业务ID
-     * @param taskInstance 作业实例
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param taskInstance     作业实例
      */
-    protected void authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance)
+    protected void authViewTaskInstance(String username, AppResourceScope appResourceScope,
+                                        TaskInstanceDTO taskInstance)
         throws PermissionDeniedException {
         if (taskInstance == null) {
+            log.info("TaskInstance is null");
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
-        if (!appId.equals(taskInstance.getAppId())) {
+        if (!appResourceScope.getAppId().equals(taskInstance.getAppId())) {
+            log.info("TaskInstance {}|{} is not in resource scope : {}", taskInstance.getAppId(),
+                taskInstance.getId(), appResourceScope);
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
-        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId, taskInstance);
+        AuthResult authResult = executeAuthService.authViewTaskInstance(
+            username, appResourceScope, taskInstance);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }

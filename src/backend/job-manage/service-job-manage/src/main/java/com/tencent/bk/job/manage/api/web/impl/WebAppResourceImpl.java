@@ -26,24 +26,25 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.iam.dto.AppIdResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
-import com.tencent.bk.job.manage.model.web.request.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.request.IpCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
@@ -54,12 +55,14 @@ import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,94 +74,63 @@ public class WebAppResourceImpl implements WebAppResource {
 
     private final ApplicationService applicationService;
     private final ApplicationFavorService applicationFavorService;
-    private final AuthService authService;
+    private final AppAuthService appAuthService;
+    private final HostService hostService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public WebAppResourceImpl(
-        ApplicationService applicationService,
-        ApplicationFavorService applicationFavorService,
-        AuthService authService
-    ) {
+    public WebAppResourceImpl(ApplicationService applicationService,
+                              ApplicationFavorService applicationFavorService,
+                              AppAuthService appAuthService,
+                              HostService hostService,
+                              AppScopeMappingService appScopeMappingService) {
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
-        this.authService = authService;
-    }
-
-    // 老接口，在listAppWithFavor上线后下掉
-    @Deprecated
-    @Override
-    public Response<List<AppVO>> listApp(String username) {
-        List<ApplicationInfoDTO> appList = applicationService.listAllAppsFromLocalDB();
-        List<ApplicationInfoDTO> normalAppList =
-            appList.parallelStream().filter(it -> it.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
-        appList.removeAll(normalAppList);
-        // 业务集/全业务根据运维角色鉴权
-        List<ApplicationInfoDTO> specialAppList =
-            appList.parallelStream().filter(it -> it.getMaintainers().contains(username)).collect(Collectors.toList());
-        AppIdResult appIdResult = authService.getAppIdList(username,
-            normalAppList.parallelStream().map(ApplicationInfoDTO::getId).collect(Collectors.toList()));
-        List<ApplicationInfoDTO> finalAppList = new ArrayList<>();
-        if (appIdResult.getAny()) {
-            finalAppList.addAll(normalAppList);
-        } else {
-            // 普通业务根据权限中心结果鉴权
-            normalAppList =
-                normalAppList.parallelStream().filter(it ->
-                    appIdResult.getAppId().contains(it.getId())).collect(Collectors.toList());
-            finalAppList.addAll(normalAppList);
-        }
-        finalAppList.addAll(specialAppList);
-        List<AppVO> appVOList = finalAppList.parallelStream().map(it -> new AppVO(it.getId(), it.getName(),
-            it.getAppType().getValue(), true, null, null)).collect(Collectors.toList());
-        return Response.buildSuccessResp(appVOList);
+        this.hostService = hostService;
+        this.appAuthService = appAuthService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(
-        String username,
-        Integer start,
-        Integer pageSize
-    ) {
-        List<ApplicationInfoDTO> appList = applicationService.listAllAppsFromLocalDB();
-        List<ApplicationInfoDTO> normalAppList =
-            appList.parallelStream().filter(it -> it.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
-        appList.removeAll(normalAppList);
-        // 业务集/全业务根据运维角色鉴权
-        List<ApplicationInfoDTO> specialAppList =
-            appList.parallelStream().filter(it -> it.getMaintainers().contains(username)).collect(Collectors.toList());
-        AppIdResult appIdResult = authService.getAppIdList(username,
-            normalAppList.parallelStream().map(ApplicationInfoDTO::getId).collect(Collectors.toList()));
+    public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
+                                                                               Integer start,
+                                                                               Integer pageSize) {
+        List<ApplicationDTO> appList = applicationService.listAllApps();
+        List<AppResourceScope> appResourceScopeList = appList.stream()
+            .map(it -> new AppResourceScope(it.getId(), it.getScope())).collect(Collectors.toList());
+        // 鉴权
+        AppResourceScopeResult appResourceScopeResult =
+            appAuthService.getAppResourceScopeList(username, appResourceScopeList);
         List<AppVO> finalAppList = new ArrayList<>();
-        // 可用的普通业务Id
-        List<Long> authorizedAppIds = appIdResult.getAppId();
-        // 所有可用的AppId(含业务集、全业务Id)
-        List<Long> availableAppIds = new ArrayList<>(authorizedAppIds);
-        if (appIdResult.getAny()) {
-            for (ApplicationInfoDTO normalApp : normalAppList) {
-                AppVO appVO = new AppVO(normalApp.getId(), normalApp.getName(), normalApp.getAppType().getValue(),
+        // 可用的普通业务
+        List<AppResourceScope> authorizedAppResourceScopes = appResourceScopeResult.getAppResourceScopeList();
+        List<Long> authorizedAppIdList = authorizedAppResourceScopes.stream()
+            .map(appResourceScope -> {
+                if (appResourceScope.getAppId() != null) {
+                    return appResourceScope.getAppId();
+                }
+                return appScopeMappingService.getAppIdByScope(
+                    appResourceScope.getType().getValue(), appResourceScope.getId());
+            }).collect(Collectors.toList());
+        // 所有可用的AppId
+        List<Long> availableAppIds = new ArrayList<>();
+        if (appResourceScopeResult.getAny()) {
+            for (ApplicationDTO app : appList) {
+                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
+                    app.getScope().getId(), app.getName(), app.getAppType().getValue(),
                     true, null, null);
                 finalAppList.add(appVO);
-                availableAppIds.add(normalApp.getId());
+                availableAppIds.add(app.getId());
             }
         } else {
-            // 普通业务根据权限中心结果鉴权
-            for (ApplicationInfoDTO normalApp : normalAppList) {
-                AppVO appVO = new AppVO(normalApp.getId(), normalApp.getName(), normalApp.getAppType().getValue(),
-                    null, null, null);
-                if (authorizedAppIds.contains(normalApp.getId())) {
-                    appVO.setHasPermission(true);
-                    finalAppList.add(appVO);
-                } else {
-                    appVO.setHasPermission(false);
-                    finalAppList.add(appVO);
-                }
+            // 根据权限中心结果鉴权
+            for (ApplicationDTO app : appList) {
+                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
+                    app.getScope().getId(), app.getName(), app.getAppType().getValue(),
+                    true, null, null);
+                appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
+                finalAppList.add(appVO);
             }
-        }
-        for (ApplicationInfoDTO specialApp : specialAppList) {
-            AppVO appVO = new AppVO(specialApp.getId(), specialApp.getName(), specialApp.getAppType().getValue(),
-                true, null, null);
-            finalAppList.add(appVO);
-            availableAppIds.add(specialApp.getId());
         }
         // 收藏标识刷新
         List<ApplicationFavorDTO> applicationFavorDTOList = applicationFavorService.getAppFavorListByUsername(username);
@@ -197,22 +169,36 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<Integer> favorApp(String username, Long appId, FavorAppReq req) {
-        return Response.buildSuccessResp(applicationFavorService.favorApp(username, req.getAppId()));
+    public Response<Integer> favorApp(String username,
+                                      AppResourceScope appResourceScope,
+                                      String scopeType,
+                                      String scopeId) {
+        return Response.buildSuccessResp(
+            applicationFavorService.favorApp(username, appResourceScope.getAppId())
+        );
     }
 
     @Override
-    public Response<Integer> cancelFavorApp(String username, Long appId, FavorAppReq req) {
-        return Response.buildSuccessResp(applicationFavorService.cancelFavorApp(username, req.getAppId()));
+    public Response<Integer> cancelFavorApp(String username,
+                                            AppResourceScope appResourceScope,
+                                            String scopeType,
+                                            String scopeId) {
+        return Response.buildSuccessResp(
+            applicationFavorService.cancelFavorApp(username, appResourceScope.getAppId())
+        );
     }
 
     @Override
-    public Response<PageData<HostInfoVO>> listAppHost(String username, Long appId, Integer start,
-                                                      Integer pageSize, Long moduleType, String ipCondition) {
-        JobContextUtil.setAppId(appId);
-
-        ApplicationHostInfoDTO applicationHostInfoCondition = new ApplicationHostInfoDTO();
-        applicationHostInfoCondition.setAppId(appId);
+    public Response<PageData<HostInfoVO>> listAppHost(String username,
+                                                      AppResourceScope appResourceScope,
+                                                      String scopeType,
+                                                      String scopeId,
+                                                      Integer start,
+                                                      Integer pageSize,
+                                                      Long moduleType,
+                                                      String ipCondition) {
+        ApplicationHostDTO applicationHostInfoCondition = new ApplicationHostDTO();
+        applicationHostInfoCondition.setBizId(appResourceScope.getAppId());
         applicationHostInfoCondition.setIp(ipCondition);
         if (moduleType != null) {
             applicationHostInfoCondition.getModuleType().add(moduleType);
@@ -228,8 +214,8 @@ public class WebAppResourceImpl implements WebAppResource {
         baseSearchCondition.setStart(start);
         baseSearchCondition.setLength(pageSize);
 
-        PageData<ApplicationHostInfoDTO> appHostInfoPageData =
-            applicationService.listAppHost(applicationHostInfoCondition, baseSearchCondition);
+        PageData<ApplicationHostDTO> appHostInfoPageData =
+            hostService.listAppHost(applicationHostInfoCondition, baseSearchCondition);
         PageData<HostInfoVO> finalHostInfoPageData = new PageData<>();
         finalHostInfoPageData.setTotal(appHostInfoPageData.getTotal());
         finalHostInfoPageData.setStart(appHostInfoPageData.getStart());
@@ -241,40 +227,66 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<CcTopologyNodeVO> listAppTopologyTree(String username, Long appId) {
-        JobContextUtil.setAppId(appId);
-        return Response.buildSuccessResp(applicationService.listAppTopologyTree(username, appId));
+    public Response<CcTopologyNodeVO> listAppTopologyTree(String username,
+                                                          AppResourceScope appResourceScope,
+                                                          String scopeType,
+                                                          String scopeId) {
+        return Response.buildSuccessResp(
+            hostService.listAppTopologyTree(username, appResourceScope)
+        );
     }
 
     @Override
-    public Response<CcTopologyNodeVO> listAppTopologyHostTree(String username, Long appId) {
-        JobContextUtil.setAppId(appId);
-        return Response.buildSuccessResp(applicationService.listAppTopologyHostTree(username, appId));
+    public Response<CcTopologyNodeVO> listAppTopologyHostTree(String username,
+                                                              AppResourceScope appResourceScope,
+                                                              String scopeType,
+                                                              String scopeId) {
+        return Response.buildSuccessResp(hostService.listAppTopologyHostTree(username, appResourceScope));
     }
 
     @Override
-    public Response<CcTopologyNodeVO> listAppTopologyHostCountTree(String username, Long appId) {
-        JobContextUtil.setAppId(appId);
-        return Response.buildSuccessResp(applicationService.listAppTopologyHostCountTree(username, appId));
+    public Response<CcTopologyNodeVO> listAppTopologyHostCountTree(String username,
+                                                                   AppResourceScope appResourceScope,
+                                                                   String scopeType,
+                                                                   String scopeId) {
+        return Response.buildSuccessResp(hostService.listAppTopologyHostCountTree(username,
+            appResourceScope));
     }
 
     @Override
-    public Response<PageData<HostInfoVO>> listHostByBizTopologyNodes(String username, Long appId,
+    public Response<PageData<HostInfoVO>> listHostByBizTopologyNodes(String username,
+                                                                     AppResourceScope appResourceScope,
+                                                                     String scopeType,
+                                                                     String scopeId,
                                                                      ListHostByBizTopologyNodesReq req) {
-        return Response.buildSuccessResp(applicationService.listHostByBizTopologyNodes(username, appId, req));
+        return Response.buildSuccessResp(
+            hostService.listHostByAppTopologyNodes(
+                username, appResourceScope, req
+            )
+        );
     }
 
     @Override
-    public Response<PageData<String>> listIpByBizTopologyNodes(String username, Long appId,
+    public Response<PageData<String>> listIpByBizTopologyNodes(String username,
+                                                               AppResourceScope appResourceScope,
+                                                               String scopeType,
+                                                               String scopeId,
                                                                ListHostByBizTopologyNodesReq req) {
-        return Response.buildSuccessResp(applicationService.listIPByBizTopologyNodes(username, appId, req));
+        return Response.buildSuccessResp(
+            hostService.listIPByBizTopologyNodes(
+                username, appResourceScope, req
+            )
+        );
     }
 
     @Override
-    public Response<List<AppTopologyTreeNode>> getNodeDetail(String username, Long appId,
+    public Response<List<AppTopologyTreeNode>> getNodeDetail(String username,
+                                                             AppResourceScope appResourceScope,
+                                                             String scopeType,
+                                                             String scopeId,
                                                              List<TargetNodeVO> targetNodeVOList) {
-        JobContextUtil.setAppId(appId);
-        List<AppTopologyTreeNode> treeNodeList = applicationService.getAppTopologyTreeNodeDetail(username, appId,
+        List<AppTopologyTreeNode> treeNodeList = hostService.getAppTopologyTreeNodeDetail(username,
+            appResourceScope,
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                 it.getType(),
                 "",
@@ -286,9 +298,12 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<List<CcTopologyNodeVO>>> queryNodePaths(String username, Long appId,
+    public Response<List<List<CcTopologyNodeVO>>> queryNodePaths(String username,
+                                                                 AppResourceScope appResourceScope,
+                                                                 String scopeType,
+                                                                 String scopeId,
                                                                  List<TargetNodeVO> targetNodeVOList) {
-        List<List<InstanceTopologyDTO>> pathList = applicationService.queryNodePaths(username, appId,
+        List<List<InstanceTopologyDTO>> pathList = hostService.queryBizNodePaths(username, appResourceScope.getAppId(),
             targetNodeVOList.stream().map(it -> {
                 InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
                 instanceTopologyDTO.setObjectId(it.getType());
@@ -314,10 +329,12 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<NodeInfoVO>> listHostByNode(String username, Long appId,
+    public Response<List<NodeInfoVO>> listHostByNode(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     String scopeType,
+                                                     String scopeId,
                                                      List<TargetNodeVO> targetNodeVOList) {
-        JobContextUtil.setAppId(appId);
-        List<NodeInfoVO> moduleHostInfoList = applicationService.getHostsByNode(username, appId,
+        List<NodeInfoVO> moduleHostInfoList = hostService.getBizHostsByNode(username, appResourceScope.getAppId(),
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                 it.getType(),
                 "",
@@ -329,14 +346,18 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(String username, Long appId) {
-        JobContextUtil.setAppId(appId);
-        ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appId);
+    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(String username,
+                                                                  AppResourceScope appResourceScope,
+                                                                  String scopeType,
+                                                                  String scopeId) {
+        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appResourceScope.getAppId());
         // 业务集动态分组暂不支持
-        if (applicationInfoDTO.getAppType() != AppTypeEnum.NORMAL) {
+        if (applicationDTO.getAppType() != AppTypeEnum.NORMAL) {
             return Response.buildSuccessResp(new ArrayList<>());
         }
-        List<DynamicGroupInfoDTO> dynamicGroupList = applicationService.getDynamicGroupList(username, appId);
+        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
+            username, appResourceScope
+        );
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
             .map(TopologyHelper::convertToDynamicGroupInfoVO)
             .collect(Collectors.toList());
@@ -344,22 +365,33 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(String username, Long appId,
-                                                                      List<String> dynamicGroupIds) {
-        JobContextUtil.setAppId(appId);
-        List<DynamicGroupInfoDTO> dynamicGroupList =
-            applicationService.getDynamicGroupHostList(username, appId, dynamicGroupIds);
-        List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
-            .map(TopologyHelper::convertToDynamicGroupInfoVO)
-            .collect(Collectors.toList());
-        return Response.buildSuccessResp(dynamicGroupInfoList);
+    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(String username,
+                                                                      AppResourceScope appResourceScope,
+                                                                      String scopeType,
+                                                                      String scopeId, List<String> dynamicGroupIds) {
+        // 目前只有业务支持动态分组
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
+            List<DynamicGroupInfoDTO> dynamicGroupList =
+                hostService.getBizDynamicGroupHostList(
+                    username, Long.parseLong(appResourceScope.getId()), dynamicGroupIds
+                );
+            List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
+                .map(TopologyHelper::convertToDynamicGroupInfoVO)
+                .collect(Collectors.toList());
+            return Response.buildSuccessResp(dynamicGroupInfoList);
+        }
+        return Response.buildSuccessResp(Collections.emptyList());
     }
 
     @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(String username, Long appId,
+    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(String username,
+                                                                              AppResourceScope appResourceScope,
+                                                                              String scopeType,
+                                                                              String scopeId,
                                                                               List<String> dynamicGroupIds) {
-        JobContextUtil.setAppId(appId);
-        List<DynamicGroupInfoDTO> dynamicGroupList = applicationService.getDynamicGroupList(username, appId);
+        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
+            username, appResourceScope
+        );
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
             .filter(dynamicGroupInfoDTO -> dynamicGroupIds.contains(dynamicGroupInfoDTO.getId()))
             .map(TopologyHelper::convertToDynamicGroupInfoVO)
@@ -368,19 +400,26 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<HostInfoVO>> listHostByIp(String username, Long appId, IpCheckReq req) {
-        return Response.buildSuccessResp(applicationService.getHostsByIp(
+    public Response<List<HostInfoVO>> listHostByIp(String username,
+                                                   AppResourceScope appResourceScope,
+                                                   String scopeType,
+                                                   String scopeId,
+                                                   IpCheckReq req) {
+        return Response.buildSuccessResp(hostService.getHostsByIp(
             username,
-            appId,
+            appResourceScope.getAppId(),
             req.getActionScope(),
             req.getIpList())
         );
     }
 
     @Override
-    public Response<AgentStatistics> agentStatistics(String username, Long appId,
+    public Response<AgentStatistics> agentStatistics(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     String scopeType,
+                                                     String scopeId,
                                                      AgentStatisticsReq agentStatisticsReq) {
-        return Response.buildSuccessResp(applicationService.getAgentStatistics(username, appId,
+        return Response.buildSuccessResp(hostService.getAgentStatistics(username, appResourceScope.getAppId(),
             agentStatisticsReq));
     }
 }

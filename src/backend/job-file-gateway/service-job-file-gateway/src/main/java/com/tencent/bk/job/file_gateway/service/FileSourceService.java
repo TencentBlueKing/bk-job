@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.file_gateway.service;
 
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -83,6 +85,8 @@ public interface FileSourceService {
     FileSourceDTO getFileSourceById(Long appId, Integer id);
 
     FileSourceDTO getFileSourceById(Integer id);
+
+    List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids);
 
     FileSourceDTO getFileSourceByCode(String code);
 

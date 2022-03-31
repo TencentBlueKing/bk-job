@@ -234,7 +234,8 @@ public abstract class AbstractEsbSdkClient {
         return getEsbRespByReq(method, uri, reqBody, typeReference, null);
     }
 
-    public <R> EsbResp<R> getEsbRespByReq(String method, String uri, EsbReq reqBody, TypeReference<EsbResp<R>> typeReference,
+    public <R> EsbResp<R> getEsbRespByReq(String method, String uri, EsbReq reqBody,
+                                          TypeReference<EsbResp<R>> typeReference,
                                           ExtHttpHelper httpHelper) {
         String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
         String respStr = null;
@@ -257,7 +258,7 @@ public abstract class AbstractEsbSdkClient {
                 log.error(errorMsg);
                 throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             } else if (!esbResp.getResult()) {
-                log.error(
+                log.warn(
                     "fail:esbResp code!=0|esbResp.requestId={}|esbResp.code={}|esbResp" +
                         ".message={}|method={}|uri={}|reqStr={}|respStr={}",
                     esbResp.getRequestId(),
@@ -265,7 +266,6 @@ public abstract class AbstractEsbSdkClient {
                     esbResp.getMessage(),
                     method, uri, reqStr, respStr
                 );
-                throw new InternalException("Esb response code not success", ErrorCode.API_ERROR);
             }
             if (esbResp.getData() == null) {
                 log.warn(

@@ -28,9 +28,9 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceGlobalVarValueResource;
 import com.tencent.bk.job.execute.api.esb.v3.EsbGetJobInstanceGlobalVarValueV3Resource;
 import com.tencent.bk.job.execute.model.esb.v2.EsbTaskInstanceGlobalVarValueDTO;
@@ -52,14 +52,14 @@ import java.util.List;
 public class EsbGetJobInstanceGlobalVarValueResourceImpl
     extends JobQueryCommonProcessor implements EsbGetJobInstanceGlobalVarValueResource {
 
-    private final MessageI18nService i18nService;
     private final EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbGetJobInstanceGlobalVarValueResourceImpl(
-        MessageI18nService i18nService,
-        EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService) {
-        this.i18nService = i18nService;
+        EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService,
+        AppScopeMappingService appScopeMappingService) {
+        this.appScopeMappingService = appScopeMappingService;
         this.proxyGetJobInstanceGlobalVarService = proxyGetJobInstanceGlobalVarService;
     }
 
@@ -67,6 +67,8 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_global_var_value"})
     public EsbResp<EsbTaskInstanceGlobalVarValueDTO> getJobInstanceGlobalVarValue(
         EsbGetJobInstanceGlobalVarValueRequest request) {
+
+        request.fillAppResourceScope(appScopeMappingService);
 
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -87,7 +89,9 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
         EsbGetJobInstanceGlobalVarValueV3Request newRequest = new EsbGetJobInstanceGlobalVarValueV3Request();
         newRequest.setAppCode(request.getAppCode());
         newRequest.setUserName(request.getUserName());
-        newRequest.setAppId(request.getAppId());
+        newRequest.setBizId(request.getBizId());
+        newRequest.setScopeType(request.getScopeType());
+        newRequest.setScopeId(request.getScopeId());
         newRequest.setTaskInstanceId(request.getTaskInstanceId());
         return newRequest;
     }
@@ -128,10 +132,6 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
 
 
     private ValidateResult checkRequest(EsbGetJobInstanceGlobalVarValueRequest request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("App is empty or illegal, appId={}", request.getAppId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (request.getTaskInstanceId() == null || request.getTaskInstanceId() < 1) {
             log.warn("TaskInstanceId is empty or illegal, taskInstanceId={}", request.getTaskInstanceId());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,

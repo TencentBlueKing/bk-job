@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model.esb.v3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,14 +47,9 @@ public class EsbJobInstanceStatusV3DTO {
 
     @Setter
     @Getter
-    public static class JobInstance {
+    public static class JobInstance extends EsbAppScopeDTO {
         @JsonProperty("job_instance_id")
         private Long id;
-        /**
-         * 业务id
-         */
-        @JsonProperty("bk_biz_id")
-        private Long appId;
         /**
          * 状态： 1.未执行、2.正在执行、3.执行完成且成功、4.执行失败
          */

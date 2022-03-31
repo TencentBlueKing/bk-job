@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.context.JobContextThreadLocal;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import io.micrometer.core.instrument.Tag;
 
 import javax.servlet.http.HttpServletRequest;
@@ -84,19 +85,19 @@ public class JobContextUtil {
         jobContext.setUsername(username);
     }
 
-    public static Long getAppId() {
+    public static AppResourceScope getAppResourceScope() {
         JobContext jobContext = JobContextThreadLocal.get();
-        Long appId = null;
+        AppResourceScope appResourceScope = null;
         if (jobContext != null) {
-            appId = jobContext.getAppId();
+            appResourceScope = jobContext.getAppResourceScope();
         }
 
-        return appId;
+        return appResourceScope;
     }
 
-    public static void setAppId(Long appId) {
+    public static void setAppResourceScope(AppResourceScope appResourceScope) {
         JobContext jobContext = getOrInitContext();
-        jobContext.setAppId(appId);
+        jobContext.setAppResourceScope(appResourceScope);
     }
 
     public static String getRequestId() {

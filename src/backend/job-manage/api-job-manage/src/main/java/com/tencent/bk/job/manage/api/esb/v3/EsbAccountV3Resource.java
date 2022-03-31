@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetAccountListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,13 +49,18 @@ public interface EsbAccountV3Resource {
 
     @PostMapping("/get_account_list")
     EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountListUsingPost(
-        @RequestBody EsbGetAccountListV3Req request);
+        @RequestBody
+        @Validated
+            EsbGetAccountListV3Req request
+    );
 
     @GetMapping("/get_account_list")
     EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "category", required = false) Integer category,
         @RequestParam(value = "start", required = false) Integer start,
         @RequestParam(value = "length", required = false) Integer length);

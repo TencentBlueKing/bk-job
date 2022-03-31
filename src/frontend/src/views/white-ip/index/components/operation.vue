@@ -27,32 +27,31 @@
 
 <template>
     <div v-bkloading="{ isLoading }">
-        <jb-form ref="whiteIpForm" form-type="vertical" :model="formData" :rules="rules">
+        <jb-form
+            ref="whiteIpForm"
+            form-type="vertical"
+            :model="formData"
+            :rules="rules">
             <jb-form-item :label="$t('whiteIP.目标业务.label')">
                 <div class="app-wraper">
                     <bk-select
+                        v-model="scopeLocalKeyList"
                         class="app-select"
                         :clearable="false"
-                        v-model="formData.appIdStr"
                         multiple
-                        :disabled="isAll"
                         searchable>
                         <bk-option
                             v-for="option in appList"
-                            :key="option.id"
-                            :id="option.id"
+                            :key="option.localKey"
+                            :id="option.localKey"
                             :name="option.name" />
                     </bk-select>
-                    <bk-checkbox
-                        v-if="wholeBusinessId"
-                        class="whole-business"
-                        :value="isAll"
-                        @change="handleAllAPP">
-                        {{ $t('whiteIP.全业务') }}
-                    </bk-checkbox>
                 </div>
             </jb-form-item>
-            <jb-form-item :label="$t('whiteIP.云区域')" required property="cloudAreaId">
+            <jb-form-item
+                :label="$t('whiteIP.云区域')"
+                required
+                property="cloudAreaId">
                 <bk-select
                     class="input"
                     :clearable="false"
@@ -65,22 +64,34 @@
                         :name="option.name" />
                 </bk-select>
             </jb-form-item>
-            <jb-form-item label="IP" required property="ipStr">
+            <jb-form-item
+                label="IP"
+                required
+                property="ipStr">
                 <bk-input
                     :placeholder="$t('whiteIP.输入IP，以“回车”分隔')"
                     class="input"
                     type="textarea"
                     v-model="formData.ipStr" />
             </jb-form-item>
-            <jb-form-item :label="$t('whiteIP.备注')" required property="remark">
-                <bk-input class="input" type="textarea" v-model="formData.remark" :maxlength="100" />
+            <jb-form-item
+                :label="$t('whiteIP.备注')"
+                required
+                property="remark">
+                <bk-input
+                    v-model="formData.remark"
+                    class="input"
+                    type="textarea"
+                    :maxlength="100" />
             </jb-form-item>
             <jb-form-item
                 :label="$t('whiteIP.生效范围.label')"
                 required
                 property="actionScopeIdList"
                 style="margin-bottom: 0;">
-                <bk-checkbox-group v-model="formData.actionScopeIdList" @change="handleRangeChange">
+                <bk-checkbox-group
+                    v-model="formData.actionScopeIdList"
+                    @change="handleRangeChange">
                     <bk-checkbox
                         v-for="(item, index) in actionScope"
                         :key="item.id"
@@ -103,13 +114,16 @@
         // 生效范围
         actionScopeIdList: [],
         // 业务ID
-        appIdStr: '',
+        scopeList: [],
         // 云区域ID
         cloudAreaId: '',
         ipStr: '',
         // 备注
         remark: '',
     });
+
+    const getScopeLocalKey = scopeData => `#${scopeData.scopeType}#${scopeData.scopeId}`;
+
     export default {
         name: '',
         props: {
@@ -120,22 +134,13 @@
         },
         data () {
             return {
-                // isAll: false,
+                isLoading: true,
                 formData: getDefaultData(),
+                scopeLocalKeyList: [],
                 appList: [],
-                wholeBusinessId: '',
                 cloudAreaList: [],
                 actionScope: [],
-                requestQueue: ['app', 'cloundArea', 'scope'],
             };
-        },
-        computed: {
-            isLoading () {
-                return this.requestQueue.length > 0;
-            },
-            isAll () {
-                return this.formData.appIdStr.includes(this.wholeBusinessId);
-            },
         },
         watch: {
             data: {
@@ -143,13 +148,23 @@
                     if (!data.id) {
                         return;
                     }
-                    const { id, actionScopeList, cloudAreaId, appList, remark, ipList } = data;
+                    const {
+                        id,
+                        actionScopeList,
+                        cloudAreaId,
+                        appList,
+                        remark,
+                        ipList,
+                    } = data;
                     this.formData = {
                         ...this.formData,
                         id,
                         actionScopeIdList: actionScopeList.map(item => item.id),
                         cloudAreaId,
-                        appIdStr: appList.map(_ => _.id),
+                        scopeList: appList.map(item => ({
+                            type: item.scopeType,
+                            id: item.scopeId,
+                        })),
                         remark,
                         ipStr: ipList.join('\n'),
                     };
@@ -158,6 +173,13 @@
             },
         },
         created () {
+            Promise.all([
+                this.fetchAppList(),
+                this.fetchAllCloudArea(),
+                this.fetchActionScope(),
+            ]).finally(() => {
+                this.isLoading = false;
+            });
             this.rules = {
                 ipStr: [
                     {
@@ -182,58 +204,55 @@
                     },
                 ],
             };
-            this.fetchAppList();
-            this.fetchWholeBusinessId();
-            this.fetchAllCloudArea();
-            this.fetchActionScope();
         },
         methods: {
+            /**
+             * @desc 业务列表
+             */
             fetchAppList () {
-                AppManageService.fetchAppListWholeBusiness()
+                return AppManageService.fetchAppList()
                     .then((data) => {
-                        this.appList = data;
-                        if (this.formData.appIdStr.length < 1) {
-                            this.formData.appIdStr = [this.appList[0].id];
+                        this.appList = data.map(item => ({
+                            ...item,
+                            localKey: getScopeLocalKey(item),
+                        }));
+                        if (this.formData.scopeList.length < 1) {
+                            const [
+                                {
+                                    scopeType,
+                                    scopeId,
+                                },
+                            ] = data;
+                            this.formData.scopeList = [{
+                                type: scopeType,
+                                id: scopeId,
+                            }];
                         }
-                    })
-                    .finally(() => {
-                        this.requestQueue.pop();
+                        this.scopeLocalKeyList = this.formData.scopeList.map(item => `#${item.type}#${item.id}`);
                     });
             },
-            fetchWholeBusinessId () {
-                AppManageService.fetchWholeBusinessId()
-                    .then((data) => {
-                        this.wholeBusinessId = data;
-                    });
-            },
+            /**
+             * @desc 获取云区域列表
+             */
             fetchAllCloudArea () {
-                WhiteIpService.getAllCloudArea()
+                return WhiteIpService.getAllCloudArea()
                     .then((data) => {
                         this.cloudAreaList = data;
                         if (this.formData.cloudAreaId === '') {
                             this.formData.cloudAreaId = this.cloudAreaList[0].id;
                         }
-                    })
-                    .finally(() => {
-                        this.requestQueue.pop();
                     });
             },
+            /**
+             * @desc 获取生效范围列表
+             */
             fetchActionScope () {
-                WhiteIpService.getScope()
+                return WhiteIpService.getScope()
                     .then((data) => {
                         this.actionScope = data;
-                    })
-                    .finally(() => {
-                        this.requestQueue.pop();
                     });
             },
-            handleAllAPP (value) {
-                if (value) {
-                    this.formData.appIdStr = [this.wholeBusinessId];
-                } else if (this.appList.length > 0) {
-                    this.formData.appIdStr = [this.appList[0].id];
-                }
-            },
+            
             handleRangeChange (value) {
                 if (value.length > 0) {
                     this.$refs.whiteIpForm.clearError('actionScopeIdList');
@@ -242,28 +261,28 @@
 
             submit () {
                 return this.$refs.whiteIpForm.validate()
-                    .then((validator) => {
+                    .then(() => {
                         const params = { ...this.formData };
                         if (params.id < 1) {
                             delete params.id;
                         }
-                        params.appIdStr = params.appIdStr.join(',');
+                        params.scopeList = this.scopeLocalKeyList.map((scopeLocalKey) => {
+                            const [
+                                ,
+                                type,
+                                id,
+                            ] = scopeLocalKey.match(/^#([^#]+)#(.+)$/);
+                            return {
+                                type,
+                                id,
+                            };
+                        });
                         return WhiteIpService.whiteIpUpdate(params)
                             .then(() => {
                                 this.messageSuccess(this.formData.id ? I18n.t('whiteIP.编辑成功') : I18n.t('whiteIP.新建成功'));
                                 this.$emit('on-update');
-                            })
-                            .finally(() => {
-                                this.reset();
                             });
                     });
-            },
-
-            reset () {
-            // this.$refs.whiteIpForm.clearError()
-            // this.formData = getDefaultData()
-            // this.formData.cloudAreaId = this.cloudAreaList[0].id
-            // this.formData.appId = this.appList[0].id
             },
         },
     };
