@@ -84,7 +84,7 @@ public class ApplicationContextRegister implements ApplicationContextAware {
      */
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        log.info("ApplicationContext registed-->{}", applicationContext);
+        log.info("ApplicationContext registered -->{}", applicationContext);
         context = applicationContext;
     }
 }

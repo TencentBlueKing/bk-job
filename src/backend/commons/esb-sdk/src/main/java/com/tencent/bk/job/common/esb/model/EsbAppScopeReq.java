@@ -27,10 +27,8 @@ package com.tencent.bk.job.common.esb.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.validate.EsbAppScopeReqGroupSequenceProvider;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.validation.CheckEnum;
@@ -89,7 +87,7 @@ public class EsbAppScopeReq extends EsbReq {
      * @param appScopeMappingService 业务与资源范围映射公共接口
      */
     public void fillAppResourceScope(AppScopeMappingService appScopeMappingService) {
-        boolean isExistScopeParam = StringUtils.isNotEmpty(this.scopeType) &&
+        boolean isExistScopeParam = StringUtils.isNotEmpty(this.scopeType) ||
             StringUtils.isNotEmpty(this.scopeId);
         boolean isExistBkBizIdParam = this.bizId != null;
         if (isExistScopeParam) {
@@ -106,9 +104,6 @@ public class EsbAppScopeReq extends EsbReq {
                     String.valueOf(this.bizId));
                 this.scopeType = ResourceScopeTypeEnum.BIZ.getValue();
             }
-        } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-                new String[]{"bk_biz_id/bk_scope_type/bk_scope_id"});
         }
     }
 

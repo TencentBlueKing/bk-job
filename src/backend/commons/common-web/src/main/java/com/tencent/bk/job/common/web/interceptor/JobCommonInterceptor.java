@@ -25,14 +25,18 @@
 package com.tencent.bk.job.common.web.interceptor;
 
 import brave.Tracer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
+import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -48,6 +52,8 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -112,23 +118,43 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     private void addUsername(HttpServletRequest request) {
-        // Web接口Header
-        String username = request.getHeader("username");
-        // ESB接口Header
-        // 网关从JWT中解析出的Username最高优先级
-        if (StringUtils.isBlank(username)) {
-            username = request.getHeader(JobCommonHeaders.USERNAME);
-            log.debug("username from gateway:{}", username);
+        HttpRequestSourceEnum requestSource = getHttpRequestSource(request);
+        if (requestSource == null) {
+            return;
         }
-        // QueryString/Body中的Username次优先
-        if (StringUtils.isBlank(username)) {
-            username = parseUsernameFromQueryStringOrBody(request);
-            log.debug("username from query/body:{}", username);
+
+        String username = null;
+        switch (requestSource) {
+            case WEB:
+                username = request.getHeader("username");
+                break;
+            case ESB:
+                // 网关从ESB JWT中解析出的Username最高优先级
+                username = request.getHeader(JobCommonHeaders.USERNAME);
+                log.debug("username from gateway:{}", username);
+                // QueryString/Body中的Username次优先
+                if (StringUtils.isBlank(username)) {
+                    username = parseUsernameFromQueryStringOrBody(request);
+                    log.debug("username from query/body:{}", username);
+                }
+                break;
         }
 
         if (StringUtils.isNotBlank(username)) {
             JobContextUtil.setUsername(username);
         }
+    }
+
+    private HttpRequestSourceEnum getHttpRequestSource(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/web/")) {
+            return HttpRequestSourceEnum.WEB;
+        } else if (uri.startsWith("/esb/")) {
+            return HttpRequestSourceEnum.ESB;
+        } else if (uri.startsWith("/service/")) {
+            return HttpRequestSourceEnum.INTERNAL;
+        }
+        return null;
     }
 
     private void addLang(HttpServletRequest request) {
@@ -142,14 +168,20 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     private void addAppResourceScope(HttpServletRequest request) {
-        AppResourceScope appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
-        log.debug("Scope from path:{}", appResourceScope);
-        if (appResourceScope == null) {
-            appResourceScope = parseAppResourceScopeFromQueryStringOrBody(request);
-            log.debug("scope from query/body:{}", appResourceScope);
+        HttpRequestSourceEnum requestSource = getHttpRequestSource(request);
+        if (requestSource == null) {
+            return;
         }
-        if (appResourceScope != null) {
-            JobContextUtil.setAppResourceScope(appResourceScope);
+
+        AppResourceScope appResourceScope = null;
+        switch (requestSource) {
+            case WEB:
+                appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
+                log.debug("Scope from path:{}", appResourceScope);
+                break;
+            case ESB:
+                appResourceScope = parseAppResourceScopeFromQueryStringOrBody(request);
+                log.debug("Scope from query/body:{}", appResourceScope);
         }
         if (appResourceScope != null) {
             request.setAttribute("appResourceScope", appResourceScope);
@@ -205,28 +237,83 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     private AppResourceScope parseAppResourceScopeFromQueryStringOrBody(HttpServletRequest request) {
-        String scopeType = parseValueFromQueryStringOrBody(request, "bk_scope_type");
-        String scopeId = parseValueFromQueryStringOrBody(request, "bk_scope_id");
+        Map<String, String> params = parseMultiValueFromQueryStringOrBody(request, "bk_scope_type", "bk_scope_id",
+            "bk_biz_id");
+        String scopeType = params.get("bk_scope_type");
+        String scopeId = params.get("bk_scope_id");
+        String bizIdStr = params.get("bk_biz_id");
+
         if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
             return new AppResourceScope(scopeType, scopeId, null);
-        } else {
+        }
+
+        EsbConfig esbConfig = ApplicationContextRegister.getBean(EsbConfig.class);
+        // 如果兼容bk_biz_id参数
+        if (esbConfig.isBkBizIdEnabled()) {
             // 兼容当前业务ID参数
-            String bizIdStr = parseValueFromQueryStringOrBody(request, "bk_biz_id");
             if (StringUtils.isNotBlank(bizIdStr)) {
-                Long appId;
-                Long bizId = Long.parseLong(bizIdStr);
+                long bizId = Long.parseLong(bizIdStr);
                 // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
                 scopeId = bizIdStr;
                 if (bizId >= 8000000L && bizId <= 9999999L) {
-                    appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), scopeId);
+                    Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(),
+                        scopeId);
                     return new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, scopeId, appId);
                 } else {
-                    appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(), scopeId);
+                    Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(), scopeId);
                     return new AppResourceScope(ResourceScopeTypeEnum.BIZ, scopeId, appId);
                 }
             }
         }
+        // 其他情况返回null，后续拦截器会处理null
         return null;
+    }
+
+    /**
+     * 从请求的解析多个参数
+     *
+     * @param request http请求
+     * @param keys    参数名称
+     * @return Map<paramName, paramValue>
+     */
+    private Map<String, String> parseMultiValueFromQueryStringOrBody(HttpServletRequest request, String... keys) {
+        Map<String, String> params = new HashMap<>();
+        try {
+            if (request.getMethod().equals(HttpMethod.POST.name())
+                || request.getMethod().equals(HttpMethod.PUT.name())) {
+                if (!(request instanceof RepeatableReadWriteHttpServletRequest)) {
+                    return params;
+                }
+                RepeatableReadWriteHttpServletRequest wrapperRequest =
+                    (RepeatableReadWriteHttpServletRequest) request;
+                if (StringUtils.isNotBlank(wrapperRequest.getBody())) {
+                    ObjectNode jsonBody = (ObjectNode) JsonUtils.toJsonNode(wrapperRequest.getBody());
+                    if (jsonBody == null) {
+                        return params;
+                    }
+                    for (String key : keys) {
+                        JsonNode valueNode = jsonBody.get(key);
+                        String value = (valueNode == null || valueNode.isNull()) ? null : jsonBody.get(key).asText();
+                        log.debug("Parsed from POST/PUT: {}={}", key, value);
+                        if (value != null) {
+                            params.put(key, value);
+                        }
+                    }
+                }
+            } else if (request.getMethod().equals(HttpMethod.GET.name())) {
+                for (String key : keys) {
+                    String value = request.getParameter(key);
+                    log.debug("Parsed from GET: {}={}", key, value);
+                    if (value != null) {
+                        params.put(key, value);
+                    }
+                }
+            }
+            return params;
+        } catch (Exception e) {
+            log.warn("Fail to parse keys: {} from request", keys, e);
+        }
+        return params;
     }
 
     private String parseValueFromQueryStringOrBody(HttpServletRequest request, String key) {
@@ -243,13 +330,14 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                     if (jsonBody == null) {
                         return null;
                     }
-                    String value = jsonBody.get(key) == null ? null : jsonBody.get(key).asText();
-                    log.debug("parsed from POST/PUT: {}={}", key, value);
+                    JsonNode valueNode = jsonBody.get(key);
+                    String value = (valueNode == null || valueNode.isNull()) ? null : jsonBody.get(key).asText();
+                    log.debug("Parsed from POST/PUT: {}={}", key, value);
                     return value;
                 }
             } else if (request.getMethod().equals(HttpMethod.GET.name())) {
                 String value = request.getParameter(key);
-                log.debug("parsed from GET: {}={}", key, value);
+                log.debug("Parsed from GET: {}={}", key, value);
                 return value;
             }
         } catch (Exception e) {

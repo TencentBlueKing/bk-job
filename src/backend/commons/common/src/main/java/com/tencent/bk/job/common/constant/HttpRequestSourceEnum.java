@@ -22,21 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.common.constant;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-public class FeatureToggleConfigHolder {
+/**
+ * Job HTTP请求来源
+ */
+public enum HttpRequestSourceEnum {
+    /**
+     * WEB 请求
+     */
+    WEB(1),
+    /**
+     * ESB 请求
+     */
+    ESB(2),
+    /**
+     * Job微服务内部请求
+     */
+    INTERNAL(3);
 
-    private FeatureToggleConfigHolder() {
+    @JsonValue
+    private int value;
+
+    HttpRequestSourceEnum(int value) {
+        this.value = value;
     }
 
-    public static FeatureToggleConfig get() {
-        return Inner.instance;
+    @JsonCreator
+    public static HttpRequestSourceEnum valueOf(int value) {
+        for (HttpRequestSourceEnum httpRequestSource : values()) {
+            if (httpRequestSource.value == value) {
+                return httpRequestSource;
+            }
+        }
+        return null;
     }
 
-    private static class Inner {
-        private static final FeatureToggleConfig instance =
-            ApplicationContextRegister.getBean(FeatureToggleConfig.class);
+    public int getValue() {
+        return value;
     }
 }

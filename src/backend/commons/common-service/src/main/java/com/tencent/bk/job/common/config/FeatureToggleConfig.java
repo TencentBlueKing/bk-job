@@ -24,73 +24,39 @@
 
 package com.tencent.bk.job.common.config;
 
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @ConfigurationProperties(prefix = "job.feature")
 @ToString
+@Getter
+@Setter
 @Slf4j
 public class FeatureToggleConfig {
-
+    /**
+     * 是否对接cmdb业务集开关
+     */
     private ToggleConfig cmdbBizSet = new ToggleConfig();
 
-    public void setCmdbBizSet(ToggleConfig cmdbBizSet) {
-        this.cmdbBizSet = cmdbBizSet;
-        log.info("FeatureToggleConfig.cmdbBizSet:{}", cmdbBizSet);
-    }
-
     @ToString
+    @Getter
+    @Setter
     public static class ToggleConfig {
         private boolean enabled = true;
         private boolean gray;
-        private String grayApps;
-        private final List<Long> grayAppList = new ArrayList<>();
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        public boolean isGray() {
-            return gray;
-        }
-
-        public void setGray(boolean gray) {
-            this.gray = gray;
-        }
-
-        public String getGrayApps() {
-            return grayApps;
-        }
-
-        public void setGrayApps(String grayApps) {
-            if (StringUtils.isNotEmpty(grayApps)) {
-                this.grayApps = grayApps;
-
-                grayAppList.addAll(Arrays.stream(grayApps.split(","))
-                    .map(Long::valueOf).collect(Collectors.toSet()));
-            }
-        }
+        private List<Long> grayApps;
     }
 
-    /**
-     * 是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
-     *
-     * @param appId Job业务ID
-     */
-    public boolean enableCmdbBizSet(Long appId) {
-        return cmdbBizSet.enabled
-            && (!cmdbBizSet.gray || cmdbBizSet.grayAppList.contains(appId));
+    @PostConstruct
+    public void print() {
+        log.info("FeatureToggleConfig init: {}", JsonUtils.toJson(this));
     }
 
 }

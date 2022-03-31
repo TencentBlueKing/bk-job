@@ -22,28 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.config;
+package com.tencent.bk.job.common.util;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import com.tencent.bk.job.common.config.FeatureToggleConfig;
 
-@Data
-@Component
-public class EsbConfig {
+/**
+ * 特性开关
+ */
+public class FeatureToggle {
 
-    @Value("${app.code:}")
-    private String appCode;
+    private FeatureToggle() {
+    }
 
-    @Value("${app.secret:}")
-    private String appSecret;
+    private static FeatureToggleConfig get() {
+        return Inner.instance;
+    }
 
-    @Value("${esb.service.url:}")
-    private String esbUrl;
+    private static class Inner {
+        private static final FeatureToggleConfig instance =
+            ApplicationContextRegister.getBean(FeatureToggleConfig.class);
+    }
 
-    @Value("${esb.use.test.env:false}")
-    private boolean useEsbTestEnv;
+    /**
+     * 业务是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     *
+     * @param appId Job业务ID
+     */
+    public static boolean isCmdbBizSetEnabledForApp(Long appId) {
+        FeatureToggleConfig featureToggleConfig = get();
+        FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
+        return cmdbBizSetConfig.isEnabled()
+            && (!cmdbBizSetConfig.isGray() || cmdbBizSetConfig.getGrayApps().contains(appId));
+    }
 
-    @Value("${esb.api.bk_biz_id.enabled:true}")
-    private boolean bkBizIdEnabled;
+    /**
+     * 是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     *
+     */
+    public static boolean isCmdbBizSetEnabled() {
+        FeatureToggleConfig featureToggleConfig = get();
+        FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
+        return cmdbBizSetConfig.isEnabled();
+    }
 }

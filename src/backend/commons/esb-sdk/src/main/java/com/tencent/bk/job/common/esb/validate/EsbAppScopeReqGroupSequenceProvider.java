@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.common.esb.validate;
 
+import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
@@ -43,6 +45,14 @@ public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequence
         List<Class<?>> validationGroups = new ArrayList<>();
         validationGroups.add(EsbAppScopeReq.class);
         if (req != null) {
+            EsbConfig esbConfig = ApplicationContextRegister.getBean(EsbConfig.class);
+            // 如果不兼容bk_biz_id，那么使用bk_scope_type+bk_scope_id参数校验方式
+            if (!esbConfig.isBkBizIdEnabled()) {
+                validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
+                return validationGroups;
+            }
+
+            // 如果参数中包含bk_scope_type/bk_scope_id,那么优先使用bk_scope_type+bk_scope_id
             if (StringUtils.isNotEmpty(req.getScopeType()) || StringUtils.isNotEmpty(req.getScopeId())) {
                 validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
             } else if (req.getBizId() != null) {
