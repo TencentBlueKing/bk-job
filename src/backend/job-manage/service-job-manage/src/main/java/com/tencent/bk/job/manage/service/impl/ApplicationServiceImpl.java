@@ -162,11 +162,11 @@ public class ApplicationServiceImpl implements ApplicationService {
                 allAppList.stream().collect(Collectors.groupingBy(ApplicationDTO::getAppType));
 
             //获取普通业务
-            List<ApplicationDTO> normalAppList = allAppTypeGroupMap.get(AppTypeEnum.NORMAL) == null ?
+            List<ApplicationDTO> normalAppList = allAppTypeGroupMap.get(AppTypeEnum.NORMAL) != null ?
                 allAppTypeGroupMap.get(AppTypeEnum.NORMAL) : new ArrayList<ApplicationDTO>();
 
             //普通业务按部门分组
-            Map<Long, List<ApplicationDTO>> normalAppGroupMap = normalAppList.stream().collect(
+            Map<Long, List<ApplicationDTO>> normalAppGroupMap = normalAppList.stream().filter(a -> a.getOperateDeptId() != null).collect(
                 Collectors.groupingBy(ApplicationDTO::getOperateDeptId));
 
             //查找包含当前业务的业务集
