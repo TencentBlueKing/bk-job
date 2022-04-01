@@ -1,4 +1,4 @@
-FROM konajdk/konajdk:8.0.9
+FROM blueking/jdk:0.0.1
 
 LABEL maintainer="Tencent BlueKing Job"
 
