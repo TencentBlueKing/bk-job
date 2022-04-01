@@ -26,7 +26,9 @@ package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.Bool;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
@@ -319,11 +321,19 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             UByte.valueOf(Bool.FALSE.getValue())
         );
         try {
-            query.execute();
+            val record = query.returning(T_APP.APP_ID).fetchOne();
+            if (record != null) {
+                return record.getAppId().longValue();
+            } else {
+                throw new InternalException(
+                    "Get null id after insert, please check db generator",
+                    ErrorCode.INTERNAL_ERROR
+                );
+            }
         } catch (Exception e) {
             log.info("Fail to insertAppInfo:SQL={}", query.getSQL(ParamType.INLINED), e);
+            throw e;
         }
-        return applicationDTO.getId();
     }
 
     @Override
