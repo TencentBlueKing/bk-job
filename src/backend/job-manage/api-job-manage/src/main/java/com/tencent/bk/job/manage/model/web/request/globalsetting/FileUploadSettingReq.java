@@ -24,12 +24,17 @@
 
 package com.tencent.bk.job.manage.model.web.request.globalsetting;
 
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.manage.common.consts.globalsetting.RestrictModeEnum;
 import com.tencent.bk.job.manage.common.consts.globalsetting.StorageUnitEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import javax.validation.constraints.Pattern;
+import java.util.List;
 
 /**
  * @Description
@@ -45,4 +50,11 @@ public class FileUploadSettingReq {
     private Long amount;
     @ApiModelProperty("单位:可选B/KB/MB/GB/TB/PB")
     private StorageUnitEnum unit;
+    @ApiModelProperty("限制模式，0:禁止范围，1：允许范围")
+    @CheckEnum(enumClass = RestrictModeEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidRestrictMode.message}")
+    private Integer restrictMode;
+    @ApiModelProperty("后缀列表")
+    private List<
+                @Pattern(regexp = "^\\.[A-Za-z]{1,24}$", message = "{validation.constraints.InvalidFileSuffix.message}") String> suffixList;
+
 }

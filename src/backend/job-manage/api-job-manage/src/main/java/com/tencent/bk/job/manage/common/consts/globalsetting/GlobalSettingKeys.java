@@ -42,6 +42,8 @@ public class GlobalSettingKeys {
     public static final String KEY_CURRENT_NAME_RULES_EN = "CURRENT_NAME_RULES_EN";
     //最大上传文件大小配置
     public static final String KEY_FILE_UPLOAD_MAX_SIZE = "FILE_UPLOAD_MAX_SIZE";
+    //限制上传文件的后缀
+    public static final String KEY_FILE_UPLOAD_SUFFIX = "FILE_UPLOAD_SUFFIX";
     //Title与Footer配置
     public static final String KEY_TITLE_FOOTER = "TITLE_FOOTER";
     //全局可用消息通知渠道是否已配置

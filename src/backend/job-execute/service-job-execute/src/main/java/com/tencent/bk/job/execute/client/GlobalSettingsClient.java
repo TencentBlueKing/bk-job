@@ -22,34 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.inner.impl;
+package com.tencent.bk.job.execute.client;
 
-import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceGlobalSettingsResource;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
-import com.tencent.bk.job.manage.service.GlobalSettingsService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.cloud.openfeign.FeignClient;
 
-@Slf4j
-@RestController
-public class ServiceGlobalSettingsResourceImpl implements ServiceGlobalSettingsResource {
-
-    private final GlobalSettingsService globalSettingsService;
-
-    @Autowired
-    public ServiceGlobalSettingsResourceImpl(GlobalSettingsService globalSettingsService) {
-        this.globalSettingsService = globalSettingsService;
-    }
-
-    @Override
-    public InternalResponse<String> getDocCenterBaseUrl() {
-        return InternalResponse.buildSuccessResp(globalSettingsService.getDocCenterBaseUrl());
-    }
-
-    @Override
-    public InternalResponse<FileUploadSettingVO> getFileUploadSettings(String username) {
-        return InternalResponse.buildSuccessResp(globalSettingsService.getFileUploadSettings(username));
-    }
+/**
+ * 作业管理-全局配置
+ */
+@FeignClient(value = "job-manage", contextId = "globalSettings")
+public interface GlobalSettingsClient extends ServiceGlobalSettingsResource {
 }

@@ -22,34 +22,51 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.inner.impl;
+package com.tencent.bk.job.manage.common.consts.globalsetting;
 
-import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.api.inner.ServiceGlobalSettingsResource;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
-import com.tencent.bk.job.manage.service.GlobalSettingsService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.val;
 
-@Slf4j
-@RestController
-public class ServiceGlobalSettingsResourceImpl implements ServiceGlobalSettingsResource {
+@Getter
+@AllArgsConstructor
+public enum RestrictModeEnum {
+    /**
+     * 禁止范围
+     */
+    FORBID(0),
 
-    private final GlobalSettingsService globalSettingsService;
+    /**
+     * 允许范围
+     */
+    ALLOW(1);
 
-    @Autowired
-    public ServiceGlobalSettingsResourceImpl(GlobalSettingsService globalSettingsService) {
-        this.globalSettingsService = globalSettingsService;
+    @JsonValue
+    private int type;
+
+    @JsonCreator
+    public static RestrictModeEnum valueOf(int type) {
+        val values = RestrictModeEnum.values();
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].type == type) {
+                return values[i];
+            }
+        }
+        return null;
     }
 
-    @Override
-    public InternalResponse<String> getDocCenterBaseUrl() {
-        return InternalResponse.buildSuccessResp(globalSettingsService.getDocCenterBaseUrl());
-    }
 
-    @Override
-    public InternalResponse<FileUploadSettingVO> getFileUploadSettings(String username) {
-        return InternalResponse.buildSuccessResp(globalSettingsService.getFileUploadSettings(username));
+    /**
+     * 判断参数合法性
+     */
+    public static boolean isValid(Integer type) {
+        for (RestrictModeEnum restrictModeEnum : RestrictModeEnum.values()) {
+            if (restrictModeEnum.getType() == type) {
+                return true;
+            }
+        }
+        return false;
     }
 }
