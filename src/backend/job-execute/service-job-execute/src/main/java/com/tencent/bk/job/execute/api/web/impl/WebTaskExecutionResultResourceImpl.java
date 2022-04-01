@@ -474,7 +474,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                   Long stepInstanceId,
                                                                   Integer executeCount,
                                                                   Integer batch,
-                                                                  Boolean filterByLatestBatch,
                                                                   Integer resultType,
                                                                   String tag,
                                                                   Integer maxIpsPerResultGroup,
@@ -485,8 +484,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
             .stepInstanceId(stepInstanceId)
             .executeCount(executeCount)
-            .batch(batch)
-            .filterByLatestBatch(filterByLatestBatch)
+            .batch(batch == null ? null : (batch == 0 ? null : batch))
+            .filterByLatestBatch(batch == null)
             .status(resultType)
             .tag(tag)
             .logKeyword(keyword)
