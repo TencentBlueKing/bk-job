@@ -24,11 +24,9 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.manager.script.check.ScriptCheckParam;
@@ -38,6 +36,7 @@ import com.tencent.bk.job.manage.manager.script.check.checker.DeviceCrashScriptC
 import com.tencent.bk.job.manage.manager.script.check.checker.IOScriptChecker;
 import com.tencent.bk.job.manage.manager.script.check.checker.ScriptGrammarChecker;
 import com.tencent.bk.job.manage.manager.script.check.checker.ScriptLogicChecker;
+import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.service.ScriptCheckService;
@@ -46,7 +45,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -59,7 +61,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -67,35 +68,51 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
 
     private final DSLContext dslContext;
     private final DangerousRuleDAO dangerousRuleDAO;
+    private final RedisTemplate redisTemplate;
     private final ExecutorService executor = new ThreadPoolExecutor(
         10, 50, 60L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<Runnable>());
-    private LoadingCache<Integer, List<DangerousRuleDTO>> dangerousRuleCache = CacheBuilder.newBuilder()
-        .maximumSize(100).expireAfterWrite(1, TimeUnit.MINUTES).
-            build(new CacheLoader<Integer, List<DangerousRuleDTO>>() {
-                      @Override
-                      public List<DangerousRuleDTO> load(Integer scriptType) {
-                          List<DangerousRuleDTO> dangerousRules =
-                              dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, scriptType);
-                          if (CollectionUtils.isEmpty(dangerousRules)) {
-                              return Collections.emptyList();
-                          } else {
-                              return dangerousRules.stream()
-                                  .filter(DangerousRuleDTO::isEnabled)
-                                  .collect(Collectors.toList());
-                          }
-                      }
-                  }
-            );
 
     @Autowired
-    public ScriptCheckServiceImpl(DSLContext dslContext, DangerousRuleDAO dangerousRuleDAO) {
+    public ScriptCheckServiceImpl(DSLContext dslContext, DangerousRuleDAO dangerousRuleDAO,
+                                  @Qualifier("jsonRedisTemplate") RedisTemplate redisTemplate) {
         this.dslContext = dslContext;
         this.dangerousRuleDAO = dangerousRuleDAO;
+        this.redisTemplate = redisTemplate;
     }
 
-    private List<DangerousRuleDTO> listDangerousRuleFromCache(Integer scriptType) throws ExecutionException {
-        return dangerousRuleCache.get(scriptType);
+    public List<DangerousRuleDTO> listDangerousRuleFromCache(Integer scriptType) throws ExecutionException {
+        Object appObj = redisTemplate.opsForHash().get("job:manage:dangerousRules", String.valueOf(scriptType));
+        if (appObj == null) {
+            log.info("dangerousRules is not in cache!");
+            List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRulesByScriptType(dslContext,
+                scriptType);
+            if (CollectionUtils.isEmpty(dangerousRuleDTOList)) {
+                return null;
+            }
+            try {
+                log.info("Refresh dangerousRules cache, dangerousRules:{}", JsonUtils.toJson(dangerousRuleDTOList));
+                List<DangerousRuleDO> dangerousRuleDOList = new ArrayList<>();
+                dangerousRuleDTOList.forEach(d -> {
+                    DangerousRuleDO dangerousRuleDO = new DangerousRuleDO();
+                    BeanUtils.copyProperties(d, dangerousRuleDO);
+                    dangerousRuleDOList.add(dangerousRuleDO);
+                });
+                redisTemplate.opsForHash().put("job:manage:dangerousRules", String.valueOf(scriptType),
+                    dangerousRuleDOList);
+            } catch (Exception e) {
+                log.warn("Refresh dangerousRules cache fail", e);
+            }
+            return dangerousRuleDTOList;
+        }
+        List<DangerousRuleDO> dangerousRuleDOList = (List<DangerousRuleDO>) appObj;
+        List<DangerousRuleDTO> dangerousRuleDTOList = new ArrayList<>();
+        dangerousRuleDOList.forEach(d -> {
+            DangerousRuleDTO dangerousRuleDTO = new DangerousRuleDTO();
+            BeanUtils.copyProperties(d, dangerousRuleDTO);
+            dangerousRuleDTOList.add(dangerousRuleDTO);
+        });
+        return dangerousRuleDTOList;
     }
 
     @Override

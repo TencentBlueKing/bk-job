@@ -32,9 +32,12 @@ import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRu
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
 import com.tencent.bk.job.manage.service.DangerousRuleService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,13 +49,16 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
 
     private DSLContext dslContext;
     private DangerousRuleDAO dangerousRuleDAO;
+    private final RedisTemplate redisTemplate;
 
     @Autowired
     public DangerousRuleServiceImpl(
         DSLContext dslContext,
-        DangerousRuleDAO dangerousRuleDAO) {
+        DangerousRuleDAO dangerousRuleDAO,
+        @Qualifier("jsonRedisTemplate") RedisTemplate redisTemplate) {
         this.dslContext = dslContext;
         this.dangerousRuleDAO = dangerousRuleDAO;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -63,6 +69,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
 
     @Override
     public Boolean addOrUpdateDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
+        deleteDangerousRuleCacheByScriptTypes(req.getScriptTypeList());
         int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
         if (req.getId() == -1) {
             //新增
@@ -82,7 +89,18 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 return false;
             }
         }
+        deleteDangerousRuleCacheByScriptTypes(req.getScriptTypeList());
         return true;
+    }
+
+    private void deleteDangerousRuleCacheByScriptTypes(List<Byte> scriptTypeList) {
+        if(CollectionUtils.isNotEmpty(scriptTypeList)){
+            scriptTypeList.forEach(a -> deleteDangerousRuleCacheByScriptType(a));
+        }
+    }
+
+    private void deleteDangerousRuleCacheByScriptType(Byte scriptType) {
+        redisTemplate.opsForHash().delete("job:manage:dangerousRules", String.valueOf(scriptType));
     }
 
     @Override
@@ -161,6 +179,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 dangerousRuleDAO.updateDangerousRule(context, dangerousRuleDTO);
             }
         });
+        deleteDangerousRuleCacheByScriptTypes(DangerousRuleDTO.decodeScriptType(existDangerousRuleDTO.getScriptType()));
         return id.intValue();
     }
 }
