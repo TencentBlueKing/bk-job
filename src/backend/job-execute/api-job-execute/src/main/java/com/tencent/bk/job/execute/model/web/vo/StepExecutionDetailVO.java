@@ -56,6 +56,8 @@ public class StepExecutionDetailVO {
     @ApiModelProperty("步骤状态,1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常" +
         "，10-强制终止中，11-强制终止成功，12-强制终止失败，13-确认终止，14-被丢弃，15-滚动等待")
     private Integer status;
+    @ApiModelProperty("步骤状态描述")
+    private String statusDesc;
     @ApiModelProperty("Agent作业执行结果分组")
     private List<ExecutionResultGroupVO> resultGroups;
     @ApiModelProperty("是否是作业中最后一个步骤")

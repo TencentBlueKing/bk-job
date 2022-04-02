@@ -532,6 +532,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         stepExecutionDetailVO.setStepInstanceId(executionDetail.getStepInstanceId());
         stepExecutionDetailVO.setRetryCount(executionDetail.getExecuteCount());
         stepExecutionDetailVO.setStatus(executionDetail.getStatus());
+        RunStatusEnum stepStatus = RunStatusEnum.valueOf(executionDetail.getStatus());
+        if (stepStatus != null) {
+            stepExecutionDetailVO.setStatusDesc(i18nService.getI18n(stepStatus.getI18nKey()));
+        }
         stepExecutionDetailVO.setStartTime(executionDetail.getStartTime());
         stepExecutionDetailVO.setEndTime(executionDetail.getEndTime());
         stepExecutionDetailVO.setTotalTime(executionDetail.getTotalTime());
