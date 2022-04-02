@@ -66,3 +66,31 @@ JOB平台执行引擎提供的特有的变量能力
     ### echo ${JOB_NAMESPACE_命名空间变量名} 的输出：
     {"0:10.10.10.1":"xxxx","0:10.10.10.2":"yyyy","0:10.10.10.3":"zzzz"}
     ```
+  - Shell 脚本处理 JSON字符串的两种方式（仅供参考，正式投入使用建议调试确认后再上线）：
+
+	  方式一：（纯 sed + awk 实现）
+    ```bash
+      #!/bin/bash
+      
+      str='{"ns1":{"ip1":"value1","ip2":"value2"},"ns2":{"ip3":"value3","ip4":"value4"}}'
+      
+      function json_parse {
+          local _json=$1
+          local _key=$2
+          temp=`echo $_json | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $_key`
+          echo ${temp##*|}
+      }
+      
+      json_parse $str ip1			## 获取 str 的 json字符串中 ip1 的值，即：value1
+      json_parse $str ns1			## 获取 str 的 json字符串中 ns1 的值，即：{"ip1":"value1","ip2":"value2"}
+    ```
+
+    方式二：（借助 Python 的 json 模块实现）
+    ```bash
+      #!/bin/bash
+      
+      str='{"ns1":{"ip1":"value1","ip2":"value2"},"ns2":{"ip3":"value3","ip4":"value4"}}'
+      
+      ### 获取 str 的 json字符串中 ip2 的值，即：value2
+      echo ${str} | python -c 'import json,sys;obj=json.load(sys.stdin);print obj["ns1"]["ip2"]'
+    ```

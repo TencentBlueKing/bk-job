@@ -398,7 +398,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
                 requestId);
         fileResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
             taskInstanceVariableService, stepInstanceVariableValueService,
-            taskManager, resultHandleTaskKeepaliveManager, exceptionStatusManager);
+            taskManager, resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor);
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
 

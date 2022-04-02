@@ -56,13 +56,27 @@ import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.*;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireReq;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.SetTitleFooterReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.*;
-import com.tencent.bk.job.manage.model.web.vo.notify.*;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRuleVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
+import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
@@ -76,7 +90,15 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -550,19 +572,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
     }
 
-    private TitleFooterVO getInnerDefaultTitleFooterVO() {
-        String currentYear = TimeUtil.getCurrentTimeStr("yyyy");
-        return new TitleFooterVO(
-            i18nService.getI18n("job.manage.globalsettings.defaultTitleHead")
-            , "|"
-            , String.format(
-            "[" + i18nService.getI18n("job.manage.globalsettings.contactBKHelper") + "](%s) | ["
-                + i18nService.getI18n("job.manage.globalsettings.BKDesktop") + "](%s)"
-            , jobManageConfig.getBkHelperUrl()
-            , jobManageConfig.getPaasServerUrl())
-            , String.format("Copyright © 2012-%s Tencent BlueKing. All Rights Reserved.", currentYear));
-    }
-
     @Override
     public TitleFooterVO getTitleFooter() {
         TitleFooterVO titleFooterVO = getTitleFooterWithoutVersion();
@@ -771,8 +780,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             removeSuffixBackSlash(jobManageConfig.getCmdbServerUrl()) + jobManageConfig.getCmdbAppIndexPath());
         urlMap.put(RelatedUrlKeys.KEY_BK_NODEMAN_ROOT_URL, getNodemanRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_DOC_CENTER_ROOT_URL, getDocCenterBaseUrl());
-        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, removeSuffixBackSlash(getDocCenterBaseUrl()) + "/markdown" +
-            "/产品白皮书/Introduction/What-is-Job.md");
+        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocCenterBaseUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_FEED_BACK_ROOT_URL, getFeedBackRootUrl());
         return urlMap;
     }

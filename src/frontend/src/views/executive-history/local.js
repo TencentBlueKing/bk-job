@@ -51,6 +51,7 @@ export default {
         强制终止成功: 'Terminated',
         强制终止失败: 'Terminate failed',
         确认终止: 'Termination Confirmed',
+        被丢弃: 'Evicted',
         近1小时: 'Last 1 hour',
         近12小时: 'Last 12 hours',
         近1天: 'Last 24 hours',

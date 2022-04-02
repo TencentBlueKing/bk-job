@@ -44,9 +44,9 @@ spec:
             - name: BK_IAM_URL
               value: {{ .Values.bkIamApiUrl | quote }}
             - name: BK_JOB_APP_CODE
-              value: {{ .Values.app.code | quote }}
+              value: {{ .Values.appCode | quote }}
             - name: BK_JOB_APP_SECRET
-              value: {{ .Values.app.secret | quote }}
+              value: {{ .Values.appSecret | quote }}
             - name: BK_JOB_API_URL
               value: {{ include "job.web.api.url" . }}
             - name: BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED

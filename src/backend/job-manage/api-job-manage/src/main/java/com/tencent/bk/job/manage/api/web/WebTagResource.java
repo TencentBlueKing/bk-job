@@ -79,7 +79,7 @@ public interface WebTagResource {
         @ApiParam("排序顺序,0:降序;1:升序")
         @RequestParam(value = "order", required = false) Integer order);
 
-    @ApiOperation(value = "根据条件获取业务下的所有标签,仅返回基础信息(id/name)", produces = "application/json")
+    @ApiOperation(value = "根据条件获取业务下的所有标签,仅返回基础信息(id/name/description)", produces = "application/json")
     @GetMapping("/tag/basic/list")
     Response<List<TagVO>> listTagsBasic(
         @ApiParam("用户名，网关自动传入")

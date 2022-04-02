@@ -75,6 +75,20 @@ public class TaskReporterImpl implements TaskReporter {
         reportTaskStatus(req);
     }
 
+    public void reportFileDownloadProgressWithContent(String taskId, String filePath, String downloadPath, Long fileSize,
+                                                      Integer speed, Integer progress, String content) {
+        UpdateFileSourceTaskReq req = new UpdateFileSourceTaskReq();
+        req.setFileSourceTaskId(taskId);
+        req.setFilePath(filePath);
+        req.setDownloadPath(downloadPath);
+        req.setStatus(TaskStatusEnum.RUNNING);
+        req.setFileSize(fileSize);
+        req.setSpeed(speed + " KB/s");
+        req.setContent(content);
+        req.setProgress(progress);
+        reportTaskStatus(req);
+    }
+
     public void reportFileDownloadSuccess(String taskId, String filePath, String downloadPath, Long fileSize,
                                           Integer speed, Integer progress) {
         UpdateFileSourceTaskReq req = new UpdateFileSourceTaskReq();

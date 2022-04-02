@@ -25,7 +25,17 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.tencent.bk.job.backup.archive.impl.*;
+import com.tencent.bk.job.backup.archive.impl.FileSourceTaskLogArchivist;
+import com.tencent.bk.job.backup.archive.impl.GseTaskIpLogArchivist;
+import com.tencent.bk.job.backup.archive.impl.GseTaskLogArchivist;
+import com.tencent.bk.job.backup.archive.impl.OperationLogArchivist;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceArchivist;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceConfirmArchivist;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceFileArchivist;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceScriptArchivist;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchivist;
+import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchivist;
+import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchivist;
 import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.JobExecuteDAO;
@@ -35,7 +45,11 @@ import org.joda.time.DateTime;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JobExecuteArchiveManage implements SmartLifecycle {
@@ -172,11 +186,14 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 long maxNeedArchiveStepInstanceId =
                     jobExecuteDAO.getMaxNeedArchiveStepInstanceId(maxNeedArchiveTaskInstanceId);
 
+                log.info("Compute archive instance id range, maxNeedArchiveTaskInstanceId: {}, " +
+                    "maxNeedArchiveStepInstanceId: {}", maxNeedArchiveTaskInstanceId, maxNeedArchiveStepInstanceId);
+
                 ArchiveSummaryHolder.getInstance().init(endTime);
                 archive(maxNeedArchiveTaskInstanceId, maxNeedArchiveStepInstanceId);
                 ArchiveSummaryHolder.getInstance().print();
 
-                log.info("Execute log archive before {} success at {}", endTime, System.currentTimeMillis());
+                log.info("Job execute archive before {} success at {}", endTime, System.currentTimeMillis());
             } catch (InterruptedException e) {
                 throw e;
             } catch (Throwable e) {

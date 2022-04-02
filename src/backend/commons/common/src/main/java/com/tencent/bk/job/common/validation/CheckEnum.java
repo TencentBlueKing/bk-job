@@ -37,7 +37,11 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
@@ -90,7 +94,7 @@ public @interface CheckEnum {
                     return false;
                 }
                 Boolean result = (Boolean) method.invoke(null, value);
-                return result != null && result;
+                return result == null ? false : result;
             } catch (Exception e) {
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }

@@ -112,12 +112,6 @@ public class EsbGetCronListV3Request extends EsbReq {
             return false;
         }
 
-        if (id != null && id > 0) {
-            return true;
-        } else {
-            id = null;
-        }
-
         if (StringUtils.isEmpty(name)) {
             name = null;
         }
@@ -152,6 +146,12 @@ public class EsbGetCronListV3Request extends EsbReq {
 
         if (length == null || length < 0) {
             length = 20;
+        }
+
+        if (id != null && id > 0) {
+            return true;
+        } else {
+            id = null;
         }
 
         return true;
