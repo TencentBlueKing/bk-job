@@ -37,6 +37,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UploadFileRestrictDto {
+    @ApiModelProperty("限制最大上传大小")
+    private String maxSize;
     @ApiModelProperty("限制模式")
     private Integer restrictMode;
     @ApiModelProperty("后缀列表")
