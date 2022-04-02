@@ -36,7 +36,7 @@ import java.util.Objects;
  */
 @Data
 @ToString(exclude = {"password"})
-public class JobFile implements Comparable<JobFile> {
+public class JobFile {
     /**
      * 是否本地文件
      */
@@ -168,11 +168,6 @@ public class JobFile implements Comparable<JobFile> {
             return false;
         }
         return this.fileName.equals(target.fileName);
-    }
-
-    @Override
-    public int compareTo(JobFile o) {
-        return this.equals(o) ? 0 : -1;
     }
 
     @Override
