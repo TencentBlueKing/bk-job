@@ -331,7 +331,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 );
             }
         } catch (Exception e) {
-            log.info("Fail to insertAppInfo:SQL={}", query.getSQL(ParamType.INLINED), e);
+            log.error("Fail to insertAppInfo:SQL={}", query.getSQL(ParamType.INLINED), e);
             throw e;
         }
     }
