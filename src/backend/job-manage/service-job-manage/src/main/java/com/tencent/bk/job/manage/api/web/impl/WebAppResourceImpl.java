@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -41,6 +42,7 @@ import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.PageUtil;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
@@ -66,6 +68,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -96,11 +99,35 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                                Integer start,
                                                                                Integer pageSize) {
         List<ApplicationDTO> appList = applicationService.listAllApps();
-        List<AppResourceScope> appResourceScopeList = appList.stream()
-            .map(it -> new AppResourceScope(it.getId(), it.getScope())).collect(Collectors.toList());
+        // 通过权限中心鉴权的业务/业务集
+        List<AppResourceScope> appResourceScopeList = new ArrayList<>();
+        // 由Job本身运维人员字段鉴权通过的业务集
+        List<AppResourceScope> allowedByMaintainerBizSetScopeList = new ArrayList<>();
+        appList.forEach(app -> {
+            AppResourceScope appResourceScope = new AppResourceScope(app.getId(), app.getScope());
+            if (app.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+                appResourceScopeList.add(appResourceScope);
+            } else if (app.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
+                if (!FeatureToggle.isCmdbBizSetEnabledForApp(app.getId())) {
+                    String maintainerStr = app.getMaintainers();
+                    Set<String> maintainerSet = Sets.newHashSet(maintainerStr.split("[,;]"));
+                    if (maintainerSet.contains(username)) {
+                        allowedByMaintainerBizSetScopeList.add(appResourceScope);
+                    } else {
+                        appResourceScopeList.add(appResourceScope);
+                    }
+                } else {
+                    appResourceScopeList.add(appResourceScope);
+                }
+            }
+        });
+
         // 鉴权
         AppResourceScopeResult appResourceScopeResult =
             appAuthService.getAppResourceScopeList(username, appResourceScopeList);
+        // 合并由Job本身运维人员字段鉴权通过的业务集
+        appResourceScopeResult.getAppResourceScopeList().addAll(allowedByMaintainerBizSetScopeList);
+
         List<AppVO> finalAppList = new ArrayList<>();
         // 可用的普通业务
         List<AppResourceScope> authorizedAppResourceScopes = appResourceScopeResult.getAppResourceScopeList();
