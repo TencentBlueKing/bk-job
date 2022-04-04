@@ -24,10 +24,13 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +47,25 @@ public class BasicAuthService {
 
     public void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService) {
         this.resourceNameQueryService = resourceNameQueryService;
+    }
+
+    /**
+     * 判断用户对Job业务资源是否有直接权限
+     *
+     * @param username        用户名
+     * @param resourceAppInfo Job业务资源
+     * @return 是否有权限
+     */
+    protected boolean hasAppPermission(String username, ResourceAppInfo resourceAppInfo) {
+        ResourceScopeTypeEnum resourceScopeType = ResourceScopeTypeEnum.from(resourceAppInfo.getScopeType());
+        // 普通业务/CMDB业务集特性开启了的业务集：使用IAM鉴权
+        if (resourceScopeType != ResourceScopeTypeEnum.BIZ_SET
+            || FeatureToggle.isCmdbBizSetEnabledForApp(resourceAppInfo.getAppId())) {
+            return false;
+        }
+        // 未开启CMDB业务集特性的业务集：使用Job的运维人员鉴权
+        log.debug("use maintainers to auth app {}", username);
+        return resourceAppInfo.getMaintainerList().contains(username);
     }
 
     protected AuthResult buildFailAuthResult(String actionId, ResourceTypeEnum resourceType,

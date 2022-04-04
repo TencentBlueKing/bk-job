@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
+import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
@@ -108,17 +109,24 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
         }
     }
 
-    public boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,
-                                              String resourceId) {
+    /**
+     * 判断用户是否对Job业务下的所有资源有权限
+     *
+     * @param username     用户名
+     * @param resourceType 资源类型
+     * @param resourceId   资源ID
+     * @return 是否有权限
+     */
+    public boolean hasAppPermission(String username, ResourceTypeEnum resourceType, String resourceId) {
         // 业务集、全业务特殊鉴权
-        // TODO:灰度开启
-        return false;
+        ResourceAppInfo resourceAppInfo = resourceAppInfoQueryService.getResourceAppInfo(resourceType, resourceId);
+        return hasAppPermission(username, resourceAppInfo);
     }
 
     @Override
     public AuthResult auth(boolean returnApplyUrl, String username, String actionId, ResourceTypeEnum resourceType,
                            String resourceId, PathInfoDTO pathInfo) {
-        if (authSpecialAppByMaintainer(username, resourceType, resourceId)) {
+        if (hasAppPermission(username, resourceType, resourceId)) {
             return AuthResult.pass();
         }
         boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstance(resourceType, resourceId, pathInfo));
@@ -170,7 +178,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                 ResourceTypeEnum resourceType = relatedResourceGroups.get(0).getResourceType();
                 List<PermissionResource> resources = relatedResourceGroups.get(0).getPermissionResources();
                 // All resources are under one application, so choose any one for authentication
-                if (authSpecialAppByMaintainer(username, resourceType, resources.get(0).getResourceId())) {
+                if (hasAppPermission(username, resourceType, resources.get(0).getResourceId())) {
                     authResult.setPass(true);
                 } else {
                     List<String> allowedResourceIds =

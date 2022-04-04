@@ -24,22 +24,16 @@
 
 package com.tencent.bk.job.crontab.auth;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.app.ApplicationUtil;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.crontab.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -55,29 +49,11 @@ public class CrontabResourceAppInfoQueryService implements ResourceAppInfoQueryS
         this.cronJobService = cronJobService;
     }
 
-    private ResourceAppInfo convert(ServiceApplicationDTO applicationInfoDTO) {
-        if (applicationInfoDTO == null) {
-            return null;
-        } else {
-            ResourceAppInfo resourceAppInfo = new ResourceAppInfo();
-            resourceAppInfo.setAppId(applicationInfoDTO.getId());
-            resourceAppInfo.setAppType(AppTypeEnum.valueOf(applicationInfoDTO.getAppType()));
-            String maintainerStr = applicationInfoDTO.getMaintainers();
-            List<String> maintainerList = new ArrayList<>();
-            if (StringUtils.isNotBlank(maintainerStr)) {
-                String[] maintainers = maintainerStr.split("[,;]");
-                maintainerList.addAll(Arrays.asList(maintainers));
-            }
-            resourceAppInfo.setMaintainerList(maintainerList);
-            return resourceAppInfo;
-        }
-    }
-
     private ResourceAppInfo getResourceAppInfoById(Long appId) {
         if (appId == null || appId <= 0) {
             return null;
         }
-        return convert(applicationService.queryAppById(appId));
+        return ApplicationUtil.convertToResourceApp(applicationService.queryAppById(appId));
     }
 
     @Override

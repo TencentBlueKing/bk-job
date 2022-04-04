@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.service;
 
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
+import com.tencent.bk.job.common.model.ServiceApplicationDTO;
 
 import java.util.List;
 

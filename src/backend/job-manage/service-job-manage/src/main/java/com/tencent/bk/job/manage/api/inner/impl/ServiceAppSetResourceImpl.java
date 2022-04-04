@@ -25,19 +25,20 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
+import com.tencent.bk.job.common.app.ApplicationUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.ServiceApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceAppSetResource;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceAddAppSetRequest;
 import com.tencent.bk.job.manage.model.inner.request.ServiceUpdateAppSetRequest;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -102,7 +103,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
             results = results.stream().sorted((Comparator.comparing(ApplicationDTO::getId)))
                 .collect(Collectors.toList());
         }
-        return InternalResponse.buildSuccessResp(results.stream().map(this::convertToServiceApp)
+        return InternalResponse.buildSuccessResp(results.stream().map(ApplicationUtil::convertToServiceApp)
             .collect(Collectors.toList()));
     }
 
@@ -130,20 +131,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         if (appInfo == null) {
             return null;
         }
-        return convertToServiceApp(appInfo);
-    }
-
-    private ServiceApplicationDTO convertToServiceApp(ApplicationDTO appInfo) {
-        ServiceApplicationDTO app = new ServiceApplicationDTO();
-        app.setId(appInfo.getId());
-        app.setSubAppIds(appInfo.getSubAppIds());
-        app.setName(appInfo.getName());
-        app.setAppType(appInfo.getAppType().getValue());
-        app.setOwner(appInfo.getBkSupplierAccount());
-        app.setMaintainers(appInfo.getMaintainers());
-        app.setOperateDeptId(appInfo.getOperateDeptId());
-        app.setTimeZone(appInfo.getTimeZone());
-        return app;
+        return ApplicationUtil.convertToServiceApp(appInfo);
     }
 
     @Override
@@ -183,7 +171,9 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         appInfo.setLanguage("1");
         applicationService.createAppWithSpecifiedAppId(appInfo);
 
-        ServiceApplicationDTO newAppSet = convertToServiceApp(applicationDAO.getAppById(request.getId()));
+        ServiceApplicationDTO newAppSet = ApplicationUtil.convertToServiceApp(
+            applicationDAO.getAppById(request.getId())
+        );
         return InternalResponse.buildSuccessResp(newAppSet);
     }
 

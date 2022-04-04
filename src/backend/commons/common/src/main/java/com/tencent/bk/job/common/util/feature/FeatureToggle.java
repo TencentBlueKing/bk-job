@@ -22,71 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner;
+package com.tencent.bk.job.common.util.feature;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
-import java.util.List;
+import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 
 /**
- * 业务
+ * 特性开关
  */
-@Data
-@ApiModel("业务")
-public class ServiceApplicationDTO {
+public class FeatureToggle {
 
-    @ApiModelProperty("业务ID")
-    private Long id;
+    private FeatureToggle() {
+    }
 
-    /**
-     * 资源范围类型
-     */
-    private String scopeType;
-    /**
-     * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
-     */
-    private String scopeId;
+    private static FeatureToggleConfig get() {
+        return Inner.instance;
+    }
+
+    private static class Inner {
+        private static final FeatureToggleConfig instance =
+            ApplicationContextRegister.getBean(FeatureToggleConfig.class);
+    }
 
     /**
-     * 业务名称
+     * 业务是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     *
+     * @param appId Job业务ID
      */
-    @ApiModelProperty("业务名称")
-    private String name;
+    public static boolean isCmdbBizSetEnabledForApp(Long appId) {
+        FeatureToggleConfig featureToggleConfig = get();
+        FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
+        return cmdbBizSetConfig.isEnabled()
+            && (!cmdbBizSetConfig.isGray() || cmdbBizSetConfig.getGrayApps().contains(appId));
+    }
 
     /**
-     * 业务类型
+     * 是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     *
      */
-    @ApiModelProperty("业务类型")
-    private Integer appType;
-
-    /**
-     * 运维
-     */
-    private String maintainers;
-
-    /**
-     * 子业务
-     */
-    @ApiModelProperty("子业务ID")
-    private List<Long> subAppIds;
-
-    @ApiModelProperty("开发商")
-    private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
+    public static boolean isCmdbBizSetEnabled() {
+        FeatureToggleConfig featureToggleConfig = get();
+        FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
+        return cmdbBizSetConfig.isEnabled();
+    }
 }

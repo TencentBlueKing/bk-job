@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.app.ApplicationUtil;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.execute.client.AccountResourceClient;
 import com.tencent.bk.job.execute.client.TaskTemplateResourceClient;
 import com.tencent.bk.job.execute.service.ApplicationService;
@@ -37,13 +37,8 @@ import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -68,29 +63,11 @@ public class ExecuteResourceAppInfoQueryService implements ResourceAppInfoQueryS
         this.accountService = accountService;
     }
 
-    private ResourceAppInfo convert(ApplicationDTO applicationDTO) {
-        if (applicationDTO == null) {
-            return null;
-        } else {
-            ResourceAppInfo resourceAppInfo = new ResourceAppInfo();
-            resourceAppInfo.setAppId(applicationDTO.getId());
-            resourceAppInfo.setAppType(applicationDTO.getAppType());
-            String maintainerStr = applicationDTO.getMaintainers();
-            List<String> maintainerList = new ArrayList<>();
-            if (StringUtils.isNotBlank(maintainerStr)) {
-                String[] maintainers = maintainerStr.split("[,;]");
-                maintainerList.addAll(Arrays.asList(maintainers));
-            }
-            resourceAppInfo.setMaintainerList(maintainerList);
-            return resourceAppInfo;
-        }
-    }
-
     private ResourceAppInfo getResourceAppInfoById(Long appId) {
         if (appId == null || appId <= 0) {
             return null;
         }
-        return convert(applicationService.getAppById(appId));
+        return ApplicationUtil.convertToResourceApp(applicationService.getAppById(appId));
     }
 
     @Override
