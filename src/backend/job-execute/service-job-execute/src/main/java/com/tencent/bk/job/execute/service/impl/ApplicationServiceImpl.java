@@ -26,17 +26,13 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.ApplicationResourceClient;
 import com.tencent.bk.job.execute.client.SyncResourceClient;
-import com.tencent.bk.job.execute.model.db.CacheAppDO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -49,14 +45,11 @@ import java.util.stream.Collectors;
 public class ApplicationServiceImpl implements ApplicationService {
     private final ApplicationResourceClient applicationResourceClient;
     private final SyncResourceClient syncResourceClient;
-    private final RedisTemplate redisTemplate;
 
     @Autowired
     public ApplicationServiceImpl(ApplicationResourceClient applicationResourceClient,
-                                  @Qualifier("jsonRedisTemplate") RedisTemplate redisTemplate,
                                   SyncResourceClient syncResourceClient) {
         this.applicationResourceClient = applicationResourceClient;
-        this.redisTemplate = redisTemplate;
         this.syncResourceClient = syncResourceClient;
     }
 
@@ -94,26 +87,5 @@ public class ApplicationServiceImpl implements ApplicationService {
             return Collections.emptyList();
         }
         return apps.stream().map(ServiceApplicationDTO::getId).collect(Collectors.toList());
-    }
-
-    @Override
-    public CacheAppDO getAppPreferCache(long appId) {
-        Object appObj = redisTemplate.opsForHash().get("job:execute:apps", String.valueOf(appId));
-        if (appObj == null) {
-            log.info("App is not in cache, get from job-manage module!");
-            ApplicationDTO appInfo = getAppById(appId);
-            if (appInfo == null) {
-                return null;
-            }
-            CacheAppDO cacheAppDO = CacheAppDO.fromApplicationInfoDTO(appInfo);
-            try {
-                log.info("Refresh app cache, app:{}", JsonUtils.toJson(cacheAppDO));
-                redisTemplate.opsForHash().put("job:execute:apps", String.valueOf(appId), cacheAppDO);
-            } catch (Exception e) {
-                log.warn("Refresh app cache fail", e);
-            }
-            return cacheAppDO;
-        }
-        return (CacheAppDO) appObj;
     }
 }

@@ -136,7 +136,6 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     private ServiceApplicationDTO convertToServiceApp(ApplicationDTO appInfo) {
         ServiceApplicationDTO app = new ServiceApplicationDTO();
         app.setId(appInfo.getId());
-        app.setSubAppIds(appInfo.getSubBizIds());
         app.setName(appInfo.getName());
         app.setAppType(appInfo.getAppType().getValue());
         app.setOwner(appInfo.getBkSupplierAccount());

@@ -1281,9 +1281,9 @@ public class HostServiceImpl implements HostService {
     public List<IpDTO> checkAppHosts(Long appId,
                                      List<IpDTO> hostIps) {
         ApplicationDTO application = applicationService.getAppByAppId(appId);
-        List<Long> includeAppIds = buildIncludeAppIdList(application);
-        if (CollectionUtils.isEmpty(includeAppIds)) {
-            log.warn("App is not exist or appSet contains no sub app, appId:{}", application.getId());
+        List<Long> includeBizIds = buildIncludeBizIdList(application);
+        if (CollectionUtils.isEmpty(includeBizIds)) {
+            log.warn("App is not exist or bizSet contains no sub biz, appId:{}", application.getId());
             return hostIps;
         }
 
@@ -1295,7 +1295,7 @@ public class HostServiceImpl implements HostService {
             IpDTO hostIp = hostIps.get(i);
             CacheHostDO cacheHost = cacheHosts.get(i);
             if (cacheHost != null) {
-                if (!includeAppIds.contains(cacheHost.getAppId())) {
+                if (!includeBizIds.contains(cacheHost.getBizId())) {
                     hostsNotInApp.add(new IpDTO(cacheHost.getCloudAreaId(), cacheHost.getIp()));
                 }
             } else {
@@ -1310,7 +1310,7 @@ public class HostServiceImpl implements HostService {
                     IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
                     notExistHosts.remove(hostIp);
                     hostCache.addOrUpdateHost(appHost);
-                    if (!includeAppIds.contains(appHost.getBizId())) {
+                    if (!includeBizIds.contains(appHost.getBizId())) {
                         hostsNotInApp.add(hostIp);
                     }
                 }
@@ -1323,17 +1323,17 @@ public class HostServiceImpl implements HostService {
         return hostsNotInApp;
     }
 
-    private List<Long> buildIncludeAppIdList(ApplicationDTO application) {
-        List<Long> appIdList = new ArrayList<>();
+    private List<Long> buildIncludeBizIdList(ApplicationDTO application) {
+        List<Long> bizIdList = new ArrayList<>();
         boolean isBiz = application.getScope().getType() == ResourceScopeTypeEnum.BIZ;
         if (isBiz) {
-            appIdList.add(application.getId());
+            bizIdList.add(application.getBizIdIfBizApp());
         } else {
             if (application.getSubBizIds() != null) {
-                appIdList.addAll(application.getSubBizIds());
+                bizIdList.addAll(application.getSubBizIds());
             }
         }
-        return appIdList;
+        return bizIdList;
     }
 
     public List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps) {

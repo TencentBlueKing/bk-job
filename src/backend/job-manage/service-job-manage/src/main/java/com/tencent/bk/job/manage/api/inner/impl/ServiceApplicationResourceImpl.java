@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
@@ -99,13 +100,18 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         app.setScopeId(appInfo.getScope().getId());
         app.setName(appInfo.getName());
         app.setAppType(appInfo.getAppType().getValue());
-        app.setSubAppIds(appInfo.getSubBizIds());
         app.setSubBizIds(appInfo.getSubBizIds());
         app.setMaintainers(appInfo.getMaintainers());
         app.setOwner(appInfo.getBkSupplierAccount());
         app.setOperateDeptId(appInfo.getOperateDeptId());
         app.setTimeZone(appInfo.getTimeZone());
         app.setLanguage(appInfo.getLanguage());
+        if (appInfo.getAttrs() != null) {
+            ServiceApplicationAttrsDTO attrs = new ServiceApplicationAttrsDTO();
+            attrs.setMatchAllBiz(appInfo.getAttrs().getMatchAllBiz());
+            attrs.setSubBizIds(appInfo.getAttrs().getSubBizIds());
+            app.setAttrs(attrs);
+        }
         return app;
     }
 

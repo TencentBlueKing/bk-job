@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -236,6 +237,10 @@ public class BizSetRelationWatchThread extends Thread {
                         return;
                     }
                     cacheApplication.setSubBizIds(latestSubBizIds);
+                    ApplicationAttrsDO attrs = cacheApplication.getAttrs();
+                    if (attrs != null) {
+                        attrs.setSubBizIds(latestSubBizIds);
+                    }
                     applicationService.updateApp(cacheApplication);
                 } catch (Throwable t) {
                     log.error("Handle biz_set_relation event fail", t);

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -60,6 +61,7 @@ public class ServiceApplicationDTO {
      * 业务类型
      */
     @ApiModelProperty("业务类型")
+    @CompatibleImplementation(explain = "兼容字段，等发布完成之后可以删除", version = "3.5.x")
     private Integer appType;
 
     /**
@@ -70,14 +72,9 @@ public class ServiceApplicationDTO {
     /**
      * 子业务
      */
+    @ApiModelProperty("子业务ID")
     @CompatibleImplementation(explain = "兼容字段，等发布完成之后可以删除", version = "3.5.x")
-    @ApiModelProperty("子业务ID")
-    private List<Long> subAppIds;
-
-    /**
-     * 子业务
-     */
-    @ApiModelProperty("子业务ID")
+    @JsonProperty("subAppIds")
     private List<Long> subBizIds;
 
     @ApiModelProperty("开发商")
@@ -86,6 +83,7 @@ public class ServiceApplicationDTO {
     /**
      * 初始运维部门Id
      */
+    @CompatibleImplementation(explain = "兼容字段，等发布完成之后可以删除", version = "3.5.x")
     private Long operateDeptId;
 
     /**
