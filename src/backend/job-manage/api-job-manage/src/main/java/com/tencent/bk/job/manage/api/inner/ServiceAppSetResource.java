@@ -27,8 +27,8 @@ package com.tencent.bk.job.manage.api.inner;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
-import com.tencent.bk.job.manage.model.inner.request.ServiceAddAppSetRequest;
-import com.tencent.bk.job.manage.model.inner.request.ServiceUpdateAppSetRequest;
+import com.tencent.bk.job.manage.model.tmp.TmpAddAppSetRequest;
+import com.tencent.bk.job.manage.model.tmp.TmpUpdateAppSetRequest;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,17 +56,17 @@ public interface ServiceAppSetResource {
     InternalResponse<Boolean> deleteAppSet(@PathVariable("appId") Long appId);
 
     @PutMapping
-    InternalResponse<ServiceApplicationDTO> addAppSet(@RequestBody ServiceAddAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> addAppSet(@RequestBody TmpAddAppSetRequest request);
 
     @PutMapping("/{appId}/maintainers")
-    InternalResponse<ServiceApplicationDTO> addMaintainers(@RequestBody ServiceUpdateAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> addMaintainers(@RequestBody TmpUpdateAppSetRequest request);
 
     @DeleteMapping("/{appId}/maintainers")
-    InternalResponse<ServiceApplicationDTO> deleteMaintainers(@RequestBody ServiceUpdateAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> deleteMaintainers(@RequestBody TmpUpdateAppSetRequest request);
 
     @PutMapping("/{appId}/sub-app")
-    InternalResponse<ServiceApplicationDTO> addSubAppToAppSet(@RequestBody ServiceUpdateAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> addSubAppToAppSet(@RequestBody TmpUpdateAppSetRequest request);
 
     @DeleteMapping("/{appId}/sub-app")
-    InternalResponse<ServiceApplicationDTO> deleteSubApp(@RequestBody ServiceUpdateAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> deleteSubApp(@RequestBody TmpUpdateAppSetRequest request);
 }

@@ -22,58 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.db;
+package com.tencent.bk.job.manage.model.tmp;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.List;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 /**
- * Redis 缓存业务DO
+ * 新增业务集请求
  */
-@Getter
-@Setter
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class CacheAppDO {
+@Data
+@ApiModel("新增业务集请求")
+public class TmpAddAppSetRequest {
 
+    @ApiModelProperty("业务ID")
     private Long id;
 
     /**
      * 业务名称
      */
+    @ApiModelProperty("业务名称")
     private String name;
 
     /**
-     * 业务类型
-     */
-    private Integer appType;
-
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
-    /**
-     * 业务运维
+     * 运维
      */
     private String maintainers;
 
     /**
-     * 临时字段-业务初始部门ID
+     * 子业务
      */
-    private Long operateDeptId;
+    @ApiModelProperty("子业务ID")
+    private String subAppIds;
 
-    public static CacheAppDO fromApplicationInfoDTO(ApplicationDTO application) {
-        CacheAppDO cacheAppDO = new CacheAppDO();
-        cacheAppDO.setId(application.getId());
-        cacheAppDO.setName(application.getName());
-        cacheAppDO.setAppType(application.getAppType().getValue());
-        cacheAppDO.setMaintainers(application.getMaintainers());
-        cacheAppDO.setSubAppIds(application.getSubBizIds());
-        cacheAppDO.setOperateDeptId(application.getOperateDeptId());
-        return cacheAppDO;
-    }
+    @ApiModelProperty("是否是动态业务集")
+    private boolean dynamicAppSet = false;
+
+    /**
+     * 时区
+     */
+    private String timeZone;
+
+    /**
+     * 组织架构ID
+     */
+    @ApiModelProperty("组织架构ID")
+    private Long deptId;
 }

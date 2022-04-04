@@ -137,7 +137,7 @@ public class HostServiceImpl implements HostService {
         if (scope.getType() == ResourceScopeTypeEnum.BIZ) {
             return applicationHostDAO.listHostInfoByBizId(Long.parseLong(scope.getId()));
         } else {
-            return applicationHostDAO.listHostInfoByBizIds(applicationDTO.getSubAppIds(), null, null);
+            return applicationHostDAO.listHostInfoByBizIds(applicationDTO.getSubBizIds(), null, null);
         }
     }
 
@@ -517,7 +517,7 @@ public class HostServiceImpl implements HostService {
         Map<String, DynamicGroupInfoDTO> ccGroupInfoMap = new HashMap<>();
         Map<Long, List<String>> appId2GroupIdMap = new HashMap<>();
         if (ResourceScopeTypeEnum.BIZ_SET == appResourceScope.getType()) {
-            for (long subAppId : applicationInfo.getSubAppIds()) {
+            for (long subAppId : applicationInfo.getSubBizIds()) {
                 getCustomGroupListByBizId(subAppId, ccGroupInfoMap, appId2GroupIdMap);
             }
         } else {
@@ -1329,8 +1329,8 @@ public class HostServiceImpl implements HostService {
         if (isBiz) {
             appIdList.add(application.getId());
         } else {
-            if (application.getSubAppIds() != null) {
-                appIdList.addAll(application.getSubAppIds());
+            if (application.getSubBizIds() != null) {
+                appIdList.addAll(application.getSubBizIds());
             }
         }
         return appIdList;

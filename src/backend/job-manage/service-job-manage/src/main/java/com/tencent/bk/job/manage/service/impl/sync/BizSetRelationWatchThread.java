@@ -235,7 +235,7 @@ public class BizSetRelationWatchThread extends Thread {
                     if (cacheApplication == null || cacheApplication.isDeleted()) {
                         return;
                     }
-                    cacheApplication.setSubAppIds(latestSubBizIds);
+                    cacheApplication.setSubBizIds(latestSubBizIds);
                     applicationService.updateApp(cacheApplication);
                 } catch (Throwable t) {
                     log.error("Handle biz_set_relation event fail", t);

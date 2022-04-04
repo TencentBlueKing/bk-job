@@ -71,7 +71,7 @@ public class CacheAppDO {
      * 子业务
      */
     @DeprecatedAppLogic
-    private List<Long> subAppIds;
+    private List<Long> subBizIds;
 
     /**
      * 业务运维
@@ -93,7 +93,7 @@ public class CacheAppDO {
         cacheAppDO.setName(application.getName());
         cacheAppDO.setAppType(application.getAppType().getValue());
         cacheAppDO.setMaintainers(application.getMaintainers());
-        cacheAppDO.setSubAppIds(application.getSubAppIds());
+        cacheAppDO.setSubBizIds(application.getSubBizIds());
         cacheAppDO.setOperateDeptId(application.getOperateDeptId());
         return cacheAppDO;
     }
@@ -105,7 +105,7 @@ public class CacheAppDO {
         application.setName(cacheAppDO.getName());
         application.setAppType(AppTypeEnum.valueOf(cacheAppDO.getAppType()));
         application.setMaintainers(cacheAppDO.getMaintainers());
-        application.setSubAppIds(cacheAppDO.getSubAppIds());
+        application.setSubBizIds(cacheAppDO.getSubBizIds());
         application.setOperateDeptId(cacheAppDO.getOperateDeptId());
         return application;
     }

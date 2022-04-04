@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -69,8 +70,15 @@ public class ServiceApplicationDTO {
     /**
      * 子业务
      */
+    @CompatibleImplementation(explain = "兼容字段，等发布完成之后可以删除", version = "3.5.x")
     @ApiModelProperty("子业务ID")
     private List<Long> subAppIds;
+
+    /**
+     * 子业务
+     */
+    @ApiModelProperty("子业务ID")
+    private List<Long> subBizIds;
 
     @ApiModelProperty("开发商")
     private String owner;
@@ -89,4 +97,9 @@ public class ServiceApplicationDTO {
      * 语言
      */
     private String language;
+
+    /**
+     * 业务属性
+     */
+    private ServiceApplicationAttrsDTO attrs;
 }

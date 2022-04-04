@@ -22,50 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.request;
+package com.tencent.bk.job.manage.model.tmp;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * 新增业务集请求
+ * 更新业务集请求
  */
 @Data
-@ApiModel("新增业务集请求")
-public class ServiceAddAppSetRequest {
+@ApiModel("更新业务集请求")
+public class TmpUpdateAppSetRequest {
 
-    @ApiModelProperty("业务ID")
-    private Long id;
-
-    /**
-     * 业务名称
-     */
-    @ApiModelProperty("业务名称")
-    private String name;
+    @ApiModelProperty("业务集ID")
+    private Long appId;
 
     /**
-     * 运维
+     * 新增运维
      */
-    private String maintainers;
+    @ApiModelProperty("新增运维")
+    private String addMaintainers;
 
     /**
-     * 子业务
+     * 删除运维
      */
-    @ApiModelProperty("子业务ID")
-    private String subAppIds;
-
-    @ApiModelProperty("是否是动态业务集")
-    private boolean dynamicAppSet = false;
+    @ApiModelProperty("删除运维")
+    private String delMaintainers;
 
     /**
-     * 时区
+     * 新增子业务
      */
-    private String timeZone;
+    @ApiModelProperty("新增子业务")
+    private String addSubBizIds;
 
     /**
-     * 组织架构ID
+     * 删除子业务
      */
-    @ApiModelProperty("组织架构ID")
-    private Long deptId;
+    @ApiModelProperty("删除子业务")
+    private String delSubBizIds;
 }

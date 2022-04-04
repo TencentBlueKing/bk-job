@@ -22,58 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.db;
+package com.tencent.bk.job.common.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 /**
- * Redis 缓存业务DO
+ * Job业务属性DO
  */
-@Getter
-@Setter
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class CacheAppDO {
-
-    private Long id;
+@NoArgsConstructor
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ApplicationAttrsDO {
 
     /**
-     * 业务名称
+     * cmdb业务集的子业务ID列表
      */
-    private String name;
+    private List<Long> subBizIds;
 
     /**
-     * 业务类型
+     * cmdb业务集是否包含所有子业务
      */
-    private Integer appType;
-
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
-    /**
-     * 业务运维
-     */
-    private String maintainers;
-
-    /**
-     * 临时字段-业务初始部门ID
-     */
-    private Long operateDeptId;
-
-    public static CacheAppDO fromApplicationInfoDTO(ApplicationDTO application) {
-        CacheAppDO cacheAppDO = new CacheAppDO();
-        cacheAppDO.setId(application.getId());
-        cacheAppDO.setName(application.getName());
-        cacheAppDO.setAppType(application.getAppType().getValue());
-        cacheAppDO.setMaintainers(application.getMaintainers());
-        cacheAppDO.setSubAppIds(application.getSubBizIds());
-        cacheAppDO.setOperateDeptId(application.getOperateDeptId());
-        return cacheAppDO;
-    }
+    private Boolean matchAllBiz;
 }

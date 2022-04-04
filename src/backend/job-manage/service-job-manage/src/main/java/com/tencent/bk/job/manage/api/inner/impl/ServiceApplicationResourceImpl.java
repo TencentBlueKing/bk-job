@@ -99,7 +99,8 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         app.setScopeId(appInfo.getScope().getId());
         app.setName(appInfo.getName());
         app.setAppType(appInfo.getAppType().getValue());
-        app.setSubAppIds(appInfo.getSubAppIds());
+        app.setSubAppIds(appInfo.getSubBizIds());
+        app.setSubBizIds(appInfo.getSubBizIds());
         app.setMaintainers(appInfo.getMaintainers());
         app.setOwner(appInfo.getBkSupplierAccount());
         app.setOperateDeptId(appInfo.getOperateDeptId());

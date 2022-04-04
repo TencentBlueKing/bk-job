@@ -71,7 +71,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         applicationInfo.setId(app.getId());
         applicationInfo.setName(app.getName());
         applicationInfo.setAppType(AppTypeEnum.valueOf(app.getAppType()));
-        applicationInfo.setSubAppIds(app.getSubAppIds());
+        applicationInfo.setSubBizIds(app.getSubBizIds());
         applicationInfo.setMaintainers(app.getMaintainers());
         applicationInfo.setOperateDeptId(app.getOperateDeptId());
         applicationInfo.setLanguage(app.getLanguage());

@@ -74,10 +74,10 @@ public class SyncAppAndRefreshCacheTask {
         for (ApplicationDTO app : allApps) {
             if (app.getAppType() == AppTypeEnum.APP_SET) {
                 log.info("AppSet:{}, deptId:{}, subAppIds:{}", app.getId(), app.getOperateDeptId(),
-                    app.getSubAppIds());
+                    app.getSubBizIds());
                 Set<Long> subAppIds = new HashSet<>();
-                if (app.getSubAppIds() != null) {
-                    subAppIds.addAll(app.getSubAppIds());
+                if (app.getSubBizIds() != null) {
+                    subAppIds.addAll(app.getSubBizIds());
                 }
                 if (app.getOperateDeptId() != null && app.getOperateDeptId() > 0) {
                     Set<Long> deptAppIds = deptAppMap.get(app.getOperateDeptId());
@@ -85,7 +85,7 @@ public class SyncAppAndRefreshCacheTask {
                         subAppIds.addAll(deptAppIds);
                     }
                 }
-                app.setSubAppIds(new ArrayList<>(subAppIds));
+                app.setSubBizIds(new ArrayList<>(subAppIds));
                 log.info("AppSet:{} contains sub apps:{}", app.getId(), subAppIds);
             }
         }
