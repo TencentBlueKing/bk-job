@@ -60,6 +60,7 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -94,11 +95,17 @@ public class WebAppResourceImpl implements WebAppResource {
         this.appScopeMappingService = appScopeMappingService;
     }
 
-    @Override
-    public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
-                                                                               Integer start,
-                                                                               Integer pageSize) {
-        List<ApplicationDTO> appList = applicationService.listAllApps();
+    /**
+     * 将使用Job自身运维人员字段鉴权通过的业务与无权限的Job业务分离开
+     *
+     * @param username 用户名
+     * @param appList  全量Job业务
+     * @return 分离后的无权限Job业务与有权限的Job业务
+     */
+    private Pair<List<AppResourceScope>, List<AppResourceScope>> separateNoPermissionApps(
+        String username,
+        List<ApplicationDTO> appList
+    ) {
         // 通过权限中心鉴权的业务/业务集
         List<AppResourceScope> appResourceScopeList = new ArrayList<>();
         // 由Job本身运维人员字段鉴权通过的业务集
@@ -121,8 +128,21 @@ public class WebAppResourceImpl implements WebAppResource {
                 }
             }
         });
+        return Pair.of(appResourceScopeList, allowedByMaintainerBizSetScopeList);
+    }
 
-        // 鉴权
+    @Override
+    public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
+                                                                               Integer start,
+                                                                               Integer pageSize) {
+        List<ApplicationDTO> appList = applicationService.listAllApps();
+        Pair<List<AppResourceScope>, List<AppResourceScope>> pair = separateNoPermissionApps(username, appList);
+        // 需要由IAM进行鉴权的业务/业务集
+        List<AppResourceScope> appResourceScopeList = pair.getLeft();
+        // 由Job本身运维人员字段鉴权通过的业务集
+        List<AppResourceScope> allowedByMaintainerBizSetScopeList = pair.getRight();
+
+        // IAM鉴权
         AppResourceScopeResult appResourceScopeResult =
             appAuthService.getAppResourceScopeList(username, appResourceScopeList);
         // 合并由Job本身运维人员字段鉴权通过的业务集
@@ -174,8 +194,23 @@ public class WebAppResourceImpl implements WebAppResource {
                 appVO.setFavorTime(null);
             }
         }
+        // 排序
+        sortApps(finalAppList);
+        // 分页
+        PageData<AppVO> pageData = PageUtil.pageInMem(finalAppList, start, pageSize);
+        PageDataWithAvailableIdList<AppVO, Long> pageDataWithAvailableIdList =
+            new PageDataWithAvailableIdList<>(pageData, availableAppIds);
+        return Response.buildSuccessResp(pageDataWithAvailableIdList);
+    }
+
+    /**
+     * 对Job业务进行排序
+     *
+     * @param appList Job业务列表
+     */
+    private void sortApps(List<AppVO> appList) {
         // 排序：有无权限、是否收藏、收藏时间倒序
-        finalAppList.sort((o1, o2) -> {
+        appList.sort((o1, o2) -> {
             int result = o2.getHasPermission().compareTo(o1.getHasPermission());
             if (result != 0) {
                 return result;
@@ -188,11 +223,6 @@ public class WebAppResourceImpl implements WebAppResource {
                 return CompareUtil.safeCompareNullFront(o2.getFavorTime(), o1.getFavorTime());
             }
         });
-        // 分页
-        PageData<AppVO> pageData = PageUtil.pageInMem(finalAppList, start, pageSize);
-        PageDataWithAvailableIdList<AppVO, Long> pageDataWithAvailableIdList =
-            new PageDataWithAvailableIdList<>(pageData, availableAppIds);
-        return Response.buildSuccessResp(pageDataWithAvailableIdList);
     }
 
     @Override
