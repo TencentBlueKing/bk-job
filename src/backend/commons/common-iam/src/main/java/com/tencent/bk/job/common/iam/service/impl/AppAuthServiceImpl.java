@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.config.EsbConfiguration;
@@ -221,19 +220,9 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
         // 业务集、全业务特殊鉴权
-        boolean authBizSet = false;
-        Long appId = appResourceScope.getAppId();
-        if (resourceAppInfoQueryService != null && appId != null) {
-            ResourceAppInfo resourceAppInfo =
-                resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS, appId.toString());
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                authBizSet = true;
-            }
-        }
-        if (authBizSet || appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
-            if (hasAppPermission(username, appResourceScope)) {
-                return resourceIdList;
-            }
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
+            && hasAppPermission(username, appResourceScope)) {
+            return resourceIdList;
         }
         return authHelper.isAllowed(
             username, actionId,
@@ -246,7 +235,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                          AppResourceScope appResourceScope,
                                          List<PermissionResource> resources) {
         // 业务集、全业务特殊鉴权
-        if (hasAppPermission(username, appResourceScope)) {
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
+            && hasAppPermission(username, appResourceScope)) {
             return AuthResult.pass();
         }
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
@@ -269,7 +259,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   AppResourceScope appResourceScope,
                                   List<PermissionResource> resourceList) {
         // 业务集、全业务特殊鉴权
-        if (hasAppPermission(username, appResourceScope)) {
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
+            && hasAppPermission(username, appResourceScope)) {
             return resourceList.parallelStream()
                 .map(PermissionResource::getResourceId).collect(Collectors.toList());
         }
