@@ -118,6 +118,10 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
      * @return 是否有权限
      */
     public boolean hasAppPermission(String username, ResourceTypeEnum resourceType, String resourceId) {
+        // 非业务/业务集资源
+        if (!resourceType.isScopeResource()) {
+            return false;
+        }
         // 业务集、全业务特殊鉴权
         ResourceAppInfo resourceAppInfo = resourceAppInfoQueryService.getResourceAppInfo(resourceType, resourceId);
         return hasAppPermission(username, resourceAppInfo);

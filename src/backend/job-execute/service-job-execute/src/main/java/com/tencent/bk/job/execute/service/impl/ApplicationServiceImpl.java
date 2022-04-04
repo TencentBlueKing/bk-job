@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.app.ApplicationUtil;
 import com.tencent.bk.job.common.model.ServiceApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -63,25 +63,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public ApplicationDTO getAppById(long appId) {
         ServiceApplicationDTO returnApp = applicationResourceClient.queryAppById(appId);
-        return convertToApplicationInfoDTO(returnApp);
+        return ApplicationUtil.convertToApplicationInfoDTO(returnApp);
     }
 
     @Override
     public ApplicationDTO getAppByScope(String scopeType, String scopeId) {
         ServiceApplicationDTO returnApp = applicationResourceClient.queryAppByScope(scopeType, scopeId);
-        return convertToApplicationInfoDTO(returnApp);
-    }
-
-    private ApplicationDTO convertToApplicationInfoDTO(ServiceApplicationDTO app) {
-        ApplicationDTO applicationInfo = new ApplicationDTO();
-        applicationInfo.setId(app.getId());
-        applicationInfo.setName(app.getName());
-        applicationInfo.setAppType(AppTypeEnum.valueOf(app.getAppType()));
-        applicationInfo.setSubAppIds(app.getSubAppIds());
-        applicationInfo.setMaintainers(app.getMaintainers());
-        applicationInfo.setOperateDeptId(app.getOperateDeptId());
-        applicationInfo.setLanguage(app.getLanguage());
-        return applicationInfo;
+        return ApplicationUtil.convertToApplicationInfoDTO(returnApp);
     }
 
     @Override
@@ -90,7 +78,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         if (apps == null) {
             return Collections.emptyList();
         }
-        return apps.stream().map(this::convertToApplicationInfoDTO).collect(Collectors.toList());
+        return apps.stream().map(ApplicationUtil::convertToApplicationInfoDTO).collect(Collectors.toList());
     }
 
     @Override

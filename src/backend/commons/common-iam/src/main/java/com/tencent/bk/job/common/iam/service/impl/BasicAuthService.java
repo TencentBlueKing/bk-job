@@ -57,6 +57,9 @@ public class BasicAuthService {
      * @return 是否有权限
      */
     protected boolean hasAppPermission(String username, ResourceAppInfo resourceAppInfo) {
+        if (resourceAppInfo == null) {
+            return false;
+        }
         ResourceScopeTypeEnum resourceScopeType = ResourceScopeTypeEnum.from(resourceAppInfo.getScopeType());
         // 普通业务/CMDB业务集特性开启了的业务集：使用IAM鉴权
         if (resourceScopeType != ResourceScopeTypeEnum.BIZ_SET

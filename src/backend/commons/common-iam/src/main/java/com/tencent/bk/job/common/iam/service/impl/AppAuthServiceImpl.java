@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.config.EsbConfiguration;
@@ -105,6 +106,10 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     }
 
     public boolean hasAppPermission(String username, AppResourceScope appResourceScope) {
+        // 过滤掉公共脚本等资源使用的默认业务ID
+        if (appResourceScope.getAppId() == JobConstants.PUBLIC_APP_ID) {
+            return false;
+        }
         // 业务集、全业务特殊鉴权
         ResourceAppInfo resourceAppInfo = getResourceApp(appResourceScope);
         return hasAppPermission(username, resourceAppInfo);
