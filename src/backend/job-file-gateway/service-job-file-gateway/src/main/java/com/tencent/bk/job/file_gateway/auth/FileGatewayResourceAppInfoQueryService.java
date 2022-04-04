@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.auth;
 
 import com.tencent.bk.job.common.app.ApplicationUtil;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
@@ -32,6 +33,7 @@ import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,37 +51,53 @@ public class FileGatewayResourceAppInfoQueryService implements ResourceAppInfoQu
         this.fileSourceService = fileSourceService;
     }
 
+    private ResourceAppInfo getResourceAppInfoByScope(String scopeType, String scopeId) {
+        if (StringUtils.isBlank(scopeType) || StringUtils.isBlank(scopeId)) {
+            log.warn("scope({},{}) is invalid", scopeType, scopeId);
+            return null;
+        }
+        return ApplicationUtil.convertToResourceApp(applicationService.queryAppByScope(scopeType, scopeId));
+    }
+
     private ResourceAppInfo getResourceAppInfoById(Long appId) {
         if (appId == null || appId <= 0) {
+            log.warn("appId({}) is invalid", appId);
             return null;
         }
         return ApplicationUtil.convertToResourceApp(applicationService.queryAppById(appId));
     }
 
+    private ResourceAppInfo getFileSourceApp(String resourceId) {
+        int fileSourceId = Integer.parseInt(resourceId);
+        if (fileSourceId <= 0) {
+            log.warn("fileSourceId({}) is invalid", resourceId);
+            return null;
+        }
+        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(fileSourceId);
+        if (fileSourceDTO == null) {
+            log.warn("Cannot find fileSource by id {}", resourceId);
+            return null;
+        }
+        Long appId = fileSourceDTO.getAppId();
+        if (appId <= 0) {
+            log.warn("appId({}) of fileSource {} is invalid", appId, resourceId);
+            return null;
+        }
+        return getResourceAppInfoById(appId);
+    }
+
     @Override
     public ResourceAppInfo getResourceAppInfo(ResourceTypeEnum resourceType, String resourceId) {
-        Long appId;
         switch (resourceType) {
             case BUSINESS:
-                appId = Long.parseLong(resourceId);
-                if (appId > 0) {
-                    return getResourceAppInfoById(appId);
-                }
-                break;
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ.getValue(), resourceId);
+            case BUSINESS_SET:
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), resourceId);
             case FILE_SOURCE:
-                FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(Integer.parseInt(resourceId));
-                if (fileSourceDTO == null) {
-                    log.warn("Cannot find fileSource by id {}", resourceId);
-                    return null;
-                }
-                appId = fileSourceDTO.getAppId();
-                if (appId > 0) {
-                    return getResourceAppInfoById(appId);
-                }
-                break;
+                return getFileSourceApp(resourceId);
             default:
+                log.warn("Not support resourceType:{}, return null", resourceType);
                 return null;
         }
-        return null;
     }
 }

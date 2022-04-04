@@ -25,13 +25,13 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.model.ServiceApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.ApplicationResourceClient;
 import com.tencent.bk.job.execute.client.SyncResourceClient;
 import com.tencent.bk.job.execute.model.db.CacheAppDO;
 import com.tencent.bk.job.execute.service.ApplicationService;
-import com.tencent.bk.job.common.model.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,6 +63,12 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public ApplicationDTO getAppById(long appId) {
         ServiceApplicationDTO returnApp = applicationResourceClient.queryAppById(appId);
+        return convertToApplicationInfoDTO(returnApp);
+    }
+
+    @Override
+    public ApplicationDTO getAppByScope(String scopeType, String scopeId) {
+        ServiceApplicationDTO returnApp = applicationResourceClient.queryAppByScope(scopeType, scopeId);
         return convertToApplicationInfoDTO(returnApp);
     }
 

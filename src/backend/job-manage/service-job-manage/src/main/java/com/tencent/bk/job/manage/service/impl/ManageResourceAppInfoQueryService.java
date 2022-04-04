@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.app.ApplicationUtil;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
@@ -44,12 +45,13 @@ import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service("ResourceAppInfoQueryService")
-public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryService {
+public class ManageResourceAppInfoQueryService implements ResourceAppInfoQueryService {
 
     private final ApplicationService applicationService;
     private final ScriptService scriptService;
@@ -60,7 +62,7 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
     private final CredentialService credentialService;
 
     @Autowired
-    ResourceAppInfoQueryServiceImpl(
+    ManageResourceAppInfoQueryService(
         ApplicationService applicationService,
         ScriptService scriptService,
         TaskTemplateService templateService,
@@ -82,65 +84,114 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
         appAuthService.setResourceAppInfoQueryService(this);
     }
 
+    private ResourceAppInfo getResourceAppInfoByScope(String scopeType, String scopeId) {
+        if (StringUtils.isBlank(scopeType) || StringUtils.isBlank(scopeId)) {
+            log.warn("scope({},{}) is invalid", scopeType, scopeId);
+            return null;
+        }
+        return ApplicationUtil.convertToResourceApp(applicationService.getAppByScope(scopeType, scopeId));
+    }
+
     private ResourceAppInfo getResourceAppInfoById(Long appId) {
         if (appId == null || appId <= 0) {
+            log.warn("appId({}) is invalid", appId);
             return null;
         }
         return ApplicationUtil.convertToResourceApp(applicationService.getAppByAppId(appId));
     }
 
     private ResourceAppInfo getScriptApp(String resourceId) {
-        ScriptDTO script = scriptService.getScriptByScriptId(resourceId);
-        if (script != null) {
-            return getResourceAppInfoById(script.getAppId());
+        if (StringUtils.isBlank(resourceId)) {
+            log.warn("scriptId({}) is invalid", resourceId);
+            return null;
         }
-        return null;
+        ScriptDTO script = scriptService.getScriptByScriptId(resourceId);
+        if (script == null) {
+            log.warn("Cannot find script by id {}", resourceId);
+            return null;
+        }
+        Long appId = script.getAppId();
+        if (appId <= 0) {
+            log.warn("appId({}) of script {} is invalid", appId, resourceId);
+            return null;
+        }
+        return getResourceAppInfoById(appId);
     }
 
     private ResourceAppInfo getTemplateApp(String resourceId) {
         long templateId = Long.parseLong(resourceId);
-        if (templateId > 0) {
-            TaskTemplateInfoDTO templateInfoDTO = templateService.getTemplateById(templateId);
-            if (templateInfoDTO != null) {
-                return getResourceAppInfoById(templateInfoDTO.getAppId());
-            }
+        if (templateId <= 0) {
+            log.warn("templateId({}) is invalid", resourceId);
+            return null;
         }
-        return null;
+        TaskTemplateInfoDTO templateInfoDTO = templateService.getTemplateById(templateId);
+        if (templateInfoDTO == null) {
+            log.warn("Cannot find templateInfoDTO by id {}", templateId);
+            return null;
+        }
+        Long appId = templateInfoDTO.getAppId();
+        if (appId <= 0) {
+            log.warn("appId({}) of template {} is invalid", appId, resourceId);
+            return null;
+        }
+        return getResourceAppInfoById(appId);
     }
 
     private ResourceAppInfo getPlanApp(String resourceId) {
         long planId = Long.parseLong(resourceId);
-        if (planId > 0) {
-            TaskPlanInfoDTO taskPlanInfoDTO = planService.getTaskPlanById(planId);
-            if (taskPlanInfoDTO == null) {
-                log.warn("Cannot find taskPlanInfoDTO by id {}", planId);
-                return null;
-            }
-            return getResourceAppInfoById(taskPlanInfoDTO.getAppId());
+        if (planId <= 0) {
+            log.warn("planId({}) is invalid", resourceId);
+            return null;
         }
-        return null;
+        TaskPlanInfoDTO taskPlanInfoDTO = planService.getTaskPlanById(planId);
+        if (taskPlanInfoDTO == null) {
+            log.warn("Cannot find taskPlanInfoDTO by id {}", planId);
+            return null;
+        }
+        Long appId = taskPlanInfoDTO.getAppId();
+        if (appId <= 0) {
+            log.warn("appId({}) of plan {} is invalid", appId, resourceId);
+            return null;
+        }
+        return getResourceAppInfoById(appId);
     }
 
     private ResourceAppInfo getAccountApp(String resourceId) {
         long accountId = Long.parseLong(resourceId);
-        if (accountId > 0) {
-            AccountDTO accountDTO = accountService.getAccountById(accountId);
-            if (accountDTO != null) {
-                return getResourceAppInfoById(accountDTO.getAppId());
-            }
+        if (accountId <= 0) {
+            log.warn("accountId({}) is invalid", resourceId);
+            return null;
         }
-        return null;
+        AccountDTO accountDTO = accountService.getAccountById(accountId);
+        if (accountDTO == null) {
+            log.warn("Cannot find account by id {}", resourceId);
+            return null;
+        }
+        Long appId = accountDTO.getAppId();
+        if (appId <= 0) {
+            log.warn("appId({}) of account {} is invalid", appId, resourceId);
+            return null;
+        }
+        return getResourceAppInfoById(appId);
     }
 
     private ResourceAppInfo getTagApp(String resourceId) {
         long tagId = Long.parseLong(resourceId);
-        if (tagId > 0) {
-            TagDTO tagDTO = tagService.getTagInfoById(tagId);
-            if (tagDTO != null) {
-                return getResourceAppInfoById(tagDTO.getAppId());
-            }
+        if (tagId <= 0) {
+            log.warn("tagId({}) is invalid", resourceId);
+            return null;
         }
-        return null;
+        TagDTO tagDTO = tagService.getTagInfoById(tagId);
+        if (tagDTO == null) {
+            log.warn("Cannot find tag by id {}", resourceId);
+            return null;
+        }
+        Long appId = tagDTO.getAppId();
+        if (appId <= 0) {
+            log.warn("appId({}) of tag {} is invalid", appId, resourceId);
+            return null;
+        }
+        return getResourceAppInfoById(appId);
     }
 
     private ResourceAppInfo getTicketApp(String resourceId) {
@@ -150,18 +201,20 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
             return null;
         }
         Long appId = credentialDTO.getAppId();
-        if (appId > 0) {
-            return getResourceAppInfoById(appId);
+        if (appId <= 0) {
+            log.warn("appId({}) of credential {} is invalid", appId, resourceId);
+            return null;
         }
-        return null;
+        return getResourceAppInfoById(appId);
     }
 
     @Override
     public ResourceAppInfo getResourceAppInfo(ResourceTypeEnum resourceType, String resourceId) {
         switch (resourceType) {
             case BUSINESS:
-                long appId = Long.parseLong(resourceId);
-                return getResourceAppInfoById(appId);
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ.getValue(), resourceId);
+            case BUSINESS_SET:
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), resourceId);
             case PUBLIC_SCRIPT:
             case SCRIPT:
                 return getScriptApp(resourceId);
@@ -176,6 +229,7 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
             case TICKET:
                 return getTicketApp(resourceId);
             default:
+                log.warn("Not support resourceType:{}, return null", resourceType);
                 return null;
         }
     }

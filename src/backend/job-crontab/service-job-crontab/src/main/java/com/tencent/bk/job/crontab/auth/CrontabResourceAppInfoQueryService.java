@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.auth;
 
 import com.tencent.bk.job.common.app.ApplicationUtil;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
@@ -32,6 +33,7 @@ import com.tencent.bk.job.crontab.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,34 +51,53 @@ public class CrontabResourceAppInfoQueryService implements ResourceAppInfoQueryS
         this.cronJobService = cronJobService;
     }
 
+    private ResourceAppInfo getResourceAppInfoByScope(String scopeType, String scopeId) {
+        if (StringUtils.isBlank(scopeType) || StringUtils.isBlank(scopeId)) {
+            log.warn("scope({},{}) is invalid", scopeType, scopeId);
+            return null;
+        }
+        return ApplicationUtil.convertToResourceApp(applicationService.queryAppByScope(scopeType, scopeId));
+    }
+
     private ResourceAppInfo getResourceAppInfoById(Long appId) {
         if (appId == null || appId <= 0) {
+            log.warn("appId({}) is invalid", appId);
             return null;
         }
         return ApplicationUtil.convertToResourceApp(applicationService.queryAppById(appId));
+    }
+
+    private ResourceAppInfo getCronApp(String resourceId) {
+        long cronId = Long.parseLong(resourceId);
+        if (cronId <= 0) {
+            log.warn("cronId({}) is invalid", resourceId);
+            return null;
+        }
+        CronJobInfoDTO cronJobInfoDTO = cronJobService.getCronJobInfoById(cronId);
+        if (cronJobInfoDTO == null) {
+            log.warn("Cannot find cron by resourceId:{}", resourceId);
+            return null;
+        }
+        Long appId = cronJobInfoDTO.getAppId();
+        if (appId <= 0) {
+            log.warn("appId({}) of cron {} is invalid", appId, resourceId);
+            return null;
+        }
+        return getResourceAppInfoById(appId);
     }
 
     @Override
     public ResourceAppInfo getResourceAppInfo(ResourceTypeEnum resourceType, String resourceId) {
         switch (resourceType) {
             case BUSINESS:
-                long appId = Long.parseLong(resourceId);
-                if (appId > 0) {
-                    return getResourceAppInfoById(appId);
-                }
-                break;
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ.getValue(), resourceId);
+            case BUSINESS_SET:
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), resourceId);
             case CRON:
-                long cronId = Long.parseLong(resourceId);
-                if (cronId > 0) {
-                    CronJobInfoDTO cronJobInfoDTO = cronJobService.getCronJobInfoById(cronId);
-                    if (cronJobInfoDTO != null) {
-                        return getResourceAppInfoById(cronJobInfoDTO.getAppId());
-                    }
-                }
-                break;
+                return getCronApp(resourceId);
             default:
+                log.warn("Not support resourceType:{}, return null", resourceType);
                 return null;
         }
-        return null;
     }
 }

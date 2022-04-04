@@ -26,10 +26,12 @@ package com.tencent.bk.job.analysis.auth;
 
 import com.tencent.bk.job.analysis.client.ApplicationResourceClient;
 import com.tencent.bk.job.common.app.ApplicationUtil;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,25 +46,24 @@ public class AnalysisResourceAppInfoQueryService implements ResourceAppInfoQuery
         this.applicationService = applicationService;
     }
 
-    private ResourceAppInfo getResourceAppInfoById(Long appId) {
-        if (appId == null || appId <= 0) {
+    private ResourceAppInfo getResourceAppInfoByScope(String scopeType, String scopeId) {
+        if (StringUtils.isBlank(scopeType) || StringUtils.isBlank(scopeId)) {
+            log.warn("scope({},{}) is invalid", scopeType, scopeId);
             return null;
         }
-        return ApplicationUtil.convertToResourceApp(applicationService.queryAppById(appId));
+        return ApplicationUtil.convertToResourceApp(applicationService.queryAppByScope(scopeType, scopeId));
     }
 
     @Override
     public ResourceAppInfo getResourceAppInfo(ResourceTypeEnum resourceType, String resourceId) {
         switch (resourceType) {
             case BUSINESS:
-                long appId = Long.parseLong(resourceId);
-                if (appId > 0) {
-                    return getResourceAppInfoById(appId);
-                }
-                break;
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ.getValue(), resourceId);
+            case BUSINESS_SET:
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), resourceId);
             default:
+                log.warn("Not support resourceType:{}, return null", resourceType);
                 return null;
         }
-        return null;
     }
 }
