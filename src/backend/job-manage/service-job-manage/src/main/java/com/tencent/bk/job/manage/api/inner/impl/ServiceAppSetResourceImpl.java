@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceAppSetResource;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.tmp.TmpAddAppSetRequest;
 import com.tencent.bk.job.manage.model.tmp.TmpUpdateAppSetRequest;
 import com.tencent.bk.job.manage.service.ApplicationService;

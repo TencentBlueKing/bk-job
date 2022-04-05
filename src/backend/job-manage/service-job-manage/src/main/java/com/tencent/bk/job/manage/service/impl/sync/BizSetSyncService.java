@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -82,7 +83,7 @@ public class BizSetSyncService extends BasicAppSyncService {
         log.info("[{}] Begin to sync bizSet from cmdb", Thread.currentThread().getName());
         List<BizSetInfo> ccBizSets = bizSetCmdbClient.getAllBizSetApps();
         if (log.isInfoEnabled()) {
-            log.info("Sync cmdb bizSet result: {}", ccBizSets);
+            log.info("Sync cmdb bizSet result: {}", JsonUtils.toJson(ccBizSets));
         }
 
         // CMDB业务bizId
