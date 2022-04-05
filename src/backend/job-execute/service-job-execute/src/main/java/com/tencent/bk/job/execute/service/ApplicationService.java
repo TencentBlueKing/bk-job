@@ -34,12 +34,21 @@ import java.util.List;
  */
 public interface ApplicationService {
     /**
-     * 根据业务ID获取业务信息
+     * 根据Job业务ID获取业务信息
      *
-     * @param appId
-     * @return
+     * @param appId Job业务ID
+     * @return Job业务对象
      */
     ApplicationDTO getAppById(long appId);
+
+    /**
+     * 根据业务范围获取业务信息
+     *
+     * @param scopeType 资源范围类型
+     * @param scopeId   资源范围Id
+     * @return Job业务对象
+     */
+    ApplicationDTO getAppByScope(String scopeType, String scopeId);
 
     /**
      * 获取所有的业务

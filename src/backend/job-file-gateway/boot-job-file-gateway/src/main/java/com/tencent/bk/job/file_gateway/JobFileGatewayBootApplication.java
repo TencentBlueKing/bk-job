@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.file_gateway;
 
+import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -37,6 +39,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableCaching
 @EnableFeignClients
 @EnableScheduling
+@EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobFileGatewayBootApplication {
 
     public static void main(String[] args) {
