@@ -81,59 +81,97 @@ public class BizSetSyncService extends BasicAppSyncService {
         }
         log.info("[{}] Begin to sync bizSet from cmdb", Thread.currentThread().getName());
         List<BizSetInfo> ccBizSets = bizSetCmdbClient.getAllBizSetApps();
+        if (log.isInfoEnabled()) {
+            log.info("Sync cmdb bizSet result: {}", ccBizSets);
+        }
 
-        // 对比业务集信息，分出要新增的/要改的/要删的分别处理
-        List<ApplicationDTO> insertList;
-        List<ApplicationDTO> updateList;
-        List<ApplicationDTO> deleteList;
-        // 对比库中数据与接口数据
-        List<ApplicationDTO> localBizSetApps = applicationDAO.listAllBizSetAppsWithDeleted();
-        // CMDB业务ScopeId
-        Set<String> cmdbBizSetScopeIds = ccBizSets.stream()
-            .map(ccBizSet -> String.valueOf(ccBizSet.getId()))
+        // CMDB业务bizId
+        Set<Long> cmdbBizSetIds = ccBizSets.stream()
+            .map(BizSetInfo::getId)
             .collect(Collectors.toSet());
         // CMDB接口空数据保护
-        if (cmdbBizSetScopeIds.isEmpty()) {
+        if (cmdbBizSetIds.isEmpty()) {
             log.warn("CMDB BizSet data is empty, quit sync");
             return;
         }
-        log.info("Cmdb sync bizSetIds: {}", String.join(",", cmdbBizSetScopeIds));
+        log.info("Cmdb sync bizSetIds: {}", cmdbBizSetIds);
 
-        // 本地业务ScopeId
-        Set<String> localBizSetAppScopeIds =
+        List<ApplicationDTO> localBizSetApps = applicationDAO.listAllBizSetAppsWithDeleted();
+        // 本地业务bizId
+        Set<Long> localBizSetIds =
             localBizSetApps.stream().
-                map(localBizSetApp -> localBizSetApp.getScope().getId())
+                map(localBizSetApp -> Long.valueOf(localBizSetApp.getScope().getId()))
                 .collect(Collectors.toSet());
-        log.info("Local bizSetIds: {}", String.join(",", localBizSetAppScopeIds));
+        log.info("Local cached bizSetIds: {}", localBizSetIds);
 
+        // 对比业务集信息，分出要新增的/要改的/要删的分别处理
+        List<ApplicationDTO> insertApps = computeInsertApps(ccBizSets, localBizSetIds);
+        List<ApplicationDTO> updateApps = computeUpdateApps(ccBizSets, localBizSetApps, localBizSetIds);
+        List<ApplicationDTO> deleteApps = computeDeleteApps(cmdbBizSetIds, localBizSetApps);
+
+        applyAppsChangeByScope(insertApps, deleteApps, updateApps);
+    }
+
+    /**
+     * 计算新增业务集
+     *
+     * @param cmdbBizSets    从cmdb同步的业务集
+     * @param localBizSetIds 本地缓存的业务集ID列表
+     * @return 新增的业务
+     */
+    private List<ApplicationDTO> computeInsertApps(List<BizSetInfo> cmdbBizSets, Set<Long> localBizSetIds) {
         // CMDB-本地：计算新增业务集
-        insertList =
-            ccBizSets.stream().filter(ccBizSet ->
-                !localBizSetAppScopeIds.contains(String.valueOf(ccBizSet.getId())))
+        List<ApplicationDTO> insertList =
+            cmdbBizSets.stream().filter(ccBizSet ->
+                !localBizSetIds.contains(ccBizSet.getId()))
                 .map(this::convertBizSetToApplication).collect(Collectors.toList());
         log.info("Insert bizSetIds: {}", String.join(",",
             insertList.stream().map(bizSetAppInfoDTO -> bizSetAppInfoDTO.getScope().getId())
                 .collect(Collectors.toSet())));
+        return insertList;
+    }
+
+    /**
+     * 计算更新业务集
+     *
+     * @param cmdbBizSets     从cmdb同步的业务集
+     * @param localBizSetApps 本次缓存的业务集
+     * @param localBizSetIds  本地缓存的业务集ID列表
+     * @return 新增的业务
+     */
+    private List<ApplicationDTO> computeUpdateApps(List<BizSetInfo> cmdbBizSets,
+                                                   List<ApplicationDTO> localBizSetApps,
+                                                   Set<Long> localBizSetIds) {
         // 本地&CMDB交集：计算需要更新的业务集
-        updateList =
-            ccBizSets.stream().filter(ccBizSetAppInfoDTO ->
-                localBizSetAppScopeIds.contains(String.valueOf(ccBizSetAppInfoDTO.getId())))
+        List<ApplicationDTO> updateList =
+            cmdbBizSets.stream().filter(ccBizSetAppInfoDTO ->
+                localBizSetIds.contains(ccBizSetAppInfoDTO.getId()))
                 .map(this::convertBizSetToApplication)
                 .collect(Collectors.toList());
-        log.info(String.format("bizSet app updateList scopeIds:%s", String.join(",",
+        log.info("Update bizSetIds: {}", String.join(",",
             updateList.stream().map(applicationInfoDTO ->
-                applicationInfoDTO.getScope().getId()).collect(Collectors.toSet()))));
+                applicationInfoDTO.getScope().getId()).collect(Collectors.toSet())));
         // 将本地业务集的appId赋给CMDB拿到的业务集
         updateAppIdByScope(updateList, genScopeAppIdMap(localBizSetApps));
+        return updateList;
+    }
+
+    /**
+     * 计算删除的业务集
+     *
+     * @param cmdbBizSetIds   cmdb业务集ID列表
+     * @param localBizSetApps 本地缓存的业务集
+     * @return 需要删除的业务
+     */
+    private List<ApplicationDTO> computeDeleteApps(Set<Long> cmdbBizSetIds, List<ApplicationDTO> localBizSetApps) {
         // 本地-CMDB：计算需要删除的业务集
-        deleteList =
-            localBizSetApps.stream().filter(bizSetAppInfoDTO ->
-                !cmdbBizSetScopeIds.contains(bizSetAppInfoDTO.getScope().getId()))
-                .collect(Collectors.toList());
-        log.info(String.format("bizSet app deleteList scopeIds:%s", String.join(",",
+        List<ApplicationDTO> deleteList = localBizSetApps.stream().filter(localApp ->
+            !cmdbBizSetIds.contains(Long.valueOf(localApp.getScope().getId())))
+            .collect(Collectors.toList());
+        log.info("Delete bizSetIds: {}", String.join(",",
             deleteList.stream().map(applicationInfoDTO ->
-                applicationInfoDTO.getScope().getId()).collect(Collectors.toSet()))));
-        applyAppsChangeByScope(insertList, deleteList, updateList);
+                applicationInfoDTO.getScope().getId()).collect(Collectors.toSet())));
+        return deleteList;
     }
 
     private ApplicationDTO convertBizSetToApplication(BizSetInfo bizSetInfo) {
