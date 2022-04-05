@@ -105,14 +105,14 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         );
     }
 
-    public boolean hasAppPermission(String username, AppResourceScope appResourceScope) {
+    public boolean hasBizSetAppMaintainerPermission(String username, AppResourceScope bizSetAppResourceScope) {
         // 过滤掉公共脚本等资源使用的默认业务ID
-        if (appResourceScope.getAppId() == JobConstants.PUBLIC_APP_ID) {
+        if (bizSetAppResourceScope == null || bizSetAppResourceScope.getAppId() == JobConstants.PUBLIC_APP_ID) {
             return false;
         }
         // 业务集、全业务特殊鉴权
-        ResourceAppInfo resourceAppInfo = getResourceApp(appResourceScope);
-        return hasAppPermission(username, resourceAppInfo);
+        ResourceAppInfo resourceAppInfo = getResourceApp(bizSetAppResourceScope);
+        return hasBizSetAppMaintainerPermission(username, resourceAppInfo);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                            AppResourceScope appResourceScope) {
         // 兼容旧的业务集鉴权逻辑
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && hasAppPermission(username, appResourceScope)) {
+            && hasBizSetAppMaintainerPermission(username, appResourceScope)) {
             log.debug("{} is maintainer of job biz_set {}", username, appResourceScope.getAppId());
             return AuthResult.pass();
         }
@@ -226,7 +226,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   List<String> resourceIdList) {
         // 业务集、全业务特殊鉴权
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && hasAppPermission(username, appResourceScope)) {
+            && hasBizSetAppMaintainerPermission(username, appResourceScope)) {
             return resourceIdList;
         }
         return authHelper.isAllowed(
@@ -241,7 +241,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                          List<PermissionResource> resources) {
         // 业务集、全业务特殊鉴权
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && hasAppPermission(username, appResourceScope)) {
+            && hasBizSetAppMaintainerPermission(username, appResourceScope)) {
             return AuthResult.pass();
         }
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
@@ -265,7 +265,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   List<PermissionResource> resourceList) {
         // 业务集、全业务特殊鉴权
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && hasAppPermission(username, appResourceScope)) {
+            && hasBizSetAppMaintainerPermission(username, appResourceScope)) {
             return resourceList.parallelStream()
                 .map(PermissionResource::getResourceId).collect(Collectors.toList());
         }

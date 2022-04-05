@@ -107,7 +107,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     protected boolean isMaintainerOfResource(String username, ResourceTypeEnum resourceType, String resourceId) {
         // 业务集、全业务特殊鉴权
-        return authService.hasAppPermission(username, resourceType, resourceId);
+        return authService.isMaintainerOfResource(username, resourceType, resourceId);
     }
 
     public AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ServersDTO servers) {

@@ -27,8 +27,6 @@ println("assembly mode: $assemblyMode")
 
 dependencies {
     api project(':commons:common')
-    api project(':commons:common-api')
-    api project(':commons:common-iam')
     api project(':commons:common-security')
     api 'org.hibernate.validator:hibernate-validator'
     api 'jakarta.validation:jakarta.validation-api'

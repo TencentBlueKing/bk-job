@@ -77,8 +77,8 @@ public interface AuthService {
      * @param resourceId   资源ID
      * @return 鉴权结果
      */
-    boolean hasAppPermission(String username, ResourceTypeEnum resourceType,
-                             String resourceId);
+    boolean isMaintainerOfResource(String username, ResourceTypeEnum resourceType,
+                                   String resourceId);
 
     /**
      * 多个操作鉴权
