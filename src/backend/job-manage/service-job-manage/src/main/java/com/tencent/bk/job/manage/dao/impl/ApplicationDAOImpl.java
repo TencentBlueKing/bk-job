@@ -375,6 +375,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .set(T_APP.BK_OPERATE_DEPT_ID, applicationDTO.getOperateDeptId())
             .set(T_APP.LANGUAGE, applicationDTO.getLanguage())
             .set(T_APP.ATTRS, JsonUtils.toJson(applicationDTO.getAttrs()))
+            .set(T_APP.APP_TYPE, (byte) applicationDTO.getAppType().getValue())
             .where(T_APP.APP_ID.eq(ULong.valueOf(applicationDTO.getId())));
         return query.execute();
     }
@@ -403,13 +404,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             log.debug("SQL={}", query.getSQL(ParamType.INLINED));
         }
         return affectedNum;
-    }
-
-    public int deleteAppInfoByIdHardly(DSLContext dslContext, long appId) {
-        return dslContext.update(T_APP)
-            .set(T_APP.IS_DELETED, UByte.valueOf(Bool.TRUE.getValue()))
-            .where(T_APP.APP_ID.eq(ULong.valueOf(appId)))
-            .execute();
     }
 
     @Override
