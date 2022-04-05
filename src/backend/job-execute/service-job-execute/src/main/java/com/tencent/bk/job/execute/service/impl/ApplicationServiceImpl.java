@@ -24,14 +24,13 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.app.ApplicationUtil;
-import com.tencent.bk.job.common.model.ServiceApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.ApplicationResourceClient;
 import com.tencent.bk.job.execute.client.SyncResourceClient;
 import com.tencent.bk.job.execute.model.db.CacheAppDO;
 import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,13 +62,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public ApplicationDTO getAppById(long appId) {
         ServiceApplicationDTO returnApp = applicationResourceClient.queryAppById(appId);
-        return ApplicationUtil.convertToApplicationInfoDTO(returnApp);
+        return ServiceApplicationDTO.toApplicationInfoDTO(returnApp);
     }
 
     @Override
     public ApplicationDTO getAppByScope(String scopeType, String scopeId) {
         ServiceApplicationDTO returnApp = applicationResourceClient.queryAppByScope(scopeType, scopeId);
-        return ApplicationUtil.convertToApplicationInfoDTO(returnApp);
+        return ServiceApplicationDTO.toApplicationInfoDTO(returnApp);
     }
 
     @Override
@@ -78,7 +77,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         if (apps == null) {
             return Collections.emptyList();
         }
-        return apps.stream().map(ApplicationUtil::convertToApplicationInfoDTO).collect(Collectors.toList());
+        return apps.stream().map(ServiceApplicationDTO::toApplicationInfoDTO).collect(Collectors.toList());
     }
 
     @Override

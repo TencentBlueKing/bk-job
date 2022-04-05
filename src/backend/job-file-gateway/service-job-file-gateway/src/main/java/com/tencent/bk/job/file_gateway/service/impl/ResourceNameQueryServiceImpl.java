@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
-import com.tencent.bk.job.common.model.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

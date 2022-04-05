@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceAddAppSetRequest;
 import com.tencent.bk.job.manage.model.inner.request.ServiceUpdateAppSetRequest;
 import io.swagger.annotations.Api;

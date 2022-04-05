@@ -25,11 +25,11 @@
 package com.tencent.bk.job.analysis.auth;
 
 import com.tencent.bk.job.analysis.client.ApplicationResourceClient;
-import com.tencent.bk.job.common.app.ApplicationUtil;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,7 @@ public class AnalysisResourceAppInfoQueryService implements ResourceAppInfoQuery
             log.warn("scope({},{}) is invalid", scopeType, scopeId);
             return null;
         }
-        return ApplicationUtil.convertToResourceApp(applicationService.queryAppByScope(scopeType, scopeId));
+        return ServiceApplicationDTO.toResourceApp(applicationService.queryAppByScope(scopeType, scopeId));
     }
 
     @Override

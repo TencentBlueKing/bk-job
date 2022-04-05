@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.model.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;

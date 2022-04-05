@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.app.ApplicationUtil;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
@@ -37,6 +36,7 @@ import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +70,7 @@ public class ExecuteResourceAppInfoQueryService implements ResourceAppInfoQueryS
             log.warn("appId({}) is invalid", appId);
             return null;
         }
-        return ApplicationUtil.convertToResourceApp(applicationService.getAppById(appId));
+        return ServiceApplicationDTO.toResourceApp(applicationService.getAppById(appId));
     }
 
     private ResourceAppInfo getResourceAppInfoByScope(String scopeType, String scopeId) {
@@ -78,7 +78,7 @@ public class ExecuteResourceAppInfoQueryService implements ResourceAppInfoQueryS
             log.warn("scope({},{}) is invalid", scopeType, scopeId);
             return null;
         }
-        return ApplicationUtil.convertToResourceApp(applicationService.getAppByScope(scopeType, scopeId));
+        return ServiceApplicationDTO.toResourceApp(applicationService.getAppByScope(scopeType, scopeId));
     }
 
     private ResourceAppInfo getScriptApp(String resourceId) {

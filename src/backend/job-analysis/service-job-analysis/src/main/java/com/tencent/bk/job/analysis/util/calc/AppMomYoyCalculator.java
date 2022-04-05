@@ -27,7 +27,7 @@ package com.tencent.bk.job.analysis.util.calc;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.model.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 
 import java.util.List;
 

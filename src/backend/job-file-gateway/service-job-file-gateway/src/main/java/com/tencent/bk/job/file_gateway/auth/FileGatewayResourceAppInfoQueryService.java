@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.file_gateway.auth;
 
-import com.tencent.bk.job.common.app.ApplicationUtil;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
@@ -32,6 +31,7 @@ import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public class FileGatewayResourceAppInfoQueryService implements ResourceAppInfoQu
             log.warn("scope({},{}) is invalid", scopeType, scopeId);
             return null;
         }
-        return ApplicationUtil.convertToResourceApp(applicationService.queryAppByScope(scopeType, scopeId));
+        return ServiceApplicationDTO.toResourceApp(applicationService.queryAppByScope(scopeType, scopeId));
     }
 
     private ResourceAppInfo getResourceAppInfoById(Long appId) {
@@ -64,7 +64,7 @@ public class FileGatewayResourceAppInfoQueryService implements ResourceAppInfoQu
             log.warn("appId({}) is invalid", appId);
             return null;
         }
-        return ApplicationUtil.convertToResourceApp(applicationService.queryAppById(appId));
+        return ServiceApplicationDTO.toResourceApp(applicationService.queryAppById(appId));
     }
 
     private ResourceAppInfo getFileSourceApp(String resourceId) {

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.app.ApplicationUtil;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
@@ -36,6 +35,7 @@ import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -89,7 +89,7 @@ public class ManageResourceAppInfoQueryService implements ResourceAppInfoQuerySe
             log.warn("scope({},{}) is invalid", scopeType, scopeId);
             return null;
         }
-        return ApplicationUtil.convertToResourceApp(applicationService.getAppByScope(scopeType, scopeId));
+        return ServiceApplicationDTO.toResourceApp(applicationService.getAppByScope(scopeType, scopeId));
     }
 
     private ResourceAppInfo getResourceAppInfoById(Long appId) {
@@ -97,7 +97,7 @@ public class ManageResourceAppInfoQueryService implements ResourceAppInfoQuerySe
             log.warn("appId({}) is invalid", appId);
             return null;
         }
-        return ApplicationUtil.convertToResourceApp(applicationService.getAppByAppId(appId));
+        return ServiceApplicationDTO.toResourceApp(applicationService.getAppByAppId(appId));
     }
 
     private ResourceAppInfo getScriptApp(String resourceId) {
