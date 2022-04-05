@@ -58,10 +58,23 @@ public class ApplicationServiceImpl implements ApplicationService {
         return ServiceApplicationDTO.toApplicationInfoDTO(returnApp);
     }
 
+<<<<<<< HEAD
+    private ApplicationDTO convertToApplicationInfoDTO(ServiceApplicationDTO app) {
+        ApplicationDTO applicationInfo = new ApplicationDTO();
+        applicationInfo.setId(app.getId());
+        applicationInfo.setName(app.getName());
+        applicationInfo.setAppType(AppTypeEnum.valueOf(app.getAppType()));
+        applicationInfo.setSubBizIds(app.getSubBizIds());
+        applicationInfo.setMaintainers(app.getMaintainers());
+        applicationInfo.setOperateDeptId(app.getOperateDeptId());
+        applicationInfo.setLanguage(app.getLanguage());
+        return applicationInfo;
+=======
     @Override
     public ApplicationDTO getAppByScope(String scopeType, String scopeId) {
         ServiceApplicationDTO returnApp = applicationResourceClient.queryAppByScope(scopeType, scopeId);
         return ServiceApplicationDTO.toApplicationInfoDTO(returnApp);
+>>>>>>> 4c91111b484abc0df81457d6b6b2db05ae30bf4b
     }
 
     @Override

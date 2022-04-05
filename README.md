@@ -66,7 +66,6 @@ bk-job 提供了快速执行、任务编排、定时执行等核心服务，多�
 
 ## BlueKing Community
 - [BK-BCS](https://github.com/Tencent/bk-bcs)：蓝鲸容器管理平台是以容器技术为基础，为微服务业务提供编排管理的基础服务平台。
-- [BK-BCS-SaaS](https://github.com/Tencent/bk-bcs-saas)：蓝鲸容器管理平台SaaS基于原生Kubernetes和Mesos自研的两种模式，提供给用户高度可扩展、灵活易用的容器产品服务。
 - [BK-CI](https://github.com/Tencent/bk-ci)：蓝鲸持续集成平台是一个免费并开源的CI服务，让开发者可以自动化构建-测试-发布工作流，持续、快速、高质量地交付产品。
 - [BK-CMDB](https://github.com/Tencent/bk-cmdb)：蓝鲸配置平台（蓝鲸CMDB）是一个面向资产及应用的企业级配置管理平台。
 - [BK-PaaS](https://github.com/Tencent/bk-PaaS)：蓝鲸PaaS平台是一个开放式的开发平台，让开发者可以方便快捷地创建、开发、部署和管理SaaS应用。

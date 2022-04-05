@@ -61,9 +61,11 @@ spring:
       max-request-size: 5GB
 
 bk:
+  {% if job_edition == "ce" -%}
   doc:
     # 首页右上角产品文档根地址
     root: https://bk.tencent.com
+  {% endif -%}
   feedback:
     # 首页右上角问题反馈链接
     root:

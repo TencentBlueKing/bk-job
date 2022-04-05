@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceAppSetResource;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.tmp.TmpAddAppSetRequest;
 import com.tencent.bk.job.manage.model.tmp.TmpUpdateAppSetRequest;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -102,7 +101,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
             results = results.stream().sorted((Comparator.comparing(ApplicationDTO::getId)))
                 .collect(Collectors.toList());
         }
-        return InternalResponse.buildSuccessResp(results.stream().map(this::convertToServiceApp)
+        return InternalResponse.buildSuccessResp(results.stream().map(ServiceApplicationDTO::fromApplicationDTO)
             .collect(Collectors.toList()));
     }
 
@@ -130,19 +129,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         if (appInfo == null) {
             return null;
         }
-        return convertToServiceApp(appInfo);
-    }
-
-    private ServiceApplicationDTO convertToServiceApp(ApplicationDTO appInfo) {
-        ServiceApplicationDTO app = new ServiceApplicationDTO();
-        app.setId(appInfo.getId());
-        app.setName(appInfo.getName());
-        app.setAppType(appInfo.getAppType().getValue());
-        app.setOwner(appInfo.getBkSupplierAccount());
-        app.setMaintainers(appInfo.getMaintainers());
-        app.setOperateDeptId(appInfo.getOperateDeptId());
-        app.setTimeZone(appInfo.getTimeZone());
-        return app;
+        return ServiceApplicationDTO.fromApplicationDTO(appInfo);
     }
 
     @Override
@@ -182,7 +169,9 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         appInfo.setLanguage("1");
         applicationService.createAppWithSpecifiedAppId(appInfo);
 
-        ServiceApplicationDTO newAppSet = convertToServiceApp(applicationDAO.getAppById(request.getId()));
+        ServiceApplicationDTO newAppSet = ServiceApplicationDTO.fromApplicationDTO(
+            applicationDAO.getAppById(request.getId())
+        );
         return InternalResponse.buildSuccessResp(newAppSet);
     }
 
