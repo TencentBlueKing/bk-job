@@ -113,9 +113,21 @@ public class ApplicationDTO {
         return scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ;
     }
 
+    /**
+     * 是否是业务集
+     */
     @JsonIgnore
     public boolean isBizSet() {
         return scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ_SET;
+    }
+
+    /**
+     * 是否是全业务
+     */
+    @JsonIgnore
+    public boolean isAllBizSet() {
+        return scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ_SET
+            && attrs != null && attrs.getMatchAllBiz() != null && attrs.getMatchAllBiz();
     }
 
     /**
