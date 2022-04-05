@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 
@@ -75,8 +76,9 @@ public interface ApplicationService {
      *
      * @param appId Job业务ID
      * @return Job业务
+     * @throws NotFoundException 业务不存在
      */
-    ApplicationDTO getAppByAppId(Long appId);
+    ApplicationDTO getAppByAppId(Long appId) throws NotFoundException;
 
     /**
      * 根据资源范围拉取业务信息

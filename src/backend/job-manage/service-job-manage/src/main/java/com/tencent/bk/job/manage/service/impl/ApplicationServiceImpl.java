@@ -107,7 +107,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public ApplicationDTO getAppByAppId(Long appId) {
+    public ApplicationDTO getAppByAppId(Long appId) throws NotFoundException {
         ApplicationDTO application = applicationCache.getApplication(appId);
         if (application == null) {
             application = applicationDAO.getAppById(appId);

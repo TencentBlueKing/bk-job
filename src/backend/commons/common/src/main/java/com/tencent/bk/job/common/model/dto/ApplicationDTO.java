@@ -113,6 +113,11 @@ public class ApplicationDTO {
         return scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ;
     }
 
+    @JsonIgnore
+    public boolean isBizSet() {
+        return scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ_SET;
+    }
+
     /**
      * 返回对应的cmdb业务ID
      *

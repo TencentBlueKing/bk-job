@@ -1283,7 +1283,7 @@ public class HostServiceImpl implements HostService {
         ApplicationDTO application = applicationService.getAppByAppId(appId);
         List<Long> includeBizIds = buildIncludeBizIdList(application);
         if (CollectionUtils.isEmpty(includeBizIds)) {
-            log.warn("App is not exist or bizSet contains no sub biz, appId:{}", application.getId());
+            log.warn("App do not contains any biz, appId:{}", appId);
             return hostIps;
         }
 
@@ -1325,10 +1325,9 @@ public class HostServiceImpl implements HostService {
 
     private List<Long> buildIncludeBizIdList(ApplicationDTO application) {
         List<Long> bizIdList = new ArrayList<>();
-        boolean isBiz = application.getScope().getType() == ResourceScopeTypeEnum.BIZ;
-        if (isBiz) {
+        if (application.isBiz()) {
             bizIdList.add(application.getBizIdIfBizApp());
-        } else {
+        } else if (application.isBizSet()) {
             if (application.getSubBizIds() != null) {
                 bizIdList.addAll(application.getSubBizIds());
             }
