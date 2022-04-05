@@ -44,7 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.exception.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.StopWatch;
 
 import java.util.List;
 
@@ -88,100 +87,112 @@ public class BizSetWatchThread extends Thread {
     @Override
     public void run() {
         log.info("BizSetWatch arranged");
+        RedisKeyHeartBeatThread bizSetWatchRedisKeyHeartBeatThread = null;
         while (true) {
-            String cursor = null;
-            // 从10分钟前开始watch
-            long startTime = System.currentTimeMillis() / 1000 - 10 * 60;
             try {
                 if (!bizSetService.isBizSetMigratedToCMDB()) {
                     log.warn("Job BizSets have not been migrated to CMDB, " +
                         "do not watch bizSet event from CMDB, " +
                         "please use upgrader in package to migrate as soon as possible"
                     );
-                    ThreadUtils.sleep(5000);
+                    ThreadUtils.sleep(60_000);
                     continue;
                 }
-                boolean lockGotten = LockUtils.tryGetDistributedLock(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK,
-                    machineIp, 50);
+
+                boolean lockGotten = tryGetTaskLockPeriodically();
                 if (!lockGotten) {
-                    log.info("bizSetWatch lock not gotten, wait 100ms and retry");
-                    try {
-                        sleep(100);
-                    } catch (InterruptedException e) {
-                        log.warn("Sleep interrupted", e);
-                    }
+                    // 30s之后重试
+                    ThreadUtils.sleep(30_000);
                     continue;
                 }
-                String REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_RUNNING_MACHINE =
-                    "resource-watch-biz-set-job-running-machine";
-                String runningMachine =
-                    redisTemplate.opsForValue().get(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_RUNNING_MACHINE);
-                if (StringUtils.isNotBlank(runningMachine)) {
-                    //已有bizSetWatch线程在跑，不再重复Watch
-                    log.info("bizSetWatch thread already running on {}", runningMachine);
-                    try {
-                        sleep(30000);
-                    } catch (InterruptedException e) {
-                        log.warn("Sleep interrupted", e);
-                    }
+
+                bizSetWatchRedisKeyHeartBeatThread = startBizSetWatchRedisKeyHeartBeatThread();
+                if (bizSetWatchRedisKeyHeartBeatThread == null) {
+                    // 30s之后重试
+                    ThreadUtils.sleep(30_000);
                     continue;
                 }
-                // 开一个心跳子线程，维护当前机器正在WatchResource的状态
-                RedisKeyHeartBeatThread bizSetWatchRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
-                    redisTemplate,
-                    REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_RUNNING_MACHINE,
-                    machineIp,
-                    3000L,
-                    2000L
-                );
-                bizSetWatchRedisKeyHeartBeatThread.setName("[" + bizSetWatchRedisKeyHeartBeatThread.getId() +
-                    "]-bizSetWatchRedisKeyHeartBeatThread");
-                bizSetWatchRedisKeyHeartBeatThread.start();
-                log.info("start watch biz_set resource at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
-                    System.currentTimeMillis());
-                StopWatch watch = new StopWatch("bizSetWatch");
-                watch.start("total");
-                Span span = null;
-                try {
-                    ResourceWatchResult<BizSetEventDetail> bizSetWatchResult;
-                    span = this.tracing.tracer().newTrace();
-                    if (cursor == null) {
-                        log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
-                        bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(startTime, null);
-                    } else {
-                        bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(null, cursor);
-                    }
-                    log.info("bizSetWatchResult={}", JsonUtils.toJson(bizSetWatchResult));
-                    cursor = handleBizSetWatchResult(bizSetWatchResult);
-                    // 10s/watch一次
-                    sleep(10000);
-                } catch (Throwable t) {
-                    if (span != null) {
-                        span.error(t);
-                    }
-                    log.error("bizSetWatch thread fail", t);
-                    // 重置Watch起始位置为10分钟前
-                    startTime = System.currentTimeMillis() / 1000 - 10 * 60;
-                    cursor = null;
-                } finally {
-                    bizSetWatchRedisKeyHeartBeatThread.setRunFlag(false);
-                    watch.stop();
-                    log.info("bizSetWatch time consuming:" + watch.toString());
-                    if (span != null) {
-                        span.finish();
-                    }
-                }
+
+                watchEvent();
             } catch (Throwable t) {
                 log.error("BizSetWatchThread quit unexpectedly", t);
-                startTime = System.currentTimeMillis() / 1000 - 10 * 60;
-                cursor = null;
-            } finally {
-                try {
-                    // 5s/重试一次
-                    sleep(5000);
-                } catch (InterruptedException e) {
-                    log.error("sleep interrupted", e);
+                if (bizSetWatchRedisKeyHeartBeatThread != null) {
+                    bizSetWatchRedisKeyHeartBeatThread.setRunFlag(false);
                 }
+            } finally {
+                // 重试机制保证任务不会意外终止
+                ThreadUtils.sleep(5000);
+            }
+        }
+    }
+
+    private boolean tryGetTaskLockPeriodically() {
+        boolean lockGotten = false;
+        try {
+            lockGotten = LockUtils.tryGetDistributedLock(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK,
+                machineIp, 5_000);
+            if (!lockGotten) {
+                log.info("BizSetWatch lock not gotten, wait 1min and retry");
+                return false;
+            }
+            lockGotten = true;
+        } catch (Throwable t) {
+            log.error("BizSetWatchThread quit unexpectedly", t);
+        }
+        return lockGotten;
+    }
+
+    private RedisKeyHeartBeatThread startBizSetWatchRedisKeyHeartBeatThread() {
+        String REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_RUNNING_MACHINE =
+            "resource-watch-biz-set-job-running-machine";
+        String runningMachine =
+            redisTemplate.opsForValue().get(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_RUNNING_MACHINE);
+        if (StringUtils.isNotBlank(runningMachine)) {
+            //已有bizSetWatch线程在跑，不再重复Watch
+            log.info("BizSetWatch thread already running on {}", runningMachine);
+            return null;
+        }
+        // 开一个心跳子线程，维护当前机器正在WatchResource的状态
+        RedisKeyHeartBeatThread bizSetWatchRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
+            redisTemplate,
+            REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_RUNNING_MACHINE,
+            machineIp,
+            3000L,
+            2000L
+        );
+        bizSetWatchRedisKeyHeartBeatThread.setName("[" + bizSetWatchRedisKeyHeartBeatThread.getId() +
+            "]-bizSetWatchRedisKeyHeartBeatThread");
+        bizSetWatchRedisKeyHeartBeatThread.start();
+        log.info("Start watch biz_set resource at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
+            System.currentTimeMillis());
+        return bizSetWatchRedisKeyHeartBeatThread;
+    }
+
+    private void watchEvent() {
+        String cursor = null;
+        while (true) {
+            Span span = null;
+            try {
+                ResourceWatchResult<BizSetEventDetail> bizSetWatchResult;
+                span = this.tracing.tracer().newTrace();
+                if (cursor == null) {
+                    // 从10分钟前开始watch
+                    long startTime = System.currentTimeMillis() / 1000 - 10 * 60;
+                    log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
+                    bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(startTime, null);
+                } else {
+                    bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(null, cursor);
+                }
+                log.info("BizSetWatchResult={}", JsonUtils.toJson(bizSetWatchResult));
+                cursor = handleBizSetWatchResult(bizSetWatchResult);
+                // 10s/watch一次
+                ThreadUtils.sleep(10_000);
+            } catch (Throwable t) {
+                if (span != null) {
+                    span.error(t);
+                }
+                log.error("BizSetWatch thread fail", t);
+                cursor = null;
             }
         }
     }
@@ -197,18 +208,19 @@ public class BizSetWatchThread extends Thread {
                 handleEvent(event);
             }
             if (events.size() > 0) {
-                log.info("events.size={},events={}", events.size(), JsonUtils.toJson(events));
+                log.info("Handle bizSet watch events, events.size: {},events: {}",
+                    events.size(), JsonUtils.toJson(events));
                 cursor = events.get(events.size() - 1).getCursor();
-                log.info("refresh cursor(success):{}", cursor);
+                log.info("Refresh cursor(success):{}", cursor);
             } else {
-                log.info("events.size==0");
+                log.info("Handle bizSet watch events, events is empty");
             }
         } else {
             // 只有一个无实际意义的事件，用于换取bk_cursor
             List<ResourceEvent<BizSetEventDetail>> events = bizSetWatchResult.getEvents();
             if (events != null && events.size() > 0) {
                 cursor = events.get(0).getCursor();
-                log.info("refresh cursor(fail):{}", cursor);
+                log.info("Refresh cursor(fail):{}", cursor);
             } else {
                 log.warn("CMDB event error:no refresh event data when watched==false");
             }
@@ -229,6 +241,7 @@ public class BizSetWatchThread extends Thread {
                     if (cachedApp != null) {
                         updateBizSetProps(cachedApp, latestApp);
                         if (!cachedApp.isDeleted()) {
+                            log.info("Update bizSet: {}", cachedApp);
                             applicationService.updateApp(cachedApp);
                         } else {
                             log.info("Restore deleted latestApp: {}", latestApp);
