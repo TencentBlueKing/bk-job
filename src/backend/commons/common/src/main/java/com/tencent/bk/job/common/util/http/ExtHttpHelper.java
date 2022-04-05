@@ -30,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHeader;
 
@@ -148,18 +147,59 @@ public class ExtHttpHelper {
         return httpHelper.put(url, requestEntity, headers).getRight();
     }
 
+    /**
+     * 发起PUT请求并获取响应
+     *
+     * @param url        地址
+     * @param charset    字符集名称
+     * @param content    body内容
+     * @param headerList 请求头列表
+     * @return 响应字符串
+     */
+    public String put(String url, String charset, String content, List<Header> headerList) {
+        log.debug("put:url={},charset={},content={},headers={}", url, charset, content, headerList);
+        Header[] headers = new Header[headerList.size()];
+        try {
+            return put(url, new ByteArrayEntity(content.getBytes(charset)), headerList.toArray(headers));
+        } catch (IOException e) {
+            log.error("Put request fail", e);
+            throw new InternalException(e, ErrorCode.API_ERROR);
+        }
+    }
+
+    /**
+     * 发起DELETE请求并获取响应
+     *
+     * @param url     地址
+     * @param content body内容
+     * @param headers 请求头数组
+     * @return 响应字符串
+     */
     public String delete(String url, String content, Header... headers) {
         return httpHelper.delete(url, content, headers).getRight();
     }
 
-    private static class FakeHttpDelete extends HttpPost {
-        FakeHttpDelete(String url) {
-            super(url);
-        }
+    /**
+     * 发起DELETE请求并获取响应
+     *
+     * @param url        地址
+     * @param content    body内容
+     * @param headerList 请求头列表
+     * @return 响应字符串
+     */
+    public String delete(String url, String content, List<Header> headerList) {
+        Header[] headers = new Header[headerList.size()];
+        return httpHelper.delete(url, content, headerList.toArray(headers)).getRight();
+    }
 
-        @Override
-        public String getMethod() {
-            return "DELETE";
-        }
+    /**
+     * 发起DELETE请求并获取响应
+     *
+     * @param url        地址
+     * @param headerList 请求头列表
+     * @return 响应字符串
+     */
+    public String delete(String url, List<Header> headerList) {
+        return delete(url, null, headerList);
     }
 }
