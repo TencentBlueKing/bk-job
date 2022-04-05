@@ -60,7 +60,7 @@ BEGIN
 	UPDATE application SET bk_scope_id = app_id WHERE bk_scope_id is NULL;
 
   IF EXISTS(SELECT 1
-                  FROM information_schema.columns
+                  FROM information_schema.statistics
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'application'
                     AND INDEX_NAME = 'app_type') THEN
