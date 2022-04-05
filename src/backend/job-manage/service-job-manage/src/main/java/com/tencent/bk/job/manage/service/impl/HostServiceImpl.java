@@ -69,6 +69,7 @@ import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.WhiteIPService;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1287,16 +1288,17 @@ public class HostServiceImpl implements HostService {
             return hostIps;
         }
 
-        List<IpDTO> hostsNotInApp = new ArrayList<>();
-        List<CacheHostDO> cacheHosts = hostCache.batchGetHosts(hostIps);
+        List<BasicAppHost> hostsInOtherApp = new ArrayList<>();
         List<IpDTO> notExistHosts = new ArrayList<>();
 
+        List<CacheHostDO> cacheHosts = hostCache.batchGetHosts(hostIps);
         for (int i = 0; i < hostIps.size(); i++) {
             IpDTO hostIp = hostIps.get(i);
             CacheHostDO cacheHost = cacheHosts.get(i);
             if (cacheHost != null) {
                 if (!includeBizIds.contains(cacheHost.getBizId())) {
-                    hostsNotInApp.add(new IpDTO(cacheHost.getCloudAreaId(), cacheHost.getIp()));
+                    hostsInOtherApp.add(new BasicAppHost(cacheHost.getAppId(), cacheHost.getBizId(),
+                        cacheHost.getCloudAreaId(), cacheHost.getIp()));
                 }
             } else {
                 notExistHosts.add(hostIp);
@@ -1311,16 +1313,22 @@ public class HostServiceImpl implements HostService {
                     notExistHosts.remove(hostIp);
                     hostCache.addOrUpdateHost(appHost);
                     if (!includeBizIds.contains(appHost.getBizId())) {
-                        hostsNotInApp.add(hostIp);
+                        hostsInOtherApp.add(new BasicAppHost(appHost.getAppId(), appHost.getBizId(),
+                            appHost.getCloudAreaId(), appHost.getIp()));
                     }
                 }
             }
         }
 
-        if (CollectionUtils.isNotEmpty(notExistHosts)) {
-            hostsNotInApp.addAll(notExistHosts);
+        List<IpDTO> invalidHosts = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(notExistHosts) || CollectionUtils.isNotEmpty(hostsInOtherApp)) {
+            invalidHosts.addAll(notExistHosts);
+            invalidHosts.addAll(hostsInOtherApp.stream()
+                .map(host -> new IpDTO(host.getCloudAreaId(), host.getIp())).collect(Collectors.toList()));
+            log.info("Contains invalid hosts, appId: {}, notExistHosts: {}, hostsInOtherApp: {}",
+                appId, notExistHosts, hostsInOtherApp);
         }
-        return hostsNotInApp;
+        return invalidHosts;
     }
 
     private List<Long> buildIncludeBizIdList(ApplicationDTO application) {
@@ -1337,5 +1345,20 @@ public class HostServiceImpl implements HostService {
 
     public List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps) {
         return applicationHostDAO.listHosts(hostIps);
+    }
+
+    @Data
+    private static class BasicAppHost {
+        private Long appId;
+        private Long bizId;
+        private Long cloudAreaId;
+        private String ip;
+
+        public BasicAppHost(Long appId, Long bizId, Long cloudAreaId, String ip) {
+            this.appId = appId;
+            this.bizId = bizId;
+            this.cloudAreaId = cloudAreaId;
+            this.ip = ip;
+        }
     }
 }
