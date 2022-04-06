@@ -183,7 +183,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 }
             });
             //处理全业务
-            List<ApplicationDTO> allAppSetList = allAppTypeGroupMap.get(AppTypeEnum.NORMAL);
+            List<ApplicationDTO> allAppSetList = allAppTypeGroupMap.get(AppTypeEnum.ALL_APP);
             if (allAppSetList != null && !allAppSetList.isEmpty()) {
                 allAppSetList.forEach(record -> fullAppIds.add(record.getId()));
             }

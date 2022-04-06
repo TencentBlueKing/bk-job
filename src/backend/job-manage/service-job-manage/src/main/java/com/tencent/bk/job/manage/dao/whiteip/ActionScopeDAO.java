@@ -45,5 +45,5 @@ public interface ActionScopeDAO {
 
     int updateActionScopeById(DSLContext dslContext, ActionScopeDTO actionScopeDTO);
 
-    List<ActionScopeDTO> getActionScopeByIds(List<Long> scopeIdSet);
+    List<ActionScopeDTO> getActionScopeByIds(List<Long> scopeIdList);
 }

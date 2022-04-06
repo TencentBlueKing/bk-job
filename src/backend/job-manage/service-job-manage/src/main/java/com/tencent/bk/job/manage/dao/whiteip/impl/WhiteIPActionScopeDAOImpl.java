@@ -137,9 +137,6 @@ public class WhiteIPActionScopeDAOImpl implements WhiteIPActionScopeDAO {
             dslContext.selectFrom(T_WHITE_IP_ACTION_SCOPE).where(
                 T_WHITE_IP_ACTION_SCOPE.RECORD_ID.in(recordIdList)
             ).fetch();
-        if (records == null) {
-            return new ArrayList<>();
-        }
         return records.stream().map(record ->
             new WhiteIPActionScopeDTO(
                 record.getId(),

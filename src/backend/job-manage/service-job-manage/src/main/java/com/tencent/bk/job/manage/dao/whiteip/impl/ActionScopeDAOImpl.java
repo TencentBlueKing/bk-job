@@ -57,20 +57,20 @@ public class ActionScopeDAOImpl implements ActionScopeDAO {
     @Override
     public Long insertActionScope(DSLContext dslContext, ActionScopeDTO actionScopeDTO) {
         Record record = dslContext.insertInto(T_ACTION_SCOPE,
-            T_ACTION_SCOPE.NAME,
-            T_ACTION_SCOPE.DESCRIPTION,
-            T_ACTION_SCOPE.CREATOR,
-            T_ACTION_SCOPE.CREATE_TIME,
-            T_ACTION_SCOPE.LAST_MODIFY_USER,
-            T_ACTION_SCOPE.LAST_MODIFY_TIME
-        ).values(
-            actionScopeDTO.getName(),
-            actionScopeDTO.getDescription(),
-            actionScopeDTO.getCreator(),
-            ULong.valueOf(actionScopeDTO.getCreateTime()),
-            actionScopeDTO.getLastModifier(),
-            ULong.valueOf(actionScopeDTO.getLastModifyTime())
-        ).returning(T_ACTION_SCOPE.ID)
+                T_ACTION_SCOPE.NAME,
+                T_ACTION_SCOPE.DESCRIPTION,
+                T_ACTION_SCOPE.CREATOR,
+                T_ACTION_SCOPE.CREATE_TIME,
+                T_ACTION_SCOPE.LAST_MODIFY_USER,
+                T_ACTION_SCOPE.LAST_MODIFY_TIME
+            ).values(
+                actionScopeDTO.getName(),
+                actionScopeDTO.getDescription(),
+                actionScopeDTO.getCreator(),
+                ULong.valueOf(actionScopeDTO.getCreateTime()),
+                actionScopeDTO.getLastModifier(),
+                ULong.valueOf(actionScopeDTO.getLastModifyTime())
+            ).returning(T_ACTION_SCOPE.ID)
             .fetchOne();
         return record.get(T_ACTION_SCOPE.ID);
     }
@@ -151,22 +151,22 @@ public class ActionScopeDAOImpl implements ActionScopeDAO {
     }
 
     @Override
-    public List<ActionScopeDTO> getActionScopeByIds(List<Long> scopeIdSet) {
-        val records = defaultDslContext.selectFrom(T_ACTION_SCOPE)
-            .where(T_ACTION_SCOPE.ID.in(scopeIdSet)).fetch();
-        if (records == null) {
-            return new ArrayList<>();
-        }
+    public List<ActionScopeDTO> getActionScopeByIds(List<Long> scopeIdList) {
+        val records = defaultDslContext.select(
+                T_ACTION_SCOPE.ID,
+                T_ACTION_SCOPE.CODE
+            ).from(T_ACTION_SCOPE)
+            .where(T_ACTION_SCOPE.ID.in(scopeIdList)).fetch();
         return records.stream().map(record ->
             new ActionScopeDTO(
-                record.getId(),
-                record.getCode(),
-                record.getName(),
-                record.getDescription(),
-                record.getCreator(),
-                record.getCreateTime().longValue(),
-                record.getLastModifyUser(),
-                record.getLastModifyTime().longValue()
+                record.get(T_ACTION_SCOPE.ID),
+                record.get(T_ACTION_SCOPE.CODE),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
             )
         ).collect(Collectors.toList());
     }

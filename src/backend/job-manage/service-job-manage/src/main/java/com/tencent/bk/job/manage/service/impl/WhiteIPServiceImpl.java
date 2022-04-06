@@ -410,7 +410,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     public List<ServiceWhiteIPInfo> listWhiteIPInfos() {
         List<ServiceWhiteIPInfo> resultList = new ArrayList<>();
         //查出所有Record
-        List<WhiteIPRecordDTO> recordList = whiteIPRecordDAO.listAllWhiteIPRecord(dslContext);//
+        List<WhiteIPRecordDTO> recordList = whiteIPRecordDAO.listAllWhiteIPRecord(dslContext);
         if(CollectionUtils.isEmpty(recordList)){
             return resultList;
         }
@@ -418,11 +418,12 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         Set<Long> appIdSet = new HashSet<>();
         Set<Long> scopeIdSet = new HashSet<>();
         List<ApplicationDTO> applicationDTOList = new ArrayList<>();
-        recordList.parallelStream().forEach(d -> {
-            if (d.getIpList().size() == 1) {
-                appIdSet.add(d.getAppIdList().get(0));
+        recordList.parallelStream().forEach(record -> {
+            if (record.getAppIdList().size() == 1) {
+                appIdSet.add(record.getAppIdList().get(0));
             }
-            scopeIdSet.addAll(d.getActionScopeList().parallelStream().map(a -> a.getActionScopeId()).collect(Collectors.toSet()));
+            //添加所有包含生效范围id列表，方便后续一次性查出关联的生效范围code
+            scopeIdSet.addAll(record.getActionScopeList().parallelStream().map(scope -> scope.getActionScopeId()).collect(Collectors.toSet()));
         });
         if (CollectionUtils.isNotEmpty(appIdSet)) {
             applicationDTOList = applicationService.listAppsByAppIds(appIdSet);
@@ -432,10 +433,10 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             Collectors.groupingBy(ApplicationDTO::getId));
 
         int maxInCount = 1000;
-        List<List<Long>> recordIdsList = Lists.partition(new ArrayList<>(scopeIdSet), maxInCount);
+        List<List<Long>> scopeIdsList = Lists.partition(new ArrayList<>(scopeIdSet), maxInCount);
         List<ActionScopeDTO> actionScopeDTOList = new ArrayList<>();
-        for (List<Long> idList : recordIdsList) {
-            actionScopeDTOList.addAll(actionScopeDAO.getActionScopeByIds(idList));
+        for (List<Long> scopeIdList : scopeIdsList) {
+            actionScopeDTOList.addAll(actionScopeDAO.getActionScopeByIds(scopeIdList));
         }
 
         Map<Long, List<ActionScopeDTO>> actionScopeDTOMap = actionScopeDTOList.parallelStream().collect(

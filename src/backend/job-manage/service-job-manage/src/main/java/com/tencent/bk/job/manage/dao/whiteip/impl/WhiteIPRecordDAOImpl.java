@@ -563,14 +563,16 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     public List<WhiteIPRecordDTO> listAllWhiteIPRecord(DSLContext dslContext) {
         //查Record
         val tWhiteIPRecord = T_WHITE_IP_RECORD.as("tWhiteIPRecord");
-        val whiteIPRecord = dslContext.selectFrom(T_WHITE_IP_RECORD).fetch();
+        val whiteIPRecords = dslContext.select(
+                T_WHITE_IP_RECORD.ID)
+            .from(T_WHITE_IP_RECORD).fetch();
         List<WhiteIPAppRelDTO> whiteIPAppRelList = new ArrayList<>();
         List<WhiteIPIPDTO> whiteIPIPList = new ArrayList<>();
         List<WhiteIPActionScopeDTO> whiteIPActionScopeList = new ArrayList<>();
         List<Long> recordIdList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(whiteIPRecord)) {
+        if (CollectionUtils.isNotEmpty(whiteIPRecords)) {
             recordIdList =
-                whiteIPRecord.map(it -> it.get(tWhiteIPRecord.ID)).parallelStream().collect(Collectors.toList());
+                whiteIPRecords.map(it -> it.get(tWhiteIPRecord.ID)).parallelStream().collect(Collectors.toList());
 
             int maxInCount = 1000;
             List<List<Long>> recordIdsList = Lists.partition(new ArrayList<>(recordIdList), maxInCount);
@@ -590,20 +592,21 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         Map<Long, List<WhiteIPActionScopeDTO>> whiteIPActionScopeMap = whiteIPActionScopeList.stream().collect(
             Collectors.groupingBy(WhiteIPActionScopeDTO::getRecordId));
 
-        if (CollectionUtils.isNotEmpty(whiteIPRecord)) {
-            return whiteIPRecord.stream().map(record ->
+        if (CollectionUtils.isNotEmpty(whiteIPRecords)) {
+            return whiteIPRecords.stream().map(record ->
                 new WhiteIPRecordDTO(
-                    record.getId(),
-                    whiteIPAppRelMap.get(record.getId()) == null ? new ArrayList<>() :
-                        whiteIPAppRelMap.get(record.getId()).stream().map(i -> i.getAppId()).collect(Collectors.toList()),
-                    record.getRemark(),
-                    whiteIPIPMap.get(record.getId()) == null ? new ArrayList<>() : whiteIPIPMap.get(record.getId()),
-                    whiteIPActionScopeMap.get(record.getId()) == null ? new ArrayList<>() :
-                        whiteIPActionScopeMap.get(record.getId()),
-                    record.getCreator(),
-                    record.getCreateTime().longValue(),
-                    record.getLastModifyUser(),
-                    record.getLastModifyTime().longValue()
+                    record.get(tWhiteIPRecord.ID),
+                    whiteIPAppRelMap.get(record.get(tWhiteIPRecord.ID)) == null ? new ArrayList<>() :
+                        whiteIPAppRelMap.get(record.get(tWhiteIPRecord.ID)).stream().map(i -> i.getAppId()).collect(Collectors.toList()),
+                    null,
+                    whiteIPIPMap.get(record.get(tWhiteIPRecord.ID)) == null ? new ArrayList<>() :
+                        whiteIPIPMap.get(tWhiteIPRecord.ID),
+                    whiteIPActionScopeMap.get(tWhiteIPRecord.ID) == null ? new ArrayList<>() :
+                        whiteIPActionScopeMap.get(tWhiteIPRecord.ID),
+                    null,
+                    null,
+                    null,
+                    null
                 )
             ).collect(Collectors.toList());
         }

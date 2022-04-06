@@ -87,9 +87,6 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
             dslContext.select(T_WHITE_IP_APP_REL.APP_ID, T_WHITE_IP_APP_REL.RECORD_ID).from(T_WHITE_IP_APP_REL).where(
                 T_WHITE_IP_APP_REL.RECORD_ID.in(recordIdList)
             ).fetch();
-        if (records == null) {
-            return new ArrayList<>();
-        }
         return records.stream().map(record ->
             new WhiteIPAppRelDTO(
                 record.get(T_WHITE_IP_APP_REL.RECORD_ID).longValue(),
