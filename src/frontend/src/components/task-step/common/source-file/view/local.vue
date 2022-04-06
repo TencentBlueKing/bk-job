@@ -190,14 +190,14 @@
 
                     const fileExtRule = new RegExp(`(${suffixList.map(item => encodeRegexp(item)).join('|')})$`);
                     
-                    // 上传文件后缀允许范围
-                    if (restrictMode === 0
+                    // 上传文件后缀允许范围;
+                    if (restrictMode === 1
                         && !fileExtRule.test(name)) {
                         includeStask.push(name);
                         return;
                     }
                     // 上传文件后缀禁止范围
-                    if (restrictMode === 1
+                    if (restrictMode === 0
                         && fileExtRule.test(name)) {
                         excludeStask.push(name);
                         return;

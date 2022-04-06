@@ -56,10 +56,10 @@
                         <bk-radio-button :value="-1">
                             {{ $t('setting.不限制') }}
                         </bk-radio-button>
-                        <bk-radio-button :value="0">
+                        <bk-radio-button :value="1">
                             {{ $t('setting.设置允许范围') }}
                         </bk-radio-button>
-                        <bk-radio-button :value="1">
+                        <bk-radio-button :value="0">
                             {{ $t('setting.设置禁止范围') }}
                         </bk-radio-button>
                     </bk-radio-group>
