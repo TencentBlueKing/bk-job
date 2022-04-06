@@ -36,7 +36,6 @@
 
     const comMap = {
         taskList: TaskList,
-        planList: TaskList,
         scriptList: ScriptList,
         cronList: CrontabList,
     };
