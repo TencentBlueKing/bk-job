@@ -218,15 +218,14 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
                 validateSuffix = true;
             }
         }
-        List<UploadLocalFileResultVO> fileUploadList = Lists.newArrayListWithCapacity(uploadFiles.length);
-        for (UploadLocalFileResultVO uploadLocalFileResultVO : fileUploadList) {
-            if (StringUtils.isBlank(uploadLocalFileResultVO.getFileName())) {
+        for (MultipartFile multipartFile : uploadFiles) {
+            if (StringUtils.isBlank(multipartFile.getOriginalFilename())) {
                 log.warn("upload file ,fileName are empty");
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
             if (CollectionUtils.isNotEmpty(suffixList)) {
                 for (String suffix : suffixList) {
-                    if (uploadLocalFileResultVO.getFileName().toLowerCase().endsWith(suffix.toLowerCase())) {
+                    if (multipartFile.getOriginalFilename().toLowerCase().endsWith(suffix.toLowerCase())) {
                         if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
                             validateSuffix = true;
                         } else {
