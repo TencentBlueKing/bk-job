@@ -170,18 +170,21 @@ public class ApplicationServiceImpl implements ApplicationService {
                 Collectors.groupingBy(ApplicationDTO::getOperateDeptId));
 
             //查找包含当前业务的业务集
-            allAppTypeGroupMap.get(AppTypeEnum.APP_SET).stream().forEach(appSet -> {
-                List<Long> subAppIds = appSet.getSubAppIds() == null ? new ArrayList<Long>() : appSet.getSubAppIds();
-                Long optDeptId = appSet.getOperateDeptId();
-                if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
-                    List<Long> normalAppIdList =
-                        normalAppGroupMap.get(optDeptId).stream().map(a -> a.getId()).collect(Collectors.toList());
-                    subAppIds.addAll(normalAppIdList);
-                }
-                if (subAppIds.contains(appId)) {
-                    fullAppIds.add(appSet.getId());
-                }
-            });
+            List<ApplicationDTO> appSetList = allAppTypeGroupMap.get(AppTypeEnum.APP_SET);
+            if (appSetList != null && !appSetList.isEmpty()) {
+                appSetList.stream().forEach(appSet -> {
+                    List<Long> subAppIds = appSet.getSubAppIds() == null ? new ArrayList<Long>() : appSet.getSubAppIds();
+                    Long optDeptId = appSet.getOperateDeptId();
+                    if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
+                        List<Long> normalAppIdList =
+                            normalAppGroupMap.get(optDeptId).stream().map(a -> a.getId()).collect(Collectors.toList());
+                        subAppIds.addAll(normalAppIdList);
+                    }
+                    if (subAppIds.contains(appId)) {
+                        fullAppIds.add(appSet.getId());
+                    }
+                });
+            }
             //处理全业务
             List<ApplicationDTO> allAppSetList = allAppTypeGroupMap.get(AppTypeEnum.ALL_APP);
             if (allAppSetList != null && !allAppSetList.isEmpty()) {

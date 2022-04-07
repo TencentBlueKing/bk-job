@@ -600,9 +600,9 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                         whiteIPAppRelMap.get(record.get(tWhiteIPRecord.ID)).stream().map(i -> i.getAppId()).collect(Collectors.toList()),
                     null,
                     whiteIPIPMap.get(record.get(tWhiteIPRecord.ID)) == null ? new ArrayList<>() :
-                        whiteIPIPMap.get(tWhiteIPRecord.ID),
-                    whiteIPActionScopeMap.get(tWhiteIPRecord.ID) == null ? new ArrayList<>() :
-                        whiteIPActionScopeMap.get(tWhiteIPRecord.ID),
+                        whiteIPIPMap.get(record.get(tWhiteIPRecord.ID)),
+                    whiteIPActionScopeMap.get(record.get(tWhiteIPRecord.ID)) == null ? new ArrayList<>() :
+                        whiteIPActionScopeMap.get(record.get(tWhiteIPRecord.ID)),
                     null,
                     null,
                     null,
