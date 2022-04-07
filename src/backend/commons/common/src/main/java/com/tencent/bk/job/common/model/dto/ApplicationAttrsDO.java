@@ -22,45 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.bean;
+package com.tencent.bk.job.common.model.dto;
 
-import com.google.common.collect.Lists;
-import org.dozer.DozerBeanMapper;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
- * Bean转换工具
+ * Job业务属性DO
  */
-public class BeanMapper {
-
-
-    private final static DozerBeanMapper MAPPER = new DozerBeanMapper();
-
-    /**
-     * 转换对象的类型.
-     */
-    public static <T> T map(Object source, Class<T> destinationClass) {
-        return MAPPER.map(source, destinationClass);
-    }
+@NoArgsConstructor
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ApplicationAttrsDO {
 
     /**
-     * 转换Collection中对象的类型.
+     * cmdb业务集的子业务ID列表
      */
-    public static <T> List<T> mapList(Collection sourceList, Class<T> destinationClass) {
-        List<T> destinationList = Lists.newArrayListWithCapacity(sourceList.size());
-        for (Object sourceObject : sourceList) {
-            T destinationObject = MAPPER.map(sourceObject, destinationClass);
-            destinationList.add(destinationObject);
-        }
-        return destinationList;
-    }
+    private List<Long> subBizIds;
 
     /**
-     * 将对象A的值拷贝到对象B中.
+     * cmdb业务集是否包含所有子业务
      */
-    public static void copy(Object source, Object destinationObject) {
-        MAPPER.map(source, destinationObject);
-    }
+    private Boolean matchAllBiz;
 }

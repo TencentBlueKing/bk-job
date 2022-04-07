@@ -22,36 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.schedule;
+package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.execute.schedule.tasks.SyncAppAndRefreshCacheTask;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Component
-@EnableScheduling
-@Slf4j
-public class ScheduleTasks {
-    private final SyncAppAndRefreshCacheTask syncAppAndRefreshCacheTask;
+import java.util.List;
 
-    @Autowired
-    public ScheduleTasks(SyncAppAndRefreshCacheTask syncAppAndRefreshCacheTask) {
-        this.syncAppAndRefreshCacheTask = syncAppAndRefreshCacheTask;
-    }
+/**
+ * Job业务属性
+ */
+@NoArgsConstructor
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ServiceApplicationAttrsDTO {
 
-    @Scheduled(cron = "0 * * * * ?")
-    public void syncAndRefreshApp() {
-        if (!LockUtils.tryGetDistributedLock("job-execute-sync-app", "sync-app", 30_000)) {
-            log.info("Fail to get sync app lock!Skip sync.");
-            return;
-        }
-        log.info("Get job-execute-sync-app lock successfully!");
-        syncAppAndRefreshCacheTask.execute();
-    }
+    /**
+     * cmdb业务集的子业务ID列表
+     */
+    private List<Long> subBizIds;
 
-
+    /**
+     * cmdb业务集是否包含所有子业务
+     */
+    private Boolean matchAllBiz;
 }

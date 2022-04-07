@@ -29,6 +29,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.List;
+
 /**
  * CMDB接口响应实体类，定义业务集字段
  */
@@ -100,4 +102,9 @@ public class BizSetInfo {
      */
     @JsonProperty("bk_scope")
     private BizSetScope scope;
+
+    /**
+     * 子业务
+     */
+    private List<BizInfo> bizList;
 }
