@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.model.db;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Getter;
@@ -85,6 +86,11 @@ public class CacheAppDO {
     @DeprecatedAppLogic
     private Long operateDeptId;
 
+    /**
+     * 业务属性
+     */
+    private ApplicationAttrsDO attrs;
+
     public static CacheAppDO fromApplicationDTO(ApplicationDTO application) {
         CacheAppDO cacheAppDO = new CacheAppDO();
         cacheAppDO.setId(application.getId());
@@ -95,6 +101,7 @@ public class CacheAppDO {
         cacheAppDO.setMaintainers(application.getMaintainers());
         cacheAppDO.setSubBizIds(application.getSubBizIds());
         cacheAppDO.setOperateDeptId(application.getOperateDeptId());
+        cacheAppDO.setAttrs(application.getAttrs());
         return cacheAppDO;
     }
 
