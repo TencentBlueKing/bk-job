@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage;
 
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
+import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
@@ -42,7 +43,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
-@EnableConfigurationProperties
+@EnableConfigurationProperties({FeatureToggleConfig.class})
 @EnableCaching
 @EnableFeignClients
 @EnableScheduling

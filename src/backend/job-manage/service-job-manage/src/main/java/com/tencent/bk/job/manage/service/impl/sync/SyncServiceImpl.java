@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -221,17 +222,22 @@ public class SyncServiceImpl implements SyncService {
                 redisTemplate, this, appHostsUpdateHelper, hostCache);
             hostRelationWatchThread.start();
 
-            // 开一个常驻线程监听业务集变动事件
-            bizSetWatchThread = new BizSetWatchThread(
-                redisTemplate, applicationService, bizSetCmdbClient, bizSetService, tracing
-            );
-            bizSetWatchThread.start();
+            if (FeatureToggle.isCmdbBizSetEnabled()) {
+                log.info("Cmdb biz set is enabled, watch biz_set and biz_set_relation resource event");
+                // 开一个常驻线程监听业务集变动事件
+                bizSetWatchThread = new BizSetWatchThread(
+                    redisTemplate, applicationService, bizSetCmdbClient, bizSetService, tracing
+                );
+                bizSetWatchThread.start();
 
-            // 开一个常驻线程监听业务集与业务关系变动事件
-            bizSetRelationWatchThread = new BizSetRelationWatchThread(
-                redisTemplate, applicationService, bizSetCmdbClient, bizSetService, tracing
-            );
-            bizSetRelationWatchThread.start();
+                // 开一个常驻线程监听业务集与业务关系变动事件
+                bizSetRelationWatchThread = new BizSetRelationWatchThread(
+                    redisTemplate, applicationService, bizSetCmdbClient, bizSetService, tracing
+                );
+                bizSetRelationWatchThread.start();
+            } else {
+                log.info("Cmdb biz set is disabled, ignore related event");
+            }
         } else {
             log.info("resourceWatch not enabled, you can enable it in config file");
         }

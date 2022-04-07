@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -33,7 +32,9 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.manage.api.web.WebGlobalSettingsQueryResource;
 import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -211,10 +212,15 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
 
     @Override
     public Response<String> getApplyBusinessUrl(String username, String scopeType, String scopeId) {
-        ApplicationDTO applicationDTO = applicationService.getAppByScope(scopeType, scopeId);
-        if (applicationDTO != null && applicationDTO.getAppType() == AppTypeEnum.NORMAL) {
-            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(applicationDTO.getId()));
-        } else if (applicationDTO != null) {
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        if (applicationDTO != null) {
+            // 普通业务/开启了CMDB业务集特性的业务集：从权限中心接口获取权限申请URL链接
+            if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ
+                || FeatureToggle.isCmdbBizSetEnabledForApp(appResourceScope.getAppId())) {
+                return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(appResourceScope));
+            }
+            // 未开启CMDB业务集特性的业务集：需要联系Job管理员添加为运维人员
             return Response.buildCommonFailResp(ErrorCode.NEED_APP_SET_CONFIG);
         } else {
             return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(null));

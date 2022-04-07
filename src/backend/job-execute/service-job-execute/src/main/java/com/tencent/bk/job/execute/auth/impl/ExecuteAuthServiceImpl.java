@@ -107,7 +107,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     protected boolean isMaintainerOfResource(String username, ResourceTypeEnum resourceType, String resourceId) {
         // 业务集、全业务特殊鉴权
-        return authService.authSpecialAppByMaintainer(username, resourceType, resourceId);
+        return authService.isMaintainerOfResource(username, resourceType, resourceId);
     }
 
     public AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ServersDTO servers) {
@@ -460,16 +460,27 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostResources;
     }
 
+    /**
+     * 获取业务/业务集资源的名称
+     *
+     * @param appResourceScope 资源范围
+     * @return 资源名称
+     */
+    private String getResourceName(AppResourceScope appResourceScope) {
+        ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
+        String resourceId = appResourceScope.getId();
+        return resourceNameQueryService.getResourceName(resourceType, resourceId);
+    }
+
     private List<PermissionResource> convertBizSetStaticIpToPermissionResourceList(AppResourceScope appResourceScope,
                                                                                    ServersDTO servers,
                                                                                    Map<String, String> ip2HostIdMap) {
         List<PermissionResource> hostResources = new ArrayList<>();
-        String resourceName = appResourceScope.getType().getValue() + "," + appResourceScope.getId();
         PermissionResource resource = new PermissionResource();
         resource.setResourceId(appResourceScope.getId());
         resource.setResourceType(ResourceTypeEnum.HOST);
         resource.setSubResourceType("biz_set");
-        resource.setResourceName(resourceName);
+        resource.setResourceName(getResourceName(appResourceScope));
         resource.setSystemId(SystemId.CMDB);
         resource.setType(ResourceTypeId.BUSINESS_SET);
         hostResources.add(resource);
@@ -478,12 +489,11 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     private List<PermissionResource> convertTopoNodesToPermissionResourceList(AppResourceScope appResourceScope) {
         List<PermissionResource> hostResources = new ArrayList<>();
-        String resourceName = appResourceScope.getType().getValue() + "," + appResourceScope.getId();
         PermissionResource resource = new PermissionResource();
         resource.setResourceId(appResourceScope.getId());
         resource.setResourceType(ResourceTypeEnum.HOST);
         resource.setSubResourceType("topo");
-        resource.setResourceName(resourceName);
+        resource.setResourceName(getResourceName(appResourceScope));
         resource.setSystemId(SystemId.CMDB);
         resource.setType(CcNodeTypeEnum.BIZ.getType());
         resource.setParentHierarchicalResources(null);

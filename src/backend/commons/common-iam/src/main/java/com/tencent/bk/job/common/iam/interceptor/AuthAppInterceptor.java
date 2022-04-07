@@ -27,7 +27,6 @@
 
 package com.tencent.bk.job.common.iam.interceptor;
 
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
@@ -54,32 +53,25 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
         this.businessAuthService = businessAuthService;
     }
 
-    private boolean isPublicApp(AppResourceScope appResourceScope) {
-        if (appResourceScope.getAppId() == null) {
-            return Long.parseLong(appResourceScope.getId()) == JobConstants.PUBLIC_APP_ID;
-        }
-        return appResourceScope.getAppId() == JobConstants.PUBLIC_APP_ID;
-    }
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String url = request.getRequestURI();
-        Pair<String, AppResourceScope> userScopePair = null;
+        Pair<String, AppResourceScope> userScopePair;
         userScopePair = findUserAndScope();
         if (userScopePair != null) {
             String username = userScopePair.getLeft();
             AppResourceScope appResourceScope = userScopePair.getRight();
-            if (appResourceScope != null && !isPublicApp(appResourceScope)) {
-                log.debug("auth {} access_business {}", username, appResourceScope);
+            if (appResourceScope != null) {
+                log.debug("Auth {} access_business {}", username, appResourceScope);
                 AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
             } else {
-                log.info("ignore auth {} access_business public scope {}", username, appResourceScope);
+                log.debug("Ignore auth {} access_business public scope", username);
             }
         } else {
-            log.debug("can not find username/scope for url:{}", url);
+            log.debug("Can not find username/scope for url:{}", url);
         }
         return true;
     }
