@@ -45,7 +45,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.slf4j.helpers.MessageFormatter;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -82,8 +81,8 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
     }
 
     public List<DangerousRuleDTO> listDangerousRuleFromCache(Integer scriptType) throws ExecutionException {
-        Object appObj = redisTemplate.opsForHash().get("job:manage:dangerousRules", String.valueOf(scriptType));
-        if (appObj == null) {
+        Object dangerousRules = redisTemplate.opsForHash().get("job:manage:dangerousRules", String.valueOf(scriptType));
+        if (dangerousRules == null) {
             log.info("dangerousRules is not in cache!");
             List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRulesByScriptType(dslContext,
                 scriptType);
@@ -93,26 +92,52 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             try {
                 log.info("Refresh dangerousRules cache, dangerousRules:{}", JsonUtils.toJson(dangerousRuleDTOList));
                 List<DangerousRuleDO> dangerousRuleDOList = new ArrayList<>();
-                dangerousRuleDTOList.forEach(d -> {
-                    DangerousRuleDO dangerousRuleDO = new DangerousRuleDO();
-                    BeanUtils.copyProperties(d, dangerousRuleDO);
-                    dangerousRuleDOList.add(dangerousRuleDO);
+                dangerousRuleDTOList.forEach(dangerousRuleDTO -> {
+                    dangerousRuleDOList.add(convertToDangerousRuleDO(dangerousRuleDTO));
                 });
                 redisTemplate.opsForHash().put("job:manage:dangerousRules", String.valueOf(scriptType),
                     dangerousRuleDOList);
             } catch (Exception e) {
-                log.warn("Refresh dangerousRules cache fail", e);
+                log.error("Refresh dangerousRules cache fail", e);
             }
             return dangerousRuleDTOList;
         }
-        List<DangerousRuleDO> dangerousRuleDOList = (List<DangerousRuleDO>) appObj;
+        List<DangerousRuleDO> dangerousRuleDOList = (List<DangerousRuleDO>) dangerousRules;
         List<DangerousRuleDTO> dangerousRuleDTOList = new ArrayList<>();
-        dangerousRuleDOList.forEach(d -> {
-            DangerousRuleDTO dangerousRuleDTO = new DangerousRuleDTO();
-            BeanUtils.copyProperties(d, dangerousRuleDTO);
-            dangerousRuleDTOList.add(dangerousRuleDTO);
+        dangerousRuleDOList.forEach(dangerousRuleDO -> {
+            dangerousRuleDTOList.add(convertToDangerousRuleDTO(dangerousRuleDO));
         });
         return dangerousRuleDTOList;
+    }
+
+    private DangerousRuleDTO convertToDangerousRuleDTO(DangerousRuleDO dangerousRuleDO) {
+        DangerousRuleDTO dangerousRuleDTO = new DangerousRuleDTO();
+        dangerousRuleDTO.setId(dangerousRuleDO.getId());
+        dangerousRuleDTO.setExpression(dangerousRuleDO.getExpression());
+        dangerousRuleDTO.setPriority(dangerousRuleDO.getPriority());
+        dangerousRuleDTO.setScriptType(dangerousRuleDO.getScriptType());
+        dangerousRuleDTO.setCreator(dangerousRuleDO.getCreator());
+        dangerousRuleDTO.setCreateTime(dangerousRuleDO.getCreateTime());
+        dangerousRuleDTO.setLastModifier(dangerousRuleDO.getLastModifier());
+        dangerousRuleDTO.setLastModifyTime(dangerousRuleDO.getLastModifyTime());
+        dangerousRuleDTO.setAction(dangerousRuleDO.getAction());
+        dangerousRuleDTO.setStatus(dangerousRuleDO.getStatus());
+        return dangerousRuleDTO;
+    }
+
+    private DangerousRuleDO convertToDangerousRuleDO(DangerousRuleDTO dangerousRuleDTO) {
+        DangerousRuleDO dangerousRuleDO = new DangerousRuleDO();
+        dangerousRuleDO.setId(dangerousRuleDTO.getId());
+        dangerousRuleDO.setExpression(dangerousRuleDTO.getExpression());
+        dangerousRuleDO.setPriority(dangerousRuleDTO.getPriority());
+        dangerousRuleDO.setScriptType(dangerousRuleDTO.getScriptType());
+        dangerousRuleDO.setCreator(dangerousRuleDTO.getCreator());
+        dangerousRuleDO.setCreateTime(dangerousRuleDTO.getCreateTime());
+        dangerousRuleDO.setLastModifier(dangerousRuleDTO.getLastModifier());
+        dangerousRuleDO.setLastModifyTime(dangerousRuleDTO.getLastModifyTime());
+        dangerousRuleDO.setAction(dangerousRuleDTO.getAction());
+        dangerousRuleDO.setStatus(dangerousRuleDTO.getStatus());
+        return dangerousRuleDO;
     }
 
     @Override

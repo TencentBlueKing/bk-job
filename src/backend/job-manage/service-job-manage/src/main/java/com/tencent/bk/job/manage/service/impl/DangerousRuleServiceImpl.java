@@ -69,7 +69,6 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
 
     @Override
     public Boolean addOrUpdateDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
-        deleteDangerousRuleCacheByScriptTypes(req.getScriptTypeList());
         int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
         if (req.getId() == -1) {
             //新增
@@ -128,6 +127,8 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 dangerousRuleDAO.updateDangerousRule(context, upperRuleDTO);
                 dangerousRuleDAO.updateDangerousRule(context, currentRuleDTO);
             });
+            deleteDangerousRuleCacheByScriptTypes(DangerousRuleDTO.decodeScriptType(upperRuleDTO.getScriptType()));
+            deleteDangerousRuleCacheByScriptTypes(DangerousRuleDTO.decodeScriptType(currentRuleDTO.getScriptType()));
             return 2;
         } else if (dir == 1) {
             //往下移动
@@ -149,6 +150,8 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 dangerousRuleDAO.updateDangerousRule(context, downerRuleDTO);
                 dangerousRuleDAO.updateDangerousRule(context, currentRuleDTO);
             });
+            deleteDangerousRuleCacheByScriptTypes(DangerousRuleDTO.decodeScriptType(downerRuleDTO.getScriptType()));
+            deleteDangerousRuleCacheByScriptTypes(DangerousRuleDTO.decodeScriptType(currentRuleDTO.getScriptType()));
             return 2;
         } else {
             log.warn("move of dir=%d not supported");
@@ -177,6 +180,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 DangerousRuleDTO dangerousRuleDTO = dangerousRuleDTOList.get(i);
                 dangerousRuleDTO.setPriority(i + 1);
                 dangerousRuleDAO.updateDangerousRule(context, dangerousRuleDTO);
+                deleteDangerousRuleCacheByScriptTypes(DangerousRuleDTO.decodeScriptType(dangerousRuleDTO.getScriptType()));
             }
         });
         deleteDangerousRuleCacheByScriptTypes(DangerousRuleDTO.decodeScriptType(existDangerousRuleDTO.getScriptType()));
