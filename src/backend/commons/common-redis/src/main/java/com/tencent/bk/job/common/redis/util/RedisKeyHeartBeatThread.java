@@ -66,10 +66,9 @@ public class RedisKeyHeartBeatThread extends Thread {
                 redisTemplate.opsForValue().set(redisKey, redisValue, expireTimeMillis, TimeUnit.MILLISECONDS);
                 ThreadUtils.sleep(periodMillis);
             }
-            redisTemplate.delete(redisKey);
-            log.info("RedisKeyHeartBeatThread {} quit normally", this.getName());
         } catch (Throwable t) {
             log.error("RedisKeyHeartBeatThread {} quit unexpectedly:", this.getName(), t);
+        } finally {
             redisTemplate.delete(redisKey);
         }
     }
