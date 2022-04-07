@@ -43,6 +43,14 @@ public class ResourceAppInfo {
      */
     private AppTypeEnum appType;
     /**
+     * 资源范围类型
+     */
+    private String scopeType;
+    /**
+     * 资源范围ID
+     */
+    private String scopeId;
+    /**
      * 运维人员
      */
     private List<String> maintainerList;

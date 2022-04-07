@@ -110,7 +110,7 @@ public class JobSrcFileUtils {
      */
     public static Set<JobFile> parseSendFileList(StepInstanceDTO stepInstance, String localServerIp,
                                                  String jobStorageRootDir) {
-        Set<JobFile> sendFiles = Sets.newTreeSet();
+        Set<JobFile> sendFiles = Sets.newHashSet();
         for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
             List<FileDetailDTO> files = fileSource.getFiles();
             if (isServerOrThirdFileSource(fileSource)) {
