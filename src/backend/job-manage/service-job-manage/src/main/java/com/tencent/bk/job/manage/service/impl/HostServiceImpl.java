@@ -1301,33 +1301,12 @@ public class HostServiceImpl implements HostService {
         List<BasicAppHost> hostsInOtherApp = new ArrayList<>();
         List<IpDTO> notExistHosts = new ArrayList<>();
 
-        List<CacheHostDO> cacheHosts = hostCache.batchGetHosts(hostIps);
-        for (int i = 0; i < hostIps.size(); i++) {
-            IpDTO hostIp = hostIps.get(i);
-            CacheHostDO cacheHost = cacheHosts.get(i);
-            if (cacheHost != null) {
-                if (!includeBizIds.contains(cacheHost.getBizId())) {
-                    hostsInOtherApp.add(new BasicAppHost(cacheHost.getAppId(), cacheHost.getBizId(),
-                        cacheHost.getCloudAreaId(), cacheHost.getIp()));
-                }
-            } else {
-                notExistHosts.add(hostIp);
-            }
-        }
+        // 从缓存中查询主机信息，并判断主机是否在业务下
+        checkCachedHosts(hostIps, includeBizIds, hostsInOtherApp, notExistHosts);
 
+        // 如果主机不在缓存中，那么进一步从DB查询主，并判断主机是否在业务下
         if (CollectionUtils.isNotEmpty(notExistHosts)) {
-            List<ApplicationHostDTO> appHosts = applicationHostDAO.listHosts(notExistHosts);
-            if (CollectionUtils.isNotEmpty(appHosts)) {
-                for (ApplicationHostDTO appHost : appHosts) {
-                    IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
-                    notExistHosts.remove(hostIp);
-                    hostCache.addOrUpdateHost(appHost);
-                    if (!includeBizIds.contains(appHost.getBizId())) {
-                        hostsInOtherApp.add(new BasicAppHost(appHost.getAppId(), appHost.getBizId(),
-                            appHost.getCloudAreaId(), appHost.getIp()));
-                    }
-                }
-            }
+            checkNotCachedHosts(includeBizIds, hostsInOtherApp, notExistHosts);
         }
 
         List<IpDTO> invalidHosts = new ArrayList<>();
@@ -1356,6 +1335,42 @@ public class HostServiceImpl implements HostService {
         return bizIdList;
     }
 
+    private void checkCachedHosts(List<IpDTO> hostIps,
+                                  List<Long> includeBizIds,
+                                  List<BasicAppHost> hostsInOtherApp,
+                                  List<IpDTO> notExistHosts) {
+        List<CacheHostDO> cacheHosts = hostCache.batchGetHosts(hostIps);
+        for (int i = 0; i < hostIps.size(); i++) {
+            IpDTO hostIp = hostIps.get(i);
+            CacheHostDO cacheHost = cacheHosts.get(i);
+            if (cacheHost != null) {
+                if (!includeBizIds.contains(cacheHost.getBizId())) {
+                    hostsInOtherApp.add(new BasicAppHost(cacheHost.getAppId(), cacheHost.getBizId(),
+                        cacheHost.getCloudAreaId(), cacheHost.getIp()));
+                }
+            } else {
+                notExistHosts.add(hostIp);
+            }
+        }
+    }
+
+    private void checkNotCachedHosts(List<Long> includeBizIds,
+                                     List<BasicAppHost> hostsInOtherApp,
+                                     List<IpDTO> notExistHosts) {
+        List<ApplicationHostDTO> appHosts = applicationHostDAO.listHosts(notExistHosts);
+        if (CollectionUtils.isNotEmpty(appHosts)) {
+            for (ApplicationHostDTO appHost : appHosts) {
+                IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
+                notExistHosts.remove(hostIp);
+                hostCache.addOrUpdateHost(appHost);
+                if (!includeBizIds.contains(appHost.getBizId())) {
+                    hostsInOtherApp.add(new BasicAppHost(appHost.getAppId(), appHost.getBizId(),
+                        appHost.getCloudAreaId(), appHost.getIp()));
+                }
+            }
+        }
+    }
+
     public List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps) {
         return applicationHostDAO.listHosts(hostIps);
     }
@@ -1367,7 +1382,7 @@ public class HostServiceImpl implements HostService {
         private Long cloudAreaId;
         private String ip;
 
-        public BasicAppHost(Long appId, Long bizId, Long cloudAreaId, String ip) {
+        private BasicAppHost(Long appId, Long bizId, Long cloudAreaId, String ip) {
             this.appId = appId;
             this.bizId = bizId;
             this.cloudAreaId = cloudAreaId;
