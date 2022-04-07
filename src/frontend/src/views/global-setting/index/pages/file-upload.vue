@@ -26,22 +26,55 @@
 -->
 
 <template>
-    <div class="file-upload-manage-page" v-bkloading="{ isLoading }">
+    <div
+        class="file-upload-manage-page"
+        v-bkloading="{ isLoading }">
         <smart-action offset-target="input-wraper">
-            <div class="wraper">
-                <div class="block-title">{{ $t('setting.本地文件上传大小限制') }}:</div>
-                <jb-form>
+            <jb-form style="width: 480px; margin-bottom: 20px;">
+                <div class="block-title">
+                    {{ $t('setting.本地文件上传大小限制') }}:
+                </div>
+                <jb-form-item>
+                    <div class="input-wraper">
+                        <bk-input v-model="info.amount" />
+                        <bk-select
+                            v-model="info.unit"
+                            class="unit-item"
+                            :clearable="false">
+                            <bk-option id="GB" name="GB" />
+                            <bk-option id="MB" name="MB" />
+                        </bk-select>
+                    </div>
+                </jb-form-item>
+                <div class="block-title">
+                    {{ $t('setting.文件后缀限制') }}:
+                </div>
+                <jb-form-item style="margin-bottom: 10px;">
+                    <bk-radio-group
+                        v-model="info.restrictMode"
+                        class="restrict-mode-radio">
+                        <bk-radio-button :value="-1">
+                            {{ $t('setting.不限制') }}
+                        </bk-radio-button>
+                        <bk-radio-button :value="1">
+                            {{ $t('setting.设置允许范围') }}
+                        </bk-radio-button>
+                        <bk-radio-button :value="0">
+                            {{ $t('setting.设置禁止范围') }}
+                        </bk-radio-button>
+                    </bk-radio-group>
+                </jb-form-item>
+                <div v-if="info.restrictMode > -1">
                     <jb-form-item>
-                        <div class="input-wraper">
-                            <bk-input style="width: 560px;" v-model="info.amount" />
-                            <bk-select class="unit-item" v-model="info.unit" :clearable="false">
-                                <bk-option id="GB" name="GB" />
-                                <bk-option id="MB" name="MB" />
-                            </bk-select>
-                        </div>
+                        <bk-tag-input
+                            v-model="info.suffixList"
+                            allow-create
+                            has-delete-icon
+                            :key="info.restrictMode" />
                     </jb-form-item>
-                </jb-form>
-            </div>
+                    <div class="form-item-error" v-html="suffixError" />
+                </div>
+            </jb-form>
             <template #action>
                 <bk-button
                     class="w120"
@@ -58,31 +91,101 @@
     import GlobalSettingService from '@service/global-setting';
     import I18n from '@/i18n';
 
+    const checkSuffixError = (suffixList) => {
+        const errorStack = [];
+        const renameStack = [];
+        const lengthStack = [];
+        const ruleMap = [];
+        suffixList.forEach((rule) => {
+            // . 开头，后面跟上不超过24个英文字符
+            if (rule.length > 25) {
+                lengthStack.push(rule);
+                return;
+            }
+            const realRule = rule.toLowerCase();
+            // . 开头，中间不允许出现空格
+            if (!/^\.[a-z]+(.[a-z]+)*$/.test(realRule)) {
+                errorStack.push(realRule);
+                return;
+            }
+            // 大小写不敏感
+            if (!ruleMap[realRule]) {
+                ruleMap[realRule] = [];
+            } else {
+                renameStack.push(ruleMap[realRule]);
+            }
+            ruleMap[realRule].push(rule);
+        });
+        let suffixError = '';
+        if (lengthStack.length > 0) {
+            suffixError += `${lengthStack.join(',')};`;
+        }
+        if (errorStack.length > 0) {
+            suffixError += `${errorStack.join(',')};`;
+        }
+        if (renameStack.length > 0) {
+            const renameError = renameStack.reduce((result, item) => {
+                result.push(item.join(','));
+                return result;
+            }, []).join('；');
+            suffixError += renameError;
+        }
+        return suffixError ? `${I18n.t('setting..开头，后面跟上不超过24个英文字符，中间不允许出现空格：')}${suffixError}` : '';
+    };
+
     export default {
         data () {
             return {
                 isLoading: true,
                 isSubmiting: false,
-                info: {},
+                info: {
+                    amount: 0,
+                    unit: '',
+                    restrictMode: -1,
+                    suffixList: [],
+                },
+                suffixError: '',
             };
         },
         created () {
             this.fetchJobConfig();
         },
         methods: {
+            /**
+             * @desc 获取配置信息
+             */
             fetchJobConfig () {
                 this.isLoading = true;
                 GlobalSettingService.fetchFileUpload()
                     .then((data) => {
                         this.info = data;
+                        if (!data.suffixList || data.suffixList.length < 1) {
+                            this.info = {
+                                ...this.info,
+                                restrictMode: -1,
+                                suffixList: [],
+                            };
+                        }
                     })
                     .finally(() => {
                         this.isLoading = false;
                     });
             },
+            /**
+             * @desc 提交修改
+             */
             handleSubmit () {
+                const params = { ...this.info };
+                if (params.restrictMode === -1) {
+                    params.suffixList = [];
+                }
+                this.suffixError = checkSuffixError(params.suffixList);
+                if (this.suffixError) {
+                    return;
+                }
+
                 this.isSubmiting = true;
-                GlobalSettingService.saveFileUpload(this.info)
+                GlobalSettingService.saveFileUpload(params)
                     .then(() => {
                         this.messageSuccess(I18n.t('setting.保存成功'));
                     })
@@ -99,10 +202,6 @@
         justify-content: center;
         padding: 40px 0;
 
-        .wraper {
-            margin-bottom: 10px;
-        }
-
         .input-wraper {
             display: flex;
         }
@@ -113,6 +212,25 @@
             background: #f5f7fa;
             border-bottom-left-radius: 0;
             border-top-left-radius: 0;
+        }
+
+        .restrict-mode-radio {
+            display: flex;
+
+            .bk-form-radio-button {
+                flex: 1;
+
+                .bk-radio-button-text {
+                    width: 100%;
+                }
+            }
+        }
+
+        .form-item-error {
+            margin: -18px 0 0;
+            font-size: 12px;
+            line-height: 18px;
+            color: #ea3636;
         }
     }
 </style>

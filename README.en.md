@@ -79,3 +79,4 @@ For more information, please check Blueking's official website [Platform Product
 ## License
 BK-JOB is based on the MIT agreement. For more information, please check [LICENSE](LICENSE.txt).
 
+We undertake not to change the open source license (MIT license) applicable to the current version of the project delivered to anyone in the future.
