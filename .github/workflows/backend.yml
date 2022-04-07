@@ -44,4 +44,4 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Gradle Build
         working-directory: src/backend
-        run: ./gradlew clean build -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="http://maven.aliyun.com/nexus/content/groups/public/"
+        run: ./gradlew clean build -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://maven.aliyun.com/nexus/content/groups/public/"
