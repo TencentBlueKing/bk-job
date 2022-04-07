@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.redis.util;
 
 
+import com.tencent.bk.job.common.util.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -32,12 +33,12 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class RedisKeyHeartBeatThread extends Thread {
-    private RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private volatile boolean runFlag;
-    private String redisKey;
-    private String redisValue;
-    private Long expireTimeMillis;
-    private Long periodMillis;
+    private final String redisKey;
+    private final String redisValue;
+    private final Long expireTimeMillis;
+    private final Long periodMillis;
 
     public RedisKeyHeartBeatThread(RedisTemplate<String, String> redisTemplate, String redisKey, String redisValue,
                                    Long expireTimeMillis, Long periodMillis) {
@@ -58,25 +59,18 @@ public class RedisKeyHeartBeatThread extends Thread {
         this.runFlag = runFlag;
     }
 
-    public String getRedisKey() {
-        return redisKey;
-    }
-
-    public void setRedisKey(String redisKey) {
-        this.redisKey = redisKey;
-    }
-
     @Override
     public void run() {
         try {
             while (runFlag) {
                 redisTemplate.opsForValue().set(redisKey, redisValue, expireTimeMillis, TimeUnit.MILLISECONDS);
-                Thread.sleep(periodMillis);
+                ThreadUtils.sleep(periodMillis);
             }
             redisTemplate.delete(redisKey);
             log.info("RedisKeyHeartBeatThread {} quit normally", this.getName());
         } catch (Throwable t) {
             log.error("RedisKeyHeartBeatThread {} quit unexpectedly:", this.getName(), t);
+            redisTemplate.delete(redisKey);
         }
     }
 }

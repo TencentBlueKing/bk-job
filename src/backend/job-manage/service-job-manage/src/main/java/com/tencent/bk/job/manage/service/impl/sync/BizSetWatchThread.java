@@ -41,7 +41,6 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.jooq.exception.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -75,7 +74,8 @@ public class BizSetWatchThread extends Thread {
     public BizSetWatchThread(RedisTemplate<String, String> redisTemplate,
                              ApplicationService applicationService,
                              IBizSetCmdbClient bizSetCmdbClient,
-                             BizSetService bizSetService, Tracing tracing) {
+                             BizSetService bizSetService,
+                             Tracing tracing) {
         this.redisTemplate = redisTemplate;
         this.applicationService = applicationService;
         this.bizSetCmdbClient = bizSetCmdbClient;
@@ -88,51 +88,56 @@ public class BizSetWatchThread extends Thread {
     public void run() {
         log.info("BizSetWatch arranged");
         RedisKeyHeartBeatThread bizSetWatchRedisKeyHeartBeatThread = null;
-        while (true) {
-            try {
-                if (!bizSetService.isBizSetMigratedToCMDB()) {
-                    log.warn("Job BizSets have not been migrated to CMDB, " +
-                        "do not watch bizSet event from CMDB, " +
-                        "please use upgrader in package to migrate as soon as possible"
-                    );
-                    ThreadUtils.sleep(60_000);
-                    continue;
-                }
+        try {
+            while (true) {
+                try {
+                    if (!bizSetService.isBizSetMigratedToCMDB()) {
+                        log.warn("Job BizSets have not been migrated to CMDB, " +
+                            "do not watch bizSet event from CMDB, " +
+                            "please use upgrader in package to migrate as soon as possible"
+                        );
+                        ThreadUtils.sleep(60_000);
+                        continue;
+                    }
 
-                boolean lockGotten = tryGetTaskLockPeriodically();
-                if (!lockGotten) {
-                    // 30s之后重试
-                    ThreadUtils.sleep(30_000);
-                    continue;
-                }
+                    boolean lockGotten = tryGetTaskLockPeriodically();
+                    if (!lockGotten) {
+                        // 30s之后重试
+                        ThreadUtils.sleep(30_000);
+                        continue;
+                    }
 
-                bizSetWatchRedisKeyHeartBeatThread = startBizSetWatchRedisKeyHeartBeatThread();
-                if (bizSetWatchRedisKeyHeartBeatThread == null) {
-                    // 30s之后重试
-                    ThreadUtils.sleep(30_000);
-                    continue;
-                }
+                    // 获取任务锁之后通过心跳线程维持锁的占有
+                    bizSetWatchRedisKeyHeartBeatThread = startBizSetWatchRedisKeyHeartBeatThread();
 
-                watchEvent();
-            } catch (Throwable t) {
-                log.error("BizSetWatchThread quit unexpectedly", t);
-                if (bizSetWatchRedisKeyHeartBeatThread != null) {
-                    bizSetWatchRedisKeyHeartBeatThread.setRunFlag(false);
+                    watchEvent();
+                } catch (Throwable t) {
+                    log.error("Watching event caught exception", t);
+                    if (bizSetWatchRedisKeyHeartBeatThread != null) {
+                        bizSetWatchRedisKeyHeartBeatThread.stopAtOnce();
+                    }
+                    LockUtils.releaseDistributedLock(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK, machineIp);
+                    // 过5s后重新尝试监听事件
+                    ThreadUtils.sleep(5000);
                 }
-            } finally {
-                // 重试机制保证任务不会意外终止
-                ThreadUtils.sleep(5000);
             }
+        } finally {
+            // 正常退出监听处理
+            log.info("Quit watching bizSet event, release task lock");
+            if (bizSetWatchRedisKeyHeartBeatThread != null) {
+                bizSetWatchRedisKeyHeartBeatThread.stopAtOnce();
+            }
+            LockUtils.releaseDistributedLock(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK, machineIp);
         }
     }
 
     private boolean tryGetTaskLockPeriodically() {
         boolean lockGotten = false;
         try {
-            lockGotten = LockUtils.tryGetDistributedLock(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK,
+            lockGotten = LockUtils.tryGetReentrantLock(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK,
                 machineIp, 5_000);
             if (!lockGotten) {
-                log.info("BizSetWatch lock not gotten, wait 1min and retry");
+                log.info("Get BizSetWatch lock fail");
                 return false;
             }
             lockGotten = true;
@@ -143,22 +148,13 @@ public class BizSetWatchThread extends Thread {
     }
 
     private RedisKeyHeartBeatThread startBizSetWatchRedisKeyHeartBeatThread() {
-        String REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_RUNNING_MACHINE =
-            "resource-watch-biz-set-job-running-machine";
-        String runningMachine =
-            redisTemplate.opsForValue().get(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_RUNNING_MACHINE);
-        if (StringUtils.isNotBlank(runningMachine)) {
-            //已有bizSetWatch线程在跑，不再重复Watch
-            log.info("BizSetWatch thread already running on {}", runningMachine);
-            return null;
-        }
         // 开一个心跳子线程，维护当前机器正在WatchResource的状态
         RedisKeyHeartBeatThread bizSetWatchRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
             redisTemplate,
-            REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_RUNNING_MACHINE,
+            REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK,
             machineIp,
-            3000L,
-            2000L
+            5_000L,
+            2_000L
         );
         bizSetWatchRedisKeyHeartBeatThread.setName("[" + bizSetWatchRedisKeyHeartBeatThread.getId() +
             "]-bizSetWatchRedisKeyHeartBeatThread");
