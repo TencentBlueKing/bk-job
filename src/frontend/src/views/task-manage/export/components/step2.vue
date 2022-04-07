@@ -30,7 +30,10 @@
         <div class="layout-wraper">
             <div class="layout-left" v-bkloading="{ isLoading }">
                 <scroll-faker>
-                    <div class="job-list" v-for="item in jobList" :key="item.id">
+                    <div
+                        v-for="item in jobList"
+                        class="job-list"
+                        :key="item.id">
                         <div
                             class="job-item"
                             :class="{ active: currentTemplateId === item.id }"
@@ -42,11 +45,17 @@
             </div>
             <div class="layout-right" v-bkloading="{ isLoading: isPlanLoading }">
                 <scroll-faker>
-                    <div v-if="currentTemplateId" class="content">
-                        <p class="title">{{ title }}</p>
-                        <div v-if="renderPlanList.length > 0" class="export-project">
+                    <div
+                        v-if="currentTemplateId"
+                        class="content">
+                        <p class="title">{{ templateTitle }}</p>
+                        <div
+                            v-if="renderPlanList.length > 0"
+                            class="export-project">
                             <div class="project-select">
-                                <p class="select-title">{{ $t('template.选择要导出的作业执行方案') }}</p>
+                                <p class="select-title">
+                                    {{ $t('template.选择要导出的作业执行方案') }}
+                                </p>
                                 <div class="all-select-btn">
                                     <bk-button
                                         v-if="templateInfoMap[currentTemplateId].exportAll"
@@ -70,7 +79,7 @@
                                     @click="handlePlanCheck(item.id)">
                                     <div
                                         class="top-middle"
-                                        @click.stop="handleGoExec(item.templateId)">
+                                        @click.stop="handleGoPlanDetail(item)">
                                         <span
                                             class="plan"
                                             :tippy-tips="$t('template.新窗口打开该执行方案')">
@@ -79,7 +88,9 @@
                                     </div>
                                     <div
                                         class="plan-check"
-                                        :class="{ active: templateInfoMap[currentTemplateId].planMap[item.id] }" />
+                                        :class="{
+                                            active: templateInfoMap[currentTemplateId].planSelectedMap[item.id],
+                                        }" />
                                 </div>
                             </div>
                         </div>
@@ -92,9 +103,22 @@
             </div>
         </div>
         <div class="action-footer">
-            <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-            <bk-button class="mr10" @click="handleLast">{{ $t('template.上一步') }}</bk-button>
-            <bk-button class="w120" theme="primary" @click="handleNext">{{ $t('template.下一步') }}</bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleLast">
+                {{ $t('template.上一步') }}
+            </bk-button>
+            <bk-button
+                class="w120"
+                theme="primary"
+                @click="handleNext">
+                {{ $t('template.下一步') }}
+            </bk-button>
         </div>
     </div>
 </template>
@@ -124,9 +148,9 @@
                 if (!this.currentTemplateId) {
                     return [];
                 }
-                return this.templateInfoMap[this.currentTemplateId].planListOrigin;
+                return this.templateInfoMap[this.currentTemplateId].planList;
             },
-            title () {
+            templateTitle () {
                 let titleStr = '';
                 this.jobList.forEach((item) => {
                     if (item.id === this.currentTemplateId) {
@@ -140,6 +164,9 @@
             this.fetchData();
         },
         methods: {
+            /**
+             * @desc 批量获取选中模板的基本数据
+             */
             fetchData () {
                 this.$request(TaskManageService.fetchBasic({
                     ids: this.taskIds.join(','),
@@ -150,15 +177,15 @@
                         return;
                     }
                     this.jobList = data;
-                    this.templateInfoMap = data.reduce((result, item) => {
+                    this.templateInfoMap = Object.freeze(data.reduce((result, item) => {
                         result[item.id] = {
                             id: item.id,
-                            planMap: {},
-                            planListOrigin: [],
-                            exportAll: 1,
+                            planSelectedMap: {},
+                            planList: [],
+                            exportAll: 0,
                         };
                         return result;
-                    }, {});
+                    }, {}));
                     this.currentTemplateId = data[0].id;
                     this.fetchPlanList();
                 })
@@ -166,6 +193,9 @@
                         this.isLoading = false;
                     });
             },
+            /**
+             * @desc 获取指定模板的执行方案数据
+             */
             fetchPlanList () {
                 this.isPlanLoading = true;
                 TaskPlanService.fetchTaskPlan({
@@ -173,63 +203,89 @@
                 }).then((data) => {
                     const templateInfoMap = { ...this.templateInfoMap };
                     const currentTemplate = templateInfoMap[this.currentTemplateId];
-                    currentTemplate.planListOrigin = Object.freeze(data);
-                    currentTemplate.planMap = {};
+                    currentTemplate.planList = Object.freeze(data);
+                    currentTemplate.planSelectedMap = {};
                     data.forEach((plan) => {
-                        currentTemplate.planMap[plan.id] = true;
+                        currentTemplate.planSelectedMap[plan.id] = true;
                     });
-                    this.templateInfoMap = templateInfoMap;
+                    this.templateInfoMap = Object.freeze(templateInfoMap);
                 })
                     .finally(() => {
                         this.isPlanLoading = false;
                     });
             },
-            handleGoExec (id) {
+            /**
+             * @desc 查看执行方案详情
+             * @param { Object } planData
+             */
+            handleGoPlanDetail (planData) {
                 const routerUrl = this.$router.resolve({
                     name: 'viewPlan',
                     params: {
-                        templateId: id,
+                        templateId: planData.templateId,
                     },
                     query: {
                         from: 'taskExport',
+                        viewTemplateId: planData.templateId,
+                        viewPlanId: planData.id,
                     },
                 });
                 window.open(routerUrl.href, '_blank');
             },
+            /**
+             * @desc 获取模板的执行方案详情
+             * @params { Number } 作业模板ID
+             */
+            handlePlanBasic (currentTemplateId) {
+                this.currentTemplateId = currentTemplateId;
+                // 已经请求过执行方案列表
+                if (this.templateInfoMap[currentTemplateId].planList.length > 0) {
+                    return;
+                }
+                this.fetchPlanList();
+            },
+            /**
+             * @desc 选中执行方案
+             * @param { Boolean } name
+             */
             handlePlanCheck (planId) {
                 const templateInfoMap = { ...this.templateInfoMap };
                 const currentTemplate = templateInfoMap[this.currentTemplateId];
-                if (currentTemplate.planMap[planId]) {
-                    delete currentTemplate.planMap[planId];
+                if (currentTemplate.planSelectedMap[planId]) {
+                    delete currentTemplate.planSelectedMap[planId];
                     currentTemplate.exportAll = 0;
                 } else {
-                    currentTemplate.planMap[planId] = true;
+                    currentTemplate.planSelectedMap[planId] = true;
                     currentTemplate.exportAll
-                        = Number(Object.keys(currentTemplate.planMap).length === currentTemplate.planListOrigin.length);
+                        = Number(Object.keys(currentTemplate.planSelectedMap).length === currentTemplate.planList.length);
                 }
-                this.templateInfoMap = templateInfoMap;
+                this.templateInfoMap = Object.freeze(templateInfoMap);
             },
-            handlePlanBasic (id) {
-                this.currentTemplateId = id;
-                this.fetchPlanList();
-            },
-            
+            /**
+             * @desc 选中所有执行方案
+             */
             handleAllSelect () {
                 const templateInfoMap = { ...this.templateInfoMap };
                 const currTemplate = templateInfoMap[this.currentTemplateId];
-                currTemplate.planListOrigin.forEach((planItem) => {
-                    currTemplate.planMap[planItem.id] = true;
+                currTemplate.planList.forEach((planItem) => {
+                    currTemplate.planSelectedMap[planItem.id] = true;
                 });
                 currTemplate.exportAll = 1;
-                this.templateInfoMap = templateInfoMap;
+                this.templateInfoMap = Object.freeze(templateInfoMap);
             },
+            /**
+             * @desc 取消选中
+             */
             handleCancelSelect () {
                 const templateInfoMap = { ...this.templateInfoMap };
                 const currTemplate = templateInfoMap[this.currentTemplateId];
-                currTemplate.planMap = {};
+                currTemplate.planSelectedMap = {};
                 currTemplate.exportAll = 0;
-                this.templateInfoMap = templateInfoMap;
+                this.templateInfoMap = Object.freeze(templateInfoMap);
             },
+            /**
+             * @desc 下一步
+             */
             handleNext () {
                 const templateInfo = [];
                 for (const templteId in this.templateInfoMap) {
@@ -237,12 +293,15 @@
                     templateInfo.push({
                         exportAll: currentTemplate.exportAll,
                         id: currentTemplate.id,
-                        planId: Object.keys(currentTemplate.planMap),
+                        planId: Object.keys(currentTemplate.planSelectedMap),
                     });
                 }
                 taskExport.setItem('templateInfo', templateInfo);
                 this.$emit('on-change', 3);
             },
+            /**
+             * @desc 上一步
+             */
             handleLast () {
                 this.$emit('on-change', 1);
             },
