@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
@@ -107,7 +108,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public ApplicationDTO getAppByAppId(Long appId) {
+    public ApplicationDTO getAppByAppId(Long appId) throws NotFoundException {
         ApplicationDTO application = applicationCache.getApplication(appId);
         if (application == null) {
             application = applicationDAO.getAppById(appId);
@@ -249,18 +250,21 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public void updateApp(ApplicationDTO application) {
+        log.info("Update app: {}", JsonUtils.toJson(application));
         applicationDAO.updateApp(dslContext, application);
         applicationCache.addOrUpdateApp(application);
     }
 
     @Override
     public void deleteApp(Long appId) {
+        log.info("Delete app[{}]", appId);
         applicationDAO.deleteAppByIdSoftly(dslContext, appId);
         applicationCache.deleteApp(appId);
     }
 
     @Override
     public void restoreDeletedApp(long appId) {
+        log.info("Restore deleted app[{}]", appId);
         applicationDAO.restoreDeletedApp(dslContext, appId);
         ApplicationDTO restoredApplication = applicationDAO.getAppById(appId);
         applicationCache.addOrUpdateApp(restoredApplication);

@@ -328,7 +328,7 @@ public class TopologyHelper {
     }
 
     public List<Long> getBizSetSubBizIds(ApplicationDTO appInfo) {
-        List<Long> subAppIds = appInfo.getSubAppIds();
+        List<Long> subAppIds = appInfo.getSubBizIds();
         // 兼容发布过程中未完成子业务字段同步的部门型业务集
         Long optDeptId = appInfo.getOperateDeptId();
         if (subAppIds == null || subAppIds.isEmpty() && optDeptId != null) {

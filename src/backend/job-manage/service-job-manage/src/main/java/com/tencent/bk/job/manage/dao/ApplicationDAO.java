@@ -39,10 +39,6 @@ public interface ApplicationDAO {
 
     ApplicationDTO getAppById(long appId);
 
-    AppTypeEnum getAppTypeById(long appId);
-
-    List<Long> getSubAppIds(long appId);
-
     List<Long> getBizIdsByOptDeptId(Long optDeptId);
 
     List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
@@ -89,7 +85,7 @@ public interface ApplicationDAO {
 
     int updateMaintainers(long appId, String maintainers);
 
-    int updateSubAppIds(long appId, String subAppIds);
+    int updateSubBizIds(long appId, String subBizIds);
 
     Integer countApps();
 

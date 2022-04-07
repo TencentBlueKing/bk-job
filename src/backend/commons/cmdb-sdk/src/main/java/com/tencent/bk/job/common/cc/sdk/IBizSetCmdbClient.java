@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.common.cc.sdk;
 
+import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 
 import java.util.List;
 
@@ -39,9 +39,9 @@ public interface IBizSetCmdbClient {
     /**
      * 从CC获取所有业务集信息
      *
-     * @return 业务集App列表
+     * @return 业务集列表
      */
-    List<ApplicationDTO> getAllBizSetApps();
+    List<BizSetInfo> getAllBizSetApps();
 
     /**
      * 根据游标获取业务集事件

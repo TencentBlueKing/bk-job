@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.EsbUserDto;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpGet;
@@ -68,8 +68,8 @@ public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient 
 
     private BkUserDTO getUserInfo(EsbReq esbReq) {
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_BK_LOGIN_API_HTTP);
-            JobContextUtil.addHttpMetricTag(
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_BK_LOGIN_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(
                 Tag.of("api_name", API_GET_USER_INFO)
             );
             EsbResp<EsbUserDto> esbResp = getEsbRespByReq(
@@ -81,7 +81,7 @@ public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient 
             );
             return convertToBkUserDTO(esbResp.getData());
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
     }
 
