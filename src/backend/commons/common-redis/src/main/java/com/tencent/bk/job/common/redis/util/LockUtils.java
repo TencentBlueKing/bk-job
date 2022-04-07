@@ -173,45 +173,66 @@ public class LockUtils {
     }
 
     /**
-     * 尝试获取可重入锁
+     * 尝试获取可重入锁,可重试
      *
-     * @param lockKey   锁
-     * @param requestId 请求ID
+     * @param lockKey          锁
+     * @param requestId        请求ID
+     * @param expireTimeMillis 锁超时时间
+     * @param maxRetrySeconds  最大重试时间，单位秒
      * @return 是否获取成功
      */
-    public static boolean tryGetReentrantLock(String lockKey, String requestId, long expireTimeMillis) {
-        int maxWaitingSeconds = 30;
-        while (maxWaitingSeconds > 0) {
-            try {
-                //可重入锁判断
-                if (requestId != null && !requestId.isEmpty() && isReentrantLock(lockKey, requestId)) {
-                    return true;
-                }
-                return tryGetDistributedLock("", lockKey, requestId, expireTimeMillis);
-            } catch (Throwable e) {
-                if (e instanceof RedisException || e instanceof RedisSystemException) {
-                    // Redis 故障
-                    String errorMsg = "Get lock from redis error! lockKey: " + lockKey + ", requestId: " + requestId
-                        + "! Block 1s until redis is up";
-                    log.error(errorMsg, e);
-                    maxWaitingSeconds -= 5;
-                    ThreadUtils.sleep(1000L);
-                } else {
-                    // 非Redis原因导致的异常
-                    String errorMsg = "Get lock from redis error! lockKey: " + lockKey + ", requestId: " + requestId;
-                    log.error(errorMsg, e);
-                    return false;
-                }
+    public static boolean tryGetReentrantLock(String lockKey, String requestId, long expireTimeMillis,
+                                              int maxRetrySeconds) {
+        int remainSeconds = maxRetrySeconds;
+        while (remainSeconds > 0) {
+            boolean lockGotten = tryGetReentrantLock(lockKey, requestId, expireTimeMillis);
+            if (lockGotten) {
+                return true;
+            } else {
+                remainSeconds -= 1;
+                ThreadUtils.sleep(1000L);
             }
         }
         return false;
     }
 
     /**
-     * 是否为重入锁
+     * 尝试获取可重入锁
+     *
+     * @param lockKey          锁
+     * @param requestId        请求ID
+     * @param expireTimeMillis 锁超时时间
+     * @return 是否获取成功
      */
-    private static boolean isReentrantLock(String key, String originValue) {
+    public static boolean tryGetReentrantLock(String lockKey, String requestId, long expireTimeMillis) {
+        try {
+            //可重入锁判断
+            if (requestId != null && !requestId.isEmpty() && isHoldReentrantLock(lockKey, requestId)) {
+                return true;
+            }
+            return tryGetDistributedLock("", lockKey, requestId, expireTimeMillis);
+        } catch (Throwable e) {
+            if (e instanceof RedisException || e instanceof RedisSystemException) {
+                // Redis 故障
+                String errorMsg = "Get lock from redis error! lockKey: " + lockKey + ", requestId: " + requestId
+                    + "! Block 1s until redis is up";
+                log.error(errorMsg, e);
+            } else {
+                // 非Redis原因导致的异常
+                String errorMsg = "Get lock from redis error! lockKey: " + lockKey + ", requestId: " + requestId;
+                log.error(errorMsg, e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * 是否已持有重入锁
+     */
+    private static boolean isHoldReentrantLock(String key, String originValue) {
         String v = redisTemplate.opsForValue().get(key);
+        log.info("OriginValue: {}, redisValue: {}", originValue, v);
         return originValue.equals(v);
     }
+
 }
