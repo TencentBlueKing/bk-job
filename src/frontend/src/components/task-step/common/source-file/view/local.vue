@@ -223,10 +223,10 @@
                 });
                 
                 if (includeStask.length > 0) {
-                    this.messageError(`${I18n.t('文件')}[${includeStask.join(' / ')}]的类型不在允许范围：${suffixList.join('、')}`);
+                    this.messageError(`${I18n.t('文件')}[${includeStask.join(' / ')}]${I18n.t('的类型不在允许范围：')}${suffixList.join('、')}`);
                 }
                 if (excludeStask.length > 0) {
-                    this.messageError(`${I18n.t('文件')}[${excludeStask.join(' / ')}]的类型在不允许范围：${suffixList.join('、')}`);
+                    this.messageError(`${I18n.t('文件')}[${excludeStask.join(' / ')}]${I18n.t('的类型在不允许范围：')}${suffixList.join('、')}`);
                 }
                 if (sameStack.length > 0) {
                     this.messageError(`${I18n.t('文件')}[${sameStack.join(' / ')}]${I18n.t('已添加')}`);

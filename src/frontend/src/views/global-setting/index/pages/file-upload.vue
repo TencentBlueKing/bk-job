@@ -118,19 +118,19 @@
         });
         let suffixError = '';
         if (lengthStack.length > 0) {
-            suffixError += `<p>.开头，后面跟上不超过24个英文字符：${lengthStack.join(',')}</p>`;
+            suffixError += `${lengthStack.join(',')};`;
         }
         if (errorStack.length > 0) {
-            suffixError += `<p>.开头，24个英文字符，中间不允许出现空格：${errorStack.join(',')}</p>`;
+            suffixError += `${errorStack.join(',')};`;
         }
         if (renameStack.length > 0) {
             const renameError = renameStack.reduce((result, item) => {
                 result.push(item.join(','));
                 return result;
             }, []).join('；');
-            suffixError += `<p>大小写不敏感：${renameError}</p>`;
+            suffixError += renameError;
         }
-        return suffixError;
+        return suffixError ? `${I18n.t('setting..开头，后面跟上不超过24个英文字符，中间不允许出现空格：')}${suffixError}` : '';
     };
 
     export default {
