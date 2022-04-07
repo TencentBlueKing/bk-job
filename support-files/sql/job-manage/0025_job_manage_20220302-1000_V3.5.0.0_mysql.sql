@@ -55,9 +55,9 @@ BEGIN
     ALTER TABLE application ADD COLUMN is_deleted tinyint(1) UNSIGNED NOT NULL DEFAULT 0;
   END IF;
     
-	UPDATE application SET bk_scope_type = 'biz' WHERE app_type = 1 AND bk_scope_type IS NULL;
-	UPDATE application SET bk_scope_type = 'biz_set' WHERE app_type in (2,3) AND bk_scope_type IS NULL;
-	UPDATE application SET bk_scope_id = app_id WHERE bk_scope_id is NULL;
+	UPDATE application SET bk_scope_type = 'biz' WHERE app_type = 1 AND (bk_scope_type IS NULL OR bk_scope_type = '');
+	UPDATE application SET bk_scope_type = 'biz_set' WHERE app_type in (2,3) AND (bk_scope_type IS NULL OR bk_scope_type = '');
+	UPDATE application SET bk_scope_id = app_id WHERE bk_scope_id is NULL OR bk_scope_id = '';
 
   IF EXISTS(SELECT 1
                   FROM information_schema.statistics
