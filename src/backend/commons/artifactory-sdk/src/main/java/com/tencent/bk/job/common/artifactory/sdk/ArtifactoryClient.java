@@ -54,10 +54,10 @@ import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -243,8 +243,8 @@ public class ArtifactoryClient {
         long start = System.nanoTime();
         String status = "none";
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", urlTemplate));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", urlTemplate));
             switch (method) {
                 case HttpGet.METHOD_NAME:
                     respStr = doHttpGet(url, reqBody, httpHelper);
@@ -278,7 +278,7 @@ public class ArtifactoryClient {
             status = "error";
             throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
             if (null != meterRegistry) {
                 meterRegistry.timer(CommonMetricNames.BKREPO_API, "api_name", urlTemplate, "status", status)
@@ -376,7 +376,8 @@ public class ArtifactoryClient {
         filePath = StringUtil.removePrefixAndSuffix(filePath, "/");
         String[] pathArr = filePath.split("/");
         if (pathArr.length < 2) {
-            throw new InternalException("path must contain projectId and repoName", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+            throw new InternalException("path must contain projectId and repoName",
+                ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         }
         String projectId = pathArr[0];
         String repoName = pathArr[1];
@@ -406,7 +407,8 @@ public class ArtifactoryClient {
         return getFileInputStream(pathList.get(0), pathList.get(1), pathList.get(2));
     }
 
-    public Pair<InputStream, Long> getFileInputStream(String projectId, String repoName, String filePath) throws ServiceException {
+    public Pair<InputStream, Long> getFileInputStream(String projectId, String repoName,
+                                                      String filePath) throws ServiceException {
         DownloadGenericFileReq req = new DownloadGenericFileReq();
         req.setProject(projectId);
         req.setRepo(repoName);
@@ -415,8 +417,8 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         CloseableHttpResponse resp;
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", "download:" + URL_DOWNLOAD_GENERIC_FILE));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "download:" + URL_DOWNLOAD_GENERIC_FILE));
             resp = longHttpHelper.getRawResp(false, url, getJsonHeaders());
             Header contentLengthHeader = resp.getFirstHeader("Content-Length");
             Long contentLength = null;
@@ -436,7 +438,7 @@ public class ArtifactoryClient {
             log.error("Fail to getFileInputStream", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
     }
 
@@ -470,8 +472,8 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         String respStr = null;
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", "upload:" + URL_UPLOAD_GENERIC_FILE));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "upload:" + URL_UPLOAD_GENERIC_FILE));
             respStr = longHttpHelper.put(url, reqEntity, getUploadFileHeaders());
             log.debug("respStr={}", respStr);
             ArtifactoryResp<NodeDTO> resp = JsonUtils.fromJson(
@@ -489,7 +491,7 @@ public class ArtifactoryClient {
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
                 new String[]{e.getMessage()});
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
     }
 

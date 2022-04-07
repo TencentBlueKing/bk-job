@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.util.http;
 
-import com.tencent.bk.job.common.util.JobContextUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +55,7 @@ public class WatchableHttpHelper implements HttpHelper {
 
     @Override
     public Pair<Integer, String> get(boolean keepAlive, String url, Header[] header) {
-        String httpMetricName = JobContextUtil.getHttpMetricName();
+        String httpMetricName = HttpMetricUtil.getHttpMetricName();
         long start = System.nanoTime();
         String httpStatus = null;
         try {
@@ -72,7 +71,7 @@ public class WatchableHttpHelper implements HttpHelper {
             throw t;
         } finally {
             long end = System.nanoTime();
-            AbstractList<Tag> httpMetricTags = JobContextUtil.getHttpMetricTags();
+            AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
@@ -83,7 +82,7 @@ public class WatchableHttpHelper implements HttpHelper {
 
     @Override
     public Pair<Integer, byte[]> post(String url, HttpEntity requestEntity, Header... headers) {
-        String httpMetricName = JobContextUtil.getHttpMetricName();
+        String httpMetricName = HttpMetricUtil.getHttpMetricName();
         long start = System.nanoTime();
         String httpStatus = null;
         try {
@@ -99,7 +98,7 @@ public class WatchableHttpHelper implements HttpHelper {
             throw t;
         } finally {
             long end = System.nanoTime();
-            AbstractList<Tag> httpMetricTags = JobContextUtil.getHttpMetricTags();
+            AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
@@ -110,7 +109,7 @@ public class WatchableHttpHelper implements HttpHelper {
 
     @Override
     public Pair<Integer, String> put(String url, HttpEntity requestEntity, Header... headers) {
-        String httpMetricName = JobContextUtil.getHttpMetricName();
+        String httpMetricName = HttpMetricUtil.getHttpMetricName();
         long start = System.nanoTime();
         String httpStatus = null;
         try {
@@ -126,7 +125,7 @@ public class WatchableHttpHelper implements HttpHelper {
             throw t;
         } finally {
             long end = System.nanoTime();
-            AbstractList<Tag> httpMetricTags = JobContextUtil.getHttpMetricTags();
+            AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
@@ -137,7 +136,7 @@ public class WatchableHttpHelper implements HttpHelper {
 
     @Override
     public Pair<Integer, String> delete(String url, String content, Header... headers) {
-        String httpMetricName = JobContextUtil.getHttpMetricName();
+        String httpMetricName = HttpMetricUtil.getHttpMetricName();
         long start = System.nanoTime();
         String httpStatus = null;
         try {
@@ -153,7 +152,7 @@ public class WatchableHttpHelper implements HttpHelper {
             throw t;
         } finally {
             long end = System.nanoTime();
-            AbstractList<Tag> httpMetricTags = JobContextUtil.getHttpMetricTags();
+            AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)

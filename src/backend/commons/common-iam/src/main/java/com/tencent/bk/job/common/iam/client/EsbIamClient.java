@@ -40,7 +40,7 @@ import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
 import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
@@ -176,11 +176,11 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
                                          EsbReq reqBody,
                                          TypeReference<EsbResp<R>> typeReference) {
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_IAM_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_IAM_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return getEsbRespByReq(method, uri, reqBody, typeReference);
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
     }
 
