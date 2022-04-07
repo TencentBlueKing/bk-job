@@ -97,6 +97,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -355,8 +356,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         long start = System.nanoTime();
         String status = "none";
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMDB_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMDB_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             EsbResp<R> esbResp = getEsbRespByReq(method, uri, reqBody, typeReference, httpHelper);
             status = "ok";
             return esbResp;
@@ -367,7 +368,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             status = "error";
             throw new InternalException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
             meterRegistry.timer(CommonMetricNames.ESB_CMDB_API, "api_name", uri, "status", status)
                 .record(end - start, TimeUnit.NANOSECONDS);

@@ -25,9 +25,9 @@
 package com.tencent.bk.job.common.iam.http;
 
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.constants.HttpHeader;
@@ -55,50 +55,50 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     @Override
     public String doHttpGet(String uri) {
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.get(buildUrl(uri), buildAuthHeader());
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
     }
 
     @Override
     public String doHttpPost(String uri, Object body) {
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.post(buildUrl(uri), DEFAULT_CHARSET, JsonUtils.toJson(body), buildAuthHeader());
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
             return null;
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
     }
 
     @Override
     public String doHttpPut(String uri, Object body) {
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.put(buildUrl(uri), DEFAULT_CHARSET, JsonUtils.toJson(body), buildAuthHeader());
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
             return null;
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
     }
 
     @Override
     public String doHttpDelete(String uri) {
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.delete(buildUrl(uri), buildAuthHeader());
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
     }
 
