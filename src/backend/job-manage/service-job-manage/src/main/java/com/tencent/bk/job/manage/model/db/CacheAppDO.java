@@ -114,6 +114,7 @@ public class CacheAppDO {
         application.setMaintainers(cacheAppDO.getMaintainers());
         application.setSubBizIds(cacheAppDO.getSubBizIds());
         application.setOperateDeptId(cacheAppDO.getOperateDeptId());
+        application.setAttrs(cacheAppDO.getAttrs());
         return application;
     }
 }
