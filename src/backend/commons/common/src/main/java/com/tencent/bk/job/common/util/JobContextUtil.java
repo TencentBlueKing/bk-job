@@ -237,6 +237,7 @@ public class JobContextUtil {
         Map<String, Pair<String, AbstractList<Tag>>> metricTagsMap = jobContext.getMetricTagsMap();
         if (metricTagsMap == null) {
             metricTagsMap = new HashMap<>();
+            jobContext.setMetricTagsMap(metricTagsMap);
         }
         return metricTagsMap;
     }

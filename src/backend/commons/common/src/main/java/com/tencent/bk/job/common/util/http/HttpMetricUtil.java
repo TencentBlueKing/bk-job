@@ -70,7 +70,7 @@ public class HttpMetricUtil {
     public static void setHttpMetricName(String httpMetricName) {
         Map<String, Pair<String, AbstractList<Tag>>> metricTagsMap = JobContextUtil.getOrInitMetricTagsMap();
         Pair<String, AbstractList<Tag>> pair = metricTagsMap.get(SCOPE_SINGLE_HTTP_REQUEST_METRIC);
-        if (httpMetricName != null && !httpMetricName.equals(pair.getLeft())) {
+        if (pair == null || (httpMetricName != null && !httpMetricName.equals(pair.getLeft()))) {
             metricTagsMap.put(SCOPE_SINGLE_HTTP_REQUEST_METRIC, Pair.of(httpMetricName, new ArrayList<>()));
         }
     }
