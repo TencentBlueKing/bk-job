@@ -5,9 +5,9 @@
   "author": "blueking",
   "scripts": {
     "test": "echo test",
-    "dev": "webpack serve --hot --env development --config ./webpack.config.js",
-    "dev-external": "webpack serve --https --hot --env development --config ./webpack.config.js",
-    "build": "webpack --config ./webpack.config.js",
+    "dev": "webpack serve --hot --env development --env mode=development --config ./webpack.config.js",
+    "dev-external": "webpack serve --https --hot --env development --env mode=external --config ./webpack.config.js",
+    "build": "webpack --env --config ./webpack.config.js",
     "lint:js": "eslint --fix --ext .js,.vue ./src",
     "lint:style": "stylelint -v --fix ./**/*.{css,vue}"
   },
