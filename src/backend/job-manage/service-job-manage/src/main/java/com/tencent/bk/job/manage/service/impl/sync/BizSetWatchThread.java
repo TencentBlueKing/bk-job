@@ -159,12 +159,12 @@ public class BizSetWatchThread extends Thread {
         bizSetWatchRedisKeyHeartBeatThread.setName("[" + bizSetWatchRedisKeyHeartBeatThread.getId() +
             "]-bizSetWatchRedisKeyHeartBeatThread");
         bizSetWatchRedisKeyHeartBeatThread.start();
-        log.info("Start watch biz_set resource at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
-            System.currentTimeMillis());
         return bizSetWatchRedisKeyHeartBeatThread;
     }
 
     private void watchEvent() {
+        log.info("Start watch bizSet resource at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
+            System.currentTimeMillis());
         String cursor = null;
         while (true) {
             Span span = null;
@@ -207,7 +207,7 @@ public class BizSetWatchThread extends Thread {
                 log.info("Handle bizSet watch events, events.size: {},events: {}",
                     events.size(), JsonUtils.toJson(events));
                 cursor = events.get(events.size() - 1).getCursor();
-                log.info("Refresh cursor(success):{}", cursor);
+                log.info("Refresh cursor:{}", cursor);
             } else {
                 log.info("Handle bizSet watch events, events is empty");
             }
@@ -216,7 +216,7 @@ public class BizSetWatchThread extends Thread {
             List<ResourceEvent<BizSetEventDetail>> events = bizSetWatchResult.getEvents();
             if (events != null && events.size() > 0) {
                 cursor = events.get(0).getCursor();
-                log.info("Refresh cursor(fail):{}", cursor);
+                log.info("Refresh cursor:{}", cursor);
             } else {
                 log.warn("CMDB event error:no refresh event data when watched==false");
             }

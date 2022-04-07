@@ -250,7 +250,7 @@ public class GseTaskManager implements SmartLifecycle {
             watch.start("get-running-lock");
             // 可重入锁，如果任务正在执行，则放弃
             if (!LockUtils.tryGetReentrantLock(
-                "job:running:gse:task:" + stepInstanceId, startTaskRequestId, 30000L, 30)) {
+                "job:running:gse:task:" + stepInstanceId, startTaskRequestId, 30000L)) {
                 log.info("Fail to get running lock, stepInstanceId: {}", stepInstanceId);
                 return;
             }

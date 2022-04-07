@@ -336,7 +336,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
 
             watch.start("get-lock");
-            if (!LockUtils.tryGetReentrantLock("job:result:handle:" + stepInstanceId, requestId, 30000L, 30)) {
+            if (!LockUtils.tryGetReentrantLock("job:result:handle:" + stepInstanceId, requestId, 30000L)) {
                 log.info("Fail to get result handle lock, stepInstanceId: {}", stepInstanceId);
                 this.executeResult = GseTaskExecuteResult.DISCARDED;
                 return;
