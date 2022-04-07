@@ -69,7 +69,15 @@ public class RedisKeyHeartBeatThread extends Thread {
         } catch (Throwable t) {
             log.error("RedisKeyHeartBeatThread {} quit unexpectedly:", this.getName(), t);
         } finally {
+            deleteRedisKeySafely();
+        }
+    }
+
+    private void deleteRedisKeySafely() {
+        try {
             redisTemplate.delete(redisKey);
+        } catch (Throwable e) {
+            log.error("Delete redis key fail", e);
         }
     }
 }
