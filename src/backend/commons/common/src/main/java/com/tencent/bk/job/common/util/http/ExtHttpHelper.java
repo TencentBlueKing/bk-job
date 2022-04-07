@@ -74,7 +74,6 @@ public class ExtHttpHelper {
      * @return
      */
     public String post(String url, String charset, String content, Header... headers) {
-        log.debug("post:url={},charset={},content={},headers={}", url, charset, content, headers);
         try {
             byte[] resp = post(url, new ByteArrayEntity(content.getBytes(charset)), headers);
             if (null == resp) {
@@ -157,7 +156,6 @@ public class ExtHttpHelper {
      * @return 响应字符串
      */
     public String put(String url, String charset, String content, List<Header> headerList) {
-        log.debug("put:url={},charset={},content={},headers={}", url, charset, content, headerList);
         Header[] headers = new Header[headerList.size()];
         try {
             return put(url, new ByteArrayEntity(content.getBytes(charset)), headerList.toArray(headers));
