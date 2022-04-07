@@ -291,7 +291,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             applicationDTO.getLanguage(),
             scope == null ? null : scope.getType().getValue(),
             scope == null ? null : scope.getId(),
-            JsonUtils.toJson(applicationDTO.getAttrs()),
+            applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()),
             UByte.valueOf(Bool.FALSE.getValue())
         );
         try {
@@ -346,7 +346,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             applicationDTO.getLanguage(),
             scope == null ? null : scope.getType().getValue(),
             scope == null ? null : scope.getId(),
-            JsonUtils.toJson(applicationDTO.getAttrs()),
+            applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()),
             UByte.valueOf(Bool.FALSE.getValue())
         );
         try {
@@ -374,7 +374,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .set(T_APP.TIMEZONE, applicationDTO.getTimeZone())
             .set(T_APP.BK_OPERATE_DEPT_ID, applicationDTO.getOperateDeptId())
             .set(T_APP.LANGUAGE, applicationDTO.getLanguage())
-            .set(T_APP.ATTRS, JsonUtils.toJson(applicationDTO.getAttrs()))
+            .set(T_APP.ATTRS, applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()))
             .set(T_APP.APP_TYPE, (byte) applicationDTO.getAppType().getValue())
             .where(T_APP.APP_ID.eq(ULong.valueOf(applicationDTO.getId())));
         return query.execute();
