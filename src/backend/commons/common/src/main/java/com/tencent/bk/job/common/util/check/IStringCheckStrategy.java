@@ -25,5 +25,5 @@
 package com.tencent.bk.job.common.util.check;
 
 public interface IStringCheckStrategy {
-    public String checkAndGetResult(String rawStr);
+    String checkAndGetResult(String rawStr);
 }
