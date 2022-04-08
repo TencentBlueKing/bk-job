@@ -52,7 +52,8 @@
                 <jb-form-item style="margin-bottom: 10px;">
                     <bk-radio-group
                         v-model="info.restrictMode"
-                        class="restrict-mode-radio">
+                        class="restrict-mode-radio"
+                        @change="handleRestSuffixError">
                         <bk-radio-button :value="-1">
                             {{ $t('setting.不限制') }}
                         </bk-radio-button>
@@ -70,7 +71,8 @@
                             v-model="info.suffixList"
                             allow-create
                             has-delete-icon
-                            :key="info.restrictMode" />
+                            :key="info.restrictMode"
+                            @change="handleRestSuffixError" />
                     </jb-form-item>
                     <div class="form-item-error" v-html="suffixError" />
                 </div>
@@ -92,6 +94,9 @@
     import I18n from '@/i18n';
 
     const checkSuffixError = (suffixList) => {
+        if (suffixList.length < 1) {
+            return I18n.t('setting.不允许为空');
+        }
         const errorStack = [];
         const renameStack = [];
         const lengthStack = [];
@@ -171,15 +176,22 @@
                         this.isLoading = false;
                     });
             },
+            handleRestSuffixError () {
+                this.suffixError = '';
+            },
             /**
              * @desc 提交修改
              */
             handleSubmit () {
                 const params = { ...this.info };
+
+                this.suffixError = '';
                 if (params.restrictMode === -1) {
                     params.suffixList = [];
+                } else {
+                    this.suffixError = checkSuffixError(params.suffixList);
                 }
-                this.suffixError = checkSuffixError(params.suffixList);
+                
                 if (this.suffixError) {
                     return;
                 }
