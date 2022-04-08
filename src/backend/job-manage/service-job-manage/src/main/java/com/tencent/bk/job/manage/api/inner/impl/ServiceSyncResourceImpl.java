@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.SyncService;
@@ -75,7 +75,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
         app.setId(appInfo.getId());
         app.setOwner(appInfo.getBkSupplierAccount());
         app.setAppType(appInfo.getAppType().getValue());
-        app.setSubAppIds(appInfo.getSubAppIds());
+        app.setSubBizIds(appInfo.getSubBizIds());
         app.setOperateDeptId(appInfo.getOperateDeptId());
         app.setTimeZone(appInfo.getTimeZone());
         return app;

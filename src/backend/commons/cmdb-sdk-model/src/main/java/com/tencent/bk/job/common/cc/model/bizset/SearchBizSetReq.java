@@ -51,7 +51,8 @@ public class SearchBizSetReq extends EsbReq {
      * 查询字段
      */
     private List<String> fields = Arrays.asList("bk_biz_set_id", "bk_biz_set_name", "bk_biz_set_desc",
-        "bk_biz_maintainer", "bk_supplier_account", "bk_operate_dept_id", "create_time", "last_time", "time_zone", "language");
+        "bk_biz_maintainer", "bk_supplier_account", "bk_operate_dept_id", "create_time", "last_time", "time_zone",
+        "language", "bk_scope");
 
     /**
      * 分页参数

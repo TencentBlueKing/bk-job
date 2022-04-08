@@ -22,12 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.cache;
+package com.tencent.bk.job.manage.model.tmp;
 
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-public class AppLocalCache {
-    public static ApplicationDTO getCacheApp(long appId) {
-        return null;
-    }
+/**
+ * 新增业务集请求
+ */
+@Data
+@ApiModel("新增业务集请求")
+public class TmpAddAppSetRequest {
+
+    @ApiModelProperty("业务ID")
+    private Long id;
+
+    /**
+     * 业务名称
+     */
+    @ApiModelProperty("业务名称")
+    private String name;
+
+    /**
+     * 运维
+     */
+    private String maintainers;
+
+    /**
+     * 子业务
+     */
+    @ApiModelProperty("子业务ID")
+    private String subAppIds;
+
+    @ApiModelProperty("是否是动态业务集")
+    private boolean dynamicAppSet = false;
+
+    /**
+     * 时区
+     */
+    private String timeZone;
+
+    /**
+     * 组织架构ID
+     */
+    @ApiModelProperty("组织架构ID")
+    private Long deptId;
 }

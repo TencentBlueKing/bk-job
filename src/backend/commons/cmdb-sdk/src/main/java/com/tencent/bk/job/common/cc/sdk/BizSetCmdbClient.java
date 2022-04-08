@@ -38,16 +38,12 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpPost;
@@ -55,7 +51,6 @@ import org.apache.http.client.methods.HttpPost;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * cmdb API Client - 业务集相关
@@ -229,46 +224,18 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         }
     }
 
-    private ApplicationDTO convertToMatchAllApp(BizSetInfo bizSetInfo) {
-        ApplicationDTO appInfoDTO = convertToAppWithoutType(bizSetInfo);
-        appInfoDTO.setAppType(AppTypeEnum.ALL_APP);
-        appInfoDTO.setSubAppIds(null);
-        return appInfoDTO;
-    }
-
-    private ApplicationDTO convertToBizSetApp(BizSetInfo bizSetInfo) {
-        ApplicationDTO appInfoDTO = convertToAppWithoutType(bizSetInfo);
-        appInfoDTO.setAppType(AppTypeEnum.APP_SET);
-        List<BizInfo> bizList = searchBizInBizSet(bizSetInfo.getId());
-        appInfoDTO.setSubAppIds(bizList.parallelStream()
-            .map(BizInfo::getId).collect(Collectors.toList()));
-        return appInfoDTO;
-    }
-
-    private ApplicationDTO convertToAppWithoutType(BizSetInfo bizSetInfo) {
-        ApplicationDTO appInfoDTO = new ApplicationDTO();
-        appInfoDTO.setBkSupplierAccount(bizSetInfo.getSupplierAccount());
-        appInfoDTO.setName(bizSetInfo.getName());
-        appInfoDTO.setMaintainers(bizSetInfo.getMaintainer());
-        appInfoDTO.setOperateDeptId(bizSetInfo.getOperateDeptId());
-        appInfoDTO.setTimeZone(bizSetInfo.getTimezone());
-        appInfoDTO.setScope(
-            new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, bizSetInfo.getId().toString()));
-        return appInfoDTO;
-    }
-
     @Override
-    public List<ApplicationDTO> getAllBizSetApps() {
+    public List<BizSetInfo> getAllBizSetApps() {
         List<BizSetInfo> bizSetInfoList = searchAllBizSet();
-        return bizSetInfoList.parallelStream().map(bizSetInfo -> {
-            // 查询业务集下包含的子业务
+        bizSetInfoList.parallelStream().forEach(bizSetInfo -> {
+            // 查询业务集下包含的子业务(全业务除外)
             BizSetScope scope = bizSetInfo.getScope();
-            if (scope != null && scope.isMatchAll()) {
-                // 全业务
-                return convertToMatchAllApp(bizSetInfo);
+            if (scope != null && !scope.isMatchAll()) {
+                List<BizInfo> bizList = searchBizInBizSet(bizSetInfo.getId());
+                bizSetInfo.setBizList(bizList);
             }
-            return convertToBizSetApp(bizSetInfo);
-        }).collect(Collectors.toList());
+        });
+        return bizSetInfoList;
     }
 
     @Override

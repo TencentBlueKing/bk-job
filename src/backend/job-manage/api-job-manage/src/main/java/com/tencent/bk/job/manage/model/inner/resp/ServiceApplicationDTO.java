@@ -24,10 +24,13 @@
 
 package com.tencent.bk.job.manage.model.inner.resp;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -43,6 +46,7 @@ import java.util.List;
 @Data
 @ApiModel("业务")
 public class ServiceApplicationDTO {
+
 
     @ApiModelProperty("业务ID")
     private Long id;
@@ -66,6 +70,7 @@ public class ServiceApplicationDTO {
      * 业务类型
      */
     @ApiModelProperty("业务类型")
+    @CompatibleImplementation(explain = "兼容字段，等发布完成之后可以删除", version = "3.5.x")
     private Integer appType;
 
     /**
@@ -77,7 +82,9 @@ public class ServiceApplicationDTO {
      * 子业务
      */
     @ApiModelProperty("子业务ID")
-    private List<Long> subAppIds;
+    @CompatibleImplementation(explain = "兼容字段，等发布完成之后可以删除", version = "3.5.x")
+    @JsonProperty("subAppIds")
+    private List<Long> subBizIds;
 
     @ApiModelProperty("开发商")
     private String owner;
@@ -85,6 +92,7 @@ public class ServiceApplicationDTO {
     /**
      * 初始运维部门Id
      */
+    @CompatibleImplementation(explain = "兼容字段，等发布完成之后可以删除", version = "3.5.x")
     private Long operateDeptId;
 
     /**
@@ -98,6 +106,11 @@ public class ServiceApplicationDTO {
     private String language;
 
     /**
+     * 业务属性
+     */
+    private ServiceApplicationAttrsDTO attrs;
+
+    /**
      * 将服务间调用的业务对象转为通用Job业务对象
      *
      * @param serviceAppDTO 服务间调用业务对象
@@ -109,7 +122,7 @@ public class ServiceApplicationDTO {
         applicationInfo.setName(serviceAppDTO.getName());
         applicationInfo.setAppType(AppTypeEnum.valueOf(serviceAppDTO.getAppType()));
         applicationInfo.setScope(new ResourceScope(serviceAppDTO.getScopeType(), serviceAppDTO.getScopeId()));
-        applicationInfo.setSubAppIds(serviceAppDTO.getSubAppIds());
+        applicationInfo.setSubBizIds(serviceAppDTO.getSubBizIds());
         applicationInfo.setMaintainers(serviceAppDTO.getMaintainers());
         applicationInfo.setOperateDeptId(serviceAppDTO.getOperateDeptId());
         applicationInfo.setLanguage(serviceAppDTO.getLanguage());
@@ -128,7 +141,7 @@ public class ServiceApplicationDTO {
         }
         ServiceApplicationDTO app = new ServiceApplicationDTO();
         app.setId(appDTO.getId());
-        app.setSubAppIds(appDTO.getSubAppIds());
+        app.setSubBizIds(appDTO.getSubBizIds());
         app.setName(appDTO.getName());
         app.setAppType(appDTO.getAppType().getValue());
         app.setScopeType(appDTO.getScope().getType().getValue());

@@ -37,7 +37,7 @@ import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.GetEsbNotifyChannelReq;
 import com.tencent.bk.job.common.paas.model.GetUserListReq;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -128,8 +128,8 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             }
             req.setNoPage(noPage);
 
-            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_USER_MANAGE_API_HTTP);
-            JobContextUtil.addHttpMetricTag(
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_USER_MANAGE_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(
                 Tag.of("api_name", API_GET_USER_LIST)
             );
             EsbResp<List<EsbListUsersResult>> esbResp = getEsbRespByReq(
@@ -145,7 +145,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             log.error(errorMsg, e);
             throw new InternalException(errorMsg, e, ErrorCode.PAAS_API_DATA_ERROR);
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
         if (oriUsers == null || oriUsers.isEmpty()) {
             return null;
@@ -167,8 +167,8 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
     public List<EsbNotifyChannelDTO> getNotifyChannelList(String uin) {
         GetEsbNotifyChannelReq req = makeBaseReqByWeb(GetEsbNotifyChannelReq.class, null, uin, null);
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
-            JobContextUtil.addHttpMetricTag(
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(
                 Tag.of("api_name", API_GET_NOTIFY_CHANNEL_LIST)
             );
             EsbResp<List<EsbNotifyChannelDTO>> esbResp = getEsbRespByReq(
@@ -180,7 +180,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             );
             return esbResp.getData();
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
         }
     }
 
@@ -205,8 +205,8 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         String status = "none";
         String uri = API_POST_SEND_MSG;
         try {
-            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             EsbResp<List<Boolean>> esbResp = getEsbRespByReq(
                 HttpPost.METHOD_NAME,
                 uri,
@@ -234,7 +234,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             status = "error";
             return false;
         } finally {
-            JobContextUtil.clearHttpMetricTags();
+            HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
             meterRegistry.timer(
                 CommonMetricNames.ESB_CMSI_API,
