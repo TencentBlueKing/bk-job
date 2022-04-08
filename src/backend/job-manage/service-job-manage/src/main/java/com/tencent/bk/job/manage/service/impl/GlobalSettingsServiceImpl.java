@@ -434,7 +434,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             GlobalSettingKeys.KEY_FILE_UPLOAD_MAX_SIZE);
         if (fileUploadSettingDTO == null) {
             fileUploadSettingDTO = new GlobalSettingDTO();
-            fileUploadSettingDTO.setDescription("max size of upload file");
+            fileUploadSettingDTO.setDescription("setting of upload file");
         }
         fileUploadSettingDTO.setKey(GlobalSettingKeys.KEY_FILE_UPLOAD_MAX_SIZE);
         fileUploadSettingDTO.setValue(uploadMaxSize.toString() + unit.name());
