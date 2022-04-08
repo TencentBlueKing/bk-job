@@ -17,7 +17,7 @@ BEGIN
                   FROM `global_setting`
                   WHERE `key` = 'FILE_UPLOAD_SETTING'
                     AND (`value` IS NULL OR `value`='') AND (`decription` IS NULL OR `decription`='')) THEN
-        UPDATE `global_setting` SET `value`=CONCAT('{"maxSize":"',maxSize,'"}'),`decription`='setting of upload file' WHERE `key` ='FILE_UPLOAD_SETTING';
+		UPDATE `global_setting` SET `value`=CONCAT('{"maxSize":"',maxSize,'"}'),`decription`='setting of upload file' WHERE `key` ='FILE_UPLOAD_SETTING';
 		DELETE FROM `global_setting` WHERE `key` = 'FILE_UPLOAD_MAX_SIZE';
     END IF;
 
