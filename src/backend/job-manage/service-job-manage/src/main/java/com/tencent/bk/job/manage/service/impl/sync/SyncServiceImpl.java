@@ -117,10 +117,9 @@ public class SyncServiceImpl implements SyncService {
     private volatile boolean enableSyncApp;
     private volatile boolean enableSyncHost;
     private volatile boolean enableSyncAgentStatus;
-    private AppWatchThread appWatchThread = null;
+    private BizWatchThread bizWatchThread = null;
     private HostWatchThread hostWatchThread = null;
     private HostRelationWatchThread hostRelationWatchThread = null;
-    private BizSetWatchThread bizSetWatchThread = null;
     private BizSetRelationWatchThread bizSetRelationWatchThread;
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
@@ -132,6 +131,7 @@ public class SyncServiceImpl implements SyncService {
     private final IBizSetCmdbClient bizSetCmdbClient;
     private final BizSetService bizSetService;
     private final Tracing tracing;
+    private final BizSetEventWatcher bizSetEventWatcher;
 
     @Autowired
     public SyncServiceImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
@@ -149,7 +149,8 @@ public class SyncServiceImpl implements SyncService {
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
                            HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient,
-                           BizSetService bizSetService, Tracing tracing) {
+                           BizSetService bizSetService, Tracing tracing,
+                           BizSetEventWatcher bizSetEventWatcher) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -171,6 +172,7 @@ public class SyncServiceImpl implements SyncService {
         this.bizSetCmdbClient = bizSetCmdbClient;
         this.bizSetService = bizSetService;
         this.tracing = tracing;
+        this.bizSetEventWatcher = bizSetEventWatcher;
         // 同步业务的线程池配置
         syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(20), (r, executor) ->
@@ -207,8 +209,8 @@ public class SyncServiceImpl implements SyncService {
         }
         if (jobManageConfig.isEnableResourceWatch()) {
             // 开一个常驻线程监听业务资源变动事件
-            appWatchThread = new AppWatchThread(applicationService, redisTemplate);
-            appWatchThread.start();
+            bizWatchThread = new BizWatchThread(applicationService, redisTemplate);
+            bizWatchThread.start();
 
             // 开一个常驻线程监听主机资源变动事件
             hostWatchThread = new HostWatchThread(
@@ -225,10 +227,7 @@ public class SyncServiceImpl implements SyncService {
             if (FeatureToggle.isCmdbBizSetEnabled()) {
                 log.info("Cmdb biz set is enabled, watch biz_set and biz_set_relation resource event");
                 // 开一个常驻线程监听业务集变动事件
-                bizSetWatchThread = new BizSetWatchThread(
-                    redisTemplate, applicationService, bizSetCmdbClient, bizSetService, tracing
-                );
-                bizSetWatchThread.start();
+                bizSetEventWatcher.start();
 
                 // 开一个常驻线程监听业务集与业务关系变动事件
                 bizSetRelationWatchThread = new BizSetRelationWatchThread(
@@ -499,9 +498,9 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public Boolean enableBizWatch() {
-        if (appWatchThread != null) {
+        if (bizWatchThread != null) {
             log.info("appWatch enabled by op");
-            appWatchThread.setWatchFlag(true);
+            bizWatchThread.setWatchFlag(true);
             return true;
         } else {
             return false;
@@ -510,9 +509,9 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public Boolean disableBizWatch() {
-        if (appWatchThread != null) {
+        if (bizWatchThread != null) {
             log.info("appWatch disabled by op");
-            appWatchThread.setWatchFlag(false);
+            bizWatchThread.setWatchFlag(false);
             return true;
         } else {
             return false;

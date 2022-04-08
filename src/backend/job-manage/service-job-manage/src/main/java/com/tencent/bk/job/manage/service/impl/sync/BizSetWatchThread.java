@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.exception.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -180,7 +181,7 @@ public class BizSetWatchThread extends Thread {
                     bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(null, cursor);
                 }
                 log.info("BizSetWatchResult={}", JsonUtils.toJson(bizSetWatchResult));
-                cursor = handleBizSetWatchResult(bizSetWatchResult);
+                cursor = handleBizSetWatchResult(bizSetWatchResult, cursor);
                 // 10s/watch一次
                 ThreadUtils.sleep(10_000);
             } catch (Throwable t) {
@@ -194,34 +195,34 @@ public class BizSetWatchThread extends Thread {
     }
 
 
-    private String handleBizSetWatchResult(ResourceWatchResult<BizSetEventDetail> bizSetWatchResult) {
-        String cursor = null;
+    private String handleBizSetWatchResult(ResourceWatchResult<BizSetEventDetail> bizSetWatchResult,
+                                           String startCursor) {
+        String latestCursor = startCursor;
         boolean isWatched = bizSetWatchResult.getWatched();
+        List<ResourceEvent<BizSetEventDetail>> events = bizSetWatchResult.getEvents();
+        if (CollectionUtils.isEmpty(events)) {
+            if (isWatched) {
+                log.info("Handle bizSet watch events, events is empty");
+            } else {
+                log.warn("CMDB event error:no refresh event data when watched==false");
+            }
+            return latestCursor;
+        }
+
         if (isWatched) {
-            List<ResourceEvent<BizSetEventDetail>> events = bizSetWatchResult.getEvents();
             //解析事件，进行处理
             for (ResourceEvent<BizSetEventDetail> event : events) {
                 handleEvent(event);
             }
-            if (events.size() > 0) {
-                log.info("Handle bizSet watch events, events.size: {},events: {}",
-                    events.size(), JsonUtils.toJson(events));
-                cursor = events.get(events.size() - 1).getCursor();
-                log.info("Refresh cursor:{}", cursor);
-            } else {
-                log.info("Handle bizSet watch events, events is empty");
-            }
+            latestCursor = events.get(events.size() - 1).getCursor();
+            log.info("Handle bizSet watch events successfully! events.size: {}", events.size());
+            log.info("Refresh bizSet watch cursor: {}", latestCursor);
         } else {
             // 只有一个无实际意义的事件，用于换取bk_cursor
-            List<ResourceEvent<BizSetEventDetail>> events = bizSetWatchResult.getEvents();
-            if (events != null && events.size() > 0) {
-                cursor = events.get(0).getCursor();
-                log.info("Refresh cursor:{}", cursor);
-            } else {
-                log.warn("CMDB event error:no refresh event data when watched==false");
-            }
+            latestCursor = events.get(0).getCursor();
+            log.info("Refresh cursor:{}", latestCursor);
         }
-        return cursor;
+        return latestCursor;
     }
 
     private void handleEvent(ResourceEvent<BizSetEventDetail> event) {
@@ -237,15 +238,16 @@ public class BizSetWatchThread extends Thread {
                     if (cachedApp != null) {
                         updateBizSetProps(cachedApp, latestApp);
                         if (!cachedApp.isDeleted()) {
-                            log.info("Update bizSet: {}", cachedApp);
+                            log.info("Update app for bizSet, app: {}", cachedApp);
                             applicationService.updateApp(cachedApp);
                         } else {
-                            log.info("Restore deleted latestApp: {}", latestApp);
+                            log.info("Restore deleted app for bizSet: {}", latestApp);
                             applicationService.updateApp(latestApp);
                             applicationService.restoreDeletedApp(latestApp.getId());
                         }
                     } else {
                         try {
+                            log.info("Create app for bizSet, app: {}", latestApp);
                             applicationService.createApp(latestApp);
                         } catch (DataAccessException e) {
                             // 若已存在则忽略
@@ -253,11 +255,12 @@ public class BizSetWatchThread extends Thread {
                         }
                     }
                 } catch (Throwable t) {
-                    log.error("Handle biz_set event fail", t);
+                    log.error("Handle bizSet event fail", t);
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
                 if (cachedApp != null) {
+                    log.info("Delete app for bizSet, app: {}", cachedApp);
                     applicationService.deleteApp(cachedApp.getId());
                 }
                 break;
