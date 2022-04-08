@@ -87,6 +87,8 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRulesByScriptType(dslContext,
                 scriptType);
             if (CollectionUtils.isEmpty(dangerousRuleDTOList)) {
+                redisTemplate.opsForHash().put("job:manage:dangerousRules", String.valueOf(scriptType),
+                    new ArrayList<DangerousRuleDO>());
                 return new ArrayList<DangerousRuleDTO>();
             }
             try {
