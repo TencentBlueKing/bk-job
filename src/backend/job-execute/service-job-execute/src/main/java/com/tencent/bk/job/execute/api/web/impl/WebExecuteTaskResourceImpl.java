@@ -458,6 +458,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                         }
                     }
                 }
+            }else {
+                break;
             }
         }
         if (restrictMode != -1 && !validateSuffix) {

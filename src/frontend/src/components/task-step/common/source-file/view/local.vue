@@ -33,8 +33,12 @@
                     <td style="width: 40%;">{{ row.fileLocationText }}</td>
                     <td style="width: auto;">
                         <template v-if="row.fileSize > 0">
-                            <p v-if="row.uploadStatus !== 'danger'">{{ $t('本地文件') }}（{{ row.fileSizeText }}）</p>
-                            <p v-else style="color: #ff5656;">{{ $t('上传失败') }}</p>
+                            <p v-if="row.uploadStatus !== 'danger'">
+                                {{ $t('本地文件') }}（{{ row.fileSizeText }}）
+                            </p>
+                            <p v-else style="color: #ff5656;">
+                                {{ $t('上传失败') }}
+                            </p>
                             <div class="upload-progress">
                                 <transition name="fade">
                                     <bk-progress
@@ -48,7 +52,11 @@
                     </td>
                     <td>
                         <div class="action-box">
-                            <bk-button text @click="handlerRemove(index)">{{ $t('移除') }}</bk-button>
+                            <bk-button
+                                text
+                                @click="handlerRemove(index)">
+                                {{ $t('移除') }}
+                            </bk-button>
                         </div>
                     </td>
                 </tr>
@@ -67,6 +75,7 @@
     import TaskExecuteService from '@service/task-execute';
     import QuertGlobalSettingService from '@service/query-global-setting';
     import SourceFileVO from '@domain/variable-object/source-file';
+    import { encodeRegexp } from '@utils/assist';
 
     export default {
         name: '',
@@ -79,15 +88,21 @@
         data () {
             return {
                 fileList: [],
-                FILE_UPLOAD_MAX_SIZE: {
+                FILE_UPLOAD_SETTING: {
                     amount: 2,
                     unit: 'GB',
+                    restrictMode: -1,
+                    suffixList: [],
                 },
             };
         },
         computed: {
+            /**
+             * @desc 上传文件最大字节数
+             * @returns { String }
+             */
             fileUploadMaxBytes () {
-                const { amount, unit } = this.FILE_UPLOAD_MAX_SIZE;
+                const { amount, unit } = this.FILE_UPLOAD_SETTING;
                 const unitMap = {
                     GB: 1073741824,
                     MB: 1048576,
@@ -97,8 +112,12 @@
                 }
                 return unit;
             },
+            /**
+             * @desc 上传文件最大字节数显示文本
+             * @returns { String }
+             */
             fileMaxUploadSizeText () {
-                const { amount, unit } = this.FILE_UPLOAD_MAX_SIZE;
+                const { amount, unit } = this.FILE_UPLOAD_SETTING;
                 return `${amount}${unit}`;
             },
         },
@@ -128,7 +147,7 @@
             fetchJobConfig () {
                 QuertGlobalSettingService.fetchJobConfig()
                     .then((data) => {
-                        this.FILE_UPLOAD_MAX_SIZE = data.FILE_UPLOAD_MAX_SIZE;
+                        this.FILE_UPLOAD_SETTING = data.FILE_UPLOAD_SETTING;
                     });
             },
             /**
@@ -158,14 +177,38 @@
                 
                 const sameStack = [];
                 const largeStack = [];
+                const includeStask = [];
+                const excludeStask = [];
+
+                const {
+                    restrictMode,
+                    suffixList,
+                } = this.FILE_UPLOAD_SETTING;
                 
                 Array.from(files).forEach((curFile) => {
                     const { name, size } = curFile;
+
+                    const fileExtRule = new RegExp(`(${suffixList.map(item => encodeRegexp(item)).join('|')})$`);
+                    
+                    // 上传文件后缀允许范围;
+                    if (restrictMode === 1
+                        && !fileExtRule.test(name)) {
+                        includeStask.push(name);
+                        return;
+                    }
+                    // 上传文件后缀禁止范围
+                    if (restrictMode === 0
+                        && fileExtRule.test(name)) {
+                        excludeStask.push(name);
+                        return;
+                    }
+                    
                     // 重名检测
                     if (this.fileList.some(_ => _.fileLocationText === name)) {
                         sameStack.push(name);
                         return;
                     }
+                    
                     if (size > this.fileUploadMaxBytes) {
                         largeStack.push(name);
                         return;
@@ -179,6 +222,12 @@
                     params.append('uploadFiles', curFile);
                 });
                 
+                if (includeStask.length > 0) {
+                    this.messageError(`${I18n.t('文件')}[${includeStask.join(' / ')}]${I18n.t('的类型不在允许范围：')}${suffixList.join('、')}`);
+                }
+                if (excludeStask.length > 0) {
+                    this.messageError(`${I18n.t('文件')}[${excludeStask.join(' / ')}]${I18n.t('的类型在不允许范围：')}${suffixList.join('、')}`);
+                }
                 if (sameStack.length > 0) {
                     this.messageError(`${I18n.t('文件')}[${sameStack.join(' / ')}]${I18n.t('已添加')}`);
                 }

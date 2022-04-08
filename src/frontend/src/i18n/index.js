@@ -142,6 +142,7 @@ i18n._t = function (key, ...values) { // eslint-disable-line no-underscore-dangl
         const firstPath = localPath.substring(0, splitIndex);
         // 多层路径，第一层不存在
         if (!Object.prototype.hasOwnProperty.call(localMessage, firstPath)) {
+            console.log(localMessage, firstPath);
             console.log('i18n first path error', key, firstPath);
             return key;
         }
