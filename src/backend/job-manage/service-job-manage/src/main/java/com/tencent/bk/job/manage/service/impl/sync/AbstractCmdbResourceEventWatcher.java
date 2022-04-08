@@ -137,9 +137,9 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                     long startTime = System.currentTimeMillis() / 1000 - 10 * 60;
                     log.info("Start watch {} from startTime:{}", this.watcherResourceName,
                         TimeUtil.formatTime(startTime * 1000));
-                    watchResult = fetchEvents(null, startTime);
+                    watchResult = fetchEventsByStartTime(startTime);
                 } else {
-                    watchResult = fetchEvents(cursor, null);
+                    watchResult = fetchEventsByCursor(cursor);
                 }
                 log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
                 cursor = handleWatchResult(watchResult, cursor);
@@ -194,11 +194,18 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
     /**
      * 根据事件游标或者时间获取事件
      *
-     * @param startCursor 事件游标起始
-     * @param startTime   事件起始时间
+     * @param startCursor 事件起始游标
      * @return 监听事件结果
      */
-    protected abstract ResourceWatchResult<E> fetchEvents(String startCursor, Long startTime);
+    protected abstract ResourceWatchResult<E> fetchEventsByCursor(String startCursor);
+
+    /**
+     * 根据事件游标或者时间获取事件
+     *
+     * @param startTime 事件起始时间
+     * @return 监听事件结果
+     */
+    protected abstract ResourceWatchResult<E> fetchEventsByStartTime(Long startTime);
 
     /**
      * 处理cmdb事件

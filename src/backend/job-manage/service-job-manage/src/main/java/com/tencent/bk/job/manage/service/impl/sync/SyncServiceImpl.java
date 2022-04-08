@@ -120,7 +120,6 @@ public class SyncServiceImpl implements SyncService {
     private BizWatchThread bizWatchThread = null;
     private HostWatchThread hostWatchThread = null;
     private HostRelationWatchThread hostRelationWatchThread = null;
-    private BizSetRelationWatchThread bizSetRelationWatchThread;
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
@@ -128,10 +127,8 @@ public class SyncServiceImpl implements SyncService {
     private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final AgentStatusSyncService agentStatusSyncService;
     private final HostCache hostCache;
-    private final IBizSetCmdbClient bizSetCmdbClient;
-    private final BizSetService bizSetService;
-    private final Tracing tracing;
     private final BizSetEventWatcher bizSetEventWatcher;
+    private final BizSetRelationEventWatcher bizSetRelationEventWatcher;
 
     @Autowired
     public SyncServiceImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
@@ -150,7 +147,8 @@ public class SyncServiceImpl implements SyncService {
                            ApplicationCache applicationCache,
                            HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient,
                            BizSetService bizSetService, Tracing tracing,
-                           BizSetEventWatcher bizSetEventWatcher) {
+                           BizSetEventWatcher bizSetEventWatcher,
+                           BizSetRelationEventWatcher bizSetRelationEventWatcher) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -169,10 +167,8 @@ public class SyncServiceImpl implements SyncService {
         this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.agentStatusSyncService = agentStatusSyncService;
         this.hostCache = hostCache;
-        this.bizSetCmdbClient = bizSetCmdbClient;
-        this.bizSetService = bizSetService;
-        this.tracing = tracing;
         this.bizSetEventWatcher = bizSetEventWatcher;
+        this.bizSetRelationEventWatcher = bizSetRelationEventWatcher;
         // 同步业务的线程池配置
         syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(20), (r, executor) ->
@@ -208,37 +204,51 @@ public class SyncServiceImpl implements SyncService {
             extraAppHostsSyncer.start();
         }
         if (jobManageConfig.isEnableResourceWatch()) {
-            // 开一个常驻线程监听业务资源变动事件
-            bizWatchThread = new BizWatchThread(applicationService, redisTemplate);
-            bizWatchThread.start();
-
-            // 开一个常驻线程监听主机资源变动事件
-            hostWatchThread = new HostWatchThread(
-                dslContext, applicationHostDAO, queryAgentStatusClient,
-                redisTemplate, appHostsUpdateHelper, hostCache);
-            hostWatchThread.start();
-
-            // 开一个常驻线程监听主机关系资源变动事件
-            hostRelationWatchThread = new HostRelationWatchThread(
-                dslContext, applicationHostDAO, hostTopoDAO,
-                redisTemplate, this, appHostsUpdateHelper, hostCache);
-            hostRelationWatchThread.start();
-
-            if (FeatureToggle.isCmdbBizSetEnabled()) {
-                log.info("Cmdb biz set is enabled, watch biz_set and biz_set_relation resource event");
-                // 开一个常驻线程监听业务集变动事件
-                bizSetEventWatcher.start();
-
-                // 开一个常驻线程监听业务集与业务关系变动事件
-                bizSetRelationWatchThread = new BizSetRelationWatchThread(
-                    redisTemplate, applicationService, bizSetCmdbClient, bizSetService, tracing
-                );
-                bizSetRelationWatchThread.start();
-            } else {
-                log.info("Cmdb biz set is disabled, ignore related event");
-            }
+            watchBizEvent();
+            watchHostEvent();
+            watchBizSetEvent();
         } else {
             log.info("resourceWatch not enabled, you can enable it in config file");
+        }
+    }
+
+    /**
+     * 监听业务相关的事件
+     */
+    private void watchBizEvent() {
+        // 开一个常驻线程监听业务资源变动事件
+        bizWatchThread = new BizWatchThread(applicationService, redisTemplate);
+        bizWatchThread.start();
+    }
+
+    /**
+     * 监听主机相关的事件
+     */
+    private void watchHostEvent() {
+        // 开一个常驻线程监听主机资源变动事件
+        hostWatchThread = new HostWatchThread(
+            dslContext, applicationHostDAO, queryAgentStatusClient,
+            redisTemplate, appHostsUpdateHelper, hostCache);
+        hostWatchThread.start();
+
+        // 开一个常驻线程监听主机关系资源变动事件
+        hostRelationWatchThread = new HostRelationWatchThread(
+            dslContext, applicationHostDAO, hostTopoDAO,
+            redisTemplate, this, appHostsUpdateHelper, hostCache);
+        hostRelationWatchThread.start();
+    }
+
+    /**
+     * 监听业务集相关的事件
+     */
+    private void watchBizSetEvent() {
+        if (FeatureToggle.isCmdbBizSetEnabled()) {
+            log.info("Cmdb biz set is enabled, watch biz_set and biz_set_relation resource event");
+            // 开一个常驻线程监听业务集变动事件
+            bizSetEventWatcher.start();
+            bizSetRelationEventWatcher.start();
+        } else {
+            log.info("Cmdb biz set is disabled, ignore related event");
         }
     }
 

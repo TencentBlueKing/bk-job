@@ -5,6 +5,7 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
+import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
@@ -22,20 +23,28 @@ import org.springframework.stereotype.Component;
 public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetEventDetail> {
     private final ApplicationService applicationService;
     private final BizSetService bizSetService;
+    private final BizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public BizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
                               Tracing tracing,
                               ApplicationService applicationService,
-                              BizSetService bizSetService) {
+                              BizSetService bizSetService,
+                              BizSetCmdbClient bizSetCmdbClient) {
         super("bizSet", redisTemplate, tracing);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
+        this.bizSetCmdbClient = bizSetCmdbClient;
     }
 
     @Override
-    protected ResourceWatchResult<BizSetEventDetail> fetchEvents(String startCursor, Long startTime) {
-        return null;
+    protected ResourceWatchResult<BizSetEventDetail> fetchEventsByCursor(String startCursor) {
+        return bizSetCmdbClient.getBizSetEvents(null, startCursor);
+    }
+
+    @Override
+    protected ResourceWatchResult<BizSetEventDetail> fetchEventsByStartTime(Long startTime) {
+        return bizSetCmdbClient.getBizSetEvents(startTime, null);
     }
 
     @Override
