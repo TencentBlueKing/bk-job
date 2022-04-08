@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -73,7 +72,7 @@ import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.globalsetting.RestrictModeEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
+import com.tencent.bk.job.manage.model.inner.ServiceFileUploadSettingDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.CollectionUtils;
@@ -403,18 +402,42 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast send file, fileSources are empty!");
             return false;
         }
+        if (!checkFileSuffixValid(request.getFileSourceList())) {
+            return false;
+        }
+        for (ExecuteFileSourceInfoVO fileSource : request.getFileSourceList()) {
+            if (CollectionUtils.isEmpty(fileSource.getFileLocation())) {
+                log.warn("Fast send file ,files are empty");
+                return false;
+            }
+            if (fileSource.getFileType() == TaskFileTypeEnum.SERVER.getType()) {
+                if (fileSource.getAccountId() == null || fileSource.getAccountId() < 1) {
+                    log.warn("Fast send file, account is empty!");
+                    return false;
+                }
+            }
+        }
+        if (StringUtils.isBlank(fileDestination.getPath())) {
+            log.warn("Fast send file, targetPath is empty");
+            return false;
+        }
+
+        return true;
+
+    }
+
+    private boolean checkFileSuffixValid(List<ExecuteFileSourceInfoVO> fileSourceList) {
         //检查是否合法后缀
-        String userName = JobContextUtil.getUsername();
-        InternalResponse<FileUploadSettingVO> resp = globalSettingsClient.getFileUploadSettings(userName);
+        InternalResponse<ServiceFileUploadSettingDTO> resp = globalSettingsClient.getFileUploadSettings();
         if (resp == null || !resp.isSuccess()) {
             log.error("Fail to call remote getFileUploadSettings, resp:{}", resp);
             return false;
         }
-        FileUploadSettingVO fileUploadSettingVO = resp.getData();
-        Integer restrictMode = fileUploadSettingVO.getRestrictMode();
-        List<String> suffixList = fileUploadSettingVO.getSuffixList();
-        Boolean validateSuffix = true;
-        //初始状态
+        ServiceFileUploadSettingDTO serviceFileUploadSettingDTO = resp.getData();
+        Integer restrictMode = serviceFileUploadSettingDTO.getRestrictMode();
+        List<String> suffixList = serviceFileUploadSettingDTO.getSuffixList();
+        boolean validateSuffix = true;
+        //初始状态:允许模式：默认不允许，禁止模式：默认不禁止
         if (CollectionUtils.isNotEmpty(suffixList)) {
             if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
                 validateSuffix = false;
@@ -422,11 +445,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 validateSuffix = true;
             }
         }
-        for (ExecuteFileSourceInfoVO fileSource : request.getFileSourceList()) {
-            if (CollectionUtils.isEmpty(fileSource.getFileLocation())) {
-                log.warn("Fast send file ,files are empty");
-                return false;
-            }
+        for (ExecuteFileSourceInfoVO fileSource : fileSourceList) {
             if (CollectionUtils.isNotEmpty(suffixList)) {
                 for (String fileSuffix : fileSource.getFileLocation()) {
                     for (String suffix : suffixList) {
@@ -440,25 +459,12 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                     }
                 }
             }
-
-            if (fileSource.getFileType() == TaskFileTypeEnum.SERVER.getType()) {
-                if (fileSource.getAccountId() == null || fileSource.getAccountId() < 1) {
-                    log.warn("Fast send file, account is empty!");
-                    return false;
-                }
-            }
         }
-        if (restrictMode != null && !validateSuffix) {
+        if (restrictMode != -1 && !validateSuffix) {
             log.warn("Fast send file, file suffix not allow");
             throw new InvalidParamException(ErrorCode.UPLOAD_FILE_SUFFIX_NOT_ALLOW);
         }
-        if (StringUtils.isBlank(fileDestination.getPath())) {
-            log.warn("Fast send file, targetPath is empty");
-            return false;
-        }
-
         return true;
-
     }
 
 

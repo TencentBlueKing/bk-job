@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.manage.api.web.WebFileUploadResource;
@@ -204,17 +203,30 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
     public Response<List<UploadLocalFileResultVO>> uploadLocalFile(String username,
                                                                    MultipartFile[] uploadFiles) {
         log.info("Handle upload file!");
+        checkFileSuffixValid(uploadFiles);
+        List<UploadLocalFileResultVO> fileUploadResults = null;
+        if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
+            localFileConfigForManage.getStorageBackend()
+        )) {
+            fileUploadResults = saveFileToArtifactory(username, uploadFiles);
+
+        } else {
+            fileUploadResults = saveFileToLocal(username, uploadFiles);
+        }
+        return Response.buildSuccessResp(fileUploadResults);
+    }
+
+    private void checkFileSuffixValid(MultipartFile[] uploadFiles) {
         //检查是否合法后缀
-        String userName = JobContextUtil.getUsername();
-        FileUploadSettingVO fileUploadSettingVO = globalSettingsService.getFileUploadSettings(userName);
+        FileUploadSettingVO fileUploadSettingVO = globalSettingsService.getFileUploadSettings();
         Integer restrictMode = fileUploadSettingVO.getRestrictMode();
         List<String> suffixList = fileUploadSettingVO.getSuffixList();
         Boolean validateSuffix = true;
-        //初始状态
+        //初始状态:允许模式：默认不允许，禁止模式：默认不禁止
         if (CollectionUtils.isNotEmpty(suffixList)) {
             if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
                 validateSuffix = false;
-            } else {
+            } else if (restrictMode == RestrictModeEnum.FORBID.getType()) {
                 validateSuffix = true;
             }
         }
@@ -228,27 +240,17 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
                     if (multipartFile.getOriginalFilename().toLowerCase().endsWith(suffix.toLowerCase())) {
                         if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
                             validateSuffix = true;
-                        } else {
+                        } else if (restrictMode == RestrictModeEnum.FORBID.getType()) {
                             validateSuffix = false;
                         }
                     }
                 }
             }
         }
-        if (restrictMode != null && !validateSuffix) {
-            log.warn("Fast send file, file suffix not allow");
+        if (restrictMode != -1 && !validateSuffix) {
+            log.warn("upload file, file suffix not allow");
             throw new InvalidParamException(ErrorCode.UPLOAD_FILE_SUFFIX_NOT_ALLOW);
         }
-        List<UploadLocalFileResultVO> fileUploadResults = null;
-        if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
-            localFileConfigForManage.getStorageBackend()
-        )) {
-            fileUploadResults = saveFileToArtifactory(username, uploadFiles);
-
-        } else {
-            fileUploadResults = saveFileToLocal(username, uploadFiles);
-        }
-        return Response.buildSuccessResp(fileUploadResults);
     }
 
     @Override

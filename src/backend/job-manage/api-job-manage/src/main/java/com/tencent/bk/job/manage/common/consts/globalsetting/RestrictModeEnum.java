@@ -41,7 +41,11 @@ public enum RestrictModeEnum {
     /**
      * 允许范围
      */
-    ALLOW(1);
+    ALLOW(1),
+    /**
+     * 不限制
+     */
+    UNLIMITED(-1);
 
     @JsonValue
     private int type;

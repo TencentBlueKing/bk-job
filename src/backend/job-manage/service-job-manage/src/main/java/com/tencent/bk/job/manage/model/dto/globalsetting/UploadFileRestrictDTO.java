@@ -22,38 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.globalsetting;
+package com.tencent.bk.job.manage.model.dto.globalsetting;
 
-import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.manage.common.consts.globalsetting.RestrictModeEnum;
-import com.tencent.bk.job.manage.common.consts.globalsetting.StorageUnitEnum;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Pattern;
 import java.util.List;
 
 /**
- * @Description
- * @Date 2020/12/8
- * @Version 1.0
+ * 上传文件限制配置
  */
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-@ApiModel("文件上传参数")
-public class FileUploadSettingReq {
-    @ApiModelProperty("数量")
-    private Long amount;
-    @ApiModelProperty("单位:可选B/KB/MB/GB/TB/PB")
-    private StorageUnitEnum unit;
-    @ApiModelProperty("限制模式，0:禁止范围，1：允许范围，-1：不限制")
-    @CheckEnum(enumClass = RestrictModeEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidUploadFileRestrictMode.message}")
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class UploadFileRestrictDTO {
+    @ApiModelProperty("限制最大上传大小")
+    private String maxSize;
+    @ApiModelProperty("限制模式")
     private Integer restrictMode;
     @ApiModelProperty("后缀列表")
-    private List<@Pattern(regexp = "^\\.[A-Za-z]{1,24}$", message = "{validation.constraints.InvalidUploadFileSuffix.message}") String> suffixList;
-
+    private List<String> suffixList;
 }
