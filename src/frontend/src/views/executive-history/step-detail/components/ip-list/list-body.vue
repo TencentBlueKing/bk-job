@@ -35,7 +35,10 @@
                     :name="item.name"
                     :width="item.width">
             </template>
-            <col key="setting" name="setting" width="40">
+            <col
+                key="setting"
+                name="setting"
+                width="40">
         </colgroup>
         <tbody>
             <tr
@@ -46,12 +49,16 @@
                 }"
                 @click="handleSelect(item, index)">
                 <template v-for="(showKey, colIndex) in showColumns">
-                    <td :key="showKey" :class="colIndex === 0 && item.result">
+                    <td
+                        :key="showKey"
+                        :class="colIndex === 0 && item.result">
                         {{ item[showKey] }}
                     </td>
                 </template>
                 <td class="active-flag">
-                    <Icon v-if="selectRow === item.key" type="arrow-full-right" />
+                    <Icon
+                        v-if="selectRow === item.key"
+                        type="arrow-full-right" />
                 </td>
             </tr>
         </tbody>
@@ -90,14 +97,39 @@
                         return;
                     }
                     
-                    if (!this.selectRow || !_.find(this.data, _ => this.selectRow === _.key)) {
+                    if (!this.selectRow
+                        || !_.find(this.data, _ => this.selectRow === _.key)) {
                         this.handleSelect(this.data[0]);
                     }
                 },
                 immediate: true,
             },
         },
+        mounted () {
+            const focusCallbacks = (event) => {
+                console.log('asdad = ', event);
+                this.isFocused = false;
+                let $parentEle = event.target;
+                while ($parentEle && $parentEle.classList) {
+                    console.log('from while = ', $parentEle);
+                    if ($parentEle.classList.contains('step-execute-host-list')) {
+                        this.isFocused = true;
+                        break;
+                    }
+                    $parentEle = $parentEle.parentNode;
+                }
+                console.log('from ip focus = ', this.isFocused);
+            };
+            document.addEventListener('click', focusCallbacks);
+            this.$once('hook:beforeDestroy', () => {
+                document.removeEventListener('click', focusCallbacks);
+            });
+        },
         methods: {
+            /**
+             * @desc 选中主机
+             * @param { Object } payload
+             */
             handleSelect (payload) {
                 this.selectRow = payload.key;
                 this.$emit('on-row-select', payload);
