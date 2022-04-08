@@ -87,7 +87,7 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRulesByScriptType(dslContext,
                 scriptType);
             if (CollectionUtils.isEmpty(dangerousRuleDTOList)) {
-                return null;
+                return new ArrayList<DangerousRuleDTO>();
             }
             try {
                 log.info("Refresh dangerousRules cache, dangerousRules:{}", JsonUtils.toJson(dangerousRuleDTOList));
