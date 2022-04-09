@@ -34,6 +34,8 @@ import lombok.ToString;
 
 import java.util.List;
 
+import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
+
 /**
  * 脚本
  */
@@ -124,7 +126,9 @@ public class ScriptDTO {
         EsbScriptV3DTO esbScript = new EsbScriptV3DTO();
         esbScript.setId(id);
 
-        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, esbScript);
+        if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, esbScript);
+        }
 
         esbScript.setName(name);
         esbScript.setType(type);
@@ -139,8 +143,9 @@ public class ScriptDTO {
     public EsbScriptVersionDetailV3DTO toEsbScriptVersionDetailV3DTO() {
         EsbScriptVersionDetailV3DTO esbScriptVersion = new EsbScriptVersionDetailV3DTO();
         esbScriptVersion.setId(scriptVersionId);
-
-        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, esbScriptVersion);
+        if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, esbScriptVersion);
+        }
 
         esbScriptVersion.setScriptId(id);
         esbScriptVersion.setVersion(version);
