@@ -22,37 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.util.http.BasicHttpReq;
-import com.tencent.bk.job.common.util.json.SkipLogFields;
-import lombok.Getter;
-import lombok.Setter;
+import com.tencent.bk.job.common.esb.model.EsbJobReq;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * ESB API 通用请求参数
+ * 查询公共脚本列表请求
  */
-@Setter
-@Getter
-public class EsbReq extends BasicHttpReq {
-    @JsonProperty("bk_app_code")
-    private String appCode;
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EsbGetPublicScriptListV3Request extends EsbJobReq {
+    /**
+     * 脚本名称，支持模糊查询
+     */
+    private String name;
+    /**
+     * 脚本类型。0：所有脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：sql。默认值为0
+     */
+    @JsonProperty("script_language")
+    private Integer scriptLanguage;
 
-    @SkipLogFields("bk_app_secret")
-    @JsonProperty("bk_app_secret")
-    private String appSecret;
+    /**
+     * 起始位置
+     */
+    private Integer start;
 
-    @JsonProperty("bk_username")
-    private String userName;
-
-    @JsonProperty("bk_token")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String bkToken;
-
-    @JsonProperty("bk_supplier_account")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String bkSupplierAccount;
-
+    /**
+     * 起始位置
+     */
+    private Integer length;
 }
