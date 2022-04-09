@@ -44,14 +44,4 @@ public class EsbGetPublicScriptListV3Request extends EsbJobReq {
      */
     @JsonProperty("script_language")
     private Integer scriptLanguage;
-
-    /**
-     * 起始位置
-     */
-    private Integer start;
-
-    /**
-     * 起始位置
-     */
-    private Integer length;
 }
