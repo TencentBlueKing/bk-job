@@ -446,20 +446,19 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             }
         }
         for (ExecuteFileSourceInfoVO fileSource : fileSourceList) {
-            if (CollectionUtils.isNotEmpty(suffixList)) {
-                for (String fileSuffix : fileSource.getFileLocation()) {
-                    for (String suffix : suffixList) {
-                        if (fileSuffix.toLowerCase().endsWith(suffix.toLowerCase())) {
-                            if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
-                                validateSuffix = true;
-                            } else {
-                                validateSuffix = false;
-                            }
+            if (CollectionUtils.isEmpty(suffixList)) {
+                break;
+            }
+            for (String fileSuffix : fileSource.getFileLocation()) {
+                for (String suffix : suffixList) {
+                    if (fileSuffix.toLowerCase().endsWith(suffix.toLowerCase())) {
+                        if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
+                            validateSuffix = true;
+                        } else {
+                            validateSuffix = false;
                         }
                     }
                 }
-            }else {
-                break;
             }
         }
         if (restrictMode != -1 && !validateSuffix) {
