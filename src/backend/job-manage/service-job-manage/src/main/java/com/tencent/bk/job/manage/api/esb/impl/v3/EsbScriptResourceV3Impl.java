@@ -170,7 +170,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     private void checkEsbGetScriptListV3Req(EsbGetScriptListV3Req request) {
-        request.adjustPageParam(20, 1000);
+        request.adjustPageParam();
         // 如果script_type=0,表示查询所有类型
         if (request.getScriptLanguage() != null
             && request.getScriptLanguage() > 0

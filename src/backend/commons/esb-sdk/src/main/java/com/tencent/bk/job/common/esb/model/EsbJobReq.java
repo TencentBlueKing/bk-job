@@ -35,6 +35,14 @@ import lombok.Setter;
 @Getter
 public class EsbJobReq extends EsbReq {
     /**
+     * ESB 请求-默认分页大小
+     */
+    public static final Integer DEFAULT_PAGE_LENGTH = 20;
+    /**
+     * ESB 请求-默认的最大分页大小
+     */
+    public static final Integer DEFAULT_PAGE_LENGTH_LIMIT = 1000;
+    /**
      * 分页-起始位置,默认为0
      */
     @JsonProperty("start")
@@ -45,6 +53,22 @@ public class EsbJobReq extends EsbReq {
      */
     @JsonProperty("length")
     private Integer length;
+
+    /**
+     * 调整默认分页参数。
+     * 默认分页大小：EsbJobReq.DEFAULT_PAGE_LENGTH；
+     * 默认最大分页大小: EsbJobReq.DEFAULT_PAGE_LENGTH_LIMIT
+     */
+    public void adjustPageParam() {
+        if (start == null || start < 0) {
+            start = 0;
+        }
+        if (length == null || length <= 0) {
+            length = DEFAULT_PAGE_LENGTH;
+        } else if (length > DEFAULT_PAGE_LENGTH_LIMIT) {
+            length = DEFAULT_PAGE_LENGTH_LIMIT;
+        }
+    }
 
     /**
      * 调整分页参数
