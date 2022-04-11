@@ -124,7 +124,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
     }
 
     private void watchEvent() {
-        log.info("Start watch bizSet resource at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
+        log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis());
         String cursor = null;
         while (true) {
@@ -149,7 +149,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 if (span != null) {
                     span.error(t);
                 }
-                log.error("BizSetWatch thread fail", t);
+                log.error("EventWatch thread fail", t);
                 cursor = null;
             }
         }

@@ -22,37 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.util.http.BasicHttpReq;
-import com.tencent.bk.job.common.util.json.SkipLogFields;
-import lombok.Getter;
-import lombok.Setter;
+import com.tencent.bk.job.common.esb.model.EsbJobReq;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * ESB API 通用请求参数
+ * 查询公共脚本详情请求
  */
-@Setter
-@Getter
-public class EsbReq extends BasicHttpReq {
-    @JsonProperty("bk_app_code")
-    private String appCode;
-
-    @SkipLogFields("bk_app_secret")
-    @JsonProperty("bk_app_secret")
-    private String appSecret;
-
-    @JsonProperty("bk_username")
-    private String userName;
-
-    @JsonProperty("bk_token")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String bkToken;
-
-    @JsonProperty("bk_supplier_account")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String bkSupplierAccount;
-
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EsbGetPublicScriptVersionDetailV3Request extends EsbJobReq {
+    /**
+     * 脚本版本ID，若传入则以此条件为准屏蔽其他条件
+     */
+    private Long id;
+    /**
+     * 脚本ID（可与version一起传入定位某个脚本版本）
+     */
+    @JsonProperty("script_id")
+    private String scriptId;
+    /**
+     * 脚本版本（可与script_id一起传入定位某个脚本版本）
+     */
+    private String version;
 }

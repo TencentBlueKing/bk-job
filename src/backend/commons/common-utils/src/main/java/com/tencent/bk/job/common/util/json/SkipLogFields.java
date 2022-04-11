@@ -27,7 +27,11 @@ package com.tencent.bk.job.common.util.json;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * 用于注解json转换为文本的时候被过滤的字段-敏感信息等
@@ -39,8 +43,6 @@ import java.lang.annotation.*;
 public @interface SkipLogFields {
     /**
      * 要过滤的字段 -- 用于字段
-     *
-     * @return
      */
     String value() default "";
 }

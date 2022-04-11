@@ -123,7 +123,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         applicationDTO.setMaintainers(record.get(T_APP.MAINTAINERS));
         applicationDTO.setBkSupplierAccount(record.get(T_APP.BK_SUPPLIER_ACCOUNT));
         applicationDTO.setAppType(AppTypeEnum.valueOf(record.get(T_APP.APP_TYPE)));
-        applicationDTO.setSubBizIds(splitSubAppIds(record.get(T_APP.SUB_APP_IDS)));
+        applicationDTO.setSubBizIds(splitSubBizIds(record.get(T_APP.SUB_APP_IDS)));
         applicationDTO.setTimeZone(record.get(T_APP.TIMEZONE));
         applicationDTO.setOperateDeptId(record.get(T_APP.BK_OPERATE_DEPT_ID));
         applicationDTO.setLanguage(record.get(T_APP.LANGUAGE));
@@ -132,17 +132,17 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         return applicationDTO;
     }
 
-    private static List<Long> splitSubAppIds(String appIds) {
-        List<Long> appIdList = new LinkedList<>();
-        if (StringUtils.isNotBlank(appIds)) {
-            for (String appIdStr : appIds.split("[,;]")) {
-                if (StringUtils.isNotBlank(appIdStr)) {
-                    appIdList.add(Long.valueOf(appIdStr));
+    private static List<Long> splitSubBizIds(String bizIdsStr) {
+        List<Long> bizIdList = new LinkedList<>();
+        if (StringUtils.isNotBlank(bizIdsStr)) {
+            for (String bizIdStr : bizIdsStr.split("[,;]")) {
+                if (StringUtils.isNotBlank(bizIdStr)) {
+                    bizIdList.add(Long.valueOf(bizIdStr));
                 }
             }
 
         }
-        return appIdList;
+        return bizIdList;
     }
 
     private List<Condition> getBasicNotDeletedConditions() {
