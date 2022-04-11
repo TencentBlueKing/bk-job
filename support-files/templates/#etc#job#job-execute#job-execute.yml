@@ -141,10 +141,11 @@ spring:
   redis:
     host: __BK_JOB_EXECUTE_REDIS_HOST__
     port: __BK_JOB_EXECUTE_REDIS_PORT__
-    sentinel:
-      password: __BK_JOB_EXECUTE_REDIS_SENTINEL_PASSWORD__
-      master: __BK_JOB_EXECUTE_REDIS_SENTINEL_MASTER__
-      nodes: __BK_JOB_EXECUTE_REDIS_SENTINEL_NODES__
+    # 使用Redis Sentinel时的配置项
+    #sentinel:
+    #  password: __BK_JOB_EXECUTE_REDIS_SENTINEL_PASSWORD__
+    #  master: __BK_JOB_EXECUTE_REDIS_SENTINEL_MASTER__
+    #  nodes: __BK_JOB_EXECUTE_REDIS_SENTINEL_NODES__
     password: __BK_JOB_EXECUTE_REDIS_PASSWORD__
     database: 0
     lettuce:

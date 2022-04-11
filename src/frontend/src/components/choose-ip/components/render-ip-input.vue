@@ -199,39 +199,6 @@
                 // this.isError = false;
             }, 60),
             /**
-             * @desc 提交输入值时的抛射动画效果
-             * @param {Function} callback 动画结束后的回调
-             */
-            shot (callback = () => {}) {
-                this.$emit('on-input-animate', true);
-                const $previewTarget = document.querySelector(`#${this.previewId}`);
-                const $moveTarget = this.$refs.inputNumber.cloneNode(true);
-                const $moveTargetText = $moveTarget.querySelector('.text');
-                const targetPosition = $previewTarget.getBoundingClientRect();
-                const movePosition = this.$refs.inputNumber.getBoundingClientRect();
-
-                $moveTarget.style.position = 'absolute';
-                $moveTarget.style.top = `${movePosition.top}px`;
-                $moveTarget.style.left = `${movePosition.left}px`;
-                $moveTargetText.style.position = 'absolute';
-                document.body.appendChild($moveTarget);
-                let offsetX = movePosition.left - targetPosition.left;
-                const offsetY = targetPosition.top - movePosition.top;
-                if (targetPosition.width > 40) {
-                    offsetX -= 60;
-                }
-                
-                setTimeout(() => {
-                    $moveTarget.style.transform = `translate(-${offsetX}px)`;
-                    $moveTargetText.style.transform = `translateY(${offsetY}px)`;
-                }, 20);
-                setTimeout(() => {
-                    document.body.removeChild($moveTarget);
-                    this.$emit('on-input-animate', false);
-                    callback();
-                }, 525);
-            },
-            /**
              * @desc 提交输入结果
              */
             handleAddHost () {
@@ -298,9 +265,7 @@
                         });
                         // 提交输入内容
                         if (hostList.length > 0) {
-                            this.shot(() => {
-                                this.$emit('on-change', 'ipInput', hostList);
-                            });
+                            this.$emit('on-change', 'ipInput', hostList);
                         }
                         // 正确的 IP 输入，但是 IP 不存于当前业务下
                         this.invalidIPList = ipList.reduce((result, IPItem) => {

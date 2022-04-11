@@ -22,31 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.globalsetting;
+package com.tencent.bk.job.execute.client;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import com.tencent.bk.job.manage.api.inner.ServiceGlobalSettingsResource;
+import org.springframework.cloud.openfeign.FeignClient;
 
 /**
- * 文件上传参数VO
+ * 作业管理-全局配置
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("文件上传参数")
-@Data
-public class FileUploadSettingVO {
-    @ApiModelProperty("数量")
-    private Long amount;
-    @ApiModelProperty("单位")
-    private String unit;
-    @ApiModelProperty("限制模式，0:禁止范围，1：允许范围")
-    private Integer restrictMode;
-    @ApiModelProperty("后缀列表")
-    private List<String> suffixList;
-
+@FeignClient(value = "job-manage", contextId = "globalSettings")
+public interface GlobalSettingsClient extends ServiceGlobalSettingsResource {
 }
