@@ -24,25 +24,22 @@
 
 package com.tencent.bk.job.manage.model.web.request.globalsetting;
 
-import java.util.List;
-
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-
-import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.group.GroupSequenceProvider;
-
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Update;
 import com.tencent.bk.job.manage.common.consts.rule.HighRiskGrammarActionEnum;
 import com.tencent.bk.job.manage.common.consts.rule.HighRiskGrammarRuleStatusEnum;
 import com.tencent.bk.job.manage.validation.provider.DangerousRuleGroupSequenceProvider;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.group.GroupSequenceProvider;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @GroupSequenceProvider(DangerousRuleGroupSequenceProvider.class)
 @AllArgsConstructor

@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.model.inner.ServiceFileUploadSettingDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,4 +42,8 @@ public interface ServiceGlobalSettingsResource {
     @ApiOperation(value = "获取文档中心基础Url", produces = "application/json")
     @GetMapping("/docCenterBaseUrl")
     InternalResponse<String> getDocCenterBaseUrl();
+
+    @ApiOperation(value = "获取文件上传设置", produces = "application/json")
+    @GetMapping("/fileUploadSettings")
+    InternalResponse<ServiceFileUploadSettingDTO> getFileUploadSettings();
 }

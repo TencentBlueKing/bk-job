@@ -24,14 +24,13 @@
 
 package com.tencent.bk.job.manage.validation.provider;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
-
 import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.common.validation.Update;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * id属性值如果不为空并且不为-1，执行更新组的校验逻辑，否则执行新增组的校验逻辑

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.globalsetting;
+package com.tencent.bk.job.manage.model.inner;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -33,13 +33,13 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * 文件上传参数VO
+ * 文件上传配置DTO
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("文件上传参数")
+@ApiModel("文件上传配置")
 @Data
-public class FileUploadSettingVO {
+public class ServiceFileUploadSettingDTO {
     @ApiModelProperty("数量")
     private Long amount;
     @ApiModelProperty("单位")
