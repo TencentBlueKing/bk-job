@@ -579,8 +579,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         }
         stepExecutionDetailVO.setResultGroups(resultGroupVOS);
 
-        stepExecutionDetailVO.setRollingTasks(toRollingStepBatchTaskVOs(executionDetail.getLatestBatch(),
-            executionDetail.getRollingTasks()));
+        if (CollectionUtils.isNotEmpty(executionDetail.getRollingTasks())) {
+            stepExecutionDetailVO.setRollingTasks(toRollingStepBatchTaskVOs(executionDetail.getLatestBatch(),
+                executionDetail.getRollingTasks()));
+        }
 
         return stepExecutionDetailVO;
     }

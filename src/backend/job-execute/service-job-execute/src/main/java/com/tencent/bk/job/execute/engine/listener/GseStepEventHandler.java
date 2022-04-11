@@ -190,18 +190,33 @@ public class GseStepEventHandler implements StepEventHandler {
             stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), RunStatusEnum.RUNNING, System.currentTimeMillis(), null, null);
 
-
-            if (stepInstance.isScriptStep()) {
-                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(gseTaskId, null));
-            } else if (stepInstance.isFileStep()) {
-                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
-                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                    filePrepareService.prepareFileForGseTask(stepInstanceId);
-                }
-            }
+            startGseTask(stepInstance, gseTaskId);
         } else {
             log.warn("Unsupported step instance run status for starting step, stepInstanceId={}, status={}",
                 stepInstanceId, stepStatus);
+        }
+    }
+
+    /**
+     * 启动GSE任务
+     *
+     * @param stepInstance 步骤实例
+     * @param gseTaskId    Gse任务ID
+     */
+    private void startGseTask(StepInstanceDTO stepInstance, long gseTaskId) {
+        if (stepInstance.isScriptStep()) {
+            taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(gseTaskId, null));
+        } else if (stepInstance.isFileStep()) {
+            // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
+            if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
+                if (filePrepareService.needToPrepareSourceFilesForGseTask(stepInstance)) {
+                    filePrepareService.prepareFileForGseTask(stepInstance);
+                } else {
+                    taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(gseTaskId, null));
+                }
+            } else {
+                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(gseTaskId, null));
+            }
         }
     }
 
@@ -433,7 +448,7 @@ public class GseStepEventHandler implements StepEventHandler {
             } else if (stepInstance.isFileStep()) {
                 // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
                 if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                    filePrepareService.prepareFileForGseTask(stepInstanceId);
+                    filePrepareService.prepareFileForGseTask(stepInstance);
                 }
             }
         } else {
@@ -517,7 +532,7 @@ public class GseStepEventHandler implements StepEventHandler {
             } else if (stepInstance.isFileStep()) {
                 // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
                 if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                    filePrepareService.prepareFileForGseTask(stepInstanceId);
+                    filePrepareService.prepareFileForGseTask(stepInstance);
                 }
             }
         } else {

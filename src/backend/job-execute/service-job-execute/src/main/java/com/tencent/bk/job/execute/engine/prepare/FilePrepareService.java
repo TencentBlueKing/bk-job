@@ -24,13 +24,15 @@
 
 package com.tencent.bk.job.execute.engine.prepare;
 
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+
 public interface FilePrepareService {
     /**
      * 为后续的分发阶段准备本地/第三方源文件
      *
-     * @param stepInstanceId 步骤实例Id
+     * @param stepInstance 步骤实例
      */
-    void prepareFileForGseTask(long stepInstanceId);
+    void prepareFileForGseTask(StepInstanceDTO stepInstance);
 
     /**
      * 停止正在进行的准备文件过程
@@ -52,4 +54,11 @@ public interface FilePrepareService {
      * @param stepInstanceId 步骤实例Id
      */
     void clearPreparedTmpFile(long stepInstanceId);
+
+    /**
+     * 是否需要准备源文件
+     *
+     * @param stepInstance 步骤实例
+     */
+    boolean needToPrepareSourceFilesForGseTask(StepInstanceDTO stepInstance);
 }
