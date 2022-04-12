@@ -26,15 +26,20 @@
 -->
 
 <template>
-    <div ref="smartActionWraper">
+    <div ref="root">
         <div>
             <slot />
         </div>
         <div
-            ref="action"
-            :style="actionPlaceholderStyles"
-            role="action">
-            <div v-show="isActionRender" :class="dymaicClasses" :style="dymaicStyles" role="dynamic">
+            ref="placeholder"
+            :style="placeholderStyles"
+            role="placeholder">
+            <div
+                ref="action"
+                v-show="isPlaceholderShow"
+                :class="dymaicClasses"
+                :style="dymaicStyles"
+                role="action">
                 <div :style="actionContentstyles">
                     <slot name="action" />
                 </div>
@@ -57,7 +62,7 @@
         },
         data () {
             return {
-                isActionRender: false,
+                isPlaceholderShow: false,
                 isFixed: false,
                 paddingLeft: 0,
                 offsetLeft: 0,
@@ -68,7 +73,7 @@
              * @desc 操作按钮站位区域的样式
              * @returns {Object}
             */
-            actionPlaceholderStyles () {
+            placeholderStyles () {
                 return {
                     height: this.isFixed ? '50px' : 'auto',
                 };
@@ -119,35 +124,52 @@
             this.calcOffsetLeft();
             this.smartPosition();
         },
+        beforeDestroy () {
+            if (this.$refs.action) {
+                this.$refs.action.parentNode.removeChild(this.$refs.action);
+            }
+        },
         methods: {
             /**
              * @desc action 内容区相对 offsetTarget 的偏移位置
             */
             calcOffsetLeft: _.debounce(function () {
-                if (!this.offsetTarget || !this.$refs.action) {
+                if (!this.offsetTarget || !this.$refs.placeholder) {
                     return;
                 }
                 const $target = document.querySelector(`.${this.offsetTarget}`);
                 if (!$target) {
                     return;
                 }
-                const actionPositionLeft = this.$refs.action.getBoundingClientRect().left;
+                const placeholderLeft = this.$refs.placeholder.getBoundingClientRect().left;
                 const offsetTargetLeft = $target.getBoundingClientRect().left;
-                this.offsetLeft = offsetTargetLeft - actionPositionLeft;
+                this.offsetLeft = offsetTargetLeft - placeholderLeft;
             }, 50),
             /**
-             * @desc 当 action 块是 fixed 效果时，修正左边位置的 paddingLeft
+             * @desc 当 placeholder 块是 fixed 效果时，修正左边位置的 paddingLeft
             */
-            smartPosition: _.debounce(function () {
-                if (!this.$refs.action) {
+            smartPosition: _.throttle(function () {
+                if (!this.$refs.placeholder) {
                     return;
                 }
-                const windowHeight = window.innerHeight;
-                const { height, top, left } = this.$refs.action.getBoundingClientRect();
-                this.isFixed = height + top + 20 > windowHeight;
+                const {
+                    height,
+                    top,
+                    left,
+                } = this.$refs.placeholder.getBoundingClientRect();
+                this.isFixed = height + top + 20 > window.innerHeight;
                 this.paddingLeft = left;
                 setTimeout(() => {
-                    this.isActionRender = true;
+                    this.isPlaceholderShow = true;
+                    if (this.isFixed) {
+                        if (this.$refs.action.parentNode !== document.body) {
+                            document.body.appendChild(this.$refs.action);
+                        }
+                    } else {
+                        if (this.$refs.action.parentNode !== this.$refs.placeholder) {
+                            this.$refs.placeholder.appendChild(this.$refs.action);
+                        }
+                    }
                 });
             }, 300),
         },

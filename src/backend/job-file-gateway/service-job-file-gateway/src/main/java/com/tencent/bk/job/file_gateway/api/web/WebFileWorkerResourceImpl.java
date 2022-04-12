@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileWorkerVO;
@@ -45,15 +46,17 @@ public class WebFileWorkerResourceImpl implements WebFileWorkerResource {
     private final FileWorkerService fileWorkerService;
 
     @Autowired
-    public WebFileWorkerResourceImpl(
-        FileWorkerService fileWorkerService
-    ) {
+    public WebFileWorkerResourceImpl(FileWorkerService fileWorkerService) {
         this.fileWorkerService = fileWorkerService;
     }
 
     @Override
-    public Response<List<FileWorkerVO>> listFileWorker(String username, Long appId,
+    public Response<List<FileWorkerVO>> listFileWorker(String username,
+                                                       AppResourceScope appResourceScope,
+                                                       String scopeType,
+                                                       String scopeId,
                                                        WorkerSelectScopeEnum workerSelectScope) {
+        Long appId = appResourceScope.getAppId();
         List<FileWorkerDTO> fileWorkerDTOList = fileWorkerService.listFileWorker(username, appId, workerSelectScope);
         if (fileWorkerDTOList == null || fileWorkerDTOList.size() == 0) {
             return Response.buildSuccessResp(Collections.emptyList());

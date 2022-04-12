@@ -27,11 +27,12 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
@@ -56,18 +57,21 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
     private final TaskInstanceService taskInstanceService;
     private final GseTaskLogService gseTaskLogService;
-    private final MessageI18nService i18nService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbGetJobInstanceStatusV3ResourceImpl(MessageI18nService i18nService, GseTaskLogService gseTaskLogService,
-                                                 TaskInstanceService taskInstanceService) {
-        this.i18nService = i18nService;
+    public EsbGetJobInstanceStatusV3ResourceImpl(GseTaskLogService gseTaskLogService,
+                                                 TaskInstanceService taskInstanceService,
+                                                 AppScopeMappingService appScopeMappingService) {
         this.gseTaskLogService = gseTaskLogService;
         this.taskInstanceService = taskInstanceService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_status"})
     public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatusUsingPost(EsbGetJobInstanceStatusV3Request request) {
+        request.fillAppResourceScope(appScopeMappingService);
+
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance status request is illegal!");
@@ -78,7 +82,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getTaskInstanceId());
 
-        authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
+        authViewTaskInstance(request.getUserName(), request.getAppResourceScope(), taskInstance);
 
 
         List<StepInstanceBaseDTO> stepInstances = taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
@@ -95,10 +99,6 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
     }
 
     private ValidateResult checkRequest(EsbGetJobInstanceStatusV3Request request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("App is empty or illegal, appId={}", request.getAppId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (request.getTaskInstanceId() == null || request.getTaskInstanceId() < 1) {
             log.warn("TaskInstanceId is empty or illegal, taskInstanceId={}", request.getTaskInstanceId());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
@@ -114,7 +114,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
             && !taskInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
 
         EsbJobInstanceStatusV3DTO.JobInstance jobInstance = new EsbJobInstanceStatusV3DTO.JobInstance();
-        jobInstance.setAppId(taskInstance.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskInstance.getAppId(), jobInstance);
         jobInstance.setId(taskInstance.getId());
         jobInstance.setName(taskInstance.getName());
         jobInstance.setCreateTime(taskInstance.getCreateTime());
@@ -168,13 +168,17 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
     @Override
     public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatus(String username,
                                                                    String appCode,
-                                                                   Long appId,
+                                                                   Long bizId,
+                                                                   String scopeType,
+                                                                   String scopeId,
                                                                    Long taskInstanceId,
                                                                    boolean returnIpResult) {
         EsbGetJobInstanceStatusV3Request request = new EsbGetJobInstanceStatusV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setAppId(appId);
+        request.setBizId(bizId);
+        request.setScopeType(scopeType);
+        request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);
         request.setReturnIpResult(returnIpResult);
         return getJobInstanceStatusUsingPost(request);

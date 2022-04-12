@@ -103,10 +103,16 @@ public class BaseHttpHelper implements HttpHelper {
             int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.info(
-                    "Post request fail, statusCode={}, errorReason={}, url={}, headers={}",
+                HttpEntity entity = httpResponse.getEntity();
+                String content = "";
+                if (entity != null && entity.getContent() != null) {
+                    content = new String(EntityUtils.toByteArray(entity), CHARSET);
+                }
+                log.warn(
+                    "Post request fail, statusCode={}, errorReason={}, body={}, url={}, headers={}",
                     statusCode,
                     message,
+                    content,
                     url,
                     headers
                 );
@@ -146,14 +152,16 @@ public class BaseHttpHelper implements HttpHelper {
     @Override
     public Pair<Integer, String> delete(String url, String content, Header... headers) {
         FakeHttpDelete delete = new FakeHttpDelete(url);
-        HttpEntity requestEntity;
-        try {
-            requestEntity = new ByteArrayEntity(content.getBytes(CHARSET));
-        } catch (UnsupportedEncodingException e) {
-            log.error("Fail to get ByteArrayEntity", e);
-            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
+        if (content != null) {
+            HttpEntity requestEntity;
+            try {
+                requestEntity = new ByteArrayEntity(content.getBytes(CHARSET));
+            } catch (UnsupportedEncodingException e) {
+                log.error("Fail to get ByteArrayEntity", e);
+                throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
+            }
+            delete.setEntity(requestEntity);
         }
-        delete.setEntity(requestEntity);
         delete.setHeaders(headers);
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(delete)) {
             int statusCode = httpResponse.getStatusLine().getStatusCode();

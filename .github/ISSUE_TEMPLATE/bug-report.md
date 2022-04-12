@@ -1,16 +1,19 @@
 ---
 name: Bug Report
 about: Report a bug encountered while operating bk-job
-title: ''
+title: 'bugfix: '
 labels: kind/bug
-assignees: ''
+assignees: 'nekzhang'
 
 ---
 
-**版本/分支/tag**
+**Version / Branch / tag**
 
-**问题描述**
 
-**如何复现**
+**出了什么问题？(What Happened?)**
 
-**预期结果**
+
+**如何复现？(How to reproduce?)**
+
+
+**预期结果(What you expect?)**

@@ -34,7 +34,7 @@ import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.task.IAnalysisTask;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 

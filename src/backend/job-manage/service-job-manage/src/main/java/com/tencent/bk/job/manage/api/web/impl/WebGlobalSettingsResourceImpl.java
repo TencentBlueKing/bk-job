@@ -49,12 +49,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/2/27
- * @Version 1.0
- */
-
 @RestController
 @Slf4j
 public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource {

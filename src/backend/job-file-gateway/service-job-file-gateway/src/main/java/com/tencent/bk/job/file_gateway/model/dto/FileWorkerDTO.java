@@ -25,6 +25,9 @@
 package com.tencent.bk.job.file_gateway.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.file_gateway.consts.FileGatewayConsts;
@@ -184,7 +187,21 @@ public class FileWorkerDTO {
     public FileWorkerVO toVO() {
         FileWorkerVO fileWorkerVO = new FileWorkerVO();
         fileWorkerVO.setId(id);
+
         fileWorkerVO.setAppId(appId);
+        if (appId != null && appId > 0) {
+            // 具体的业务/业务集
+            AppScopeMappingService appScopeMappingService =
+                ApplicationContextRegister.getBean(AppScopeMappingService.class);
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+            fileWorkerVO.setScopeType(resourceScope.getType().getValue());
+            fileWorkerVO.setScopeId(resourceScope.getId());
+        } else {
+            // 非具体业务的公共FileWorker
+            fileWorkerVO.setScopeType(null);
+            fileWorkerVO.setScopeId(null);
+        }
+
         fileWorkerVO.setName(name);
         fileWorkerVO.setDescription(description);
         fileWorkerVO.setToken(token);

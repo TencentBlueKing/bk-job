@@ -35,6 +35,7 @@ import com.tencent.bk.job.manage.config.JobTicketConfig;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.credential.CommonCredential;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -169,6 +170,19 @@ public class CredentialDAOImpl implements CredentialDAO {
         }
     }
 
+    @Override
+    public List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(DSLContext dslContext,
+                                                                            Collection<String> ids) {
+        val records = dslContext.select(
+            defaultTable.ID,
+            defaultTable.APP_ID,
+            defaultTable.NAME
+        ).from(defaultTable).where(
+            defaultTable.ID.in(ids)
+        ).fetch();
+        return records.map(this::convertRecordToDisplayDto);
+    }
+
     private List<Condition> buildConditionList(
         CredentialDTO credentialQuery,
         BaseSearchCondition baseSearchCondition
@@ -289,8 +303,7 @@ public class CredentialDAOImpl implements CredentialDAO {
         return credentialPageData;
     }
 
-    private CredentialDTO convertRecordToDto(
-        Record record) {
+    private CredentialDTO convertRecordToDto(Record record) {
         try {
             String credentialStr = AESUtils.decryptToPlainText(
                 Base64Util.decodeContentToByte(record.get(defaultTable.VALUE)),
@@ -315,5 +328,13 @@ public class CredentialDAOImpl implements CredentialDAO {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private ServiceCredentialDisplayDTO convertRecordToDisplayDto(Record record) {
+        return new ServiceCredentialDisplayDTO(
+            record.get(defaultTable.ID),
+            record.get(defaultTable.APP_ID),
+            record.get(defaultTable.NAME)
+        );
     }
 }

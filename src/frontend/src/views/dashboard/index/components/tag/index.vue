@@ -78,22 +78,53 @@
                     metric: 'TAG',
                 }).then((data) => {
                     this.data = data.labelAmountMap;
-                    const max = _.max(Object.values(this.data));
-                    const min = _.min(Object.values(this.data));
-                    const step = (max - min) / 5 || 1;
-                    const textList = [];
-                    Object.keys(this.data).forEach((key) => {
-                        let weight = 1;
-                        const count = this.data[key];
-                        while (weight * step + 1 <= count) {
-                            weight += 1;
+                    const tagNumList = Object.values(this.data).sort((a, b) => a - b);
+                    const [tagNumMin] = tagNumList;
+                    const tagNumMax = tagNumList[tagNumList.length - 1];
+
+                    const weightQueue = [];
+                    let weightMax = 1;
+                    while (weightMax <= 5) {
+                        weightQueue.push(weightMax);
+                        weightMax = weightMax + 1;
+                    }
+
+                    // 判断每个值得显示权重
+                    const weigthMap = {};
+                    const checkWeight = (max, secondMax, min) => {
+                        const maxWeight = weightQueue[weightQueue.length - 1] || 1;
+                        weigthMap[max] = maxWeight;
+
+                        let nextMin = min;
+                        if (secondMax < min) {
+                            weigthMap[max] = maxWeight;
+                            weightQueue.pop();
+                            nextMin = secondMax - Math.max((secondMax - tagNumMin) / weightQueue.length, 1);
+                            // 最大权重间隔维持在两个级别
+                            if (nextMin < min) {
+                                weightQueue.pop();
+                            }
                         }
-                        textList.push({
+                        if (tagNumList.length > 0) {
+                            checkWeight(secondMax, tagNumList.pop(), nextMin);
+                        }
+                    };
+                    
+                    checkWeight(
+                        tagNumList.pop(),
+                        tagNumList.pop(),
+                        tagNumMax - Math.max((tagNumMax - tagNumMin) / weightQueue.length, 1),
+                    );
+
+                    const textList = Object.keys(this.data).reduce((result, key) => {
+                        const count = this.data[key];
+                        result.push({
                             text: key,
-                            weight,
+                            weight: weigthMap[count],
                             count,
                         });
-                    });
+                        return result;
+                    }, []);
                     this.textList = textList;
                     this.init(textList);
                 })

@@ -28,11 +28,12 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
-import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptListV3Req;
-import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionDetailV3Req;
-import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptListV3Request;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionDetailV3Request;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionListV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -78,14 +79,23 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/get_public_script_list")
     EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptListUsingPost(
-        @RequestBody EsbGetScriptListV3Req request);
+        @RequestBody
+        @Validated
+            EsbGetPublicScriptListV3Request request
+    );
 
     @PostMapping("/get_public_script_version_list")
     EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionListUsingPost(
-        @RequestBody EsbGetScriptVersionListV3Req request);
+        @RequestBody
+        @Validated
+            EsbGetPublicScriptVersionListV3Request request
+    );
 
     @PostMapping("/get_public_script_version_detail")
     EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetailUsingPost(
-        @RequestBody EsbGetScriptVersionDetailV3Req request);
+        @RequestBody
+        @Validated
+            EsbGetPublicScriptVersionDetailV3Request request
+    );
 
 }

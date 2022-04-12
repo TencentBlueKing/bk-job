@@ -26,17 +26,20 @@ package com.tencent.bk.job.manage.common;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.TopologyNodeInfoDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
@@ -47,7 +50,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,13 +76,13 @@ public class TopologyHelper {
     private static final Map<Long, Map<String, Map<Long, String>>> BIZ_NODE_TYPE_NAME_MAP = new ConcurrentHashMap<>();
 
     private final QueryAgentStatusClient queryAgentStatusClient;
-    private final ApplicationInfoDAO applicationInfoDAO;
+    private final ApplicationDAO applicationDAO;
     private final CloudAreaService cloudAreaService;
 
     @Autowired
-    public TopologyHelper(ApplicationInfoDAO applicationInfoDAO, QueryAgentStatusClient queryAgentStatusClient,
+    public TopologyHelper(ApplicationDAO applicationDAO, QueryAgentStatusClient queryAgentStatusClient,
                           CloudAreaService cloudAreaService) {
-        this.applicationInfoDAO = applicationInfoDAO;
+        this.applicationDAO = applicationDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.cloudAreaService = cloudAreaService;
     }
@@ -190,7 +199,7 @@ public class TopologyHelper {
      * @param hostInfo 作业平台内主机信息
      * @return 展示用主机信息
      */
-    public static HostInfoVO convertToHostInfoVO(ApplicationHostInfoDTO hostInfo) {
+    public static HostInfoVO convertToHostInfoVO(ApplicationHostDTO hostInfo) {
         if (hostInfo == null) {
             return null;
         }
@@ -241,8 +250,12 @@ public class TopologyHelper {
             return null;
         }
         DynamicGroupInfoVO dynamicGroupInfoVO = new DynamicGroupInfoVO();
-        dynamicGroupInfoVO.setAppId(dynamicGroupInfoDTO.getAppId());
-        dynamicGroupInfoVO.setAppName(dynamicGroupInfoDTO.getAppName());
+        dynamicGroupInfoVO.setAppId(dynamicGroupInfoDTO.getBizId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        dynamicGroupInfoVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+        dynamicGroupInfoVO.setScopeId(dynamicGroupInfoDTO.getBizId().toString());
+        dynamicGroupInfoVO.setAppName(dynamicGroupInfoDTO.getBizName());
         dynamicGroupInfoVO.setId(dynamicGroupInfoDTO.getId());
         dynamicGroupInfoVO.setOwner(dynamicGroupInfoDTO.getOwner());
         dynamicGroupInfoVO.setOwnerName(dynamicGroupInfoDTO.getOwnerName());
@@ -264,9 +277,9 @@ public class TopologyHelper {
 
     }
 
-    public InstanceTopologyDTO getTopologyTreeByApplication(String username, ApplicationInfoDTO applicationInfo) {
-        InstanceTopologyDTO instanceTopology = CcClientFactory.getCcClient(JobContextUtil.getUserLang())
-            .getBizInstTopology(applicationInfo.getId(), applicationInfo.getBkSupplierAccount(), username);
+    public InstanceTopologyDTO getTopologyTreeByApplication(ApplicationDTO applicationInfo) {
+        InstanceTopologyDTO instanceTopology = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
+            .getBizInstTopology(Long.parseLong(applicationInfo.getScope().getId()));
         if (instanceTopology == null) {
             return null;
         }
@@ -283,23 +296,22 @@ public class TopologyHelper {
     /**
      * 根据拓扑节点 ID 和类型获取节点名称
      *
-     * @param username 用户名
      * @param appId    业务 ID
      * @param nodeId   节点 ID
      * @param nodeType 节点类型
      * @return 节点名称
      */
-    public String getTopologyNodeName(String username, Long appId, Long nodeId, String nodeType) {
+    public String getTopologyNodeName(Long appId, Long nodeId, String nodeType) {
         Map<String, Map<Long, String>> nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
-        ApplicationInfoDTO appInfo = applicationInfoDAO.getCacheAppInfoById(appId);
+        ApplicationDTO appInfo = applicationDAO.getCacheAppById(appId);
         if (appInfo == null) {
             return String.valueOf(nodeId);
         }
         if (nodeTypeNameMap == null || nodeTypeNameMap.get(nodeType) == null) {
-            InstanceTopologyDTO topology = getTopologyTreeByApplication(username, appInfo);
+            InstanceTopologyDTO topology = getTopologyTreeByApplication(appInfo);
             processTopologyNodeName(topology, null);
         }
-        if (CcNodeTypeEnum.APP.getType().equals(nodeType)) {
+        if (CcNodeTypeEnum.BIZ.getType().equals(nodeType)) {
             return appInfo.getName();
         }
         nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
@@ -315,16 +327,17 @@ public class TopologyHelper {
         return String.valueOf(nodeId);
     }
 
-    public List<Long> getAppSetSubAppIds(ApplicationInfoDTO appInfo) {
-        List<Long> subAppIds = appInfo.getSubAppIds();
+    public List<Long> getBizSetSubBizIds(ApplicationDTO appInfo) {
+        List<Long> subAppIds = appInfo.getSubBizIds();
+        // 兼容发布过程中未完成子业务字段同步的部门型业务集
         Long optDeptId = appInfo.getOperateDeptId();
         if (subAppIds == null || subAppIds.isEmpty() && optDeptId != null) {
             // 使用OperateDeptId
-            subAppIds = applicationInfoDAO.getNormalAppIdsByOptDeptId(optDeptId);
+            subAppIds = applicationDAO.getBizIdsByOptDeptId(optDeptId);
         } else {
             // subAppIds与OperateDeptId同时生效
             if (optDeptId != null) {
-                subAppIds.addAll(applicationInfoDAO.getNormalAppIdsByOptDeptId(optDeptId));
+                subAppIds.addAll(applicationDAO.getBizIdsByOptDeptId(optDeptId));
             }
         }
         // 去重
@@ -360,17 +373,17 @@ public class TopologyHelper {
      * @param ipList IP 地址列表
      * @return 机器 Agent 状态信息列表
      */
-    public List<ApplicationHostInfoDTO> getIpStatusListByIps(long appId, List<String> ipList) {
-        List<ApplicationHostInfoDTO> ipInfoList = new ArrayList<>();
+    public List<ApplicationHostDTO> getIpStatusListByIps(long appId, List<String> ipList) {
+        List<ApplicationHostDTO> ipInfoList = new ArrayList<>();
         if (CollectionUtils.isEmpty(ipList)) {
             return ipInfoList;
         }
         Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
             queryAgentStatusClient.batchGetAgentStatus(ipList);
         for (String ip : ipList) {
-            ApplicationHostInfoDTO ipInfo = new ApplicationHostInfoDTO();
+            ApplicationHostDTO ipInfo = new ApplicationHostDTO();
             ipInfo.setCloudAreaId(Long.valueOf(ip.split(":")[0]));
-            ipInfo.setAppId(appId);
+            ipInfo.setBizId(appId);
             ipInfo.setIp(ip.split(":")[1]);
             ipInfo.setGseAgentAlive(agentStatusMap.get(ip) != null && (agentStatusMap.get(ip).status == 1));
             ipInfoList.add(ipInfo);
@@ -388,7 +401,7 @@ public class TopologyHelper {
         InstanceTopologyDTO topology,
         Map<String, Map<Long, String>> nodeTypeNameMap
     ) {
-        if (CcNodeTypeEnum.APP.getType().equals(topology.getObjectId())) {
+        if (CcNodeTypeEnum.BIZ.getType().equals(topology.getObjectId())) {
             Long appId = topology.getInstanceId();
             if (BIZ_NODE_TYPE_NAME_MAP.get(appId) == null) {
                 BIZ_NODE_TYPE_NAME_MAP.put(appId, new ConcurrentHashMap<>(3));

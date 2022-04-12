@@ -26,8 +26,8 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -70,32 +70,32 @@ public interface ServiceSyncResource {
     /**
      * 同步某业务的主机
      *
-     * @param appId 业务ID
+     * @param bizId 业务ID
      * @return
      */
-    @PutMapping("/syncHost/app/{appId}")
+    @PutMapping("/syncHost/biz/{bizId}")
     @ApiOperation(value = "根据业务ID同步主机", produces = "application/json")
-    InternalResponse<Boolean> syncHostByAppId(
+    InternalResponse<Boolean> syncHostByBizId(
         @ApiParam(value = "业务ID", required = true)
-        @PathVariable("appId") Long appId);
+        @PathVariable("bizId") Long bizId);
 
     /**
      * 开启业务事件监听
      *
      * @return
      */
-    @PutMapping("/appWatch/enable")
+    @PutMapping("/bizWatch/enable")
     @ApiOperation(value = "开启业务事件监听", produces = "application/json")
-    InternalResponse<Boolean> enableAppWatch();
+    InternalResponse<Boolean> enableBizWatch();
 
     /**
      * 关闭业务事件监听
      *
      * @return
      */
-    @PutMapping("/appWatch/disable")
+    @PutMapping("/bizWatch/disable")
     @ApiOperation(value = "关闭业务事件监听", produces = "application/json")
-    InternalResponse<Boolean> disableAppWatch();
+    InternalResponse<Boolean> disableBizWatch();
 
     /**
      * 开启主机事件监听
@@ -116,7 +116,7 @@ public interface ServiceSyncResource {
     InternalResponse<Boolean> disableHostWatch();
 
     /**
-     * 开启业务同步
+     * 开启业务（集）同步
      *
      * @return
      */
@@ -125,7 +125,7 @@ public interface ServiceSyncResource {
     InternalResponse<Boolean> enableSyncApp();
 
     /**
-     * 关闭业务同步
+     * 关闭业务（集）同步
      *
      * @return
      */

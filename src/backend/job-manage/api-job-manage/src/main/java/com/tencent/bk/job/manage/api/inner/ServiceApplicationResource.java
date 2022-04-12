@@ -24,28 +24,23 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RequestMapping("/service/app")
+@RequestMapping("/service")
 @Api(tags = {"job-manage:service:App_Management"})
 @RestController
 @InternalAPI
@@ -53,62 +48,66 @@ public interface ServiceApplicationResource {
     /**
      * 查询CMDB中的常规业务列表
      *
-     * @return
+     * @return 业务列表
      */
-    @RequestMapping("/list/normal")
+    @RequestMapping("/app/list/normal")
     InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps();
 
     /**
-     * 根据业务id查询业务
+     * 查询CMDB中的业务集、全业务等非常规业务列表
      *
-     * @param appId
-     * @return
+     * @return 业务集、全业务列表
      */
-    @RequestMapping("/{appId}")
-    ServiceApplicationDTO queryAppById(
-        @PathVariable("appId") Long appId
-    );
+    @RequestMapping("/app/list/bizSet")
+    InternalResponse<List<ServiceApplicationDTO>> listBizSetApps();
 
-    @GetMapping("/{appId}/permission")
-    InternalResponse<Boolean> checkAppPermission(
-        @PathVariable("appId") Long appId,
-        @RequestParam("username") String username
-    );
+    /**
+     * 根据业务id查询业务
+     * 根据Job业务id查询业务
+     *
+     * @param appId 业务ID
+     * @return 业务
+     */
+    @ApiOperation("根据Job业务id查询业务")
+    @RequestMapping("/app/{appId}")
+    ServiceApplicationDTO queryAppById(@ApiParam(value = "Job业务ID", required = true)
+                                       @PathVariable("appId") Long appId);
+
+    /**
+     * 根据Job业务id批量查询业务
+     *
+     * @param appIds 业务ID列表，英文逗号分隔
+     * @return 业务列表
+     */
+    @ApiOperation("根据Job业务id批量查询业务")
+    @RequestMapping("/apps")
+    List<ServiceApplicationDTO> listAppsByAppIds(@ApiParam(value = "业务ID列表，英文逗号分隔", required = true)
+                                                  @RequestParam("appIds") String appIds);
+
+    /**
+     * 根据资源范围查询业务
+     *
+     * @param scopeType 资源范围类型
+     * @param scopeId   资源范围ID
+     * @return 业务
+     */
+    @ApiOperation("根据资源范围查询业务")
+    @RequestMapping("/app/scope/{scopeType}/{scopeId}")
+    ServiceApplicationDTO queryAppByScope(@ApiParam(value = "资源范围类型", allowableValues = "1-业务,2-业务集", required = true)
+                                          @PathVariable("scopeType") String scopeType,
+                                          @ApiParam(value = "资源范围ID", required = true)
+                                          @PathVariable("scopeId") String scopeId);
+
+    @GetMapping("/app/{appId}/permission")
+    InternalResponse<Boolean> checkAppPermission(@PathVariable("appId") Long appId,
+                                                 @RequestParam("username") String username);
 
     @ApiOperation(value = "获取业务列表", produces = "application/json")
-    @GetMapping("/list")
-    InternalResponse<List<ServiceApplicationDTO>> listLocalDBApps(
-        @RequestParam(value = "appType", required = false) Integer appType
-    );
-
-    @ApiOperation(value = "查询业务下主机是否存在", produces = "application/json")
-    @GetMapping("/{appId}/host/exists/{ip}")
-    InternalResponse<Boolean> existsHost(
-        @PathVariable("appId") Long appId,
-        @PathVariable("ip") String ip
-    );
-
-    @ApiOperation(value = "查询节点下的主机状态", produces = "application/json")
-    @PostMapping("/{appId}/host/status/nodes")
-    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
-        @PathVariable("appId") Long appId,
-        @RequestHeader("username") String username,
-        @RequestBody ServiceGetHostStatusByNodeReq req
-    );
-
-    @ApiOperation(value = "查询动态分组下的主机状态", produces = "application/json")
-    @PostMapping("/{appId}/host/status/dynamicGroups")
-    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
-        @PathVariable("appId") Long appId,
-        @RequestHeader("username") String username,
-        @RequestBody ServiceGetHostStatusByDynamicGroupReq req
-    );
-
-    @ApiOperation(value = "查询IP对应的主机状态", produces = "application/json")
-    @PostMapping("/{appId}/host/status/ips")
-    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(
-        @PathVariable("appId") Long appId,
-        @RequestHeader("username") String username,
-        @RequestBody ServiceGetHostStatusByIpReq req
-    );
+    @GetMapping("/app/list")
+    @DeprecatedAppLogic
+    InternalResponse<List<ServiceApplicationDTO>> listApps(
+        @ApiParam(value = "业务类型", allowableValues = "1-普通业务,2-业务集,3-全业务")
+        @RequestParam(value = "appType", required = false) Integer appType,
+        @ApiParam(value = "资源范围类型", allowableValues = "1-业务,2-业务集")
+        @RequestParam(value = "scopeType", required = false) String scopeType);
 }

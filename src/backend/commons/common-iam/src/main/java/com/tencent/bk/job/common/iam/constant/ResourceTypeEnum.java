@@ -35,64 +35,74 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ResourceTypeEnum {
 
+    // 业务/业务集下的资源
     /**
      * 业务
      */
-    BUSINESS(SystemId.CMDB, ResourceId.APP, null),
+    BUSINESS(SystemId.CMDB, ResourceTypeId.BIZ, null, true),
+    /**
+     * 业务集
+     */
+    BUSINESS_SET(SystemId.CMDB, ResourceTypeId.BUSINESS_SET, null, true),
     /**
      * 脚本
      */
-    SCRIPT(SystemId.JOB, ResourceId.SCRIPT, BUSINESS),
+    SCRIPT(SystemId.JOB, ResourceTypeId.SCRIPT, BUSINESS, true),
     /**
      * 作业模版
      */
-    TEMPLATE(SystemId.JOB, ResourceId.TEMPLATE, BUSINESS),
+    TEMPLATE(SystemId.JOB, ResourceTypeId.TEMPLATE, BUSINESS, true),
     /**
      * 执行方案
      */
-    PLAN(SystemId.JOB, ResourceId.PLAN, TEMPLATE),
+    PLAN(SystemId.JOB, ResourceTypeId.PLAN, TEMPLATE, true),
     /**
      * 定时任务
      */
-    CRON(SystemId.JOB, ResourceId.CRON, BUSINESS),
+    CRON(SystemId.JOB, ResourceTypeId.CRON, BUSINESS, true),
     /**
      * 账号
      */
-    ACCOUNT(SystemId.JOB, ResourceId.ACCOUNT, BUSINESS),
-    /**
-     * 公共脚本
-     */
-    PUBLIC_SCRIPT(SystemId.JOB, ResourceId.PUBLIC_SCRIPT, null),
-    /**
-     * 运营视图
-     */
-    DASHBOARD_VIEW(SystemId.JOB, ResourceId.DASHBOARD_VIEW, null),
+    ACCOUNT(SystemId.JOB, ResourceTypeId.ACCOUNT, BUSINESS, true),
     /**
      * 标签
      */
-    TAG(SystemId.JOB, ResourceId.TAG, BUSINESS),
+    TAG(SystemId.JOB, ResourceTypeId.TAG, BUSINESS, true),
     /**
      * 主机
      */
-    HOST(SystemId.CMDB, ResourceId.HOST, BUSINESS),
+    HOST(SystemId.CMDB, ResourceTypeId.HOST, BUSINESS, true),
     /**
      * 动态分组
      */
-    DYNAMIC_GROUP(SystemId.CMDB, ResourceId.DYNAMIC_GROUP, BUSINESS),
+    DYNAMIC_GROUP(SystemId.CMDB, ResourceTypeId.DYNAMIC_GROUP, BUSINESS, true),
     /**
      * 文件源
      */
-    FILE_SOURCE(SystemId.JOB, ResourceId.FILE_SOURCE, BUSINESS),
+    FILE_SOURCE(SystemId.JOB, ResourceTypeId.FILE_SOURCE, BUSINESS, true),
     /**
      * 凭证
      */
-    TICKET(SystemId.JOB, ResourceId.TICKET, BUSINESS);
+    TICKET(SystemId.JOB, ResourceTypeId.TICKET, BUSINESS, true),
+
+    // 非业务/业务集资源
+    /**
+     * 公共脚本
+     */
+    PUBLIC_SCRIPT(SystemId.JOB, ResourceTypeId.PUBLIC_SCRIPT, null, false),
+    /**
+     * 运营视图
+     */
+    DASHBOARD_VIEW(SystemId.JOB, ResourceTypeId.DASHBOARD_VIEW, null, false);
 
     private final String systemId;
 
     private final String id;
 
     private final ResourceTypeEnum parent;
+
+    // 是否为业务/业务集下的资源
+    private final boolean scopeResource;
 
     public static ResourceTypeEnum getByResourceTypeId(String resourceTypeId) {
         if (resourceTypeId == null) {

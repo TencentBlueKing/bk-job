@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.manage.model.dto.script;
 
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTaskPlanVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -53,7 +56,11 @@ public class ScriptCitedTaskPlanDTO {
 
     public ScriptCitedTaskPlanVO toVO() {
         ScriptCitedTaskPlanVO scriptCitedTaskPlanVO = new ScriptCitedTaskPlanVO();
-        scriptCitedTaskPlanVO.setAppId(appId);
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        scriptCitedTaskPlanVO.setScopeType(resourceScope.getType().getValue());
+        scriptCitedTaskPlanVO.setScopeId(resourceScope.getId());
         scriptCitedTaskPlanVO.setScriptVersion(scriptVersion);
         scriptCitedTaskPlanVO.setScriptStatus(scriptStatus);
         scriptCitedTaskPlanVO.setScriptStatusDesc(scriptStatusDesc);

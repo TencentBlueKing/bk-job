@@ -24,14 +24,16 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.iam.IamTaskTemplateCallbackResource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -46,7 +48,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @RestController
@@ -54,10 +60,13 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
     implements IamTaskTemplateCallbackResource {
 
     private final TaskTemplateService templateService;
+    private final ApplicationService applicationService;
 
     @Autowired
-    public IamTaskTemplateCallbackResourceImpl(TaskTemplateService templateService) {
+    public IamTaskTemplateCallbackResourceImpl(TaskTemplateService templateService,
+                                               ApplicationService applicationService) {
         this.templateService = templateService;
+        this.applicationService = applicationService;
     }
 
     private InstanceInfoDTO convert(TaskTemplateInfoDTO templateInfo) {
@@ -72,9 +81,9 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(searchCondition.getStart().intValue());
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
-
+        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         return TaskTemplateQuery.builder()
-            .appId(searchCondition.getAppIdList().get(0))
+            .appId(appId)
             .baseSearchCondition(baseSearchCondition)
             .build();
     }
@@ -105,20 +114,38 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
     ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
+        List<Long> templateIdList = new ArrayList<>();
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 long id = Long.parseLong(instanceId);
-                TaskTemplateInfoDTO templateInfoDTO = templateService.getTaskTemplateBasicInfoById(id);
+                templateIdList.add(id);
+            } catch (NumberFormatException e) {
+                log.error("Parse template id failed!|{}", instanceId, e);
+            }
+        }
+        List<TaskTemplateInfoDTO> taskTemplateInfoDTOList =
+            templateService.listTaskTemplateBasicInfoByIds(templateIdList);
+        Map<Long, TaskTemplateInfoDTO> templateInfoDTOMap = new HashMap<>(taskTemplateInfoDTOList.size());
+        Set<Long> appIdSet = new HashSet<>();
+        for (TaskTemplateInfoDTO templateInfoDTO : taskTemplateInfoDTOList) {
+            templateInfoDTOMap.put(templateInfoDTO.getId(), templateInfoDTO);
+            appIdSet.add(templateInfoDTO.getAppId());
+        }
+        // Job app --> CMDB biz/businessSet转换
+        Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                long id = Long.parseLong(instanceId);
+                TaskTemplateInfoDTO templateInfoDTO = templateInfoDTOMap.get(id);
                 if (templateInfoDTO == null) {
                     return getNotFoundRespById(instanceId);
                 }
+                Long appId = templateInfoDTO.getAppId();
                 // 拓扑路径构建
                 List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO rootNode = new PathInfoDTO();
-                rootNode.setType(ResourceId.APP);
-                rootNode.setId(templateInfoDTO.getAppId().toString());
+                PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                 PathInfoDTO templateNode = new PathInfoDTO();
-                templateNode.setType(ResourceId.TEMPLATE);
+                templateNode.setType(ResourceTypeId.TEMPLATE);
                 templateNode.setId(templateInfoDTO.getId().toString());
                 rootNode.setChild(templateNode);
                 path.add(rootNode);

@@ -25,12 +25,15 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,13 +44,19 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
 
     private final FileSourceService fileSourceService;
     private final ServiceApplicationResourceClient applicationResourceClient;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public ResourceNameQueryServiceImpl(AuthService authService, FileSourceService fileSourceService,
-                                        ServiceApplicationResourceClient applicationResourceClient) {
+    public ResourceNameQueryServiceImpl(AuthService authService,
+                                        AppAuthService appAuthService,
+                                        FileSourceService fileSourceService,
+                                        ServiceApplicationResourceClient applicationResourceClient,
+                                        AppScopeMappingService appScopeMappingService) {
         this.fileSourceService = fileSourceService;
         this.applicationResourceClient = applicationResourceClient;
+        this.appScopeMappingService = appScopeMappingService;
         authService.setResourceNameQueryService(this);
+        appAuthService.setResourceNameQueryService(this);
     }
 
     private String getAppName(long appId) {
@@ -60,8 +69,10 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
     public String getResourceName(ResourceTypeEnum resourceType, String resourceId) {
         switch (resourceType) {
             case BUSINESS:
-                long appId = Long.parseLong(resourceId);
-                if (appId > 0) {
+            case BUSINESS_SET:
+                Long appId = appScopeMappingService.getAppIdByScope(
+                    IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
+                if (appId != null && appId > 0) {
                     return getAppName(appId);
                 }
                 log.warn("Cannot find appName by appId {}", appId);

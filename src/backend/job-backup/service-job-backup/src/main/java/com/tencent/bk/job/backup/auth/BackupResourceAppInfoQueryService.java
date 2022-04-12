@@ -25,19 +25,15 @@
 package com.tencent.bk.job.backup.auth;
 
 import com.tencent.bk.job.backup.client.ServiceApplicationResourceClient;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -50,41 +46,24 @@ public class BackupResourceAppInfoQueryService implements ResourceAppInfoQuerySe
         this.applicationService = applicationService;
     }
 
-    private ResourceAppInfo convert(ServiceApplicationDTO applicationInfoDTO) {
-        if (applicationInfoDTO == null) {
-            return null;
-        } else {
-            ResourceAppInfo resourceAppInfo = new ResourceAppInfo();
-            resourceAppInfo.setAppId(applicationInfoDTO.getId());
-            resourceAppInfo.setAppType(AppTypeEnum.valueOf(applicationInfoDTO.getAppType()));
-            String maintainerStr = applicationInfoDTO.getMaintainers();
-            List<String> maintainerList = new ArrayList<>();
-            if (StringUtils.isNotBlank(maintainerStr)) {
-                String[] maintainers = maintainerStr.split("[,;]");
-                maintainerList.addAll(Arrays.asList(maintainers));
-            }
-            resourceAppInfo.setMaintainerList(maintainerList);
-            return resourceAppInfo;
-        }
-    }
-
-    private ResourceAppInfo getResourceAppInfoById(Long appId) {
-        if (appId == null || appId <= 0) {
+    private ResourceAppInfo getResourceAppInfoByScope(String scopeType, String scopeId) {
+        if (StringUtils.isBlank(scopeType) || StringUtils.isBlank(scopeId)) {
+            log.warn("scope({},{}) is invalid", scopeType, scopeId);
             return null;
         }
-        return convert(applicationService.queryAppById(appId));
+        return ServiceApplicationDTO.toResourceApp(applicationService.queryAppByScope(scopeType, scopeId));
     }
 
     @Override
     public ResourceAppInfo getResourceAppInfo(ResourceTypeEnum resourceType, String resourceId) {
-        if (resourceType == ResourceTypeEnum.BUSINESS) {
-            long appId = Long.parseLong(resourceId);
-            if (appId > 0) {
-                return getResourceAppInfoById(appId);
-            }
-        } else {
-            return null;
+        switch (resourceType) {
+            case BUSINESS:
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ.getValue(), resourceId);
+            case BUSINESS_SET:
+                return getResourceAppInfoByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), resourceId);
+            default:
+                log.warn("Not support resourceType:{}, return null", resourceType);
+                return null;
         }
-        return null;
     }
 }

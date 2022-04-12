@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.crontab.api.iam.impl;
 
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.crontab.api.iam.IamCallbackController;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
@@ -46,18 +48,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @RestController
 public class IamCallbackControllerImpl extends BaseIamCallbackService implements IamCallbackController {
 
     private final CronJobService cronJobService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public IamCallbackControllerImpl(CronJobService cronJobService) {
+    public IamCallbackControllerImpl(CronJobService cronJobService,
+                                     AppScopeMappingService appScopeMappingService) {
         this.cronJobService = cronJobService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     private Pair<CronJobInfoDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -67,7 +74,8 @@ public class IamCallbackControllerImpl extends BaseIamCallbackService implements
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         CronJobInfoDTO cronJobQuery = new CronJobInfoDTO();
-        cronJobQuery.setAppId(searchCondition.getAppIdList().get(0));
+        Long appId = appScopeMappingService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        cronJobQuery.setAppId(appId);
         return Pair.of(cronJobQuery, baseSearchCondition);
     }
 
@@ -123,18 +131,21 @@ public class IamCallbackControllerImpl extends BaseIamCallbackService implements
             }
         }
         Map<Long, CronJobInfoDTO> cronJobInfoMap = cronJobService.getCronJobInfoMapByIds(cronJobIdList);
+        // Job app --> CMDB biz/businessSet转换
+        Set<Long> appIdSet = new HashSet<>();
+        cronJobInfoMap.values().forEach(cronJobInfoDTO -> appIdSet.add(cronJobInfoDTO.getAppId()));
+        Map<Long, ResourceScope> appIdScopeMap = appScopeMappingService.getScopeByAppIds(appIdSet);
         for (Long id : cronJobIdList) {
             CronJobInfoDTO cronJobInfoDTO = cronJobInfoMap.get(id);
             if (cronJobInfoDTO == null) {
                 return getNotFoundRespById(id.toString());
             }
+            Long appId = cronJobInfoDTO.getAppId();
             // 拓扑路径构建
             List<PathInfoDTO> path = new ArrayList<>();
-            PathInfoDTO rootNode = new PathInfoDTO();
-            rootNode.setType(ResourceId.APP);
-            rootNode.setId(cronJobInfoDTO.getAppId().toString());
+            PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
             PathInfoDTO cronJobNode = new PathInfoDTO();
-            cronJobNode.setType(ResourceId.CRON);
+            cronJobNode.setType(ResourceTypeId.CRON);
             cronJobNode.setId(cronJobInfoDTO.getId().toString());
             rootNode.setChild(cronJobNode);
             path.add(rootNode);

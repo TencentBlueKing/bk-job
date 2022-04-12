@@ -28,12 +28,13 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -56,18 +57,20 @@ import java.util.stream.Collectors;
 public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceListV3Resource {
 
     private final TaskResultService taskResultService;
-    private final MessageI18nService i18nService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbGetJobInstanceListV3ResourceImpl(MessageI18nService i18nService,
-                                               TaskResultService taskResultService) {
-        this.i18nService = i18nService;
+    public EsbGetJobInstanceListV3ResourceImpl(TaskResultService taskResultService,
+                                               AppScopeMappingService appScopeMappingService) {
         this.taskResultService = taskResultService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_list"})
     public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceListUsingPost(
         EsbGetJobInstanceListV3Request request) {
+
+        request.fillAppResourceScope(appScopeMappingService);
 
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -114,7 +117,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         if (CollectionUtils.isNotEmpty(pageData.getData())) {
             List<EsbTaskInstanceV3DTO> taskInstanceList = pageData.getData().stream().map(taskInstanceDTO -> {
                 EsbTaskInstanceV3DTO taskInstance = new EsbTaskInstanceV3DTO();
-                taskInstance.setAppId(taskInstanceDTO.getAppId());
+                EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskInstanceDTO.getAppId(), taskInstance);
                 taskInstance.setId(taskInstanceDTO.getId());
                 taskInstance.setCreateTime(taskInstanceDTO.getCreateTime());
                 taskInstance.setName(taskInstanceDTO.getName());
@@ -135,10 +138,6 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
     }
 
     private ValidateResult checkRequest(EsbGetJobInstanceListV3Request request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("App is empty or illegal, appId={}", request.getAppId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (request.getCreateTimeStart() == null || request.getCreateTimeStart() < 1) {
             log.warn("createTimeStart is empty or illegal, createTimeStart={}", request.getCreateTimeStart());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "create_time_start");
@@ -162,7 +161,9 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
     @Override
     public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceList(String username,
                                                                            String appCode,
-                                                                           Long appId,
+                                                                           Long bizId,
+                                                                           String scopeType,
+                                                                           String scopeId,
                                                                            Long createTimeStart,
                                                                            Long createTimeEnd,
                                                                            Long taskInstanceId,
@@ -177,7 +178,9 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         EsbGetJobInstanceListV3Request request = new EsbGetJobInstanceListV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setAppId(appId);
+        request.setBizId(bizId);
+        request.setScopeType(scopeType);
+        request.setScopeId(scopeId);
         request.setCreateTimeStart(createTimeStart);
         request.setCreateTimeEnd(createTimeEnd);
         request.setTaskInstanceId(taskInstanceId);

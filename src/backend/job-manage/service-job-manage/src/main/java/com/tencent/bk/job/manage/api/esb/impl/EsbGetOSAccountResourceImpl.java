@@ -24,13 +24,11 @@
 
 package com.tencent.bk.job.manage.api.esb.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetOSAccountResource;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
@@ -38,7 +36,6 @@ import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.esb.EsbAccountDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetOSAccountListRequest;
 import com.tencent.bk.job.manage.service.AccountService;
-import com.tencent.bk.job.manage.service.auth.EsbAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,25 +49,19 @@ import java.util.List;
 @Slf4j
 public class EsbGetOSAccountResourceImpl implements EsbGetOSAccountResource {
     private final AccountService accountService;
-    private final MessageI18nService i18nService;
-    private final EsbAuthService authService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbGetOSAccountResourceImpl(AccountService accountService, MessageI18nService i18nService,
-                                       EsbAuthService authService) {
+    public EsbGetOSAccountResourceImpl(AccountService accountService,
+                                       AppScopeMappingService appScopeMappingService) {
         this.accountService = accountService;
-        this.i18nService = i18nService;
-        this.authService = authService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_os_account"})
     public EsbResp<List<EsbAccountDTO>> getAppOsAccountList(EsbGetOSAccountListRequest request) {
-        ValidateResult checkResult = checkRequest(request);
-        if (!checkResult.isPass()) {
-            log.warn("Get system account list, request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
+        request.fillAppResourceScope(appScopeMappingService);
         long appId = request.getAppId();
         List<AccountDTO> systemAccounts = accountService.listAllAppAccount(appId, AccountCategoryEnum.SYSTEM);
         return EsbResp.buildSuccessResp(convertToEsbAccountDTOList(systemAccounts));
@@ -86,7 +77,7 @@ public class EsbGetOSAccountResourceImpl implements EsbGetOSAccountResource {
             esbAccount.setId(account.getId());
             esbAccount.setAlias(account.getAlias());
             esbAccount.setAccount(account.getAccount());
-            esbAccount.setAppId(account.getAppId());
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(account.getAppId(), esbAccount);
             esbAccount.setCreateTime(DateUtils.formatUnixTimestamp(account.getCreateTime(), ChronoUnit.MILLIS, "yyyy" +
                 "-MM-dd HH:mm:ss", ZoneId.of("UTC")));
             esbAccount.setOs(account.getOs());
@@ -96,11 +87,4 @@ public class EsbGetOSAccountResourceImpl implements EsbGetOSAccountResource {
         return esbAccounts;
     }
 
-    private ValidateResult checkRequest(EsbGetOSAccountListRequest request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("AppId is empty or illegal!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "id");
-        }
-        return ValidateResult.pass();
-    }
 }

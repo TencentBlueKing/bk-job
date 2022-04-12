@@ -1,0 +1,53 @@
+{
+    "system_id": "bk_job",
+    "operations": [
+        {
+            "operation": "delete_instance_selection",
+            "data": {
+                "id": "account_list"
+            }
+        },
+		{
+            "operation": "delete_instance_selection",
+            "data": {
+                "id": "cron_list"
+            }
+        },
+		{
+            "operation": "delete_instance_selection",
+            "data": {
+                "id": "file_source_list"
+            }
+        },
+		{
+            "operation": "delete_instance_selection",
+            "data": {
+                "id": "job_template_list"
+            }
+        },
+		{
+            "operation": "delete_instance_selection",
+            "data": {
+                "id": "job_plan_list"
+            }
+        },
+		{
+            "operation": "delete_instance_selection",
+            "data": {
+                "id": "script_list"
+            }
+        },
+		{
+            "operation": "delete_instance_selection",
+            "data": {
+                "id": "tag_list"
+            }
+        },
+		{
+            "operation": "delete_instance_selection",
+            "data": {
+                "id": "ticket_list"
+            }
+        }
+    ]
+}

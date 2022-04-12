@@ -31,7 +31,7 @@ import com.tencent.bk.job.analysis.client.ApplicationResourceClient;
 import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,7 +135,7 @@ public class AppService {
     }
 
     public List<ServiceApplicationDTO> listLocalDBApps() {
-        val resp = applicationResourceClient.listLocalDBApps(-1);
+        val resp = applicationResourceClient.listApps(null, null);
         List<ServiceApplicationDTO> apps = resp.getData();
         return apps;
     }

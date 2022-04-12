@@ -28,9 +28,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
@@ -43,22 +42,19 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbOperateJobInstanceV3ResourceImpl implements EsbOperateJobInstanceV3Resource {
     private final TaskExecuteService taskExecuteService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    private final MessageI18nService i18nService;
-
-    private final AuthService authService;
-
-    public EsbOperateJobInstanceV3ResourceImpl(TaskExecuteService taskExecuteService, MessageI18nService i18nService,
-                                               AuthService authService) {
+    public EsbOperateJobInstanceV3ResourceImpl(TaskExecuteService taskExecuteService,
+                                               AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
-        this.i18nService = i18nService;
-        this.authService = authService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_operate_job_instance"})
     public EsbResp<EsbJobExecuteV3DTO> operateJobInstance(EsbOperateJobInstanceV3Request request) {
         log.info("Operate task instance, request={}", JsonUtils.toJson(request));
+        request.fillAppResourceScope(appScopeMappingService);
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -71,10 +67,6 @@ public class EsbOperateJobInstanceV3ResourceImpl implements EsbOperateJobInstanc
     }
 
     private boolean checkRequest(EsbOperateJobInstanceV3Request request) {
-        if (request.getAppId() == null || request.getAppId() <= 0) {
-            log.warn("Operate task instance, appId is empty!");
-            return false;
-        }
         if (request.getTaskInstanceId() == null || request.getTaskInstanceId() <= 0) {
             log.warn("Operate task instance, taskInstanceId is empty!");
             return false;

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -32,6 +33,7 @@ import lombok.NoArgsConstructor;
 /**
  * 全局设置项
  */
+@Builder
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor

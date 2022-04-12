@@ -24,31 +24,11 @@
 
 package com.tencent.bk.job.analysis.service;
 
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 
 import java.util.List;
 
 public interface ApplicationService {
 
     List<ServiceApplicationDTO> listLocalDBApps(Integer appType);
-
-    List<ServiceHostStatusDTO> getHostStatusByNode(
-        String username,
-        Long appId,
-        List<AppTopologyTreeNode> treeNodeList
-    );
-
-    List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(
-        String username,
-        Long appId,
-        List<String> dynamicGroupIdList
-    );
-
-    List<ServiceHostStatusDTO> getHostStatusByIp(
-        String username,
-        Long appId,
-        List<String> ipList
-    );
 }

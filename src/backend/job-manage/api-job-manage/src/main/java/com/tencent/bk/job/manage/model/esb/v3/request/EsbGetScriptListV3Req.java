@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -34,12 +34,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class EsbGetScriptListV3Req extends EsbReq {
-    /**
-     * 业务ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+public class EsbGetScriptListV3Req extends EsbAppScopeReq {
     /**
      * 脚本名称，支持模糊查询
      */
@@ -49,14 +44,4 @@ public class EsbGetScriptListV3Req extends EsbReq {
      */
     @JsonProperty("script_language")
     private Integer scriptLanguage;
-
-    /**
-     * 起始位置
-     */
-    private Integer start;
-
-    /**
-     * 起始位置
-     */
-    private Integer length;
 }

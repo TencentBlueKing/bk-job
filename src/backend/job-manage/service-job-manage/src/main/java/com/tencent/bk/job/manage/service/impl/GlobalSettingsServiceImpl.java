@@ -116,17 +116,17 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private static final Pattern PATTERN = Pattern.compile("^([+\\-]?\\d+)([a-zA-Z]{0,2})$");
     private static final String STRING_TPL_KEY_CURRENT_VERSION = "current_ver";
     private static final String STRING_TPL_KEY_CURRENT_YEAR = "current_year";
-    private DSLContext dslContext;
-    private NotifyEsbChannelDAO notifyEsbChannelDAO;
-    private AvailableEsbChannelDAO availableEsbChannelDAO;
-    private NotifyService notifyService;
-    private GlobalSettingDAO globalSettingDAO;
-    private NotifyTemplateDAO notifyTemplateDAO;
-    private MessageI18nService i18nService;
-    private JobManageConfig jobManageConfig;
-    private LocalFileConfigForManage localFileConfigForManage;
-    private NotifyTemplateConverter notifyTemplateConverter;
-    private BuildProperties buildProperties;
+    private final DSLContext dslContext;
+    private final NotifyEsbChannelDAO notifyEsbChannelDAO;
+    private final AvailableEsbChannelDAO availableEsbChannelDAO;
+    private final NotifyService notifyService;
+    private final GlobalSettingDAO globalSettingDAO;
+    private final NotifyTemplateDAO notifyTemplateDAO;
+    private final MessageI18nService i18nService;
+    private final JobManageConfig jobManageConfig;
+    private final LocalFileConfigForManage localFileConfigForManage;
+    private final NotifyTemplateConverter notifyTemplateConverter;
+    private final BuildProperties buildProperties;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
     @Value("${job.feature.file-manage.enabled:false}")

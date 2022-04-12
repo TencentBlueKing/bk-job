@@ -134,7 +134,7 @@
                     return '';
                 }
                 return (
-                <div class="jb-bk-search-list-condition" onClick={this.handleCondition}>
+                <div class="search-condition" onClick={this.handleCondition}>
                     {condition[displayKey]}
                 </div>
                 );
@@ -143,15 +143,15 @@
             const renderList = (h) => {
                 if (this.list.length < 1) {
                     return (
-                    <div class="jb-bk-search-list-loading">{ this.searchSelect.remoteEmptyText }</div>
+                    <div class="search-loading">{ this.searchSelect.remoteEmptyText }</div>
                     );
                 }
                 return (
-                <ul ref="list" class="jb-bk-search-list-menu">
+                <ul ref="list" class="search-menu">
                     { this.list.map((item, index) => (
                         <li
                             class={{
-                                'jb-bk-search-list-menu-item': true,
+                                'search-menu-item': true,
                                 active: index === this.activeIndex,
                             }}>
                             <div class="item-name" onClick={() => this.handleClick(item, index)}>

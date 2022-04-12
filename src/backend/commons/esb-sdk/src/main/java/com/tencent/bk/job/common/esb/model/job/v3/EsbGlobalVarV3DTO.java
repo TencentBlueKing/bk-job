@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3;
 
+import javax.validation.constraints.Min;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 
 /**
@@ -35,6 +38,7 @@ public class EsbGlobalVarV3DTO {
     /**
      * 全局变量ID
      */
+    @Min(value = 1L, message = "{validation.constraints.InvalidGlobalVarId.message}")
     private Long id;
 
     /**
@@ -64,4 +68,5 @@ public class EsbGlobalVarV3DTO {
      * 变量是否必填
      */
     private Integer required;
+
 }

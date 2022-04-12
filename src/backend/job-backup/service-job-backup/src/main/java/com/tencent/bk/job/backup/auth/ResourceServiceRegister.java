@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.auth;
 
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import lombok.extern.slf4j.Slf4j;
@@ -39,16 +40,20 @@ public class ResourceServiceRegister implements InitializingBean {
 
     private final ResourceAppInfoQueryService resourceAppInfoQueryService;
     private final AuthService authService;
+    private final AppAuthService appAuthService;
 
     @Autowired
     public ResourceServiceRegister(ResourceAppInfoQueryService resourceAppInfoQueryService,
-                                   AuthService authService) {
+                                   AuthService authService,
+                                   AppAuthService appAuthService) {
         this.resourceAppInfoQueryService = resourceAppInfoQueryService;
         this.authService = authService;
+        this.appAuthService = appAuthService;
     }
 
     @Override
     public void afterPropertiesSet() {
         this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
+        this.appAuthService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
     }
 }

@@ -66,7 +66,6 @@ For more information, please check Blueking's official website [Platform Product
 
 ## BlueKing Community
 - [BK-BCS](https://github.com/Tencent/bk-bcs): Blueking Container Service is a container-based basic service platform that provides management service to microservice businesses.
-- [BK-BCS-SaaS](https://github.com/Tencent/bk-bcs-saas): Blueking Container Platform SaaS is based on two modes: original Kubernetes and self-developed Mesos, offering users highly scalable, flexible container service.
 - [BK-CI](https://github.com/Tencent/bk-ci): Blueking Continuous Integration platform is a free, open source CI service, which allows developers to automatically create - test - release workflow, and continuously, efficiently deliver their high-quality products.
 - [BK-CMDB](https://github.com/Tencent/bk-cmdb): BlueKing CMDB is an enterprise-level management platform designed for assets and applications.
 - [BK-PaaS](https://github.com/Tencent/bk-PaaS): Blueking PaaS is an open development platform that allows developers to efficiently create, develop, set up, and manage SaaS apps.
@@ -80,3 +79,4 @@ For more information, please check Blueking's official website [Platform Product
 ## License
 BK-JOB is based on the MIT agreement. For more information, please check [LICENSE](LICENSE.txt).
 
+We undertake not to change the open source license (MIT license) applicable to the current version of the project delivered to anyone in the future.

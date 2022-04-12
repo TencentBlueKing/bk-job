@@ -367,6 +367,12 @@ module.exports = function (env) {
                 overlay: false,
             },
             historyApiFallback: true,
+            // proxy: {
+            //     '/static/bundledVersionLog.json': {
+            //         target: process.env.DEV_DOMAIN,
+            //         changeOrigin: true,
+            //     },
+            // },
         },
     };
 };

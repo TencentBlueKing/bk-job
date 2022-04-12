@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 @Repository
 public class TagDAOImpl implements TagDAO {
     private static final Tag TABLE = Tag.TAG;
-    private static final TableField<?,?>[] ALL_FIELDS = {TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION,
+    private static final TableField<?, ?>[] ALL_FIELDS = {TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION,
         TABLE.CREATOR, TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME};
     private final DSLContext context;
 
@@ -82,6 +82,13 @@ public class TagDAOImpl implements TagDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.ID.eq(ULong.valueOf(tagId)));
         return getTagByConditions(conditions);
+    }
+
+    @Override
+    public List<TagDTO> listTagInfoByIds(Collection<Long> tagIds) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.ID.in(tagIds));
+        return listTagsByConditions(conditions);
     }
 
     @Override
@@ -214,7 +221,7 @@ public class TagDAOImpl implements TagDAO {
 
     private long getTagsPageCount(TagDTO tagQuery) {
         List<Condition> conditions = buildSearchCondition(tagQuery);
-        Long count =  context.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
+        Long count = context.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
         return count == null ? 0 : count;
     }
 

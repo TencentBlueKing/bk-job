@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.model;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -35,6 +36,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class BaseSearchCondition implements Cloneable {
     /**
      * 分页起始
@@ -87,6 +89,13 @@ public class BaseSearchCondition implements Cloneable {
      * 修改时间范围-结束
      */
     private Long lastModifyTimeEnd;
+
+    public static BaseSearchCondition pageCondition(Integer start, Integer length) {
+        BaseSearchCondition searchCondition = new BaseSearchCondition();
+        searchCondition.setStart(start);
+        searchCondition.setLength(length);
+        return searchCondition;
+    }
 
     public int getLengthOrDefault(int defaultLength) {
         return (length == null || length <= 0) ? defaultLength : length;

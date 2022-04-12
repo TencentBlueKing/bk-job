@@ -24,14 +24,16 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.iam.IamTicketCallbackResource;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.CredentialService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -47,7 +49,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @Slf4j
@@ -55,10 +61,13 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
     implements IamTicketCallbackResource {
 
     private final CredentialService credentialService;
+    private final ApplicationService applicationService;
 
     @Autowired
-    public IamTicketCallbackResourceImpl(CredentialService credentialService) {
+    public IamTicketCallbackResourceImpl(CredentialService credentialService,
+                                         ApplicationService applicationService) {
         this.credentialService = credentialService;
+        this.applicationService = applicationService;
     }
 
     private Pair<CredentialDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -68,7 +77,8 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         CredentialDTO credentialQuery = new CredentialDTO();
-        credentialQuery.setAppId(searchCondition.getAppIdList().get(0));
+        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        credentialQuery.setAppId(appId);
         return Pair.of(credentialQuery, baseSearchCondition);
     }
 
@@ -116,25 +126,39 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
     ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
+        // 收集ID
+        List<String> credentialIdList = searchCondition.getIdList();
+        // 查询内容
+        List<ServiceCredentialDisplayDTO> serviceCredentialDisplayDTOList =
+            credentialService.listCredentialDisplayInfoByIds(credentialIdList);
+        // 构建Map
+        Map<String, ServiceCredentialDisplayDTO> credentialDTOMap =
+            new HashMap<>(serviceCredentialDisplayDTOList.size());
+        Set<Long> appIdSet = new HashSet<>();
+        for (ServiceCredentialDisplayDTO credentialDisplayDTO : serviceCredentialDisplayDTOList) {
+            credentialDTOMap.put(credentialDisplayDTO.getId(), credentialDisplayDTO);
+            appIdSet.add(credentialDisplayDTO.getAppId());
+        }
+        // Job app --> CMDB biz/businessSet转换
+        Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String id : searchCondition.getIdList()) {
-            ServiceCredentialDTO credentialDTO = credentialService.getServiceCredentialById(id);
-            if (credentialDTO == null) {
+            ServiceCredentialDisplayDTO credentialDisplayDTO = credentialDTOMap.get(id);
+            if (credentialDisplayDTO == null) {
                 return getNotFoundRespById(id);
             }
+            Long appId = credentialDisplayDTO.getAppId();
             // 拓扑路径构建
             List<PathInfoDTO> path = new ArrayList<>();
-            PathInfoDTO rootNode = new PathInfoDTO();
-            rootNode.setType(ResourceId.APP);
-            rootNode.setId(credentialDTO.getAppId().toString());
+            PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
             PathInfoDTO ticketNode = new PathInfoDTO();
-            ticketNode.setType(ResourceId.TICKET);
-            ticketNode.setId(credentialDTO.getId());
+            ticketNode.setType(ResourceTypeId.TICKET);
+            ticketNode.setId(credentialDisplayDTO.getId());
             rootNode.setChild(ticketNode);
             path.add(rootNode);
             // 实例组装
             InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
             instanceInfo.setId(id);
-            instanceInfo.setDisplayName(credentialDTO.getName());
+            instanceInfo.setDisplayName(credentialDisplayDTO.getName());
             instanceInfo.setPath(path);
             instanceAttributeInfoList.add(instanceInfo);
         }

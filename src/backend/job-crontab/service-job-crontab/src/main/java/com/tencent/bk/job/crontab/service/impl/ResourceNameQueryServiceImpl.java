@@ -25,11 +25,14 @@
 package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.crontab.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.crontab.service.CronJobService;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,14 +47,19 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
 
     private final CronJobService cronJobService;
     private final ServiceApplicationResourceClient applicationClient;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public ResourceNameQueryServiceImpl(CronJobService cronJobService,
                                         ServiceApplicationResourceClient applicationClient,
-                                        AuthService authService) {
+                                        AuthService authService,
+                                        AppAuthService appAuthService,
+                                        AppScopeMappingService appScopeMappingService) {
         this.cronJobService = cronJobService;
         this.applicationClient = applicationClient;
+        this.appScopeMappingService = appScopeMappingService;
         authService.setResourceNameQueryService(this);
+        appAuthService.setResourceNameQueryService(this);
     }
 
     private String getAppName(Long appId) {
@@ -74,8 +82,10 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
                 }
                 break;
             case BUSINESS:
-                long appId = Long.parseLong(resourceId);
-                if (appId > 0) {
+            case BUSINESS_SET:
+                Long appId = appScopeMappingService.getAppIdByScope(
+                    IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
+                if (appId != null && appId > 0) {
                     return getAppName(appId);
                 }
                 break;

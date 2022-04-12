@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
-import com.tencent.bk.job.execute.model.db.CacheAppDO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 
 import java.util.List;
 
@@ -34,27 +33,28 @@ import java.util.List;
  */
 public interface ApplicationService {
     /**
-     * 根据业务ID获取业务信息
+     * 根据Job业务ID获取业务信息
      *
-     * @param appId
-     * @return
+     * @param appId Job业务ID
+     * @return Job业务对象
      */
-    ApplicationInfoDTO getAppById(long appId);
+    ApplicationDTO getAppById(long appId);
+
+    /**
+     * 根据业务范围获取业务信息
+     *
+     * @param scopeType 资源范围类型
+     * @param scopeId   资源范围Id
+     * @return Job业务对象
+     */
+    ApplicationDTO getAppByScope(String scopeType, String scopeId);
 
     /**
      * 获取所有的业务
      *
      * @return 所有的业务列表
      */
-    List<ApplicationInfoDTO> listAllApps();
+    List<ApplicationDTO> listAllApps();
 
     List<Long> listAllAppIds();
-
-    /**
-     * 获取缓存的业务信息
-     *
-     * @param appId 业务ID
-     * @return 缓存的业务
-     */
-    CacheAppDO getAppPreferCache(long appId);
 }

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.model.esb.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
@@ -35,13 +35,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class EsbGetCronListRequest extends EsbReq {
-
-    /**
-     * 业务 ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+public class EsbGetCronListRequest extends EsbAppScopeReq {
 
     /**
      * 定时作业名称
@@ -111,9 +105,6 @@ public class EsbGetCronListRequest extends EsbReq {
     private Integer length;
 
     public boolean validate() {
-        if (appId == null || appId < 0) {
-            return false;
-        }
 
         if (id != null && id > 0) {
             return true;

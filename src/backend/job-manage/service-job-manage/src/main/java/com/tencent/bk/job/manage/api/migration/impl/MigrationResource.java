@@ -28,9 +28,12 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
+import com.tencent.bk.job.manage.model.migration.SetBizSetMigrationStatusReq;
+import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,13 +48,16 @@ import java.util.List;
 public class MigrationResource {
     private final EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask;
     private final ResourceTagsMigrationTask resourceTagsMigrationTask;
+    private final BizSetService bizSetService;
 
     @Autowired
     public MigrationResource(
         EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask,
-        ResourceTagsMigrationTask resourceTagsMigrationTask) {
+        ResourceTagsMigrationTask resourceTagsMigrationTask,
+        BizSetService bizSetService) {
         this.encryptDbAccountPasswordMigrationTask = encryptDbAccountPasswordMigrationTask;
         this.resourceTagsMigrationTask = resourceTagsMigrationTask;
+        this.bizSetService = bizSetService;
     }
 
     /**
@@ -68,5 +74,13 @@ public class MigrationResource {
     @PostMapping("/action/migrationResourceTags")
     public Response<List<ResourceTagDTO>> upgradeResourceTags() {
         return resourceTagsMigrationTask.execute();
+    }
+
+    /**
+     * 设置迁移业务集的状态
+     */
+    @PostMapping("/action/setBizSetMigrationStatus")
+    public Response<Boolean> setBizSetMigrationStatus(@RequestBody SetBizSetMigrationStatusReq req) {
+        return Response.buildSuccessResp(bizSetService.setBizSetMigratedToCMDB(req.getMigrated()));
     }
 }

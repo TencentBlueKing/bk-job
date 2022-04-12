@@ -55,6 +55,8 @@
                     Number, String,
                 ],
             },
+            scopeType: String,
+            scopeId: String,
         },
         methods: {
             /**
@@ -64,6 +66,8 @@
                 permissionDialog({
                     operation: this.auth,
                     resourceId: this.resourceId,
+                    scopeType: this.scopeType,
+                    scopeId: this.scopeId,
                 });
             },
         },

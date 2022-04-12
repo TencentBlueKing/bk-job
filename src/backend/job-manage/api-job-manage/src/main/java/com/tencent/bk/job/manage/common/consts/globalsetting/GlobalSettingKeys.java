@@ -50,4 +50,6 @@ public class GlobalSettingKeys {
     public static final String KEY_ENABLE_FEATURE_FILE_MANAGE = "ENABLE_FEATURE_FILE_MANAGE";
     //是否上传本地文件到制品库
     public static final String KEY_ENABLE_UPLOAD_TO_ARTIFACTORY = "ENABLE_UPLOAD_TO_ARTIFACTORY";
+    //Job自有业务集是否已完全迁移至CMDB
+    public static final String KEY_IS_BIZSET_MIGRATED_TO_CMDB = "IS_BIZSET_MIGRATED_TO_CMDB";
 }

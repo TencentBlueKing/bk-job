@@ -24,11 +24,9 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
-import org.apache.commons.lang3.tuple.Pair;
+import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,56 +36,14 @@ import java.util.Map;
  * 服务器服务
  */
 public interface HostService {
-    /**
-     * 获取从cmdb同步的主机列表。注意，使用该方法时，需要先判断ServiceResponse的状态！只有成功响应，里边的数据才是有效的；避免同步时候误删除
-     *
-     * @return 服务端响应
-     */
-    InternalResponse<List<ServiceHostInfoDTO>> listSyncHosts(long appId);
-
-    /**
-     * 获取主机的业务ID
-     *
-     * @param cloudAreaId 云区域ID
-     * @param ip          ip
-     * @return 业务ID
-     */
-    Long getCacheHostAppId(long cloudAreaId, String ip);
-
-    /**
-     * 获取主机信息
-     *
-     * @param cloudAreaId 云区域ID
-     * @param ip          ip
-     * @return 主机信息
-     */
-    ApplicationHostInfoDTO getHostPreferCache(long cloudAreaId, String ip);
 
     /**
      * 批量获取主机信息
      *
-     * @param hosts 主机列表
+     * @param hostIps 主机Ip列表
      * @return 主机信息
      */
-    Map<IpDTO, ApplicationHostInfoDTO> batchGetHostsPreferCache(List<IpDTO> hosts);
-
-    /**
-     * 获取不在业务列表下的主机
-     *
-     * @param appIdList 业务ID列表
-     * @param hosts     主机列表
-     * @return Pair<List < IpDTO>, List<IpDTO>>, pair中第一个是在其他业务下的host，第二个是不在cache中的host
-     */
-    Pair<List<IpDTO>, List<IpDTO>> checkHostsNotInAppByCache(List<Long> appIdList, List<IpDTO> hosts);
-
-    /**
-     * 从CMDB检查主机是否存在业务下,同时刷新主机缓存
-     *
-     * @param appId 业务ID
-     * @param hosts 主机列表
-     * @return 未被当前业务缓存的主机列表
-     */
-    List<IpDTO> checkHostsNotInAppByCmdb(long appId, Collection<IpDTO> hosts);
+    Map<IpDTO, ServiceHostDTO> batchGetHosts(List<IpDTO> hostIps);
 
     /**
      * 查询主机在白名单中允许的操作
@@ -108,4 +64,38 @@ public interface HostService {
      */
     boolean isMatchWhiteIpRule(long appId, IpDTO host, String action);
 
+    /**
+     * 检查主机是否在业务下
+     *
+     * @param appId   Job业务ID
+     * @param hostIps 主机列表
+     * @return 非法的主机
+     */
+    List<IpDTO> checkAppHosts(Long appId, Collection<IpDTO> hostIps);
+
+    /**
+     * 获取动态分组主机
+     *
+     * @param appId   业务ID
+     * @param groupId 动态分组ID
+     * @return 主机列表
+     */
+    List<IpDTO> getIpByDynamicGroupId(long appId, String groupId);
+
+    /**
+     * 根据topo节点获取主机
+     *
+     * @param appId       Job业务ID
+     * @param ccInstances topo节点列表
+     * @return 主机列表
+     */
+    List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances);
+
+    /**
+     * 获取主机云区域名称
+     *
+     * @param cloudAreaId 云区域ID
+     * @return 云区域名称
+     */
+    String getCloudAreaName(long cloudAreaId);
 }

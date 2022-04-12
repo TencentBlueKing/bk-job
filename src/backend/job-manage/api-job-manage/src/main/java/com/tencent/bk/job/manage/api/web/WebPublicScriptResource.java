@@ -167,9 +167,8 @@ public interface WebPublicScriptResource {
     @GetMapping("/scripts/online")
     Response<List<BasicScriptVO>> listScriptOnline(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "publicScript", required = false, defaultValue = "false")
-        @RequestParam(value = "publicScript", required = false, defaultValue = "false") Boolean publicScript);
+        @RequestHeader("username") String username
+    );
 
     @ApiOperation(value = "更新脚本元数据，比如脚本描述、名称、标签", produces = "application/json")
     @PutMapping("/script/{scriptId}/info")

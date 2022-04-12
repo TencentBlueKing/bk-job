@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.analysis;
 
+import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.DependsOn;
@@ -36,6 +38,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableCaching
 @EnableFeignClients
 @EnableScheduling
+@EnableConfigurationProperties({FeatureToggleConfig.class})
 @DependsOn("applicationContextRegister")
 public class JobAnalysisBootApplication {
 
