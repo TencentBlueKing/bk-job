@@ -42,19 +42,18 @@
         </colgroup>
         <tbody>
             <tr
-                v-for="(item, index) in data"
+                v-for="(item) in data"
                 :key="item.key"
                 :class="{
                     active: selectRow === item.key,
                 }"
-                @click="handleSelect(item, index)">
-                <template v-for="(showKey, colIndex) in showColumns">
-                    <td
-                        :key="showKey"
-                        :class="colIndex === 0 && item.result">
-                        {{ item[showKey] }}
-                    </td>
-                </template>
+                @click="handleSelect(item)">
+                <td
+                    v-for="(showKey, colIndex) in showColumns"
+                    :key="showKey"
+                    :class="colIndex === 0 && item.result">
+                    {{ item[showKey] }}
+                </td>
                 <td class="active-flag">
                     <Icon
                         v-if="selectRow === item.key"
@@ -93,10 +92,11 @@
             data: {
                 handler (data) {
                     if (data.length < 1) {
+                        this.isFocused = false;
                         this.handleSelect({});
                         return;
                     }
-                    
+                    this.isFocused = true;
                     if (!this.selectRow
                         || !_.find(this.data, _ => this.selectRow === _.key)) {
                         this.handleSelect(this.data[0]);
@@ -107,32 +107,60 @@
         },
         mounted () {
             const focusCallbacks = (event) => {
-                console.log('asdad = ', event);
                 this.isFocused = false;
                 let $parentEle = event.target;
                 while ($parentEle && $parentEle.classList) {
-                    console.log('from while = ', $parentEle);
                     if ($parentEle.classList.contains('step-execute-host-list')) {
                         this.isFocused = true;
                         break;
                     }
                     $parentEle = $parentEle.parentNode;
                 }
-                console.log('from ip focus = ', this.isFocused);
             };
+            
             document.addEventListener('click', focusCallbacks);
+            document.addEventListener('keydown', this.handleKeyDownSelect);
             this.$once('hook:beforeDestroy', () => {
                 document.removeEventListener('click', focusCallbacks);
+                document.removeEventListener('keydown', this.handleKeyDownSelect);
             });
         },
         methods: {
+            /**
+             * @desc 触发选中更新
+             * @param { Object } selectData
+             */
+            triggerChange: _.debounce(function (selectData) {
+                this.$emit('on-row-select', selectData);
+            }, 150),
+            /**
+             * @desc 鼠标键盘上下键选中
+             * @param { Object } event
+             */
+            handleKeyDownSelect (event) {
+                if (!this.isFocused) {
+                    return;
+                }
+                const index = _.findIndex(this.data, ({ key }) => key === this.selectRow);
+
+                let selectData = null;
+                if (event.code === 'ArrowDown' && index < this.data.length - 1) {
+                    selectData = this.data[index + 1];
+                } else if (event.code === 'ArrowUp' && index > 0) {
+                    selectData = this.data[index - 1];
+                }
+                if (selectData) {
+                    this.selectRow = selectData.key;
+                    this.triggerChange(selectData);
+                }
+            },
             /**
              * @desc 选中主机
              * @param { Object } payload
              */
             handleSelect (payload) {
                 this.selectRow = payload.key;
-                this.$emit('on-row-select', payload);
+                this.triggerChange(payload);
             },
         },
     };
