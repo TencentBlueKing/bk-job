@@ -131,7 +131,7 @@ public class GseStepEventHandler implements StepEventHandler {
                     refreshStep(stepEvent, stepInstance);
                     break;
                 case CONTINUE_FILE_PUSH:
-//                    continueGseFileStep(stepInstance);
+                    continueGseFileStep(stepInstance);
                     break;
                 case CLEAR:
                     clearStep(stepInstance);
@@ -396,22 +396,18 @@ public class GseStepEventHandler implements StepEventHandler {
         taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
     }
 
-//    /**
-//     * 第三方文件源文件拉取完成后继续GSE文件分发
-//     *
-//     * @param stepInstance 步骤实例
-//     */
-//    private void continueGseFileStep(StepInstanceDTO stepInstance) {
-//        log.info("Continue file push step, stepInstanceId={}", stepInstance.getId());
-//
-//        // 如果是滚动步骤，需要更新滚动进度
-//        if (stepInstance.isRollingStep()) {
-//            int currentRollingBatch = stepInstance.getBatch() + 1;
-//            stepInstance.setBatch(currentRollingBatch);
-//            stepInstanceService.updateStepCurrentBatch(stepInstance.getId(), currentRollingBatch);
-//        }
-//        taskExecuteMQEventDispatcher.startGseTask(gseTaskId);
-//    }
+    /**
+     * 第三方文件源文件拉取完成后继续GSE文件分发
+     *
+     * @param stepInstance 步骤实例
+     */
+    private void continueGseFileStep(StepInstanceDTO stepInstance) {
+        log.info("Continue file push step, stepInstanceId={}", stepInstance.getId());
+
+        GseTaskDTO gseTask =
+            gseTaskService.getGseTask(stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch());
+        taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(gseTask.getId(), null));
+    }
 
     /**
      * 重新执行步骤失败的任务
