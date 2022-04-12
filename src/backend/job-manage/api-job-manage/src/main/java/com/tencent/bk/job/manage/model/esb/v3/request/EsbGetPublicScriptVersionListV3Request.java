@@ -22,50 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.request;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbJobReq;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * 新增业务集请求
+ * 查询公共脚本版本列表请求
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel("新增业务集请求")
-public class ServiceAddAppSetRequest {
-
-    @ApiModelProperty("业务ID")
-    private Long id;
-
+public class EsbGetPublicScriptVersionListV3Request extends EsbJobReq {
     /**
-     * 业务名称
+     * 脚本ID
      */
-    @ApiModelProperty("业务名称")
-    private String name;
-
+    @JsonProperty("script_id")
+    private String scriptId;
     /**
-     * 运维
+     * 是否需要返回脚本内容。true:返回脚本内容；false：不返回脚本内容。默认为false。
      */
-    private String maintainers;
-
-    /**
-     * 子业务
-     */
-    @ApiModelProperty("子业务ID")
-    private String subAppIds;
-
-    @ApiModelProperty("是否是动态业务集")
-    private boolean dynamicAppSet = false;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 组织架构ID
-     */
-    @ApiModelProperty("组织架构ID")
-    private Long deptId;
+    @JsonProperty("return_script_content")
+    private Boolean returnScriptContent = false;
 }

@@ -22,43 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.request;
+package com.tencent.bk.job.common.model.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * 更新业务集请求
+ * Job业务属性DO
  */
+@NoArgsConstructor
 @Data
-@ApiModel("更新业务集请求")
-public class ServiceUpdateAppSetRequest {
-
-    @ApiModelProperty("业务ID")
-    private Long appId;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ApplicationAttrsDO {
 
     /**
-     * 新增运维
+     * cmdb业务集的子业务ID列表
      */
-    @ApiModelProperty("新增运维")
-    private String addMaintainers;
+    private List<Long> subBizIds;
 
     /**
-     * 删除运维
+     * cmdb业务集是否包含所有子业务
      */
-    @ApiModelProperty("删除运维")
-    private String delMaintainers;
-
-    /**
-     * 新增子业务
-     */
-    @ApiModelProperty("新增子业务")
-    private String addSubAppIds;
-
-    /**
-     * 删除子业务
-     */
-    @ApiModelProperty("删除子业务")
-    private String delSubAppIds;
+    private Boolean matchAllBiz;
 }

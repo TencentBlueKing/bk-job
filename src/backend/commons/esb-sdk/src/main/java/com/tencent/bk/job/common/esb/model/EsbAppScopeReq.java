@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
@@ -43,9 +42,8 @@ import javax.validation.constraints.NotBlank;
 
 @Setter
 @Getter
-@ToString
 @GroupSequenceProvider(EsbAppScopeReqGroupSequenceProvider.class)
-public class EsbAppScopeReq extends EsbReq {
+public class EsbAppScopeReq extends EsbJobReq {
     /**
      * 兼容字段,表示cmdb 业务/业务集ID
      */

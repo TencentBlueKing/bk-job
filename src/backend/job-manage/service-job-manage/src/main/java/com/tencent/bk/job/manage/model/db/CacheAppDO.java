@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.model.db;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Getter;
@@ -71,7 +72,7 @@ public class CacheAppDO {
      * 子业务
      */
     @DeprecatedAppLogic
-    private List<Long> subAppIds;
+    private List<Long> subBizIds;
 
     /**
      * 业务运维
@@ -85,6 +86,11 @@ public class CacheAppDO {
     @DeprecatedAppLogic
     private Long operateDeptId;
 
+    /**
+     * 业务属性
+     */
+    private ApplicationAttrsDO attrs;
+
     public static CacheAppDO fromApplicationDTO(ApplicationDTO application) {
         CacheAppDO cacheAppDO = new CacheAppDO();
         cacheAppDO.setId(application.getId());
@@ -93,8 +99,9 @@ public class CacheAppDO {
         cacheAppDO.setName(application.getName());
         cacheAppDO.setAppType(application.getAppType().getValue());
         cacheAppDO.setMaintainers(application.getMaintainers());
-        cacheAppDO.setSubAppIds(application.getSubAppIds());
+        cacheAppDO.setSubBizIds(application.getSubBizIds());
         cacheAppDO.setOperateDeptId(application.getOperateDeptId());
+        cacheAppDO.setAttrs(application.getAttrs());
         return cacheAppDO;
     }
 
@@ -105,8 +112,9 @@ public class CacheAppDO {
         application.setName(cacheAppDO.getName());
         application.setAppType(AppTypeEnum.valueOf(cacheAppDO.getAppType()));
         application.setMaintainers(cacheAppDO.getMaintainers());
-        application.setSubAppIds(cacheAppDO.getSubAppIds());
+        application.setSubBizIds(cacheAppDO.getSubBizIds());
         application.setOperateDeptId(cacheAppDO.getOperateDeptId());
+        application.setAttrs(cacheAppDO.getAttrs());
         return application;
     }
 }

@@ -182,7 +182,6 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
         EsbCronInfoResponse esbCronInfoResponse = new EsbCronInfoResponse();
         esbCronInfoResponse.setId(0L);
         checkRequest(request);
-        Long appId = request.getAppId();
         AuthResult authResult;
         if (request.getId() != null && request.getId() > 0) {
             authResult = cronAuthService.authManageCron(
@@ -194,7 +193,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        cronJobInfo.setId(appId);
+        cronJobInfo.setId(request.getId());
         cronJobInfo.setAppId(request.getAppId());
         cronJobInfo.setName(request.getName());
         cronJobInfo.setTaskPlanId(request.getPlanId());

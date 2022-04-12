@@ -103,8 +103,20 @@ public interface ScriptAuthService {
      * @return 鉴权结果
      */
     AuthResult batchAuthResultManageScript(String username,
-                                       AppResourceScope appResourceScope,
-                                       List<String> scriptIdList);
+                                           AppResourceScope appResourceScope,
+                                           List<String> scriptIdList);
+
+    /**
+     * 资源范围下查看脚本批量鉴权并返回鉴权结果
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param scriptIdList     脚本ID列表
+     * @return 鉴权结果
+     */
+    AuthResult batchAuthResultViewScript(String username,
+                                         AppResourceScope appResourceScope,
+                                         List<String> scriptIdList);
 
     /**
      * 注册脚本实例

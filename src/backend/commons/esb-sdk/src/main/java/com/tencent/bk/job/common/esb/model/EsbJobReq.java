@@ -22,41 +22,68 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.bizset;
+package com.tencent.bk.job.common.esb.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
- * CMDB接口请求实体类，用于搜索业务集
+ * Job ESB API 的通用请求参数
  */
 @Setter
 @Getter
-@ToString
-public class SearchBizSetReq extends EsbReq {
+public class EsbJobReq extends EsbReq {
+    /**
+     * ESB 请求-默认分页大小
+     */
+    public static final Integer DEFAULT_PAGE_LENGTH = 20;
+    /**
+     * ESB 请求-默认的最大分页大小
+     */
+    public static final Integer DEFAULT_PAGE_LENGTH_LIMIT = 1000;
+    /**
+     * 分页-起始位置,默认为0
+     */
+    @JsonProperty("start")
+    private Integer start = 0;
 
     /**
-     * 业务集过滤器
+     * 分页-每页大小
      */
-    @JsonProperty("bk_biz_set_filter")
-    private BizSetFilter filter;
+    @JsonProperty("length")
+    private Integer length;
 
     /**
-     * 查询字段
+     * 调整默认分页参数。
+     * 默认分页大小：EsbJobReq.DEFAULT_PAGE_LENGTH；
+     * 默认最大分页大小: EsbJobReq.DEFAULT_PAGE_LENGTH_LIMIT
      */
-    private List<String> fields = Arrays.asList("bk_biz_set_id", "bk_biz_set_name", "bk_biz_set_desc",
-        "bk_biz_maintainer", "bk_supplier_account", "bk_operate_dept_id", "create_time", "last_time", "time_zone",
-        "language", "bk_scope");
+    public void adjustPageParam() {
+        if (start == null || start < 0) {
+            start = 0;
+        }
+        if (length == null || length <= 0) {
+            length = DEFAULT_PAGE_LENGTH;
+        } else if (length > DEFAULT_PAGE_LENGTH_LIMIT) {
+            length = DEFAULT_PAGE_LENGTH_LIMIT;
+        }
+    }
 
     /**
-     * 分页参数
+     * 调整分页参数
+     *
+     * @param defaultLength 在不指定分页大小的情况下，使用的默认分页大小
+     * @param maxLength     最大分页大小
      */
-    private Page page;
-
+    public void adjustPageParam(Integer defaultLength, Integer maxLength) {
+        if (start == null || start < 0) {
+            start = 0;
+        }
+        if (length == null || length <= 0) {
+            length = defaultLength;
+        } else if (length > maxLength) {
+            length = maxLength;
+        }
+    }
 }

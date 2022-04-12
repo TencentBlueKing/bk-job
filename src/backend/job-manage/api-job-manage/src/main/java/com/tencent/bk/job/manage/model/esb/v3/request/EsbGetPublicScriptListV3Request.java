@@ -22,36 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.schedule;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.execute.schedule.tasks.SyncAppAndRefreshCacheTask;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbJobReq;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Component
-@EnableScheduling
-@Slf4j
-public class ScheduleTasks {
-    private final SyncAppAndRefreshCacheTask syncAppAndRefreshCacheTask;
-
-    @Autowired
-    public ScheduleTasks(SyncAppAndRefreshCacheTask syncAppAndRefreshCacheTask) {
-        this.syncAppAndRefreshCacheTask = syncAppAndRefreshCacheTask;
-    }
-
-    @Scheduled(cron = "0 * * * * ?")
-    public void syncAndRefreshApp() {
-        if (!LockUtils.tryGetDistributedLock("job-execute-sync-app", "sync-app", 30_000)) {
-            log.info("Fail to get sync app lock!Skip sync.");
-            return;
-        }
-        log.info("Get job-execute-sync-app lock successfully!");
-        syncAppAndRefreshCacheTask.execute();
-    }
-
-
+/**
+ * 查询公共脚本列表请求
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EsbGetPublicScriptListV3Request extends EsbJobReq {
+    /**
+     * 脚本名称，支持模糊查询
+     */
+    private String name;
+    /**
+     * 脚本类型。0：所有脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：sql。默认值为0
+     */
+    @JsonProperty("script_language")
+    private Integer scriptLanguage;
 }

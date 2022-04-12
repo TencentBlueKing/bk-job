@@ -105,14 +105,26 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
     @Override
     public AuthResult batchAuthResultManageScript(String username, AppResourceScope appResourceScope,
                                                   List<String> scriptIdList) {
-        List<PermissionResource> resources = scriptIdList.stream().map(scriptId -> {
+        List<PermissionResource> resources = convertToPermissionResources(appResourceScope, scriptIdList);
+        return appAuthService.batchAuthResources(username, ActionId.MANAGE_SCRIPT, appResourceScope, resources);
+    }
+
+    @Override
+    public AuthResult batchAuthResultViewScript(String username, AppResourceScope appResourceScope,
+                                                List<String> scriptIdList) {
+        List<PermissionResource> resources = convertToPermissionResources(appResourceScope, scriptIdList);
+        return appAuthService.batchAuthResources(username, ActionId.VIEW_SCRIPT, appResourceScope, resources);
+    }
+
+    private List<PermissionResource> convertToPermissionResources(AppResourceScope appResourceScope,
+                                                                  List<String> scriptIdList) {
+        return scriptIdList.stream().map(scriptId -> {
             PermissionResource resource = new PermissionResource();
             resource.setResourceId(scriptId);
             resource.setResourceType(ResourceTypeEnum.SCRIPT);
             resource.setPathInfo(buildAppScopePath(appResourceScope));
             return resource;
         }).collect(Collectors.toList());
-        return appAuthService.batchAuthResources(username, ActionId.MANAGE_SCRIPT, appResourceScope, resources);
     }
 
     @Override

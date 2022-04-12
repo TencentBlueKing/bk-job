@@ -24,18 +24,19 @@
 
 package com.tencent.bk.job.common.iam.config;
 
+import com.tencent.bk.job.common.iam.http.IamHttpClientServiceImpl;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.HttpClientService;
 import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.service.TokenService;
-import com.tencent.bk.sdk.iam.service.impl.DefaultHttpClientServiceImpl;
 import com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl;
 import com.tencent.bk.sdk.iam.service.impl.TokenServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 /**
  * @since 28/5/2020 17:42
@@ -87,8 +88,9 @@ public class JobIamAutoConfiguration {
     }
 
     @Bean
+    @DependsOn("httpConfigSetter")
     public HttpClientService httpClientService() {
-        return new DefaultHttpClientServiceImpl(iamConfiguration());
+        return new IamHttpClientServiceImpl(iamConfiguration());
     }
 
     @Bean

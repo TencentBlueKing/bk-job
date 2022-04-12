@@ -22,49 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.context;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import io.micrometer.core.instrument.Tag;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbJobReq;
 import lombok.Data;
-import org.apache.commons.lang3.tuple.Pair;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.time.ZoneId;
-import java.util.AbstractList;
-import java.util.List;
-import java.util.Map;
+import lombok.EqualsAndHashCode;
 
 /**
- * @since 6/11/2019 10:26
+ * 查询公共脚本详情请求
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class JobContext {
-
-    private Long startTime;
-
-    private String username;
-
-    private AppResourceScope appResourceScope;
-
-    private String requestId;
-
-    private String userLang;
-
-    private List<String> debugMessage;
-
-    private ZoneId timeZone;
-
-    private Boolean allowMigration = false;
-
-    private HttpServletRequest request;
-
-    private HttpServletResponse response;
-
-    private Map<String, Pair<String, AbstractList<Tag>>> metricTagsMap;
-
-    private String httpMetricName;
-
-    private AbstractList<Tag> httpMetricTags;
+public class EsbGetPublicScriptVersionDetailV3Request extends EsbJobReq {
+    /**
+     * 脚本版本ID，若传入则以此条件为准屏蔽其他条件
+     */
+    private Long id;
+    /**
+     * 脚本ID（可与version一起传入定位某个脚本版本）
+     */
+    @JsonProperty("script_id")
+    private String scriptId;
+    /**
+     * 脚本版本（可与script_id一起传入定位某个脚本版本）
+     */
+    private String version;
 }

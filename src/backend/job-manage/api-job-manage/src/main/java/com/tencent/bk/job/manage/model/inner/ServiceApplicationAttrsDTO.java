@@ -22,12 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.cache;
+package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public class AppLocalCache {
-    public static ApplicationDTO getCacheApp(long appId) {
-        return null;
-    }
+import java.util.List;
+
+/**
+ * Job业务属性
+ */
+@NoArgsConstructor
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ServiceApplicationAttrsDTO {
+
+    /**
+     * cmdb业务集的子业务ID列表
+     */
+    private List<Long> subBizIds;
+
+    /**
+     * cmdb业务集是否包含所有子业务
+     */
+    private Boolean matchAllBiz;
 }

@@ -22,45 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.bean;
+package com.tencent.bk.job.manage.model.tmp;
 
-import com.google.common.collect.Lists;
-import org.dozer.DozerBeanMapper;
-
-import java.util.Collection;
-import java.util.List;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 /**
- * Bean转换工具
+ * 新增业务集请求
  */
-public class BeanMapper {
+@Data
+@ApiModel("新增业务集请求")
+public class TmpAddAppSetRequest {
 
-
-    private final static DozerBeanMapper MAPPER = new DozerBeanMapper();
-
-    /**
-     * 转换对象的类型.
-     */
-    public static <T> T map(Object source, Class<T> destinationClass) {
-        return MAPPER.map(source, destinationClass);
-    }
+    @ApiModelProperty("业务ID")
+    private Long id;
 
     /**
-     * 转换Collection中对象的类型.
+     * 业务名称
      */
-    public static <T> List<T> mapList(Collection sourceList, Class<T> destinationClass) {
-        List<T> destinationList = Lists.newArrayListWithCapacity(sourceList.size());
-        for (Object sourceObject : sourceList) {
-            T destinationObject = MAPPER.map(sourceObject, destinationClass);
-            destinationList.add(destinationObject);
-        }
-        return destinationList;
-    }
+    @ApiModelProperty("业务名称")
+    private String name;
 
     /**
-     * 将对象A的值拷贝到对象B中.
+     * 运维
      */
-    public static void copy(Object source, Object destinationObject) {
-        MAPPER.map(source, destinationObject);
-    }
+    private String maintainers;
+
+    /**
+     * 子业务
+     */
+    @ApiModelProperty("子业务ID")
+    private String subAppIds;
+
+    @ApiModelProperty("是否是动态业务集")
+    private boolean dynamicAppSet = false;
+
+    /**
+     * 时区
+     */
+    private String timeZone;
+
+    /**
+     * 组织架构ID
+     */
+    @ApiModelProperty("组织架构ID")
+    private Long deptId;
 }

@@ -45,14 +45,4 @@ public class EsbGetScriptVersionListV3Req extends EsbAppScopeReq {
      */
     @JsonProperty("return_script_content")
     private Boolean returnScriptContent = false;
-
-    /**
-     * 起始位置
-     */
-    private Integer start;
-
-    /**
-     * 起始位置
-     */
-    private Integer length;
 }
