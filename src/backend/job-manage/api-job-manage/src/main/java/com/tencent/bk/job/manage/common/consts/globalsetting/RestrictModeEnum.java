@@ -22,31 +22,55 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.globalsetting;
+package com.tencent.bk.job.manage.common.consts.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.val;
 
-import java.util.List;
-
-/**
- * 文件上传参数VO
- */
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
-@ApiModel("文件上传参数")
-@Data
-public class FileUploadSettingVO {
-    @ApiModelProperty("数量")
-    private Long amount;
-    @ApiModelProperty("单位")
-    private String unit;
-    @ApiModelProperty("限制模式，0:禁止范围，1：允许范围")
-    private Integer restrictMode;
-    @ApiModelProperty("后缀列表")
-    private List<String> suffixList;
+public enum RestrictModeEnum {
+    /**
+     * 禁止范围
+     */
+    FORBID(0),
 
+    /**
+     * 允许范围
+     */
+    ALLOW(1),
+    /**
+     * 不限制
+     */
+    UNLIMITED(-1);
+
+    @JsonValue
+    private int type;
+
+    @JsonCreator
+    public static RestrictModeEnum valueOf(int type) {
+        val values = RestrictModeEnum.values();
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].type == type) {
+                return values[i];
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * 判断参数合法性
+     */
+    public static boolean isValid(Integer type) {
+        for (RestrictModeEnum restrictModeEnum : RestrictModeEnum.values()) {
+            if (restrictModeEnum.getType() == type) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

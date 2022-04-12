@@ -209,6 +209,7 @@
 
             th {
                 color: #313238;
+                white-space: nowrap;
                 background: #f5f6fa;
             }
 
