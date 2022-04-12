@@ -27,5 +27,5 @@ package com.tencent.bk.job.analysis.consts;
 public class AnalysisConsts {
     // 运营视图：全局视图ID
     public static String GLOBAL_DASHBOARD_VIEW_ID = "1";
-    public static String GLOBAL_DASHBOARD_VIEW_NAME = "全局视图";
+    public static String GLOBAL_DASHBOARD_VIEW_NAME = "All";
 }

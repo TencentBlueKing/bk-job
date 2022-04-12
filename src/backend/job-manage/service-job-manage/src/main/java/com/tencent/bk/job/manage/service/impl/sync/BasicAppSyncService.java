@@ -95,27 +95,29 @@ public class BasicAppSyncService {
         applicationService.deleteApp(applicationDTO.getId());
     }
 
-    protected void applyAppsChangeByScope(List<ApplicationDTO> insertList,
-                                          List<ApplicationDTO> deleteList,
-                                          List<ApplicationDTO> updateList) {
-        insertList.forEach(applicationInfoDTO -> {
+    protected void applyAppsChangeByScope(List<ApplicationDTO> insertApps,
+                                          List<ApplicationDTO> deleteApps,
+                                          List<ApplicationDTO> updateApps) {
+        insertApps.forEach(application -> {
             try {
-                log.info("insertAppInfo:" + JsonUtils.toJson(applicationInfoDTO));
-                applicationService.createApp(applicationInfoDTO);
+                log.info("Insert app: {}", JsonUtils.toJson(application));
+                applicationService.createApp(application);
             } catch (Throwable t) {
-                log.error("FATAL: insertApp fail:appId=" + applicationInfoDTO.getId(), t);
+                log.error("FATAL: insertApp fail:appId=" + application.getId(), t);
             }
         });
-        updateList.forEach(applicationInfoDTO -> {
+        updateApps.forEach(applicationInfoDTO -> {
             try {
+                log.info("Update app: {}", JsonUtils.toJson(applicationInfoDTO));
                 applicationService.updateApp(applicationInfoDTO);
                 applicationDAO.restoreDeletedApp(dslContext, applicationInfoDTO.getId());
             } catch (Throwable t) {
                 log.error("FATAL: updateApp fail:appId=" + applicationInfoDTO.getId(), t);
             }
         });
-        deleteList.forEach(applicationInfoDTO -> {
+        deleteApps.forEach(applicationInfoDTO -> {
             try {
+                log.info("Delete app: {}", JsonUtils.toJson(applicationInfoDTO));
                 deleteApp(applicationInfoDTO);
             } catch (Throwable t) {
                 log.error("FATAL: deleteApp fail:appId=" + applicationInfoDTO.getId(), t);

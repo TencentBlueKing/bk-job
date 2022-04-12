@@ -22,9 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.common.util.feature;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 
 /**
  * 特性开关

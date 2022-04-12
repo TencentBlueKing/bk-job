@@ -22,71 +22,61 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner;
+package com.tencent.bk.job.manage.model.db;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * 业务
+ * Redis 缓存规则DO
  */
-@Data
-@ApiModel("业务")
-public class ServiceApplicationDTO {
-
-    @ApiModelProperty("业务ID")
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class DangerousRuleDO {
+    /**
+     * id
+     */
     private Long id;
-
     /**
-     * 资源范围类型
+     * 表达式
      */
-    private String scopeType;
+    private String expression;
     /**
-     * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
+     * 描述
      */
-    private String scopeId;
-
+    private String description;
     /**
-     * 业务名称
+     * 优先级
      */
-    @ApiModelProperty("业务名称")
-    private String name;
-
+    private Integer priority;
     /**
-     * 业务类型
+     * 脚本类型
      */
-    @ApiModelProperty("业务类型")
-    private Integer appType;
-
+    private Integer scriptType;
     /**
-     * 运维
+     * 创建人
      */
-    private String maintainers;
-
+    private String creator;
     /**
-     * 子业务
+     * 创建时间
      */
-    @ApiModelProperty("子业务ID")
-    private List<Long> subAppIds;
-
-    @ApiModelProperty("开发商")
-    private String owner;
-
+    private Long createTime;
     /**
-     * 初始运维部门Id
+     * 更新人
      */
-    private Long operateDeptId;
-
+    private String lastModifier;
     /**
-     * 时区
+     * 更新时间
      */
-    private String timeZone;
-
+    private Long lastModifyTime;
     /**
-     * 语言
+     * 处理动作
      */
-    private String language;
+    private Integer action;
+    /**
+     * 规则启用状态
+     */
+    private Integer status;
 }

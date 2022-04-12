@@ -3,7 +3,7 @@
 2.访问地址
 浏览器访问地址（请确保已配置域名解析）：
 {{- if .Values.frontendConfig.ingress.enabled }}
-http{{ if $.Values.job.web.https.enabled }}s{{ end }}://{{ $.Values.job.web.domain }}
+{{ $.Values.bkDomainScheme }}://{{ $.Values.job.web.domain }}
 {{- end }}
 
 本机curl访问：

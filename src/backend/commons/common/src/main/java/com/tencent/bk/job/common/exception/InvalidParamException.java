@@ -43,6 +43,10 @@ public class InvalidParamException extends ServiceException {
         super(ErrorType.INVALID_PARAM, errorCode, errorParams);
     }
 
+    public InvalidParamException(Integer errorCode, Object errorParam) {
+        super(ErrorType.INVALID_PARAM, errorCode, new Object[]{errorParam});
+    }
+
     public InvalidParamException(String message, Integer errorCode) {
         super(message, ErrorType.INVALID_PARAM, errorCode);
     }

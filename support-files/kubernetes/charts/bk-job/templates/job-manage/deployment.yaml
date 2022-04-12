@@ -65,6 +65,7 @@ spec:
           image: {{ include "job-manage.image" . }}
           imagePullPolicy: {{ .Values.manageConfig.image.pullPolicy }}
           env:
+            {{- include "job.storage.env" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-manage"
             - name: BK_JOB_EDITION
@@ -115,7 +116,7 @@ spec:
             {{- toYaml .Values.manageConfig.resources | nindent 12 }}
           volumeMounts:
             - name: job-storage
-              mountPath: /data/job/storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true

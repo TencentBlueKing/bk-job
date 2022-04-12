@@ -22,45 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.bean;
+package com.tencent.bk.job.manage.model.dto.globalsetting;
 
-import com.google.common.collect.Lists;
-import org.dozer.DozerBeanMapper;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
- * Bean转换工具
+ * 上传文件限制配置
  */
-public class BeanMapper {
-
-
-    private final static DozerBeanMapper MAPPER = new DozerBeanMapper();
-
-    /**
-     * 转换对象的类型.
-     */
-    public static <T> T map(Object source, Class<T> destinationClass) {
-        return MAPPER.map(source, destinationClass);
-    }
-
-    /**
-     * 转换Collection中对象的类型.
-     */
-    public static <T> List<T> mapList(Collection sourceList, Class<T> destinationClass) {
-        List<T> destinationList = Lists.newArrayListWithCapacity(sourceList.size());
-        for (Object sourceObject : sourceList) {
-            T destinationObject = MAPPER.map(sourceObject, destinationClass);
-            destinationList.add(destinationObject);
-        }
-        return destinationList;
-    }
-
-    /**
-     * 将对象A的值拷贝到对象B中.
-     */
-    public static void copy(Object source, Object destinationObject) {
-        MAPPER.map(source, destinationObject);
-    }
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class UploadFileRestrictDTO {
+    @ApiModelProperty("限制最大上传大小")
+    private String maxSize;
+    @ApiModelProperty("限制模式")
+    private Integer restrictMode;
+    @ApiModelProperty("后缀列表")
+    private List<String> suffixList;
 }

@@ -47,8 +47,10 @@ const genAssetPath = dir => path.posix.join('static', `${dir}/[name].[hash:7].[e
 // const smp = new SpeedMeasurePlugin();
 
 module.exports = function (env) {
+    const isDevelopment = env.development;
+
     const appendThreadLoader = function () {
-        if (env.development) {
+        if (isDevelopment) {
             return {
                 loader: 'thread-loader',
                 options: {
@@ -58,20 +60,29 @@ module.exports = function (env) {
         }
     };
     
-    if (env.development) {
-        const localENVPath = path.resolve(__dirname, '.env.local');
-        if (!fs.existsSync(localENVPath)) {
-            console.error('\n\n**** 本地开发需提供 .env.local 配置文件，可查看 README.MD 或联系管理员****\n\n');
+    // webpack.config是函数在构建过程会重复执行，
+    if (isDevelopment) {
+        // 读取指定mode的.env文件
+        const envModeConfigFile = path.resolve(__dirname, `.env.${env.mode}`);
+        if (!fs.existsSync(envModeConfigFile)) {
+            console.error(`\n\n\n**** ${env.mode}模式时本地需提供 .env.${env.mode} 配置文件，可查看 README.MD 或联系管理员****\n\n\n`);
             process.exit(1);
         }
         require('dotenv').config({
-            path: localENVPath,
+            path: envModeConfigFile,
         });
+        // .env.local 会对指定mode的配置文件进行覆盖
+        const localModeConfigFile = path.resolve(__dirname, '.env.local');
+        if (fs.existsSync(localModeConfigFile)) {
+            require('dotenv').config({
+                path: localModeConfigFile,
+            });
+        }
     }
     return {
-        mode: env.development ? 'development' : 'production',
-        devtool: env.development ? 'eval-source-map' : 'hidden-source-map',
-        cache: env.development
+        mode: isDevelopment ? 'development' : 'production',
+        devtool: isDevelopment ? 'eval-source-map' : 'hidden-source-map',
+        cache: isDevelopment
             ? {
                 type: 'filesystem',
                 memoryCacheUnaffected: true,
@@ -84,11 +95,11 @@ module.exports = function (env) {
             pathinfo: false,
             path: resolve('dist'),
             publicPath: '/',
-            filename: env.development ? 'js/[name].js' : 'js/[name].[chunkhash].js',
-            chunkFilename: env.development ? 'js/[name].js' : 'js/[name].[chunkhash].js',
+            filename: isDevelopment ? 'js/[name].js' : 'js/[name].[chunkhash].js',
+            chunkFilename: isDevelopment ? 'js/[name].js' : 'js/[name].[chunkhash].js',
             clean: true,
         },
-        optimization: env.development
+        optimization: isDevelopment
             ? {
                 moduleIds: 'named',
                 removeAvailableModules: false,
@@ -208,7 +219,7 @@ module.exports = function (env) {
                     test: /\.(css|scss|postcss)$/,
                     use: [
                         'vue-style-loader',
-                        env.development
+                        isDevelopment
                             ? ''
                             : {
                                 loader: MiniCssExtractPlugin.loader,
@@ -275,7 +286,7 @@ module.exports = function (env) {
             },
         },
         plugins: [
-            new webpack.DefinePlugin(env.development
+            new webpack.DefinePlugin(isDevelopment
                 ? {
                     'process.env': {
                         JOB_WELCOME: JSON.stringify(figlet.textSync('Welcome To Job\nlatest', {
@@ -292,7 +303,7 @@ module.exports = function (env) {
                         JOB_VERSION: JSON.stringify(process.env.JOB_VERSION),
                     },
                 }),
-            new HtmlWebpackPlugin(env.development
+            new HtmlWebpackPlugin(isDevelopment
                 ? {
                     filename: 'index.html',
                     template: 'index-dev.html',
@@ -311,17 +322,17 @@ module.exports = function (env) {
                         removeAttributeQuotes: true,
                     },
                 }),
-            !env.development && new MiniCssExtractPlugin({
+            !isDevelopment && new MiniCssExtractPlugin({
                 filename: 'static/css/[name].[contenthash].css',
                 ignoreOrder: true,
             }),
-            env.development && new ESLintPlugin({
+            isDevelopment && new ESLintPlugin({
                 extensions: ['js', 'vue'],
                 lintDirtyModulesOnly: true,
                 failOnError: false,
                 threads: 2,
             }),
-            env.development && new StylelintPlugin({
+            isDevelopment && new StylelintPlugin({
                 files: ['./**/*.vue', './**/*.css'],
                 extensions: ['css', 'scss', 'sass', 'postcss'],
                 lintDirtyModulesOnly: true,

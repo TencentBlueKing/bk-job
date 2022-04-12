@@ -26,9 +26,13 @@ package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.Bool;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
@@ -77,7 +80,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         T_APP.TIMEZONE,
         T_APP.BK_OPERATE_DEPT_ID,
         T_APP.LANGUAGE,
-        T_APP.IS_DELETED
+        T_APP.IS_DELETED,
+        T_APP.ATTRS
     };
 
     private final DSLContext context;
@@ -119,56 +123,26 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         applicationDTO.setMaintainers(record.get(T_APP.MAINTAINERS));
         applicationDTO.setBkSupplierAccount(record.get(T_APP.BK_SUPPLIER_ACCOUNT));
         applicationDTO.setAppType(AppTypeEnum.valueOf(record.get(T_APP.APP_TYPE)));
-        applicationDTO.setSubAppIds(splitSubAppIds(record.get(T_APP.SUB_APP_IDS)));
+        applicationDTO.setSubBizIds(splitSubBizIds(record.get(T_APP.SUB_APP_IDS)));
         applicationDTO.setTimeZone(record.get(T_APP.TIMEZONE));
         applicationDTO.setOperateDeptId(record.get(T_APP.BK_OPERATE_DEPT_ID));
         applicationDTO.setLanguage(record.get(T_APP.LANGUAGE));
         applicationDTO.setDeleted(Bool.isTrue(record.get(T_APP.IS_DELETED).intValue()));
+        applicationDTO.setAttrs(JsonUtils.fromJson(record.get(T_APP.ATTRS), ApplicationAttrsDO.class));
         return applicationDTO;
     }
 
-    private static List<Long> splitSubAppIds(String appIds) {
-        List<Long> appIdList = new LinkedList<>();
-        if (StringUtils.isNotBlank(appIds)) {
-            for (String appIdStr : appIds.split("[,;]")) {
-                if (StringUtils.isNotBlank(appIdStr)) {
-                    appIdList.add(Long.valueOf(appIdStr));
+    private static List<Long> splitSubBizIds(String bizIdsStr) {
+        List<Long> bizIdList = new LinkedList<>();
+        if (StringUtils.isNotBlank(bizIdsStr)) {
+            for (String bizIdStr : bizIdsStr.split("[,;]")) {
+                if (StringUtils.isNotBlank(bizIdStr)) {
+                    bizIdList.add(Long.valueOf(bizIdStr));
                 }
             }
 
         }
-        return appIdList;
-    }
-
-    @Override
-    public AppTypeEnum getAppTypeById(long appId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(T_APP.APP_ID.eq(ULong.valueOf(appId)));
-        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())));
-        Record1<Byte> record = context.select(T_APP.APP_TYPE).from(T_APP).where(conditions).fetchOne();
-        if (record != null) {
-            return AppTypeEnum.valueOf(record.get(T_APP.APP_TYPE));
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public List<Long> getSubAppIds(long appId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(T_APP.APP_ID.eq(ULong.valueOf(appId)));
-        conditions.add(T_APP.APP_TYPE.eq(JooqDataTypeUtil.getByteFromInteger(AppTypeEnum.APP_SET.getValue())));
-        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())));
-        Record1<String> record = context.select(T_APP.SUB_APP_IDS).from(T_APP).where(conditions).fetchOne();
-        if (record != null && StringUtils.isNotBlank(record.get(T_APP.SUB_APP_IDS))) {
-            List<Long> subAppIds = new ArrayList<>();
-            for (String subAppId : record.get(T_APP.SUB_APP_IDS).split("[,;]")) {
-                subAppIds.add(Long.valueOf(subAppId));
-            }
-            return subAppIds;
-        } else {
-            return Collections.emptyList();
-        }
+        return bizIdList;
     }
 
     private List<Condition> getBasicNotDeletedConditions() {
@@ -287,10 +261,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Override
     public Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
         setDefaultValue(applicationDTO);
-        val subAppIds = applicationDTO.getSubAppIds();
-        String subAppIdsStr = null;
-        if (subAppIds != null) {
-            subAppIdsStr = subAppIds.stream().map(Object::toString).collect(Collectors.joining(";"));
+        val subBizIds = applicationDTO.getSubBizIds();
+        String subBizIdsStr = null;
+        if (subBizIds != null) {
+            subBizIdsStr = subBizIds.stream().map(Object::toString).collect(Collectors.joining(";"));
         }
         ResourceScope scope = applicationDTO.getScope();
         val query = dslContext.insertInto(T_APP,
@@ -304,36 +278,46 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             T_APP.LANGUAGE,
             T_APP.BK_SCOPE_TYPE,
             T_APP.BK_SCOPE_ID,
+            T_APP.ATTRS,
             T_APP.IS_DELETED
         ).values(
             applicationDTO.getName(),
             (byte) (applicationDTO.getAppType().getValue()),
             applicationDTO.getBkSupplierAccount(),
             applicationDTO.getMaintainers(),
-            subAppIdsStr,
+            subBizIdsStr,
             applicationDTO.getTimeZone(),
             applicationDTO.getOperateDeptId(),
             applicationDTO.getLanguage(),
             scope == null ? null : scope.getType().getValue(),
             scope == null ? null : scope.getId(),
+            applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()),
             UByte.valueOf(Bool.FALSE.getValue())
         );
         try {
-            query.execute();
+            val record = query.returning(T_APP.APP_ID).fetchOne();
+            if (record != null) {
+                return record.getAppId().longValue();
+            } else {
+                throw new InternalException(
+                    "Get null id after insert, please check db generator",
+                    ErrorCode.INTERNAL_ERROR
+                );
+            }
         } catch (Exception e) {
-            log.info("Fail to insertAppInfo:SQL={}", query.getSQL(ParamType.INLINED), e);
+            log.error("Fail to insertAppInfo:SQL={}", query.getSQL(ParamType.INLINED), e);
+            throw e;
         }
-        return applicationDTO.getId();
     }
 
     @Override
     public Long insertAppWithSpecifiedAppId(DSLContext dslContext,
                                             ApplicationDTO applicationDTO) {
         setDefaultValue(applicationDTO);
-        val subAppIds = applicationDTO.getSubAppIds();
-        String subAppIdsStr = null;
-        if (subAppIds != null) {
-            subAppIdsStr = subAppIds.stream().map(Object::toString).collect(Collectors.joining(";"));
+        val subBizIds = applicationDTO.getSubBizIds();
+        String subBizIdsStr = null;
+        if (subBizIds != null) {
+            subBizIdsStr = subBizIds.stream().map(Object::toString).collect(Collectors.joining(";"));
         }
         ResourceScope scope = applicationDTO.getScope();
         val query = dslContext.insertInto(T_APP,
@@ -348,6 +332,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             T_APP.LANGUAGE,
             T_APP.BK_SCOPE_TYPE,
             T_APP.BK_SCOPE_ID,
+            T_APP.ATTRS,
             T_APP.IS_DELETED
         ).values(
             JooqDataTypeUtil.buildULong(applicationDTO.getId()),
@@ -355,12 +340,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             (byte) (applicationDTO.getAppType().getValue()),
             applicationDTO.getBkSupplierAccount(),
             applicationDTO.getMaintainers(),
-            subAppIdsStr,
+            subBizIdsStr,
             applicationDTO.getTimeZone(),
             applicationDTO.getOperateDeptId(),
             applicationDTO.getLanguage(),
             scope == null ? null : scope.getType().getValue(),
             scope == null ? null : scope.getId(),
+            applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()),
             UByte.valueOf(Bool.FALSE.getValue())
         );
         try {
@@ -375,20 +361,21 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @CacheEvict(value = "appInfoCache", key = "#applicationDTO.getId()")
     public int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
         setDefaultValue(applicationDTO);
-        val subAppIds = applicationDTO.getSubAppIds();
-        String subAppIdsStr = null;
-        if (subAppIds != null) {
-            subAppIdsStr = subAppIds.stream().map(Object::toString).collect(Collectors.joining(","));
+        List<Long> subBizIds = applicationDTO.getSubBizIds();
+        String subBizIdsStr = null;
+        if (subBizIds != null) {
+            subBizIdsStr = subBizIds.stream().map(Object::toString).collect(Collectors.joining(","));
         }
         val query = dslContext.update(T_APP)
             .set(T_APP.APP_NAME, applicationDTO.getName())
-            .set(T_APP.APP_TYPE, (byte) (applicationDTO.getAppType().getValue()))
             .set(T_APP.BK_SUPPLIER_ACCOUNT, applicationDTO.getBkSupplierAccount())
             .set(T_APP.MAINTAINERS, applicationDTO.getMaintainers())
-            .set(T_APP.SUB_APP_IDS, subAppIdsStr)
+            .set(T_APP.SUB_APP_IDS, subBizIdsStr)
             .set(T_APP.TIMEZONE, applicationDTO.getTimeZone())
             .set(T_APP.BK_OPERATE_DEPT_ID, applicationDTO.getOperateDeptId())
             .set(T_APP.LANGUAGE, applicationDTO.getLanguage())
+            .set(T_APP.ATTRS, applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()))
+            .set(T_APP.APP_TYPE, (byte) applicationDTO.getAppType().getValue())
             .where(T_APP.APP_ID.eq(ULong.valueOf(applicationDTO.getId())));
         return query.execute();
     }
@@ -419,13 +406,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         return affectedNum;
     }
 
-    public int deleteAppInfoByIdHardly(DSLContext dslContext, long appId) {
-        return dslContext.update(T_APP)
-            .set(T_APP.IS_DELETED, UByte.valueOf(Bool.TRUE.getValue()))
-            .where(T_APP.APP_ID.eq(ULong.valueOf(appId)))
-            .execute();
-    }
-
     @Override
     @CacheEvict(value = "appInfoCache", key = "#appId")
     public int updateMaintainers(long appId, String maintainers) {
@@ -437,9 +417,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     @CacheEvict(value = "appInfoCache", key = "#appId")
-    public int updateSubAppIds(long appId, String subAppIds) {
+    public int updateSubBizIds(long appId, String subBizIds) {
         return context.update(T_APP)
-            .set(T_APP.SUB_APP_IDS, subAppIds)
+            .set(T_APP.SUB_APP_IDS, subBizIds)
             .where(T_APP.APP_ID.eq(ULong.valueOf(appId)))
             .execute();
     }

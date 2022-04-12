@@ -242,7 +242,7 @@
              */
             handleLogout () {
                 this.$bkInfo({
-                    title: '确认退出登录？',
+                    title: I18n.t('确认退出登录？'),
                     confirmFn: () => {
                         EventBus.$emit('logout');
                         LogoutService.logout();

@@ -31,6 +31,9 @@ import com.tencent.bk.job.common.util.json.SkipLogFields;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * ESB API 通用请求参数
+ */
 @Setter
 @Getter
 public class EsbReq extends BasicHttpReq {

@@ -22,36 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.schedule;
+package com.tencent.bk.job.execute.client;
 
-import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.execute.schedule.tasks.SyncAppAndRefreshCacheTask;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import com.tencent.bk.job.manage.api.inner.ServiceGlobalSettingsResource;
+import org.springframework.cloud.openfeign.FeignClient;
 
-@Component
-@EnableScheduling
-@Slf4j
-public class ScheduleTasks {
-    private final SyncAppAndRefreshCacheTask syncAppAndRefreshCacheTask;
-
-    @Autowired
-    public ScheduleTasks(SyncAppAndRefreshCacheTask syncAppAndRefreshCacheTask) {
-        this.syncAppAndRefreshCacheTask = syncAppAndRefreshCacheTask;
-    }
-
-    @Scheduled(cron = "0 * * * * ?")
-    public void syncAndRefreshApp() {
-        if (!LockUtils.tryGetDistributedLock("job-execute-sync-app", "sync-app", 30_000)) {
-            log.info("Fail to get sync app lock!Skip sync.");
-            return;
-        }
-        log.info("Get job-execute-sync-app lock successfully!");
-        syncAppAndRefreshCacheTask.execute();
-    }
-
-
+/**
+ * 作业管理-全局配置
+ */
+@FeignClient(value = "job-manage", contextId = "globalSettings")
+public interface GlobalSettingsClient extends ServiceGlobalSettingsResource {
 }

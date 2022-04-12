@@ -22,12 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.cache;
+package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public class AppLocalCache {
-    public static ApplicationDTO getCacheApp(long appId) {
-        return null;
-    }
+import java.util.List;
+
+/**
+ * 文件上传配置DTO
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@ApiModel("文件上传配置")
+@Data
+public class ServiceFileUploadSettingDTO {
+    @ApiModelProperty("数量")
+    private Long amount;
+    @ApiModelProperty("单位")
+    private String unit;
+    @ApiModelProperty("限制模式，0:禁止范围，1：允许范围")
+    private Integer restrictMode;
+    @ApiModelProperty("后缀列表")
+    private List<String> suffixList;
+
 }

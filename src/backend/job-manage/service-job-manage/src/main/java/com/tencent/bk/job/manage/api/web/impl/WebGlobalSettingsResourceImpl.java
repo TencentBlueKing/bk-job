@@ -136,7 +136,7 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
 
     @Override
     public Response<FileUploadSettingVO> getFileUploadSettings(String username) {
-        return Response.buildSuccessResp(globalSettingsService.getFileUploadSettings(username));
+        return Response.buildSuccessResp(globalSettingsService.getFileUploadSettings());
     }
 
     @Override

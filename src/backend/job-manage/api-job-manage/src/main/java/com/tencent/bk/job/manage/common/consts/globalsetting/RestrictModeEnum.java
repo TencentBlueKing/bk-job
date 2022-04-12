@@ -22,43 +22,55 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.request;
+package com.tencent.bk.job.manage.common.consts.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.val;
 
-/**
- * 更新业务集请求
- */
-@Data
-@ApiModel("更新业务集请求")
-public class ServiceUpdateAppSetRequest {
-
-    @ApiModelProperty("业务ID")
-    private Long appId;
+@Getter
+@AllArgsConstructor
+public enum RestrictModeEnum {
+    /**
+     * 禁止范围
+     */
+    FORBID(0),
 
     /**
-     * 新增运维
+     * 允许范围
      */
-    @ApiModelProperty("新增运维")
-    private String addMaintainers;
+    ALLOW(1),
+    /**
+     * 不限制
+     */
+    UNLIMITED(-1);
+
+    @JsonValue
+    private int type;
+
+    @JsonCreator
+    public static RestrictModeEnum valueOf(int type) {
+        val values = RestrictModeEnum.values();
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].type == type) {
+                return values[i];
+            }
+        }
+        return null;
+    }
+
 
     /**
-     * 删除运维
+     * 判断参数合法性
      */
-    @ApiModelProperty("删除运维")
-    private String delMaintainers;
-
-    /**
-     * 新增子业务
-     */
-    @ApiModelProperty("新增子业务")
-    private String addSubAppIds;
-
-    /**
-     * 删除子业务
-     */
-    @ApiModelProperty("删除子业务")
-    private String delSubAppIds;
+    public static boolean isValid(Integer type) {
+        for (RestrictModeEnum restrictModeEnum : RestrictModeEnum.values()) {
+            if (restrictModeEnum.getType() == type) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -63,6 +63,7 @@ spec:
           image: {{ include "job-gateway.image" . }}
           imagePullPolicy: {{ .Values.gatewayConfig.image.pullPolicy }}
           env:
+            {{- include "job.storage.env" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-gateway"
             - name: BK_JOB_JVM_OPTION
@@ -117,7 +118,7 @@ spec:
             {{- toYaml .Values.gatewayConfig.resources | nindent 12 }}
           volumeMounts:
             - name: job-storage
-              mountPath: /data/job/storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
             - name: job-gateway-tls-certs
               mountPath: /data/job/cert
               readOnly: true

@@ -256,7 +256,7 @@
                 this.isConfigLoading = true;
                 QuertGlobalSettingService.fetchJobConfig()
                     .then((data) => {
-                        const { amount, unit } = data.FILE_UPLOAD_MAX_SIZE;
+                        const { amount, unit } = data.FILE_UPLOAD_SETTING;
                         this.fileMaxUploadSize = `${amount}${unit}`;
                         this.ENABLE_FEATURE_FILE_MANAGE = data.ENABLE_FEATURE_FILE_MANAGE;
                     })

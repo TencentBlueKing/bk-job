@@ -25,12 +25,20 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.*;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireReq;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.SetTitleFooterReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.*;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
@@ -72,7 +80,7 @@ public interface GlobalSettingsService {
 
     Boolean saveFileUploadSettings(String username, FileUploadSettingReq req);
 
-    FileUploadSettingVO getFileUploadSettings(String username);
+    FileUploadSettingVO getFileUploadSettings();
 
     Boolean setTitleFooter(String username, SetTitleFooterReq req);
 
