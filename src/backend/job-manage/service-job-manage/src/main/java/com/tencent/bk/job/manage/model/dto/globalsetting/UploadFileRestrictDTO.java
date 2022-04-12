@@ -22,31 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.globalsetting;
+package com.tencent.bk.job.manage.model.dto.globalsetting;
 
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 /**
- * 文件上传参数VO
+ * 上传文件限制配置
  */
+@Data
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("文件上传参数")
-@Data
-public class FileUploadSettingVO {
-    @ApiModelProperty("数量")
-    private Long amount;
-    @ApiModelProperty("单位")
-    private String unit;
-    @ApiModelProperty("限制模式，0:禁止范围，1：允许范围")
+public class UploadFileRestrictDTO {
+    @ApiModelProperty("限制最大上传大小")
+    private String maxSize;
+    @ApiModelProperty("限制模式")
     private Integer restrictMode;
     @ApiModelProperty("后缀列表")
     private List<String> suffixList;
-
 }

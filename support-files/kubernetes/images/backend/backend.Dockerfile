@@ -2,8 +2,7 @@ FROM blueking/jdk:0.0.1
 
 LABEL maintainer="Tencent BlueKing Job"
 
-ENV BK_JOB_HOME=/data/job/exec \
-    BK_JOB_LOGS_DIR=/data/job/storage/logs
+ENV BK_JOB_HOME=/data/job/exec
 
 COPY ./ /data/job/exec/
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \

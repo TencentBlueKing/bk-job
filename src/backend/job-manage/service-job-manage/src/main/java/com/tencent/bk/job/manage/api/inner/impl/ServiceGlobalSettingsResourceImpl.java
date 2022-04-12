@@ -26,6 +26,8 @@ package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceGlobalSettingsResource;
+import com.tencent.bk.job.manage.model.inner.ServiceFileUploadSettingDTO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,5 +47,21 @@ public class ServiceGlobalSettingsResourceImpl implements ServiceGlobalSettingsR
     @Override
     public InternalResponse<String> getDocCenterBaseUrl() {
         return InternalResponse.buildSuccessResp(globalSettingsService.getDocCenterBaseUrl());
+    }
+
+    @Override
+    public InternalResponse<ServiceFileUploadSettingDTO> getFileUploadSettings() {
+        FileUploadSettingVO fileUploadSettingVO = globalSettingsService.getFileUploadSettings();
+        return InternalResponse.buildSuccessResp(convertToServiceFileUploadSettingDTO(fileUploadSettingVO));
+    }
+    private ServiceFileUploadSettingDTO convertToServiceFileUploadSettingDTO(FileUploadSettingVO fileUploadSettingVO) {
+        ServiceFileUploadSettingDTO serviceFileUploadSettingDTO = new ServiceFileUploadSettingDTO();
+        if(fileUploadSettingVO != null){
+            serviceFileUploadSettingDTO.setSuffixList(fileUploadSettingVO.getSuffixList());
+            serviceFileUploadSettingDTO.setUnit(fileUploadSettingVO.getUnit());
+            serviceFileUploadSettingDTO.setAmount(fileUploadSettingVO.getAmount());
+            serviceFileUploadSettingDTO.setRestrictMode(fileUploadSettingVO.getRestrictMode());
+        }
+        return serviceFileUploadSettingDTO;
     }
 }

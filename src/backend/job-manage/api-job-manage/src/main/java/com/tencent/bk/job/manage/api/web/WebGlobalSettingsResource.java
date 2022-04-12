@@ -45,6 +45,7 @@ import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -218,11 +219,12 @@ public interface WebGlobalSettingsResource {
             String username,
         @ApiParam(value = "创建或更新请求体", required = true)
         @RequestBody
+        @Validated
             FileUploadSettingReq req
     );
 
 
-    @ApiOperation(value = "获取执行历史保留时间", produces = "application/json")
+    @ApiOperation(value = "获取文件上传设置", produces = "application/json")
     @GetMapping("/file/upload")
     Response<FileUploadSettingVO> getFileUploadSettings(
         @ApiParam("用户名，网关自动传入")
