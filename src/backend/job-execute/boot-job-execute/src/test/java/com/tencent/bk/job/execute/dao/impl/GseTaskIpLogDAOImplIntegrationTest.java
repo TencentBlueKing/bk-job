@@ -180,7 +180,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
     public void testGetTaskFileSourceIps() {
         List<String> fileSourceIps = gseTaskIpLogDAO.getTaskFileSourceIps(1L, 0);
         assertThat(fileSourceIps.size()).isEqualTo(1);
-        assertThat(fileSourceIps.get(0)).isEqualTo("0:127.0.0.1");
+        assertThat(fileSourceIps.get(0)).isEqualTo("0:127.0.0.3");
     }
 
     @Test
