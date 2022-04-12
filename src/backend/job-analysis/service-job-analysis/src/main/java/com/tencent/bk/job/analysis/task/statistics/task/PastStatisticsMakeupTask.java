@@ -25,7 +25,6 @@
 package com.tencent.bk.job.analysis.task.statistics.task;
 
 import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +37,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Service
 public class PastStatisticsMakeupTask {
-    private final StatisticsDAO statisticsDAO;
     private final StatisticConfig statisticConfig;
     public Map<String, TaskInfo> pastStatisticTaskFutureMap = new HashMap<>();
     private List<IStatisticsTask> statisticsTaskList;
@@ -52,21 +55,12 @@ public class PastStatisticsMakeupTask {
     private ThreadPoolExecutor executor;
 
     @Autowired
-    public PastStatisticsMakeupTask(StatisticsDAO statisticsDAO, StatisticConfig statisticConfig) {
-        this.statisticsDAO = statisticsDAO;
+    public PastStatisticsMakeupTask(StatisticConfig statisticConfig) {
         this.statisticConfig = statisticConfig;
-    }
-
-    public boolean isRunFlag() {
-        return runFlag;
     }
 
     public void setRunFlag(boolean runFlag) {
         this.runFlag = runFlag;
-    }
-
-    public ThreadPoolExecutor getExecutor() {
-        return executor;
     }
 
     public void setExecutor(ThreadPoolExecutor executor) {
@@ -81,11 +75,7 @@ public class PastStatisticsMakeupTask {
         return pastStatisticTaskFutureMap;
     }
 
-    public boolean isRunning() {
-        return isRunning;
-    }
-
-    public WrappedCallable<Boolean> getCallableOfTask(IStatisticsTask statisticsTask, LocalDateTime targetDate) {
+    public WatchableTask<Boolean> getCallableOfTask(IStatisticsTask statisticsTask, LocalDateTime targetDate) {
         Callable<Boolean> callable = () -> {
             try {
                 statisticsTask.genStatisticsByDay(targetDate);
@@ -97,33 +87,19 @@ public class PastStatisticsMakeupTask {
         };
         String targetDateStr = TimeUtil.getTimeStr(targetDate, StatisticsConstants.DATE_PATTERN);
         String taskName = statisticsTask.getClass().getSimpleName() + "-" + targetDateStr;
-        WrappedCallable<Boolean> taskCallable = new WrappedCallable<>(taskName, callable);
-        taskCallable.setTaskStatusListener(new TaskStatusListener<Boolean>() {
-            @Override
-            public boolean onStart() {
-                pastStatisticTaskFutureMap.get(taskName).setStatus(1);
-                return false;
-            }
-
-            @Override
-            public boolean onFinish(Boolean result) {
-                if (pastStatisticTaskFutureMap.containsKey(taskName)) {
-                    pastStatisticTaskFutureMap.remove(taskName);
-                }
-                return result;
-            }
-        });
+        WatchableTask<Boolean> taskCallable = new WatchableTask<>(taskName, callable);
+        taskCallable.setTaskStatusListener(new DefaultTaskStatusListener(pastStatisticTaskFutureMap, taskName));
         return taskCallable;
     }
 
-    public List<WrappedCallable<Boolean>> getCallableList(LocalDateTime targetDate) {
-        List<WrappedCallable<Boolean>> callableList = new ArrayList<>();
+    public List<WatchableTask<Boolean>> getCallableList(LocalDateTime targetDate) {
+        List<WatchableTask<Boolean>> callableList = new ArrayList<>();
         log.debug("check targetDate={}", targetDate);
         String targetDateStr = TimeUtil.getTimeStr(targetDate, StatisticsConstants.DATE_PATTERN);
         for (IStatisticsTask statisticsTask : statisticsTaskList) {
             if (!statisticsTask.isDataComplete(targetDateStr)) {
                 log.info("gen {} statistics for past date {}", statisticsTask.getName(), targetDateStr);
-                WrappedCallable<Boolean> taskCallable = getCallableOfTask(statisticsTask, targetDate);
+                WatchableTask<Boolean> taskCallable = getCallableOfTask(statisticsTask, targetDate);
                 callableList.add(taskCallable);
             } else {
                 log.info("Data of {} exists for date {}, skip to makeup", statisticsTask.getName(), targetDateStr);
@@ -134,12 +110,12 @@ public class PastStatisticsMakeupTask {
 
     public Future<Boolean> startTask(IStatisticsTask statisticsTask, LocalDateTime targetDate) {
         runFlag = true;
-        WrappedCallable<Boolean> taskCallable = getCallableOfTask(statisticsTask, targetDate);
+        WatchableTask<Boolean> taskCallable = getCallableOfTask(statisticsTask, targetDate);
         return startTask(taskCallable);
     }
 
-    private Future<Boolean> startTask(WrappedCallable<Boolean> taskCallable) {
-        pastStatisticTaskFutureMap.put(taskCallable.getName(), new TaskInfo(null, 0));
+    private Future<Boolean> startTask(WatchableTask<Boolean> taskCallable) {
+        pastStatisticTaskFutureMap.put(taskCallable.getName(), new TaskInfo(null, TaskInfo.STATUS_WAITING));
         Future<Boolean> future = executor.submit(taskCallable);
         pastStatisticTaskFutureMap.get(taskCallable.getName()).setFuture(future);
         return future;
@@ -164,25 +140,28 @@ public class PastStatisticsMakeupTask {
             }
             // 把一天的数据跑完再来下一天
             LocalDateTime targetDate = now.plusDays(-i);
-            List<WrappedCallable<Boolean>> callableList = getCallableList(targetDate);
+            List<WatchableTask<Boolean>> callableList = getCallableList(targetDate);
             List<Future<Boolean>> futureList = new ArrayList<>();
             if (executor != null) {
-                for (WrappedCallable<Boolean> callable : callableList) {
+                for (WatchableTask<Boolean> callable : callableList) {
                     Future<Boolean> future = startTask(callable);
                     futureList.add(future);
                 }
                 for (Future<Boolean> future : futureList) {
                     try {
-                        future.get(10, TimeUnit.MINUTES);
+                        int timeoutMinutes = 10;
+                        future.get(timeoutMinutes, TimeUnit.MINUTES);
                     } catch (InterruptedException | ExecutionException | TimeoutException e) {
                         log.warn("exception when make up past statistics", e);
                     }
                 }
             } else {
                 log.info("Use current single thread to run makeup tasks");
-                for (WrappedCallable<Boolean> callable : callableList) {
+                for (WatchableTask<Boolean> callable : callableList) {
                     try {
-                        pastStatisticTaskFutureMap.put(callable.getName(), new TaskInfo(null, 1));
+                        pastStatisticTaskFutureMap.put(
+                            callable.getName(), new TaskInfo(null, TaskInfo.STATUS_RUNNING)
+                        );
                         callable.call();
                     } catch (Exception e) {
                         log.warn("exception when make up past statistics", e);

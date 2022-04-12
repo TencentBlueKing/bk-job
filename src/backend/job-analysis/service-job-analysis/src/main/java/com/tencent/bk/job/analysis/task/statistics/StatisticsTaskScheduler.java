@@ -26,11 +26,11 @@ package com.tencent.bk.job.analysis.task.statistics;
 
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.task.statistics.task.ClearExpiredStatisticsTask;
+import com.tencent.bk.job.analysis.task.statistics.task.DefaultTaskStatusListener;
 import com.tencent.bk.job.analysis.task.statistics.task.IStatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.PastStatisticsMakeupTask;
 import com.tencent.bk.job.analysis.task.statistics.task.TaskInfo;
-import com.tencent.bk.job.analysis.task.statistics.task.TaskStatusListener;
-import com.tencent.bk.job.analysis.task.statistics.task.WrappedCallable;
+import com.tencent.bk.job.analysis.task.statistics.task.WatchableTask;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
@@ -59,7 +59,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -67,9 +66,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
- * @Description
- * @Date 2020/7/31
- * @Version 1.0
+ * 统计任务调度器
  */
 @Component
 @Slf4j
@@ -83,23 +80,24 @@ public class StatisticsTaskScheduler {
     public static List<IStatisticsTask> statisticsTaskList = new ArrayList<>();
     public static Map<String, IStatisticsTask> statisticsTaskMap = new ConcurrentHashMap<>();
     public static Map<String, TaskInfo> currentStatisticTaskFutureMap = new HashMap<>();
+
+    // 线程池默认配置参数
+    private static final long defaultKeepAliveTime = 60L;
+    private static final int defaultCorePoolSize = 10;
+    private static final int defaultMaximumPoolSize = 10;
+    private static final int currentStatisticsTaskQueueSize = 2000;
+    private static final int pastStatisticsTaskQueueSize = 200000;
+
     private static ThreadPoolExecutor currentStatisticsTaskExecutor = new ThreadPoolExecutor(
-        10, 10, 60L,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(2000), new RejectedExecutionHandler() {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            log.error("statisticsTask runnable rejected! num:{}", rejectedStatisticsTaskNum.incrementAndGet());
-        }
-    });
+        defaultCorePoolSize, defaultMaximumPoolSize, defaultKeepAliveTime,
+        TimeUnit.SECONDS, new LinkedBlockingQueue<>(currentStatisticsTaskQueueSize),
+        (r, executor) -> log.error("statisticsTask runnable rejected! num:{}",
+            rejectedStatisticsTaskNum.incrementAndGet()));
     private static ThreadPoolExecutor pastStatisticsTaskExecutor = new ThreadPoolExecutor(
-        10, 10, 60L,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(200000), new RejectedExecutionHandler() {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            log.error("pastStatisticsTaskExecutor runnable rejected! num:{}",
-                rejectedStatisticsTaskNum.incrementAndGet());
-        }
-    });
+        defaultCorePoolSize, defaultMaximumPoolSize, defaultKeepAliveTime,
+        TimeUnit.SECONDS, new LinkedBlockingQueue<>(pastStatisticsTaskQueueSize),
+        (r, executor) -> log.error("pastStatisticsTaskExecutor runnable rejected! num:{}",
+            rejectedStatisticsTaskNum.incrementAndGet()));
 
     static {
         List<String> keyList = Collections.singletonList(REDIS_KEY_STATISTIC_JOB_LOCK);
@@ -158,6 +156,13 @@ public class StatisticsTaskScheduler {
         log.info(String.format("There are %d StatisticsTasks", statisticsTaskList.size()));
     }
 
+    /**
+     * 配置运行当前统计任务与历史数据补全统计任务的线程数量
+     *
+     * @param currentStatisticThreadsNum 当前统计任务线程数
+     * @param pastStatisticThreadsNum    历史数据补全统计任务线程数
+     * @return 是否配置成功
+     */
     public boolean configThreads(Integer currentStatisticThreadsNum, Integer pastStatisticThreadsNum) {
         boolean reconfiged = false;
         if (currentStatisticThreadsNum != null && currentStatisticThreadsNum > 0) {
@@ -169,15 +174,11 @@ public class StatisticsTaskScheduler {
             currentStatisticsTaskExecutor = new ThreadPoolExecutor(
                 currentStatisticThreadsNum,
                 currentStatisticThreadsNum,
-                60L,
+                defaultKeepAliveTime,
                 TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(2000),
-                new RejectedExecutionHandler() {
-                    @Override
-                    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                        log.error("statisticsTask runnable rejected!");
-                    }
-                });
+                new LinkedBlockingQueue<>(currentStatisticsTaskQueueSize),
+                (r, executor) -> log.error("statisticsTask runnable rejected!")
+            );
             reconfiged = true;
         } else {
             log.info("Invalid currentStatisticThreadsNum:{}", currentStatisticThreadsNum);
@@ -192,15 +193,11 @@ public class StatisticsTaskScheduler {
             pastStatisticsTaskExecutor = new ThreadPoolExecutor(
                 pastStatisticThreadsNum,
                 pastStatisticThreadsNum,
-                60L,
+                defaultKeepAliveTime,
                 TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(200000),
-                new RejectedExecutionHandler() {
-                    @Override
-                    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                        log.error("pastStatisticsTaskExecutor runnable rejected!");
-                    }
-                });
+                new LinkedBlockingQueue<>(pastStatisticsTaskQueueSize),
+                (r, executor) -> log.error("pastStatisticsTaskExecutor runnable rejected!")
+            );
             pastStatisticsMakeupTask.setExecutor(pastStatisticsTaskExecutor);
             reconfiged = true;
         } else {
@@ -209,6 +206,12 @@ public class StatisticsTaskScheduler {
         return reconfiged;
     }
 
+    /**
+     * 取消正在运行的统计任务
+     *
+     * @param targetTaskNameList 统计任务名称列表
+     * @return 成功取消的统计任务名称列表
+     */
     public List<String> cancelTasks(List<String> targetTaskNameList) {
         List<String> canceledTaskNames = new ArrayList<>();
         for (String taskName : targetTaskNameList) {
@@ -227,6 +230,14 @@ public class StatisticsTaskScheduler {
         return canceledTaskNames;
     }
 
+    /**
+     * 开启某些统计任务
+     *
+     * @param startDateStr 起始时间
+     * @param endDateStr   截止时间
+     * @param taskNameList 任务名称列表
+     * @return 成功开启的统计任务列表
+     */
     public List<String> startTasks(String startDateStr, String endDateStr, List<String> taskNameList) {
         if (StringUtils.isBlank(startDateStr)) {
             startDateStr = TimeUtil.getCurrentTimeStr(StatisticsConstants.DATE_PATTERN);
@@ -247,7 +258,8 @@ public class StatisticsTaskScheduler {
             taskNameList = new ArrayList<>(statisticsTaskMap.keySet());
         }
         int count = 0;
-        while (targetDate.compareTo(startDate) >= 0 && count < 1000) {
+        int maxPreviousDays = 1000;
+        while (targetDate.compareTo(startDate) >= 0 && count < maxPreviousDays) {
             for (String taskName : taskNameList) {
                 if (statisticsTaskMap.containsKey(taskName)) {
                     IStatisticsTask task = statisticsTaskMap.get(taskName);
@@ -261,12 +273,17 @@ public class StatisticsTaskScheduler {
             targetDate = targetDate.minusDays(1);
             count += 1;
         }
-        if (count >= 1000) {
-            log.warn("Unexpected OP operations:startTasks for over 1000 days, plz check");
+        if (count >= maxPreviousDays) {
+            log.warn("Unexpected OP operations:startTasks for over {} days, plz check", maxPreviousDays);
         }
         return startedTaskNames;
     }
 
+    /**
+     * 取消所有正在运行的统计任务
+     *
+     * @return 被成功取消的统计任务列表
+     */
     public List<String> cancelAllTasks() {
         List<String> canceledTaskNames = new ArrayList<>();
         for (Map.Entry<String, TaskInfo> entry : currentStatisticTaskFutureMap.entrySet()) {
@@ -280,6 +297,11 @@ public class StatisticsTaskScheduler {
         return canceledTaskNames;
     }
 
+    /**
+     * 列出系统中支持的所有统计任务
+     *
+     * @return 统计任务名称列表
+     */
     public List<String> listAllTasks() {
         if (statisticsTaskList == null || statisticsTaskList.isEmpty()) {
             findStatisticsTask();
@@ -288,6 +310,11 @@ public class StatisticsTaskScheduler {
             .map(it -> it.getClass().getSimpleName()).collect(Collectors.toList());
     }
 
+    /**
+     * 列出已经被调度的统计任务及状态
+     *
+     * @return 统计任务及状态列表
+     */
     public List<Pair<String, Integer>> listArrangedTasks() {
         List<Pair<String, Integer>> taskInfoList = new ArrayList<>();
         for (Map.Entry<String, TaskInfo> entry : currentStatisticTaskFutureMap.entrySet()) {
@@ -299,11 +326,18 @@ public class StatisticsTaskScheduler {
         return taskInfoList;
     }
 
+    /**
+     * 获取被线程池拒绝的统计任务数量
+     *
+     * @return 数量
+     */
     public Long getRejectedStatisticsTaskNum() {
         return rejectedStatisticsTaskNum.get();
     }
 
-    // 补全历史统计数据
+    /**
+     * 补全缺失的历史统计数据
+     */
     public void makeupPastStatistics() {
         if (statisticsTaskList.isEmpty()) {
             findStatisticsTask();
@@ -317,13 +351,15 @@ public class StatisticsTaskScheduler {
         // 历史统计数据补全任务
         pastStatisticsMakeupTask.setStatisticsTaskList(statisticsTaskList);
         pastStatisticsMakeupTask.setExecutor(pastStatisticsTaskExecutor);
+        long expireTimeMillis = 5000L;
+        long periodTimeMillis = 4000L;
         new Thread(() -> {
             RedisKeyHeartBeatThread statisticInitTaskRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
                 redisTemplate,
                 REDIS_KEY_STATISTIC_JOB_INIT_MACHINE,
                 machineIp,
-                5000L,
-                4000L
+                expireTimeMillis,
+                periodTimeMillis
             );
             // 开一个心跳子线程，维护当前机器正在初始化后台统计任务的状态
             statisticInitTaskRedisKeyHeartBeatThread.setName("statisticInitTaskRedisKeyHeartBeatThread");
@@ -339,7 +375,7 @@ public class StatisticsTaskScheduler {
     }
 
     /**
-     * 1h调度一次
+     * 调度运行统计任务
      */
     public void schedule() {
         if (!statisticConfig.getEnable()) {
@@ -371,12 +407,14 @@ public class StatisticsTaskScheduler {
             return;
         }
         // 开一个心跳子线程，维护当前机器正在执行后台统计任务的状态
+        long expireTimeMillis = 5000L;
+        long periodTimeMillis = 4000L;
         RedisKeyHeartBeatThread statisticTaskSchedulerRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
             redisTemplate,
             REDIS_KEY_STATISTIC_JOB_RUNNING_MACHINE,
             machineIp,
-            5000L,
-            4000L
+            expireTimeMillis,
+            periodTimeMillis
         );
         statisticTaskSchedulerRedisKeyHeartBeatThread.setName("statisticTaskSchedulerRedisKeyHeartBeatThread");
         statisticTaskSchedulerRedisKeyHeartBeatThread.start();
@@ -398,24 +436,12 @@ public class StatisticsTaskScheduler {
                 String taskName =
                     iStatisticsTask.getClass().getSimpleName()
                         + "-" + TimeUtil.getTodayStartTimeStr(StatisticsConstants.DATE_PATTERN);
-                WrappedCallable<Boolean> taskCallable = new WrappedCallable<>(taskName, iStatisticsTask);
+                WatchableTask<Boolean> taskCallable = new WatchableTask<>(taskName, iStatisticsTask);
                 log.debug("submit task:{}", taskName);
-                taskCallable.setTaskStatusListener(new TaskStatusListener<Boolean>() {
-                    @Override
-                    public boolean onStart() {
-                        currentStatisticTaskFutureMap.get(taskName).setStatus(1);
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onFinish(Boolean result) {
-                        if (currentStatisticTaskFutureMap.containsKey(taskName)) {
-                            currentStatisticTaskFutureMap.remove(taskName);
-                        }
-                        return result;
-                    }
-                });
-                currentStatisticTaskFutureMap.put(taskName, new TaskInfo(null, 0));
+                taskCallable.setTaskStatusListener(
+                    new DefaultTaskStatusListener(currentStatisticTaskFutureMap, taskName)
+                );
+                currentStatisticTaskFutureMap.put(taskName, new TaskInfo(null, TaskInfo.STATUS_WAITING));
                 Future<?> future = currentStatisticsTaskExecutor.submit(taskCallable);
                 futureList.add(future);
                 currentStatisticTaskFutureMap.get(taskName).setFuture(future);
@@ -425,7 +451,8 @@ public class StatisticsTaskScheduler {
             // 等待所有统计任务结束
             futureList.forEach(future -> {
                 try {
-                    future.get(10, TimeUnit.MINUTES);
+                    int timeoutMinutes = 10;
+                    future.get(timeoutMinutes, TimeUnit.MINUTES);
                 } catch (InterruptedException | ExecutionException | TimeoutException e) {
                     log.error("Exception in statistic task", e);
                 }

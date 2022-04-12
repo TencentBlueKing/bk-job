@@ -54,7 +54,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
 
     @Test
     public void testGetIpLogByIp() {
-        String ip = "0:10.0.0.1";
+        String ip = "0:127.0.0.1";
         long stepInstanceId = 1L;
         int executeCount = 0;
         GseTaskIpLogDTO gseTaskIpLog = gseTaskIpLogDAO.getIpLogByIp(stepInstanceId, executeCount, ip);
@@ -73,7 +73,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         assertThat(gseTaskIpLog.getTag()).isEqualTo("succ");
         assertThat(gseTaskIpLog.getOffset()).isEqualTo(0);
         assertThat(gseTaskIpLog.getCloudAreaId()).isEqualTo(0);
-        assertThat(gseTaskIpLog.getDisplayIp()).isEqualTo("10.0.0.1");
+        assertThat(gseTaskIpLog.getDisplayIp()).isEqualTo("127.0.0.1");
         assertThat(gseTaskIpLog.isTargetServer()).isEqualTo(true);
         assertThat(gseTaskIpLog.isSourceServer()).isEqualTo(false);
     }
@@ -84,8 +84,8 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         GseTaskIpLogDTO ipLog1 = new GseTaskIpLogDTO();
         ipLog1.setStepInstanceId(1L);
         ipLog1.setExecuteCount(0);
-        ipLog1.setCloudAreaAndIp("0:10.0.0.1");
-        ipLog1.setDisplayIp("10.0.0.1");
+        ipLog1.setCloudAreaAndIp("0:127.0.0.1");
+        ipLog1.setDisplayIp("127.0.0.1");
         ipLog1.setErrCode(99);
         ipLog1.setStatus(1);
         ipLog1.setExitCode(1);
@@ -94,10 +94,10 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         GseTaskIpLogDTO ipLog2 = new GseTaskIpLogDTO();
         ipLog2.setStepInstanceId(3L);
         ipLog2.setExecuteCount(0);
-        ipLog2.setCloudAreaAndIp("0:10.0.0.1");
+        ipLog2.setCloudAreaAndIp("0:127.0.0.1");
         ipLog2.setErrCode(88);
         ipLog2.setExitCode(1);
-        ipLog2.setDisplayIp("10.0.0.1");
+        ipLog2.setDisplayIp("127.0.0.1");
         long startTime = 1572858330000L;
         ipLog2.setStartTime(startTime);
         long endTime = 1572858331000L;
@@ -107,19 +107,19 @@ public class GseTaskIpLogDAOImplIntegrationTest {
 
         gseTaskIpLogDAO.batchSaveIpLog(ipLogList);
 
-        GseTaskIpLogDTO ipLog1Return = gseTaskIpLogDAO.getIpLogByIp(1L, 0, "0:10.0.0.1");
+        GseTaskIpLogDTO ipLog1Return = gseTaskIpLogDAO.getIpLogByIp(1L, 0, "0:127.0.0.1");
         assertThat(ipLog1Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(ipLog1Return.getExecuteCount()).isEqualTo(0L);
-        assertThat(ipLog1Return.getCloudAreaAndIp()).isEqualTo("0:10.0.0.1");
+        assertThat(ipLog1Return.getCloudAreaAndIp()).isEqualTo("0:127.0.0.1");
         assertThat(ipLog1Return.getErrCode()).isEqualTo(99);
         assertThat(ipLog1Return.getStatus()).isEqualTo(1);
         assertThat(ipLog1Return.getExitCode()).isEqualTo(1);
 
 
-        GseTaskIpLogDTO ipLog2Return = gseTaskIpLogDAO.getIpLogByIp(3L, 0, "0:10.0.0.1");
+        GseTaskIpLogDTO ipLog2Return = gseTaskIpLogDAO.getIpLogByIp(3L, 0, "0:127.0.0.1");
         assertThat(ipLog2Return.getStepInstanceId()).isEqualTo(3L);
         assertThat(ipLog2Return.getExecuteCount()).isEqualTo(0L);
-        assertThat(ipLog2Return.getCloudAreaAndIp()).isEqualTo("0:10.0.0.1");
+        assertThat(ipLog2Return.getCloudAreaAndIp()).isEqualTo("0:127.0.0.1");
         assertThat(ipLog2Return.getStartTime()).isEqualTo(startTime);
         assertThat(ipLog2Return.getEndTime()).isEqualTo(endTime);
         assertThat(ipLog2Return.getErrCode()).isEqualTo(88);
@@ -136,7 +136,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
     @Test
     public void testGetSuccessIpList() {
         List<GseTaskIpLogDTO> gseTaskIpLogList = gseTaskIpLogDAO.getSuccessGseTaskIp(1L, 0);
-        assertThat(gseTaskIpLogList).extracting("cloudAreaAndIp").containsOnly("0:10.0.0.1", "0:10.0.0.2");
+        assertThat(gseTaskIpLogList).extracting("cloudAreaAndIp").containsOnly("0:127.0.0.1", "0:127.0.0.2");
     }
 
     @Test
@@ -159,11 +159,11 @@ public class GseTaskIpLogDAOImplIntegrationTest {
 
     @Test
     public void testGetIpLogByIps() {
-        String[] ipArray = {"0:10.0.0.1", "0:10.0.0.2"};
+        String[] ipArray = {"0:127.0.0.1", "0:127.0.0.2"};
         List<GseTaskIpLogDTO> ipLogs = gseTaskIpLogDAO.getIpLogByIps(1L, 0, ipArray);
 
         assertThat(ipLogs.size()).isEqualTo(2);
-        assertThat(ipLogs).extracting("cloudAreaAndIp").containsOnly("0:10.0.0.1", "0:10.0.0.2");
+        assertThat(ipLogs).extracting("cloudAreaAndIp").containsOnly("0:127.0.0.1", "0:127.0.0.2");
         assertThat(ipLogs).extracting("stepInstanceId").containsOnly(1L, 1L);
         assertThat(ipLogs).extracting("executeCount").containsOnly(0, 0);
     }
@@ -187,7 +187,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
     public void testFuzzySearchTargetIpsByIp() {
         List<String> matchIps = gseTaskIpLogDAO.fuzzySearchTargetIpsByIp(1L, 0, "0.0.2");
         assertThat(matchIps.size()).isEqualTo(1);
-        assertThat(matchIps.get(0)).isEqualTo("0:10.0.0.2");
+        assertThat(matchIps.get(0)).isEqualTo("0:127.0.0.2");
     }
 
 

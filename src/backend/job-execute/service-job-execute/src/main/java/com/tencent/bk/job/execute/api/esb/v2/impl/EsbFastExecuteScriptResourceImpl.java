@@ -116,6 +116,13 @@ public class EsbFastExecuteScriptResourceImpl
     }
 
     private ValidateResult checkFastExecuteScriptRequest(EsbFastExecuteScriptRequest request) {
+
+        Long appId = request.getAppId();
+        if (appId == null || appId < 1L) {
+            log.warn("Fast execute script, bk_biz_id is invalid! bk_biz_id={}", appId);
+            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "bk_biz_id");
+        }
+
         if (request.getScriptId() != null) {
             if (request.getScriptId() < 1) {
                 log.warn("Fast execute script, scriptId:{} is invalid", request.getScriptId());

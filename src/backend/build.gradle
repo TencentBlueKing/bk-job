@@ -91,6 +91,7 @@ ext {
     set('apacheCommonsPoolVersion', "2.8.0")
     set('apacheCommonsCodecVersion', "1.14")
     set('dozerVersion', "5.5.1")
+    set('commonsCollectionsVersion', "3.2.2")
     set('jedisVersion', "3.0.1")
     // https://mvnrepository.com/artifact/org.jooq/jooq
     set('jooqVersion', "3.14.8")
@@ -214,6 +215,7 @@ subprojects {
             dependency "org.apache.commons:commons-collections4:$apacheCommonsCollectionVersion"
             dependency "org.apache.commons:commons-pool2:$apacheCommonsPoolVersion"
             dependency "net.sf.dozer:dozer:$dozerVersion"
+            dependency "commons-collections:commons-collections:$commonsCollectionsVersion"
             dependency "org.jedis:jedis:$jedisVersion"
             dependency "com.h2database:h2:$h2Version"
             dependency "commons-io:commons-io:$commonsIOVersion"

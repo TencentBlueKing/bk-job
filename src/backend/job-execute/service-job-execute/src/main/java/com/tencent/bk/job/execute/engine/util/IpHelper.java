@@ -40,7 +40,7 @@ public class IpHelper {
     /**
      * 将 原子网id为1的修正为0
      *
-     * @param sourceAndIp 可以为 1:10.0.0.1 或10.0.0.1 会转换成 0:10.0.0.1
+     * @param sourceAndIp 可以为 1:127.0.0.1 或127.0.0.1 会转换成 0:127.0.0.1
      * @return 返回修正后的 云区域id:IP
      */
     public static String fix1To0(String sourceAndIp) {

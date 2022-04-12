@@ -22,26 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-i18n')
-    api project(':commons:common-utils')
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
-    api 'org.apache.commons:commons-lang3'
-    api 'org.apache.commons:commons-collections4'
-    implementation 'io.springfox:springfox-swagger2'
-    implementation 'net.sf.dozer:dozer'
-    implementation 'net.sourceforge.jchardet:jchardet'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.springframework:spring-jdbc'
-    implementation 'org.hibernate.validator:hibernate-validator'
-    implementation 'jakarta.validation:jakarta.validation-api'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'com.cronutils:cron-utils:9.1.6'
-    compileOnly 'org.springframework:spring-web'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.analysis.task.statistics.task;
+
+import java.util.Map;
+
+public class DefaultTaskStatusListener implements TaskStatusListener<Boolean> {
+
+    private Map<String, TaskInfo> taskFutureMap;
+    private String taskName;
+
+    public DefaultTaskStatusListener(Map<String, TaskInfo> taskFutureMap, String taskName) {
+        this.taskFutureMap = taskFutureMap;
+        this.taskName = taskName;
+    }
+
+    @Override
+    public boolean onStart() {
+        taskFutureMap.get(taskName).setStatus(TaskInfo.STATUS_RUNNING);
+        return false;
+    }
+
+    @Override
+    public boolean onFinish(Boolean result) {
+        taskFutureMap.remove(taskName);
+        return result;
+    }
 }

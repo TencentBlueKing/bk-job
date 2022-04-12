@@ -28,16 +28,16 @@ truncate table step_instance_file;
 truncate table step_instance_confirm;
 
 insert into job_execute.step_instance (id,app_id,task_instance_id,step_id,name,type,target_servers,operator,status,execute_count,start_time,end_time,total_time,
-create_time,step_num,step_order) values (1,2,1,1,'task1-step1',1,'{"ipList":[{"cloudAreaId":0,"ip":"10.0.0.1"}]}','admin',3,0,1572868800000,1572868801000,1111,1572868800000,2,1);
+create_time,step_num,step_order) values (1,2,1,1,'task1-step1',1,'{"ipList":[{"cloudAreaId":0,"ip":"127.0.0.1"}]}','admin',3,0,1572868800000,1572868801000,1111,1572868800000,2,1);
 
 insert into job_execute.step_instance (id,app_id,task_instance_id,step_id,name,type,target_servers,operator,status,execute_count,start_time,end_time,total_time,
-create_time,step_num,step_order) values (2,2,1,2,'task1-step2',2,'{"ipList":[{"cloudAreaId":0,"ip":"10.0.0.1"}]}','admin',3,0,1572868801000,1572868802000,1112,1572868800000,2,2);
+create_time,step_num,step_order) values (2,2,1,2,'task1-step2',2,'{"ipList":[{"cloudAreaId":0,"ip":"127.0.0.1"}]}','admin',3,0,1572868801000,1572868802000,1112,1572868800000,2,2);
 
 insert into job_execute.step_instance (id,app_id,task_instance_id,step_id,name,type,target_servers,operator,status,execute_count,start_time,end_time,total_time,
-create_time,step_num,step_order) values (3,2,2,-1,'fast_execute_task_name',1,'{"ipList":[{"cloudAreaId":0,"ip":"10.0.0.1"}]}','admin',3,0,1572868800000,1572868801000,1111,1572868800000,1,1);
+create_time,step_num,step_order) values (3,2,2,-1,'fast_execute_task_name',1,'{"ipList":[{"cloudAreaId":0,"ip":"127.0.0.1"}]}','admin',3,0,1572868800000,1572868801000,1111,1572868800000,1,1);
 
 insert into job_execute.step_instance (id,app_id,task_instance_id,step_id,name,type,target_servers,operator,status,execute_count,start_time,end_time,total_time,
-create_time,step_num,step_order) values (4,2,3,-1,'fast_execute_task_name',1,'{"ipList":[{"cloudAreaId":0,"ip":"10.0.0.1"}]}','admin',3,0,null,1572868801000,0,null,1,1);
+create_time,step_num,step_order) values (4,2,3,-1,'fast_execute_task_name',1,'{"ipList":[{"cloudAreaId":0,"ip":"127.0.0.1"}]}','admin',3,0,null,1572868801000,0,null,1,1);
 
 
 insert into job_execute.step_instance_script(step_instance_id,script_content,script_type,script_param,resolved_script_param,execution_timeout,system_account_id,system_account,
