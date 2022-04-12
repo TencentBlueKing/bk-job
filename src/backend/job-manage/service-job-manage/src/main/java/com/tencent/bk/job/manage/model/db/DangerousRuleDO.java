@@ -22,31 +22,61 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.globalsetting;
+package com.tencent.bk.job.manage.model.db;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * 文件上传参数VO
+ * Redis 缓存规则DO
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("文件上传参数")
-@Data
-public class FileUploadSettingVO {
-    @ApiModelProperty("数量")
-    private Long amount;
-    @ApiModelProperty("单位")
-    private String unit;
-    @ApiModelProperty("限制模式，0:禁止范围，1：允许范围")
-    private Integer restrictMode;
-    @ApiModelProperty("后缀列表")
-    private List<String> suffixList;
-
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class DangerousRuleDO {
+    /**
+     * id
+     */
+    private Long id;
+    /**
+     * 表达式
+     */
+    private String expression;
+    /**
+     * 描述
+     */
+    private String description;
+    /**
+     * 优先级
+     */
+    private Integer priority;
+    /**
+     * 脚本类型
+     */
+    private Integer scriptType;
+    /**
+     * 创建人
+     */
+    private String creator;
+    /**
+     * 创建时间
+     */
+    private Long createTime;
+    /**
+     * 更新人
+     */
+    private String lastModifier;
+    /**
+     * 更新时间
+     */
+    private Long lastModifyTime;
+    /**
+     * 处理动作
+     */
+    private Integer action;
+    /**
+     * 规则启用状态
+     */
+    private Integer status;
 }

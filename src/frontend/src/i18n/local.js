@@ -499,4 +499,8 @@ export default {
     新建公共脚本: 'New Public Script',
     '的类型不在允许范围：': 'is not allowed',
     '的类型在不允许范围：': 'is limited',
+    隐藏空节点: 'Hide empty node',
+    恢复完整拓扑: 'Show full topo',
+    '确认退出登录？': 'Are you sure to logout ?',
+    数据为空: 'Empty',
 };

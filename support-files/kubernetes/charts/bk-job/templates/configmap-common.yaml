@@ -29,6 +29,7 @@ data:
           host: {{ .Values.gse.cacheApiServer.host }}
           port: {{ .Values.gse.cacheApiServer.port }}
       ssl:
+        enabled: {{ .Values.gse.ssl.enabled }}
         keystore:
           password: ${gse.keystore.password}
           path: "/data/job/cert/gse_job_api_client.keystore"
@@ -72,7 +73,7 @@ data:
         file-manage:
           enabled: {{ .Values.job.feature.toggle.fileManage.enabled }}
       storage:
-        root-path: {{ .Values.job.storage.rootPath }}
+        root-path: {{ .Values.persistence.localStorage.path }}/local
     cmdb:
      app:
        index:

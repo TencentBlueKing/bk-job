@@ -47,7 +47,7 @@ spec:
             {{- end }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-frontend" (include "common.names.fullname" $)) "servicePort" "http" "context" $)  | nindent 14 }}
     {{- end }}
-  {{- if .Values.job.web.https.enabled }}
+  {{- if .Values.job.ingress.https.enabled }}
   tls:
     - hosts:
         - {{ .Values.job.web.domain }}

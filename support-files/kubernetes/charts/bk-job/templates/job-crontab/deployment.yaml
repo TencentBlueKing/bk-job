@@ -66,6 +66,7 @@ spec:
           image: {{ include "job-crontab.image" . }}
           imagePullPolicy: {{ .Values.crontabConfig.image.pullPolicy }}
           env:
+            {{- include "job.storage.env" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-crontab"
             - name: BK_JOB_JVM_OPTION
@@ -114,7 +115,7 @@ spec:
             {{- toYaml .Values.crontabConfig.resources | nindent 12 }}
           volumeMounts:
             - name: job-storage
-              mountPath: /data/job/storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
