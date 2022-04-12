@@ -51,11 +51,11 @@
                                     @click="handleFilterEmptyToggle">
                                     <template v-if="isRenderEmptyTopoNode">
                                         <Icon type="eye-slash-shape" />
-                                        <span>隐藏空节点</span>
+                                        <span>{{ $t('隐藏空节点') }}</span>
                                     </template>
                                     <template v-else>
                                         <Icon type="eye-shape" />
-                                        <span>恢复完整拓扑</span>
+                                        <span>{{ $t('恢复完整拓扑') }}</span>
                                     </template>
                                 </div>
                                 <div class="node-count">{{ data.payload.count }}</div>
@@ -85,7 +85,11 @@
                         <th style="width: 18.9%;">{{ $t('主机IP') }}</th>
                         <th style="width: 12.8%;">{{ $t('云区域') }}</th>
                         <th style="width: 13.4%;">
-                            <div class="head-cell" :class="{ 'is-filtered': agentFilter !== '' }">
+                            <div
+                                class="head-cell"
+                                :class="{
+                                    'is-filtered': agentFilter !== '',
+                                }">
                                 <span>{{ $t('Agent 状态') }}</span>
                                 <dropdown-menu>
                                     <Icon type="filter-fill" class="filer-flag" />
@@ -118,7 +122,10 @@
                 </thead>
                 <tbody v-if="renderList.length > 0">
                     <template v-for="(row, index) in renderList">
-                        <tr class="host-row" :key="`${row.realId}_${index}`" @click="handleHostCheck(row)">
+                        <tr
+                            class="host-row"
+                            :key="`${row.realId}_${index}`"
+                            @click="handleHostCheck(row)">
                             <td>
                                 <bk-checkbox :checked="!!checkedMap[row.realId]" />
                             </td>

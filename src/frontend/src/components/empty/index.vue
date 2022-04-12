@@ -43,12 +43,14 @@
     </div>
 </template>
 <script>
+    import I18n from '@/i18n';
+
     export default {
         name: 'Empty',
         props: {
             title: {
                 type: String,
-                default: '数据为空',
+                default: I18n.t('数据为空'),
             },
             width: {
                 type: Number,
