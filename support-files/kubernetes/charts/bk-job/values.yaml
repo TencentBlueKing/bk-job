@@ -11,15 +11,11 @@
 ## @param global.imagePullSecrets Global Docker registry secret names as an array
 ## @param global.storageClass Global StorageClass for Persistent Volume(s)
 ##
+# 镜像源公共配置
 global:
   imageRegistry: ""
   imagePullSecrets: []
   storageClass: ""
-
-# 作业平台各模块镜像源公共配置
-jobImage:
-  imageRegistry: ""
-  imagePullSecrets: []
 
 ## @section Common parameters
 
@@ -398,6 +394,8 @@ appCode: bk_job
 ## appSecret
 appSecret: ""
 
+## 蓝鲸 HTTP(s) Scheme
+bkDomainScheme: "http"
 ## 蓝鲸 ESB url
 bkComponentApiUrl: "http://bkapi.paas.example.com"
 ## 蓝鲸 Login url
@@ -423,6 +421,8 @@ gse:
     port: 59313
   # ssl证书相关配置
   ssl:
+    # 是否开启SSL，默认开启
+    enabled: true
     keystore:
       ## 证书keystore文件单行base64编码值，此处默认值为社区版公开的默认证书keystore内容，正式部署请自行修改
       base64Content: "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"
@@ -542,9 +542,6 @@ job:
       fileManage:
         # 是否开启文件管理特性，容器化环境默认开启
         enabled: true
-  storage:
-    # 存储文件（用户上传的本地文件、导入导出生成的临时文件等）到本地的根路径
-    rootPath: /data/job/local
   migration:
     iamModel:
       # 是否开启权限模型migration
@@ -559,12 +556,13 @@ job:
     domain: "job.example.com"
     # 作业平台API域名
     apiDomain: "jobapi.example.com"
+  ingress:
     https:
-      # 是否开启HTTPS
+      # ingress是否开启HTTPS
       enabled: false
-      # 开启HTTPS时使用的证书base64编码
+      # ingress开启HTTPS时使用的证书base64编码
       certBase64: ""
-      # 开启HTTPS时使用的证书私钥base64编码
+      # ingress开启HTTPS时使用的证书私钥base64编码
       keyBase64: ""
 
 ## 持久化存储配置
@@ -576,7 +574,7 @@ persistence:
   # 存储模式：默认将日志存储于pod所在节点HostPath下，若使用其他共享存储可配置为对应的storageClass
   storageClass: job-local
   localStorage:
-    # 是否使用hostpath作为本地存储，用于存储日志
+    # 是否使用hostpath作为本地存储，用于存储日志、导入导出操作产生的临时文件等
     enabled: true
     # 节点本地存储路径
     path: /data/bkjob
@@ -618,7 +616,7 @@ gatewayConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-gateway
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -704,7 +702,7 @@ manageConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-manage
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -760,7 +758,7 @@ executeConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -811,7 +809,7 @@ crontabConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-crontab
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -869,7 +867,7 @@ logsvrConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-logsvr
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -922,7 +920,7 @@ backupConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -970,7 +968,7 @@ analysisConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-analysis
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1018,7 +1016,7 @@ fileGatewayConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-file-gateway
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1066,7 +1064,7 @@ fileWorkerConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-file-worker
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1125,8 +1123,6 @@ fileWorkerConfig:
   cloudAreaId: 0
   # 文件下载相关配置
   downloadFile:
-    # 文件下载路径
-    dir: /tmp/job
     # 最大占用空间（GB），超过则进行清理
     maxSizeGB: 100
     # 下载的文件过期时间
@@ -1139,7 +1135,7 @@ frontendConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-frontend
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1198,6 +1194,30 @@ migration:
     # 镜像拉取仓库组织与镜像名称
     repository: "blueking/job-migration"
     # 镜像标签
-    tag: 3.4.5-beta.3
+    tag: 3.4.5-beta.7
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+
+## migration的init任务配置
+migrationInit:
+  image:
+    # 镜像拉取仓库根地址
+    registry: "docker.io"
+    # 镜像拉取仓库组织与镜像名称
+    repository: "library/busybox"
+    # 镜像标签
+    tag: 1.34.0
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+
+## 其他服务Pod等待migration完成的init任务配置
+waitForMigration:
+  image:
+    # 镜像拉取仓库根地址
+    registry: "docker.io"
+    # 镜像拉取仓库组织与镜像名称
+    repository: "groundnuty/k8s-wait-for"
+    # 镜像标签
+    tag: 1.3
     # 镜像拉取策略
     pullPolicy: IfNotPresent

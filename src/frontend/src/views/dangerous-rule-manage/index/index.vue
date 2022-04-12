@@ -32,7 +32,7 @@
             v-test="{ type: 'list', value: 'dangerousRule' }">
             <thead>
                 <tr>
-                    <th style="width: 20%;">{{ $t('dangerousRule.语法检测表达式') }}</th>
+                    <th style="width: 200px;">{{ $t('dangerousRule.语法检测表达式') }}</th>
                     <th>{{ $t('dangerousRule.规则说明') }}</th>
                     <th style="width: 300px;">{{ $t('dangerousRule.脚本类型') }}</th>
                     <th style="width: 300px;">
@@ -230,7 +230,6 @@
              * @param {Array} scriptTypeList 脚本语言列表哦
              */
             handleScriptTypeUpdate (rule, scriptTypeList) {
-                console.log('from handleScriptTypeUpdate = ', rule, scriptTypeList);
                 this.editRule = {
                     ...rule,
                     scriptTypeList,
@@ -314,6 +313,7 @@
             width: 100%;
             border: 1px solid #dcdee5;
             border-radius: 2px;
+            table-layout: fixed;
 
             th,
             td {
