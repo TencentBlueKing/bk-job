@@ -47,7 +47,7 @@
                     </div>
                 </jb-form-item>
                 <div class="block-title">
-                    {{ $t('setting.文件后缀限制') }}:
+                    {{ $t('setting.本地文件上传后缀限制') }}:
                 </div>
                 <jb-form-item style="margin-bottom: 10px;">
                     <bk-radio-group
