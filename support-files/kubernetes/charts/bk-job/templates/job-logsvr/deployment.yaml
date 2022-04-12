@@ -63,6 +63,7 @@ spec:
           image: {{ include "job-logsvr.image" . }}
           imagePullPolicy: {{ .Values.logsvrConfig.image.pullPolicy }}
           env:
+            {{- include "job.storage.env" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-logsvr"
             - name: BK_JOB_JVM_OPTION
@@ -111,7 +112,7 @@ spec:
             {{- toYaml .Values.logsvrConfig.resources | nindent 12 }}
           volumeMounts:
             - name: job-storage
-              mountPath: /data/job/storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
             - name: mongodb
               mountPath: /etc/secrets/mongodb
               readOnly: true

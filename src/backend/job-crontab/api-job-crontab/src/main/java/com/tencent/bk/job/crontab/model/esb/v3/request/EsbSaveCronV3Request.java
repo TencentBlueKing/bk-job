@@ -75,7 +75,6 @@ public class EsbSaveCronV3Request extends EsbAppScopeReq {
      * 新建时必填，修改时选填，各字段含义为：分 时 日 月 周，如: 0/5 * * * ? 表示每5分钟执行一次
      */
     @JsonProperty("expression")
-    @NotEmpty(message = "{validation.constraints.InvalidCronExpression_empty.message}")
     private String cronExpression;
 
     /**
