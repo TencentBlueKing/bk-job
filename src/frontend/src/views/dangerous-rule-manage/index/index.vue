@@ -313,6 +313,7 @@
             width: 100%;
             border: 1px solid #dcdee5;
             border-radius: 2px;
+            table-layout: fixed;
 
             th,
             td {
