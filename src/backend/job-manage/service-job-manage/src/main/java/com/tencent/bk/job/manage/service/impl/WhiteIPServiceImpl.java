@@ -419,9 +419,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         Set<Long> scopeIdSet = new HashSet<>();
         List<ApplicationDTO> applicationDTOList = new ArrayList<>();
         recordList.parallelStream().forEach(record -> {
-            if (record.getAppIdList().size() == 1) {
-                appIdSet.add(record.getAppIdList().get(0));
-            }
+            appIdSet.addAll(record.getAppIdList());
             //添加所有包含生效范围id列表，方便后续一次性查出关联的生效范围code
             scopeIdSet.addAll(record.getActionScopeList().parallelStream().map(scope -> scope.getActionScopeId()).collect(Collectors.toSet()));
         });
@@ -444,37 +442,39 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
         if (CollectionUtils.isNotEmpty(recordList)) {
             for (WhiteIPRecordDTO whiteIPRecordDTO : recordList) {
+                boolean isAllApp = false;
                 List<Long> appIdList = whiteIPRecordDTO.getAppIdList();
-                if (appIdList.size() == 1) {
-                    //对应业务
-                    ApplicationDTO applicationDTO = applicationDTOMap.get(appIdList.get(0)) == null ? null :
-                        applicationDTOMap.get(appIdList.get(0)).get(0);
+                for (Long appId : appIdList) {
+                    ApplicationDTO applicationDTO = applicationDTOMap.get(appId) == null ? null :
+                        applicationDTOMap.get(appId).get(0);
                     if (applicationDTO != null && applicationDTO.getAppType() == AppTypeEnum.ALL_APP) {
-                        //封装全业务
-                        List<WhiteIPIPDTO> whiteIPIPDTOList = whiteIPRecordDTO.getIpList();
-                        whiteIPIPDTOList.forEach(whiteIPIPDTO -> {
-                            ServiceWhiteIPInfo serviceWhiteIPInfo = new ServiceWhiteIPInfo();
-                            serviceWhiteIPInfo.setForAllApp(true);
-                            List<String> allAppActionScopeList = new ArrayList<>();
-                            for (WhiteIPActionScopeDTO actionScope : whiteIPRecordDTO.getActionScopeList()) {
-                                ActionScopeDTO actionScopeDTO =
-                                    actionScopeDTOMap.get(actionScope.getActionScopeId()) == null ? null :
-                                    actionScopeDTOMap.get(actionScope.getActionScopeId()).get(0);
-                                if (actionScopeDTO == null) {
-                                    log.error("Cannot find actionScopeDTO by id {}", actionScope.getActionScopeId());
-                                } else {
-                                    allAppActionScopeList.add(actionScopeDTO.getCode());
-                                }
-                            }
-                            serviceWhiteIPInfo.setAllAppActionScopeList(allAppActionScopeList);
-                            serviceWhiteIPInfo.setAppIdActionScopeMap(new HashMap<>());
-                            serviceWhiteIPInfo.setCloudId(whiteIPIPDTO.getCloudAreaId());
-                            serviceWhiteIPInfo.setIp(whiteIPIPDTO.getIp());
-                            resultList.add(serviceWhiteIPInfo);
-                        });
-                    } else {
-                        genNormalAppWhiteIPInfo(whiteIPRecordDTO, actionScopeDTOMap, resultList);
+                        isAllApp = true;
+                        break;
                     }
+                }
+                if (isAllApp) {
+                    //封装全业务
+                    List<WhiteIPIPDTO> whiteIPIPDTOList = whiteIPRecordDTO.getIpList();
+                    whiteIPIPDTOList.forEach(whiteIPIPDTO -> {
+                        ServiceWhiteIPInfo serviceWhiteIPInfo = new ServiceWhiteIPInfo();
+                        serviceWhiteIPInfo.setForAllApp(true);
+                        List<String> allAppActionScopeList = new ArrayList<>();
+                        for (WhiteIPActionScopeDTO actionScope : whiteIPRecordDTO.getActionScopeList()) {
+                            ActionScopeDTO actionScopeDTO =
+                                actionScopeDTOMap.get(actionScope.getActionScopeId()) == null ? null :
+                                    actionScopeDTOMap.get(actionScope.getActionScopeId()).get(0);
+                            if (actionScopeDTO == null) {
+                                log.error("Cannot find actionScopeDTO by id {}", actionScope.getActionScopeId());
+                            } else {
+                                allAppActionScopeList.add(actionScopeDTO.getCode());
+                            }
+                        }
+                        serviceWhiteIPInfo.setAllAppActionScopeList(allAppActionScopeList);
+                        serviceWhiteIPInfo.setAppIdActionScopeMap(new HashMap<>());
+                        serviceWhiteIPInfo.setCloudId(whiteIPIPDTO.getCloudAreaId());
+                        serviceWhiteIPInfo.setIp(whiteIPIPDTO.getIp());
+                        resultList.add(serviceWhiteIPInfo);
+                    });
                 } else {
                     genNormalAppWhiteIPInfo(whiteIPRecordDTO, actionScopeDTOMap, resultList);
                 }

@@ -167,18 +167,18 @@ public class ApplicationServiceImpl implements ApplicationService {
                 allAppTypeGroupMap.get(AppTypeEnum.NORMAL) : new ArrayList<ApplicationDTO>();
 
             //普通业务按部门分组
-            Map<Long, List<ApplicationDTO>> normalAppGroupMap = normalAppList.stream().filter(a -> a.getOperateDeptId() != null).collect(
+            Map<Long, List<ApplicationDTO>> normalAppGroupMap = normalAppList.stream().filter(normalApp -> normalApp.getOperateDeptId() != null).collect(
                 Collectors.groupingBy(ApplicationDTO::getOperateDeptId));
 
             //查找包含当前业务的业务集
             List<ApplicationDTO> appSetList = allAppTypeGroupMap.get(AppTypeEnum.APP_SET);
             if (appSetList != null && !appSetList.isEmpty()) {
                 appSetList.stream().forEach(appSet -> {
-                    List<Long> subAppIds = appSet.getSubAppIds() == null ? new ArrayList<Long>() : appSet.getSubAppIds();
+                    List<Long> subAppIds = appSet.getSubBizIds() == null ? new ArrayList<Long>() : appSet.getSubBizIds();
                     Long optDeptId = appSet.getOperateDeptId();
                     if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
                         List<Long> normalAppIdList =
-                            normalAppGroupMap.get(optDeptId).stream().map(a -> a.getId()).collect(Collectors.toList());
+                            normalAppGroupMap.get(optDeptId).stream().map(normalApp -> normalApp.getId()).collect(Collectors.toList());
                         subAppIds.addAll(normalAppIdList);
                     }
                     if (subAppIds.contains(appId)) {
