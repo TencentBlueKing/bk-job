@@ -81,12 +81,26 @@
             },
         },
         methods: {
+            /**
+             * @desc 列排序
+             * @param { Boolean } payload
+             * @returns { undefined }
+             */
             handleSort (payload) {
+                if (payload.label === 'IP') {
+                    return;
+                }
                 this.$emit('on-sort', payload);
             },
+            /**
+             * @desc 复制IP
+             */
             handleCopyIP () {
                 this.$emit('on-copy');
             },
+            /**
+             * @desc 显示表格配置
+             */
             handleShowSetting () {
                 this.$emit('on-show-setting');
             },

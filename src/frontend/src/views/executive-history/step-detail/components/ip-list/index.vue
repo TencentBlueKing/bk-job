@@ -68,7 +68,9 @@
                 </template>
             </scroll-faker>
         </div>
-        <div v-show="isSetting" class="list-column-select">
+        <div
+            v-show="isSetting"
+            class="list-column-select">
             <div class="select-body">
                 <div class="title">{{ $t('history.字段显示设置') }}</div>
                 <bk-checkbox
@@ -90,8 +92,14 @@
                 </bk-checkbox-group>
             </div>
             <div class="select-footer">
-                <bk-button theme="primary" @click="handleSubmitSetting">{{ $t('history.确定') }}</bk-button>
-                <bk-button @click="handleHideSetting">{{ $t('history.取消') }}</bk-button>
+                <bk-button
+                    theme="primary"
+                    @click="handleSubmitSetting">
+                    {{ $t('history.确定') }}
+                </bk-button>
+                <bk-button @click="handleHideSetting">
+                    {{ $t('history.取消') }}
+                </bk-button>
             </div>
         </div>
     </div>

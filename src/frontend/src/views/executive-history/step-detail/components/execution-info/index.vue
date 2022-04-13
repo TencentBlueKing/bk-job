@@ -96,7 +96,7 @@
                         theme="primary"
                         size="small"
                         @change="handleScriptLogLineFeedChange" />
-                    <span style="padding-left: 7px; font-size: 12px; color: #979ba5;">自动换行</span>
+                    <span style="padding-left: 7px; font-size: 12px; color: #979ba5;">{{ $t('history.自动换行') }}</span>
                 </div>
             </div>
         </div>
