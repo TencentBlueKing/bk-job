@@ -133,7 +133,14 @@
              * @desc 更新输入框内容
              */
             updateInputValue () {
-                this.ipInputText = [...this.invalidIPList, ...this.errorIPList].join('\n');
+                this.ipInputText = [
+                    ...this.invalidIPList,
+                    ...this.errorIPList,
+                ].join('\n');
+                // fix: bk-input组件更新问题
+                setTimeout(() => {
+                    this.$refs.input.setCurValue(this.ipInputText);
+                });
             },
             /**
              * @desc 用户点击输入框时切换选中文本样式
