@@ -264,6 +264,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 agentTask.setSourceServer(true);
                 agentTask.setStatus(IpStatus.WAITING.getValue());
                 agentTask.setGseTaskId(gseTask.getId());
+                agentTask.setIp(sourceIp);
                 agentTaskMap.put(sourceIp, agentTask);
                 fileSourceGseAgentTasks.add(agentTask);
             }
