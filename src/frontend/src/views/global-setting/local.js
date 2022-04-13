@@ -124,7 +124,7 @@ export default {
         请输入: 'Please Input',
         文件上传设置: 'Local File Update',
         本地文件上传大小限制: 'File Size Limit',
-        文件后缀限制: 'File Extension Limit',
+        本地文件上传后缀限制: 'File Extension Limit',
         不限制: 'Unlimit',
         设置允许范围: 'Allowed From',
         设置禁止范围: 'Limited From',
