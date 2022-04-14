@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.manage.api.web.WebDangerousRuleResource;
@@ -43,13 +42,10 @@ import java.util.List;
 @Slf4j
 public class WebDangerousRuleResourceImpl implements WebDangerousRuleResource {
     private DangerousRuleService dangerousRuleService;
-    private MessageI18nService i18nService;
 
     @Autowired
-    public WebDangerousRuleResourceImpl(DangerousRuleService dangerousRuleService,
-                                        MessageI18nService i18nService) {
+    public WebDangerousRuleResourceImpl(DangerousRuleService dangerousRuleService) {
         this.dangerousRuleService = dangerousRuleService;
-        this.i18nService = i18nService;
     }
 
     @Override

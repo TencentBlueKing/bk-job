@@ -49,11 +49,11 @@ public class DangerousRuleScriptChecker extends DefaultChecker {
 
     @Override
     public List<ScriptCheckResultItemDTO> call() {
-        StopWatch watch = new StopWatch();
+        StopWatch watch = new StopWatch("scriptDangerousRuleCheck");
         ArrayList<ScriptCheckResultItemDTO> resultItems = Lists.newArrayList();
         try {
             for (DangerousRuleDTO dangerousRule : dangerousRules) {
-                watch.start(dangerousRule.getDescription());
+                watch.start(dangerousRule.getId().toString());
                 String[] lines = param.getLines();
                 checkScriptLines(resultItems, lines, dangerousRule);
                 watch.stop();
