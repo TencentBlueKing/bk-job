@@ -351,6 +351,15 @@ public class GseStepEventHandler implements StepEventHandler {
             return;
         }
 
+        long stepInstanceId = stepInstance.getId();
+        boolean isRollingStep = stepInstance.isRollingStep();
+        if (isRollingStep) {
+            log.info("Retry-fail for rolling step, stepInstanceId={}, batch: {}", stepInstanceId,
+                stepInstance.getBatch());
+        } else {
+            log.info("Retry-fail for step, stepInstanceId={}", stepInstanceId);
+        }
+
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.IGNORE_ERROR.getValue());
         taskInstanceService.resetTaskExecuteInfoForRetry(stepInstance.getTaskInstanceId());
         taskExecuteMQEventDispatcher.dispatchJobEvent(
@@ -413,7 +422,6 @@ public class GseStepEventHandler implements StepEventHandler {
      * 重新执行步骤失败的任务
      */
     private void retryStepFail(StepInstanceDTO stepInstance) {
-
         long stepInstanceId = stepInstance.getId();
         boolean isRollingStep = stepInstance.isRollingStep();
         if (isRollingStep) {
@@ -428,9 +436,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
             resetExecutionInfoForRetry(stepInstance);
 
-            TaskInstanceRollingConfigDTO rollingConfig = null;
             if (isRollingStep) {
-                rollingConfig = rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
                 // 初始化步骤滚动任务
                 saveInitialStepInstanceRollingTask(stepInstance);
             }
@@ -467,15 +473,13 @@ public class GseStepEventHandler implements StepEventHandler {
                 if (batch != null && latestAgentTask.getBatch() != batch) {
                     continue;
                 }
-                latestAgentTask.setStatus(IpStatus.WAITING.getValue());
-                latestAgentTask.setStartTime(null);
-                latestAgentTask.setEndTime(null);
-                latestAgentTask.setTotalTime(null);
+                latestAgentTask.resetTaskInitialStatus();
                 latestAgentTask.setGseTaskId(gseTaskId);
             }
         }
         agentTaskService.batchSaveAgentTasks(latestAgentTasks);
     }
+
 
     private void saveAgentTasksForRetryAll(long stepInstanceId, int executeCount, Integer batch,
                                            long gseTaskId) {
@@ -486,10 +490,7 @@ public class GseStepEventHandler implements StepEventHandler {
             if (batch != null && latestAgentTask.getBatch() != batch) {
                 continue;
             }
-            latestAgentTask.setStatus(IpStatus.WAITING.getValue());
-            latestAgentTask.setStartTime(null);
-            latestAgentTask.setEndTime(null);
-            latestAgentTask.setTotalTime(null);
+            latestAgentTask.resetTaskInitialStatus();
             latestAgentTask.setGseTaskId(gseTaskId);
         }
         agentTaskService.batchSaveAgentTasks(latestAgentTasks);
@@ -520,7 +521,7 @@ public class GseStepEventHandler implements StepEventHandler {
             }
 
             long gseTaskId = saveInitialGseTask(stepInstance);
-            saveAgentTasksForRetryFail(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+            saveAgentTasksForRetryAll(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
                 gseTaskId);
 
             if (stepInstance.isScriptStep()) {

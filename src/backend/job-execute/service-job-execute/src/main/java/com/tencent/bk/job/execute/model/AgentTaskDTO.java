@@ -173,9 +173,26 @@ public class AgentTaskDTO {
         return status != IpStatus.WAITING.getValue() && status != IpStatus.RUNNING.getValue();
     }
 
+    /**
+     * 计算任务运行时间
+     */
     public void calculateTotalTime() {
         if (this.endTime != null && this.startTime != null && this.endTime > this.startTime) {
             this.totalTime = this.endTime - this.startTime;
         }
+    }
+
+    /**
+     * 重置任务状态数据
+     */
+    public void resetTaskInitialStatus() {
+        this.status = IpStatus.WAITING.getValue();
+        this.startTime = null;
+        this.endTime = null;
+        this.totalTime = null;
+        this.errorCode = 0;
+        this.scriptLogOffset = 0;
+        this.exitCode = null;
+        this.gseTaskId = null;
     }
 }
