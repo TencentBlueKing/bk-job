@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-TRUNCATE TABLE gse_task_ip_log;
+TRUNCATE TABLE job_execute.gse_task_ip_log;
 
 INSERT INTO job_execute.gse_task_ip_log
             (step_instance_id,
