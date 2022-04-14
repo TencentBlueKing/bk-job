@@ -61,8 +61,13 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
     public List<StepInstanceRollingTaskDTO> listLatestRollingTasks(long stepInstanceId, int executeCount) {
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks =
             stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId);
-        if (CollectionUtils.isEmpty(stepInstanceRollingTasks) || executeCount == 0) {
+        if (CollectionUtils.isEmpty(stepInstanceRollingTasks)) {
             return stepInstanceRollingTasks;
+        }
+        if (executeCount == 0) {
+            return stepInstanceRollingTasks.stream()
+                .filter(rollingTask -> rollingTask.getExecuteCount() == 0)
+                .collect(Collectors.toList());
         }
 
         Map<String, StepInstanceRollingTaskDTO> latestRollingTasks = new HashMap<>();
