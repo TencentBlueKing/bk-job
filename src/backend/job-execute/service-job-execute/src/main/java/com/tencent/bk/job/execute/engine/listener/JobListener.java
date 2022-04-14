@@ -316,8 +316,14 @@ public class JobListener {
 
     private void startStep(StepInstanceBaseDTO stepInstance) {
         taskInstanceService.updateTaskCurrentStepId(stepInstance.getTaskInstanceId(), stepInstance.getId());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
-            stepInstance.isRollingStep() ? stepInstance.getBatch() + 1 : null));
+        if (stepInstance.isRollingStep()) {
+            taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.ROLLING_WAITING.getValue());
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
+                stepInstance.getBatch() + 1));
+        } else {
+            taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.WAITING.getValue());
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(), null));
+        }
     }
 
     private void callback(TaskInstanceDTO taskInstance, long taskInstanceId, int taskStatus, long currentStepId,
