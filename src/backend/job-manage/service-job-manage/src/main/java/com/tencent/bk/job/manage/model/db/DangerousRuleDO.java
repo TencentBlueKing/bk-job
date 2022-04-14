@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -79,4 +80,24 @@ public class DangerousRuleDO {
      * 规则启用状态
      */
     private Integer status;
+
+    /**
+     * DO -> DTO
+     * @return 高危规则
+     */
+    public DangerousRuleDTO toDangerousRuleDTO() {
+        DangerousRuleDTO dangerousRuleDTO = new DangerousRuleDTO();
+        dangerousRuleDTO.setId(this.id);
+        dangerousRuleDTO.setExpression(this.expression);
+        dangerousRuleDTO.setPriority(this.priority);
+        dangerousRuleDTO.setScriptType(this.scriptType);
+        dangerousRuleDTO.setDescription(this.description);
+        dangerousRuleDTO.setCreator(this.creator);
+        dangerousRuleDTO.setCreateTime(this.createTime);
+        dangerousRuleDTO.setLastModifier(this.lastModifier);
+        dangerousRuleDTO.setLastModifyTime(this.lastModifyTime);
+        dangerousRuleDTO.setAction(this.action);
+        dangerousRuleDTO.setStatus(this.status);
+        return dangerousRuleDTO;
+    }
 }
