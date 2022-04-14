@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -647,16 +648,42 @@ public class GseStepEventHandler implements StepEventHandler {
         long startTime = stepInstance.getStartTime();
         long totalTime = endTime - startTime;
         if (stepInstance.isIgnoreError()) {
-            taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.IGNORE_ERROR.getValue());
+            log.info("Ignore error for step: {}", stepInstanceId);
+            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.IGNORE_ERROR,
+                startTime, endTime, totalTime);
+            if (stepInstance.isRollingStep()) {
+                stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                    stepInstance.getBatch(), RunStatusEnum.IGNORE_ERROR, startTime, endTime, totalTime);
+            }
+            return;
         }
+
         if (stepInstance.isRollingStep()) {
             TaskInstanceRollingConfigDTO rollingConfig =
                 rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
-            stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                stepInstance.getBatch(), RunStatusEnum.FAIL, startTime, endTime, totalTime);
+            RollingModeEnum rollingMode = RollingModeEnum.valOf(rollingConfig.getConfig().getMode());
+            switch (rollingMode) {
+                case IGNORE_ERROR:
+                    log.info("Ignore error for rolling step, rollingMode: {}", rollingMode);
+                    stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                        stepInstance.getBatch(), RunStatusEnum.IGNORE_ERROR, startTime, endTime, totalTime);
+                    taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.IGNORE_ERROR,
+                        startTime, endTime, totalTime);
+                    break;
+                case PAUSE_IF_FAIL:
+                case MANUAL:
+                    stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                        stepInstance.getBatch(), RunStatusEnum.FAIL, startTime, endTime, totalTime);
+                    taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
+                        startTime, endTime, totalTime);
+                    break;
+                default:
+                    log.error("Invalid rolling mode: {}", rollingMode);
+            }
+        } else {
+            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
+                startTime, endTime, totalTime);
         }
-        taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
-            startTime, endTime, totalTime);
     }
 
     private void onStopSuccess(StepInstanceDTO stepInstance) {

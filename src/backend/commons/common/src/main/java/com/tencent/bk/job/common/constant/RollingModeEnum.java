@@ -61,7 +61,7 @@ public enum RollingModeEnum {
                 return modeEnum;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
     }
 
     public int getValue() {
