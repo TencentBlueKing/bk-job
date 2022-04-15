@@ -455,7 +455,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 uploadMaxSize.toString() + unit.name()
                 , restrictMode
                 , suffixList)));
-        int affectedRows = globalSettingDAO.upsertGlobalSetting(dslContext, fileUploadSettingDTO);
+        int affectedRows = globalSettingDAO.upsertGlobalSetting(fileUploadSettingDTO);
         return affectedRows > 0;
     }
 
