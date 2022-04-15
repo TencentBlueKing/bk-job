@@ -539,7 +539,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "批量更新脚本标签-Patch方式", produces = "application/json")
-    @PutMapping("/scope/{scopeType}/{scopeId}/scripts/tag")
+    @PutMapping("/scope/{scopeType}/{scopeId}/tag")
     Response<?> batchUpdateScriptTags(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")

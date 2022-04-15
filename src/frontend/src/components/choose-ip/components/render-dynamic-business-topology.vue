@@ -56,11 +56,11 @@
                                 @click="handleFilterEmptyToggle">
                                 <template v-if="isRenderEmptyTopoNode">
                                     <Icon type="eye-slash-shape" />
-                                    <span>隐藏空节点</span>
+                                    <span>{{ $t('隐藏空节点') }}</span>
                                 </template>
                                 <template v-else>
                                     <Icon type="eye-shape" />
-                                    <span>恢复完整拓扑</span>
+                                    <span>{{ $t('恢复完整拓扑') }}</span>
                                 </template>
                             </div>
                             <div class="node-count">{{ data.payload.count }}</div>
