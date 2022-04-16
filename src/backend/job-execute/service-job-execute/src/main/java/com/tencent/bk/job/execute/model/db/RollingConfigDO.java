@@ -68,4 +68,18 @@ public class RollingConfigDO {
      */
     private int totalBatch;
 
+    /**
+     * 是否是滚动区间的第一个步骤
+     */
+    public boolean isFirstRollingStep(long stepInstanceId) {
+        return this.includeStepInstanceIdList.get(0).equals(stepInstanceId);
+    }
+
+    /**
+     * 是否是滚动区间的最后一个步骤
+     */
+    public boolean isLastRollingStep(long stepInstanceId) {
+        return this.includeStepInstanceIdList.get(includeStepInstanceIdList.size() - 1).equals(stepInstanceId);
+    }
+
 }

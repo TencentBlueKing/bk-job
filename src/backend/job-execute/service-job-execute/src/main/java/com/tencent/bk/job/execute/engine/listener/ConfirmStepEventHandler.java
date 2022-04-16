@@ -100,7 +100,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
         log.info("Confirm step terminate, stepInstanceId={}", stepInstanceId);
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
-        if (RunStatusEnum.WAITING.getValue().equals(stepInstance.getStatus())) {
+        if (RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus())) {
             Long endTime = DateUtils.currentTimeMillis();
             long taskTotalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
                 taskInstance.getTotalTime());
@@ -147,8 +147,8 @@ public class ConfirmStepEventHandler implements StepEventHandler {
                 stepOperator = taskInstance.getOperator();
                 stepInstance.setOperator(stepOperator);
             }
-            taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.WAITING.getValue());
-            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.WAITING.getValue());
+            taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.WAITING_USER.getValue());
+            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.WAITING_USER.getValue());
             notifyService.asyncSendMQConfirmNotification(taskInstance, stepInstance);
         } else {
             log.warn("Unsupported step instance run status for executing confirm step, stepInstanceId={}, status={}",
@@ -162,7 +162,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
         log.info("Confirm step continue, stepInstanceId={}", stepInstanceId);
 
         int stepStatus = stepInstance.getStatus();
-        if (RunStatusEnum.WAITING.getValue() == stepStatus) {
+        if (RunStatusEnum.WAITING_USER.getValue() == stepStatus) {
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
             long endTime = DateUtils.currentTimeMillis();
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,

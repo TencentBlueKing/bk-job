@@ -59,7 +59,7 @@ public enum RunStatusEnum {
     /**
      * 等待用户
      */
-    WAITING(7),
+    WAITING_USER(7),
     /**
      * 手动结束
      */

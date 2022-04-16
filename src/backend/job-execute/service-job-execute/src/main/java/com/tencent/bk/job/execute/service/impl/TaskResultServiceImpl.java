@@ -146,7 +146,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             pageData.getData().forEach(taskInstanceDTO -> {
                 if (taskInstanceDTO.getTotalTime() == null) {
                     if (taskInstanceDTO.getStatus().equals(RunStatusEnum.RUNNING.getValue())
-                        || taskInstanceDTO.getStatus().equals(RunStatusEnum.WAITING.getValue())
+                        || taskInstanceDTO.getStatus().equals(RunStatusEnum.WAITING_USER.getValue())
                         || taskInstanceDTO.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
                         taskInstanceDTO.setTotalTime((TaskCostCalculator.calculate(taskInstanceDTO.getStartTime(),
                             taskInstanceDTO.getEndTime(), taskInstanceDTO.getTotalTime())));

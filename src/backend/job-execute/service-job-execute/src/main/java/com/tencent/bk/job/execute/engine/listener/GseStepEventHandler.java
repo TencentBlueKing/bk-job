@@ -162,9 +162,8 @@ public class GseStepEventHandler implements StepEventHandler {
         }
 
         int stepStatus = stepInstance.getStatus();
-        // 只有当步骤状态为“等待用户”、“未执行”、“滚动等待”时可以启动步骤
+        // 只有当步骤状态为“未执行”、“滚动等待”时可以启动步骤
         if (RunStatusEnum.BLANK.getValue() == stepStatus
-            || RunStatusEnum.WAITING.getValue() == stepStatus
             || RunStatusEnum.ROLLING_WAITING.getValue() == stepStatus) {
 
             TaskInstanceRollingConfigDTO rollingConfig = null;
@@ -230,7 +229,7 @@ public class GseStepEventHandler implements StepEventHandler {
     private long saveInitialGseTask(StepInstanceDTO stepInstance) {
         GseTaskDTO gseTask = new GseTaskDTO(stepInstance.getId(), stepInstance.getExecuteCount(),
             stepInstance.getBatch());
-        gseTask.setStatus(RunStatusEnum.WAITING.getValue());
+        gseTask.setStatus(RunStatusEnum.WAITING_USER.getValue());
 
         return gseTaskService.saveGseTask(gseTask);
     }

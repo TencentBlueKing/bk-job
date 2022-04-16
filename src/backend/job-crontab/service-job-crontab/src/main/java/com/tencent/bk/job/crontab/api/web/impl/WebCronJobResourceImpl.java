@@ -276,7 +276,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                                 // 正在执行
                             case RUNNING:
                                 // 等待用户
-                            case WAITING:
+                            case WAITING_USER:
                             default:
                                 break;
                         }

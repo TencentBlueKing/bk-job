@@ -235,8 +235,8 @@ public class ResultHandleResumeListener {
     private boolean checkIsTaskResumeable(StepInstanceDTO stepInstance, GseTaskDTO gseTask) {
         RunStatusEnum stepStatus = RunStatusEnum.valueOf(stepInstance.getStatus());
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
-        return (stepStatus == RunStatusEnum.WAITING || stepStatus == RunStatusEnum.RUNNING
-            || stepStatus == RunStatusEnum.STOPPING) && (gseTaskStatus == RunStatusEnum.WAITING
+        return (stepStatus == RunStatusEnum.WAITING_USER || stepStatus == RunStatusEnum.RUNNING
+            || stepStatus == RunStatusEnum.STOPPING) && (gseTaskStatus == RunStatusEnum.WAITING_USER
             || gseTaskStatus == RunStatusEnum.RUNNING || gseTaskStatus == RunStatusEnum.STOPPING);
     }
 }

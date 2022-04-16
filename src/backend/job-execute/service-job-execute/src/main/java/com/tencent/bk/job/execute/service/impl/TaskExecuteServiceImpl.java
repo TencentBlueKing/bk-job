@@ -1877,7 +1877,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void confirmTerminate(StepInstanceDTO stepInstance, String operator, String reason) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         // 只有人工确认等待中的任务，可以进行“终止流程”操作
-        if (!RunStatusEnum.WAITING.getValue().equals(stepInstance.getStatus())) {
+        if (!RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus())) {
             log.warn("StepInstance:{} status is not waiting, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-terminate");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -1952,7 +1952,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 "-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (!(RunStatusEnum.WAITING.getValue().equals(stepInstance.getStatus()))) {
+        if (!(RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus()))) {
             log.warn("StepInstance:{} status is not waiting, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
