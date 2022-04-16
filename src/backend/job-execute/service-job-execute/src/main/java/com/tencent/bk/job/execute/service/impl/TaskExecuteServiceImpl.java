@@ -72,6 +72,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInfo;
@@ -1867,11 +1868,33 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             case SKIP:
                 skipStep(stepInstance, operator);
                 break;
+            case ROLLING_CONTINUE:
+                continueRolling(stepInstance, operator);
+                break;
             default:
                 log.warn("Undefined step operation!");
                 break;
         }
         return executeCount;
+    }
+
+    private void continueRolling(StepInstanceDTO stepInstance, String operator) {
+        // 只有“等待用户”的滚动步骤可以继续滚动
+        if (!(stepInstance.getStatus().equals(RunStatusEnum.WAITING_USER.getValue()))) {
+            log.warn("StepInstance:{} status is not fail, Unsupported Operation:{}", stepInstance.getId(),
+                "rolling-continue");
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
+        }
+        if (!(stepInstance.isRollingStep())) {
+            log.warn("StepInstance:{} is not rolling step, Unsupported Operation:{}", stepInstance.getId(),
+                "rolling-continue");
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
+        }
+
+        // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
+        taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
+            stepInstance.getBatch()));
     }
 
     private void confirmTerminate(StepInstanceDTO stepInstance, String operator, String reason) {
