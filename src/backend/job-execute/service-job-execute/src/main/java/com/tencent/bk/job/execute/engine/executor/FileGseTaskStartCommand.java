@@ -28,6 +28,7 @@ import brave.Tracing;
 import com.tencent.bk.gse.taskapi.api_agent;
 import com.tencent.bk.gse.taskapi.api_copy_fileinfoV2;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
@@ -264,7 +265,10 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 agentTask.setSourceServer(true);
                 agentTask.setStatus(IpStatus.WAITING.getValue());
                 agentTask.setGseTaskId(gseTask.getId());
-                agentTask.setIp(sourceIp);
+                IpDTO sourceHost = IpDTO.fromCloudAreaIdAndIpStr(sourceIp);
+                agentTask.setCloudIp(sourceIp);
+                agentTask.setCloudId(sourceHost.getCloudAreaId());
+                agentTask.setDisplayIp(sourceHost.getIp());
                 agentTaskMap.put(sourceIp, agentTask);
                 fileSourceGseAgentTasks.add(agentTask);
             }

@@ -64,7 +64,7 @@ public class IpDTO implements Cloneable {
 
     public static IpDTO fromCloudAreaIdAndIpStr(String cloudAreaIdAndIpStr) {
         if (!IpUtils.checkCloudAreaIdAndIpStr(cloudAreaIdAndIpStr)) {
-            return null;
+            throw new IllegalArgumentException("Invalid cloudIp : " + cloudAreaIdAndIpStr);
         }
         String[] ipProps = cloudAreaIdAndIpStr.split(IpUtils.COLON);
         return new IpDTO(Long.valueOf(ipProps[0]), ipProps[1]);
