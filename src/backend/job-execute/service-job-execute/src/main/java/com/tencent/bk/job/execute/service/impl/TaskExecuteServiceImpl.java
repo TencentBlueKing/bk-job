@@ -1893,7 +1893,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
-            stepInstance.getBatch()));
+            stepInstance.getBatch() + 1));
     }
 
     private void confirmTerminate(StepInstanceDTO stepInstance, String operator, String reason) {
