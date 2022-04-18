@@ -45,6 +45,7 @@ import com.tencent.bk.job.manage.model.web.vo.UploadLocalFileResultVO;
 import com.tencent.bk.job.manage.model.web.vo.UploadTargetVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
+import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -204,7 +205,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
                                                                    MultipartFile[] uploadFiles) {
         log.info("Handle upload file!");
         checkFileSuffixValid(uploadFiles);
-        List<UploadLocalFileResultVO> fileUploadResults = null;
+        List<UploadLocalFileResultVO> fileUploadResults;
         if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
             localFileConfigForManage.getStorageBackend()
         )) {
@@ -216,39 +217,65 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
         return Response.buildSuccessResp(fileUploadResults);
     }
 
+    /**
+     * 文件名后缀是否匹配
+     *
+     * @param fileName   文件名称
+     * @param suffixList 后缀列表
+     * @return 后缀是否匹配
+     */
+    private boolean isFileNameMatchSuffixIgnoreCase(String fileName, List<String> suffixList) {
+        if (StringUtils.isBlank(fileName)) {
+            return false;
+        }
+        for (String allowedSuffix : suffixList) {
+            if (fileName.toLowerCase().endsWith(allowedSuffix.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void checkFileSuffixValid(MultipartFile[] uploadFiles) {
         //检查是否合法后缀
         FileUploadSettingVO fileUploadSettingVO = globalSettingsService.getFileUploadSettings();
         Integer restrictMode = fileUploadSettingVO.getRestrictMode();
-        List<String> suffixList = fileUploadSettingVO.getSuffixList();
-        Boolean validateSuffix = true;
-        //初始状态:允许模式：默认不允许，禁止模式：默认不禁止
-        if (CollectionUtils.isNotEmpty(suffixList)) {
-            if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
-                validateSuffix = false;
-            } else if (restrictMode == RestrictModeEnum.FORBID.getType()) {
-                validateSuffix = true;
-            }
+        // 未配置限制策略：默认不限制
+        if (restrictMode == null) {
+            return;
         }
+        List<String> suffixList = fileUploadSettingVO.getSuffixList();
+        // 策略内容为空，异常数据，不限制
+        if (CollectionUtils.isEmpty(suffixList)) {
+            log.warn("file upload restrict suffixList is empty");
+            return;
+        }
+        List<String> invalidFileNameList = new ArrayList<>();
         for (MultipartFile multipartFile : uploadFiles) {
             if (StringUtils.isBlank(multipartFile.getOriginalFilename())) {
                 log.warn("upload file ,fileName are empty");
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
-            if (CollectionUtils.isNotEmpty(suffixList)) {
-                for (String suffix : suffixList) {
-                    if (multipartFile.getOriginalFilename().toLowerCase().endsWith(suffix.toLowerCase())) {
-                        if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
-                            validateSuffix = true;
-                        } else if (restrictMode == RestrictModeEnum.FORBID.getType()) {
-                            validateSuffix = false;
-                        }
-                    }
+            String fileName = multipartFile.getOriginalFilename();
+            if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
+                // 后缀允许模式
+                if (!isFileNameMatchSuffixIgnoreCase(fileName, suffixList)) {
+                    invalidFileNameList.add(fileName);
+                }
+            } else if (restrictMode == RestrictModeEnum.FORBID.getType()) {
+                // 后缀禁止模式
+                if (isFileNameMatchSuffixIgnoreCase(fileName, suffixList)) {
+                    invalidFileNameList.add(fileName);
                 }
             }
         }
-        if (restrictMode != -1 && !validateSuffix) {
-            log.warn("upload file, file suffix not allow");
+        if (!invalidFileNameList.isEmpty()) {
+            log.info(
+                "upload file, file suffix not allowed:{}, restrictMode:{}, suffixList:{}",
+                StringUtil.join(",", invalidFileNameList),
+                restrictMode,
+                suffixList
+            );
             throw new InvalidParamException(ErrorCode.UPLOAD_FILE_SUFFIX_NOT_ALLOW);
         }
     }
