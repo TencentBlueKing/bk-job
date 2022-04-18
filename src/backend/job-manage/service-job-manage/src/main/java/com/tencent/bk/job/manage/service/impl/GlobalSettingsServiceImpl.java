@@ -463,7 +463,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     public FileUploadSettingVO getFileUploadSettings() {
         GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
             GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
-        FileUploadSettingVO fileUploadSettingVO = null;
+        FileUploadSettingVO fileUploadSettingVO;
         if (fileUploadSettingDTO == null) {
             fileUploadSettingVO = getConfigedFileUploadSettings();
         } else {
@@ -477,8 +477,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             }
             fileUploadSettingVO.setRestrictMode(uploadFileRestrictDTO.getRestrictMode());
             fileUploadSettingVO.setSuffixList(uploadFileRestrictDTO.getSuffixList());
-
-
         }
         return fileUploadSettingVO;
     }
