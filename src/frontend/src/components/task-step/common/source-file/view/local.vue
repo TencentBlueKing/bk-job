@@ -182,25 +182,27 @@
 
                 const {
                     restrictMode,
-                    suffixList,
+                    suffixList = [],
                 } = this.FILE_UPLOAD_SETTING;
                 
                 Array.from(files).forEach((curFile) => {
                     const { name, size } = curFile;
 
-                    const fileExtRule = new RegExp(`(${suffixList.map(item => encodeRegexp(item)).join('|')})$`);
+                    if (suffixList && suffixList.length > 0) {
+                        const fileExtRule = new RegExp(`(${suffixList.map(item => encodeRegexp(item)).join('|')})$`);
                     
-                    // 上传文件后缀允许范围;
-                    if (restrictMode === 1
-                        && !fileExtRule.test(name)) {
-                        includeStask.push(name);
-                        return;
-                    }
-                    // 上传文件后缀禁止范围
-                    if (restrictMode === 0
-                        && fileExtRule.test(name)) {
-                        excludeStask.push(name);
-                        return;
+                        // 上传文件后缀允许范围;
+                        if (restrictMode === 1
+                            && !fileExtRule.test(name)) {
+                            includeStask.push(name);
+                            return;
+                        }
+                        // 上传文件后缀禁止范围
+                        if (restrictMode === 0
+                            && fileExtRule.test(name)) {
+                            excludeStask.push(name);
+                            return;
+                        }
                     }
                     
                     // 重名检测
