@@ -192,33 +192,35 @@
              * @desc 批次需要人工确认，弹出操作框
              */
             showConfirmActionPanel () {
-                const $targetItemEl = this.$refs.box.querySelector('.batch-item.confirm');
-                if (!$targetItemEl) {
-                    return;
-                }
-                if (this.popperInstance
-                    && this.popperInstance.reference !== $targetItemEl) {
-                    this.popperInstance.hide();
-                }
-                if (!this.popperInstance) {
-                    this.popperInstance = Tippy($targetItemEl, {
-                        arrow: true,
-                        placement: 'bottom',
-                        trigger: 'manual',
-                        theme: 'light',
-                        interactive: true,
-                        hideOnClick: false,
-                        animateFill: false,
-                        animation: 'slide-toggle',
-                        lazy: false,
-                        ignoreAttributes: true,
-                        boundary: 'window',
-                        distance: 20,
-                        content: this.$refs.box.querySelector('#rollingConfirmAction'),
-                        zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
-                    });
-                    this.popperInstance.show();
-                }
+                setTimeout(() => {
+                    const $targetItemEl = this.$refs.box.querySelector('.batch-item.confirm');
+                    if (!$targetItemEl) {
+                        return;
+                    }
+                    if (this.popperInstance
+                        && this.popperInstance.reference !== $targetItemEl) {
+                        this.popperInstance.hide();
+                    }
+                    if (!this.popperInstance) {
+                        this.popperInstance = Tippy($targetItemEl, {
+                            arrow: true,
+                            placement: 'bottom-start',
+                            trigger: 'manual',
+                            theme: 'light',
+                            interactive: true,
+                            hideOnClick: false,
+                            animateFill: false,
+                            animation: 'slide-toggle',
+                            lazy: false,
+                            ignoreAttributes: true,
+                            boundary: 'window',
+                            distance: 20,
+                            content: this.$refs.box.querySelector('#rollingConfirmAction'),
+                            zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+                        });
+                        this.popperInstance.show();
+                    }
+                });
             },
             triggerChange () {
                 this.$emit('change', this.selectBatch);
@@ -325,8 +327,13 @@
                 );
                 this.startIndex = selectBatch - indexOffset;
             },
+            /**
+             * @desc 人工确认继续滚动下一批
+             *
+             * 参考API文档继续滚动code为13
+             */
             handleConfirmNextBatch () {
-                
+                this.$emit('on-confirm', 13);
             },
             /**
              * @desc 上一页

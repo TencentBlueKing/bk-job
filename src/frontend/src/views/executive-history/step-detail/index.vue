@@ -32,7 +32,8 @@
                 v-if="data.isRollingTask"
                 :value="params.batch"
                 :data="data"
-                @change="handleBatchChange" />
+                @change="handleBatchChange"
+                @on-confirm="operationCode => handleStatusUpdate(operationCode)" />
             <div class="step-info-header">
                 <div class="step-info-wraper">
                     <div class="step-type-text">{{ stepTypeText }}</div>
@@ -87,11 +88,17 @@
                         <Icon class="loading-flag" type="loading" />
                     </div>
                 </div>
-                <export-log :step-instance-id="params.id" :is-file="isFile" />
+                <export-log
+                    :step-instance-id="params.id"
+                    :is-file="isFile" />
                 <div class="task-instance-action">
-                    <view-global-variable v-if="isTask" :task-instance-id="taskInstanceId" />
+                    <view-global-variable
+                        v-if="isTask"
+                        :task-instance-id="taskInstanceId" />
                     <view-operation-record :task-instance-id="taskInstanceId" />
-                    <view-step-info :task-instance-id="taskInstanceId" :step-instance-id="params.id" />
+                    <view-step-info
+                        :task-instance-id="taskInstanceId"
+                        :step-instance-id="params.id" />
                 </div>
             </div>
             <!-- 主机分组 -->
@@ -321,6 +328,8 @@
                         return;
                     }
                     this.data = Object.freeze(data);
+
+                    console.log(this.data);
 
                     this.calcDetailContainerStyle();
 

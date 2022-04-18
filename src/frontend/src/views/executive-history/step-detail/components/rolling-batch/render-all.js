@@ -22,7 +22,7 @@ export default {
             disabled,
         };
 
-        const clickHandler = () => {
+        const handleClick = () => {
             if (disabled) {
                 return;
             }
@@ -32,10 +32,9 @@ export default {
         return (
             <div
                 ref="allBtn"
-                class="all-btn"
                 class={classes}
                 key="all"
-                onClick={clickHandler}>
+                onClick={handleClick}>
                 全部批次
             </div>
         );

@@ -27,12 +27,13 @@ export default {
             fail: data.status === BATCH_STATUS_FAIL,
         };
 
-        const handleClick = (event) => {
+        const handleClickSelect = (event) => {
             if (disabled || active) {
                 return;
             }
             console.log('from render item handleclic = ', event);
-            context.listeners['on-change'] && context.listeners['on-change'](data.batch, event);
+            context.listeners['on-change']
+             && context.listeners['on-change'](data.batch, event);
         };
 
         const renderConfirmStatus = () => {
@@ -58,6 +59,7 @@ export default {
             }
             return null;
         };
+
         const renderExecutingStatus = () => {
             if (data.batch === currentRunningBatch
                 && data.status === BATCH_STATUS_RUNNING) {
@@ -69,11 +71,12 @@ export default {
             }
             return null;
         };
+
         return (
             <div
                 class={clasess}
                 key={data.batch}
-                onClick={handleClick}>
+                onClick={handleClickSelect}>
                 第 { data.batch } 批
                 {renderConfirmStatus()}
                 {renderFailedStatus()}
