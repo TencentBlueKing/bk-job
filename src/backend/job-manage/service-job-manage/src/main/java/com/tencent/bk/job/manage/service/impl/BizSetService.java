@@ -26,20 +26,37 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.common.consts.globalsetting.GlobalSettingKeys;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+
 @Slf4j
 @Service
 public class BizSetService {
     private final GlobalSettingDAO globalSettingDAO;
+    private final ApplicationDAO applicationDAO;
 
     @Autowired
-    public BizSetService(GlobalSettingDAO globalSettingDAO) {
+    public BizSetService(GlobalSettingDAO globalSettingDAO, ApplicationDAO applicationDAO) {
         this.globalSettingDAO = globalSettingDAO;
+        this.applicationDAO = applicationDAO;
+    }
+
+    @PostConstruct
+    private void initMigrateStatus() {
+        GlobalSettingDTO globalSettingDTO =
+            globalSettingDAO.getGlobalSetting(GlobalSettingKeys.KEY_IS_BIZSET_MIGRATED_TO_CMDB);
+        int bizSetCount = applicationDAO.countBizSetAppsWithDeleted();
+        if (globalSettingDTO == null && bizSetCount == 0) {
+            // 全新部署，无需迁移业务集，迁移状态默认置为已迁移完成
+            log.info("set bizSet migrated when install newly");
+            setBizSetMigratedToCMDB(true);
+        }
     }
 
     /**

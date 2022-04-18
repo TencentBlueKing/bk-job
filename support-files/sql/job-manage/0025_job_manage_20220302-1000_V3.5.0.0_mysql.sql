@@ -76,7 +76,7 @@ BEGIN
     ALTER TABLE host ADD COLUMN cloud_ip VARCHAR(65) NOT NULL DEFAULT '';
   END IF;
 
-	UPDATE host SET cloud_ip = concat(cloud_area_id,':',ip) WHERE cloud_ip IS NULL;
+	UPDATE host SET cloud_ip = concat(cloud_area_id,':',ip) WHERE cloud_ip='';
 
   IF NOT EXISTS(SELECT 1
                   FROM information_schema.statistics
