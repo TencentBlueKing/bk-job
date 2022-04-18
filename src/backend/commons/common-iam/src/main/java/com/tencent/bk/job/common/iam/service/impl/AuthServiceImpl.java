@@ -125,7 +125,8 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
         }
         // 业务集、全业务特殊鉴权
         ResourceAppInfo resourceAppInfo = resourceAppInfoQueryService.getResourceAppInfo(resourceType, resourceId);
-        return ResourceScopeTypeEnum.BIZ_SET.getValue().equals(resourceAppInfo.getScopeType())
+        return resourceAppInfo != null
+            && ResourceScopeTypeEnum.BIZ_SET.getValue().equals(resourceAppInfo.getScopeType())
             && hasBizSetAppMaintainerPermission(username, resourceAppInfo);
     }
 
