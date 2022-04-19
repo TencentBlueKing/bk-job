@@ -433,6 +433,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
+    public Integer countBizSetAppsWithDeleted() {
+        return context.selectCount()
+            .from(T_APP)
+            .where(T_APP.BK_SCOPE_TYPE.eq(ResourceScopeTypeEnum.BIZ_SET.getValue()))
+            .fetchOne(0, Integer.class);
+    }
+
+    @Override
     public ApplicationDTO getAppByScope(ResourceScope scope) {
         Record record = context.select(ALL_FIELDS)
             .from(T_APP)

@@ -27,20 +27,34 @@
 
 <template>
     <div class="task-step-operation-wraper">
-        <div class="left" :style="leftStyles">
+        <div class="step-wrapper" :style="styleWrapperStyles">
             <scroll-faker>
-                <div class="container">
-                    <jb-form fixed :label-width="formMarginLeftWidth">
-                        <bk-form-item :label="$t('template.步骤类型')" required>
-                            <bk-select
+                <div class="step-wrapper-container">
+                    <jb-form
+                        fixed
+                        :label-width="formMarginLeftWidth">
+                        <bk-form-item
+                            :label="$t('template.步骤类型')"
+                            required>
+                            <bk-radio-group
                                 v-model="taskStepType"
-                                :clearable="false"
-                                :disabled="isStepTypeReadOnly"
-                                class="form-item-content">
-                                <bk-option id="1" :name="$t('template.执行脚本')" />
-                                <bk-option id="2" :name="$t('template.分发文件')" />
-                                <bk-option id="3" :name="$t('template.人工确认')" />
-                            </bk-select>
+                                class="step-type-radio form-item-content">
+                                <bk-radio-button
+                                    :value="1"
+                                    :disabled="isStepTypeReadOnly">
+                                    {{ $t('template.执行脚本') }}
+                                </bk-radio-button>
+                                <bk-radio-button
+                                    :value="2"
+                                    :disabled="isStepTypeReadOnly">
+                                    {{ $t('template.分发文件') }}
+                                </bk-radio-button>
+                                <bk-radio-button
+                                    :value="3"
+                                    :disabled="isStepTypeReadOnly">
+                                    {{ $t('template.人工确认') }}
+                                </bk-radio-button>
+                            </bk-radio-group>
                         </bk-form-item>
                     </jb-form>
                     <component
@@ -59,22 +73,23 @@
                 {{ $t('template.变量使用指引') }}
             </bk-button>
         </div>
-        <div v-if="isShowVariableGuide" class="right">
+        <div v-if="isShowVariableGuide" class="guide-right">
             <variable-use-guide @on-close="handleHideVariableGuide" />
         </div>
     </div>
 </template>
 <script>
+    import TaskStepModel from '@model/task/task-step';
     import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
     import StepDistroFile from './components/distro-file';
     import StepExecScript from './components/exec-script';
-    import StepArificial from './components/artificial';
+    import StepApproval from './components/approval';
 
     export default {
         components: {
             StepDistroFile,
             StepExecScript,
-            StepArificial,
+            StepApproval,
             VariableUseGuide,
         },
         inheritAttrs: false,
@@ -99,7 +114,7 @@
                 const taskStepMap = {
                     1: StepExecScript,
                     2: StepDistroFile,
-                    3: StepArificial,
+                    3: StepApproval,
                 };
                 if (!Object.prototype.hasOwnProperty.call(taskStepMap, this.taskStepType)) {
                     return 'div';
@@ -107,7 +122,7 @@
                 return taskStepMap[this.taskStepType];
             },
             /**
-             * @desc 步骤数据
+             * @desc 具体的步骤数据
              * @returns { Object }
              */
             stepData () {
@@ -135,7 +150,7 @@
             isStepTypeReadOnly () {
                 return !!Object.keys(this.data).length;
             },
-            leftStyles () {
+            styleWrapperStyles () {
                 const styles = {
                     width: '100%',
                 };
@@ -145,17 +160,16 @@
                 return styles;
             },
             formMarginLeftWidth () {
-                return this.$i18n.locale === 'en-US' && this.taskStepType === 2 ? 140 : 110;
+                return this.$i18n.locale === 'en-US'
+                    && this.taskStepType === TaskStepModel.TYPE_FILE
+                    ? 140
+                    : 110;
             },
         },
         watch: {
             data: {
-                handler (value) {
-                    if (Object.keys(value).length) {
-                        this.taskStepType = this.data.type;
-                        return;
-                    }
-                    this.taskStepType = 1;
+                handler (data) {
+                    this.taskStepType = data.type;
                 },
                 immediate: true,
             },
@@ -165,9 +179,15 @@
         },
         mounted () {
             const $targetSideslider = document.querySelector('#taskStepOperationSideslider');
-            $targetSideslider.querySelector('.jb-sideslider-footer').style.paddingLeft = `${this.formMarginLeftWidth + 30}px`;
+            $targetSideslider
+                .querySelector('.jb-sideslider-footer')
+                .style
+                .paddingLeft = `${this.formMarginLeftWidth + 30}px`;
         },
         methods: {
+            /**
+             * @desc 显示变量指引
+             */
             handleShowVariableGuide () {
                 if (this.isShowVariableGuide) {
                     return;
@@ -184,6 +204,9 @@
                     this.isShowVariableGuide = true;
                 });
             },
+            /**
+             * @desc 关闭变量指引
+             */
             handleHideVariableGuide () {
                 const $targetSideslider = document.querySelector('#taskStepOperationSideslider');
                 const $wraper = $targetSideslider.querySelector('.bk-sideslider-wrapper');
@@ -205,12 +228,24 @@
         max-height: calc(100vh - 155px);
         margin-right: -30px;
 
-        .left {
+        .step-wrapper {
             position: relative;
             z-index: 0;
 
-            .container {
+            .step-wrapper-container {
                 padding-right: 30px;
+            }
+
+            .step-type-radio {
+                display: flex;
+
+                .bk-form-radio-button {
+                    flex: 1;
+
+                    .bk-radio-button-text {
+                        width: 100%;
+                    }
+                }
             }
 
             .form-item-content {
@@ -224,7 +259,7 @@
             }
         }
 
-        .right {
+        .guide-right {
             position: absolute;
             top: 0;
             right: 0;

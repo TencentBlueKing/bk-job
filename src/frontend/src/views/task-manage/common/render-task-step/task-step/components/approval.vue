@@ -26,46 +26,60 @@
 -->
 
 <template>
-    <div>
-        <jb-form ref="form" :model="formData" :rules="rules" fixed :label-width="110">
-            <item-factory
-                name="stepName"
-                field="name"
-                :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
-                :form-data="formData"
-                @on-change="handleNameChange" />
-            <jb-form-item :label="$t('template.确认人')" :required="true" property="approvalUser">
-                <jb-user-selector
-                    :placeholder="$t('template.输入确认人')"
-                    class="input"
-                    :user="formData.approvalUser.userList"
-                    :role="formData.approvalUser.roleList"
-                    :filter-list="['JOB_EXTRA_OBSERVER']"
-                    @on-change="handleApprovalUserChange" />
-            </jb-form-item>
-            <jb-form-item :label="$t('template.通知方式')">
-                <div class="notify-channel-wraper">
+    <jb-form
+        ref="form"
+        :model="formData"
+        :rules="rules"
+        fixed
+        :label-width="110">
+        <item-factory
+            name="stepName"
+            field="name"
+            :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
+            :form-data="formData"
+            @on-change="handleNameChange" />
+        <jb-form-item
+            :label="$t('template.确认人')"
+            :required="true"
+            property="approvalUser">
+            <jb-user-selector
+                :placeholder="$t('template.输入确认人')"
+                class="input"
+                :user="formData.approvalUser.userList"
+                :role="formData.approvalUser.roleList"
+                :filter-list="['JOB_EXTRA_OBSERVER']"
+                @on-change="handleApprovalUserChange" />
+        </jb-form-item>
+        <jb-form-item :label="$t('template.通知方式')">
+            <div class="notify-channel-wraper">
+                <bk-checkbox
+                    @click.native="handleToggleAllChannel"
+                    :checked="isChannelAll"
+                    :indeterminate="isChannelIndeterminate">
+                    {{ $t('template.全部') }}
+                </bk-checkbox>
+                <bk-checkbox-group
+                    v-model="formData.notifyChannel"
+                    class="all-channel">
                     <bk-checkbox
-                        @click.native="handleToggleAllChannel"
-                        :checked="isChannelAll"
-                        :indeterminate="isChannelIndeterminate">
-                        {{ $t('template.全部') }}
+                        v-for="channel in channleList"
+                        :key="channel.code"
+                        :value="channel.code">
+                        {{ channel.name }}
                     </bk-checkbox>
-                    <bk-checkbox-group v-model="formData.notifyChannel" class="all-channel">
-                        <bk-checkbox
-                            v-for="channel in channleList"
-                            :key="channel.code"
-                            :value="channel.code">
-                            {{ channel.name }}
-                        </bk-checkbox>
-                    </bk-checkbox-group>
-                </div>
-            </jb-form-item>
-            <jb-form-item :label="$t('template.确认描述')">
-                <bk-input class="input" type="textarea" v-model="formData.approvalMessage" :maxlength="1000" />
-            </jb-form-item>
-        </jb-form>
-    </div>
+                </bk-checkbox-group>
+            </div>
+        </jb-form-item>
+        <jb-form-item
+            :label="$t('template.确认描述')"
+            style="margin-bottom: 0;">
+            <bk-input
+                v-model="formData.approvalMessage"
+                class="input"
+                type="textarea"
+                :maxlength="1000" />
+        </jb-form-item>
+    </jb-form>
 </template>
 <script>
     import _ from 'lodash';

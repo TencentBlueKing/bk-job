@@ -38,6 +38,8 @@ import '@/css/app.css';
 import App from '@/App';
 import IframeApp from '@/iframe-app';
 import i18n from '@/i18n';
+import '@icon/style.css';
+import '@icon/iconcool.js';
 
 import '@bk-icon/style.css';
 import '@bk-icon/iconcool.js';
