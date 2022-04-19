@@ -133,13 +133,14 @@
                 if (this.value === '') {
                     this.selectBatch = this.data.runningBatchOrder;
                 }
+                this.showConfirmActionPanel();
             },
         },
         
         mounted () {
-            this.init();
+            this.initRender();
             const resizeHandler = _.throttle(() => {
-                this.init();
+                this.initRender();
             }, 20);
             window.addEventListener('resize', resizeHandler);
             this.$emit('hook:beforeDestroy', () => {
@@ -157,7 +158,7 @@
             /**
              * @desc 展示效果初始化
              */
-            init () {
+            initRender () {
                 const $listEL = this.$refs.box;
                 const $itemList = $listEL.querySelectorAll('.batch-item');
                 const allBtnWidth = this.$refs.allBtn.getBoundingClientRect().width;
@@ -564,6 +565,7 @@
                     width: 6px;
                     height: calc(100% + 4px);
                     background: linear-gradient(270deg, rgb(0 0 0 / 0%), rgb(0 0 0 / 8%));
+                    border-left: 2px solid #e4e6ed;
                     content: "";
                     opacity: 0%;
                     transform: scaleX(0);
