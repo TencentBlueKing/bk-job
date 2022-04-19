@@ -191,6 +191,7 @@
                         path,
                         server,
                     };
+                    // 有数据需要自动验证一次
                     setTimeout(() => {
                         this.$refs.form.validate();
                     });

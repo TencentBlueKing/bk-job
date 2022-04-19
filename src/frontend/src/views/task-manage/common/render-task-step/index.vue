@@ -911,12 +911,12 @@
 
                 .dropdown-menu {
                     position: absolute;
-                    right: 14px;
+                    right: 24px;
                     bottom: 16px;
                     display: none;
                     padding: 6px 0;
                     font-size: 12px;
-                    color: #c4c6cc;
+                    color: #63656e;
                     background: #fff;
                     border-radius: 2px;
                     transform: translate(100%, 100%);

@@ -144,9 +144,12 @@
                 handler (newData) {
                     // 本地新建的步骤id为-1，已提交后端保存的id大于0
                     this.formData = Object.assign({}, this.formData, newData);
-                    setTimeout(() => {
-                        this.$refs.form.validate();
-                    });
+                    // 有数据需要自动验证一次
+                    if (newData.id) {
+                        setTimeout(() => {
+                            this.$refs.form.validate();
+                        });
+                    }
                 },
                 immediate: true,
             },
