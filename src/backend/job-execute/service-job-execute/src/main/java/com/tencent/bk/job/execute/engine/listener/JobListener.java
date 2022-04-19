@@ -249,9 +249,6 @@ public class JobListener {
                         nextStepInstance.getId());
                     taskInstanceService.updateStepStatus(nextStepInstance.getId(),
                         RunStatusEnum.WAITING_USER.getValue());
-                    stepInstanceRollingTaskService.updateRollingTask(nextStepInstance.getId(),
-                        nextStepInstance.getExecuteCount(), nextStepInstance.getBatch(), RunStatusEnum.WAITING_USER,
-                        null, null, null);
                 } else {
                     // 执行下一步骤
                     startStep(nextStepInstance);

@@ -147,7 +147,8 @@ public class ConfirmStepEventHandler implements StepEventHandler {
                 stepOperator = taskInstance.getOperator();
                 stepInstance.setOperator(stepOperator);
             }
-            taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.WAITING_USER.getValue());
+            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.WAITING_USER,
+                System.currentTimeMillis(), null, null);
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.WAITING_USER.getValue());
             notifyService.asyncSendMQConfirmNotification(taskInstance, stepInstance);
         } else {
