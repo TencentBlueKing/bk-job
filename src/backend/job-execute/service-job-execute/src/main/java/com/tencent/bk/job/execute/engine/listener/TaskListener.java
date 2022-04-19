@@ -313,11 +313,12 @@ public class TaskListener {
 
     private void callback(TaskInstanceDTO taskInstance, long taskInstanceId, int taskStatus, long currentStepId,
                           int stepStatus) {
-        if (taskInstance.getCallbackUrl() != null) {
+        if (taskInstance.getCallbackUrl() != null || (taskInstance.getCallback() != null && StringUtils.isNoneBlank(taskInstance.getCallback().getUrl()))) {
             JobCallbackDTO dto = new JobCallbackDTO();
             dto.setId(taskInstanceId);
             dto.setStatus(taskStatus);
             dto.setCallbackUrl(taskInstance.getCallbackUrl());
+            dto.setCallback(taskInstance.getCallback());
             Collection<JobCallbackDTO.StepInstanceStatus> instances = Lists.newArrayList();
             JobCallbackDTO.StepInstanceStatus e = new JobCallbackDTO.StepInstanceStatus();
             e.setId(currentStepId);

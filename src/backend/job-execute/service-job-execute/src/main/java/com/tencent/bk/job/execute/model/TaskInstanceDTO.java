@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.esb.model.EsbCallbackDTO;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -129,6 +130,11 @@ public class TaskInstanceDTO {
      * 回调地址
      */
     private String callbackUrl;
+
+    /**
+     * 任务执行完成之后回调参数，比callbackUrl优先级高
+     */
+    private EsbCallbackDTO callback;
 
     /**
      * 步骤实例

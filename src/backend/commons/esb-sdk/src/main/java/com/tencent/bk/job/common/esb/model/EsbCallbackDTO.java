@@ -22,44 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.model;
+package com.tencent.bk.job.common.esb.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbCallbackDTO;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-import java.util.Collection;
-
-@Setter
-@Getter
-@ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class JobCallbackDTO {
-    @JsonProperty("job_instance_id")
-    private long id;
-
-    @JsonProperty("status")
-    private int status;
-
-    @JsonProperty("step_instances")
-    private Collection<StepInstanceStatus> stepInstances;
-
-    private String callbackUrl;
-
-    private EsbCallbackDTO callback;
-
-    @Setter
-    @Getter
-    @ToString
-    public static class StepInstanceStatus {
-        @JsonProperty("step_instance_id")
-        private long id;
-
-        @JsonProperty("status")
-        private int status;
-    }
-
+/**
+ * 作业平台回调第三方系统信息, 如果用户传入此参数，那么此参数优先
+ */
+@Data
+public class EsbCallbackDTO {
+    /**
+     * 回调url
+     */
+    private String url;
+    /**
+     * content_type头，仅支持application/json和application/x-www-form-urlencoded两种，默认是application/json
+     */
+    @JsonProperty("content_type")
+    private String contentType;
 }
