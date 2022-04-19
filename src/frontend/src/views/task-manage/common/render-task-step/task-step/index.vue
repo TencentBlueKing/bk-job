@@ -37,8 +37,9 @@
                             :label="$t('template.步骤类型')"
                             required>
                             <bk-radio-group
-                                v-model="taskStepType"
-                                class="step-type-radio form-item-content">
+                                :value="stepType"
+                                class="step-type-radio form-item-content"
+                                @change="handleTypeChange">
                                 <bk-radio-button
                                     :value="1"
                                     :disabled="isStepTypeReadOnly">
@@ -79,11 +80,34 @@
     </div>
 </template>
 <script>
+    import I18n from '@/i18n';
     import TaskStepModel from '@model/task/task-step';
     import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
+    import {
+        genDefaultName,
+    } from '@utils/assist';
     import StepDistroFile from './components/distro-file';
     import StepExecScript from './components/exec-script';
     import StepApproval from './components/approval';
+
+    const dataFieldMap = {
+        1: 'scriptStepInfo',
+        2: 'fileStepInfo',
+        3: 'approvalStepInfo',
+    };
+
+    const genDefaultStepName = (type) => {
+        if (type === TaskStepModel.TYPE_SCRIPT) {
+            return genDefaultName(I18n.t('template.步骤执行脚本'));
+        }
+        if (type === TaskStepModel.TYPE_FILE) {
+            return genDefaultName(I18n.t('template.步骤分发文件'));
+        }
+        if (type === TaskStepModel.TYPE_APPROVAL) {
+            return genDefaultName(I18n.t('template.步骤人工确认'));
+        }
+        return genDefaultName();
+    };
 
     export default {
         components: {
@@ -101,7 +125,8 @@
         },
         data () {
             return {
-                taskStepType: '',
+                stepType: '',
+                stepData: {},
                 isShowVariableGuide: false,
             };
         },
@@ -116,39 +141,17 @@
                     2: StepDistroFile,
                     3: StepApproval,
                 };
-                if (!Object.prototype.hasOwnProperty.call(taskStepMap, this.taskStepType)) {
+                if (!Object.prototype.hasOwnProperty.call(taskStepMap, this.stepType)) {
                     return 'div';
                 }
-                return taskStepMap[this.taskStepType];
+                return taskStepMap[this.stepType];
             },
             /**
-             * @desc 具体的步骤数据
-             * @returns { Object }
-             */
-            stepData () {
-                const stepDataMap = {
-                    1: 'scriptStepInfo',
-                    2: 'fileStepInfo',
-                    3: 'approvalStepInfo',
-                };
-                const currentKey = stepDataMap[this.taskStepType];
-                if (!Object.prototype.hasOwnProperty.call(this.data, currentKey)
-                    || !Object.keys(this.data[currentKey]).length) {
-                    return {};
-                }
-                const { name, id } = this.data;
-                return {
-                    name,
-                    id,
-                    ...this.data[currentKey],
-                };
-            },
-            /**
-             * @desc 步骤类型不可编辑
+             * @desc 有ID的步骤不可编辑，id大于0已经提交后端保存过的步骤，id小于0本地新建的步骤
              * @returns { Boolean }
              */
             isStepTypeReadOnly () {
-                return !!Object.keys(this.data).length;
+                return Boolean(this.data.id);
             },
             styleWrapperStyles () {
                 const styles = {
@@ -161,7 +164,7 @@
             },
             formMarginLeftWidth () {
                 return this.$i18n.locale === 'en-US'
-                    && this.taskStepType === TaskStepModel.TYPE_FILE
+                    && this.stepType === TaskStepModel.TYPE_FILE
                     ? 140
                     : 110;
             },
@@ -169,7 +172,24 @@
         watch: {
             data: {
                 handler (data) {
-                    this.taskStepType = data.type;
+                    this.stepType = data.type;
+                    
+                    const stepDataField = dataFieldMap[this.stepType];
+
+                    this.defaultStepName = genDefaultStepName(data.type);
+                    
+                    const {
+                        id,
+                        name = this.defaultStepName,
+                    } = this.data;
+                    this.stepData = {
+                        name,
+                        ...(this.data[stepDataField] || {}),
+                    };
+                    // 有id透传id
+                    if (id) {
+                        this.stepData.id = id;
+                    }
                 },
                 immediate: true,
             },
@@ -185,6 +205,22 @@
                 .paddingLeft = `${this.formMarginLeftWidth + 30}px`;
         },
         methods: {
+            /**
+             * @desc 新建步骤状态切换步骤类型
+             * @param { Number } stepType 步骤类型
+             * 类型改变时需要判断用户是否编辑过步骤名
+             * - 编辑过，切换类型步骤名保持不变
+             * - 没有编辑过，切换步骤类型时自动生成新的步骤名
+             */
+            handleTypeChange (stepType) {
+                if (this.defaultStepName === this.$refs.handler.formData.name) {
+                    this.defaultStepName = genDefaultStepName(stepType);
+                    this.stepData.name = this.defaultStepName;
+                } else {
+                    this.stepData.name = this.$refs.handler.formData.name;
+                }
+                this.stepType = stepType;
+            },
             /**
              * @desc 显示变量指引
              */
@@ -217,7 +253,7 @@
                 return this.$refs.handler.submit && this.$refs.handler.submit();
             },
             reset () {
-                this.taskStepType = '';
+                this.stepType = '';
                 return this.$refs.handler.reset && this.$refs.handler.reset();
             },
         },

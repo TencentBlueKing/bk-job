@@ -533,6 +533,7 @@
                 }
 
                 this.steps = Object.freeze(steps);
+                console.log('from print stpes = ', this.steps);
                 this.$emit('on-change', steps);
             },
             /**
@@ -1034,6 +1035,7 @@
                 display: flex;
                 cursor: pointer;
                 align-items: center;
+                justify-content: center;
 
                 &:hover {
                     color: #3a84ff;
@@ -1044,6 +1046,7 @@
                 }
 
                 &:nth-child(1) {
+                    flex: 1;
                     margin-right: auto;
                     margin-left: auto;
 

@@ -42,7 +42,7 @@
     import DetailItem from '@components/detail-layout/item';
     import StepDistroFile from './distro-file';
     import StepExecScript from './exec-script';
-    import StepArificial from './artificial';
+    import StepApproval from './approval';
 
     const STEP_TYPE_LIST = {
         1: I18n.t('template.执行脚本'),
@@ -54,7 +54,7 @@
         components: {
             StepDistroFile,
             StepExecScript,
-            StepArificial,
+            StepApproval,
             DetailLayout,
             DetailItem,
         },
@@ -76,7 +76,7 @@
                 const taskStepMap = {
                     1: StepExecScript,
                     2: StepDistroFile,
-                    3: StepArificial,
+                    3: StepApproval,
                 };
                 if (!Object.prototype.hasOwnProperty.call(taskStepMap, this.data.type)) {
                     return 'div';

@@ -82,17 +82,15 @@
     </jb-form>
 </template>
 <script>
-    import _ from 'lodash';
     import I18n from '@/i18n';
     import QueryGlobalSettingService from '@service/query-global-setting';
     import JbUserSelector from '@components/jb-user-selector';
     import ItemFactory from '@components/task-step/file/item-factory';
-    import { genDefaultName } from '@utils/assist';
 
     const getDefaultData = () => ({
-        id: 0,
+        id: -1,
         // 步骤名称
-        name: genDefaultName(I18n.t('template.步骤人工确认')),
+        name: '',
         // 删除标记
         delete: 0,
         // 审批消息
@@ -144,13 +142,8 @@
         watch: {
             data: {
                 handler (newData) {
-                    if (_.isEmpty(newData)) {
-                        return;
-                    }
-                    this.formData = {
-                        ...this.formData,
-                        ...newData,
-                    };
+                    // 本地新建的步骤id为-1，已提交后端保存的id大于0
+                    this.formData = Object.assign({}, this.formData, newData);
                     setTimeout(() => {
                         this.$refs.form.validate();
                     });
