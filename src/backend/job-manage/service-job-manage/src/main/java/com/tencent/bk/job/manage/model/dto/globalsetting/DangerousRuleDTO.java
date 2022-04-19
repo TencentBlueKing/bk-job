@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
 import com.tencent.bk.job.manage.common.consts.RuleMatchHandleActionEnum;
+import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -154,5 +155,26 @@ public class DangerousRuleDTO {
 
     public boolean isEnabled() {
         return this.status != null && this.status.equals(EnableStatusEnum.ENABLED.getValue());
+    }
+
+    /**
+     * DTO -> DO
+     *
+     * @return 高危规则DO
+     */
+    public DangerousRuleDO toDangerousRuleDO() {
+        DangerousRuleDO dangerousRuleDO = new DangerousRuleDO();
+        dangerousRuleDO.setId(this.id);
+        dangerousRuleDO.setExpression(this.expression);
+        dangerousRuleDO.setPriority(this.priority);
+        dangerousRuleDO.setScriptType(this.scriptType);
+        dangerousRuleDO.setCreator(this.creator);
+        dangerousRuleDO.setCreateTime(this.createTime);
+        dangerousRuleDO.setLastModifier(this.lastModifier);
+        dangerousRuleDO.setLastModifyTime(this.lastModifyTime);
+        dangerousRuleDO.setAction(this.action);
+        dangerousRuleDO.setStatus(this.status);
+        dangerousRuleDO.setDescription(this.description);
+        return dangerousRuleDO;
     }
 }
