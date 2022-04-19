@@ -85,12 +85,10 @@
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import I18n from '@/i18n';
     import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
     import {
-        genDefaultName,
         scriptErrorAlert,
     } from '@utils/assist';
     import ItemFactory from '@components/task-step/script/item-factory';
@@ -98,11 +96,11 @@
     const getDefaultData = () => ({
         isScriptContentLoading: false,
         // 脚本步骤名称
-        name: genDefaultName(I18n.t('template.步骤执行脚本')),
+        name: '',
         // 错误处理
         ignoreError: 0,
         // 脚本步骤的id
-        id: 0,
+        id: -1,
         // 删除标记
         delete: 0,
         // 需要升级
@@ -162,13 +160,8 @@
         watch: {
             data: {
                 handler (newData) {
-                    if (_.isEmpty(newData)) {
-                        return;
-                    }
-                    this.formData = {
-                        ...this.formData,
-                        ...newData,
-                    };
+                    // 本地新建的步骤id为-1，已提交后端保存的id大于0
+                    this.formData = Object.assign({}, this.formData, newData);
                     setTimeout(() => {
                         this.$refs.form.validate();
                     });
