@@ -623,3 +623,12 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .job-icon-batch-loading:before {
 	content: "\e213";
 }
+.job-icon-add-approval:before {
+	content: "\e214";
+}
+.job-icon-add-file:before {
+	content: "\e216";
+}
+.job-icon-add-script:before {
+	content: "\e215";
+}
