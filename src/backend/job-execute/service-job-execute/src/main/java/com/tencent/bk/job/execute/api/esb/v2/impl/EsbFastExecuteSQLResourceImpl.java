@@ -167,6 +167,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
         taskInstance.setAppCode(request.getAppCode());
         taskInstance.setCallbackUrl(request.getCallbackUrl());
+        taskInstance.setCallback(request.getCallback());
         return taskInstance;
     }
 

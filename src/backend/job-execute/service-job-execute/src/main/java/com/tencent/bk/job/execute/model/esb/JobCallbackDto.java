@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model.esb;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbCallbackDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -50,6 +51,9 @@ public class JobCallbackDto {
     private Collection<StepInstanceStatus> stepInstances;
 
     private String callbackUrl;
+
+    private EsbCallbackDTO callback;
+
 
     @Setter
     @Getter

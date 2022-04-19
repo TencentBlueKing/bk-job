@@ -173,6 +173,7 @@ public class EsbFastExecuteScriptResourceImpl
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
         taskInstance.setCurrentStepId(0L);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
+        taskInstance.setCallback(request.getCallback());
         taskInstance.setAppCode(request.getAppCode());
         return taskInstance;
     }

@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.esb.model.EsbCallbackDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
@@ -86,6 +87,13 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("callback_url")
     private String callbackUrl;
+
+    /**
+     * 任务执行完成之后回调参数，比callbackUrl优先级高
+     */
+    @JsonProperty("callback")
+    private EsbCallbackDTO callback;
+
 
     /**
      * 下载限速，单位MB

@@ -296,6 +296,7 @@ public class TaskListener {
             dto.setId(taskInstanceId);
             dto.setStatus(taskStatus);
             dto.setCallbackUrl(taskInstance.getCallbackUrl());
+            dto.setCallback(taskInstance.getCallback());
             Collection<JobCallbackDTO.StepInstanceStatus> instances = Lists.newArrayList();
             JobCallbackDTO.StepInstanceStatus e = new JobCallbackDTO.StepInstanceStatus();
             e.setId(currentStepId);

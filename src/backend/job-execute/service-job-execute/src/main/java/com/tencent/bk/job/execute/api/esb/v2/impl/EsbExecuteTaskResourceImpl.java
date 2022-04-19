@@ -109,6 +109,7 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
                 .executeVariableValues(executeVariableValues)
                 .startupMode(TaskStartupModeEnum.API)
                 .callbackUrl(request.getCallbackUrl())
+                .callback(request.getCallback())
                 .appCode(request.getAppCode())
                 .build());
         taskExecuteService.startTask(taskInstanceDTO.getId());

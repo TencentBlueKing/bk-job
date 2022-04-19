@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.esb.model.EsbCallbackDTO;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import lombok.Builder;
@@ -69,6 +70,10 @@ public class TaskExecuteParam {
      * 作业执行访问回调URL
      */
     private String callbackUrl;
+    /**
+     * 任务执行完成之后回调参数，比callbackUrl优先级高
+     */
+    private EsbCallbackDTO callback;
     /**
      * API调用方app_code
      */

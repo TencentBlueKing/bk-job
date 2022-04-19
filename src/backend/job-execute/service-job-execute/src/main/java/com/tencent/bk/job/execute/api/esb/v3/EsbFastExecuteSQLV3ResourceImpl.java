@@ -149,6 +149,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
         taskInstance.setAppCode(request.getAppCode());
         taskInstance.setCallbackUrl(request.getCallbackUrl());
+        taskInstance.setCallback(request.getCallback());
         return taskInstance;
     }
 
