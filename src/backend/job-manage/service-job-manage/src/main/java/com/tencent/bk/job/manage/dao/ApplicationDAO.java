@@ -89,6 +89,8 @@ public interface ApplicationDAO {
 
     Integer countApps();
 
+    Integer countBizSetAppsWithDeleted();
+
     ApplicationDTO getAppByScope(ResourceScope scope);
 
     /**

@@ -183,7 +183,6 @@ public class ErrorCode {
     public static final int APP_NOT_EXIST = 1243049;
     // 文件后缀不允许
     public static final int UPLOAD_FILE_SUFFIX_NOT_ALLOW = 1243050;
-
     // 作业管理 end
 
     // 作业执行 start
