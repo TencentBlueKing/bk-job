@@ -243,13 +243,14 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
             .build();
         createBizSetReq.setAttr(attr);
         BizSetScope scope = new BizSetScope();
-        if (appInfo.getAppType() == AppTypeEnum.APP_SET.getValue()) {
-            scope.setMatchAll(false);
-            scope.setFilter(buildAppSetFilter(appInfo));
-        } else if (appInfo.getAppType() == AppTypeEnum.ALL_APP.getValue()) {
-            // 匹配所有业务
+        if (appInfo.isAllBizSet()) {
+            // 全业务
             scope.setMatchAll(true);
             scope.setFilter(null);
+        } else if (appInfo.getAppType() == AppTypeEnum.APP_SET.getValue()) {
+            // 普通业务集
+            scope.setMatchAll(false);
+            scope.setFilter(buildAppSetFilter(appInfo));
         } else {
             log.warn("Not support app type:{}", appInfo.getAppType());
             return false;

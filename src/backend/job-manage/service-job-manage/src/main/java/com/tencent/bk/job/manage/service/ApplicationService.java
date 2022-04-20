@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -129,6 +130,14 @@ public interface ApplicationService {
      */
     @DeprecatedAppLogic
     List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
+
+    /**
+     * 根据资源范围类型获取业务列表
+     *
+     * @param scopeType 资源范围类型
+     * @return 业务列表
+     */
+    List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
 
     /**
      * 获取作业平台所有业务
