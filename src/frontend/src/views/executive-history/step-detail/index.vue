@@ -47,7 +47,9 @@
                     </div>
                 </div>
                 <!-- 步骤执行操作 -->
-                <div class="step-action-box">
+                <div
+                    v-if="!params.batch || params.batch === data.runningBatchOrder"
+                    class="step-action-box">
                     <step-action
                         v-for="action in data.actions"
                         :name="action"
@@ -329,7 +331,7 @@
                     }
                     this.data = Object.freeze(data);
 
-                    console.log(this.data);
+                    // console.log(this.data);
 
                     this.calcDetailContainerStyle();
 

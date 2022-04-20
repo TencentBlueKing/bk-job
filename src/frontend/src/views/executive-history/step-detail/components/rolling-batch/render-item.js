@@ -1,5 +1,7 @@
 const BATCH_STATUS_RUNNING = 2;
+const BATCH_STATUS_SUCCESS = 3;
 const BATCH_STATUS_FAIL = 4;
+const BATCH_STATUS_INGORE_ERROR = 6;
 const BATCH_STATUS_MANUAL_CONFIRM = 7;
     
 export default {
@@ -17,28 +19,38 @@ export default {
         } = context.props;
 
         const active = data.batch === selectBatch;
-        const disabled = data.batch > currentRunningBatch;
+        const will = data.batch > currentRunningBatch;
 
         const clasess = {
             'batch-item': true,
             active,
-            disabled,
+            will,
             confirm: data.status === BATCH_STATUS_MANUAL_CONFIRM,
             fail: data.status === BATCH_STATUS_FAIL,
         };
 
         const handleClickSelect = (event) => {
-            if (disabled || active) {
-                return;
-            }
-            console.log('from render item handleclic = ', event);
             context.listeners['on-change']
              && context.listeners['on-change'](data.batch, event);
         };
 
-        const renderConfirmStatus = () => {
-            if (data.batch === currentRunningBatch
-                && data.status === BATCH_STATUS_MANUAL_CONFIRM) {
+        const renderSuccessIcon = () => {
+            if (data.batch === selectBatch
+                 && data.status === BATCH_STATUS_SUCCESS) {
+                return (
+                    <div class="batch-item-status">
+                        <Icon type="check-line" style="color: #2dc89d" />
+                    </div>
+                );
+            }
+        };
+
+        const renderConfirmIcon = () => {
+            if (data.status !== BATCH_STATUS_MANUAL_CONFIRM) {
+                return null;
+            }
+            if (data.status === selectBatch
+                || data.batch === currentRunningBatch) {
                 return (
                     <div class="batch-item-status">
                         <Icon type="stop-2" style="color: #FF9C01" />
@@ -48,9 +60,15 @@ export default {
             return null;
         };
 
-        const renderFailedStatus = () => {
-            if (data.batch === currentRunningBatch
-                && data.status === BATCH_STATUS_FAIL) {
+        const renderFailedIcon = () => {
+            if (![
+                BATCH_STATUS_FAIL,
+                BATCH_STATUS_INGORE_ERROR,
+            ].includes(data.status)) {
+                return null;
+            }
+            if (data.batch === selectBatch
+                || data.batch === currentRunningBatch) {
                 return (
                     <div class="batch-item-status">
                         <Icon type="wrong" style="color: #FF5656" />
@@ -60,7 +78,7 @@ export default {
             return null;
         };
 
-        const renderExecutingStatus = () => {
+        const renderExecutingIcon = () => {
             if (data.batch === currentRunningBatch
                 && data.status === BATCH_STATUS_RUNNING) {
                 return (
@@ -78,9 +96,10 @@ export default {
                 key={data.batch}
                 onClick={handleClickSelect}>
                 第 { data.batch } 批
-                {renderConfirmStatus()}
-                {renderFailedStatus()}
-                {renderExecutingStatus()}
+                {renderSuccessIcon()}
+                {renderConfirmIcon()}
+                {renderFailedIcon()}
+                {renderExecutingIcon()}
             </div>
         );
     },

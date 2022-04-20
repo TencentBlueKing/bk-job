@@ -44,14 +44,14 @@
         </template>
         <div style="display: none;">
             <div
+                ref="rollingConfirmAction"
                 id="rollingConfirmAction"
                 style="padding: 3px 5px; color: #63656e; user-select: none;">
                 <span
                     style="color: #3a84ff; cursor: pointer;"
-                    @click="handleConfirmNextBatch">
+                    @click="handleConfirmExecute">
                     确认继续执行
                 </span>
-                <span>下一批滚动机器</span>
             </div>
         </div>
     </div>
@@ -129,16 +129,32 @@
         watch: {
             data () {
                 this.list = Object.freeze(this.data.rollingTasks);
-                // 用户没有选择批次时根据执行状态自动选中最新的批次
-                if (this.value === '') {
-                    this.selectBatch = this.data.runningBatchOrder;
-                }
                 this.showConfirmActionPanel();
+                
+                if (this.value === '') {
+                    // 首次加载默认选中正在执行的批次
+                    this.selectBatch = this.data.runningBatchOrder;
+                    this.isAutoSelectRunningOrder = true;
+                } else if (this.selectBatch !== this.data.runningBatchOrder
+                    && this.isAutoSelectRunningOrder) {
+                    // 选中的是正在执行的批次，当批次执行到下一批次时自动选择最新的执行批次
+                    this.selectBatch = this.data.runningBatchOrder;
+                    this.triggerChange();
+                }
             },
         },
-        
+        created () {
+            this.list = Object.freeze(this.data.rollingTasks);
+            this.selectBatch = this.data.runningBatchOrder;
+
+            // 是否自动选择最新执行批次
+            this.isAutoSelectRunningOrder = true;
+        },
         mounted () {
             this.initRender();
+            setTimeout(() => {
+                this.handleLocalChange(this.data.runningBatchOrder);
+            }, 300);
             const resizeHandler = _.throttle(() => {
                 this.initRender();
             }, 20);
@@ -146,10 +162,6 @@
             this.$emit('hook:beforeDestroy', () => {
                 window.removeEventListener('resize', resizeHandler);
             });
-        },
-        created () {
-            this.list = Object.freeze(this.data.rollingTasks);
-            this.selectBatch = this.data.runningBatchOrder;
         },
         beforeDestroy () {
             this.popperInstance && this.popperInstance.hide();
@@ -195,17 +207,20 @@
             showConfirmActionPanel () {
                 setTimeout(() => {
                     const $targetItemEl = this.$refs.box.querySelector('.batch-item.confirm');
-                    if (!$targetItemEl) {
-                        return;
-                    }
+                    
                     if (this.popperInstance
                         && this.popperInstance.reference !== $targetItemEl) {
                         this.popperInstance.hide();
+                        this.popperInstance.destroy();
+                        this.popperInstance = null;
+                    }
+                    if (!$targetItemEl) {
+                        return;
                     }
                     if (!this.popperInstance) {
                         this.popperInstance = Tippy($targetItemEl, {
                             arrow: true,
-                            placement: 'bottom-start',
+                            placement: 'bottom',
                             trigger: 'manual',
                             theme: 'light',
                             interactive: true,
@@ -216,16 +231,27 @@
                             ignoreAttributes: true,
                             boundary: 'window',
                             distance: 20,
-                            content: this.$refs.box.querySelector('#rollingConfirmAction'),
+                            content: this.$refs.rollingConfirmAction,
                             zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
                         });
-                        this.popperInstance.show();
                     }
+                    this.popperInstance.show();
                 });
             },
             triggerChange () {
                 this.$emit('change', this.selectBatch);
                 this.$emit('input', this.selectBatch);
+                this.isAutoSelectRunningOrder = this.data.runningBatchOrder === this.selectBatch;
+            },
+            /**
+             * @desc 人工确认继续滚动下一批
+             *
+             * 参考API文档继续滚动code为13
+             */
+            handleConfirmExecute () {
+                this.$emit('on-confirm', 13);
+                this.selectBatch = this.selectBatch + 1;
+                this.triggerChange();
             },
             /**
              * @desc 查看全部批次
@@ -242,12 +268,6 @@
              * 批次按钮显示不完整需要左移、右移显示完整
              */
             handleSelectBatch (selectBatch, event) {
-                if (
-                    selectBatch === this.selectBatch
-                    || selectBatch > this.currentRunningBatch) {
-                    return;
-                }
-                console.log('from handleSelectBatch = ', event);
                 this.selectBatch = selectBatch;
                 this.triggerChange();
                 if (!this.hasPagination) {
@@ -328,14 +348,7 @@
                 );
                 this.startIndex = selectBatch - indexOffset;
             },
-            /**
-             * @desc 人工确认继续滚动下一批
-             *
-             * 参考API文档继续滚动code为13
-             */
-            handleConfirmNextBatch () {
-                this.$emit('on-confirm', 13);
-            },
+            
             /**
              * @desc 上一页
              */
@@ -506,13 +519,8 @@
                     }
                 }
 
-                &.disabled {
+                &.will {
                     color: #b1b6c2;
-                    cursor: not-allowed;
-
-                    &:hover {
-                        background: transparent;
-                    }
                 }
 
                 .batch-item-status {

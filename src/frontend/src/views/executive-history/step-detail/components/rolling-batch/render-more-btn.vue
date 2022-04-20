@@ -22,7 +22,7 @@
                         v-model="batchLocation"
                         type="number"
                         :min="1"
-                        :max="stepData.runningBatchOrder"
+                        :max="stepData.rollingTasks.length"
                         placeholder="请输入批次"
                         @keyup="handleEnterSubmit">
                         <template slot="prepend">
@@ -75,7 +75,7 @@
              * @desc 定位到指定批次
              */
             handleGoBatch () {
-                const batchLocation = Math.min(Math.max(this.batchLocation, 1), this.stepData.runningBatchOrder);
+                const batchLocation = Math.min(Math.max(this.batchLocation, 1), this.stepData.rollingTasks.length);
                 this.selectBatch = batchLocation;
                 this.$emit('on-change', batchLocation);
             },
