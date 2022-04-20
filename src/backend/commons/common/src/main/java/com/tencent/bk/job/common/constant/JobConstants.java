@@ -35,7 +35,7 @@ public class JobConstants {
     /**
      * CMDB内置的全业务ID
      */
-    public static final long DEFAULT_ALL_BUSINESS_ID = 9991001L;
+    public static final long DEFAULT_ALL_BIZ_SET_ID = 9991001L;
     /**
      * 执行结果分组标签最大长度
      */

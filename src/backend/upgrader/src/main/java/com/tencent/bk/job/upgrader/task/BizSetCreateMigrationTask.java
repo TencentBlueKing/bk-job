@@ -268,7 +268,7 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
                     return false;
                 }
             } else {
-                if (attr.getId() == JobConstants.DEFAULT_ALL_BUSINESS_ID) {
+                if (attr.getId() == JobConstants.DEFAULT_ALL_BIZ_SET_ID) {
                     // CMDB内置的全业务，不更新
                     log.info("bizSet {} is all-business bizSet created by cmdb, ignore", attr.getId());
                 } else {
