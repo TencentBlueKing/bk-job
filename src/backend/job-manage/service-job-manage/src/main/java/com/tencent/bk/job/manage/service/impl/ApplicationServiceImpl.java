@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -174,6 +175,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
         return applicationDAO.listAppsByType(appType);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType) {
+        return applicationDAO.listAppsByScopeType(scopeType);
     }
 
     @Override

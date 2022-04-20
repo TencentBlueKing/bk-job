@@ -22,46 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.common.cc.model.bizset;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * Job 全局通用常量
+ * CMDB接口请求实体类，用于批量更新业务集
  */
-public class JobConstants {
+@Setter
+@Getter
+@ToString
+public class BatchUpdateBizSetData {
+
     /**
-     * 公共资源对应的业务ID(比如公共脚本)
+     * 业务集字段集合
      */
-    public static final long PUBLIC_APP_ID = 0L;
+    @JsonProperty("bk_biz_set_attr")
+    private BizSetAttr attr;
+
     /**
-     * CMDB内置的全业务ID
+     * 业务集的业务选择范围
      */
-    public static final long DEFAULT_ALL_BIZ_SET_ID = 9991001L;
-    /**
-     * 执行结果分组标签最大长度
-     */
-    public static final int RESULT_GROUP_TAG_MAX_LENGTH = 256;
-    /**
-     * 文件存储后端：本地
-     */
-    public static final String FILE_STORAGE_BACKEND_LOCAL = "local";
-    /**
-     * 文件存储后端：制品库
-     */
-    public static final String FILE_STORAGE_BACKEND_ARTIFACTORY = "artifactory";
-    /**
-     * PROFILE-Kubernetes
-     */
-    public static final String PROFILE_KUBERNETES = "kubernetes";
-    /**
-     * 作业默认超时时间，单位秒
-     */
-    public static final int DEFAULT_JOB_TIMEOUT_SECONDS = 7200;
-    /**
-     * 作业最小超时时间，单位秒
-     */
-    public static final int MIN_JOB_TIMEOUT_SECONDS = 1;
-    /**
-     * 作业最大超时时间，单位秒
-     */
-    public static final int MAX_JOB_TIMEOUT_SECONDS = 86400;
+    @JsonProperty("bk_scope")
+    private BizSetScope scope;
+
 }
