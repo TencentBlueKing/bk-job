@@ -754,9 +754,16 @@ public class TaskResultServiceImpl implements TaskResultService {
             if (stepInstanceRollingTask == null) {
                 stepInstanceRollingTask = new StepInstanceRollingTaskDTO();
                 stepInstanceRollingTask.setStepInstanceId(stepExecutionDetail.getStepInstanceId());
-                stepInstanceRollingTask.setExecuteCount(0);
+                stepInstanceRollingTask.setExecuteCount(stepInstance.getExecuteCount());
                 stepInstanceRollingTask.setBatch(batch);
                 stepInstanceRollingTask.setStatus(RunStatusEnum.BLANK.getValue());
+                if (RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus())
+                    && stepInstance.getBatch() + 1 == batch) {
+                    // 如果当前步骤状态为"等待用户"，那么需要设置下一批次的滚动任务状态为WAITING_USER
+                    stepInstanceRollingTask.setStatus(RunStatusEnum.WAITING_USER.getValue());
+                } else {
+                    stepInstanceRollingTask.setStatus(RunStatusEnum.BLANK.getValue());
+                }
             }
             stepInstanceRollingTasks.add(stepInstanceRollingTask);
         }

@@ -48,9 +48,9 @@ public interface RollingConfigService {
      * 保存快速执行作业滚动配置
      *
      * @param fastTask 快速执行作业
-     * @return 滚动配置ID
+     * @return 保存之后的滚动配置
      */
-    long saveRollingConfigForFastJob(FastTaskDTO fastTask);
+    TaskInstanceRollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
 
     TaskInstanceRollingConfigDTO getRollingConfig(long rollingConfigId);
 }

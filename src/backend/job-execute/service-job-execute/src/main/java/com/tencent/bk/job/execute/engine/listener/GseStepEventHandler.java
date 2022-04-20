@@ -171,12 +171,6 @@ public class GseStepEventHandler implements StepEventHandler {
             if (isRollingStep) {
                 rollingConfig = rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
                 log.info("Rolling config: {}", rollingConfig);
-                // 全量滚动步骤需要更新executeCount
-                if (rollingConfig.isAllRollingStep(stepInstanceId)) {
-                    int executeCount = stepInstance.getExecuteCount() + 1;
-                    stepInstance.setExecuteCount(executeCount);
-                    stepInstanceService.updateStepCurrentExecuteCount(stepInstanceId, executeCount);
-                }
                 // 更新滚动进度
                 stepInstanceService.updateStepCurrentBatch(stepInstanceId, stepInstance.getBatch());
                 // 初始化步骤滚动任务

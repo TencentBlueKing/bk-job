@@ -76,6 +76,7 @@ import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInfo;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
 import com.tencent.bk.job.execute.service.HostService;
@@ -273,7 +274,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 保存滚动配置
             if (fastTask.isRollingEnabled()) {
                 watch.start("saveRollingConfig");
-                long rollingConfigId = rollingConfigService.saveRollingConfigForFastJob(fastTask);
+                TaskInstanceRollingConfigDTO rollingConfig = rollingConfigService.saveRollingConfigForFastJob(fastTask);
+                long rollingConfigId = rollingConfig.getId();
                 stepInstanceService.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
                 watch.stop();
             }

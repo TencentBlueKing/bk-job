@@ -80,7 +80,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     }
 
     @Override
-    public long saveRollingConfigForFastJob(FastTaskDTO fastTask) {
+    public TaskInstanceRollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask) {
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
 
         TaskInstanceRollingConfigDTO taskInstanceRollingConfig = new TaskInstanceRollingConfigDTO();
@@ -110,7 +110,9 @@ public class RollingConfigServiceImpl implements RollingConfigService {
 
         rollingConfigDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
         rollingConfigDO.setBatchRollingStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
-        return taskInstanceRollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
+        Long rollingConfigId= taskInstanceRollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
+        taskInstanceRollingConfig.setId(rollingConfigId);
+        return taskInstanceRollingConfig;
     }
 
     @Override

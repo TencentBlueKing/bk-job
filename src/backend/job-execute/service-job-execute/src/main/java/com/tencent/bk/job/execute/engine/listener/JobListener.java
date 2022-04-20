@@ -41,7 +41,6 @@ import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDO;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
-import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
@@ -68,7 +67,6 @@ public class JobListener {
     private final StepInstanceService stepInstanceService;
     private final RollingConfigService rollingConfigService;
     private final NotifyService notifyService;
-    private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
 
     @Autowired
     public JobListener(TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
@@ -76,15 +74,13 @@ public class JobListener {
                        TaskInstanceService taskInstanceService,
                        StepInstanceService stepInstanceService,
                        RollingConfigService rollingConfigService,
-                       NotifyService notifyService,
-                       StepInstanceRollingTaskService stepInstanceRollingTaskService) {
+                       NotifyService notifyService) {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.rollingConfigService = rollingConfigService;
         this.notifyService = notifyService;
-        this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
     }
 
 
@@ -247,9 +243,6 @@ public class JobListener {
                     && rollingConfig.isFirstRollingStep(nextStepInstance.getId())) {
                     log.info("Manual mode for rolling step[{}], pause and wait for user confirmation",
                         nextStepInstance.getId());
-                    stepInstanceRollingTaskService.updateRollingTask(nextStepInstance.getId(),
-                        nextStepInstance.getExecuteCount(), nextStepInstance.getBatch(), RunStatusEnum.WAITING_USER,
-                        null, null, null);
                     taskInstanceService.updateStepStatus(nextStepInstance.getId(),
                         RunStatusEnum.WAITING_USER.getValue());
                 } else {
