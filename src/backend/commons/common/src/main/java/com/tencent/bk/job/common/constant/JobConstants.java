@@ -33,6 +33,10 @@ public class JobConstants {
      */
     public static final long PUBLIC_APP_ID = 0L;
     /**
+     * CMDB内置的全业务ID
+     */
+    public static final long DEFAULT_ALL_BUSINESS_ID = 9991001L;
+    /**
      * 执行结果分组标签最大长度
      */
     public static final int RESULT_GROUP_TAG_MAX_LENGTH = 256;

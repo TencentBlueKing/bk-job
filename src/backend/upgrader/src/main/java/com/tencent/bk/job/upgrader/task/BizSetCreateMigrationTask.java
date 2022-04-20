@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.cc.model.bizset.CreateBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -267,8 +268,13 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
                     return false;
                 }
             } else {
-                // 更新业务集
-                log.info("bizSet {} already exists, update:{}", attr.getId(), updateBizSet(attr, scope));
+                if (attr.getId() == JobConstants.DEFAULT_ALL_BUSINESS_ID) {
+                    // CMDB内置的全业务，不更新
+                    log.info("bizSet {} is all-business bizSet created by cmdb, ignore", attr.getId());
+                } else {
+                    // 更新业务集
+                    log.info("bizSet {} already exists, update:{}", attr.getId(), updateBizSet(attr, scope));
+                }
             }
             return true;
         } catch (Exception e) {
