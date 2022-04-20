@@ -247,6 +247,9 @@ public class JobListener {
                     && rollingConfig.isFirstRollingStep(nextStepInstance.getId())) {
                     log.info("Manual mode for rolling step[{}], pause and wait for user confirmation",
                         nextStepInstance.getId());
+                    stepInstanceRollingTaskService.updateRollingTask(nextStepInstance.getId(),
+                        nextStepInstance.getExecuteCount(), nextStepInstance.getBatch(), RunStatusEnum.WAITING_USER,
+                        null, null, null);
                     taskInstanceService.updateStepStatus(nextStepInstance.getId(),
                         RunStatusEnum.WAITING_USER.getValue());
                 } else {

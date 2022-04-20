@@ -188,8 +188,10 @@ public class GseStepEventHandler implements StepEventHandler {
 
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.RUNNING,
                 stepInstance.getStartTime() == null ? DateUtils.currentTimeMillis() : null, null, null);
-            stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                stepInstance.getBatch(), RunStatusEnum.RUNNING, System.currentTimeMillis(), null, null);
+            if (isRollingStep) {
+                stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                    stepInstance.getBatch(), RunStatusEnum.RUNNING, System.currentTimeMillis(), null, null);
+            }
 
             startGseTask(stepInstance, gseTaskId);
         } else {
