@@ -25,14 +25,17 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
+import com.tencent.bk.job.manage.model.inner.request.ServiceCheckNotAllowedInWhiteIpReq;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import com.tencent.bk.job.manage.service.WhiteIPService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -48,6 +51,11 @@ public class ServiceWhiteIPResourceImpl implements ServiceWhiteIPResource {
     @Override
     public InternalResponse<List<String>> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId) {
         return InternalResponse.buildSuccessResp(whiteIPService.getWhiteIPActionScopes(appId, ip, cloudAreaId));
+    }
+
+    @Override
+    public InternalResponse<Map<IpDTO, List<String>>> getWhiteIPActionScopes(ServiceCheckNotAllowedInWhiteIpReq scriptCreateUpdateReq) {
+        return InternalResponse.buildSuccessResp(whiteIPService.getWhiteIPActionScopes(scriptCreateUpdateReq));
     }
 
     @Override

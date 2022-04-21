@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -45,6 +46,7 @@ import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
@@ -55,6 +57,7 @@ import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
+import com.tencent.bk.job.manage.model.inner.request.ServiceCheckNotAllowedInWhiteIpReq;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
@@ -404,6 +407,16 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         List<Long> fullAppIds = applicationService.getBizSetAppIdsForBiz(appId);
         // 2.再找对应的白名单
         return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, fullAppIds, ip, cloudAreaId);
+    }
+
+    @Override
+    public Map<IpDTO, List<String>> getWhiteIPActionScopes(ServiceCheckNotAllowedInWhiteIpReq scriptCreateUpdateReq) {
+        log.info("Input=({})", JsonUtils.toJson(scriptCreateUpdateReq));
+        // 1.找出包含当前业务的业务集与全业务
+        List<Long> fullAppIds = applicationService.getBizSetAppIdsForBiz(scriptCreateUpdateReq.getAppId());
+        // 2.再找对应的白名单
+        List<IpDTO> ipDTOList = scriptCreateUpdateReq.getHosts();
+        return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, fullAppIds, ipDTOList);
     }
 
     @Override

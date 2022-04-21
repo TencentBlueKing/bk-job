@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.whiteip;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
@@ -32,6 +33,7 @@ import org.jooq.DSLContext;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface WhiteIPRecordDAO {
     Long insertWhiteIPRecord(DSLContext dslContext, WhiteIPRecordDTO whiteIPRecordDTO);
@@ -59,6 +61,8 @@ public interface WhiteIPRecordDAO {
     Long countWhiteIPIP();
 
     int updateWhiteIPRecordById(DSLContext dslContext, WhiteIPRecordDTO whiteIPRecordDTO);
+
+    Map<IpDTO, List<String>> getWhiteIPActionScopes(DSLContext dslContext, List<Long> appIds, List<IpDTO> ipDTOList);
 
     List<String> getWhiteIPActionScopes(DSLContext dslContext, Long appId, String ip, Long cloudAreaId);
 

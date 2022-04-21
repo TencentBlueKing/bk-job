@@ -52,7 +52,7 @@ public interface HostService {
      * @param host  主机
      * @return 允许的操作
      */
-    List<String> getHostAllowedAction(long appId, IpDTO host);
+    Map<IpDTO, List<String>> getHostAllowedAction(long appId, Collection<IpDTO> hosts);
 
     /**
      * 判断IP白名单是否配置该主机的对应操作

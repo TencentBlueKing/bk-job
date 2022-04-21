@@ -700,12 +700,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private List<IpDTO> checkHostsNotAllowedInWhiteIpConfig(long appId, List<StepInstanceDTO> stepInstanceList,
                                                             Collection<IpDTO> unavailableHosts) {
         Map<IpDTO, List<String>> hostAllowActionsMap = new HashMap<>();
-        for (IpDTO host : unavailableHosts) {
-            List<String> allowActions = hostService.getHostAllowedAction(appId, host);
-            if (allowActions != null && !allowActions.isEmpty()) {
-                hostAllowActionsMap.put(host, allowActions);
-            }
+        Map<IpDTO, List<String>> hostAllowedActionMap = hostService.getHostAllowedAction(appId, unavailableHosts);
+        if (!hostAllowedActionMap.isEmpty()) {
+            hostAllowActionsMap.putAll(hostAllowedActionMap);
         }
+
         if (hostAllowActionsMap.isEmpty()) {
             log.warn("Hosts are not in the white-ip configuration, hosts:{}", unavailableHosts);
             return new ArrayList<>(unavailableHosts);

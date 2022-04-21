@@ -47,6 +47,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceCheckNotAllowedInWhiteIpReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,20 +117,20 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<String> getHostAllowedAction(long appId, IpDTO host) {
+    public Map<IpDTO, List<String>> getHostAllowedAction(long appId, Collection<IpDTO> hosts) {
         try {
-            InternalResponse<List<String>> resp = whiteIpResourceClient.getWhiteIPActionScopes(appId, host.getIp(),
-                host.getCloudAreaId());
+            ServiceCheckNotAllowedInWhiteIpReq scriptCreateUpdateReq = new ServiceCheckNotAllowedInWhiteIpReq(appId, new ArrayList<>(hosts));
+            InternalResponse<Map<IpDTO, List<String>>> resp = whiteIpResourceClient.getWhiteIPActionScopes(scriptCreateUpdateReq);
             if (!resp.isSuccess()) {
-                log.warn("Get white ip action scopes return fail resp, appId:{}, host:{}", appId,
-                    host.convertToStrIp());
-                return Collections.emptyList();
+                log.warn("Get white ip action scopes return fail resp, appId:{}, hosts:{}", appId,
+                    JsonUtils.toJson(hosts));
+                return Collections.EMPTY_MAP;
             }
-            log.info("Get white ip action scopes, appId:{}, host:{}, resp:{}", appId, host.convertToStrIp(), resp);
+            log.info("Get white ip action scopes, appId:{}, hosts:{}, resp:{}", appId, JsonUtils.toJson(hosts), resp);
             return resp.getData();
         } catch (Exception e) {
             log.warn("GetHostAllowedAction fail!", e);
-            return Collections.emptyList();
+            return Collections.EMPTY_MAP;
         }
     }
 

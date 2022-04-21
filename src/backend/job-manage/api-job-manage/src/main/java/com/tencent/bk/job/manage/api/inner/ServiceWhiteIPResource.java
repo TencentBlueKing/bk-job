@@ -26,7 +26,9 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
+import com.tencent.bk.job.manage.model.inner.request.ServiceCheckNotAllowedInWhiteIpReq;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -40,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @Api(tags = {"job-manage:service:WhiteIP"})
 @RequestMapping("/service/whiteip")
@@ -59,6 +62,14 @@ public interface ServiceWhiteIPResource {
         @ApiParam("云区域Id")
         @RequestParam(value = "cloudAreaId", required = false)
             Long cloudAreaId
+    );
+
+    @ApiOperation(value = "获取指定IP列表在白名单中的生效范围（脚本执行：SCRIPT_EXECUTE/文件分发：FILE_DISTRIBUTION）", produces = "application/json")
+    @PostMapping("/whiteIPActionScopes")
+    InternalResponse<Map<IpDTO, List<String>>> getWhiteIPActionScopes(
+        @ApiParam(value = "检查主机是否在白名单下请求体", name = "scriptCreateUpdateReq", required = true)
+        @RequestBody
+            ServiceCheckNotAllowedInWhiteIpReq scriptCreateUpdateReq
     );
 
     @ApiOperation(value = "获取白名单内IP详情信息", produces = "application/json")
