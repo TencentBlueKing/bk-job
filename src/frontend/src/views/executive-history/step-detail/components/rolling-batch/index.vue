@@ -5,6 +5,9 @@
         <div
             v-if="hasPagination"
             class="pre-btn"
+            :class="{
+                disabled: isPrePageBtnDisabled,
+            }"
             @click="handlePreScroll">
             <Icon type="arrow-full-down" />
         </div>
@@ -35,6 +38,9 @@
         <template v-if="hasPagination">
             <div
                 class="next-btn"
+                :class="{
+                    disabled: isNextPageBtnDisabled,
+                }"
                 @click="handleNextBatch">
                 <Icon type="arrow-full-down" />
             </div>
@@ -78,6 +84,8 @@
             return {
                 list: [],
                 selectBatch: '',
+                isPrePageBtnDisabled: false,
+                isNextPageBtnDisabled: false,
                 contentWidth: '100%',
                 startIndex: 0,
                 scrollNum: 0,
@@ -151,6 +159,7 @@
             this.initRender();
             setTimeout(() => {
                 this.handleLocalChange(this.data.runningBatchOrder);
+                this.isAutoSelectRunningBatch = true;
             }, 300);
             const resizeHandler = _.throttle(() => {
                 this.initRender();
@@ -298,6 +307,7 @@
              */
             handleLocalChange (selectBatch) {
                 this.selectBatch = selectBatch;
+                this.isAutoSelectRunningBatch = false;
                 const $listEl = this.$refs.list;
                 const {
                     width: containerWidth,
@@ -336,11 +346,14 @@
                 // 定位批次居中
                 const achorPosition = containerWidth / 2 - locationItemWidth / 2;
                 const indexOffset = Math.floor((containerWidth / 2) / locationItemWidth);
+                const maxOffset = containerWidth - this.itemTotalWidth;
                 
                 this.scrollPosition = Math.max(
                     Math.min(achorPosition - locationItemLeftPosition, 0),
-                    containerWidth - this.itemTotalWidth,
+                    maxOffset,
                 );
+                this.isPrePageBtnDisabled = this.scrollPosition === 0;
+                this.isNextPageBtnDisabled = this.scrollPosition === maxOffset;
                 this.startIndex = selectBatch - indexOffset;
             },
             
@@ -355,6 +368,7 @@
                 if (startIndex <= 0) {
                     this.startIndex = 0;
                     this.scrollPosition = 0;
+                    this.isPrePageBtnDisabled = true;
                     return;
                 }
                 const $itemList = this.$refs.list.querySelectorAll('.batch-item');
@@ -367,6 +381,7 @@
                 });
                 this.scrollPosition = -scrollPosition;
                 this.startIndex = startIndex;
+                this.isPrePageBtnDisabled = false;
             },
             /**
              * @desc 下一页
@@ -383,6 +398,7 @@
                     const maxRenderWidth = $listEl.getBoundingClientRect().width;
                     this.startIndex = $itemListEl.length - this.scrollNum;
                     this.scrollPosition = maxRenderWidth - this.itemTotalWidth;
+                    this.isNextPageBtnDisabled = true;
                     return;
                 }
                 let { scrollPosition } = this;
@@ -393,6 +409,7 @@
                 });
                 this.startIndex = nextStartIndex;
                 this.scrollPosition = scrollPosition;
+                this.isNextPageBtnDisabled = false;
             },
         },
     };
@@ -410,7 +427,7 @@
             flex: 0 0 auto;
             width: 28px;
             height: 28px;
-            color: #c4c6cc;
+            color: #979ba5;
             cursor: pointer;
             background: #e8e9f0;
             border-radius: 50%;
@@ -418,7 +435,13 @@
             align-items: center;
 
             &:hover {
-                background: #f0f1f5;
+                background: #dcdee5;
+            }
+
+            &.disabled {
+                color: #c4c6cc;
+                cursor: not-allowed;
+                background: #e8e9f0 !important;
             }
         }
 

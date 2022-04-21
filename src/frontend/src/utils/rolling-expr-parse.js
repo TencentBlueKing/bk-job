@@ -26,8 +26,8 @@
 const fixed = /^([1-9]\d*)$/;
 const fixedIn = /^\+([1-9]\d*)$/;
 const fixedMu = /^\*([1-9]\d*)$/;
-const per = /^([1-9]\d*)%$/;
-const all = /^\*$/;
+const per = /^([1-9]\d?)%$/;
+const all = /^100%$/;
 
 export default function (exprStr) {
     const batchStack = exprStr.trim().split(' ');
@@ -117,7 +117,7 @@ export default function (exprStr) {
   
             if (atoms.match(all)) {
                 if (batchNum === 1) {
-                    throw new Error(`${atoms} 不能出现在开头`);
+                    return ['全部执行'];
                 }
                 if (batchNum < batchTotal) {
                     throw new Error(`${atoms} 必须出现在最后一位`);

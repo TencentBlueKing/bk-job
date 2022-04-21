@@ -35,9 +35,17 @@
                 </div>
                 <div style="margin-top: 6px;font-size: 12px; line-height: 16px; color: #979ba5;">
                     共
-                    <span style="font-weight: bold;">{{ rollingTaskNums }}</span>
+                    <span
+                        style="font-weight: bold; cursor: pointer;"
+                        @click="handleGoLast">
+                        {{ rollingTaskNums }}
+                    </span>
                     批，已执行
-                    <span style="font-weight: bold;">{{ stepData.runningBatchOrder }}</span>
+                    <span
+                        style="font-weight: bold; cursor: pointer;"
+                        @click="handleGoRunning">
+                        {{ stepData.runningBatchOrder }}
+                    </span>
                     批
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
@@ -72,17 +80,28 @@
         },
         computed: {
             rollingTaskNums () {
-                return this.stepData.rollingTask.length;
+                return this.stepData.rollingTasks ? this.stepData.rollingTasks.length : 0;
             },
         },
         methods: {
+            triggerChange () {
+                this.$emit('on-change', this.batchLocation);
+            },
             /**
              * @desc 定位到指定批次
              */
             handleGoBatch () {
                 const batchLocation = Math.min(Math.max(this.batchLocation, 1), this.rollingTaskNums);
-                this.selectBatch = batchLocation;
-                this.$emit('on-change', batchLocation);
+                this.batchLocation = batchLocation;
+                this.triggerChange();
+            },
+            handleGoLast () {
+                this.batchLocation = this.rollingTaskNums;
+                this.triggerChange();
+            },
+            handleGoRunning () {
+                this.batchLocation = this.stepData.runningBatchOrder;
+                this.triggerChange();
             },
             /**
              * @desc 跳转指定批次
