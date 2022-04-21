@@ -116,12 +116,13 @@ export default function (exprStr) {
             }
   
             if (atoms.match(all)) {
-                if (batchNum === 1) {
-                    return ['全部执行'];
-                }
                 if (batchNum < batchTotal) {
                     throw new Error(`${atoms} 必须出现在最后一位`);
                 }
+                if (batchNum === 1) {
+                    return ['全部执行'];
+                }
+                
                 return [`第${batchNum}批执行所有剩余主机`];
             }
   
