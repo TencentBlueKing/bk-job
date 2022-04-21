@@ -22,25 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.whiteip;
+package com.tencent.bk.job.manage.model.dto.whiteip;
 
-import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
-import org.jooq.DSLContext;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.List;
-
-public interface WhiteIPActionScopeDAO {
-    Long insertWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO);
-
-    int deleteWhiteIPActionScopeById(DSLContext dslContext, Long id);
-
-    int deleteWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId);
-
-    WhiteIPActionScopeDTO getWhiteIPActionScopeById(DSLContext dslContext, Long id);
-
-    List<WhiteIPActionScopeDTO> getWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId);
-
-    int updateWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO);
-
-    List<WhiteIPActionScopeDTO> listWhiteIPActionScopeByRecordIds(DSLContext dslContext, List<Long> recordIdList);
+/**
+ * IP白名单和业务关联DTO
+ */
+@AllArgsConstructor
+@Getter
+@Setter
+@ToString
+public class WhiteIPAppRelDTO {
+    /**
+     * 白名单记录id
+     */
+    private Long recordId;
+    /**
+     * 业务id
+     */
+    private Long appId;
+    /**
+     * 创建人
+     */
+    private String creator;
+    /**
+     * 创建时间
+     */
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long createTime;
 }

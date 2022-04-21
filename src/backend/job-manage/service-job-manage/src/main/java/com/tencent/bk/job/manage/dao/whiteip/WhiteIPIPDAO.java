@@ -41,4 +41,6 @@ public interface WhiteIPIPDAO {
     List<WhiteIPIPDTO> getWhiteIPIPByRecordId(DSLContext dslContext, Long recordId);
 
     int updateWhiteIPIPById(DSLContext dslContext, WhiteIPIPDTO whiteIPIPDTO);
+
+    List<WhiteIPIPDTO> listWhiteIPIPByRecordIds(DSLContext dslContext, List<Long> recordIdList);
 }

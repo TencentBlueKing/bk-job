@@ -33,7 +33,6 @@ import org.jooq.generated.tables.WhiteIpIp;
 import org.jooq.types.ULong;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -104,9 +103,6 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
         val records = dslContext.selectFrom(T_WHITE_IP_IP).where(
             T_WHITE_IP_IP.RECORD_ID.eq(recordId)
         ).fetch();
-        if (records == null) {
-            return new ArrayList<>();
-        }
         return records.stream().map(record ->
             new WhiteIPIPDTO(
                 record.getId(),
@@ -132,5 +128,25 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
             .set(T_WHITE_IP_IP.LAST_MODIFY_TIME, ULong.valueOf(whiteIPIPDTO.getLastModifyTime()))
             .where(T_WHITE_IP_IP.ID.eq(whiteIPIPDTO.getId()))
             .execute();
+    }
+
+    @Override
+    public List<WhiteIPIPDTO> listWhiteIPIPByRecordIds(DSLContext dslContext, List<Long> recordIdList) {
+        val records =
+            dslContext.selectFrom(T_WHITE_IP_IP).where(
+                T_WHITE_IP_IP.RECORD_ID.in(recordIdList)
+            ).fetch();
+        return records.stream().map(record ->
+            new WhiteIPIPDTO(
+                record.getId(),
+                record.getRecordId(),
+                record.getCloudAreaId(),
+                record.getIp(),
+                record.getCreator(),
+                record.getCreateTime().longValue(),
+                record.getLastModifyUser(),
+                record.getLastModifyTime().longValue()
+            )
+        ).collect(Collectors.toList());
     }
 }
