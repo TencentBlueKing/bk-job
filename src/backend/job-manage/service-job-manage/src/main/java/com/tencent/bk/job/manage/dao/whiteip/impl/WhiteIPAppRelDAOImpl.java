@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.whiteip.impl;
 
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPAppRelDAO;
+import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPAppRelDTO;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.generated.tables.WhiteIpAppRel;
@@ -78,5 +79,21 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
             return new ArrayList<>();
         }
         return records.stream().map(WhiteIpAppRelRecord::getAppId).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<WhiteIPAppRelDTO> listAppRelByRecordIds(DSLContext dslContext, List<Long> recordIdList) {
+        val records =
+            dslContext.select(T_WHITE_IP_APP_REL.APP_ID, T_WHITE_IP_APP_REL.RECORD_ID).from(T_WHITE_IP_APP_REL).where(
+                T_WHITE_IP_APP_REL.RECORD_ID.in(recordIdList)
+            ).fetch();
+        return records.stream().map(record ->
+            new WhiteIPAppRelDTO(
+                record.get(T_WHITE_IP_APP_REL.RECORD_ID).longValue(),
+                record.get(T_WHITE_IP_APP_REL.APP_ID).longValue(),
+                null,
+                null
+            )
+        ).collect(Collectors.toList());
     }
 }

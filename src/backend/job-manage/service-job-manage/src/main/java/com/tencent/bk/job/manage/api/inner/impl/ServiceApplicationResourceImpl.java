@@ -42,7 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -69,13 +68,8 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
 
     @Override
     public InternalResponse<List<ServiceApplicationDTO>> listBizSetApps() {
-        AppTypeEnum[] appTypeEnums = AppTypeEnum.values();
-        List<ApplicationDTO> applicationInfoDTOList = new ArrayList<>();
-        for (AppTypeEnum appTypeEnum : appTypeEnums) {
-            if (appTypeEnum != AppTypeEnum.NORMAL) {
-                applicationInfoDTOList.addAll(applicationService.listAppsByType(appTypeEnum));
-            }
-        }
+        List<ApplicationDTO> applicationInfoDTOList =
+            applicationService.listAppsByScopeType(ResourceScopeTypeEnum.BIZ_SET);
         List<ServiceApplicationDTO> resultList =
             applicationInfoDTOList.parallelStream().map(this::convertToServiceApp).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);

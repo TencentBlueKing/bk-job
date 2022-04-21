@@ -22,25 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.whiteip;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
-import org.jooq.DSLContext;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.List;
+/**
+ * CMDB接口请求实体类，用于批量更新业务集
+ */
+@Setter
+@Getter
+@ToString
+public class BatchUpdateBizSetData {
 
-public interface WhiteIPActionScopeDAO {
-    Long insertWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO);
+    /**
+     * 业务集字段集合
+     */
+    @JsonProperty("bk_biz_set_attr")
+    private BizSetAttr attr;
 
-    int deleteWhiteIPActionScopeById(DSLContext dslContext, Long id);
+    /**
+     * 业务集的业务选择范围
+     */
+    @JsonProperty("bk_scope")
+    private BizSetScope scope;
 
-    int deleteWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId);
-
-    WhiteIPActionScopeDTO getWhiteIPActionScopeById(DSLContext dslContext, Long id);
-
-    List<WhiteIPActionScopeDTO> getWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId);
-
-    int updateWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO);
-
-    List<WhiteIPActionScopeDTO> listWhiteIPActionScopeByRecordIds(DSLContext dslContext, List<Long> recordIdList);
 }

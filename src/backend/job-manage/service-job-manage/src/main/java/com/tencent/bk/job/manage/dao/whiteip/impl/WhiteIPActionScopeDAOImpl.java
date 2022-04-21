@@ -129,4 +129,24 @@ public class WhiteIPActionScopeDAOImpl implements WhiteIPActionScopeDAO {
             .where(T_WHITE_IP_ACTION_SCOPE.ID.eq(whiteIPActionScopeDTO.getId()))
             .execute();
     }
+
+    @Override
+    public List<WhiteIPActionScopeDTO> listWhiteIPActionScopeByRecordIds(DSLContext dslContext,
+                                                                         List<Long> recordIdList) {
+        val records =
+            dslContext.selectFrom(T_WHITE_IP_ACTION_SCOPE).where(
+                T_WHITE_IP_ACTION_SCOPE.RECORD_ID.in(recordIdList)
+            ).fetch();
+        return records.stream().map(record ->
+            new WhiteIPActionScopeDTO(
+                record.getId(),
+                record.getRecordId(),
+                record.getActionScopeId(),
+                record.getCreator(),
+                record.getCreateTime().longValue(),
+                record.getLastModifyUser(),
+                record.getLastModifyTime().longValue()
+            )
+        ).collect(Collectors.toList());
+    }
 }
