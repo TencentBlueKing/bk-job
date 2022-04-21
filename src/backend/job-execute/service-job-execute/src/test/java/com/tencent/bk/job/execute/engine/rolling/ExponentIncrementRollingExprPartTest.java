@@ -26,46 +26,44 @@ package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class QuantityRollingExprPartTest {
-    private static final QuantityRollingExprPart QUANTITY_ROLLING_EXPR_PART = new QuantityRollingExprPart();
+@DisplayName("PlusIncrementRollingExprPartTest")
+class ExponentIncrementRollingExprPartTest {
+    private static final ExponentIncrementRollingExprPart ROLLING_EXPR_PART = new ExponentIncrementRollingExprPart();
 
     @Test
+    @DisplayName("解析非法滚动策略")
     void parseInvalidExpr() {
-        RollingExprPart rollingExprPart = QUANTITY_ROLLING_EXPR_PART.parseExpr("1%");
+        RollingExprPart rollingExprPart = ROLLING_EXPR_PART.parseExpr("1%");
         assertThat(rollingExprPart).isNull();
 
-        rollingExprPart = QUANTITY_ROLLING_EXPR_PART.parseExpr("test");
+        rollingExprPart = ROLLING_EXPR_PART.parseExpr("test");
         assertThat(rollingExprPart).isNull();
 
-        rollingExprPart = QUANTITY_ROLLING_EXPR_PART.parseExpr("-1");
+        rollingExprPart = ROLLING_EXPR_PART.parseExpr("-1");
         assertThat(rollingExprPart).isNull();
 
-        assertThrows(RollingExprParseException.class, () -> QUANTITY_ROLLING_EXPR_PART.parseExpr("0"));
+        assertThrows(RollingExprParseException.class, () -> ROLLING_EXPR_PART.parseExpr("*0"));
     }
 
     @Test
+    @DisplayName("解析滚动策略")
     void parseValidExpr() {
-        RollingExprPart rollingExprPart = QUANTITY_ROLLING_EXPR_PART.parseExpr("1");
+        RollingExprPart rollingExprPart = ROLLING_EXPR_PART.parseExpr("*2");
         assertThat(rollingExprPart).isNotNull();
-        assertThat(rollingExprPart).isInstanceOf(QuantityRollingExprPart.class);
-        QuantityRollingExprPart quantityRollingExprPart = (QuantityRollingExprPart) rollingExprPart;
-        assertThat(quantityRollingExprPart.getExpr()).isEqualTo("1");
-        assertThat(quantityRollingExprPart.getQuantity()).isEqualTo(1);
-
-        rollingExprPart = QUANTITY_ROLLING_EXPR_PART.parseExpr("100");
-        assertThat(rollingExprPart).isNotNull();
-        assertThat(rollingExprPart).isInstanceOf(QuantityRollingExprPart.class);
-        quantityRollingExprPart = (QuantityRollingExprPart) rollingExprPart;
-        assertThat(quantityRollingExprPart.getExpr()).isEqualTo("100");
-        assertThat(quantityRollingExprPart.getQuantity()).isEqualTo(100);
+        assertThat(rollingExprPart).isInstanceOf(ExponentIncrementRollingExprPart.class);
+        ExponentIncrementRollingExprPart exponentIncrementRollingExprPart = (ExponentIncrementRollingExprPart) rollingExprPart;
+        assertThat(exponentIncrementRollingExprPart.getExpr()).isEqualTo("*2");
+        assertThat(exponentIncrementRollingExprPart.getExponent()).isEqualTo(2);
     }
 
     @Test
@@ -78,25 +76,25 @@ class QuantityRollingExprPartTest {
         rollingServers.add(new IpDTO(0L, "127.0.0.5"));
         RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
 
-        QuantityRollingExprPart quantityRollingExprPart =
-            (QuantityRollingExprPart) QUANTITY_ROLLING_EXPR_PART.parseExpr("2");
-        List<IpDTO> serversOnBatch = quantityRollingExprPart.compute(context);
-        assertThat(serversOnBatch).hasSize(2);
-        assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "127.0.0.1"),
-            new IpDTO(0L, "127.0.0.2")
-        );
+        List<IpDTO> remainingServers = new ArrayList<>();
+        remainingServers.add(new IpDTO(0L, "127.0.0.2"));
+        remainingServers.add(new IpDTO(0L, "127.0.0.3"));
+        remainingServers.add(new IpDTO(0L, "127.0.0.4"));
+        remainingServers.add(new IpDTO(0L, "127.0.0.5"));
+        context.setRemainedServers(remainingServers);
 
-        quantityRollingExprPart =
-            (QuantityRollingExprPart) QUANTITY_ROLLING_EXPR_PART.parseExpr("10");
-        serversOnBatch = quantityRollingExprPart.compute(context);
-        assertThat(serversOnBatch).hasSize(5);
+        RollingServerBatch preRollingServerBatch = new RollingServerBatch();
+        preRollingServerBatch.setBatch(1);
+        preRollingServerBatch.setServers(Collections.singletonList(new IpDTO(0L, "127.0.0.1")));
+        context.addServerBatch(preRollingServerBatch);
+        context.setBatchCount(1);
+
+        ExponentIncrementRollingExprPart exponentIncrementRollingExprPart =
+            (ExponentIncrementRollingExprPart) ROLLING_EXPR_PART.parseExpr("*2");
+        List<IpDTO> serversOnBatch = exponentIncrementRollingExprPart.compute(context);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "127.0.0.1"),
             new IpDTO(0L, "127.0.0.2"),
-            new IpDTO(0L, "127.0.0.3"),
-            new IpDTO(0L, "127.0.0.4"),
-            new IpDTO(0L, "127.0.0.5")
+            new IpDTO(0L, "127.0.0.3")
         );
     }
 }

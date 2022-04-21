@@ -33,6 +33,6 @@ import com.tencent.bk.job.common.exception.InternalException;
 public class RollingExprParseException extends InternalException {
 
     public RollingExprParseException() {
-        super(ErrorCode.OBTAIN_HOST_FAIL);
+        super(ErrorCode.INVALID_ROLLING_EXPR);
     }
 }

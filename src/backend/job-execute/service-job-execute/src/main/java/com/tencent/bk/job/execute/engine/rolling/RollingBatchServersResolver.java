@@ -34,9 +34,14 @@ import java.util.List;
 public class RollingBatchServersResolver {
 
     /**
+     * 滚动策略表达式
+     */
+    private final String rollingExpr;
+
+    /**
      * 滚动表达式解析上下文
      */
-    private final RollingExprResolveContext context;
+    private final RollingServerBatchContext context;
 
     /**
      * Constructor
@@ -45,7 +50,8 @@ public class RollingBatchServersResolver {
      * @param rollingExpr 滚动表达式
      */
     public RollingBatchServersResolver(List<IpDTO> servers, String rollingExpr) {
-        this.context = new RollingExprResolveContext(servers, rollingExpr);
+        this.context = new RollingServerBatchContext(servers);
+        this.rollingExpr = rollingExpr;
     }
 
     /**
@@ -54,11 +60,11 @@ public class RollingBatchServersResolver {
      * @return 服务器分批情况
      */
     public List<RollingServerBatch> resolve() {
-        RollingExpr rollingExpr = new RollingExpr(context.getRollingExpr());
+        RollingExpr rollingExpr = new RollingExpr(this.rollingExpr);
         while (context.hasRemainedServer()) {
             context.increaseBatchCount();
             RollingExprPart rollingExprPart = rollingExpr.nextRollingExprPart(context.getBatchCount());
-            List<IpDTO> serversOnBatch = rollingExprPart.compute(context.getTotal(), context.getRemainedServers());
+            List<IpDTO> serversOnBatch = rollingExprPart.compute(context);
             context.removeResolvedServers(serversOnBatch);
             RollingServerBatch rollingServerBatch = new RollingServerBatch();
             rollingServerBatch.setBatch(context.getBatchCount());

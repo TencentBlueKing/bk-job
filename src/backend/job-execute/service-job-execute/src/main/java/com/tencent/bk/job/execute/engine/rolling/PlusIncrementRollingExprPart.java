@@ -37,31 +37,36 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 滚动执行子表达式-按照服务器数量解析
+ * 滚动执行子表达式-加法递增
  */
 @Getter
 @Setter
 @ToString
 @Slf4j
-public class QuantityRollingExprPart extends RollingExprPart {
-    private static final String QUANTITY_EXPR_REGEX = "^(\\d+)$";
-    private int quantity;
+public class PlusIncrementRollingExprPart extends RollingExprPart {
+    /**
+     * 滚动表示式匹配正则
+     */
+    private static final String EXPR_REGEX = "^\\+(\\d+)$";
+    /**
+     * 每一批次递增的主机数量
+     */
+    private int addend;
 
     @Override
     public RollingExprPart parseExpr(String expr) throws RollingExprParseException {
-
-        Pattern pattern = Pattern.compile(QUANTITY_EXPR_REGEX);
+        Pattern pattern = Pattern.compile(EXPR_REGEX);
         Matcher matcher = pattern.matcher(expr);
         if (matcher.find()) {
-            QuantityRollingExprPart rollingExprPart = new QuantityRollingExprPart();
+            PlusIncrementRollingExprPart rollingExprPart = new PlusIncrementRollingExprPart();
             rollingExprPart.setExpr(expr);
 
-            int quantity = Integer.parseInt(matcher.group(1));
-            if (quantity <= 0) {
+            int addend = Integer.parseInt(matcher.group(1));
+            if (addend <= 0) {
                 log.warn("Invalid rolling expr part : {}", expr);
                 throw new RollingExprParseException();
             }
-            rollingExprPart.setQuantity(quantity);
+            rollingExprPart.setAddend(addend);
 
             return rollingExprPart;
         } else {
@@ -72,6 +77,14 @@ public class QuantityRollingExprPart extends RollingExprPart {
     @Override
     public List<IpDTO> compute(RollingServerBatchContext context) throws RollingExprParseException {
         List<IpDTO> candidateServers = context.getRemainedServers();
-        return new ArrayList<>(candidateServers.subList(0, Math.min(this.quantity, candidateServers.size())));
+        // 上一批次的主机
+        RollingServerBatch preServerBatch = context.getServerBatches().get(context.getServerBatches().size() - 1);
+        if (preServerBatch == null) {
+            log.warn("Invalid rolling expr part : {}, no preServerBatch", getExpr());
+            throw new RollingExprParseException();
+        }
+
+        int currentBatchSize = preServerBatch.getBatch() + addend;
+        return new ArrayList<>(candidateServers.subList(0, Math.min(currentBatchSize, candidateServers.size())));
     }
 }

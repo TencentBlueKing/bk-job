@@ -78,14 +78,15 @@ class PercentRollingExprPartTest {
         @Test
         @DisplayName("验证100%表达式")
         void compute() {
-            List<IpDTO> candidateServers = new ArrayList<>();
-            candidateServers.add(new IpDTO(0L, "127.0.0.1"));
-            candidateServers.add(new IpDTO(0L, "127.0.0.2"));
-            candidateServers.add(new IpDTO(0L, "127.0.0.3"));
+            List<IpDTO> rollingServers = new ArrayList<>();
+            rollingServers.add(new IpDTO(0L, "127.0.0.1"));
+            rollingServers.add(new IpDTO(0L, "127.0.0.2"));
+            rollingServers.add(new IpDTO(0L, "127.0.0.3"));
 
             PercentRollingExprPart percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("100%");
-            List<IpDTO> serversOnBatch = percentRollingExprPart.compute(3, candidateServers);
+            RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
+            List<IpDTO> serversOnBatch = percentRollingExprPart.compute(context);
             assertThat(serversOnBatch).hasSize(3);
             assertThat(serversOnBatch).containsSequence(
                 new IpDTO(0L, "127.0.0.1"),
@@ -97,16 +98,17 @@ class PercentRollingExprPartTest {
         @Test
         @DisplayName("验证批次计算向上取整")
         void testCeil() {
-            List<IpDTO> candidateServers = new ArrayList<>();
-            candidateServers.add(new IpDTO(0L, "127.0.0.1"));
-            candidateServers.add(new IpDTO(0L, "127.0.0.2"));
-            candidateServers.add(new IpDTO(0L, "127.0.0.3"));
-            candidateServers.add(new IpDTO(0L, "127.0.0.4"));
-            candidateServers.add(new IpDTO(0L, "127.0.0.5"));
+            List<IpDTO> rollingServers = new ArrayList<>();
+            rollingServers.add(new IpDTO(0L, "127.0.0.1"));
+            rollingServers.add(new IpDTO(0L, "127.0.0.2"));
+            rollingServers.add(new IpDTO(0L, "127.0.0.3"));
+            rollingServers.add(new IpDTO(0L, "127.0.0.4"));
+            rollingServers.add(new IpDTO(0L, "127.0.0.5"));
+            RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
 
             PercentRollingExprPart percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("10%");
-            List<IpDTO> serversOnBatch = percentRollingExprPart.compute(5, candidateServers);
+            List<IpDTO> serversOnBatch = percentRollingExprPart.compute(context);
             assertThat(serversOnBatch).hasSize(1);
             assertThat(serversOnBatch).containsSequence(
                 new IpDTO(0L, "127.0.0.1")
@@ -114,7 +116,7 @@ class PercentRollingExprPartTest {
 
             percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("20%");
-            serversOnBatch = percentRollingExprPart.compute(5, candidateServers);
+            serversOnBatch = percentRollingExprPart.compute(context);
             assertThat(serversOnBatch).hasSize(1);
             assertThat(serversOnBatch).containsSequence(
                 new IpDTO(0L, "127.0.0.1")
@@ -122,7 +124,7 @@ class PercentRollingExprPartTest {
 
             percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("30%");
-            serversOnBatch = percentRollingExprPart.compute(5, candidateServers);
+            serversOnBatch = percentRollingExprPart.compute(context);
             assertThat(serversOnBatch).hasSize(2);
             assertThat(serversOnBatch).containsSequence(
                 new IpDTO(0L, "127.0.0.1"),

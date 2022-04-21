@@ -10,12 +10,12 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 滚动表达式解析上下文
+ * 主机计算滚动分批上下文
  */
 @Getter
 @Setter
 @ToString
-public class RollingExprResolveContext {
+public class RollingServerBatchContext {
     /**
      * 需要分批的服务器
      */
@@ -25,13 +25,9 @@ public class RollingExprResolveContext {
      */
     private List<IpDTO> remainedServers;
     /**
-     * 滚动策略表达式
-     */
-    private String rollingExpr;
-    /**
      * 需要分批的服务器数量
      */
-    private int total;
+    private int totalServersSize;
     /**
      * 分批数量
      */
@@ -45,13 +41,11 @@ public class RollingExprResolveContext {
      * Constructor
      *
      * @param servers     所有参与滚动的主机
-     * @param rollingExpr 滚动表达式
      */
-    public RollingExprResolveContext(List<IpDTO> servers, String rollingExpr) {
+    public RollingServerBatchContext(List<IpDTO> servers) {
         this.servers = servers;
         this.remainedServers = new ArrayList<>(this.servers);
-        this.rollingExpr = rollingExpr;
-        this.total = servers.size();
+        this.totalServersSize = servers.size();
         this.serverBatches = new ArrayList<>();
     }
 

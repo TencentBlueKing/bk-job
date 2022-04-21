@@ -48,7 +48,7 @@ public class PercentRollingExprPart extends RollingExprPart {
     private int percent;
 
     @Override
-    public RollingExprPart parseExpr(String expr) {
+    public RollingExprPart parseExpr(String expr) throws RollingExprParseException {
         Pattern pattern = Pattern.compile(PERCENT_EXPR_REGEX);
         Matcher matcher = pattern.matcher(expr);
         if (matcher.find()) {
@@ -60,7 +60,7 @@ public class PercentRollingExprPart extends RollingExprPart {
                 log.warn("Invalid rolling expr part : {}", expr);
                 throw new RollingExprParseException();
             }
-            rollingExprPart.setPercent(Integer.parseInt(matcher.group(1)));
+            rollingExprPart.setPercent(percent);
 
             return rollingExprPart;
         } else {
@@ -69,7 +69,9 @@ public class PercentRollingExprPart extends RollingExprPart {
     }
 
     @Override
-    public List<IpDTO> compute(int total, List<IpDTO> candidateServers) {
+    public List<IpDTO> compute(RollingServerBatchContext context) throws RollingExprParseException {
+        List<IpDTO> candidateServers = context.getRemainedServers();
+        int total = context.getTotalServersSize();
         // 批次大小，需要向上取整
         int batchSize = (total * percent + 100 - 1) / 100;
         return new ArrayList<>(candidateServers.subList(0, Math.min(batchSize, candidateServers.size())));
