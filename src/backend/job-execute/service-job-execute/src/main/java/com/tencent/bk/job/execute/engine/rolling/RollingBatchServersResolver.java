@@ -26,64 +26,47 @@ package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 服务器滚动分批
+ * 服务器滚动分批Resolver
  */
 public class RollingBatchServersResolver {
-    /**
-     * 需要分批的服务器
-     */
-    private final List<IpDTO> servers;
-    /**
-     * 未分批的服务器
-     */
-    private final List<IpDTO> remainedServers;
-    /**
-     * 滚动策略表达式
-     */
-    private final String rollingExpr;
-    /**
-     * 需要分批的服务器数量
-     */
-    private final int total;
-    /**
-     * 分批数量
-     */
-    private int batchCount;
-    /**
-     * 分批结果
-     */
-    private final List<RollingServerBatch> serverBatches;
 
+    /**
+     * 滚动表达式解析上下文
+     */
+    private final RollingExprResolveContext context;
+
+    /**
+     * Constructor
+     *
+     * @param servers     滚动执行的主机
+     * @param rollingExpr 滚动表达式
+     */
     public RollingBatchServersResolver(List<IpDTO> servers, String rollingExpr) {
-        this.servers = servers;
-        this.remainedServers = new ArrayList<>(this.servers);
-        this.rollingExpr = rollingExpr;
-        this.total = servers.size();
-        this.serverBatches = new ArrayList<>();
+        this.context = new RollingExprResolveContext(servers, rollingExpr);
     }
 
+    /**
+     * 解析滚动表达式，滚动分批
+     *
+     * @return 服务器分批情况
+     */
     public List<RollingServerBatch> resolve() {
-        RollingExpr rollingExpr = new RollingExpr(this.rollingExpr);
-        while (hasRemainedServer()) {
-            this.batchCount++;
-            RollingExprPart rollingExprPart = rollingExpr.nextRollingExprPart(this.batchCount);
-            List<IpDTO> serversOnBatch = rollingExprPart.compute(this.total, this.remainedServers);
-            this.remainedServers.removeAll(serversOnBatch);
+        RollingExpr rollingExpr = new RollingExpr(context.getRollingExpr());
+        while (context.hasRemainedServer()) {
+            context.increaseBatchCount();
+            RollingExprPart rollingExprPart = rollingExpr.nextRollingExprPart(context.getBatchCount());
+            List<IpDTO> serversOnBatch = rollingExprPart.compute(context.getTotal(), context.getRemainedServers());
+            context.removeResolvedServers(serversOnBatch);
             RollingServerBatch rollingServerBatch = new RollingServerBatch();
-            rollingServerBatch.setBatch(this.batchCount);
+            rollingServerBatch.setBatch(context.getBatchCount());
             rollingServerBatch.setServers(serversOnBatch);
             rollingServerBatch.setRollingExprPart(rollingExprPart);
-            this.serverBatches.add(rollingServerBatch);
+            context.addServerBatch(rollingServerBatch);
         }
-        return this.serverBatches;
-    }
-
-    private boolean hasRemainedServer() {
-        return this.remainedServers.size() > 0;
+        return context.getServerBatches();
     }
 
 }
