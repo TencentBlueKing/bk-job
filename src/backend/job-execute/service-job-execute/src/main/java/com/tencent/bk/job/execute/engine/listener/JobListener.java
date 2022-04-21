@@ -245,6 +245,7 @@ public class JobListener {
                         nextStepInstance.getId());
                     taskInstanceService.updateStepStatus(nextStepInstance.getId(),
                         RunStatusEnum.WAITING_USER.getValue());
+                    taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.WAITING_USER.getValue());
                 } else {
                     // 执行下一步骤
                     startStep(nextStepInstance);

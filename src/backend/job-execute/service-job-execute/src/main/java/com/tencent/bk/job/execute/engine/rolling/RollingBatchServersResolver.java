@@ -24,14 +24,23 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 /**
  * 服务器滚动分批Resolver
  */
+@Slf4j
 public class RollingBatchServersResolver {
+
+    /**
+     * 允许的最大滚动批次
+     */
+    public static final int MAX_ALLOWED_ROLLING_BATCH_SIZE = 500;
 
     /**
      * 滚动策略表达式
@@ -71,6 +80,12 @@ public class RollingBatchServersResolver {
             rollingServerBatch.setServers(serversOnBatch);
             rollingServerBatch.setRollingExprPart(rollingExprPart);
             context.addServerBatch(rollingServerBatch);
+        }
+
+        if (context.getServerBatches().size() > MAX_ALLOWED_ROLLING_BATCH_SIZE) {
+            log.warn("Batch {} size greater than {}", context.getServerBatches().size(), MAX_ALLOWED_ROLLING_BATCH_SIZE);
+            throw new FailedPreconditionException(ErrorCode.EXCEED_MAX_ALLOWED_BATCH_SIZE,
+                new Integer[]{MAX_ALLOWED_ROLLING_BATCH_SIZE});
         }
         return context.getServerBatches();
     }

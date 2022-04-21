@@ -359,6 +359,19 @@ public class GseStepEventHandler implements StepEventHandler {
 
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.IGNORE_ERROR.getValue());
         taskInstanceService.resetTaskExecuteInfoForRetry(stepInstance.getTaskInstanceId());
+        if (isRollingStep) {
+            StepInstanceRollingTaskDTO stepInstanceRollingTask =
+                stepInstanceRollingTaskService.queryRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                    stepInstance.getBatch());
+            if (stepInstanceRollingTask != null) {
+                long endTime = stepInstanceRollingTask.getEndTime() != null ?
+                    stepInstanceRollingTask.getEndTime() : System.currentTimeMillis();
+                stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                    stepInstance.getBatch(), RunStatusEnum.IGNORE_ERROR, null, endTime,
+                    TaskCostCalculator.calculate(stepInstanceRollingTask.getStartTime(), endTime, null));
+            }
+        }
+
         taskExecuteMQEventDispatcher.dispatchJobEvent(
             JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
                 EventSource.buildStepEventSource(stepInstance.getId())));
