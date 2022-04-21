@@ -31,18 +31,25 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.manage.api.web.WebFileUploadResource;
+import com.tencent.bk.job.manage.common.consts.globalsetting.RestrictModeEnum;
 import com.tencent.bk.job.manage.config.ArtifactoryConfig;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import com.tencent.bk.job.manage.config.StorageSystemConfig;
 import com.tencent.bk.job.manage.model.web.request.GenUploadTargetReq;
 import com.tencent.bk.job.manage.model.web.vo.UploadLocalFileResultVO;
 import com.tencent.bk.job.manage.model.web.vo.UploadTargetVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
+import com.tencent.bk.job.manage.service.GlobalSettingsService;
+import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,17 +67,19 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
     private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final ArtifactoryClient artifactoryClient;
+    private final GlobalSettingsService globalSettingsService;
 
     @Autowired
     public WebFileUploadResourceImpl(
         StorageSystemConfig storageSystemConfig,
         ArtifactoryConfig artifactoryConfig, LocalFileConfigForManage localFileConfigForManage,
-        ArtifactoryClient artifactoryClient
-    ) {
+        ArtifactoryClient artifactoryClient,
+        GlobalSettingsService globalSettingsService) {
         this.storageSystemConfig = storageSystemConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForManage = localFileConfigForManage;
         this.artifactoryClient = artifactoryClient;
+        this.globalSettingsService = globalSettingsService;
     }
 
     /**
@@ -195,7 +204,8 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
     public Response<List<UploadLocalFileResultVO>> uploadLocalFile(String username,
                                                                    MultipartFile[] uploadFiles) {
         log.info("Handle upload file!");
-        List<UploadLocalFileResultVO> fileUploadResults = null;
+        checkFileSuffixValid(uploadFiles);
+        List<UploadLocalFileResultVO> fileUploadResults;
         if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
             localFileConfigForManage.getStorageBackend()
         )) {
@@ -205,6 +215,69 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
             fileUploadResults = saveFileToLocal(username, uploadFiles);
         }
         return Response.buildSuccessResp(fileUploadResults);
+    }
+
+    /**
+     * 文件名后缀是否匹配
+     *
+     * @param fileName   文件名称
+     * @param suffixList 后缀列表
+     * @return 后缀是否匹配
+     */
+    private boolean isFileNameMatchSuffixIgnoreCase(String fileName, List<String> suffixList) {
+        if (StringUtils.isBlank(fileName)) {
+            return false;
+        }
+        for (String allowedSuffix : suffixList) {
+            if (fileName.toLowerCase().endsWith(allowedSuffix.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void checkFileSuffixValid(MultipartFile[] uploadFiles) {
+        //检查是否合法后缀
+        FileUploadSettingVO fileUploadSettingVO = globalSettingsService.getFileUploadSettings();
+        Integer restrictMode = fileUploadSettingVO.getRestrictMode();
+        // 未配置限制策略：默认不限制
+        if (restrictMode == null) {
+            return;
+        }
+        List<String> suffixList = fileUploadSettingVO.getSuffixList();
+        // 策略内容为空，异常数据，不限制
+        if (CollectionUtils.isEmpty(suffixList)) {
+            log.warn("file upload restrict suffixList is empty");
+            return;
+        }
+        List<String> invalidFileNameList = new ArrayList<>();
+        for (MultipartFile multipartFile : uploadFiles) {
+            if (StringUtils.isBlank(multipartFile.getOriginalFilename())) {
+                log.warn("upload file ,fileName are empty");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            }
+            String fileName = multipartFile.getOriginalFilename();
+            if (restrictMode == RestrictModeEnum.ALLOW.getType()) {
+                // 后缀允许模式
+                if (!isFileNameMatchSuffixIgnoreCase(fileName, suffixList)) {
+                    invalidFileNameList.add(fileName);
+                }
+            } else if (restrictMode == RestrictModeEnum.FORBID.getType()) {
+                // 后缀禁止模式
+                if (isFileNameMatchSuffixIgnoreCase(fileName, suffixList)) {
+                    invalidFileNameList.add(fileName);
+                }
+            }
+        }
+        if (!invalidFileNameList.isEmpty()) {
+            log.info(
+                "upload file, file suffix not allowed:{}, restrictMode:{}, suffixList:{}",
+                StringUtil.join(",", invalidFileNameList),
+                restrictMode,
+                suffixList
+            );
+            throw new InvalidParamException(ErrorCode.UPLOAD_FILE_SUFFIX_NOT_ALLOW);
+        }
     }
 
     @Override

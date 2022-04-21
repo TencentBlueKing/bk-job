@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.globalsetting.GlobalSettingKeys;
 import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
 import com.tencent.bk.job.manage.common.consts.globalsetting.RelatedUrlKeys;
+import com.tencent.bk.job.manage.common.consts.globalsetting.RestrictModeEnum;
 import com.tencent.bk.job.manage.common.consts.globalsetting.StorageUnitEnum;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -50,6 +51,7 @@ import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
 import com.tencent.bk.job.manage.model.dto.converter.NotifyTemplateConverter;
 import com.tencent.bk.job.manage.model.dto.globalsetting.TitleFooter;
 import com.tencent.bk.job.manage.model.dto.globalsetting.TitleFooterDTO;
+import com.tencent.bk.job.manage.model.dto.globalsetting.UploadFileRestrictDTO;
 import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
@@ -79,6 +81,7 @@ import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
@@ -401,7 +404,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private FileUploadSettingVO getFileUploadSettingsFromStr(String str) {
         Pair<Long, String> configedValue = parseFileSize(str);
         if (configedValue == null) return null;
-        return new FileUploadSettingVO(configedValue.getLeft(), configedValue.getRight());
+        return new FileUploadSettingVO(configedValue.getLeft(), configedValue.getRight(), null, null);
     }
 
     private FileUploadSettingVO getConfigedFileUploadSettings() {
@@ -411,7 +414,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     private FileUploadSettingVO getDBFileUploadSettings() {
         GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
-            GlobalSettingKeys.KEY_FILE_UPLOAD_MAX_SIZE);
+            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
         if (fileUploadSettingDTO == null) {
             return null;
         }
@@ -423,6 +426,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     public Boolean saveFileUploadSettings(String username, FileUploadSettingReq req) {
         Long uploadMaxSize = req.getAmount();
         StorageUnitEnum unit = req.getUnit();
+        Integer restrictMode = req.getRestrictMode();
+        List<String> suffixList = req.getSuffixList();
         if (unit == null) {
             unit = StorageUnitEnum.B;
         }
@@ -430,23 +435,48 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             uploadMaxSize = 5L;
             unit = StorageUnitEnum.GB;
         }
+        if (restrictMode == null) {
+            restrictMode = RestrictModeEnum.UNLIMITED.getType();
+        }
+
+        if (CollectionUtils.isNotEmpty(suffixList)) {
+            // 去重
+            suffixList = suffixList.stream().distinct().collect(Collectors.toList());
+        }
         GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
-            GlobalSettingKeys.KEY_FILE_UPLOAD_MAX_SIZE);
+            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
         if (fileUploadSettingDTO == null) {
             fileUploadSettingDTO = new GlobalSettingDTO();
-            fileUploadSettingDTO.setDescription("max size of upload file");
+            fileUploadSettingDTO.setDescription("setting of upload file");
         }
-        fileUploadSettingDTO.setKey(GlobalSettingKeys.KEY_FILE_UPLOAD_MAX_SIZE);
-        fileUploadSettingDTO.setValue(uploadMaxSize.toString() + unit.name());
+        fileUploadSettingDTO.setKey(GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
+        fileUploadSettingDTO.setValue(JsonUtils.toJson(
+            new UploadFileRestrictDTO(
+                uploadMaxSize.toString() + unit.name()
+                , restrictMode
+                , suffixList)));
         int affectedRows = globalSettingDAO.upsertGlobalSetting(fileUploadSettingDTO);
         return affectedRows > 0;
     }
 
     @Override
-    public FileUploadSettingVO getFileUploadSettings(String username) {
-        FileUploadSettingVO fileUploadSettingVO = getDBFileUploadSettings();
-        if (fileUploadSettingVO == null) {
+    public FileUploadSettingVO getFileUploadSettings() {
+        GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
+            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
+        FileUploadSettingVO fileUploadSettingVO;
+        if (fileUploadSettingDTO == null) {
             fileUploadSettingVO = getConfigedFileUploadSettings();
+        } else {
+            String settingStr = fileUploadSettingDTO.getValue();
+            UploadFileRestrictDTO uploadFileRestrictDTO = JsonUtils.fromJson(settingStr,
+                new TypeReference<UploadFileRestrictDTO>() {
+                });
+            fileUploadSettingVO = getFileUploadSettingsFromStr(uploadFileRestrictDTO.getMaxSize());
+            if (fileUploadSettingVO == null) {
+                fileUploadSettingVO = new FileUploadSettingVO();
+            }
+            fileUploadSettingVO.setRestrictMode(uploadFileRestrictDTO.getRestrictMode());
+            fileUploadSettingVO.setSuffixList(uploadFileRestrictDTO.getSuffixList());
         }
         return fileUploadSettingVO;
     }
@@ -741,10 +771,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return urlMap;
     }
 
-    private void addFileUploadMaxSizeConfig(String username, Map<String, Object> configMap) {
-        FileUploadSettingVO fileUploadSettingVO = getFileUploadSettings(username);
+    private void addFileUploadConfig(String username, Map<String, Object> configMap) {
+        FileUploadSettingVO fileUploadSettingVO = getFileUploadSettings();
         if (fileUploadSettingVO != null) {
-            configMap.put(GlobalSettingKeys.KEY_FILE_UPLOAD_MAX_SIZE, fileUploadSettingVO);
+            configMap.put(GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING, fileUploadSettingVO);
         }
     }
 
@@ -762,7 +792,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public Map<String, Object> getJobConfig(String username) {
         Map<String, Object> configMap = new HashMap<>();
-        addFileUploadMaxSizeConfig(username, configMap);
+        addFileUploadConfig(username, configMap);
         addEnableFeatureFileManageConfig(username, configMap);
         addEnableUploadToArtifactoryConfig(username, configMap);
         return configMap;

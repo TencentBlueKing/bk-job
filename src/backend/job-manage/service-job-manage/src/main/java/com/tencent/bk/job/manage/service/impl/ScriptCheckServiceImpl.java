@@ -24,13 +24,10 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
+import com.tencent.bk.job.manage.manager.cache.DangerousRuleCache;
 import com.tencent.bk.job.manage.manager.script.check.ScriptCheckParam;
 import com.tencent.bk.job.manage.manager.script.check.checker.BuildInDangerousScriptChecker;
 import com.tencent.bk.job.manage.manager.script.check.checker.DangerousRuleScriptChecker;
@@ -44,7 +41,6 @@ import com.tencent.bk.job.manage.service.ScriptCheckService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,49 +49,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class ScriptCheckServiceImpl implements ScriptCheckService {
 
-    private final DSLContext dslContext;
-    private final DangerousRuleDAO dangerousRuleDAO;
+    private final DangerousRuleCache dangerousRuleCache;
     private final ExecutorService executor = new ThreadPoolExecutor(
         10, 50, 60L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<Runnable>());
-    private LoadingCache<Integer, List<DangerousRuleDTO>> dangerousRuleCache = CacheBuilder.newBuilder()
-        .maximumSize(100).expireAfterWrite(1, TimeUnit.MINUTES).
-            build(new CacheLoader<Integer, List<DangerousRuleDTO>>() {
-                      @Override
-                      public List<DangerousRuleDTO> load(Integer scriptType) {
-                          List<DangerousRuleDTO> dangerousRules =
-                              dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, scriptType);
-                          if (CollectionUtils.isEmpty(dangerousRules)) {
-                              return Collections.emptyList();
-                          } else {
-                              return dangerousRules.stream()
-                                  .filter(DangerousRuleDTO::isEnabled)
-                                  .collect(Collectors.toList());
-                          }
-                      }
-                  }
-            );
+        new LinkedBlockingQueue<>());
 
     @Autowired
-    public ScriptCheckServiceImpl(DSLContext dslContext, DangerousRuleDAO dangerousRuleDAO) {
-        this.dslContext = dslContext;
-        this.dangerousRuleDAO = dangerousRuleDAO;
-    }
-
-    private List<DangerousRuleDTO> listDangerousRuleFromCache(Integer scriptType) throws ExecutionException {
-        return dangerousRuleCache.get(scriptType);
+    public ScriptCheckServiceImpl(DangerousRuleCache dangerousRuleCache) {
+        this.dangerousRuleCache = dangerousRuleCache;
     }
 
     @Override
@@ -106,7 +77,8 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
         }
 
         try {
-            List<DangerousRuleDTO> dangerousRules = listDangerousRuleFromCache(scriptType.getValue());
+            List<DangerousRuleDTO> dangerousRules =
+                dangerousRuleCache.listDangerousRuleFromCache(scriptType.getValue());
             int timeout = 5;
             ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems =
@@ -156,7 +128,8 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
         try {
             int timeout = 5;
             ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
-            List<DangerousRuleDTO> dangerousRules = listDangerousRuleFromCache(scriptType.getValue());
+            List<DangerousRuleDTO> dangerousRules =
+                dangerousRuleCache.listDangerousRuleFromCache(scriptType.getValue());
             if (CollectionUtils.isEmpty(dangerousRules)) {
                 return Collections.emptyList();
             }

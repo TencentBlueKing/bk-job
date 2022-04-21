@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
+import com.tencent.bk.job.manage.manager.cache.DangerousRuleCache;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
@@ -44,15 +45,18 @@ import java.util.stream.Collectors;
 @Service
 public class DangerousRuleServiceImpl implements DangerousRuleService {
 
-    private DSLContext dslContext;
-    private DangerousRuleDAO dangerousRuleDAO;
+    private final DSLContext dslContext;
+    private final DangerousRuleDAO dangerousRuleDAO;
+    private final DangerousRuleCache dangerousRuleCache;
 
     @Autowired
     public DangerousRuleServiceImpl(
         DSLContext dslContext,
-        DangerousRuleDAO dangerousRuleDAO) {
+        DangerousRuleDAO dangerousRuleDAO,
+        DangerousRuleCache dangerousRuleCache) {
         this.dslContext = dslContext;
         this.dangerousRuleDAO = dangerousRuleDAO;
+        this.dangerousRuleCache = dangerousRuleCache;
     }
 
     @Override
@@ -82,6 +86,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 return false;
             }
         }
+        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(req.getScriptTypeList());
         return true;
     }
 
@@ -110,6 +115,10 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 dangerousRuleDAO.updateDangerousRule(context, upperRuleDTO);
                 dangerousRuleDAO.updateDangerousRule(context, currentRuleDTO);
             });
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+                DangerousRuleDTO.decodeScriptType(upperRuleDTO.getScriptType()));
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+                DangerousRuleDTO.decodeScriptType(currentRuleDTO.getScriptType()));
             return 2;
         } else if (dir == 1) {
             //往下移动
@@ -131,6 +140,10 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 dangerousRuleDAO.updateDangerousRule(context, downerRuleDTO);
                 dangerousRuleDAO.updateDangerousRule(context, currentRuleDTO);
             });
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+                DangerousRuleDTO.decodeScriptType(downerRuleDTO.getScriptType()));
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+                DangerousRuleDTO.decodeScriptType(currentRuleDTO.getScriptType()));
             return 2;
         } else {
             log.warn("move of dir=%d not supported");
@@ -159,8 +172,12 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 DangerousRuleDTO dangerousRuleDTO = dangerousRuleDTOList.get(i);
                 dangerousRuleDTO.setPriority(i + 1);
                 dangerousRuleDAO.updateDangerousRule(context, dangerousRuleDTO);
+                dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+                    DangerousRuleDTO.decodeScriptType(dangerousRuleDTO.getScriptType()));
             }
         });
+        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+            DangerousRuleDTO.decodeScriptType(existDangerousRuleDTO.getScriptType()));
         return id.intValue();
     }
 }

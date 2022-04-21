@@ -1,8 +1,5 @@
 #! /bin/sh
 
-mkdir -p $BK_JOB_LOGS_DIR
-chmod 777 $BK_JOB_LOGS_DIR
-
 pwd
 ls -ahl
 echo "===========SQL========="
@@ -50,9 +47,13 @@ function migrateIamModel(){
 echo "BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED=${BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED}"
 if [[ "${BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED}" == "true" ]];then
   migrateMySQL
+else
+  echo "skip migrateMySQL"
 fi
 
 echo "BK_JOB_MIGRATION_IAM_MODEL_ENABLED=${BK_JOB_MIGRATION_IAM_MODEL_ENABLED}"
 if [[ "${BK_JOB_MIGRATION_IAM_MODEL_ENABLED}" == "true" ]];then
   migrateIamModel
+else
+  echo "skip migrateIamModel"
 fi

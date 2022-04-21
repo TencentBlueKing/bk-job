@@ -60,6 +60,7 @@ spec:
     matchLabels:
       {{- include "common.labels.matchLabels" . | nindent 6 }}
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
+      app.kubernetes.io/component: "job-gateway"
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
   path:
     - /data/logs/job-gateway/access.log
