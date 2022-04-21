@@ -22,7 +22,7 @@
                         v-model="batchLocation"
                         type="number"
                         :min="1"
-                        :max="stepData.rollingTasks.length"
+                        :max="rollingTaskNums"
                         placeholder="请输入批次"
                         @keyup="handleEnterSubmit">
                         <template slot="prepend">
@@ -35,7 +35,7 @@
                 </div>
                 <div style="margin-top: 6px;font-size: 12px; line-height: 16px; color: #979ba5;">
                     共
-                    <span style="font-weight: bold;">{{ stepData.rollingTasks.length }}</span>
+                    <span style="font-weight: bold;">{{ rollingTaskNums }}</span>
                     批，已执行
                     <span style="font-weight: bold;">{{ stepData.runningBatchOrder }}</span>
                     批
@@ -70,12 +70,17 @@
                 batchLocation: '',
             };
         },
+        computed: {
+            rollingTaskNums () {
+                return this.stepData.rollingTask.length;
+            },
+        },
         methods: {
             /**
              * @desc 定位到指定批次
              */
             handleGoBatch () {
-                const batchLocation = Math.min(Math.max(this.batchLocation, 1), this.stepData.rollingTasks.length);
+                const batchLocation = Math.min(Math.max(this.batchLocation, 1), this.rollingTaskNums);
                 this.selectBatch = batchLocation;
                 this.$emit('on-change', batchLocation);
             },

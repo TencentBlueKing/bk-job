@@ -134,10 +134,9 @@
                 if (this.value === '') {
                     // 首次加载默认选中正在执行的批次
                     this.selectBatch = this.data.runningBatchOrder;
-                    this.isAutoSelectRunningOrder = true;
-                } else if (this.selectBatch !== this.data.runningBatchOrder
-                    && this.isAutoSelectRunningOrder) {
-                    // 选中的是正在执行的批次，当批次执行到下一批次时自动选择最新的执行批次
+                } else if (this.isAutoSelectRunningBatch
+                    && this.selectBatch !== this.data.runningBatchOrder) {
+                    // 用户没有进行主动选择批次，每次自动选中正在执行的批次
                     this.selectBatch = this.data.runningBatchOrder;
                     this.triggerChange();
                 }
@@ -146,9 +145,7 @@
         created () {
             this.list = Object.freeze(this.data.rollingTasks);
             this.selectBatch = this.data.runningBatchOrder;
-
-            // 是否自动选择最新执行批次
-            this.isAutoSelectRunningOrder = true;
+            this.isAutoSelectRunningBatch = true;
         },
         mounted () {
             this.initRender();
@@ -241,7 +238,6 @@
             triggerChange () {
                 this.$emit('change', this.selectBatch);
                 this.$emit('input', this.selectBatch);
-                this.isAutoSelectRunningOrder = this.data.runningBatchOrder === this.selectBatch;
             },
             /**
              * @desc 人工确认继续滚动下一批
@@ -250,8 +246,6 @@
              */
             handleConfirmExecute () {
                 this.$emit('on-confirm', 13);
-                this.selectBatch = this.selectBatch + 1;
-                this.triggerChange();
             },
             /**
              * @desc 查看全部批次
@@ -269,6 +263,7 @@
              */
             handleSelectBatch (selectBatch, event) {
                 this.selectBatch = selectBatch;
+                this.isAutoSelectRunningBatch = false;
                 this.triggerChange();
                 if (!this.hasPagination) {
                     return;
