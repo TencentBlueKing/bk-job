@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.List;
 /**
  * 滚动策略表达式
  */
+@Slf4j
 public class RollingExpr {
     /**
      * 滚动策略子表达式解析器
@@ -41,6 +43,8 @@ public class RollingExpr {
     static {
         ROLLING_EXPR_PART_PARSER.add(new PercentRollingExprPart());
         ROLLING_EXPR_PART_PARSER.add(new QuantityRollingExprPart());
+        ROLLING_EXPR_PART_PARSER.add(new PlusIncrementRollingExprPart());
+        ROLLING_EXPR_PART_PARSER.add(new ExponentIncrementRollingExprPart());
     }
 
     /**
@@ -80,6 +84,7 @@ public class RollingExpr {
                 return parseResult;
             }
         }
+        log.warn("Invalid rolling expr, no supported expr resolver!");
         throw new RollingExprParseException();
     }
 

@@ -25,12 +25,12 @@
 package com.tencent.bk.job.execute.common.exception;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 
 /**
  * 滚动执行策略表达式解析异常
  */
-public class RollingExprParseException extends InternalException {
+public class RollingExprParseException extends FailedPreconditionException {
 
     public RollingExprParseException() {
         super(ErrorCode.INVALID_ROLLING_EXPR);
