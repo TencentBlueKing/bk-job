@@ -118,48 +118,43 @@ class RollingServerBatchResolverTest {
         servers.add(new IpDTO(0L, "127.0.0.16"));
         RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "10% 30%");
         List<RollingServerBatch> serverBatchList = context.resolve();
-        assertThat(serverBatchList).hasSize(5);
+        assertThat(serverBatchList).hasSize(4);
 
         assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
         assertThat(serverBatchList.get(0).getServers()).containsSequence(
-            new IpDTO(0L, "127.0.0.1")
+            new IpDTO(0L, "127.0.0.1"),
+            new IpDTO(0L, "127.0.0.2")
         );
         assertThat(serverBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("10%");
 
         assertThat(serverBatchList.get(1).getBatch()).isEqualTo(2);
         assertThat(serverBatchList.get(1).getServers()).containsSequence(
-            new IpDTO(0L, "127.0.0.2"),
             new IpDTO(0L, "127.0.0.3"),
             new IpDTO(0L, "127.0.0.4"),
-            new IpDTO(0L, "127.0.0.5")
+            new IpDTO(0L, "127.0.0.5"),
+            new IpDTO(0L, "127.0.0.6"),
+            new IpDTO(0L, "127.0.0.7")
         );
         assertThat(serverBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(serverBatchList.get(2).getBatch()).isEqualTo(3);
         assertThat(serverBatchList.get(2).getServers()).containsSequence(
-            new IpDTO(0L, "127.0.0.6"),
-            new IpDTO(0L, "127.0.0.7"),
             new IpDTO(0L, "127.0.0.8"),
-            new IpDTO(0L, "127.0.0.9")
+            new IpDTO(0L, "127.0.0.9"),
+            new IpDTO(0L, "127.0.0.10"),
+            new IpDTO(0L, "127.0.0.11"),
+            new IpDTO(0L, "127.0.0.12")
         );
         assertThat(serverBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(serverBatchList.get(3).getBatch()).isEqualTo(4);
         assertThat(serverBatchList.get(3).getServers()).containsSequence(
-            new IpDTO(0L, "127.0.0.10"),
-            new IpDTO(0L, "127.0.0.11"),
-            new IpDTO(0L, "127.0.0.12"),
-            new IpDTO(0L, "127.0.0.13")
-        );
-        assertThat(serverBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
-
-        assertThat(serverBatchList.get(4).getBatch()).isEqualTo(5);
-        assertThat(serverBatchList.get(4).getServers()).containsSequence(
+            new IpDTO(0L, "127.0.0.13"),
             new IpDTO(0L, "127.0.0.14"),
             new IpDTO(0L, "127.0.0.15"),
             new IpDTO(0L, "127.0.0.16")
         );
-        assertThat(serverBatchList.get(4).getRollingExprPart().getExpr()).isEqualTo("30%");
+        assertThat(serverBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
     }
 
     @Test
@@ -293,10 +288,9 @@ class RollingServerBatchResolverTest {
         servers.add(new IpDTO(0L, "127.0.0.13"));
         servers.add(new IpDTO(0L, "127.0.0.14"));
         servers.add(new IpDTO(0L, "127.0.0.15"));
-        servers.add(new IpDTO(0L, "127.0.0.16"));
         RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1 30%");
         List<RollingServerBatch> serverBatchList = context.resolve();
-        assertThat(serverBatchList).hasSize(5);
+        assertThat(serverBatchList).hasSize(4);
 
         assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
         assertThat(serverBatchList.get(0).getServers()).containsSequence(
@@ -309,34 +303,28 @@ class RollingServerBatchResolverTest {
             new IpDTO(0L, "127.0.0.2"),
             new IpDTO(0L, "127.0.0.3"),
             new IpDTO(0L, "127.0.0.4"),
-            new IpDTO(0L, "127.0.0.5")
+            new IpDTO(0L, "127.0.0.5"),
+            new IpDTO(0L, "127.0.0.6")
         );
         assertThat(serverBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(serverBatchList.get(2).getBatch()).isEqualTo(3);
         assertThat(serverBatchList.get(2).getServers()).containsSequence(
-            new IpDTO(0L, "127.0.0.6"),
             new IpDTO(0L, "127.0.0.7"),
             new IpDTO(0L, "127.0.0.8"),
-            new IpDTO(0L, "127.0.0.9")
+            new IpDTO(0L, "127.0.0.9"),
+            new IpDTO(0L, "127.0.0.10"),
+            new IpDTO(0L, "127.0.0.11")
         );
         assertThat(serverBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(serverBatchList.get(3).getBatch()).isEqualTo(4);
         assertThat(serverBatchList.get(3).getServers()).containsSequence(
-            new IpDTO(0L, "127.0.0.10"),
-            new IpDTO(0L, "127.0.0.11"),
             new IpDTO(0L, "127.0.0.12"),
-            new IpDTO(0L, "127.0.0.13")
-
-        );
-        assertThat(serverBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
-
-        assertThat(serverBatchList.get(4).getBatch()).isEqualTo(5);
-        assertThat(serverBatchList.get(4).getServers()).containsSequence(
+            new IpDTO(0L, "127.0.0.13"),
             new IpDTO(0L, "127.0.0.14"),
-            new IpDTO(0L, "127.0.0.15"),
-            new IpDTO(0L, "127.0.0.16")
+            new IpDTO(0L, "127.0.0.15")
+
         );
         assertThat(serverBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
     }
@@ -377,13 +365,13 @@ class RollingServerBatchResolverTest {
             new IpDTO(0L, "127.0.0.2"),
             new IpDTO(0L, "127.0.0.3"),
             new IpDTO(0L, "127.0.0.4"),
-            new IpDTO(0L, "127.0.0.5")
+            new IpDTO(0L, "127.0.0.5"),
+            new IpDTO(0L, "127.0.0.6")
         );
         assertThat(serverBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(serverBatchList.get(2).getBatch()).isEqualTo(3);
         assertThat(serverBatchList.get(2).getServers()).containsSequence(
-            new IpDTO(0L, "127.0.0.6"),
             new IpDTO(0L, "127.0.0.7"),
             new IpDTO(0L, "127.0.0.8"),
             new IpDTO(0L, "127.0.0.9"),

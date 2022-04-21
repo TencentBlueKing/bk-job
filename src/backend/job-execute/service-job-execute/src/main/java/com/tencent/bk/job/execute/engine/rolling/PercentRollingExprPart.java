@@ -70,7 +70,8 @@ public class PercentRollingExprPart extends RollingExprPart {
 
     @Override
     public List<IpDTO> compute(int total, List<IpDTO> candidateServers) {
-        int batchSize = total * percent / 100;
+        // 批次大小，需要向上取整
+        int batchSize = (total * percent + 100 - 1) / 100;
         return new ArrayList<>(candidateServers.subList(0, Math.min(batchSize, candidateServers.size())));
     }
 }
