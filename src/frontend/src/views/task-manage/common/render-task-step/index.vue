@@ -142,6 +142,7 @@
                 </components>
             </template>
             <div
+                v-if="isOperation"
                 class="step-create-btn"
                 key="create"
                 v-test="{ type: 'button', value: 'create_step' }">
