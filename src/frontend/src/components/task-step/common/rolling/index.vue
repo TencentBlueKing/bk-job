@@ -6,12 +6,14 @@
                 theme="primary"
                 @change="handleRollingEnableChange" />
         </jb-form-item>
-        <div v-show="formData[enabledField]">
+        <div v-if="formData[enabledField]">
             <jb-form-item
+                ref="expr"
                 label="滚动策略"
                 required
                 :property="exprField"
-                :rules="rollingExprRule">
+                :rules="rollingExprRule"
+                class="rolling-expr-field">
                 <div class="form-item-content">
                     <bk-input
                         :value="formData[exprField]"
@@ -20,7 +22,10 @@
                     <div v-if="errorMessage" class="strategy-error">{{ errorMessage }}</div>
                 </div>
             </jb-form-item>
-            <jb-form-item ref="rollingMode" label="滚动机制" required>
+            <jb-form-item
+                ref="rollingMode"
+                label="滚动机制"
+                required>
                 <bk-select
                     :value="formData[modeField]"
                     :clearable="false"
@@ -82,13 +87,14 @@
                     {
                         validator: (value) => {
                             try {
-                                return !!rollingExprParse(value);
+                                rollingExprParse(value);
+                                return true;
                             } catch {
                                 return false;
                             }
                         },
                         message: '滚动策略格式不正确',
-                        trigger: 'change',
+                        trigger: 'blur',
                     },
                 ];
             },
@@ -96,13 +102,26 @@
         watch: {
             formData: {
                 handler (formData) {
-                    this.handleRollingExprChange(formData[this.exprField]);
+                    this.validatorExpr(formData[this.exprField]);
                 },
                 immediate: true,
                 deep: true,
             },
         },
         methods: {
+            /**
+             * @desc 验证滚动规则
+             * @param { String } expr
+             */
+            validatorExpr (expr) {
+                try {
+                    this.errorMessage = '';
+                    this.tips = rollingExprParse(expr);
+                } catch (error) {
+                    this.tips = '';
+                    this.errorMessage = error.message;
+                }
+            },
             /**
              * @desc 是否启用滚动
              * @param { Boolean } enabled
@@ -116,32 +135,26 @@
                         [this.exprField]: '',
                         [this.modeField]: 1,
                     });
-                } else {
-                    // 滚动策略默认 10%
-                    this.$emit('on-reset', {
-                        [this.exprField]: '10%',
-                        [this.modeField]: 1,
-                    });
-                    this.$nextTick(() => {
-                        if (this.formData[this.enabledField]) {
-                            this.$refs.rollingMode.$el.scrollIntoView();
-                        }
-                    });
                 }
+                // 滚动策略默认 10%
+                this.$emit('on-reset', {
+                    [this.exprField]: '10%',
+                    [this.modeField]: 1,
+                });
+                this.$nextTick(() => {
+                    if (this.formData[this.enabledField]) {
+                        this.$refs.rollingMode.$el.scrollIntoView();
+                    }
+                });
             },
             /**
              * @desc 滚动策略更新
              * @param { String } expr 滚动表达式
              */
             handleRollingExprChange: _.debounce(function (expr) {
-                try {
-                    this.errorMessage = '';
-                    this.tips = rollingExprParse(expr);
-                    this.$emit('on-change', this.exprField, expr);
-                } catch (error) {
-                    this.tips = '';
-                    this.errorMessage = error.message;
-                }
+                this.$refs.expr && this.$refs.expr.clearValidator();
+                this.validatorExpr(expr);
+                this.$emit('on-change', this.exprField, expr);
             }, 20),
             /**
              * @desc 滚动机制更新
@@ -156,6 +169,12 @@
 <style lang="postcss">
     .task-step-rolling {
         display: block;
+
+        .rolling-expr-field {
+            .form-error-tip {
+                display: none;
+            }
+        }
 
         .strategy-tips {
             margin-top: 4px;

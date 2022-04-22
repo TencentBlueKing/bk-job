@@ -261,6 +261,7 @@
              */
             handleSelectAll () {
                 this.selectBatch = 0;
+                this.isAutoSelectRunningBatch = false;
                 this.triggerChange();
             },
             /**

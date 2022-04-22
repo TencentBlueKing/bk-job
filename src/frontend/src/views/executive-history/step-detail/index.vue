@@ -368,7 +368,7 @@
                         this.isIPSearching = false;
                         this.paginationChangeLoading = false;
                     });
-            }, 30),
+            }, 100),
             calcDetailContainerStyle: _.throttle(function () {
                 const { top } = this.$refs.detailContainer.getBoundingClientRect();
                 this.defailContainerStyles = {
@@ -430,6 +430,9 @@
              *
              */
             handelGroupChange (group) {
+                if (this.currentGroup.resultType === group.resultType) {
+                    return;
+                }
                 this.currentGroup = group;
                 this.fetchStep();
             },

@@ -115,7 +115,7 @@ export default function (exprStr) {
                 return textQueue;
             }
   
-            if (atoms.match(all)) {
+            if (all.test(atoms)) {
                 if (batchNum < batchTotal) {
                     throw new Error(`${atoms} 必须出现在最后一位`);
                 }

@@ -35,14 +35,20 @@ export default {
         };
 
         const renderSuccessIcon = () => {
-            if (data.batch === selectBatch
-                 && data.status === BATCH_STATUS_SUCCESS) {
+            if (![
+                BATCH_STATUS_SUCCESS,
+                BATCH_STATUS_INGORE_ERROR,
+            ].includes(data.status)) {
+                return null;
+            }
+            if (data.batch === selectBatch) {
                 return (
                     <div class="batch-item-status">
                         <Icon type="check-line" style="color: #2dc89d" />
                     </div>
                 );
             }
+            return null;
         };
 
         const renderConfirmIcon = () => {
@@ -63,7 +69,6 @@ export default {
         const renderFailedIcon = () => {
             if (![
                 BATCH_STATUS_FAIL,
-                BATCH_STATUS_INGORE_ERROR,
             ].includes(data.status)) {
                 return null;
             }
