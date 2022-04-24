@@ -16,7 +16,6 @@ job-file-worker-{version}.jar | File Source Access Point Springboot.jar
 job-gateway-{version}.jar | Backend Gateway Microservice Springboot.jar  
 job-logsvr-{version}.jar | Log Management Microservice Springboot.jar  
 job-manage-{version}.jar | Job Management Microservice Springboot.jar  
-job-ticket-{version}.jar | Ticket Management Microservice Springboot.jar  
 
 **Process**  
 1. Check System Dependencies
@@ -49,7 +48,6 @@ job-config (The configuration center is essential for other microservices. There
 job-manage  
 job-backup  
 job-logsvr  
-job-ticket  
 job-file-gateway  
 job-execute  
 job-crontab  
