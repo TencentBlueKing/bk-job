@@ -27,7 +27,7 @@ import com.dorongold.gradle.tasktree.TaskTreePlugin
 buildscript {
     ext {
         set('springDependencyManagePluginVersion', "1.0.11.RELEASE")
-        set("springBootVersion", "2.4.6")
+        set("springBootVersion", "2.4.13")
         set("gradleJooqVersion", "3.0.0")
     }
 
@@ -58,16 +58,17 @@ buildscript {
 plugins {
     id "java-library"
     id "io.spring.dependency-management" version '1.0.11.RELEASE' apply false
-    id 'org.springframework.boot' version '2.4.6' apply false
+    id 'org.springframework.boot' version '2.4.13' apply false
     id "idea"
     id 'nu.studer.jooq' version '3.0.0'
 }
 
 ext {
     // https://mvnrepository.com/artifact/org.springframework/spring-jdbc
-    set("springVersion", "5.3.9")
+    set("springVersion", "5.3.13")
+    set("springBeansVersion", "5.3.19")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-    set("springBootVersion", "2.4.6")
+    set("springBootVersion", "2.4.13")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
     set('springCloudVersion', "2020.0.3")
     // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
@@ -207,6 +208,7 @@ subprojects {
             dependency "org.springframework.boot:spring-boot-starter-validation:$springBootVersion"
             dependency "org.springframework:spring-jdbc:$springVersion"
             dependency "org.springframework:spring-webflux:$springVersion"
+            dependency "org.springframework:spring-beans:$springBeansVersion"
             dependency "org.projectlombok:lombok:$lombokVersion"
             dependency "javax.ws.rs:javax.ws.rs-api:$jaxrsVersion"
             dependency "org.slf4j:slf4j-api:$slf4jVersion"
