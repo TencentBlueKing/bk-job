@@ -47,9 +47,12 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.converter.TaskInstanceConverter;
+import com.tencent.bk.job.execute.model.db.RollingConfigDO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteApprovalStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteCloudAreaInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
@@ -61,10 +64,12 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.FastJobRollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
 import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
@@ -90,6 +95,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private final MessageI18nService i18nService;
     private final ExecuteAuthService executeAuthService;
     private final BusinessAuthService businessAuthService;
+    private final RollingConfigService rollingConfigService;
 
     @Autowired
     public WebTaskInstanceResourceImpl(TaskInstanceService taskInstanceService,
@@ -98,7 +104,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                        TaskOperationLogService taskOperationLogService,
                                        MessageI18nService i18nService,
                                        ExecuteAuthService executeAuthService,
-                                       BusinessAuthService businessAuthService) {
+                                       BusinessAuthService businessAuthService,
+                                       RollingConfigService rollingConfigService) {
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.hostService = hostService;
@@ -106,6 +113,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         this.i18nService = i18nService;
         this.executeAuthService = executeAuthService;
         this.businessAuthService = businessAuthService;
+        this.rollingConfigService = rollingConfigService;
     }
 
     @Override
@@ -129,7 +137,24 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         }
 
         ExecuteStepVO stepVO = convertToStepVO(stepInstance);
+        fillFastJobRollingConfigVO(stepVO, stepInstance);
+
         return Response.buildSuccessResp(stepVO);
+    }
+
+    private void fillFastJobRollingConfigVO(ExecuteStepVO stepVO, StepInstanceBaseDTO stepInstance) {
+        if (stepInstance.isRollingStep()) {
+            FastJobRollingConfigVO rollingConfigVO = new FastJobRollingConfigVO();
+            TaskInstanceRollingConfigDTO taskInstanceRollingConfigDTO =
+                rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
+            RollingConfigDO rollingConfig = taskInstanceRollingConfigDTO.getConfig();
+            rollingConfigVO.setMode(rollingConfig.getMode());
+            if (taskInstanceRollingConfigDTO.isBatchRollingStep(stepInstance.getId())) {
+                rollingConfigVO.setExpr(rollingConfig.getExpr());
+            }
+            stepVO.setRollingConfig(rollingConfigVO);
+            stepVO.setRollingEnabled(true);
+        }
     }
 
     private AuthResult authViewTaskInstance(String username, AppResourceScope appResourceScope,
@@ -199,10 +224,6 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         ExecuteStepVO stepVO = new ExecuteStepVO();
         stepVO.setName(stepInstance.getName());
         StepExecuteTypeEnum stepType = StepExecuteTypeEnum.valueOf(stepInstance.getExecuteType());
-        if (stepType == null) {
-            log.warn("Invalid step type!");
-            return null;
-        }
         if (stepType == StepExecuteTypeEnum.EXECUTE_SCRIPT || stepType == StepExecuteTypeEnum.EXECUTE_SQL) {
             stepVO.setType(TaskStepTypeEnum.SCRIPT.getType());
             ExecuteScriptStepVO scriptStepVO = new ExecuteScriptStepVO();

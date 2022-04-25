@@ -47,7 +47,7 @@ public enum StepExecuteTypeEnum {
                 return stepType;
             }
         }
-        return null;
+        throw new IllegalArgumentException("StepExecuteTypeEnum:" + type);
     }
 
     public Integer getValue() {
