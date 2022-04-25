@@ -28,9 +28,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-@ApiModel("快速作业滚动执行配置")
+@ApiModel("滚动执行配置")
 @Data
-public class FastJobRollingConfigVO {
+public class RollingConfigVO {
     @ApiModelProperty(value = "滚动分批策略表达式")
     private String expr;
 

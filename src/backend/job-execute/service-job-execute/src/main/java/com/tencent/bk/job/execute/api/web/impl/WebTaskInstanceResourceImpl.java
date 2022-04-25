@@ -64,7 +64,7 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
-import com.tencent.bk.job.execute.model.web.vo.FastJobRollingConfigVO;
+import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
@@ -137,14 +137,14 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         }
 
         ExecuteStepVO stepVO = convertToStepVO(stepInstance);
-        fillFastJobRollingConfigVO(stepVO, stepInstance);
+        fillRollingConfigForRollingStep(stepVO, stepInstance);
 
         return Response.buildSuccessResp(stepVO);
     }
 
-    private void fillFastJobRollingConfigVO(ExecuteStepVO stepVO, StepInstanceBaseDTO stepInstance) {
+    private void fillRollingConfigForRollingStep(ExecuteStepVO stepVO, StepInstanceBaseDTO stepInstance) {
         if (stepInstance.isRollingStep()) {
-            FastJobRollingConfigVO rollingConfigVO = new FastJobRollingConfigVO();
+            RollingConfigVO rollingConfigVO = new RollingConfigVO();
             TaskInstanceRollingConfigDTO taskInstanceRollingConfigDTO =
                 rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
             RollingConfigDO rollingConfig = taskInstanceRollingConfigDTO.getConfig();
@@ -483,6 +483,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         List<ExecuteStepVO> stepVOS = new ArrayList<>(stepInstances.size());
         stepInstances.forEach(stepInstance -> {
             ExecuteStepVO stepVO = convertToStepVO(stepInstance);
+            fillRollingConfigForRollingStep(stepVO, stepInstance);
             stepVOS.add(stepVO);
         });
         taskInstanceDetailVO.setSteps(stepVOS);

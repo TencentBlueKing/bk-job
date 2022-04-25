@@ -54,6 +54,6 @@ public class ExecuteStepVO {
     private boolean rollingEnabled;
 
     @ApiModelProperty(value = "滚动配置")
-    private FastJobRollingConfigVO rollingConfig;
+    private RollingConfigVO rollingConfig;
 
 }
