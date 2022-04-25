@@ -408,11 +408,24 @@ public class GseStepEventHandler implements StepEventHandler {
     }
 
     private void stopStep(StepInstanceDTO stepInstance) {
-        log.info("Force stop step, stepInstanceId={}", stepInstance.getId());
+        long stepInstanceId = stepInstance.getId();
+        log.info("Force stop step, stepInstanceId={}", stepInstanceId);
 
-        long taskInstanceId = stepInstance.getTaskInstanceId();
-
-        taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
+        int stepStatus = stepInstance.getStatus();
+        if (stepStatus == RunStatusEnum.WAITING_USER.getValue()) {
+            log.info("Step status is WAITING_USER, set terminated directly!");
+            // 等待用户的步骤可以直接结束
+            long endTime = DateUtils.currentTimeMillis();
+            long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
+                stepInstance.getTotalTime());
+            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.TERMINATED,
+                null, endTime, totalTime);
+            taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.TERMINATED.getValue());
+        } else {
+            // 正在运行中的任务无法立即结束，需要等待任务调度引擎检测到停止状态
+            long taskInstanceId = stepInstance.getTaskInstanceId();
+            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
+        }
     }
 
     /**

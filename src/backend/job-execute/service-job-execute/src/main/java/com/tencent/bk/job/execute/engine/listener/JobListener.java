@@ -148,6 +148,9 @@ public class JobListener {
 
         if (RunStatusEnum.RUNNING.getValue() == taskStatus) {
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
+        } else if (RunStatusEnum.WAITING_USER.getValue() == taskStatus) {
+            long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.stopStep(currentStepInstanceId));
         } else {
             log.warn("Unsupported task instance run status for stop task, taskInstanceId={}, status={}",
                 taskInstanceId, taskInstance.getStatus());

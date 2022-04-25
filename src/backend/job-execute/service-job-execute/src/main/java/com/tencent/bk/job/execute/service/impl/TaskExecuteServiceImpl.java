@@ -2113,8 +2113,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
-        if (!RunStatusEnum.RUNNING.getValue().equals(taskInstance.getStatus())) {
-            log.warn("TaskInstance:{} status is not running, should not terminate it!", taskInstance.getId());
+        if (!RunStatusEnum.RUNNING.getValue().equals(taskInstance.getStatus())
+            && !RunStatusEnum.WAITING_USER.getValue().equals(taskInstance.getStatus())) {
+            log.warn("TaskInstance:{} status is not running/waiting, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         if (RunStatusEnum.STOPPING.getValue().equals(taskInstance.getStatus())) {
