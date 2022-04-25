@@ -39,7 +39,6 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PrefConsts;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TypeUtil;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
@@ -478,7 +477,7 @@ public class NotifyServiceImpl implements NotifyService {
             Set<String> blackUserSet =
                 notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext).stream()
                     .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
-            logger.info(String.format("listUsers:blackUserSet:%s", String.join(",", blackUserSet)));
+            logger.debug(String.format("listUsers:blackUserSet:%s", String.join(",", blackUserSet)));
             userVOList = userVOList.stream().map(it -> {
                 if (blackUserSet.contains(it.getEnglishName())) {
                     it.setEnable(false);
@@ -530,12 +529,11 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public Integer sendSimpleNotification(ServiceNotificationDTO notification) {
-        logger.info("Input:" + notification.toString());
+        logger.debug("Input:" + notification.toString());
         // 1.获取需要通知的渠道与人员
         Map<String, Set<String>> channelUsersMap = getChannelUsersMap(notification.getTriggerDTO());
-        logger.info("channelUsersMap:");
         channelUsersMap.forEach((channel, users) ->
-            logger.info(String.format("[%s]-->[%s]", channel, String.join(","
+            logger.debug(String.format("[%s]-->[%s]", channel, String.join(","
                 , users))));
         // 2.调ESB接口发送通知
         val notifyMessageMap = notification.getNotificationMessageMap();
@@ -552,7 +550,7 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public Set<String> findUserByResourceRoles(Long appId, String triggerUser, Integer resourceType,
                                                String resourceIdStr, Set<String> roleSet) {
-        logger.info("Input:{},{},{},{},{}", appId, triggerUser, resourceType, resourceIdStr, roleSet);
+        logger.debug("Input:{},{},{},{},{}", appId, triggerUser, resourceType, resourceIdStr, roleSet);
         Set<String> userSet = new HashSet<>();
         for (String role : roleSet) {
             if (role.equals(JobRoleEnum.JOB_RESOURCE_OWNER.name())) {
@@ -606,14 +604,14 @@ public class NotifyServiceImpl implements NotifyService {
         List<NotifyTriggerPolicyDTO> notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(dslContext,
             NotifyConsts.DEFAULT_TRIGGER_USER, appId, NotifyConsts.DEFAULT_RESOURCE_ID, resourceType, triggerType,
             resourceExecuteStatus);
-        logger.info(String.format("search application policies of (triggerUser=%s,appId=%d,resourceId=%s," +
+        logger.debug(String.format("search application policies of (triggerUser=%s,appId=%d,resourceId=%s," +
                 "resourceExecuteStatus=%d)", NotifyConsts.DEFAULT_TRIGGER_USER, appId, NotifyConsts.DEFAULT_RESOURCE_ID,
             resourceExecuteStatus));
         // 2.查找当前触发者自己制定的触发策略
         if (null == notifyTriggerPolicyDTOList || notifyTriggerPolicyDTOList.isEmpty()) {
             notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(dslContext, triggerUser, appId,
                 NotifyConsts.DEFAULT_RESOURCE_ID, resourceType, triggerType, resourceExecuteStatus);
-            logger.info(String.format("search default policies of (triggerUser=%s,appId=%d,resourceId=%s," +
+            logger.debug(String.format("search default policies of (triggerUser=%s,appId=%d,resourceId=%s," +
                     "resourceExecuteStatus=%d)", triggerUser, appId, NotifyConsts.DEFAULT_RESOURCE_ID,
                 resourceExecuteStatus));
         }
@@ -624,13 +622,13 @@ public class NotifyServiceImpl implements NotifyService {
                 notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(dslContext,
                     NotifyConsts.DEFAULT_TRIGGER_USER, NotifyConsts.DEFAULT_APP_ID, NotifyConsts.DEFAULT_RESOURCE_ID,
                     resourceType, triggerType, resourceExecuteStatus);
-                logger.info(String.format("search default policies of (triggerUser=%s,appId=%d,resourceId=%s," +
+                logger.debug(String.format("search default policies of (triggerUser=%s,appId=%d,resourceId=%s," +
                         "resourceExecuteStatus=%d)", NotifyConsts.DEFAULT_TRIGGER_USER, NotifyConsts.DEFAULT_APP_ID,
                     NotifyConsts.DEFAULT_RESOURCE_ID, resourceExecuteStatus));
             }
             // 4.默认策略未配置
             if (null == notifyTriggerPolicyDTOList || notifyTriggerPolicyDTOList.isEmpty()) {
-                logger.info("Do not sendNotification because default notify policies not triggered");
+                logger.debug("Do not sendNotification because default notify policies not triggered");
             }
         }
         if (notifyTriggerPolicyDTOList == null) {
@@ -798,7 +796,6 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public Integer sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO) {
-        log.info("Input={}", JsonUtils.toJson(templateNotificationDTO));
         String templateCode = templateNotificationDTO.getTemplateCode();
         List<NotifyTemplateDTO> notifyTemplateDTOList = notifyTemplateDAO.listNotifyTemplateByCode(dslContext,
             templateCode);
@@ -979,10 +976,10 @@ public class NotifyServiceImpl implements NotifyService {
         Set<String> blackUserSet =
             notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext).stream()
                 .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
-        logger.info(String.format("sendUserChannelNotify:blackUserSet:%s", String.join(",", blackUserSet)));
+        logger.debug(String.format("sendUserChannelNotify:blackUserSet:%s", String.join(",", blackUserSet)));
         val removedBlackUserSet = userSet.stream().filter(blackUserSet::contains).collect(Collectors.toSet());
         userSet = userSet.stream().filter(it -> !blackUserSet.contains(it)).collect(Collectors.toSet());
-        logger.info(String.format("sendUserChannelNotify:%d black users are removed, removed users=[%s]",
+        logger.debug(String.format("sendUserChannelNotify:%d black users are removed, removed users=[%s]",
             removedBlackUserSet.size(), String.join(",", removedBlackUserSet)));
         return userSet;
     }
