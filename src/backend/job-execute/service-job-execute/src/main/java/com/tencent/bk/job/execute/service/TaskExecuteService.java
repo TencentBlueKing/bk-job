@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
-import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -50,11 +49,10 @@ public interface TaskExecuteService {
     /**
      * 重做快速作业实例
      *
-     * @param taskInstance 作业实例
-     * @param stepInstance 步骤实例
+     * @param fastTask 快速作业
      * @return 作业实例 ID
      */
-    Long redoFastTask(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance);
+    Long redoFastTask(FastTaskDTO fastTask);
 
     /**
      * 启动作业

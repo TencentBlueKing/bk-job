@@ -884,7 +884,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public Long redoFastTask(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
+    public Long redoFastTask(FastTaskDTO fastTask) {
+        TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
+        StepInstanceDTO stepInstance = fastTask.getStepInstance();
         long taskInstanceId = taskInstance.getId();
         if (StringUtils.isNotEmpty(stepInstance.getScriptParam()) && stepInstance.getScriptParam().equals("******")) {
             // 重做快速任务，如果是敏感参数，并且用户未修改脚本参数值(******为与前端的约定，表示用户未修改脚本参数值)，需要从原始任务取值
@@ -896,7 +898,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setScriptParam(originStepInstance.getScriptParam());
             stepInstance.setSecureParam(originStepInstance.isSecureParam());
         }
-        return executeFastTask(FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build());
+        return executeFastTask(fastTask);
     }
 
     @Override

@@ -384,13 +384,13 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                            TaskInstanceDTO taskInstance,
                                                            StepInstanceDTO stepInstance,
                                                            RollingConfigDTO rollingConfig) {
+        FastTaskDTO fastTask = FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance)
+            .rollingConfig(rollingConfig).build();
         long taskInstanceId;
         if (!isRedoTask) {
-            taskInstanceId = taskExecuteService.executeFastTask(
-                FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance)
-                    .rollingConfig(rollingConfig).build());
+            taskInstanceId = taskExecuteService.executeFastTask(fastTask);
         } else {
-            taskInstanceId = taskExecuteService.redoFastTask(taskInstance, stepInstance);
+            taskInstanceId = taskExecuteService.redoFastTask(fastTask);
         }
         StepExecuteVO stepExecuteVO = new StepExecuteVO();
         stepExecuteVO.setTaskInstanceId(taskInstanceId);
