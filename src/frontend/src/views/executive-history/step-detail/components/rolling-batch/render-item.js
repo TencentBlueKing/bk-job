@@ -55,7 +55,7 @@ export default {
             if (data.status !== BATCH_STATUS_MANUAL_CONFIRM) {
                 return null;
             }
-            if (data.status === selectBatch
+            if (data.batch === selectBatch
                 || data.batch === currentRunningBatch) {
                 return (
                     <div class="batch-item-status">

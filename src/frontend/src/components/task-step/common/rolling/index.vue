@@ -12,14 +12,29 @@
                 label="滚动策略"
                 required
                 :property="exprField"
-                :rules="rollingExprRule"
-                class="rolling-expr-field">
-                <div class="form-item-content">
+                :rules="rollingExprRule">
+                <div class="form-item-content rolling-expr-field">
                     <bk-input
                         :value="formData[exprField]"
                         @change="handleRollingExprChange" />
-                    <div v-if="tips" class="strategy-tips">{{ tips }}</div>
-                    <div v-if="errorMessage" class="strategy-error">{{ errorMessage }}</div>
+                    <div
+                        v-if="tips"
+                        class="strategy-tips">
+                        {{ tips }}
+                    </div>
+                    <div
+                        v-if="errorMessage"
+                        class="strategy-error">
+                        {{ errorMessage }}
+                    </div>
+                    <div
+                        class="rolling-expr-gudie-btn"
+                        :class="{
+                            active: isShowGuide,
+                        }"
+                        @click="handleShowGuide">
+                        <Icon type="help-document-fill" />
+                    </div>
                 </div>
             </jb-form-item>
             <jb-form-item
@@ -37,14 +52,23 @@
                 </bk-select>
             </jb-form-item>
         </div>
+        <element-teleport
+            v-if="isShowGuide"
+            target="#rollingExprGuide">
+            <Guide @on-close="handleHideGuide" />
+        </element-teleport>
     </div>
 </template>
 <script>
     import _ from 'lodash';
     import rollingExprParse from '@utils/rolling-expr-parse';
+    import Guide from './guide';
 
     export default {
         name: '',
+        components: {
+            Guide,
+        },
         props: {
             enabledField: {
                 type: String,
@@ -65,6 +89,7 @@
         },
         data () {
             return {
+                isShowGuide: false,
                 tips: '',
                 errorMessage: '',
             };
@@ -163,6 +188,12 @@
             handleRollingModeChange (rollingMode) {
                 this.$emit('on-change', this.modeField, rollingMode);
             },
+            handleShowGuide () {
+                this.isShowGuide = !this.isShowGuide;
+            },
+            handleHideGuide () {
+                this.isShowGuide = false;
+            },
         },
     };
 </script>
@@ -171,8 +202,23 @@
         display: block;
 
         .rolling-expr-field {
+            position: relative;
+
             .form-error-tip {
                 display: none;
+            }
+
+            .rolling-expr-gudie-btn {
+                position: absolute;
+                top: 0;
+                right: -22px;
+                color: #979ba5;
+                cursor: pointer;
+
+                &:hover,
+                &.active {
+                    color: #3a84ff;
+                }
             }
         }
 

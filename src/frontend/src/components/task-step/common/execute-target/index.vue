@@ -274,7 +274,7 @@
                         return !TaskHostNodeModel.isHostNodeInfoEmpty(this.localHost);
                     },
                     message: I18n.t('目标服务器必填'),
-                    trigger: 'change',
+                    trigger: 'blur',
                 },
             ];
         },

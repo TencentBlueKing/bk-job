@@ -25,23 +25,27 @@
  * IN THE SOFTWARE.
 -->
 
-<template functional>
-    <div class="card-box">
-        <div class="card-title">{{ props.title }}</div>
+<template>
+    <div class="card-layout">
+        <div class="card-layout-title">{{ title }}</div>
         <slot />
     </div>
 </template>
-
+<script>
+    export default {
+        props: {
+            title: String,
+        },
+    };
+</script>
 <style lang='postcss' scoped>
-    .card-box {
+    .card-layout {
         padding: 12px 20px 10px;
-
-        /* box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.1); */
         background: #fff;
         border: 1px solid #dde4eb;
     }
 
-    .card-title {
+    .card-layout-title {
         margin-bottom: 30px;
         font-size: 14px;
         font-weight: bold;

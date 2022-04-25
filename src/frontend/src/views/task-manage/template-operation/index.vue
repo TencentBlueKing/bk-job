@@ -28,86 +28,91 @@
 <template>
     <div
         id="templateOperation"
-        class="template-operation">
-        <div class="layout-left">
-            <scroll-faker ref="contentScroll">
-                <div class="template-container">
-                    <smart-action offset-target="bk-form-content">
-                        <jb-form
-                            :model="formData"
-                            :rules="rules"
-                            ref="templateOperateRef"
-                            v-test="{ type: 'form', value: 'template' }">
-                            <bk-alert class="info" :title="$t('template.「对作业模板的修改不会立即自动更新执行方案，需要由用户手动触发」')" />
-                            <jb-form-item
-                                :label="$t('template.模板名称')"
-                                required property="name">
-                                <jb-input
-                                    class="input form-item-content"
-                                    :placeholder="$t('template.输入作业模板名称')"
-                                    v-model="formData.name"
-                                    :maxlength="60" />
-                            </jb-form-item>
-                            <toggle-display style="margin-bottom: 20px;">
-                                <jb-form-item
-                                    :label="$t('template.场景标签.label')"
-                                    property="tags">
-                                    <jb-tag-select
-                                        class="input form-item-content"
-                                        :placeholder="$t('template.标签对资源的分类管理有很大帮助')"
-                                        v-model="formData.tags" />
-                                </jb-form-item>
-                                <jb-form-item :label="$t('template.模板描述')">
-                                    <bk-input
-                                        v-model="formData.description"
-                                        class="template-desc-textarea form-item-content"
-                                        type="textarea"
-                                        :maxlength="500"
-                                        :placeholder="$t('template.填写该模板的功能介绍等详细描述...')" />
-                                </jb-form-item>
-                            </toggle-display>
-                            <jb-form-item
-                                :label="$t('template.全局变量.label')"
-                                style="margin-bottom: 30px;">
-                                <render-global-var
-                                    :list="formData.variables"
-                                    mode="operate"
-                                    @on-change="handleGlobalVariableChange" />
-                            </jb-form-item>
-                            <jb-form-item
-                                :label="$t('template.作业步骤.label')"
-                                required
-                                property="steps"
-                                style="margin-bottom: 30px;">
-                                <render-task-step
-                                    ref="step"
-                                    :list="formData.steps"
-                                    :variable="formData.variables"
-                                    mode="operation"
-                                    @on-change="handleTaskStepChange" />
-                            </jb-form-item>
-                        </jb-form>
-                        <template #action>
-                            <bk-button
-                                class="w120 mr10"
-                                theme="primary"
-                                :loading="isSubmiting"
-                                @click="handlerSubmit"
-                                v-test="{ type: 'button', value: 'operationTemplateSubmit' }">
-                                {{ submitText }}
-                            </bk-button>
-                            <bk-button
-                                @click="handleCancel"
-                                v-test="{ type: 'button', value: 'operationTemplateCancel' }">
-                                {{ $t('template.取消') }}
-                            </bk-button>
-                        </template>
-                    </smart-action>
-                </div>
-            </scroll-faker>
-            <back-top :target="getScrollParent" />
-        </div>
-        <div id="templateOperationLayoutRight" class="layout-right" />
+        class="template-operation-page">
+        <resize-layout
+            ref="resizeLayout"
+            class="push-file-content"
+            :right-width="366"
+            :right-fixed="true">
+            <smart-action offset-target="bk-form-content">
+                <jb-form
+                    class="template-operation-form"
+                    :model="formData"
+                    :rules="rules"
+                    ref="templateOperateRef"
+                    v-test="{ type: 'form', value: 'template' }">
+                    <bk-alert
+                        class="info"
+                        :title="$t('template.「对作业模板的修改不会立即自动更新执行方案，需要由用户手动触发」')" />
+                    <jb-form-item
+                        :label="$t('template.模板名称')"
+                        required property="name">
+                        <jb-input
+                            class="input form-item-content"
+                            :placeholder="$t('template.输入作业模板名称')"
+                            v-model="formData.name"
+                            :maxlength="60" />
+                    </jb-form-item>
+                    <toggle-display style="margin-bottom: 20px;">
+                        <jb-form-item
+                            :label="$t('template.场景标签.label')"
+                            property="tags">
+                            <jb-tag-select
+                                class="input form-item-content"
+                                :placeholder="$t('template.标签对资源的分类管理有很大帮助')"
+                                v-model="formData.tags" />
+                        </jb-form-item>
+                        <jb-form-item :label="$t('template.模板描述')">
+                            <bk-input
+                                v-model="formData.description"
+                                class="template-desc-textarea form-item-content"
+                                type="textarea"
+                                :maxlength="500"
+                                :placeholder="$t('template.填写该模板的功能介绍等详细描述...')" />
+                        </jb-form-item>
+                    </toggle-display>
+                    <jb-form-item
+                        :label="$t('template.全局变量.label')"
+                        style="margin-bottom: 30px;">
+                        <render-global-var
+                            :list="formData.variables"
+                            mode="operate"
+                            @on-change="handleGlobalVariableChange" />
+                    </jb-form-item>
+                    <jb-form-item
+                        :label="$t('template.作业步骤.label')"
+                        required
+                        property="steps"
+                        style="margin-bottom: 30px;">
+                        <render-task-step
+                            ref="step"
+                            :list="formData.steps"
+                            :variable="formData.variables"
+                            mode="operation"
+                            @on-change="handleTaskStepChange" />
+                    </jb-form-item>
+                </jb-form>
+                <template #action>
+                    <bk-button
+                        class="w120 mr10"
+                        theme="primary"
+                        :loading="isSubmiting"
+                        @click="handlerSubmit"
+                        v-test="{ type: 'button', value: 'operationTemplateSubmit' }">
+                        {{ submitText }}
+                    </bk-button>
+                    <bk-button
+                        @click="handleCancel"
+                        v-test="{ type: 'button', value: 'operationTemplateCancel' }">
+                        {{ $t('template.取消') }}
+                    </bk-button>
+                </template>
+            </smart-action>
+            <div
+                slot="right"
+                id="globalVariableGuide" />
+        </resize-layout>
+        <back-top :target="getScrollParent" />
     </div>
 </template>
 <script>
@@ -119,6 +124,7 @@
     import JbTagSelect from '@components/jb-tag-select';
     import JbInput from '@components/jb-input';
     import BackTop from '@components/back-top';
+    import ResizeLayout from '@components/resize-layout';
     import RenderGlobalVar from '../common/render-global-var';
     import RenderTaskStep from '../common/render-task-step';
     import ToggleDisplay from './components/toggle-display';
@@ -129,6 +135,7 @@
             JbTagSelect,
             JbInput,
             BackTop,
+            ResizeLayout,
             ToggleDisplay,
             RenderGlobalVar,
             RenderTaskStep,
@@ -289,7 +296,12 @@
                 });
             },
             getScrollParent () {
-                return this.$refs.contentScroll.$el.querySelector('.scroll-faker-content');
+                return this
+                    .$refs
+                    .resizeLayout
+                    .$el
+                    .querySelector('.jb-resize-layout-left')
+                    .querySelector('.scroll-faker-content');
             },
             /**
              * @desc 克隆作业模板时提示密文变量
@@ -710,25 +722,18 @@
 <style lang='postcss'>
     @import "@/css/mixins/media";
 
-    .template-operation {
-        display: flex;
+    .template-operation-page {
+        .push-file-content {
+            height: calc(100vh - 104px);
 
-        .layout-left {
-            height: calc(100vh - 124px);
-            margin-right: auto;
-            flex: 1 1 auto;
-            transform: translate(0, 0);
-
-            .template-container {
-                padding-right: 100px;
+            .jb-resize-layout-right {
+                padding-bottom: 52px;
+                background: #fff;
             }
         }
 
-        .layout-right {
-            height: calc(100vh - 104px);
-            margin-top: -20px;
-            margin-right: -24px;
-            flex: 0 0 auto;
+        .template-operation-form {
+            padding: 20px 24px 0;
         }
 
         .info {

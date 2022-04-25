@@ -111,10 +111,9 @@
                 :edit-of-plan="isEditOfPlan"
                 :default-field="defaultField" />
             <element-teleport
-                v-if="isOperation"
-                target="#templateOperationLayoutRight">
+                v-if="isOperation && isShowUseGuide"
+                target="#globalVariableGuide">
                 <variable-use-guide
-                    v-if="isShowUseGuide"
                     @on-close="handleUseGuideClose" />
             </element-teleport>
             <jb-sideslider

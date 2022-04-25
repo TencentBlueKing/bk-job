@@ -84,7 +84,7 @@
             return {
                 list: [],
                 selectBatch: '',
-                isPrePageBtnDisabled: false,
+                isPrePageBtnDisabled: true,
                 isNextPageBtnDisabled: false,
                 contentWidth: '100%',
                 startIndex: 0,
@@ -213,14 +213,29 @@
             showConfirmActionPanel () {
                 setTimeout(() => {
                     const $targetItemEl = this.$refs.box.querySelector('.batch-item.confirm');
-                    
+                    // 确认批次变更
                     if (this.popperInstance
                         && this.popperInstance.reference !== $targetItemEl) {
                         this.popperInstance.hide();
                         this.popperInstance.destroy();
                         this.popperInstance = null;
                     }
+                    // 没有待确认批次
                     if (!$targetItemEl) {
+                        return;
+                    }
+                    const {
+                        left: parentLeft,
+                    } = this.$refs.list.getBoundingClientRect();
+                    const {
+                        left: confirmBtnLeft,
+                        width: confirmBtnWidth,
+                    } = $targetItemEl.getBoundingClientRect();
+                    // 切换批次后待确认批次不可见
+                    if (confirmBtnLeft + confirmBtnWidth / 2 < parentLeft) {
+                        this.popperInstance.hide();
+                        this.popperInstance.destroy();
+                        this.popperInstance = null;
                         return;
                     }
                     if (!this.popperInstance) {
@@ -326,36 +341,35 @@
                     right: locationItemEnd,
                 } = $locationBatchItemEl.getBoundingClientRect();
 
+                const maxOffset = containerWidth - this.itemTotalWidth;
+
                 // 将要定位的批次在可见范围之内，不进行滚动位移
                 if (locationItemStart + 10 > containerStart && locationItemEnd + 10 < containerEnd) {
                     return;
-                }
-                
-                if (selectBatch > $itemListEl.length) {
+                } else if (selectBatch > $itemListEl.length) {
+                    // 已经到最后一个了
                     this.startIndex = $itemListEl.length - this.scrollNum;
-                    this.scrollPosition = containerWidth - this.itemTotalWidth;
-                    return;
-                }
+                    this.scrollPosition = maxOffset;
+                } else {
+                    const locationItemLeftPosition = Array.from($itemListEl).reduce((result, $item, index) => {
+                        if (index < selectBatch) {
+                            return result + $item.getBoundingClientRect().width;
+                        }
+                        return result;
+                    }, 0);
 
-                const locationItemLeftPosition = Array.from($itemListEl).reduce((result, $item, index) => {
-                    if (index < selectBatch) {
-                        return result + $item.getBoundingClientRect().width;
-                    }
-                    return result;
-                }, 0);
-
-                // 定位批次居中
-                const achorPosition = containerWidth / 2 - locationItemWidth / 2;
-                const indexOffset = Math.floor((containerWidth / 2) / locationItemWidth);
-                const maxOffset = containerWidth - this.itemTotalWidth;
+                    // 定位批次居中
+                    const achorPosition = containerWidth / 2 - locationItemWidth / 2;
+                    const indexOffset = Math.floor((containerWidth / 2) / locationItemWidth);
                 
-                this.scrollPosition = Math.max(
-                    Math.min(achorPosition - locationItemLeftPosition, 0),
-                    maxOffset,
-                );
+                    this.scrollPosition = Math.max(
+                        Math.min(achorPosition - locationItemLeftPosition, 0),
+                        maxOffset,
+                    );
+                    this.startIndex = selectBatch - indexOffset;
+                }
                 this.isPrePageBtnDisabled = this.scrollPosition === 0;
                 this.isNextPageBtnDisabled = this.scrollPosition === maxOffset;
-                this.startIndex = selectBatch - indexOffset;
             },
             
             /**
@@ -363,8 +377,8 @@
              */
             handlePreScroll () {
                 setTimeout(() => {
-                    this.popperInstance.show();
-                }, 200);
+                    this.showConfirmActionPanel();
+                }, 160);
                 const startIndex = this.startIndex - this.scrollNum;
                 if (startIndex <= 0) {
                     this.startIndex = 0;
@@ -389,8 +403,8 @@
              */
             handleNextBatch () {
                 setTimeout(() => {
-                    this.popperInstance.show();
-                }, 200);
+                    this.showConfirmActionPanel();
+                }, 160);
                 const nextStartIndex = this.startIndex + this.scrollNum;
 
                 const $listEl = this.$refs.list;
