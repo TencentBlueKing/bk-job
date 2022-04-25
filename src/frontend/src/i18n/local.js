@@ -503,4 +503,10 @@ export default {
     恢复完整拓扑: 'Show full topo',
     '确认退出登录？': 'Are you sure to logout ?',
     数据为空: 'Empty',
+    滚动执行: 'Rolling Exec',
+    滚动策略: 'Strategy',
+    滚动机制: 'Mode',
+    '默认（执行失败则暂停）': 'Default(Pause when fail)',
+    '忽略失败，自动滚动下一批': 'Ignore fail, scrolling automatically',
+    '不自动，每批次都人工确认': 'Pause after each batch',
 };

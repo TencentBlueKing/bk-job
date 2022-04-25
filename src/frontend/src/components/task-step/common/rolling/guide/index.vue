@@ -68,9 +68,18 @@
             line-height: 18px;
             color: #63656e;
 
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                font-weight: normal;
+                color: #313238;
+            }
+
             h1 {
                 font-size: 16px;
-                font-weight: bold;
             }
 
             h3 {
@@ -99,7 +108,7 @@
                     padding: 8px 12px;
                     margin-top: 10px;
                     overflow-x: auto;
-                    line-height: 22px;
+                    line-height: 24px;
                     color: #6a9a7b;
                     text-align: left;
                     white-space: pre;
@@ -109,6 +118,8 @@
             }
 
             ul {
+                line-height: 24px;
+
                 & > li {
                     position: relative;
                     padding-left: 11px;
@@ -116,7 +127,7 @@
 
                     &::before {
                         position: absolute;
-                        top: 6px;
+                        top: 9px;
                         left: 0;
                         width: 5px;
                         height: 5px;
@@ -129,6 +140,26 @@
 
                     &:nth-child(n+2) {
                         margin-top: 20px;
+                    }
+                }
+
+                ul > li {
+                    &::before {
+                        position: absolute;
+                        top: 9px;
+                        left: 0;
+                        width: 5px;
+                        height: 5px;
+                        margin-right: 6px;
+                        vertical-align: middle;
+                        background: #fff;
+                        border: 1px solid #979ba5;
+                        border-radius: 50%;
+                        content: "";
+                    }
+
+                    &:nth-child(n+2) {
+                        margin-top: 0;
                     }
                 }
             }

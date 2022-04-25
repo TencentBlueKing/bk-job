@@ -727,8 +727,12 @@
             height: calc(100vh - 104px);
 
             .jb-resize-layout-right {
-                padding-bottom: 52px;
                 background: #fff;
+
+                .variable-use-guide {
+                    height: calc(100vh - 104px);
+                    padding-bottom: 52px;
+                }
             }
         }
 

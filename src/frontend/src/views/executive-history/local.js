@@ -204,7 +204,10 @@ export default {
         准备就绪: 'Ready',
         '分组标签长度最大支持256，超过会被自动截断，请留意！': 'The maximum length of the grouping tag is 256. If exceeded, it will be automatically truncated.',
         自动换行: 'Word-wrap',
-        '滚动策略：': '',
-        '滚动机制：': '',
+        '滚动策略：': 'Strategy: ',
+        '滚动机制：': 'Mode: ',
+        '默认（执行失败则暂停）': 'Default(Pause when fail)',
+        '忽略失败，自动滚动下一批': 'Ignore fail, scrolling automatically',
+        '不自动，每批次都人工确认': 'Pause after each batch',
     },
 };

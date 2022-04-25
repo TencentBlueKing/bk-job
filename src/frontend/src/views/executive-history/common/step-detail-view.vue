@@ -31,21 +31,22 @@
         v-bkloading="{ isLoading }">
         <task-step-view
             :variable="variableList"
-            :data="stepInfo" />
-        <detail-item
-            v-if="rollingConfigExpr"
-            :label="$t('history.滚动策略：')">
-            <span
-                class="tips"
-                v-bk-tooltips.right="rollingExprParse(rollingConfigExpr)">
-                {{ rollingConfigExpr }}
-            </span>
-        </detail-item>
-        <detail-item
-            v-if="rollingModeText"
-            :label="$t('history.滚动机制：')">
-            {{ rollingModeText }}
-        </detail-item>
+            :data="stepInfo">
+            <detail-item
+                v-if="rollingConfigExpr"
+                :label="$t('history.滚动策略：')">
+                <span
+                    class="tips"
+                    v-bk-tooltips.right="rollingExprParse(rollingConfigExpr)">
+                    {{ rollingConfigExpr }}
+                </span>
+            </detail-item>
+            <detail-item
+                v-if="rollingModeText"
+                :label="$t('history.滚动机制：')">
+                {{ rollingModeText }}
+            </detail-item>
+        </task-step-view>
     </div>
 </template>
 <script>
@@ -133,10 +134,3 @@
         },
     };
 </script>
-<style lang="postcss">
-    .history-step-detail-view {
-        .detail-label {
-            color: #b2b5bd;
-        }
-    }
-</style>

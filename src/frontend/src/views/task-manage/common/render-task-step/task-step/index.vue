@@ -47,17 +47,20 @@
                             <bk-radio-button
                                 :value="1"
                                 :disabled="isStepTypeReadOnly">
-                                {{ $t('template.执行脚本') }}
+                                <Icon type="add-script" />
+                                <span>{{ $t('template.执行脚本') }}</span>
                             </bk-radio-button>
                             <bk-radio-button
                                 :value="2"
                                 :disabled="isStepTypeReadOnly">
-                                {{ $t('template.分发文件') }}
+                                <Icon type="add-file" />
+                                <span>{{ $t('template.分发文件') }}</span>
                             </bk-radio-button>
                             <bk-radio-button
                                 :value="3"
                                 :disabled="isStepTypeReadOnly">
-                                {{ $t('template.人工确认') }}
+                                <Icon type="add-approval" />
+                                <span>{{ $t('template.人工确认') }}</span>
                             </bk-radio-button>
                         </bk-radio-group>
                     </bk-form-item>
