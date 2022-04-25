@@ -149,6 +149,7 @@ public class JobListener {
         if (RunStatusEnum.RUNNING.getValue() == taskStatus) {
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
         } else if (RunStatusEnum.WAITING_USER.getValue() == taskStatus) {
+            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
             long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
             taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.stopStep(currentStepInstanceId));
         } else {

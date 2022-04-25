@@ -413,14 +413,14 @@ public class GseStepEventHandler implements StepEventHandler {
 
         int stepStatus = stepInstance.getStatus();
         if (stepStatus == RunStatusEnum.WAITING_USER.getValue()) {
-            log.info("Step status is WAITING_USER, set terminated directly!");
+            log.info("Step status is WAITING_USER, set step status stop_success directly!");
             // 等待用户的步骤可以直接结束
             long endTime = DateUtils.currentTimeMillis();
-            long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
-                stepInstance.getTotalTime());
-            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.TERMINATED,
-                null, endTime, totalTime);
-            taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.TERMINATED.getValue());
+            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
+                null, endTime, TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
+                    stepInstance.getTotalTime()));
+            taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                EventSource.buildStepEventSource(stepInstanceId)));
         } else {
             // 正在运行中的任务无法立即结束，需要等待任务调度引擎检测到停止状态
             long taskInstanceId = stepInstance.getTaskInstanceId();

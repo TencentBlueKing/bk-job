@@ -76,10 +76,6 @@ public class StepListener {
 
     private void dispatchEvent(StepEvent stepEvent, StepInstanceDTO stepInstance) {
         StepExecuteTypeEnum stepType = StepExecuteTypeEnum.valueOf(stepInstance.getExecuteType());
-        if (stepType == null) {
-            log.error("Invalid step execute type: {}", stepInstance.getExecuteType());
-            return;
-        }
 
         switch (stepType) {
             case EXECUTE_SCRIPT:
