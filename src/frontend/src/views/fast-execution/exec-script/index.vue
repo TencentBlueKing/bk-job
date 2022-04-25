@@ -226,6 +226,15 @@
                 }), () => {
                     this.isLoading = true;
                 }).then((data) => {
+                    console.log('from asada = ', data);
+                    const {
+                        name,
+                        rollingEnabled,
+                        rollingConfig: {
+                            expr: rollingExpr,
+                            mode: rollingMode,
+                        },
+                    } = data.stepInfo;
                     const {
                         account,
                         content,
@@ -238,16 +247,11 @@
                         secureParam,
                         timeout,
                         executeTarget,
-                        rollingExecutionConfig: {
-                            enabled: rollingEnabled,
-                            expr: rollingExpr,
-                            mode: rollingMode,
-                        },
                     } = data.stepInfo.scriptStepInfo;
 
                     this.formData = {
                         ...this.formData,
-                        name: data.stepInfo.name,
+                        name,
                         account,
                         content,
                         ignoreError,
