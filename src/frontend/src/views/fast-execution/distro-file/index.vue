@@ -243,7 +243,14 @@
                 }), () => {
                     this.isLoading = true;
                 }).then((data) => {
-                    const { stepInfo } = data;
+                    const {
+                        name,
+                        rollingEnabled,
+                        rollingConfig: {
+                            expr: rollingExpr,
+                            mode: rollingMode,
+                        },
+                    } = data.stepInfo;
                     const {
                         downloadSpeedLimit,
                         fileDestination: {
@@ -255,16 +262,11 @@
                         timeout,
                         transferMode,
                         uploadSpeedLimit,
-                        rollingEnabled,
-                        rollingConfig: {
-                            expr: rollingExpr,
-                            mode: rollingMode,
-                        },
-                    } = stepInfo.fileStepInfo;
+                    } = data.stepInfo.fileStepInfo;
                     
                     this.formData = {
                         ...this.formData,
-                        name: stepInfo.name,
+                        name,
                         uploadSpeedLimit,
                         downloadSpeedLimit,
                         account,
