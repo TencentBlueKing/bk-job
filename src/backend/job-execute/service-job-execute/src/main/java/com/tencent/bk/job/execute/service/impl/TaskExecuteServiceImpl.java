@@ -1345,7 +1345,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstanceVariableService.saveTaskInstanceVariables(taskVariables);
             taskInstance.setVariables(taskVariables);
         }
-        log.info("Save taskInstance={}", JsonUtils.toJson(taskInstance));
+        log.info("Save taskInstance successfully! taskInstanceId: {}", taskInstance.getId());
         return taskInstance;
     }
 
