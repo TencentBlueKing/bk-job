@@ -249,9 +249,11 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
         window.addEventListener('popstate', callback);
         setTimeout(() => {
             const currentRoute = _.last(router.currentRoute.matched);
-            currentRoute.instances.default.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('popstate', callback);
-            });
+            if (currentRoute) {
+                currentRoute.instances.default.$once('hook:beforeDestroy', () => {
+                    window.removeEventListener('popstate', callback);
+                });
+            }
         });
     });
     return router;
