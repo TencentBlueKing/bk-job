@@ -33,7 +33,9 @@
                             active: isShowGuide,
                         }"
                         @click="handleShowGuide">
-                        <Icon type="help-document-fill" />
+                        <Icon
+                            v-bk-tooltips="`${$t('查看使用指引')}`"
+                            type="help-document-fill" />
                     </div>
                 </div>
             </jb-form-item>

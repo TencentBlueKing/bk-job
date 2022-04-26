@@ -35,7 +35,7 @@ export default {
                 class={classes}
                 key="all"
                 onClick={handleClick}>
-                全部批次
+                {context.parent.$t('history.全部批次')}
             </div>
         );
     },

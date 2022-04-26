@@ -229,5 +229,30 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
             window.location.href = lastRouterHrefCache;
         }
     });
+    router.beforeEach((to, form, next) => {
+        window.onpopstate = () => {};
+        next();
+    });
+    router.afterEach(() => {
+        history.pushState(null, null, document.URL);
+        const callback = () => {
+            leaveConfirm()
+                .then(() => {
+                    window.removeEventListener('popstate', callback);
+                    window.history.go(-2);
+                })
+                .catch(() => {
+                    history.pushState(null, null, document.URL);
+                });
+        };
+        
+        window.addEventListener('popstate', callback);
+        setTimeout(() => {
+            const currentRoute = _.last(router.currentRoute.matched);
+            currentRoute.instances.default.$once('hook:beforeDestroy', () => {
+                window.removeEventListener('popstate', callback);
+            });
+        });
+    });
     return router;
 };

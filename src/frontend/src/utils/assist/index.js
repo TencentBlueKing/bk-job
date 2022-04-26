@@ -38,6 +38,7 @@ export * from './script-error-alert';
 export * from './byte-pretty';
 export * from './format';
 export * from './calc-text-width';
+export * from './ordinal-suffix-of';
 
 export const isMac = () => /macintosh|mac os x/i.test(navigator.userAgent);
 

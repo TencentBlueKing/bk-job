@@ -12,14 +12,14 @@ By default, Job runs in parallel against all the hosts set in the `host(s)` fiel
 	- Equations (such as `+n` or `*n`) are only allowed to appear in the last digit
 	- `0` is not allowed
 - Usage
-	- n
-	  `n` must be an integer value representing a specific number of host(s)
-	- n%
-	  `n` must be an integer value, representing n percent of the total number of hosts (rounded upwards if float is encountered)
-	- +n
-	  Means an additional `n` hosts on the basis of previous batch each time
-	- *n
-	  Means multiply by `n` on the basis of previous batch each time
+	- n   
+  `n` must be an integer value representing a specific number of host(s)
+	- n%   
+  `n` must be an integer value, representing n percent of the total number of hosts (rounded upwards if float is encountered)
+	- +n   
+  Means an additional `n` hosts on the basis of previous batch each time
+	- *n   
+  Means multiply by `n` on the basis of previous batch each time
 
 ### Example
 If you have 100 hosts to run:

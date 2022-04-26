@@ -37,7 +37,7 @@
                     ref="pushFileForm"
                     v-test="{ type: 'form', value: 'pushFile' }"
                     :model="formData">
-                    <card-layout :title="$t('execution.基本信息')" class="block">
+                    <card-layout :title="$t('execution.基本信息')">
                         <item-factory
                             name="stepName"
                             field="name"
@@ -63,14 +63,16 @@
                             :form-data="formData"
                             @on-change="handleChange" />
                     </card-layout>
-                    <card-layout :title="$t('execution.文件来源')" class="block">
+                    <card-layout :title="$t('execution.文件来源')">
                         <item-factory
                             name="sourceFileOfExecution"
                             field="fileSourceList"
                             :form-data="formData"
                             @on-change="handleChange" />
                     </card-layout>
-                    <card-layout :title="$t('execution.传输目标')" class="block" style="margin-bottom: 0;">
+                    <card-layout
+                        :title="$t('execution.传输目标')"
+                        style="margin-bottom: 20px;">
                         <item-factory
                             ref="targetPath"
                             name="targetPath"

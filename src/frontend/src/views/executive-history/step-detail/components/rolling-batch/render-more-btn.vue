@@ -54,12 +54,12 @@
                         size="small"
                         style="margin-right: 8px;"
                         @click="handleGoBatch">
-                        确定
+                        {{ $t('history.确定') }}
                     </bk-button>
                     <bk-button
                         size="small"
                         @click="handleCancelGoBatch">
-                        取消
+                        {{ $t('history.取消') }}
                     </bk-button>
                 </div>
             </div>

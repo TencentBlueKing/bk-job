@@ -56,7 +56,7 @@
                 <span
                     style="color: #3a84ff; cursor: pointer;"
                     @click="handleConfirmExecute">
-                    确认继续执行
+                    {{ $t('history.确认继续执行') }}
                 </span>
             </div>
         </div>

@@ -1,3 +1,5 @@
+import { ordinalSuffixOf } from '@utils/assist';
+
 const BATCH_STATUS_RUNNING = 2;
 const BATCH_STATUS_SUCCESS = 3;
 const BATCH_STATUS_FAIL = 4;
@@ -95,12 +97,16 @@ export default {
             return null;
         };
 
+        const renderText = context.parent.$i18n.locale === 'en-US'
+            ? ordinalSuffixOf(data.batch)
+            : `第 ${data.batch} 批`;
+
         return (
             <div
                 class={clasess}
                 key={data.batch}
                 onClick={handleClickSelect}>
-                第 { data.batch } 批
+                {renderText}
                 {renderSuccessIcon()}
                 {renderConfirmIcon()}
                 {renderFailedIcon()}

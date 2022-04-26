@@ -105,6 +105,7 @@
             </div>
             <!-- 主机分组 -->
             <group-tab
+                :value="currentGroup"
                 :data="data.resultGroups"
                 @on-change="handelGroupChange" />
             <div
