@@ -50,7 +50,7 @@ public enum RestrictModeEnum {
     @JsonValue
     private int type;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static RestrictModeEnum valueOf(int type) {
         val values = RestrictModeEnum.values();
         for (int i = 0; i < values.length; i++) {

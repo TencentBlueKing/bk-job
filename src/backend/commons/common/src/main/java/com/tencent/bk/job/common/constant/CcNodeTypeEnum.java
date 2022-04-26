@@ -56,7 +56,7 @@ public enum CcNodeTypeEnum {
 
     private String name;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static CcNodeTypeEnum parseString(String type) {
         for (CcNodeTypeEnum value : values()) {
             if (value.type.equals(type)) {

@@ -55,7 +55,7 @@ public enum AnalysisTaskStatusEnum {
     @JsonValue
     private int value;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static AnalysisTaskStatusEnum valueOf(int value) {
         for (AnalysisTaskStatusEnum analysisTaskStatus : values()) {
             if (analysisTaskStatus.value == value) {

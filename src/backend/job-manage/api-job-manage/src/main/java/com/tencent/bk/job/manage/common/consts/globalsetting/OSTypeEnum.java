@@ -51,7 +51,7 @@ public enum OSTypeEnum {
     @JsonValue
     private int type;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static OSTypeEnum valueOf(int type) {
         val values = OSTypeEnum.values();
         for (int i = 0; i < values.length; i++) {
