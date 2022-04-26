@@ -74,4 +74,3 @@ job-file-worker-{version}.jar | 文件源接入点Springboot.jar
 job-gateway-{version}.jar | 后台网关微服务Springboot.jar  
 job-logsvr-{version}.jar | 日志管理微服务Springboot.jar  
 job-manage-{version}.jar | 作业管理微服务Springboot.jar  
-job-ticket-{version}.jar | 凭据管理微服务Springboot.jar  

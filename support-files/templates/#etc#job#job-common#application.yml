@@ -1,4 +1,8 @@
 spring:
+  cloud:
+    consul:
+      discovery:
+        query-passing: true
   security:
     user:
       name: __BK_JOB_SECURITY_USERNAME__
