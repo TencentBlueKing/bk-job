@@ -51,7 +51,7 @@ public enum HttpRequestSourceEnum {
         this.value = value;
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static HttpRequestSourceEnum valueOf(int value) {
         for (HttpRequestSourceEnum httpRequestSource : values()) {
             if (httpRequestSource.value == value) {
