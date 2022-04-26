@@ -26,7 +26,7 @@ public enum NotificationPolicyEnum {
     @JsonValue
     private int value;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static NotificationPolicyEnum valueOf(int type) {
         for (NotificationPolicyEnum notificationPolicy : values()) {
             if (notificationPolicy.value == type) {

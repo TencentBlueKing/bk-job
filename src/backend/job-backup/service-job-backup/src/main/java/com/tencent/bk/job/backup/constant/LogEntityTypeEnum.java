@@ -79,7 +79,7 @@ public enum LogEntityTypeEnum {
     @JsonValue
     private final Integer type;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static LogEntityTypeEnum valueOf(Integer type) {
         for (LogEntityTypeEnum value : values()) {
             if (value.getType().equals(type)) {

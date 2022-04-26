@@ -55,7 +55,7 @@ public enum ErrorType {
         return type;
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static ErrorType valOf(Integer type) {
         if (type == null) {
             return null;
