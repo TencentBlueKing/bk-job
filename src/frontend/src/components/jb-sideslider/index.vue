@@ -242,7 +242,6 @@
                         const currentEl = $elList[i];
                         
                         const { height } = currentEl.getBoundingClientRect();
-                        console.log('from checkhegiht = ', height, currentEl);
                         if (height === 0) {
                             return false;
                         }
@@ -255,8 +254,6 @@
                     }
                     return false;
                 };
-
-                console.log('from checkbox footer = ', checkHeight(this.$refs.content));
 
                 // 计算footer是否固定在底部
                 this.isFooterFixed = checkHeight(this.$refs.content);

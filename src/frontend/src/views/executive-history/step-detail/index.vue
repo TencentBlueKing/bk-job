@@ -331,8 +331,6 @@
                     }
                     this.data = Object.freeze(data);
 
-                    // console.log(this.data);
-
                     this.calcDetailContainerStyle();
 
                     this.isFile = data.isFile;

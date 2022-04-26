@@ -226,7 +226,6 @@
                 }), () => {
                     this.isLoading = true;
                 }).then((data) => {
-                    console.log('from asada = ', data);
                     const {
                         name,
                         rollingEnabled,
