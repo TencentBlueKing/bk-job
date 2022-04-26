@@ -65,7 +65,7 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
 
     @Override
     public AuthResult authCreateScript(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(true, username, ActionId.CREATE_SCRIPT, appResourceScope);
+        return appAuthService.auth(false, username, ActionId.CREATE_SCRIPT, appResourceScope);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
                                      AppResourceScope appResourceScope,
                                      String scriptId,
                                      String scriptName) {
-        return authService.auth(true, username, ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT, scriptId,
+        return authService.auth(false, username, ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT, scriptId,
             buildAppScopePath(appResourceScope));
     }
 
@@ -82,7 +82,7 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
                                        AppResourceScope appResourceScope,
                                        String scriptId,
                                        String scriptName) {
-        return authService.auth(true, username, ActionId.MANAGE_SCRIPT, ResourceTypeEnum.SCRIPT, scriptId,
+        return authService.auth(false, username, ActionId.MANAGE_SCRIPT, ResourceTypeEnum.SCRIPT, scriptId,
             buildAppScopePath(appResourceScope));
     }
 

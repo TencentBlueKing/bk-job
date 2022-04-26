@@ -62,7 +62,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
 
     @Override
     public AuthResult authCreateTicket(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(true, username, ActionId.CREATE_TICKET, appResourceScope);
+        return appAuthService.auth(false, username, ActionId.CREATE_TICKET, appResourceScope);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
                                        AppResourceScope appResourceScope,
                                        String ticketId,
                                        String ticketName) {
-        return authService.auth(true, username, ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET, ticketId,
+        return authService.auth(false, username, ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET, ticketId,
             buildAppScopePath(appResourceScope));
     }
 
@@ -79,7 +79,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
                                     AppResourceScope appResourceScope,
                                     String ticketId,
                                     String ticketName) {
-        return authService.auth(true, username, ActionId.USE_TICKET, ResourceTypeEnum.TICKET, ticketId,
+        return authService.auth(false, username, ActionId.USE_TICKET, ResourceTypeEnum.TICKET, ticketId,
             buildAppScopePath(appResourceScope));
     }
 

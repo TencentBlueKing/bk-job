@@ -52,22 +52,22 @@ public class NoResourceScopeAuthServiceImpl implements NoResourceScopeAuthServic
 
     @Override
     public AuthResult authCreateWhiteList(String username) {
-        return authService.auth(true, username, ActionId.CREATE_WHITELIST);
+        return authService.auth(false, username, ActionId.CREATE_WHITELIST);
     }
 
     @Override
     public AuthResult authManageWhiteList(String username) {
-        return authService.auth(true, username, ActionId.MANAGE_WHITELIST);
+        return authService.auth(false, username, ActionId.MANAGE_WHITELIST);
     }
 
     @Override
     public AuthResult authCreatePublicScript(String username) {
-        return authService.auth(true, username, ActionId.CREATE_PUBLIC_SCRIPT);
+        return authService.auth(false, username, ActionId.CREATE_PUBLIC_SCRIPT);
     }
 
     @Override
     public AuthResult authManagePublicScript(String username, String scriptId) {
-        return authService.auth(true, username,
+        return authService.auth(false, username,
             ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE, ResourceTypeEnum.PUBLIC_SCRIPT, scriptId, null);
     }
 
@@ -90,28 +90,28 @@ public class NoResourceScopeAuthServiceImpl implements NoResourceScopeAuthServic
 
     @Override
     public AuthResult authGlobalSetting(String username) {
-        return authService.auth(true, username, ActionId.GLOBAL_SETTINGS);
+        return authService.auth(false, username, ActionId.GLOBAL_SETTINGS);
     }
 
     @Override
     public AuthResult authViewDashBoard(String username, String dashBoardId) {
-        return authService.auth(true, username, ActionId.DASHBOARD_VIEW, ResourceTypeEnum.DASHBOARD_VIEW,
+        return authService.auth(false, username, ActionId.DASHBOARD_VIEW, ResourceTypeEnum.DASHBOARD_VIEW,
             dashBoardId, null);
     }
 
     @Override
     public AuthResult authViewServiceState(String username) {
-        return authService.auth(true, username, ActionId.SERVICE_STATE_ACCESS);
+        return authService.auth(false, username, ActionId.SERVICE_STATE_ACCESS);
     }
 
     @Override
     public AuthResult authHighRiskDetectRule(String username) {
-        return authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RULE);
+        return authService.auth(false, username, ActionId.HIGH_RISK_DETECT_RULE);
     }
 
     @Override
     public AuthResult authHighRiskDetectRecord(String username) {
-        return authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RECORD);
+        return authService.auth(false, username, ActionId.HIGH_RISK_DETECT_RECORD);
     }
 
     @Override

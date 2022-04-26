@@ -61,7 +61,7 @@ public class AccountAuthServiceImpl implements AccountAuthService {
 
     @Override
     public AuthResult authCreateAccount(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(true, username, ActionId.CREATE_ACCOUNT, appResourceScope);
+        return appAuthService.auth(false, username, ActionId.CREATE_ACCOUNT, appResourceScope);
     }
 
     private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {

@@ -86,7 +86,7 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
         logger.infoWithRequestId("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
             "controlUriPatterns=" + getControlUriPatternsList());
         if (pathMatcher.match(URI_PATTERN_DANGEROUS_RECORD, uri)) {
-            AuthResult authResult = authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RECORD);
+            AuthResult authResult = authService.auth(false, username, ActionId.HIGH_RISK_DETECT_RECORD);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }

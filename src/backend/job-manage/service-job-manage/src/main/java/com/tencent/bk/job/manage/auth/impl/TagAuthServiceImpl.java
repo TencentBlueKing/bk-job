@@ -64,7 +64,7 @@ public class TagAuthServiceImpl implements TagAuthService {
 
     @Override
     public AuthResult authCreateTag(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(true, username, ActionId.CREATE_TAG, appResourceScope);
+        return appAuthService.auth(false, username, ActionId.CREATE_TAG, appResourceScope);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class TagAuthServiceImpl implements TagAuthService {
                                     AppResourceScope appResourceScope,
                                     Long tagId,
                                     String tagName) {
-        return authService.auth(true, username, ActionId.MANAGE_TAG, ResourceTypeEnum.TAG, tagId.toString(),
+        return authService.auth(false, username, ActionId.MANAGE_TAG, ResourceTypeEnum.TAG, tagId.toString(),
             buildAppScopePath(appResourceScope));
     }
 

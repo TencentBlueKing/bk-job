@@ -75,7 +75,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                         AppResourceScope appResourceScope,
                                         Long jobTemplateId,
                                         String jobTemplateName) {
-        return authService.auth(true, username, ActionId.CREATE_JOB_PLAN, ResourceTypeEnum.TEMPLATE,
+        return authService.auth(false, username, ActionId.CREATE_JOB_PLAN, ResourceTypeEnum.TEMPLATE,
             jobTemplateId.toString(), buildAppScopePath(appResourceScope));
     }
 
@@ -85,7 +85,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
-        return authService.auth(true, username, ActionId.VIEW_JOB_PLAN, ResourceTypeEnum.PLAN,
+        return authService.auth(false, username, ActionId.VIEW_JOB_PLAN, ResourceTypeEnum.PLAN,
             jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
     }
 
@@ -95,7 +95,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
-        return authService.auth(true, username, ActionId.EDIT_JOB_PLAN, ResourceTypeEnum.PLAN,
+        return authService.auth(false, username, ActionId.EDIT_JOB_PLAN, ResourceTypeEnum.PLAN,
             jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
     }
 
@@ -105,7 +105,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                         Long jobTemplateId,
                                         Long jobPlanId,
                                         String jobPlanName) {
-        return authService.auth(true, username, ActionId.DELETE_JOB_PLAN, ResourceTypeEnum.PLAN,
+        return authService.auth(false, username, ActionId.DELETE_JOB_PLAN, ResourceTypeEnum.PLAN,
             jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
     }
 
@@ -115,7 +115,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
-        return authService.auth(true, username, ActionId.SYNC_JOB_PLAN, ResourceTypeEnum.PLAN,
+        return authService.auth(false, username, ActionId.SYNC_JOB_PLAN, ResourceTypeEnum.PLAN,
             jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
     }
 
