@@ -50,7 +50,7 @@ public enum AppTypeEnum {
         this.type = type;
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static AppTypeEnum valueOf(int type) {
         for (AppTypeEnum appType : values()) {
             if (appType.type == type) {
