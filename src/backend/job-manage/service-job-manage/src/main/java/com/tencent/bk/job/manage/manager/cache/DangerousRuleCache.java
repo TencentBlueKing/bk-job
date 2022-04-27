@@ -49,7 +49,7 @@ public class DangerousRuleCache {
             log.info("DangerousRules is not in cache!");
             DangerousRuleDTO dangerousRule = new DangerousRuleDTO();
             dangerousRule.setScriptType(scriptType);
-            dangerousRule.setStatus(HighRiskGrammarRuleStatusEnum.START.getCode());
+            dangerousRule.setStatus(HighRiskGrammarRuleStatusEnum.ENABLED.getCode());
             List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRules(dslContext,
                 dangerousRule);
             if (CollectionUtils.isEmpty(dangerousRuleDTOList)) {
