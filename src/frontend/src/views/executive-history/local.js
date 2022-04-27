@@ -73,7 +73,7 @@ export default {
         复制: 'Copy',
         字段显示设置: 'Field Settings',
         全选: 'All',
-        确定: 'Save',
+        确定: 'Ok',
         IP: 'IP',
         '耗时(s)': 'DURATION',
         云区域: 'CLOUD AREA',
