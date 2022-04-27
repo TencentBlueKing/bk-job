@@ -155,11 +155,11 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
     }
 
     @Override
-    public List<DangerousRuleDTO> listDangerousRules(DSLContext dslContext, DangerousRuleDTO dangerousRuleDTO) {
-        int scriptType = dangerousRuleDTO.getScriptType();
+    public List<DangerousRuleDTO> listDangerousRules(DSLContext dslContext, DangerousRuleDTO dangerousRuleQuery) {
+        Integer scriptType = dangerousRuleQuery.getScriptType();
         List<Condition> conditions = new ArrayList<>();
-        if (dangerousRuleDTO.getStatus() != null) {
-            conditions.add(T.STATUS.eq(JooqDataTypeUtil.getByteFromInteger(dangerousRuleDTO.getStatus())));
+        if (dangerousRuleQuery.getStatus() != null) {
+            conditions.add(T.STATUS.eq(JooqDataTypeUtil.getByteFromInteger(dangerousRuleQuery.getStatus())));
         }
         val records =
             dslContext.selectFrom(T).where(conditions).orderBy(T.PRIORITY).fetch();
@@ -167,6 +167,9 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             return Collections.emptyList();
         } else {
             List<DangerousRuleDTO> dangerousRuleList = records.map(this::convertRecordToDto);
+            if (scriptType == null) {
+                return dangerousRuleList;
+            }
             int typeFlag = 1 << scriptType - 1;
             return dangerousRuleList.stream().filter(rule -> (rule.getScriptType() & (typeFlag)) == typeFlag).collect(Collectors.toList());
         }
