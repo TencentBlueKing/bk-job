@@ -177,7 +177,6 @@
              * @desc 关闭弹框
              */
             close () {
-                console.log('from close');
                 window.changeAlert = this.pageChangeAlertMemo;
                 this.$emit('input', false);
                 this.$emit('change', false);
