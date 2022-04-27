@@ -30,9 +30,11 @@
         :value="value"
         class="system-log-dialog"
         :show-footer="false"
-        :close-icon="false"
+        close-icon
         :width="1105"
-        @input="handleClose">
+        mask-close
+        esc-close
+        @cancel="handleClose">
         <div
             ref="log"
             class="system-log-layout"
@@ -55,10 +57,6 @@
                 <scroll-faker class="content-wraper">
                     <div v-html="logContent" class="markdowm-container" />
                 </scroll-faker>
-                <Icon
-                    type="close"
-                    class="log-close"
-                    @click="handleClose" />
             </div>
         </div>
     </jb-dialog>

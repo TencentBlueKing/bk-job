@@ -27,6 +27,7 @@
 
 <template>
     <bk-dialog
+        ref="dialog"
         v-bind="$attrs"
         v-on="$listeners"
         :value="isShow"
@@ -39,7 +40,9 @@
         <template v-if="isRender">
             <slot />
         </template>
-        <template #footer v-if="showFooter">
+        <template
+            #footer
+            v-if="showFooter">
             <slot name="footer">
                 <div class="jb-dialog-footer">
                     <bk-button
@@ -49,7 +52,10 @@
                         @click="handleConfirm">
                         {{ okText }}
                     </bk-button>
-                    <bk-button @click="handleCancel">{{ cancelText }}</bk-button>
+                    <bk-button
+                        @click="handleCancel">
+                        {{ cancelText }}
+                    </bk-button>
                 </div>
             </slot>
         </template>
@@ -171,6 +177,7 @@
              * @desc 关闭弹框
              */
             close () {
+                console.log('from close');
                 window.changeAlert = this.pageChangeAlertMemo;
                 this.$emit('input', false);
                 this.$emit('change', false);
@@ -199,6 +206,9 @@
                         this.isSubmiting = false;
                     });
             },
+            /**
+             * @desc 关闭弹框
+             */
             handleInputValue () {
                 this.close();
             },
