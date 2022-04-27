@@ -153,7 +153,7 @@ public class UserUploadFileCleanTask {
                 }
                 // 从制品库删除有效日期前创建的节点
                 LocalDateTime endNodeLastDate = DateUtils.convertFromStringDate(
-                    endNode.getLastModifiedDate(), "yyyy-MM-ddTHH:mm:ss.SSS"
+                    endNode.getLastModifiedDate(), "yyyy-MM-dd'T'HH:mm:ss.SSS"
                 );
                 if (endNodeLastDate
                     .plusDays(localFileConfigForManage.getExpireDays())

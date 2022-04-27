@@ -94,7 +94,7 @@ public class LogExportFileCleanTask {
             try {
                 // 从制品库删除有效日期前创建的节点
                 LocalDateTime endNodeLastDate = DateUtils.convertFromStringDate(
-                    nodeDTO.getLastModifiedDate(), "yyyy-MM-ddTHH:mm:ss.SSS"
+                    nodeDTO.getLastModifiedDate(), "yyyy-MM-dd'T'HH:mm:ss.SSS"
                 );
                 if (endNodeLastDate
                     .plusDays(logExportConfig.getArtifactoryFileExpireDays())
