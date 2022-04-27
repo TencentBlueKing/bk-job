@@ -37,7 +37,7 @@ public enum ArchiveDBEnum {
     @JsonValue
     private final String db;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static ArchiveDBEnum valOf(String db) {
         for (ArchiveDBEnum value : values()) {
             if (value.db.equalsIgnoreCase(db)) {

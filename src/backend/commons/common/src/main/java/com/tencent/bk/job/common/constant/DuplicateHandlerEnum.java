@@ -51,7 +51,7 @@ public enum DuplicateHandlerEnum {
     @JsonValue
     private int id;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static DuplicateHandlerEnum valueOf(Integer id) {
         if (id == null) {
             return null;

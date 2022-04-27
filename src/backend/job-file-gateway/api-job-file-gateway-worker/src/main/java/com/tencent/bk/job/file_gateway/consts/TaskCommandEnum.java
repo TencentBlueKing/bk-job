@@ -36,7 +36,7 @@ public enum TaskCommandEnum {
     @JsonValue
     private final int value;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static TaskCommandEnum valueOf(int val) {
         for (TaskCommandEnum commandEnum : values()) {
             if (commandEnum.value == val) {
