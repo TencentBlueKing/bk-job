@@ -25,15 +25,16 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
@@ -133,22 +134,26 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
     ) {
         JobContextUtil.setAllowMigration(true);
-        AuthResultVO authResultVO;
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);
-            authResultVO = authService.toAuthResultVO(
-                templateAuthService.authEditJobTemplate(username, new AppResourceScope(appId), templateId)
-            );
-        } else {
-            authResultVO = authService.toAuthResultVO(
-                templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId))
-            );
-        }
-        if (!authResultVO.isPass()) {
-            if (requestSource != null && requestSource == 1) {
-                throw new InternalException(ErrorCode.INTERNAL_ERROR);
+            if (requestSource != null && requestSource == JobConstants.REQUEST_SOURCE_JOB_BACKUP) {
+                AuthResult authResult =
+                    templateAuthService.authEditJobTemplate(username, new AppResourceScope(appId), templateId);
+                if (!authResult.isPass()) {
+                    throw new PermissionDeniedException(authResult);
+                }
             } else {
-                log.warn("Skip perm check for migration!");
+                log.warn("Skip update perm check for migration!");
+            }
+        } else {
+            if (requestSource != null && requestSource == JobConstants.REQUEST_SOURCE_JOB_BACKUP) {
+                AuthResult authResult =
+                    templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId));
+                if (!authResult.isPass()) {
+                    throw new PermissionDeniedException(authResult);
+                }
+            } else {
+                log.warn("Skip create perm check for migration!");
             }
         }
         if (taskTemplateCreateUpdateReq.validate()) {

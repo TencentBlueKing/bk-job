@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.model.permission.PermissionResourceVO;
 import com.tencent.bk.job.common.model.permission.RequiredPermissionVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -69,7 +70,7 @@ public class WebAuthServiceImpl implements WebAuthService {
     @Override
     public AuthResultVO auth(boolean isReturnApplyUrl, String username,
                              List<PermissionActionResource> actionResources) {
-        return toAuthResultVO(authService.auth(isReturnApplyUrl, username, actionResources));
+        return toAuthResultVO(isReturnApplyUrl, authService.auth(isReturnApplyUrl, username, actionResources));
     }
 
     @Override
@@ -77,11 +78,15 @@ public class WebAuthServiceImpl implements WebAuthService {
         return authService.getApplyUrl(permissionActionResources);
     }
 
-    public AuthResultVO toAuthResultVO(AuthResult authResult) {
+    public AuthResultVO toAuthResultVO(boolean isReturnApplyUrl, AuthResult authResult) {
         AuthResultVO vo = new AuthResultVO();
         vo.setPass(authResult.isPass());
         if (!authResult.isPass()) {
-            vo.setApplyUrl(authResult.getApplyUrl());
+            String applyUrl = authResult.getApplyUrl();
+            if (isReturnApplyUrl && StringUtils.isBlank(applyUrl)) {
+                applyUrl = authService.getApplyUrl(authResult.getRequiredActionResources());
+            }
+            vo.setApplyUrl(applyUrl);
 
             List<RequiredPermissionVO> requiredPermissionVOS = new ArrayList<>();
             for (PermissionActionResource actionResource : authResult.getRequiredActionResources()) {

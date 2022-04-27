@@ -49,6 +49,6 @@ public interface WebAuthService {
 
     String getApplyUrl(List<PermissionActionResource> permissionActionResources);
 
-    AuthResultVO toAuthResultVO(AuthResult authResult);
+    AuthResultVO toAuthResultVO(boolean isReturnApplyUrl, AuthResult authResult);
 
 }

@@ -85,7 +85,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         if (StringUtils.isEmpty(authResult.getApplyUrl())) {
             authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
         }
-        return Response.buildAuthFailResp(webAuthService.toAuthResultVO(ex.getAuthResult()));
+        return Response.buildAuthFailResp(webAuthService.toAuthResultVO(true, ex.getAuthResult()));
     }
 
     @ExceptionHandler(ServiceException.class)
