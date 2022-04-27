@@ -31,7 +31,7 @@ import lombok.Getter;
  */
 @Getter
 public enum HighRiskGrammarRuleStatusEnum {
-    SCAN(1, "start"), INTERCEPT(0, "stop");
+    START(1, "start"), STOP(0, "stop");
 
     private final Integer code;
     private final String name;
