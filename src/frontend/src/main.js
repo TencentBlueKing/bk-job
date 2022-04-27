@@ -45,7 +45,11 @@ import '@bk-icon/iconcool.js';
 /**
  * @desc 启动打印当前系统信息
  */
-console.log(`%c${process.env.JOB_WELCOME}`, 'font-weight: bold; color: #3a84ff');
+console.log(
+    process.env.JOB_WELCOME,
+    'font-weight: 900; color: #3a84ff',
+    'font-weight: 900; color: #2DCB8D;',
+);
 
 /**
  * @desc 页面数据的编辑状态

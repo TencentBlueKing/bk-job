@@ -289,17 +289,21 @@ module.exports = function (env) {
             new webpack.DefinePlugin(isDevelopment
                 ? {
                     'process.env': {
-                        JOB_WELCOME: JSON.stringify(figlet.textSync('Welcome To Job\nlatest', {
+                        JOB_WELCOME: JSON.stringify(`%c${figlet.textSync('Welcome To Job', {
                             horizontalLayout: 'full',
-                        })),
+                        })}\n%c${figlet.textSync('latest', {
+                            horizontalLayout: 'full',
+                        })}`),
                         JOB_VERSION: JSON.stringify('latest'),
                     },
                 }
                 : {
                     'process.env': {
-                        JOB_WELCOME: JSON.stringify(figlet.textSync(`Welcome To Job\n${process.env.JOB_VERSION}`, {
+                        JOB_WELCOME: JSON.stringify(`%c${figlet.textSync('Welcome To Job', {
                             horizontalLayout: 'full',
-                        })),
+                        })}\n%c${figlet.textSync(process.env.JOB_VERSION, {
+                            horizontalLayout: 'full',
+                        })}`),
                         JOB_VERSION: JSON.stringify(process.env.JOB_VERSION),
                     },
                 }),
