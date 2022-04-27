@@ -58,12 +58,12 @@ data:
       system-id: {{ .Values.appCode }}
     paas:
       login:
-        {{- if .Values.customLogin.enabled }}
+        {{- if .Values.login.custom.enabled }}
         custom:
-          enabled: {{ .Values.customLogin.enabled }}
-          login-url: {{ .Values.customLogin.loginUrl }}
-          api-url: {{ .Values.customLogin.apiUrl }}
-          token-name: {{ .Values.customLogin.tokenName }}
+          enabled: {{ .Values.login.custom.enabled }}
+          login-url: {{ .Values.login.custom.loginUrl }}
+          api-url: {{ .Values.login.custom.apiUrl }}
+          token-name: {{ .Values.login.custom.tokenName }}
         {{- else }}
         url: {{ .Values.bkLoginUrl }}
         {{- end }}
