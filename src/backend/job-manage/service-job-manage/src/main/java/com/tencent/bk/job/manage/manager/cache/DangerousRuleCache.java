@@ -47,11 +47,11 @@ public class DangerousRuleCache {
         Object dangerousRules = redisTemplate.opsForHash().get(DANGEROUS_RULE_HASH_KEY, String.valueOf(scriptType));
         if (dangerousRules == null) {
             log.info("DangerousRules is not in cache!");
-            DangerousRuleDTO dangerousRule = new DangerousRuleDTO();
-            dangerousRule.setScriptType(scriptType);
-            dangerousRule.setStatus(HighRiskGrammarRuleStatusEnum.ENABLED.getCode());
+            DangerousRuleDTO dangerousRuleQuery = new DangerousRuleDTO();
+            dangerousRuleQuery.setScriptType(scriptType);
+            dangerousRuleQuery.setStatus(HighRiskGrammarRuleStatusEnum.ENABLED.getCode());
             List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRules(dslContext,
-                dangerousRule);
+                dangerousRuleQuery);
             if (CollectionUtils.isEmpty(dangerousRuleDTOList)) {
                 redisTemplate.opsForHash().put(DANGEROUS_RULE_HASH_KEY, String.valueOf(scriptType),
                     new ArrayList<DangerousRuleDO>());
