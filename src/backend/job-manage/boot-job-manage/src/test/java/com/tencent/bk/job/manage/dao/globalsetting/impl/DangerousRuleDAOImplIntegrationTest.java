@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.globalsetting.impl;
 
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
+import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,13 +58,22 @@ class DangerousRuleDAOImplIntegrationTest {
 
     @Test
     void listDangerousRulesByScriptType() {
-        assertThat(dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, 1)).hasSize(5);
-        assertThat(dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, 2)).hasSize(4);
-        assertThat(dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, 3)).hasSize(3);
-        assertThat(dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, 4)).hasSize(2);
-        assertThat(dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, 5)).hasSize(1);
-        assertThat(dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, 6)).hasSize(0);
-        assertThat(dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, 7)).hasSize(0);
-        assertThat(dangerousRuleDAO.listDangerousRulesByScriptType(dslContext, 8)).hasSize(0);
+        DangerousRuleDTO dangerousRule = new DangerousRuleDTO();
+        dangerousRule.setScriptType(1);
+        assertThat(dangerousRuleDAO.listDangerousRules(dslContext, dangerousRule)).hasSize(5);
+        dangerousRule.setScriptType(2);
+        assertThat(dangerousRuleDAO.listDangerousRules(dslContext, dangerousRule)).hasSize(4);
+        dangerousRule.setScriptType(3);
+        assertThat(dangerousRuleDAO.listDangerousRules(dslContext, dangerousRule)).hasSize(3);
+        dangerousRule.setScriptType(4);
+        assertThat(dangerousRuleDAO.listDangerousRules(dslContext, dangerousRule)).hasSize(2);
+        dangerousRule.setScriptType(5);
+        assertThat(dangerousRuleDAO.listDangerousRules(dslContext, dangerousRule)).hasSize(1);
+        dangerousRule.setScriptType(6);
+        assertThat(dangerousRuleDAO.listDangerousRules(dslContext, dangerousRule)).hasSize(0);
+        dangerousRule.setScriptType(7);
+        assertThat(dangerousRuleDAO.listDangerousRules(dslContext, dangerousRule)).hasSize(0);
+        dangerousRule.setScriptType(8);
+        assertThat(dangerousRuleDAO.listDangerousRules(dslContext, dangerousRule)).hasSize(0);
     }
 }
