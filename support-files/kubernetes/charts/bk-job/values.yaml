@@ -517,6 +517,17 @@ swagger:
   # 开启开发模式时的Swagger文档地址域名
   url: "swagger.job.com"
 
+## 自定义登录配置
+customLogin:
+  # 是否对接自定义登录地址，默认不开启（使用蓝鲸集成的统一登录）
+  enabled: false
+  # 页面登录地址
+  loginUrl: "http://login.example.com/login/"
+  # 获取用户信息的接口地址
+  apiUrl: "http://login.example.com/api/"
+  # 完成页面登录后前端通过Cookie提交的凭据的Key，也是后台向apiUrl获取用户信息提交的凭据的Key
+  tokenName: "bk_token"
+
 ## Job Common Config
 job:
   # 作业平台运行所有环境(prod,dev)与模式(kubernetes)，默认生产环境(prod)、K8s容器模式(kubernetes)

@@ -58,7 +58,15 @@ data:
       system-id: {{ .Values.appCode }}
     paas:
       login:
+        {{- if .Values.customLogin.enabled }}
+        custom:
+          enabled: {{ .Values.customLogin.enabled }}
+          login-url: {{ .Values.customLogin.loginUrl }}
+          api-url: {{ .Values.customLogin.apiUrl }}
+          token-name: {{ .Values.customLogin.tokenName }}
+        {{- else }}
         url: {{ .Values.bkLoginUrl }}
+        {{- end }}
     job:
       security:
         service:
