@@ -43,37 +43,43 @@
             <div
                 id="stepExecuteDetailBatchPagination"
                 style="padding: 17px 10px;">
-                <div style="margin-bottom: 10px; font-size: 14px; line-height: 20px; color: #63656e;">跳转至</div>
+                <div style="margin-bottom: 10px; font-size: 14px; line-height: 20px; color: #63656e;">
+                    {{ $t('history.跳转至') }}
+                </div>
                 <div>
                     <bk-input
                         v-model="batchLocation"
                         type="number"
                         :min="1"
                         :max="rollingTaskNums"
-                        placeholder="请输入批次"
+                        :placeholder="$t('history.请输入批次')"
                         @keyup="handleEnterSubmit">
                         <template slot="prepend">
-                            <div class="group-text">第</div>
+                            <div class="group-text">
+                                {{ $t('history.第') }}
+                            </div>
                         </template>
                         <template slot="append">
-                            <div class="group-text">批</div>
+                            <div class="group-text">
+                                {{ $t('history.批.input') }}
+                            </div>
                         </template>
                     </bk-input>
                 </div>
                 <div style="margin-top: 6px;font-size: 12px; line-height: 16px; color: #979ba5;">
-                    共
+                    {{ $t('history.共') }}
                     <span
                         style="font-weight: bold; cursor: pointer;"
                         @click="handleGoLast">
                         {{ rollingTaskNums }}
                     </span>
-                    批，已执行
+                    {{ $t('history.批.total') }}，{{ $t('history.已执行') }}
                     <span
                         style="font-weight: bold; cursor: pointer;"
                         @click="handleGoRunning">
                         {{ stepData.runningBatchOrder }}
                     </span>
-                    批
+                    {{ $t('history.批.finished') }}
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
                     <bk-button

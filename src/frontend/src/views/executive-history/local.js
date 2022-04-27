@@ -210,7 +210,16 @@ export default {
         '忽略失败，自动滚动下一批': 'Ignore fail, scrolling automatically',
         '不自动，每批次都人工确认': 'Pause after each batch',
         全部批次: 'All',
-        跳转至: '',
-        确认继续执行: '',
+        确认继续执行: 'Continue to roll',
+        跳转至: 'Go to',
+        请输入批次: 'please input the number',
+        第: 'The',
+        共: 'Total: ',
+        批: {
+            input: '-th',
+            total: 'batches',
+            finished: 'finished.',
+        },
+        已执行: '',
     },
 };

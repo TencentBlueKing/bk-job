@@ -509,5 +509,6 @@ export default {
     '默认（执行失败则暂停）': 'Default(Pause when fail)',
     '忽略失败，自动滚动下一批': 'Ignore fail, scrolling automatically',
     '不自动，每批次都人工确认': 'Pause after each batch',
-    查看使用指引: '',
+    查看使用指引: 'See the manual on Rolling Exec.',
+    
 };
