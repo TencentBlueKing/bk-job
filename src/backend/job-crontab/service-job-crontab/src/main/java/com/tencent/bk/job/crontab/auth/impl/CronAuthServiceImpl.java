@@ -66,7 +66,7 @@ public class CronAuthServiceImpl implements CronAuthService {
 
     @Override
     public AuthResult authCreateCron(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(false, username, ActionId.CREATE_CRON, appResourceScope);
+        return appAuthService.auth(username, ActionId.CREATE_CRON, appResourceScope);
     }
 
     @Override
@@ -75,9 +75,12 @@ public class CronAuthServiceImpl implements CronAuthService {
                                      Long cronId,
                                      String cronName) {
         return authService.auth(
-            false, username,
-            ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, cronId.toString(),
-            buildScopeResourcePath(appResourceScope, cronId.toString()));
+            username,
+            ActionId.MANAGE_CRON,
+            ResourceTypeEnum.CRON,
+            cronId.toString(),
+            buildScopeResourcePath(appResourceScope, cronId.toString())
+        );
     }
 
     @Override

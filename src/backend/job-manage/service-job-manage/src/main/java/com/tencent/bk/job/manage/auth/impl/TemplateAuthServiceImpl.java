@@ -65,43 +65,59 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
 
     @Override
     public AuthResult authCreateJobTemplate(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(false, username, ActionId.CREATE_JOB_TEMPLATE, appResourceScope);
+        return appAuthService.auth(username, ActionId.CREATE_JOB_TEMPLATE, appResourceScope);
     }
 
     @Override
     public AuthResult authViewJobTemplate(String username,
                                           AppResourceScope appResourceScope,
                                           Long jobTemplateId) {
-        return authService.auth(false, username,
-            ActionId.VIEW_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE,
-            jobTemplateId.toString(), buildAppScopePath(appResourceScope));
+        return authService.auth(
+            username,
+            ActionId.VIEW_JOB_TEMPLATE,
+            ResourceTypeEnum.TEMPLATE,
+            jobTemplateId.toString(),
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override
     public AuthResult authEditJobTemplate(String username,
                                           AppResourceScope appResourceScope,
                                           Long jobTemplateId) {
-        return authService.auth(false, username,
-            ActionId.EDIT_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE,
-            jobTemplateId.toString(), buildAppScopePath(appResourceScope));
+        return authService.auth(
+            username,
+            ActionId.EDIT_JOB_TEMPLATE,
+            ResourceTypeEnum.TEMPLATE,
+            jobTemplateId.toString(),
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override
     public AuthResult authDeleteJobTemplate(String username,
                                             AppResourceScope appResourceScope,
                                             Long jobTemplateId) {
-        return authService.auth(false, username,
-            ActionId.DELETE_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE,
-            jobTemplateId.toString(), buildAppScopePath(appResourceScope));
+        return authService.auth(
+            username,
+            ActionId.DELETE_JOB_TEMPLATE,
+            ResourceTypeEnum.TEMPLATE,
+            jobTemplateId.toString(),
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override
     public AuthResult authDebugJobTemplate(String username,
                                            AppResourceScope appResourceScope,
                                            Long jobTemplateId) {
-        return authService.auth(false, username,
-            ActionId.DEBUG_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE,
-            jobTemplateId.toString(), buildAppScopePath(appResourceScope));
+        return authService.auth(
+            username,
+            ActionId.DEBUG_JOB_TEMPLATE,
+            ResourceTypeEnum.TEMPLATE,
+            jobTemplateId.toString(),
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override

@@ -59,8 +59,8 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     private final String URI_PATTERN_PUBLIC_TAG = "/web/public_tag/**";
     private final String URI_PATTERN_SERVICE_INFO = "/web/serviceInfo/**";
     private final String URI_PATTERN_DANGEROUS_RULE = "/web/dangerousRule/**";
-    private AuthService authService;
-    private PathMatcher pathMatcher;
+    private final AuthService authService;
+    private final PathMatcher pathMatcher;
 
     @Autowired
     public UriPermissionInterceptor(AuthService authService) {
@@ -105,22 +105,22 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
             "controlUriPatterns=" + getControlUriPatternsList());
         //仅超级管理员可使用管理相关接口
         if (pathMatcher.match(URI_PATTERN_NOTIFY_BLACKLIST, uri)) {
-            AuthResult authResult = authService.auth(false, username, ActionId.GLOBAL_SETTINGS);
+            AuthResult authResult = authService.auth(username, ActionId.GLOBAL_SETTINGS);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
         } else if (pathMatcher.match(URI_PATTERN_GLOBAL_SETTINGS, uri)) {
-            AuthResult authResult = authService.auth(false, username, ActionId.GLOBAL_SETTINGS);
+            AuthResult authResult = authService.auth(username, ActionId.GLOBAL_SETTINGS);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
         } else if (pathMatcher.match(URI_PATTERN_SERVICE_INFO, uri)) {
-            AuthResult authResult = authService.auth(false, username, ActionId.SERVICE_STATE_ACCESS);
+            AuthResult authResult = authService.auth(username, ActionId.SERVICE_STATE_ACCESS);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
         } else if (pathMatcher.match(URI_PATTERN_DANGEROUS_RULE, uri)) {
-            AuthResult authResult = authService.auth(false, username, ActionId.HIGH_RISK_DETECT_RULE);
+            AuthResult authResult = authService.auth(username, ActionId.HIGH_RISK_DETECT_RULE);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }

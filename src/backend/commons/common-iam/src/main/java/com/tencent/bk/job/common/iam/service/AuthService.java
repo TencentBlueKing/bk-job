@@ -48,26 +48,27 @@ public interface AuthService {
     /**
      * 无关联资源、单个操作操作鉴权
      *
-     * @param returnApplyUrl 是否返回权限申请url
-     * @param username       用户名
-     * @param actionId       操作ID
+     * @param username 用户名
+     * @param actionId 操作ID
      * @return 鉴权结果
      */
-    AuthResult auth(boolean returnApplyUrl, String username, String actionId);
+    AuthResult auth(String username, String actionId);
 
     /**
      * 关联单个资源、单个操作鉴权
      *
-     * @param returnApplyUrl 是否返回权限申请url
-     * @param username       用户名
-     * @param actionId       操作ID
-     * @param resourceType   资源类型
-     * @param resourceId     资源ID
-     * @param pathInfo       资源路径
+     * @param username     用户名
+     * @param actionId     操作ID
+     * @param resourceType 资源类型
+     * @param resourceId   资源ID
+     * @param pathInfo     资源路径
      * @return 鉴权结果
      */
-    AuthResult auth(boolean returnApplyUrl, String username, String actionId, ResourceTypeEnum resourceType,
-                    String resourceId, PathInfoDTO pathInfo);
+    AuthResult auth(String username,
+                    String actionId,
+                    ResourceTypeEnum resourceType,
+                    String resourceId,
+                    PathInfoDTO pathInfo);
 
     /**
      * 业务集/全业务鉴权
@@ -77,8 +78,7 @@ public interface AuthService {
      * @param resourceId   资源ID
      * @return 鉴权结果
      */
-    boolean isMaintainerOfResource(String username, ResourceTypeEnum resourceType,
-                                   String resourceId);
+    boolean isMaintainerOfResource(String username, ResourceTypeEnum resourceType, String resourceId);
 
     /**
      * 多个操作鉴权

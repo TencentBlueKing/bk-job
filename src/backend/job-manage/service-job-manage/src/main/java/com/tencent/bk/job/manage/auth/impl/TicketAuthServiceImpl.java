@@ -62,7 +62,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
 
     @Override
     public AuthResult authCreateTicket(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(false, username, ActionId.CREATE_TICKET, appResourceScope);
+        return appAuthService.auth(username, ActionId.CREATE_TICKET, appResourceScope);
     }
 
     @Override
@@ -70,8 +70,13 @@ public class TicketAuthServiceImpl implements TicketAuthService {
                                        AppResourceScope appResourceScope,
                                        String ticketId,
                                        String ticketName) {
-        return authService.auth(false, username, ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET, ticketId,
-            buildAppScopePath(appResourceScope));
+        return authService.auth(
+            username,
+            ActionId.MANAGE_TICKET,
+            ResourceTypeEnum.TICKET,
+            ticketId,
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override
@@ -79,23 +84,38 @@ public class TicketAuthServiceImpl implements TicketAuthService {
                                     AppResourceScope appResourceScope,
                                     String ticketId,
                                     String ticketName) {
-        return authService.auth(false, username, ActionId.USE_TICKET, ResourceTypeEnum.TICKET, ticketId,
-            buildAppScopePath(appResourceScope));
+        return authService.auth(
+            username,
+            ActionId.USE_TICKET,
+            ResourceTypeEnum.TICKET,
+            ticketId,
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override
     public List<String> batchAuthManageTicket(String username,
                                               AppResourceScope appResourceScope,
                                               List<String> ticketIdList) {
-        return appAuthService.batchAuth(username, ActionId.MANAGE_TICKET, appResourceScope,
-            ResourceTypeEnum.TICKET, ticketIdList);
+        return appAuthService.batchAuth(
+            username,
+            ActionId.MANAGE_TICKET,
+            appResourceScope,
+            ResourceTypeEnum.TICKET,
+            ticketIdList
+        );
     }
 
     @Override
     public List<String> batchAuthUseTicket(String username,
                                            AppResourceScope appResourceScope,
                                            List<String> ticketIdList) {
-        return appAuthService.batchAuth(username, ActionId.USE_TICKET, appResourceScope,
-            ResourceTypeEnum.TICKET, ticketIdList);
+        return appAuthService.batchAuth(
+            username,
+            ActionId.USE_TICKET,
+            appResourceScope,
+            ResourceTypeEnum.TICKET,
+            ticketIdList
+        );
     }
 }

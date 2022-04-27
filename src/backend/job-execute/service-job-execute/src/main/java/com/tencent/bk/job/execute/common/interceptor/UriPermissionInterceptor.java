@@ -53,8 +53,8 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     private static final RequestIdLogger logger =
         new SimpleRequestIdLogger(LoggerFactory.getLogger(UriPermissionInterceptor.class));
     private final String URI_PATTERN_DANGEROUS_RECORD = "/web/dangerous-record/**";
-    private AuthService authService;
-    private PathMatcher pathMatcher;
+    private final AuthService authService;
+    private final PathMatcher pathMatcher;
 
     @Autowired
     public UriPermissionInterceptor(AuthService authService) {
@@ -86,7 +86,7 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
         logger.infoWithRequestId("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
             "controlUriPatterns=" + getControlUriPatternsList());
         if (pathMatcher.match(URI_PATTERN_DANGEROUS_RECORD, uri)) {
-            AuthResult authResult = authService.auth(false, username, ActionId.HIGH_RISK_DETECT_RECORD);
+            AuthResult authResult = authService.auth(username, ActionId.HIGH_RISK_DETECT_RECORD);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }

@@ -49,7 +49,7 @@ public class BusinessAuthServiceImpl implements BusinessAuthService {
 
     @Override
     public AuthResult authAccessBusiness(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(false, username, ActionId.ACCESS_BUSINESS, appResourceScope);
+        return appAuthService.auth(username, ActionId.ACCESS_BUSINESS, appResourceScope);
     }
 
 }

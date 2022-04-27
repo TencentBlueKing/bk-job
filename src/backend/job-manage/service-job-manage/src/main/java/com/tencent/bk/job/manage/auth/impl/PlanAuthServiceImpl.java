@@ -75,8 +75,13 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                         AppResourceScope appResourceScope,
                                         Long jobTemplateId,
                                         String jobTemplateName) {
-        return authService.auth(false, username, ActionId.CREATE_JOB_PLAN, ResourceTypeEnum.TEMPLATE,
-            jobTemplateId.toString(), buildAppScopePath(appResourceScope));
+        return authService.auth(
+            username,
+            ActionId.CREATE_JOB_PLAN,
+            ResourceTypeEnum.TEMPLATE,
+            jobTemplateId.toString(),
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override
@@ -85,8 +90,13 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
-        return authService.auth(false, username, ActionId.VIEW_JOB_PLAN, ResourceTypeEnum.PLAN,
-            jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
+        return authService.auth(
+            username,
+            ActionId.VIEW_JOB_PLAN,
+            ResourceTypeEnum.PLAN,
+            jobPlanId.toString(),
+            buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString())
+        );
     }
 
     @Override
@@ -95,8 +105,13 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
-        return authService.auth(false, username, ActionId.EDIT_JOB_PLAN, ResourceTypeEnum.PLAN,
-            jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
+        return authService.auth(
+            username,
+            ActionId.EDIT_JOB_PLAN,
+            ResourceTypeEnum.PLAN,
+            jobPlanId.toString(),
+            buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString())
+        );
     }
 
     @Override
@@ -105,8 +120,13 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                         Long jobTemplateId,
                                         Long jobPlanId,
                                         String jobPlanName) {
-        return authService.auth(false, username, ActionId.DELETE_JOB_PLAN, ResourceTypeEnum.PLAN,
-            jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
+        return authService.auth(
+            username,
+            ActionId.DELETE_JOB_PLAN,
+            ResourceTypeEnum.PLAN,
+            jobPlanId.toString(),
+            buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString())
+        );
     }
 
     @Override
@@ -115,8 +135,13 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
-        return authService.auth(false, username, ActionId.SYNC_JOB_PLAN, ResourceTypeEnum.PLAN,
-            jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
+        return authService.auth(
+            username,
+            ActionId.SYNC_JOB_PLAN,
+            ResourceTypeEnum.PLAN,
+            jobPlanId.toString(),
+            buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString())
+        );
     }
 
     private List<PermissionResource> buildPlanPermissionResource(AppResourceScope appResourceScope,

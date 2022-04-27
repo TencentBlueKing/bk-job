@@ -101,12 +101,12 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public AuthResult auth(boolean returnApplyUrl, String username, String actionId) {
+    public AuthResult auth(String username, String actionId) {
         boolean isAllowed = authHelper.isAllowed(username, actionId);
         if (isAllowed) {
             return AuthResult.pass();
         } else {
-            return buildFailAuthResult(returnApplyUrl, actionId, null, null);
+            return buildFailAuthResult(actionId, null, (String) null);
         }
     }
 
@@ -131,8 +131,11 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public AuthResult auth(boolean returnApplyUrl, String username, String actionId, ResourceTypeEnum resourceType,
-                           String resourceId, PathInfoDTO pathInfo) {
+    public AuthResult auth(String username,
+                           String actionId,
+                           ResourceTypeEnum resourceType,
+                           String resourceId,
+                           PathInfoDTO pathInfo) {
         if (isMaintainerOfResource(username, resourceType, resourceId)) {
             return AuthResult.pass();
         }
@@ -140,24 +143,19 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
         if (isAllowed) {
             return AuthResult.pass();
         } else {
-            return buildFailAuthResult(returnApplyUrl, actionId, resourceType, resourceId);
+            return buildFailAuthResult(actionId, resourceType, resourceId);
         }
     }
 
 
-    private AuthResult buildFailAuthResult(boolean returnApplyUrl, String actionId, ResourceTypeEnum resourceType,
+    private AuthResult buildFailAuthResult(String actionId,
+                                           ResourceTypeEnum resourceType,
                                            String resourceId) {
         AuthResult authResult = AuthResult.fail();
         if (resourceType == null || StringUtils.isEmpty(resourceId)) {
-            if (returnApplyUrl) {
-                authResult.setApplyUrl(getApplyUrl(actionId));
-            }
             authResult.addRequiredPermission(actionId, null);
         } else {
             String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
-            if (returnApplyUrl) {
-                authResult.setApplyUrl(getApplyUrl(actionId, resourceType, resourceId));
-            }
             authResult.addRequiredPermission(actionId, new PermissionResource(resourceType, resourceId, resourceName));
         }
         return authResult;
