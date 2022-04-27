@@ -456,7 +456,7 @@ Return the Job InitContainer WaitForMigration Content
   image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForMigration.image "global" .Values.global) }}
   imagePullPolicy: {{ .Values.waitForMigration.image.pullPolicy }}
   args:
-  - "job"
+  - "job-wr"
   - {{ printf "%s-migration-%d" (include "common.names.fullname" .) .Release.Revision | quote }}
 {{- end -}}
 
