@@ -216,6 +216,18 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public Long countHostByIdAndStatus(Collection<Long> hostIds, UByte agentStatus) {
+        List<Condition> conditions = new ArrayList<>();
+        if (hostIds != null) {
+            conditions.add(TABLE.HOST_ID.in(hostIds));
+        }
+        if (agentStatus != null) {
+            conditions.add(TABLE.IS_AGENT_ALIVE.eq(agentStatus));
+        }
+        return countHostByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,
                                                                  Collection<Long> moduleIds,
                                                                  Collection<Long> cloudAreaIds,
@@ -330,7 +342,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         List<Condition> conditions = buildBizIdCondition(applicationHostInfoCondition.getBizId());
         conditions.addAll(buildCondition(applicationHostInfoCondition, baseSearchCondition));
 
-        long hostCount = getPageHostInfoCount(conditions);
+        long hostCount = countHostByConditions(conditions);
 
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
@@ -836,13 +848,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public long countHostsByBizIds(DSLContext dslContext, Collection<Long> bizIds) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.in(bizIds));
-        return getPageHostInfoCount(conditions);
+        return countHostByConditions(conditions);
     }
 
     @Override
     public long countAllHosts() {
         log.debug("countAllHosts");
-        return getPageHostInfoCount(null);
+        return countHostByConditions(null);
     }
 
     @Override
@@ -851,7 +863,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (osType != null) {
             conditions.add(TABLE.OS_TYPE.eq(osType));
         }
-        return getPageHostInfoCount(conditions);
+        return countHostByConditions(conditions);
     }
 
     @Override
@@ -878,7 +890,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     /**
      * 查询符合条件的主机数量
      */
-    private long getPageHostInfoCount(List<Condition> conditions) {
+    @SuppressWarnings("all")
+    private long countHostByConditions(List<Condition> conditions) {
         if (conditions == null) {
             conditions = Collections.emptyList();
         }

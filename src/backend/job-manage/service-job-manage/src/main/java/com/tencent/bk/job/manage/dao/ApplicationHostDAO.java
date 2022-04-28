@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import org.jooq.DSLContext;
+import org.jooq.types.UByte;
 
 import java.util.Collection;
 import java.util.List;
@@ -58,6 +59,15 @@ public interface ApplicationHostDAO {
 
     Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                        Collection<Long> cloudAreaIds, List<String> searchContents, Integer agentStatus);
+
+    /**
+     * 根据ID与Agent状态查询主机数量
+     *
+     * @param hostIds     主机Id集合
+     * @param agentStatus Agent状态
+     * @return 主机数量
+     */
+    Long countHostByIdAndStatus(Collection<Long> hostIds, UByte agentStatus);
 
     List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips);
 

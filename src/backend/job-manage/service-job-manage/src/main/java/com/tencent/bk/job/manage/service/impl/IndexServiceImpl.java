@@ -24,12 +24,13 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -38,6 +39,7 @@ import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
@@ -46,7 +48,6 @@ import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
 import com.tencent.bk.job.manage.model.web.vo.index.JobAndScriptStatistics;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
-import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.IndexService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,7 @@ import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
+import org.jooq.types.UByte;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -67,25 +69,29 @@ public class IndexServiceImpl implements IndexService {
 
     private final DSLContext dslContext;
     private final IndexGreetingDAO indexGreetingDAO;
-    private final QueryAgentStatusClient queryAgentStatusClient;
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
+    private final HostTopoDAO hostTopoDAO;
     private final TopologyHelper topologyHelper;
     private final TaskTemplateService taskTemplateService;
     private final TaskTemplateDAO taskTemplateDAO;
     private final ScriptDAO scriptDAO;
 
     @Autowired
-    public IndexServiceImpl(DSLContext dslContext, IndexGreetingDAO indexGreetingDAO,
-                            QueryAgentStatusClient queryAgentStatusClient, ApplicationDAO applicationDAO,
-                            ApplicationHostDAO applicationHostDAO, TopologyHelper topologyHelper,
-                            TaskTemplateService taskTemplateService, GlobalSettingsService globalSettingsService,
-                            MessageI18nService i18nService, TaskTemplateDAO taskTemplateDAO, ScriptDAO scriptDAO) {
+    public IndexServiceImpl(DSLContext dslContext,
+                            IndexGreetingDAO indexGreetingDAO,
+                            ApplicationDAO applicationDAO,
+                            ApplicationHostDAO applicationHostDAO,
+                            HostTopoDAO hostTopoDAO,
+                            TopologyHelper topologyHelper,
+                            TaskTemplateService taskTemplateService,
+                            TaskTemplateDAO taskTemplateDAO,
+                            ScriptDAO scriptDAO) {
         this.dslContext = dslContext;
         this.indexGreetingDAO = indexGreetingDAO;
-        this.queryAgentStatusClient = queryAgentStatusClient;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
+        this.hostTopoDAO = hostTopoDAO;
         this.topologyHelper = topologyHelper;
         this.taskTemplateService = taskTemplateService;
         this.taskTemplateDAO = taskTemplateDAO;
@@ -114,48 +120,84 @@ public class IndexServiceImpl implements IndexService {
     }
 
     @Override
-    public AgentStatistics getAgentStatistics(String username, Long appId) {
-        Long normalNum = applicationHostDAO.countHostInfoBySearchContents(getQueryConditionBizIds(appId),
-            null, null,
-            null, 1);
-        Long abnormalNum = applicationHostDAO.countHostInfoBySearchContents(getQueryConditionBizIds(appId),
-            null, null, null, 0);
-        AgentStatistics result = new AgentStatistics(normalNum.intValue(), abnormalNum.intValue());
-        return result;
+    public AgentStatistics getAgentStatistics(String username, AppResourceScope appResourceScope) {
+        // 查出业务
+        ApplicationDTO appInfo = applicationDAO.getCacheAppById(appResourceScope.getAppId());
+        Long normalNum;
+        Long abnormalNum;
+        List<Long> hostIds;
+        if (appInfo.isBiz()) {
+            // 普通业务
+            hostIds = hostTopoDAO.listHostIdByBizIds(
+                Collections.singletonList(Long.valueOf(appResourceScope.getId()))
+            );
+        } else if (appInfo.isAllBizSet()) {
+            // 全业务
+            // 不根据主机ID过滤
+            hostIds = null;
+        } else if (appInfo.isBizSet()) {
+            // 业务集
+            // 查出业务集下所有子业务
+            List<Long> subBizIds = appInfo.getSubBizIds();
+            // 查出所有子业务下属主机ID
+            hostIds = hostTopoDAO.listHostIdByBizIds(subBizIds);
+        } else {
+            throw new InternalException("Ilegal appInfo:" + appInfo, ErrorCode.INTERNAL_ERROR);
+        }
+        // 查主机数量
+        normalNum = applicationHostDAO.countHostByIdAndStatus(
+            hostIds,
+            UByte.valueOf(AgentStatusEnum.ALIVE.getValue())
+        );
+        abnormalNum = applicationHostDAO.countHostByIdAndStatus(
+            hostIds,
+            UByte.valueOf(AgentStatusEnum.NOT_ALIVE.getValue())
+        );
+        abnormalNum += applicationHostDAO.countHostByIdAndStatus(
+            hostIds,
+            UByte.valueOf(AgentStatusEnum.UNKNOWN.getValue())
+        );
+        return new AgentStatistics(normalNum.intValue(), abnormalNum.intValue());
     }
 
     /**
+     * 查询子业务包含appId对应业务的所有业务ID
      * 注意：全业务返回null
      *
-     * @param appId
-     * @return
+     * @param appId Job业务ID
+     * @return 子业务包含appId对应业务的所有业务ID
      */
     private List<Long> getQueryConditionBizIds(Long appId) {
         // 查出业务
         ApplicationDTO appInfo = applicationDAO.getCacheAppById(appId);
-        List<Long> bizIds = null;
+        List<Long> bizIds;
         if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
             bizIds = Collections.singletonList(Long.valueOf(appInfo.getScope().getId()));
-        } else if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        } else if (appInfo.isAllBizSet()) {
+            // 兼容发布过程中子业务字段未同步完成时的查询
+            // 全业务：仅根据具体的条件查主机
+            return null;
+        } else if (appInfo.isBizSet()) {
             // 业务集：仅根据业务查主机
             // 查出对应的所有普通业务
             bizIds = topologyHelper.getBizSetSubBizIds(appInfo);
-        } else if (appInfo.getAppType() == AppTypeEnum.ALL_APP) {
-            // 兼容发布过程中子业务字段未同步完成时的查询
-            // 全业务：仅根据具体的条件查主机
+        } else {
+            throw new InternalException("Ilegal appInfo:" + appInfo, ErrorCode.INTERNAL_ERROR);
         }
         return bizIds;
     }
 
     // DB分页
     @Override
-    public PageData<HostInfoVO> listHostsByAgentStatus(String username, Long appId, Integer status, Long start,
+    public PageData<HostInfoVO> listHostsByAgentStatus(String username,
+                                                       Long appId,
+                                                       Integer status,
+                                                       Long start,
                                                        Long pageSize) {
         //分页
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(start, pageSize);
         start = pagePair.getLeft();
         pageSize = pagePair.getRight();
-        List<Long> moduleIds = null;
         List<Long> bizIds = getQueryConditionBizIds(appId);
         List<HostInfoVO> hostInfoVOList;
         val hosts = applicationHostDAO.listHostInfoBySearchContents(
