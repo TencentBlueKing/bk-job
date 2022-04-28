@@ -1,3 +1,4 @@
+{{- if .Values.fileWorkerConfig.enabled }}
 apiVersion: {{ include "common.capabilities.statefulset.apiVersion" . }}
 kind: StatefulSet
 metadata:
@@ -130,3 +131,4 @@ spec:
         - name: job-storage
           persistentVolumeClaim:
             claimName: {{ include "common.names.fullname" . }}-pv-claim
+{{- end }}

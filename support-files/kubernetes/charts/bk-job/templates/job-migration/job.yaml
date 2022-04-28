@@ -1,3 +1,4 @@
+{{- if .Values.migration.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -55,3 +56,4 @@ spec:
             - name: BK_JOB_MIGRATION_IAM_MODEL_ENABLED
               value: {{ .Values.job.migration.iamModel.enabled | quote }}
       restartPolicy: Never
+{{- end }}

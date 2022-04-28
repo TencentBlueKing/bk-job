@@ -1,4 +1,4 @@
-{{- if .Values.backupConfig }}
+{{- if .Values.backupConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -109,4 +109,4 @@ data:
             keep_days: 30
           delete:
             enabled: true
-  {{- end}}
+{{- end}}

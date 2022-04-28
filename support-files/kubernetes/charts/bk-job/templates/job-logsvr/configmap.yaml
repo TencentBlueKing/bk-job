@@ -1,4 +1,4 @@
-{{- if .Values.logsvrConfig }}
+{{- if .Values.logsvrConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -24,4 +24,4 @@ data:
             enabled: {{ include "job.mongodb.useShardingCluster" . }}
     server:
       port: {{ .Values.logsvrConfig.containerPort }}
-  {{- end}}
+{{- end}}

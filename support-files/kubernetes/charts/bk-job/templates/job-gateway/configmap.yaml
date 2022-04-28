@@ -1,4 +1,4 @@
-{{- if .Values.gatewayConfig }}
+{{- if .Values.gatewayConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
