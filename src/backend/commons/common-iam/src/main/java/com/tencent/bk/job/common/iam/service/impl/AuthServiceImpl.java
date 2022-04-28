@@ -101,12 +101,12 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public AuthResult auth(boolean returnApplyUrl, String username, String actionId) {
+    public AuthResult auth(String username, String actionId) {
         boolean isAllowed = authHelper.isAllowed(username, actionId);
         if (isAllowed) {
             return AuthResult.pass();
         } else {
-            return buildFailAuthResult(returnApplyUrl, actionId, null, null);
+            return buildFailAuthResult(actionId, null, (String) null);
         }
     }
 
@@ -131,8 +131,11 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public AuthResult auth(boolean returnApplyUrl, String username, String actionId, ResourceTypeEnum resourceType,
-                           String resourceId, PathInfoDTO pathInfo) {
+    public AuthResult auth(String username,
+                           String actionId,
+                           ResourceTypeEnum resourceType,
+                           String resourceId,
+                           PathInfoDTO pathInfo) {
         if (isMaintainerOfResource(username, resourceType, resourceId)) {
             return AuthResult.pass();
         }
@@ -140,24 +143,19 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
         if (isAllowed) {
             return AuthResult.pass();
         } else {
-            return buildFailAuthResult(returnApplyUrl, actionId, resourceType, resourceId);
+            return buildFailAuthResult(actionId, resourceType, resourceId);
         }
     }
 
 
-    private AuthResult buildFailAuthResult(boolean returnApplyUrl, String actionId, ResourceTypeEnum resourceType,
+    private AuthResult buildFailAuthResult(String actionId,
+                                           ResourceTypeEnum resourceType,
                                            String resourceId) {
         AuthResult authResult = AuthResult.fail();
         if (resourceType == null || StringUtils.isEmpty(resourceId)) {
-            if (returnApplyUrl) {
-                authResult.setApplyUrl(getApplyUrl(actionId));
-            }
             authResult.addRequiredPermission(actionId, null);
         } else {
             String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
-            if (returnApplyUrl) {
-                authResult.setApplyUrl(getApplyUrl(actionId, resourceType, resourceId));
-            }
             authResult.addRequiredPermission(actionId, new PermissionResource(resourceType, resourceId, resourceName));
         }
         return authResult;
@@ -266,13 +264,16 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
             groupResourcesByActionAndResourceType(permissionActionResources);
 
         List<ActionDTO> actions = new ArrayList<>();
-        resourcesGroupByActionAndType.forEach((actionId, resourceGroups) -> {
+        for (Map.Entry<String, Map<String, List<PermissionResource>>> entry :
+            resourcesGroupByActionAndType.entrySet()) {
+            String actionId = entry.getKey();
+            Map<String, List<PermissionResource>> resourceGroups = entry.getValue();
             ActionDTO action = new ActionDTO();
             action.setId(actionId);
             actions.add(action);
 
             if (resourceGroups == null || resourceGroups.isEmpty()) {
-                return;
+                continue;
             }
 
             ActionInfo actionInfo = Actions.getActionInfo(actionId);
@@ -282,8 +283,14 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
             }
 
             List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
+            List<ResourceTypeEnum> actionRelatedResourceTypes = actionInfo.getRelatedResourceTypes();
+            // 无关联资源的Action处理
+            if (CollectionUtils.isEmpty(actionRelatedResourceTypes)) {
+                action.setRelatedResourceTypes(relatedResourceTypes);
+                continue;
+            }
             // IAM 鉴权API对于依赖资源类型的顺序有要求，需要按照注册资源时候的顺序
-            for (ResourceTypeEnum resourceType : actionInfo.getRelatedResourceTypes()) {
+            for (ResourceTypeEnum resourceType : actionRelatedResourceTypes) {
                 List<PermissionResource> relatedResources = resourceGroups.get(resourceType.getId());
                 if (CollectionUtils.isEmpty(relatedResources)) {
                     log.error("Action related resources is empty");
@@ -311,7 +318,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                 relatedResourceTypes.add(relatedResourceType);
             }
             action.setRelatedResourceTypes(relatedResourceTypes);
-        });
+        }
         return actions;
     }
 

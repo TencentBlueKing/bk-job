@@ -42,7 +42,7 @@ public interface AppAuthService {
 
     void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService);
 
-    AuthResult auth(boolean returnApplyUrl, String username, String actionId, AppResourceScope appResourceScope);
+    AuthResult auth(String username, String actionId, AppResourceScope appResourceScope);
 
     /**
      * 批量鉴权

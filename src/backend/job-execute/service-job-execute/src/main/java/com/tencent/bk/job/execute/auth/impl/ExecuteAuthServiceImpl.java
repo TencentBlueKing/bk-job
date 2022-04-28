@@ -577,21 +577,22 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (username.equals(taskInstance.getOperator())) {
             return AuthResult.pass();
         }
-        return appAuthService.auth(false, username, ActionId.VIEW_HISTORY, appResourceScope);
+        return appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
     }
 
     @Override
-    public AuthResult authViewTaskInstance(String username, AppResourceScope appResourceScope,
+    public AuthResult authViewTaskInstance(String username,
+                                           AppResourceScope appResourceScope,
                                            TaskInstanceDTO taskInstance) {
         if (username.equals(taskInstance.getOperator())) {
             return AuthResult.pass();
         }
-        return appAuthService.auth(false, username, ActionId.VIEW_HISTORY, appResourceScope);
+        return appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
     }
 
     @Override
     public AuthResult authViewAllTaskInstance(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(false, username, ActionId.VIEW_HISTORY, appResourceScope);
+        return appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
     }
 
     @Override
@@ -599,7 +600,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (!shouldAuthAccount(appResourceScope)) {
             return AuthResult.pass();
         }
-        return authService.auth(false, username, ActionId.USE_ACCOUNT,
+        return authService.auth(username, ActionId.USE_ACCOUNT,
             ResourceTypeEnum.ACCOUNT, accountId.toString(), buildAppScopeResourcePath(
                 appResourceScope, ResourceTypeEnum.ACCOUNT, accountId.toString()));
     }

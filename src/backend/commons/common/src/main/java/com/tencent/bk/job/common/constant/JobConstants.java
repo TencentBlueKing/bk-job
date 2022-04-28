@@ -33,6 +33,10 @@ public class JobConstants {
      */
     public static final long PUBLIC_APP_ID = 0L;
     /**
+     * CMDB内置的全业务ID
+     */
+    public static final long DEFAULT_ALL_BIZ_SET_ID = 9991001L;
+    /**
      * 执行结果分组标签最大长度
      */
     public static final int RESULT_GROUP_TAG_MAX_LENGTH = 256;
@@ -60,4 +64,8 @@ public class JobConstants {
      * 作业最大超时时间，单位秒
      */
     public static final int MAX_JOB_TIMEOUT_SECONDS = 86400;
+    /**
+     * 请求来源：备份服务
+     */
+    public static final int REQUEST_SOURCE_JOB_BACKUP = 1;
 }

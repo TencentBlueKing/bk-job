@@ -52,7 +52,7 @@ public enum DuplicateIdHandlerEnum {
     @JsonValue
     private final Integer type;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static DuplicateIdHandlerEnum valueOf(Integer type) {
         for (DuplicateIdHandlerEnum value : values()) {
             if (value.getType().equals(type)) {

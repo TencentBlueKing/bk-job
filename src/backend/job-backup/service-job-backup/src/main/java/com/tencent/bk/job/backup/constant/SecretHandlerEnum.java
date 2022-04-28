@@ -48,7 +48,7 @@ public enum SecretHandlerEnum {
     @JsonValue
     private final Integer type;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static SecretHandlerEnum valueOf(Integer type) {
         for (SecretHandlerEnum value : values()) {
             if (value.getType().equals(type)) {

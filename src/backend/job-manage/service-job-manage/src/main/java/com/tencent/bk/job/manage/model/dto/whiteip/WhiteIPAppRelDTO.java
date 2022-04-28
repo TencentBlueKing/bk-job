@@ -22,43 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts.globalsetting;
+package com.tencent.bk.job.manage.model.dto.whiteip;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.val;
+import lombok.Setter;
+import lombok.ToString;
 
-@Getter
+/**
+ * IP白名单和业务关联DTO
+ */
 @AllArgsConstructor
-public enum OSTypeEnum {
+@Getter
+@Setter
+@ToString
+public class WhiteIPAppRelDTO {
     /**
-     * LINUX
+     * 白名单记录id
      */
-    LINUX(1),
-
+    private Long recordId;
     /**
-     * Windows
+     * 业务id
      */
-    WINDOWS(2),
-
+    private Long appId;
     /**
-     * 数据库
+     * 创建人
      */
-    DATABASE(3);
-
-    @JsonValue
-    private int type;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static OSTypeEnum valueOf(int type) {
-        val values = OSTypeEnum.values();
-        for (int i = 0; i < values.length; i++) {
-            if (values[i].type == type) {
-                return values[i];
-            }
-        }
-        return null;
-    }
+    private String creator;
+    /**
+     * 创建时间
+     */
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long createTime;
 }

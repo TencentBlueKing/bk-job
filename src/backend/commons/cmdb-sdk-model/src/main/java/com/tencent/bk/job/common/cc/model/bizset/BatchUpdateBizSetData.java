@@ -22,43 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts.globalsetting;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import lombok.val;
+import lombok.Setter;
+import lombok.ToString;
 
+/**
+ * CMDB接口请求实体类，用于批量更新业务集
+ */
+@Setter
 @Getter
-@AllArgsConstructor
-public enum OSTypeEnum {
-    /**
-     * LINUX
-     */
-    LINUX(1),
+@ToString
+public class BatchUpdateBizSetData {
 
     /**
-     * Windows
+     * 业务集字段集合
      */
-    WINDOWS(2),
+    @JsonProperty("bk_biz_set_attr")
+    private BizSetAttr attr;
 
     /**
-     * 数据库
+     * 业务集的业务选择范围
      */
-    DATABASE(3);
+    @JsonProperty("bk_scope")
+    private BizSetScope scope;
 
-    @JsonValue
-    private int type;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static OSTypeEnum valueOf(int type) {
-        val values = OSTypeEnum.values();
-        for (int i = 0; i < values.length; i++) {
-            if (values[i].type == type) {
-                return values[i];
-            }
-        }
-        return null;
-    }
 }

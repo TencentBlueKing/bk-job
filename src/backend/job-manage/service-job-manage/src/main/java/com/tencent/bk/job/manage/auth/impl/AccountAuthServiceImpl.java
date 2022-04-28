@@ -61,7 +61,7 @@ public class AccountAuthServiceImpl implements AccountAuthService {
 
     @Override
     public AuthResult authCreateAccount(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(true, username, ActionId.CREATE_ACCOUNT, appResourceScope);
+        return appAuthService.auth(username, ActionId.CREATE_ACCOUNT, appResourceScope);
     }
 
     private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
@@ -75,9 +75,12 @@ public class AccountAuthServiceImpl implements AccountAuthService {
                                         Long accountId,
                                         String accountName) {
         return authService.auth(
-            true, username,
-            ActionId.MANAGE_ACCOUNT, ResourceTypeEnum.ACCOUNT, accountId.toString(),
-            buildAppScopePath(appResourceScope));
+            username,
+            ActionId.MANAGE_ACCOUNT,
+            ResourceTypeEnum.ACCOUNT,
+            accountId.toString(),
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override
@@ -86,9 +89,12 @@ public class AccountAuthServiceImpl implements AccountAuthService {
                                      Long accountId,
                                      String accountName) {
         return authService.auth(
-            true, username,
-            ActionId.USE_ACCOUNT, ResourceTypeEnum.ACCOUNT, accountId.toString(),
-            buildAppScopePath(appResourceScope));
+            username,
+            ActionId.USE_ACCOUNT,
+            ResourceTypeEnum.ACCOUNT,
+            accountId.toString(),
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override

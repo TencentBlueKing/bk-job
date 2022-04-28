@@ -1,6 +1,7 @@
 package com.tencent.bk.job.manage.manager.cache;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.common.consts.rule.HighRiskGrammarRuleStatusEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
@@ -46,8 +47,11 @@ public class DangerousRuleCache {
         Object dangerousRules = redisTemplate.opsForHash().get(DANGEROUS_RULE_HASH_KEY, String.valueOf(scriptType));
         if (dangerousRules == null) {
             log.info("DangerousRules is not in cache!");
-            List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRulesByScriptType(dslContext,
-                scriptType);
+            DangerousRuleDTO dangerousRuleQuery = new DangerousRuleDTO();
+            dangerousRuleQuery.setScriptType(scriptType);
+            dangerousRuleQuery.setStatus(HighRiskGrammarRuleStatusEnum.ENABLED.getCode());
+            List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRules(dslContext,
+                dangerousRuleQuery);
             if (CollectionUtils.isEmpty(dangerousRuleDTOList)) {
                 redisTemplate.opsForHash().put(DANGEROUS_RULE_HASH_KEY, String.valueOf(scriptType),
                     new ArrayList<DangerousRuleDO>());

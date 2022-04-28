@@ -42,7 +42,7 @@ public interface DangerousRuleDAO {
 
     List<DangerousRuleDTO> listDangerousRules(DSLContext dslContext);
 
-    List<DangerousRuleDTO> listDangerousRulesByScriptType(DSLContext dslContext, Integer scriptType);
+    List<DangerousRuleDTO> listDangerousRules(DSLContext dslContext, DangerousRuleDTO dangerousRuleQuery);
 
     int getMaxPriority(DSLContext dslContext);
 

@@ -41,4 +41,6 @@ public interface WhiteIPActionScopeDAO {
     List<WhiteIPActionScopeDTO> getWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId);
 
     int updateWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO);
+
+    List<WhiteIPActionScopeDTO> listWhiteIPActionScopeByRecordIds(DSLContext dslContext, List<Long> recordIdList);
 }

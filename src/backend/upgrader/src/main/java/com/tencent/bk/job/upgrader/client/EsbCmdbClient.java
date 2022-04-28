@@ -25,6 +25,7 @@
 package com.tencent.bk.job.upgrader.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.cc.model.bizset.BatchUpdateBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.CreateBizSetReq;
@@ -50,6 +51,7 @@ public class EsbCmdbClient extends AbstractEsbSdkClient {
 
     private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
     private static final String CREATE_BUSINESS_SET = "/api/c/compapi/v2/cc/create_business_set/";
+    private static final String BATCH_UPDATE_BUSINESS_SET = "/api/c/compapi/v2/cc/batch_update_business_set/";
 
     public EsbCmdbClient(String esbHostUrl,
                          String appCode,
@@ -105,6 +107,22 @@ public class EsbCmdbClient extends AbstractEsbSdkClient {
             new TypeReference<EsbResp<Long>>() {
             });
         return resp.getData();
+    }
+
+    /**
+     * 批量更新业务集
+     *
+     * @param batchUpdateBizSetReq 业务集更新请求信息
+     * @return 业务集id
+     */
+    public Boolean batchUpdateBizSet(BatchUpdateBizSetReq batchUpdateBizSetReq) {
+        EsbResp<Object> resp = getEsbRespByReq(
+            HttpPost.METHOD_NAME,
+            BATCH_UPDATE_BUSINESS_SET,
+            batchUpdateBizSetReq,
+            new TypeReference<EsbResp<Object>>() {
+            });
+        return resp.getResult();
     }
 
 }
