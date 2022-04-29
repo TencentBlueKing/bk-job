@@ -261,7 +261,7 @@
                             ...this.formData,
                             scriptVersionId: this.scriptInfo.scriptVersionId,
                         }).then(() => {
-                            window.changeAlert = false;
+                            window.changeConfirm = false;
                             this.$emit('on-edit', {
                                 scriptVersionId: this.scriptInfo.scriptVersionId,
                             });

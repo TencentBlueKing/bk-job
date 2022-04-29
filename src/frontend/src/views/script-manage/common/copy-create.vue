@@ -315,7 +315,7 @@
                             this.$emit('on-create', {
                                 scriptVersionId: data.scriptVersionId,
                             });
-                            window.changeAlert = false;
+                            window.changeConfirm = false;
                             this.messageSuccess(I18n.t('script.操作成功'));
                         });
                     })

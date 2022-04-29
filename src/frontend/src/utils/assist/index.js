@@ -82,10 +82,10 @@ export const downloadUrl = (url) => {
     // 触发点击
     document.body.appendChild(eleLink);
     const { changeAlert } = window;
-    window.changeAlert = false;
+    window.changeConfirm = false;
     eleLink.click();
     setTimeout(() => {
-        window.changeAlert = changeAlert;
+        window.changeConfirm = changeAlert;
     });
     
     // 然后移除

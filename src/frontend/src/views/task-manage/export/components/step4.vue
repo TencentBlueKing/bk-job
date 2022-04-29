@@ -95,13 +95,13 @@
         created () {
             // 自定义路由切换确认框
             this.$route.meta.leavaConfirm = () => new Promise((resolve, reject) => {
-                if (!window.changeAlert) {
+                if (!window.changeConfirm) {
                     resolve();
                     return;
                 }
                 let confirmDialog = null;
                 const keepCallback = () => {
-                    window.changeAlert = false;
+                    window.changeConfirm = false;
                     resolve();
                     confirmDialog.close();
                     setTimeout(() => {
@@ -118,7 +118,7 @@
                     requestHandler({
                         id: this.id,
                     }).then(() => {
-                        window.changeAlert = false;
+                        window.changeConfirm = false;
                         resolve();
                         confirmDialog.close();
                         setTimeout(() => {
@@ -159,7 +159,7 @@
 
             this.pollingQueue = [];
             taskExport.clearItem();
-            window.changeAlert = true;
+            window.changeConfirm = true;
             this.fetchData();
             this.startTimer();
             this.$once('hook:beforeDestroy', () => {
@@ -229,7 +229,7 @@
                 BackupService.updateExportComplete({
                     id: this.id,
                 }).then(() => {
-                    window.changeAlert = false;
+                    window.changeConfirm = false;
                     this.$emit('on-cancle');
                 })
                     .finally(() => {
