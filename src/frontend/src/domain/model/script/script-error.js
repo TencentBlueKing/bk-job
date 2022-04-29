@@ -30,6 +30,9 @@ const ERROR_MAP = {
     2: 'warning',
     3: 'error',
 };
+
+// const ACTION_SCAN = 1;
+const ACTION_PREVENT = 2;
 export default class ScriptError {
     constructor (payload) {
         this.row = payload.line - 1;
@@ -37,10 +40,19 @@ export default class ScriptError {
         this.level = payload.level;
         this.type = ERROR_MAP[payload.level];
         this.text = this.initText(payload);
+        this.action = payload.action;
     }
 
+    /**
+     * @desc 是否是高危语句提示
+     * @returns { Boolean }
+     */
     get isDangerous () {
         return this.level === 3;
+    }
+
+    get isActionPrevent () {
+        return this.action === ACTION_PREVENT;
     }
 
     initText (payload) {

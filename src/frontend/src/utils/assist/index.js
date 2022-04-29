@@ -34,7 +34,7 @@ export * from './encode';
 export * from './generator-default-value';
 export * from './dom';
 export * from './business';
-export * from './script-error-alert';
+export * from './script-error-confirm';
 export * from './byte-pretty';
 export * from './format';
 export * from './calc-text-width';

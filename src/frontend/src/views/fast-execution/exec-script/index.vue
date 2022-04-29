@@ -124,7 +124,7 @@
     import ItemFactory from '@components/task-step/script/item-factory';
     import {
         genDefaultName,
-        scriptErrorAlert,
+        scriptErrorConfirm,
     } from '@utils/assist';
     import {
         execScriptHistory,
@@ -344,11 +344,8 @@
             handleSubmit () {
                 this.isSubmiting = true;
                 this.$refs.execScriptForm.validate()
+                    .then(scriptErrorConfirm)
                     .then(() => {
-                        if (this.$store.state.scriptCheckError) {
-                            scriptErrorAlert();
-                            return;
-                        }
                         const {
                             name,
                             scriptSource,
