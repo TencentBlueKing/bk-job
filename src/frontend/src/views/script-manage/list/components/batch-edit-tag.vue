@@ -280,7 +280,7 @@
                         checked: false,
                     };
                 }
-                window.changeAlert = true;
+                window.changeConfirm = true;
                 state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
             };
             /**
@@ -293,7 +293,7 @@
                 }
                 tag.isNew = true;
                 state.newTagList.unshift(tag);
-                window.changeAlert = true;
+                window.changeConfirm = true;
             };
             /**
              * @desc 提交批量编辑

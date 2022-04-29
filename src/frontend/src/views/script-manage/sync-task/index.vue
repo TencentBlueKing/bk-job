@@ -238,7 +238,7 @@
              * @desc 路由回退
              */
             routerBack () {
-                window.changeAlert = !this.isRetryAllDisable;
+                window.changeConfirm = !this.isRetryAllDisable;
                 this.isSyncPlanLoading = false;
                 leaveConfirm(I18n.t('script.部分作业模板同步失败，请留意'))
                     .then(() => {

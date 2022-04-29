@@ -54,7 +54,7 @@ console.log(
 /**
  * @desc 页面数据的编辑状态
  */
-window.changeAlert = false;
+window.changeConfirm = false;
 
 /**
  * @desc 因为 IP 有白名单功能，生效范围需要更新场景区分
@@ -73,7 +73,7 @@ window.routerFlashBack = false;
  */
 window.addEventListener('beforeunload', (event) => {
     // 需要做 Boolean 类型的值判断
-    if (window.changeAlert !== true) {
+    if (window.changeConfirm !== true) {
         return null;
     }
     const e = event || window.event;

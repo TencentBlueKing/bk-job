@@ -89,6 +89,7 @@
     </smart-action>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
@@ -96,7 +97,7 @@
         formatScriptTypeValue,
         checkPublicScript,
         getOffset,
-        scriptErrorAlert,
+        scriptErrorConfirm,
     } from '@utils/assist';
     import {
         scriptNameRule,
@@ -177,7 +178,9 @@
                             scriptType: this.formData.type,
                         }).then((data) => {
                             // 高危语句报错状态需要全局保存
-                            this.$store.commit('setScriptCheckError', data.some(_ => _.isDangerous));
+                            // 高危语句报错状态需要全局保存
+                            const dangerousContent = _.find(data, _ => _.isDangerous);
+                            this.$store.commit('setScriptCheckError', dangerousContent);
                             return true;
                         }),
                         message: I18n.t('script.脚本内容检测失败'),
@@ -212,27 +215,22 @@
             handleSubmit () {
                 this.isSbumiting = true;
                 this.$refs.form.validate()
-                    .then(() => {
-                        if (this.$store.state.scriptCheckError) {
-                            scriptErrorAlert();
-                            return;
-                        }
-                        return this.serviceHandler.scriptUpdate(this.formData)
-                            .then((data) => {
-                                window.changeAlert = false;
-                                this.messageSuccess(I18n.t('script.操作成功'), () => {
-                                    this.$router.push({
-                                        name: this.publicScript ? 'publicScriptVersion' : 'scriptVersion',
-                                        params: {
-                                            id: data.id,
-                                        },
-                                        query: {
-                                            scriptVersionId: data.scriptVersionId,
-                                        },
-                                    });
+                    .then(scriptErrorConfirm)
+                    .then(() => this.serviceHandler.scriptUpdate(this.formData)
+                        .then((data) => {
+                            window.changeConfirm = false;
+                            this.messageSuccess(I18n.t('script.操作成功'), () => {
+                                this.$router.push({
+                                    name: this.publicScript ? 'publicScriptVersion' : 'scriptVersion',
+                                    params: {
+                                        id: data.id,
+                                    },
+                                    query: {
+                                        scriptVersionId: data.scriptVersionId,
+                                    },
                                 });
                             });
-                    })
+                        }))
                     .finally(() => {
                         this.isSbumiting = false;
                     });

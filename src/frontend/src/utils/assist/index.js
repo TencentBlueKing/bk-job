@@ -34,7 +34,7 @@ export * from './encode';
 export * from './generator-default-value';
 export * from './dom';
 export * from './business';
-export * from './script-error-alert';
+export * from './script-error-confirm';
 export * from './byte-pretty';
 export * from './format';
 export * from './calc-text-width';
@@ -83,10 +83,10 @@ export const downloadUrl = (url) => {
     // 触发点击
     document.body.appendChild(eleLink);
     const { changeAlert } = window;
-    window.changeAlert = false;
+    window.changeConfirm = false;
     eleLink.click();
     setTimeout(() => {
-        window.changeAlert = changeAlert;
+        window.changeConfirm = changeAlert;
     });
     
     // 然后移除

@@ -500,7 +500,7 @@
                                 mode: rollingMode,
                             },
                         }).then((data) => {
-                            window.changeAlert = false;
+                            window.changeConfirm = false;
                             this.$router.push({
                                 name: 'historyStep',
                                 params: {
