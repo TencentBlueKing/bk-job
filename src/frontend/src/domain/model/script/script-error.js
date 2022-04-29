@@ -31,8 +31,8 @@ const ERROR_MAP = {
     3: 'error',
 };
 
-// const ACTION_SCAN = 1;
-const ACTION_PREVENT = 2;
+const ACTION_SCAN = 1;
+// const ACTION_PREVENT = 2;
 export default class ScriptError {
     constructor (payload) {
         this.row = payload.line - 1;
@@ -51,8 +51,8 @@ export default class ScriptError {
         return this.level === 3;
     }
 
-    get isActionPrevent () {
-        return this.action === ACTION_PREVENT;
+    get isActionScan () {
+        return this.action === ACTION_SCAN;
     }
 
     initText (payload) {
