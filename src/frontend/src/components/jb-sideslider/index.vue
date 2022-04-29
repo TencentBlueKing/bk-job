@@ -145,8 +145,8 @@
                         if (val) {
                             this.isRender = true;
                             // 当页面可以进行编辑时，其中一项是通过sideslider来编辑的，需要先记录页面的编辑状态
-                            this.pageChangeAlertMemo = window.changeAlert;
-                            window.changeAlert = 'dialog';
+                            this.pageChangeConfirmMemo = window.changeConfirm;
+                            window.changeConfirm = 'dialog';
                             this.getMediaWidth();
                             this.$nextTick(() => {
                                 observer.observe(this.$refs.bkSideslider.$el, {
@@ -169,7 +169,7 @@
             },
         },
         created () {
-            this.pageChangeAlertMemo = false;
+            this.pageChangeConfirmMemo = false;
         },
         beforeDestroy () {
             // 解决 bk-sideslider 在其内部有路由跳转时bk-sideslider的dom没有移出的bug
@@ -264,7 +264,7 @@
              * @desc 关闭弹层
              */
             close () {
-                window.changeAlert = this.pageChangeAlertMemo;
+                window.changeConfirm = this.pageChangeConfirmMemo;
                 this.$emit('update:isShow', false);
             },
             /**
@@ -274,7 +274,7 @@
                 this.isSubmiting = true;
                 Promise.resolve(this.checkHandle().submit())
                     .then(() => {
-                        window.changeAlert = false;
+                        window.changeConfirm = false;
                         this.close();
                     })
                     .finally(() => {
