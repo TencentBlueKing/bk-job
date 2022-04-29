@@ -339,7 +339,7 @@
                     }
                     
                     if (this.data.length > 0) {
-                        window.changeAlert = true;
+                        window.changeConfirm = true;
                     }
                 })
                     .finally(() => {
@@ -371,7 +371,7 @@
              * 一条条数据串联同步
              */
             handleConfirmAll () {
-                window.changeAlert = true;
+                window.changeConfirm = true;
                 this.isConfirmLoading = true;
                 const syncValueMemoMap = { ...this.syncValueMemoMap };
                 this.data.forEach((item) => {
@@ -586,7 +586,7 @@
              * @param {Array} cronJobInfoList 执行方案关联的定时任务变量信息
              */
             handleSelectPlanConfirmChange (cronJobInfoList) {
-                window.changeAlert = true;
+                window.changeConfirm = true;
 
                 const syncValueMemoMap = { ...this.syncValueMemoMap };
                 
@@ -664,7 +664,7 @@
                 runStepByStep(this.data, syncOnePlan, () => {
                     this.isSyncLoading = false;
                     this.isFinished = true;
-                    window.changeAlert = false;
+                    window.changeConfirm = false;
                 });
             },
             /**
@@ -705,7 +705,7 @@
              * @desc 完成批量同步
              */
             handleFinish () {
-                window.changeAlert = false;
+                window.changeConfirm = false;
                 this.routerBack();
             },
             /**

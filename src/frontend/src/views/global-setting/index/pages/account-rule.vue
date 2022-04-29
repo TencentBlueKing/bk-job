@@ -95,7 +95,7 @@
                     });
             },
             handleChange (field, value, index) {
-                window.changeAlert = true;
+                window.changeConfirm = true;
                 this.currentRules[index][field] = value;
                 this.currentRules = [...this.currentRules];
             },
@@ -108,7 +108,7 @@
                 GlobalSettingService.updateNameRules({
                     rules: this.currentRules,
                 }).then(() => {
-                    window.changeAlert = false;
+                    window.changeConfirm = false;
                     this.messageSuccess(I18n.t('setting.账号命名规则保存成功'));
                 })
                     .finally(() => {
