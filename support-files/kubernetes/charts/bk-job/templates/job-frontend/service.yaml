@@ -1,3 +1,4 @@
+{{- if .Values.frontendConfig.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -20,3 +21,4 @@ spec:
       protocol: TCP
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
     app.kubernetes.io/component: "job-frontend"
+{{- end }}

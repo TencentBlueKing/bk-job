@@ -83,26 +83,29 @@ data:
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
     cmdb:
-     app:
-       index:
-         path: {{ .Values.cmdb.app.index.path }}
-     interface:
-       briefCacheTopo:
-         enabled: {{ .Values.cmdb.interface.briefCacheTopo.enabled }}
-       findHostRelation:
-         longTerm:
-           concurrency: {{ .Values.cmdb.interface.findHostRelation.longTerm.concurrency }}
-       flowControl:
-         default:
-           limit: {{ .Values.cmdb.interface.flowControl.default.limit }}
-         enabled: {{ .Values.cmdb.interface.flowControl.enabled }}
-       retry:
-         enabled: {{ .Values.cmdb.interface.retry.enabled }}
-     query:
-       threads:
-         num: {{ .Values.cmdb.query.threads.num }}
-     server:
-       url: {{ .Values.bkCmdbUrl }}
+      default:
+        supplier:
+          account: {{ .Values.cmdb.supplierAccount }}
+      app:
+        index:
+          path: {{ .Values.cmdb.app.index.path }}
+      interface:
+        briefCacheTopo:
+          enabled: {{ .Values.cmdb.interface.briefCacheTopo.enabled }}
+        findHostRelation:
+          longTerm:
+            concurrency: {{ .Values.cmdb.interface.findHostRelation.longTerm.concurrency }}
+        flowControl:
+          default:
+            limit: {{ .Values.cmdb.interface.flowControl.default.limit }}
+          enabled: {{ .Values.cmdb.interface.flowControl.enabled }}
+        retry:
+          enabled: {{ .Values.cmdb.interface.retry.enabled }}
+      query:
+        threads:
+          num: {{ .Values.cmdb.query.threads.num }}
+      server:
+        url: {{ .Values.bkCmdbUrl }}
     nodeman:
       server:
         url: {{ .Values.bkNodemanUrl }}

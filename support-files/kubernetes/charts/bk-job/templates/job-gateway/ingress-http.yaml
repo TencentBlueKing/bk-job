@@ -1,4 +1,4 @@
-{{- if .Values.gatewayConfig.ingress.enabled -}}
+{{- if and (.Values.gatewayConfig.enabled) (.Values.gatewayConfig.ingress.enabled) -}}
 apiVersion: {{ template "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:

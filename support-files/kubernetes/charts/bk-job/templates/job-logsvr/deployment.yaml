@@ -1,3 +1,4 @@
+{{- if .Values.logsvrConfig.enabled }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -124,3 +125,4 @@ spec:
           secret:
             secretName: {{ include "job.mongodb.secretName" . }}
 
+{{- end }}
