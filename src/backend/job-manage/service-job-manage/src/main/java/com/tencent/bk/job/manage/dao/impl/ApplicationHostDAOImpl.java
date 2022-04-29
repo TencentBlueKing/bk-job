@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -216,13 +217,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public Long countHostByIdAndStatus(Collection<Long> hostIds, UByte agentStatus) {
+    public Long countHostByIdAndStatus(Collection<Long> hostIds, AgentStatusEnum agentStatus) {
         List<Condition> conditions = new ArrayList<>();
         if (hostIds != null) {
             conditions.add(TABLE.HOST_ID.in(hostIds));
         }
         if (agentStatus != null) {
-            conditions.add(TABLE.IS_AGENT_ALIVE.eq(agentStatus));
+            conditions.add(TABLE.IS_AGENT_ALIVE.eq(UByte.valueOf(agentStatus.getValue())));
         }
         return countHostByConditions(conditions);
     }

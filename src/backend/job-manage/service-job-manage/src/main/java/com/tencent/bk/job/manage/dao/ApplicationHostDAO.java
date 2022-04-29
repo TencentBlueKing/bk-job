@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao;
 
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -67,7 +68,7 @@ public interface ApplicationHostDAO {
      * @param agentStatus Agent状态
      * @return 主机数量
      */
-    Long countHostByIdAndStatus(Collection<Long> hostIds, UByte agentStatus);
+    Long countHostByIdAndStatus(Collection<Long> hostIds, AgentStatusEnum agentStatus);
 
     List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips);
 

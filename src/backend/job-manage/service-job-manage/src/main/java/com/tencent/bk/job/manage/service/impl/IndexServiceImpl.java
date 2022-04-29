@@ -55,7 +55,6 @@ import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
-import org.jooq.types.UByte;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -147,15 +146,15 @@ public class IndexServiceImpl implements IndexService {
         // 查主机数量
         normalNum = applicationHostDAO.countHostByIdAndStatus(
             hostIds,
-            UByte.valueOf(AgentStatusEnum.ALIVE.getValue())
+            AgentStatusEnum.ALIVE
         );
         abnormalNum = applicationHostDAO.countHostByIdAndStatus(
             hostIds,
-            UByte.valueOf(AgentStatusEnum.NOT_ALIVE.getValue())
+            AgentStatusEnum.NOT_ALIVE
         );
         abnormalNum += applicationHostDAO.countHostByIdAndStatus(
             hostIds,
-            UByte.valueOf(AgentStatusEnum.UNKNOWN.getValue())
+            AgentStatusEnum.UNKNOWN
         );
         return new AgentStatistics(normalNum.intValue(), abnormalNum.intValue());
     }
