@@ -68,7 +68,7 @@ public class WebIndexResourceImpl implements WebIndexResource {
                                                         AppResourceScope appResourceScope,
                                                         String scopeType,
                                                         String scopeId) {
-        return Response.buildSuccessResp(indexService.getAgentStatistics(username, appResourceScope.getAppId()));
+        return Response.buildSuccessResp(indexService.getAgentStatistics(username, appResourceScope));
     }
 
     @Override
