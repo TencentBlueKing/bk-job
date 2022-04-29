@@ -117,10 +117,10 @@ export const scriptErrorConfirm = () => new Promise((resolve, reject) => {
     if (!scriptCheckError) {
         return resolve();
     }
-    console.log('from scriptErrorConfirm = ', scriptCheckError);
-    if (scriptCheckError.isActionPrevent) {
-        preventDialog(resolve, reject);
-    } else {
+    
+    if (scriptCheckError.isActionScan) {
         sacnDialog(resolve, reject);
+    } else {
+        preventDialog(resolve, reject);
     }
 });
