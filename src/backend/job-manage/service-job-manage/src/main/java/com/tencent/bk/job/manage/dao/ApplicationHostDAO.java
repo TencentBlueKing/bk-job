@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import org.jooq.DSLContext;
-import org.jooq.types.UByte;
 
 import java.util.Collection;
 import java.util.List;
