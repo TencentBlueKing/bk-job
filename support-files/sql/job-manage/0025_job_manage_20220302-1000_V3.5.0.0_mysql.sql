@@ -1,3 +1,18 @@
+USE job_manage;
+
+SET NAMES utf8mb4;
+
+DROP PROCEDURE IF EXISTS job_schema_update;
+
+DELIMITER <JOB_UBF>
+
+CREATE PROCEDURE job_schema_update()
+BEGIN
+
+  DECLARE db VARCHAR(100);
+  SET AUTOCOMMIT = 0;
+  SELECT DATABASE() INTO db;
+  
   -- Update `application` schema
   ALTER TABLE `application` MODIFY `app_id` BIGINT(20) UNSIGNED AUTO_INCREMENT;
 
