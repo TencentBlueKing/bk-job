@@ -138,4 +138,4 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
-
+{{- end }}

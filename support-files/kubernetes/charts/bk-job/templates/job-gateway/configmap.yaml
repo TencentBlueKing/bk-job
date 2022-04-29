@@ -236,4 +236,4 @@ data:
     management:
       server:
         port: {{ .Values.gatewayConfig.containerPort.management }}
-{{- end}}
+{{- end }}

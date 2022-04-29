@@ -24,4 +24,4 @@ data:
             enabled: {{ include "job.mongodb.useShardingCluster" . }}
     server:
       port: {{ .Values.logsvrConfig.containerPort }}
-{{- end}}
+{{- end }}

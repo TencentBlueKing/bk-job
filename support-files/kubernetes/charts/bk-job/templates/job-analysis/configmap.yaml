@@ -54,4 +54,4 @@ data:
             readTimeout: 300000
     server:
       port: {{ .Values.analysisConfig.containerPort }}
-{{- end}}
+{{- end }}
