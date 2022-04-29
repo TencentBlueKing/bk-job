@@ -1,14 +1,14 @@
 # chart values 更新日志
 
 ## 0.1.53
-1.增加CMDB供应商配置
+1.增加CMDB供应商配置：
 ```shell script
 ## 对接蓝鲸CMDB参数配置
 cmdb:
   # 供应商，默认为0
   supplierAccount: 0
 ```
-2.增加各模块是否启用开关配置
+2.增加各模块是否启用开关配置：
 ```shell script
 ## job-gateway网关配置
 gatewayConfig:
@@ -51,9 +51,11 @@ migration:
   # 模块是否启用，默认启用
   enabled: true
 ```
+3.更新微服务默认镜像版本。
+
 
 ## 0.1.52
-1.更新微服务默认镜像版本；  
+1.更新微服务默认镜像版本；
 2.更新k8s-wait-for默认镜像版本；  
 **3.增加登录配置**  
 ```shell script
