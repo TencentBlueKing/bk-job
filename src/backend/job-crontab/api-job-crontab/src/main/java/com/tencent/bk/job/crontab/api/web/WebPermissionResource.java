@@ -96,7 +96,7 @@ public interface WebPermissionResource {
         @RequestParam(value = "appId", required = false) Long appId,
         @ApiParam(value = "业务范围类型，biz-业务，biz_set-业务集")
         @RequestParam(value = "scopeType", required = false) String scopeType,
-        @ApiParam(value = "范畴ID", required = false)
+        @ApiParam(value = "资源范围ID", required = false)
         @RequestParam(value = "scopeId", required = false) String scopeId,
         @ApiParam("操作ID,取值为: [cron/create,cron/view,cron/edit,cron/delete,cron/manage")
         @RequestParam(value = "operation") String operation,

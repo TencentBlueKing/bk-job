@@ -993,7 +993,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
         for (SyncScriptResultDTO syncResult : syncResults) {
             ScriptSyncResultVO syncVO = new ScriptSyncResultVO();
             ScriptSyncTemplateStepDTO syncStep = syncResult.getTemplateStep();
-            syncVO.setAppId(syncStep.getAppId());
             if (syncStep.getAppId() != null && !syncStep.getAppId().equals(PUBLIC_APP_ID)) {
                 syncVO.setScopeType(scopeType);
                 syncVO.setScopeId(scopeId);

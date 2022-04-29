@@ -50,17 +50,15 @@ import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * 作业执行API-前端调用
- *
- * @date 2019/09/18
  */
 @Api(tags = {"job-execute:web:Task_Execute"})
-@RequestMapping("/web/execution/")
+@RequestMapping("/web/execution/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "执行作业", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/task-execution", "/scope/{scopeType}/{scopeId}/task-execution"})
+    @PostMapping(value = {"/task-execution"})
     Response<TaskExecuteVO> executeTask(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -68,11 +66,11 @@ public interface WebExecuteTaskResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "执行作业请求报文", name = "webTaskExecuteRequest", required = true)
         @RequestBody
@@ -80,8 +78,7 @@ public interface WebExecuteTaskResource {
     );
 
     @ApiOperation(value = "重新执行作业", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/task-execution/redo-task",
-        "/scope/{scopeType}/{scopeId}/task-execution/redo-task"})
+    @PostMapping(value = {"/task-execution/redo-task"})
     Response<TaskExecuteVO> redoTask(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -89,11 +86,11 @@ public interface WebExecuteTaskResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "重新执行作业请求报文", name = "redoTaskRequest", required = true)
         @RequestBody
@@ -101,7 +98,7 @@ public interface WebExecuteTaskResource {
     );
 
     @ApiOperation(value = "快速执行脚本", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/fast-execute-script", "/scope/{scopeType}/{scopeId}/fast-execute-script"})
+    @PostMapping(value = {"/fast-execute-script"})
     Response<StepExecuteVO> fastExecuteScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -109,11 +106,11 @@ public interface WebExecuteTaskResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "快速执行脚本请求报文", name = "webScriptExecuteRequest", required = true)
         @RequestBody
@@ -122,7 +119,7 @@ public interface WebExecuteTaskResource {
     );
 
     @ApiOperation(value = "快速分发文件", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/fast-push-file", "/scope/{scopeType}/{scopeId}/fast-push-file"})
+    @PostMapping(value = {"/fast-push-file"})
     Response<StepExecuteVO> fastPushFile(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -130,11 +127,11 @@ public interface WebExecuteTaskResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "快速分发文件请求报文", name = "webPushFileRequest", required = true)
         @RequestBody
@@ -143,8 +140,7 @@ public interface WebExecuteTaskResource {
     );
 
     @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/do-step-operation/stepInstanceId/{stepInstanceId}",
-        "/scope/{scopeType}/{scopeId}/do-step-operation/stepInstanceId/{stepInstanceId}"})
+    @PostMapping(value = {"/do-step-operation/stepInstanceId/{stepInstanceId}"})
     Response<StepOperationVO> doStepOperation(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -152,11 +148,11 @@ public interface WebExecuteTaskResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例ID", required = true, example = "1")
         @PathVariable("stepInstanceId")
@@ -167,8 +163,7 @@ public interface WebExecuteTaskResource {
     );
 
     @ApiOperation(value = "终止作业", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/taskInstance/{taskInstanceId}/terminate",
-        "/scope/{scopeType}/{scopeId}/taskInstance/{taskInstanceId}/terminate"})
+    @PostMapping(value = {"/taskInstance/{taskInstanceId}/terminate"})
     Response terminateJob(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -176,11 +171,11 @@ public interface WebExecuteTaskResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "作业实例ID", required = true, example = "1")
         @PathVariable("taskInstanceId")

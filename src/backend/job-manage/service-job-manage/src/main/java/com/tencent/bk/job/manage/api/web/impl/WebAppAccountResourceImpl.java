@@ -237,7 +237,6 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         AccountVO accountVO = new AccountVO();
         accountVO.setId(accountDTO.getId());
 
-        accountVO.setAppId(accountDTO.getAppId());
         AppScopeMappingService appScopeMappingService =
             ApplicationContextRegister.getBean(AppScopeMappingService.class);
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(accountDTO.getAppId());

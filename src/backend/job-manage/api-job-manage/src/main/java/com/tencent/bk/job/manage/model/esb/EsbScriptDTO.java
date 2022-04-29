@@ -26,9 +26,13 @@ package com.tencent.bk.job.manage.model.esb;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString
 public class EsbScriptDTO extends EsbAppScopeDTO {
     private Long id;
 

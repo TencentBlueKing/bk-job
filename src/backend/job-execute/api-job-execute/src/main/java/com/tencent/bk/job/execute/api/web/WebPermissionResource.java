@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.api.web;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
@@ -79,15 +78,11 @@ public interface WebPermissionResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务ID", required = false)
-        @RequestParam(value = "appId", required = false)
-            Long appId,
-        @ApiParam(value = "范畴类型", required = false)
-        @RequestParam(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @RequestParam(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "范畴ID", required = false)
-        @RequestParam(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @RequestParam(value = "scopeId")
             String scopeId,
         @ApiParam("操作ID,取值为: [script/create,script/view," +
             "script/edit,script/delete,script/execute," +

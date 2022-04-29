@@ -42,10 +42,10 @@ public class OperationPermissionReq {
     @ApiModelProperty("业务ID")
     private Long appId;
 
-    @ApiModelProperty("范畴类型:biz/business_set")
+    @ApiModelProperty("资源范围类型:biz/business_set")
     private String scopeType;
 
-    @ApiModelProperty("范畴ID")
+    @ApiModelProperty("资源范围ID")
     private String scopeId;
 
     @ApiModelProperty("是否返回详细的权限信息(依赖的权限，申请URL)。默认为false")
