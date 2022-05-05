@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.Response;
@@ -109,13 +108,11 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
     }
 
     @Override
-    @DeprecatedAppLogic
     public Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(String username,
                                                                                  String scriptLanguages,
-                                                                                 Long appId,
                                                                                  String scopeType,
                                                                                  String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         List<ScriptTemplateDTO> scriptTemplates = getUserCustomScriptTemplate(username, scriptLanguages);
         // 业务ID内置变量设计上需要修改，暂时先使用appId
         scriptTemplates.forEach(scriptTemplate -> customScriptTemplateService.renderScriptTemplate(

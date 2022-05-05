@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -123,15 +122,6 @@ public interface ApplicationService {
     List<Long> getBizSetAppIdsForBiz(Long appId);
 
     /**
-     * 根据业务类型获取业务列表
-     *
-     * @param appType 业务类型
-     * @return 业务列表
-     */
-    @DeprecatedAppLogic
-    List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
-
-    /**
      * 根据资源范围类型获取业务列表
      *
      * @param scopeType 资源范围类型
@@ -155,7 +145,7 @@ public interface ApplicationService {
      * @param username 用户名
      * @return 是否有业务权限
      */
-    @DeprecatedAppLogic
+    @CompatibleImplementation(explain = "兼容方法，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
     boolean checkAppPermission(long appId, String username);
 
     /**
@@ -172,7 +162,7 @@ public interface ApplicationService {
      * @param application 业务
      * @return 业务ID
      */
-    @DeprecatedAppLogic
+    @CompatibleImplementation(explain = "兼容方法，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
     Long createAppWithSpecifiedAppId(ApplicationDTO application);
 
     /**

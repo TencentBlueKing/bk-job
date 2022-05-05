@@ -337,16 +337,11 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         }
         val applicationInfoList = applicationDAO.listAppsByAppIds(record.getAppIdList());
         List<AppVO> appVOList = applicationInfoList.stream().map(it -> {
-            int appType = -1;
-            if (it.getAppType() != null) {
-                appType = it.getAppType().getValue();
-            }
             return new AppVO(
                 it.getId(),
                 it.getScope().getType().getValue(),
                 it.getScope().getId(),
                 it.getName(),
-                appType,
                 null,
                 null,
                 null

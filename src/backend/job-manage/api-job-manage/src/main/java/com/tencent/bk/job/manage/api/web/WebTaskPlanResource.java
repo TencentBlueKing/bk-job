@@ -58,7 +58,7 @@ import java.util.List;
 public interface WebTaskPlanResource {
 
     @ApiOperation(value = "获取业务下的执行方案列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/task/plan/list", "/scope/{scopeType}/{scopeId}/task/plan/list"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/list"})
     Response<PageData<TaskPlanVO>> listAllPlans(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -66,11 +66,11 @@ public interface WebTaskPlanResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "执行方案 ID")
         @RequestParam(value = "planId", required = false)
@@ -99,7 +99,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "获取执行方案基本信息列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/task/plan/{templateId}", "/scope/{scopeType}/{scopeId}/task/plan/{templateId}"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/{templateId}"})
     Response<List<TaskPlanVO>> listPlans(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -107,11 +107,11 @@ public interface WebTaskPlanResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "模版 ID", required = true)
         @PathVariable(value = "templateId")
@@ -119,7 +119,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "批量获取执行方案基本信息", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/task/plan:batchGet", "/scope/{scopeType}/{scopeId}/task/plan:batchGet"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan:batchGet"})
     Response<List<TaskPlanVO>> batchGetPlans(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -127,11 +127,11 @@ public interface WebTaskPlanResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "模板ID列表，用英文逗号分隔", required = true)
         @RequestParam(value = "templateIds")
@@ -139,8 +139,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "根据执行方案 ID 获取执行方案信息", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/task/plan/{templateId}/{planId}",
-        "/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}"})
     Response<TaskPlanVO> getPlanById(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -148,11 +147,11 @@ public interface WebTaskPlanResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "模版 ID", required = true)
         @PathVariable("templateId")
@@ -163,8 +162,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "获取模版对应的调试方案信息", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/task/plan/{templateId}/debug",
-        "/scope/{scopeType}/{scopeId}/task/plan/{templateId}/debug"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/{templateId}/debug"})
     Response<TaskPlanVO> getDebugPlan(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -172,11 +170,11 @@ public interface WebTaskPlanResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "模版 ID", required = true)
         @PathVariable("templateId")
@@ -233,7 +231,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "根据执行方案 ID 批量拉基础信息", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/task/plan", "/scope/{scopeType}/{scopeId}/task/plan"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan"})
     Response<List<TaskPlanVO>> listPlanBasicInfoByIds(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -241,11 +239,11 @@ public interface WebTaskPlanResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "执行方案 ID 列表，逗号分隔", required = true, example = "1,2,3")
         @QueryParam("ids")

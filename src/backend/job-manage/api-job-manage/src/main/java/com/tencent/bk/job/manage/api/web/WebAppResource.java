@@ -114,7 +114,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取业务下的机器列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/host", "/scope/{scopeType}/{scopeId}/host"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/host"})
     Response<PageData<HostInfoVO>> listAppHost(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -122,11 +122,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "分页-开始")
         @RequestParam(value = "start", required = false)
@@ -143,7 +143,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取业务拓扑列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/topology", "/scope/{scopeType}/{scopeId}/topology"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/topology"})
     Response<CcTopologyNodeVO> listAppTopologyTree(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -151,16 +151,16 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId
     );
 
     @ApiOperation(value = "获取业务拓扑主机列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/topology/host", "/scope/{scopeType}/{scopeId}/topology/host"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/topology/host"})
     Response<CcTopologyNodeVO> listAppTopologyHostTree(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -168,16 +168,16 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId
     );
 
     @ApiOperation(value = "获取业务拓扑树（含各节点主机数）", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/topology/hostCount", "/scope/{scopeType}/{scopeId}/topology/hostCount"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostCount"})
     Response<CcTopologyNodeVO> listAppTopologyHostCountTree(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -185,16 +185,16 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId
     );
 
     @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器列表", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/topology/hosts/nodes", "/scope/{scopeType}/{scopeId}/topology/hosts/nodes"})
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hosts/nodes"})
     Response<PageData<HostInfoVO>> listHostByBizTopologyNodes(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -202,11 +202,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "拓扑节点集合与分页信息", required = true)
         @RequestBody
@@ -215,7 +215,7 @@ public interface WebAppResource {
 
     @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]"
         , produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/topology/IPs/nodes", "/scope/{scopeType}/{scopeId}/topology/IPs/nodes"})
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/IPs/nodes"})
     Response<PageData<String>> listIpByBizTopologyNodes(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -223,11 +223,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "拓扑节点集合与分页信息", required = true)
         @RequestBody
@@ -235,7 +235,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取节点详情", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/node/detail", "/scope/{scopeType}/{scopeId}/node/detail"})
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/detail"})
     Response<List<AppTopologyTreeNode>> getNodeDetail(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -243,11 +243,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "选中的拓扑节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
         @RequestBody
@@ -255,7 +255,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取节点拓扑路径", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/node/queryPath", "/scope/{scopeType}/{scopeId}/node/queryPath"})
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/queryPath"})
     Response<List<List<CcTopologyNodeVO>>> queryNodePaths(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -263,11 +263,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "需要查询拓扑路径的节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
         @RequestBody
@@ -275,7 +275,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "根据模块获取机器列表", produces = "application/json")
-    @PostMapping(value = {"/app/{appId}/host/node", "/scope/{scopeType}/{scopeId}/host/node"})
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/node"})
     Response<List<NodeInfoVO>> listHostByNode(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -283,11 +283,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "选中的拓扑节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
         @RequestBody
@@ -295,7 +295,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取业务动态分组列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/dynamicGroup", "/scope/{scopeType}/{scopeId}/dynamicGroup"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/dynamicGroup"})
     Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -303,17 +303,16 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId
     );
 
     @ApiOperation(value = "获取业务动态分组主机列表")
-    @GetMapping(value = {"/app/{appId}/dynamicGroup/{dynamicGroupId}",
-        "/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}"})
     Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -321,11 +320,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "动态分组 ID，逗号分割", required = true)
         @PathVariable("dynamicGroupId")
@@ -333,8 +332,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取业务动态分组信息(不含主机)")
-    @GetMapping(value = {"/app/{appId}/dynamicGroup/{dynamicGroupId}/detailWithoutHosts",
-        "/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}/detailWithoutHosts"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}/detailWithoutHosts"})
     Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -342,11 +340,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "动态分组 ID，逗号分割", required = true)
         @PathVariable("dynamicGroupId")
@@ -354,7 +352,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "根据输入 IP 获取机器信息")
-    @PostMapping(value = {"/app/{appId}/ip/check", "/scope/{scopeType}/{scopeId}/ip/check"})
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/ip/check"})
     Response<List<HostInfoVO>> listHostByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -362,11 +360,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "用户输入的 IP 列表", required = true)
         @RequestBody
@@ -374,7 +372,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "查询主机统计信息")
-    @PostMapping(value = {"/app/{appId}/host/statistics", "/scope/{scopeType}/{scopeId}/host/statistics"})
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/statistics"})
     Response<AgentStatistics> agentStatistics(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -382,11 +380,11 @@ public interface WebAppResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "请求体", required = true)
         @RequestBody

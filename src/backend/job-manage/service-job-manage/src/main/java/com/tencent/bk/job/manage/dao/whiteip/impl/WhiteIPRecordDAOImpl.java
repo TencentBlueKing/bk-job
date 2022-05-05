@@ -370,7 +370,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 val appIdListStr = (String) record.get(KEY_APP_ID_LIST);
                 List<String> appIdList = CustomCollectionUtils.getNoDuplicateList(appIdListStr, ",");
                 List<AppVO> appVOList = appIdList.stream().map(appIdStr -> {
-                    Long appId = Long.parseLong(appIdStr);
+                    long appId = Long.parseLong(appIdStr);
                     ApplicationDTO applicationDTO =
                         applicationDAO.getCacheAppById(appId);
                     AppVO appVO = new AppVO();
@@ -381,7 +381,6 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                         appVO.setName(applicationDTO.getName());
                         appVO.setScopeType(applicationDTO.getScope().getType().getValue());
                         appVO.setScopeId(applicationDTO.getScope().getId());
-                        appVO.setType(applicationDTO.getAppType().getValue());
                     }
                     return appVO;
                 }).collect(Collectors.toList());

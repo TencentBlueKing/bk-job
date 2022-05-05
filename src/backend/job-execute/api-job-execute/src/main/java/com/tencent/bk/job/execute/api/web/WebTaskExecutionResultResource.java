@@ -304,7 +304,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/step-execution-result/variable/{stepInstanceId}/{ip}"})
+    @GetMapping(value = {"/step-execution-result/variable/{stepInstanceId}/{ip}"})
     Response<List<ExecuteVariableVO>> getStepVariableByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")

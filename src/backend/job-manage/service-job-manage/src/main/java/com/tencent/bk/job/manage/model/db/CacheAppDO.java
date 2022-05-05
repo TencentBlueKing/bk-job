@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -65,25 +65,25 @@ public class CacheAppDO {
     /**
      * 业务类型
      */
-    @DeprecatedAppLogic
+    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
     private Integer appType;
 
     /**
      * 子业务
      */
-    @DeprecatedAppLogic
+    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
     private List<Long> subBizIds;
 
     /**
      * 业务运维
      */
-    @DeprecatedAppLogic
+    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
     private String maintainers;
 
     /**
      * 临时字段-业务初始部门ID
      */
-    @DeprecatedAppLogic
+    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
     private Long operateDeptId;
 
     /**

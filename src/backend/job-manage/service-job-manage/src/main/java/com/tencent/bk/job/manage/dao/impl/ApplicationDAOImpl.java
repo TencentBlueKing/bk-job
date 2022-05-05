@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -192,12 +191,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllAppsWithDeleted() {
-        List<Condition> conditions = new ArrayList<>();
-        return listAppsByConditions(conditions);
-    }
-
-    @Override
     public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_ID.in(appIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
@@ -230,13 +223,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizSetApps() {
-        List<Condition> conditions = getBasicNotDeletedConditions();
-        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
-        return listAppsByConditions(conditions);
-    }
-
-    @Override
     public List<ApplicationDTO> listAllBizSetAppsWithDeleted() {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
@@ -244,7 +230,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @DeprecatedAppLogic
     public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_TYPE.eq((byte) appType.getValue()));

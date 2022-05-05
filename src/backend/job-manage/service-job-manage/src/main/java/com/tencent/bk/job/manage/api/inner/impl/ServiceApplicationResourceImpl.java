@@ -38,7 +38,6 @@ import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -147,19 +146,15 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
-    public InternalResponse<List<ServiceApplicationDTO>> listApps(Integer appType, String scopeType) {
+    public InternalResponse<List<ServiceApplicationDTO>> listApps(String scopeType) {
         List<ApplicationDTO> appList = applicationService.listAllApps();
         if (CollectionUtils.isEmpty(appList)) {
             InternalResponse.buildSuccessResp(appList);
         }
 
-        if (appType != null) {
-            appList = appList.stream().filter(app -> app.getAppType() == AppTypeEnum.valueOf(appType))
-                .collect(Collectors.toList());
-        } else if (StringUtils.isNotEmpty(scopeType)) {
-            appList = appList.stream().filter(app -> app.getScope().getType() == ResourceScopeTypeEnum.from(scopeType))
-                .collect(Collectors.toList());
-        }
+        appList = appList.stream().filter(app -> app.getScope().getType() == ResourceScopeTypeEnum.from(scopeType))
+            .collect(Collectors.toList());
+
         List<ServiceApplicationDTO> resultList =
             appList.stream().map(this::convertToServiceApp).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
