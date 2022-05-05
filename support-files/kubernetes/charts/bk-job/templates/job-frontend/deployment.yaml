@@ -1,3 +1,4 @@
+{{- if .Values.frontendConfig.enabled }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -83,3 +84,4 @@ spec:
         - name: web-nginx-config
           configMap:
             name: {{ include "common.names.fullname" . }}-frontend
+{{- end }}

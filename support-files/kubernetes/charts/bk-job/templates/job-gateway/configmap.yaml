@@ -1,4 +1,4 @@
-{{- if .Values.gatewayConfig }}
+{{- if .Values.gatewayConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -236,4 +236,4 @@ data:
     management:
       server:
         port: {{ .Values.gatewayConfig.containerPort.management }}
-{{- end}}
+{{- end }}
