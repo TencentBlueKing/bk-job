@@ -559,8 +559,8 @@ job:
         # 是否开启cmdb业务集特性，默认开启
         enabled: true
       esbApiParamBkBizId:
-            # 是否兼容bk_biz_id参数
-            enabled: true
+        # 是否兼容bk_biz_id参数
+        enabled: true
 
   migration:
     iamModel:
