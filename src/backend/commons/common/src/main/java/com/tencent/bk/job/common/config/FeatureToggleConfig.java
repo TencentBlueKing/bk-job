@@ -44,6 +44,11 @@ public class FeatureToggleConfig {
      * 是否对接cmdb业务集开关
      */
     private ToggleConfig cmdbBizSet = new ToggleConfig();
+    /**
+     * 是否兼容ESB bk_biz_id 参数开关
+     */
+    private ToggleConfig esbApiParamBkBizId = new ToggleConfig();
+
 
     @ToString
     @Getter
