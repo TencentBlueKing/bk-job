@@ -31,13 +31,12 @@ import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +55,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MAX;
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MIN;
 
 /**
  * Job通用拦截器
@@ -247,15 +249,14 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             return new AppResourceScope(scopeType, scopeId, null);
         }
 
-        EsbConfig esbConfig = ApplicationContextRegister.getBean(EsbConfig.class);
         // 如果兼容bk_biz_id参数
-        if (esbConfig.isBkBizIdEnabled()) {
+        if (FeatureToggle.isBkBizIdEnabled()) {
             // 兼容当前业务ID参数
             if (StringUtils.isNotBlank(bizIdStr)) {
                 long bizId = Long.parseLong(bizIdStr);
                 // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
                 scopeId = bizIdStr;
-                if (bizId >= 8000000L && bizId <= 9999999L) {
+                if (bizId >= JOB_BUILD_IN_BIZ_SET_ID_MIN && bizId <= JOB_BUILD_IN_BIZ_SET_ID_MAX) {
                     Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(),
                         scopeId);
                     return new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, scopeId, appId);

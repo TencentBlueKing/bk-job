@@ -554,7 +554,14 @@ job:
     toggle:
       fileManage:
         # 是否开启文件管理特性，容器化环境默认开启
+        enabled: true 
+      cmdbBizSet:
+        # 是否开启cmdb业务集特性，默认开启
         enabled: true
+      esbApiParamBkBizId:
+            # 是否兼容bk_biz_id参数
+            enabled: true
+
   migration:
     iamModel:
       # 是否开启权限模型migration

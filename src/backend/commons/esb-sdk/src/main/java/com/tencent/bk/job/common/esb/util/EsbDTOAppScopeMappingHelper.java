@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.common.esb.util;
 
-import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 
 /**
  * ESB 业务与资源范围转换工具类
@@ -49,9 +49,8 @@ public class EsbDTOAppScopeMappingHelper {
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         esbAppScopeDTO.setScopeType(resourceScope.getType().getValue());
         esbAppScopeDTO.setScopeId(resourceScope.getId());
-        EsbConfig esbConfig = ApplicationContextRegister.getBean(EsbConfig.class);
         // 如果不兼容bk_biz_id，那么使用bk_scope_type+bk_scope_id参数校验方式
-        if (esbConfig.isBkBizIdEnabled()) {
+        if (FeatureToggle.isBkBizIdEnabled()) {
             esbAppScopeDTO.setBizId(Long.valueOf(resourceScope.getId()));
         }
     }
