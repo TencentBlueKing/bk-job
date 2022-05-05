@@ -138,7 +138,7 @@
                                 theme: 'success',
                                 message: I18n.t('history.操作成功'),
                             });
-                            window.changeAlert = false;
+                            window.changeConfirm = false;
                             this.$router.push({
                                 name: 'historyTask',
                                 params: {

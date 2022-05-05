@@ -164,8 +164,8 @@
         created () {
             if (this.variable.length > 0) {
                 this.handleVariableChange(this.variable[0].name);
-                // 设置默认数据，需要取消 window.changeAlert 的状态
-                window.changeAlert = false;
+                // 设置默认数据，需要取消 window.changeConfirm 的状态
+                window.changeConfirm = false;
                 // 设置默认数据，需要取消服务器文件的编辑状态
                 this.editNewSourceFile(false);
             }
@@ -180,7 +180,7 @@
              */
             handleFileChange (fileLocation) {
                 this.serverFile.fileLocation = fileLocation;
-                window.changeAlert = true;
+                window.changeConfirm = true;
                 this.editNewSourceFile(true);
             },
             /**
@@ -206,7 +206,7 @@
                     return;
                 }
                 this.serverFile.host.variable = variable;
-                window.changeAlert = true;
+                window.changeConfirm = true;
                 this.editNewSourceFile(true);
                 const formItem = findParent(this, 'JbFormItem');
                 if (formItem) {
@@ -226,7 +226,7 @@
              * @param {Object} hostNodeInfo 主机值
              */
             handleHostChange (hostNodeInfo) {
-                window.changeAlert = true;
+                window.changeConfirm = true;
                 this.serverFile.host.hostNodeInfo = hostNodeInfo;
                 this.editNewSourceFile(true);
             },

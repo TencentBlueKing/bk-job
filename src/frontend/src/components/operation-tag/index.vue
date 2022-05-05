@@ -153,7 +153,7 @@
                                 id: props.data.id,
                                 ...state.formData,
                             }).then(() => {
-                                window.changeAlert = false;
+                                window.changeConfirm = false;
                                 ctx.emit('on-change');
                                 proxy.messageSuccess(I18n.t('编辑标签成功'));
                                 closeDialog();
@@ -161,7 +161,7 @@
                         }
                         return TagManageService.createTag(state.formData)
                             .then((data) => {
-                                window.changeAlert = false;
+                                window.changeConfirm = false;
                                 ctx.emit('on-change', new TagModel(data));
                                 proxy.messageSuccess(I18n.t('新建标签成功'));
                                 closeDialog();

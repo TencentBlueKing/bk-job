@@ -31,7 +31,7 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
     state: {
-        scriptCheckError: false,
+        scriptCheckError: null,
     },
     getters: {
         
