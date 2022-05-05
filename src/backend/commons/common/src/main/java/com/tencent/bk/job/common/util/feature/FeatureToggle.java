@@ -58,11 +58,19 @@ public class FeatureToggle {
 
     /**
      * 是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
-     *
      */
     public static boolean isCmdbBizSetEnabled() {
         FeatureToggleConfig featureToggleConfig = get();
         FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
         return cmdbBizSetConfig.isEnabled();
+    }
+
+    /**
+     * 是否兼容ESB bk_biz_id 参数
+     */
+    public static boolean isBkBizIdEnabled() {
+        FeatureToggleConfig featureToggleConfig = get();
+        FeatureToggleConfig.ToggleConfig toggleConfig = featureToggleConfig.getEsbApiParamBkBizId();
+        return toggleConfig.isEnabled();
     }
 }

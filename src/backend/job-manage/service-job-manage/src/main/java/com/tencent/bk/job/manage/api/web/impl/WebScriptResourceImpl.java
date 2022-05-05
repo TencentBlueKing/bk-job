@@ -821,6 +821,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                 ScriptCheckResultItemVO checkResultVO = new ScriptCheckResultItemVO();
                 checkResultVO.setCode(checkResultItem.getCheckItemCode());
                 checkResultVO.setLevel(checkResultItem.getLevel().getValue());
+                checkResultVO.setAction(checkResultItem.getAction() == null ? null : checkResultItem.getAction().getValue());
                 checkResultVO.setLine(checkResultItem.getLine());
                 checkResultVO.setLineContent(checkResultItem.getLineContent());
                 checkResultVO.setMatchContent(checkResultItem.getMatchContent());
