@@ -1,4 +1,4 @@
-{{- if .Values.logsvrConfig.autoscaling.enabled }}
+{{- if and (.Values.logsvrConfig.enabled) (.Values.logsvrConfig.autoscaling.enabled) }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
