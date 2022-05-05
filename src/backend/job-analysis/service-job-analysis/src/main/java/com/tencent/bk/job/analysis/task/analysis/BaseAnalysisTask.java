@@ -102,7 +102,7 @@ public abstract class BaseAnalysisTask implements IAnalysisTask {
     }
 
     public List<ServiceApplicationDTO> getAppInfoList() {
-        return applicationService.listLocalDBApps(null);
+        return applicationService.listLocalDBApps();
     }
 
     @Override
