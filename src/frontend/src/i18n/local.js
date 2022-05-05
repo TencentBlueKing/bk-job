@@ -557,11 +557,10 @@ export default {
     立即查看: 'here',
     了解更多细节: '',
     管理脚本各个版本的内容和状态: 'Manage the versions of script',
-
-    '警告！': 'Warn! ',
-    详见编辑框右侧: 'See the right side of the edit box for details',
-    图标的提示: 'tips for icon',
-    请确定是否要继续执行: 'confirm to continue',
-    继续执行: 'Continue',
-    立即取消: 'Cancel',
+    '警告！': 'Warning !!!',
+    详见编辑框右侧: 'See the tips on the',
+    图标的提示: 'icon on the left side of editor for details',
+    请确定是否要继续执行: 'Are you sure want to continue to run?',
+    继续执行: 'YES',
+    立即取消: 'CANCEL',
 };
