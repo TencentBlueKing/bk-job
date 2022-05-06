@@ -112,7 +112,10 @@
              */
             fetchData () {
                 this.isLoading = true;
-                WebGlobalService.fetchVersionLog()
+                const requestHandler = this.$i18n.locale === 'en-US'
+                    ? WebGlobalService.fetchVersionENLog
+                    : WebGlobalService.fetchVersionLog;
+                requestHandler()
                     .then((data) => {
                         this.list = data;
                     })

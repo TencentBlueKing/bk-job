@@ -37,10 +37,14 @@
             ref="targetServerRef"
             :property="property"
             :rules="rules">
-            <div style="display: flex;">
+            <div
+                ref="actionBox"
+                style="display: flex;">
                 <template v-if="mode === 'onlyHost'">
                     <!-- 快速执行场景只能操作主机列表 -->
-                    <bk-button class="mr10" @click="handleShowChooseIp">
+                    <bk-button
+                        class="mr10"
+                        @click="handleShowChooseIp">
                         <Icon type="plus" />
                         {{ $t('添加服务器') }}
                     </bk-button>
@@ -80,7 +84,10 @@
                 </template>
                 <template v-if="isShowServerAction">
                     <bk-dropdown-menu>
-                        <bk-button class="mr10" type="primary" slot="dropdown-trigger">
+                        <bk-button
+                            class="mr10"
+                            type="primary"
+                            slot="dropdown-trigger">
                             <span>{{ $t('复制IP') }}</span>
                             <Icon type="down-small" class="action-flag" />
                         </bk-button>
@@ -323,11 +330,9 @@
             handleHostChange (hostNodeInfo) {
                 this.localHost = Object.freeze(hostNodeInfo);
                 this.triggerChange();
-                this.$nextTick(() => {
-                    if (this.isShowServerPanel) {
-                        this.$refs.serverPanel.$el.scrollIntoView();
-                    }
-                });
+                setTimeout(() => {
+                    this.$refs.actionBox.scrollIntoView();
+                }, 500);
             },
             /**
              * @desc 复制所有主机
