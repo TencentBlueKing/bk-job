@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -108,6 +109,7 @@ public class HostServiceImpl implements HostService {
     private final WhiteIPService whiteIPService;
     private final HostCache hostCache;
     private final BizOperateDeptLocalCache bizOperateDeptLocalCache;
+    private final MessageI18nService i18nService;
 
     @Autowired
     public HostServiceImpl(DSLContext dslContext,
@@ -119,7 +121,8 @@ public class HostServiceImpl implements HostService {
                            QueryAgentStatusClient queryAgentStatusClient,
                            WhiteIPService whiteIPService,
                            HostCache hostCache,
-                           BizOperateDeptLocalCache bizOperateDeptLocalCache) {
+                           BizOperateDeptLocalCache bizOperateDeptLocalCache,
+                           MessageI18nService i18nService) {
         this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
@@ -130,6 +133,7 @@ public class HostServiceImpl implements HostService {
         this.whiteIPService = whiteIPService;
         this.hostCache = hostCache;
         this.bizOperateDeptLocalCache = bizOperateDeptLocalCache;
+        this.i18nService = i18nService;
     }
 
     @Override
@@ -368,7 +372,7 @@ public class HostServiceImpl implements HostService {
         }
         CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
         ccTopologyNodeVO.setObjectId("biz");
-        ccTopologyNodeVO.setObjectId("业务");
+        ccTopologyNodeVO.setObjectName(i18nService.getI18n("cmdb.object.name.biz"));
         ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
         ccTopologyNodeVO.setInstanceName(appInfo.getName());
         if (appInfo.isAllBizSet()) {
