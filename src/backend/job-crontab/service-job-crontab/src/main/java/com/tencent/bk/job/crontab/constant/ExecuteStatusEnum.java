@@ -57,7 +57,7 @@ public enum ExecuteStatusEnum {
     @JsonValue
     private int value;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static ExecuteStatusEnum valueOf(int type) {
         for (ExecuteStatusEnum executeStatus : values()) {
             if (executeStatus.value == type) {

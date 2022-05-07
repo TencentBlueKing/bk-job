@@ -103,7 +103,8 @@ public class Actions {
     public static final ActionInfo QUICK_TRANSFER_FILE = new ActionInfo(ActionId.QUICK_TRANSFER_FILE,
         ResourceTypeEnum.HOST);
     // 通知设置
-    public static final ActionInfo NOTIFICATION_SETTING = new ActionInfo(ActionId.NOTIFICATION_SETTING);
+    public static final ActionInfo NOTIFICATION_SETTING = new ActionInfo(ActionId.NOTIFICATION_SETTING,
+        ResourceTypeEnum.BUSINESS);
     // 全局设置
     public static final ActionInfo GLOBAL_SETTINGS = new ActionInfo(ActionId.GLOBAL_SETTINGS);
     // 运营视图查看

@@ -58,7 +58,15 @@ data:
       system-id: {{ .Values.appCode }}
     paas:
       login:
+        {{- if .Values.login.custom.enabled }}
+        custom:
+          enabled: {{ .Values.login.custom.enabled }}
+          login-url: {{ .Values.login.custom.loginUrl }}
+          api-url: {{ .Values.login.custom.apiUrl }}
+          token-name: {{ .Values.login.custom.tokenName }}
+        {{- else }}
         url: {{ .Values.bkLoginUrl }}
+        {{- end }}
     job:
       security:
         service:
@@ -72,29 +80,36 @@ data:
       feature:
         file-manage:
           enabled: {{ .Values.job.feature.toggle.fileManage.enabled }}
+        cmdbBizSet:
+          enabled: {{ .Values.job.feature.toggle.cmdbBizSet.enabled }}
+        esbApiParamBkBizId:
+          enabled: {{ .Values.job.feature.toggle.esbApiParamBkBizId.enabled }}
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
     cmdb:
-     app:
-       index:
-         path: {{ .Values.cmdb.app.index.path }}
-     interface:
-       briefCacheTopo:
-         enabled: {{ .Values.cmdb.interface.briefCacheTopo.enabled }}
-       findHostRelation:
-         longTerm:
-           concurrency: {{ .Values.cmdb.interface.findHostRelation.longTerm.concurrency }}
-       flowControl:
-         default:
-           limit: {{ .Values.cmdb.interface.flowControl.default.limit }}
-         enabled: {{ .Values.cmdb.interface.flowControl.enabled }}
-       retry:
-         enabled: {{ .Values.cmdb.interface.retry.enabled }}
-     query:
-       threads:
-         num: {{ .Values.cmdb.query.threads.num }}
-     server:
-       url: {{ .Values.bkCmdbUrl }}
+      default:
+        supplier:
+          account: {{ .Values.cmdb.supplierAccount }}
+      app:
+        index:
+          path: {{ .Values.cmdb.app.index.path }}
+      interface:
+        briefCacheTopo:
+          enabled: {{ .Values.cmdb.interface.briefCacheTopo.enabled }}
+        findHostRelation:
+          longTerm:
+            concurrency: {{ .Values.cmdb.interface.findHostRelation.longTerm.concurrency }}
+        flowControl:
+          default:
+            limit: {{ .Values.cmdb.interface.flowControl.default.limit }}
+          enabled: {{ .Values.cmdb.interface.flowControl.enabled }}
+        retry:
+          enabled: {{ .Values.cmdb.interface.retry.enabled }}
+      query:
+        threads:
+          num: {{ .Values.cmdb.query.threads.num }}
+      server:
+        url: {{ .Values.bkCmdbUrl }}
     nodeman:
       server:
         url: {{ .Values.bkNodemanUrl }}

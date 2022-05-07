@@ -121,7 +121,7 @@
         checkPublicScript,
         getOffset,
         leaveConfirm,
-        scriptErrorAlert,
+        scriptErrorConfirm,
     } from '@utils/assist';
     import { debugScriptCache } from '@utils/cache-helper';
     import { scriptVersionRule } from '@utils/validator';
@@ -302,24 +302,23 @@
                         scriptType: this.formData.type,
                     }).then((data) => {
                         // 高危语句报错状态需要全局保存
-                        this.$store.commit('setScriptCheckError', data.some(_ => _.isDangerous));
+                        const dangerousContent = _.find(data, _ => _.isDangerous);
+                        this.$store.commit('setScriptCheckError', dangerousContent);
                         return true;
                     }),
-                ]).then(() => {
-                    if (this.$store.state.scriptCheckError) {
-                        scriptErrorAlert();
-                        return;
-                    }
-                    this.scriptManageServiceHandler.scriptUpdate({
-                        ...this.formData,
-                    }).then((data) => {
-                        this.$emit('on-create', {
-                            scriptVersionId: data.scriptVersionId,
+                ])
+                    .then(scriptErrorConfirm)
+                    .then(() => {
+                        this.scriptManageServiceHandler.scriptUpdate({
+                            ...this.formData,
+                        }).then((data) => {
+                            this.$emit('on-create', {
+                                scriptVersionId: data.scriptVersionId,
+                            });
+                            window.changeConfirm = false;
+                            this.messageSuccess(I18n.t('script.操作成功'));
                         });
-                        window.changeAlert = false;
-                        this.messageSuccess(I18n.t('script.操作成功'));
-                    });
-                })
+                    })
                     .finally(() => {
                         this.isSubmiting = false;
                     });

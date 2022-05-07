@@ -41,7 +41,7 @@ public enum CronStatusEnum {
         this.status = status;
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static CronStatusEnum valOf(int cronStatus) {
         for (CronStatusEnum status : values()) {
             if (status.getStatus() == cronStatus) {

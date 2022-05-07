@@ -95,10 +95,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     case "redo":
                         AuthResult authResult = executeAuthService.authViewTaskInstance(username, appResourceScope,
                             taskInstanceId);
-                        if (!authResult.isPass() && isReturnApplyUrl) {
-                            authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
-                        }
-                        return Response.buildSuccessResp(webAuthService.toAuthResultVO(authResult));
+                        return Response.buildSuccessResp(webAuthService.toAuthResultVO(isReturnApplyUrl, authResult));
                 }
                 break;
         }

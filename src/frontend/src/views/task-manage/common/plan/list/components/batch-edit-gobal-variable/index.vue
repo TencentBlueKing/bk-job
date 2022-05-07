@@ -268,7 +268,7 @@
                 });
                 return TaskPlanService.batchUpdateVariable(stack)
                     .then(() => {
-                        window.changeAlert = false;
+                        window.changeConfirm = false;
                         this.messageSuccess(I18n.t('template.编辑成功'));
                         this.$emit('on-success');
                         // settimeout 保证 jb-popover-confirm能被先关闭

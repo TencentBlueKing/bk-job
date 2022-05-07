@@ -25,6 +25,8 @@
 package com.tencent.bk.job.upgrader.task;
 
 import com.tencent.bk.job.common.cc.model.bizset.BasicBizSet;
+import com.tencent.bk.job.common.cc.model.bizset.BatchUpdateBizSetData;
+import com.tencent.bk.job.common.cc.model.bizset.BatchUpdateBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetAttr;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
@@ -32,12 +34,9 @@ import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
 import com.tencent.bk.job.common.cc.model.bizset.CreateBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.util.jwt.BasicJwtManager;
-import com.tencent.bk.job.common.util.jwt.JwtManager;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
@@ -55,11 +54,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -97,22 +95,9 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
         String appCode = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE);
         String appSecret = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET);
         String esbBaseUrl = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL);
-        String securityPublicKeyBase64 =
-            (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
-        String securityPrivateKeyBase64 =
-            (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
         String cmdbSupplierAccount =
             (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_CMDB_DEFAULT_SUPPLIER_ACCOUNT);
-        JwtManager jwtManager;
-        try {
-            jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
-        } catch (IOException | GeneralSecurityException e) {
-            String msg = "Fail to generate jwt auth token";
-            log.error(msg, e);
-            throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
-        }
-        // 迁移过程最大预估时间：3h
-        String jobAuthToken = jwtManager.generateToken(3 * 60 * 60 * 1000);
+        String jobAuthToken = getJobAuthToken();
         jobManageClient = new JobClient(
             getJobHostUrlByAddress((String) properties.get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
             jobAuthToken
@@ -203,12 +188,29 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
     }
 
     /**
+     * 调用CMDB接口更新业务集属性信息
+     *
+     * @param attr  业务集属性
+     * @param scope 业务选择范围
+     * @return 是否成功更新
+     */
+    private Boolean updateBizSet(BizSetAttr attr, BizSetScope scope) {
+        BatchUpdateBizSetReq batchUpdateBizSetReq = esbCmdbClient.makeCmdbBaseReq(BatchUpdateBizSetReq.class);
+        batchUpdateBizSetReq.setBizSetIds(Collections.singletonList(attr.getId()));
+        BatchUpdateBizSetData data = new BatchUpdateBizSetData();
+        data.setAttr(attr);
+        data.setScope(scope);
+        batchUpdateBizSetReq.setData(data);
+        return esbCmdbClient.batchUpdateBizSet(batchUpdateBizSetReq);
+    }
+
+    /**
      * 根据Job中现存业务集/全业务信息向CMDB创建业务集/全业务
      *
      * @param appInfo 业务集/全业务信息
      * @return 业务集是否已存在于CMDB中
      */
-    private boolean createCMDBResourceForApp(AppInfo appInfo) {
+    private boolean createOrUpdateCMDBResourceForApp(AppInfo appInfo) {
         CreateBizSetReq createBizSetReq = esbCmdbClient.makeCmdbBaseReq(CreateBizSetReq.class);
         String desc = "Auto created by bk-job migration";
         String supplierAccount = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_CMDB_DEFAULT_SUPPLIER_ACCOUNT);
@@ -223,13 +225,14 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
             .build();
         createBizSetReq.setAttr(attr);
         BizSetScope scope = new BizSetScope();
-        if (appInfo.getAppType() == AppTypeEnum.APP_SET.getValue()) {
-            scope.setMatchAll(false);
-            scope.setFilter(buildAppSetFilter(appInfo));
-        } else if (appInfo.getAppType() == AppTypeEnum.ALL_APP.getValue()) {
-            // 匹配所有业务
+        if (appInfo.isAllBizSet()) {
+            // 全业务
             scope.setMatchAll(true);
             scope.setFilter(null);
+        } else if (appInfo.getAppType() == AppTypeEnum.APP_SET.getValue()) {
+            // 普通业务集
+            scope.setMatchAll(false);
+            scope.setFilter(buildAppSetFilter(appInfo));
         } else {
             log.warn("Not support app type:{}", appInfo.getAppType());
             return false;
@@ -246,7 +249,13 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
                     return false;
                 }
             } else {
-                log.info("bizSet {} already exists, ignore", attr.getId());
+                if (attr.getId() == JobConstants.DEFAULT_ALL_BIZ_SET_ID) {
+                    // CMDB内置的全业务，不更新
+                    log.info("bizSet {} is all-business bizSet created by cmdb, ignore", attr.getId());
+                } else {
+                    // 更新业务集
+                    log.info("bizSet {} already exists, update:{}", attr.getId(), updateBizSet(attr, scope));
+                }
             }
             return true;
         } catch (Exception e) {
@@ -259,28 +268,31 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
     @Override
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
-        List<BasicBizSet> bizSetList = new ArrayList<>();
+        List<BasicBizSet> successfulBizSetList = new ArrayList<>();
+        List<BasicBizSet> failedBizSetList = new ArrayList<>();
         int successCount = 0;
         for (AppInfo appInfo : bizSetAppInfoList) {
+            BasicBizSet bizSet = new BasicBizSet(getFinalBizSetId(appInfo), appInfo.getName());
             // 1.调用CMDB接口创建业务集/全业务
-            if (createCMDBResourceForApp(appInfo)) {
+            if (createOrUpdateCMDBResourceForApp(appInfo)) {
                 successCount += 1;
-                bizSetList.add(new BasicBizSet(getFinalBizSetId(appInfo), appInfo.getName()));
+                successfulBizSetList.add(bizSet);
+            } else {
+                failedBizSetList.add(bizSet);
             }
         }
-        if (successCount == bizSetList.size()) {
+        if (successCount == bizSetAppInfoList.size()) {
             log.info("all {} bizSets migrated to CMDB", successCount);
-            log.info("BizSet migration status:{}", jobManageClient.setBizSetMigrationStatus(true));
         } else {
             log.warn(
                 "{}/{} bizSets migrated to CMDB, please check log to confirm failed bizSets",
                 successCount,
-                bizSetList.size()
+                bizSetAppInfoList.size()
             );
-            log.info("BizSet migration status:{}", jobManageClient.setBizSetMigrationStatus(false));
+            log.warn("Failed bizSets:{}", JsonUtils.toJson(failedBizSetList));
         }
         // 2.生成更新CMDB数据库的业务集信息Json文件
-        String content = JsonUtils.toJson(bizSetList);
+        String content = JsonUtils.toJson(successfulBizSetList);
         InputStream ins = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         try {
             File targetFile = new File("biz_set_list.json");
@@ -289,6 +301,10 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
                 targetFile.getAbsolutePath());
         } catch (InterruptedException e) {
             log.error("Fail to gen biz_set_list.json", e);
+            return 1;
+        }
+        if (!failedBizSetList.isEmpty()) {
+            return 1;
         }
         return 0;
     }

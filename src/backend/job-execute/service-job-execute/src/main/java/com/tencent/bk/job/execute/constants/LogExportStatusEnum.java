@@ -56,7 +56,7 @@ public enum LogExportStatusEnum {
     @JsonValue
     private final int status;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static LogExportStatusEnum valueOf(int status) {
         for (LogExportStatusEnum statusEnum : values()) {
             if (statusEnum.getStatus() == status) {

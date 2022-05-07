@@ -29,7 +29,9 @@ import com.tencent.bk.job.common.cc.model.TopologyNodeInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -46,6 +48,8 @@ import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -328,21 +332,32 @@ public class TopologyHelper {
     }
 
     public List<Long> getBizSetSubBizIds(ApplicationDTO appInfo) {
-        List<Long> subAppIds = appInfo.getSubBizIds();
-        // 兼容发布过程中未完成子业务字段同步的部门型业务集
-        Long optDeptId = appInfo.getOperateDeptId();
-        if (subAppIds == null || subAppIds.isEmpty() && optDeptId != null) {
-            // 使用OperateDeptId
-            subAppIds = applicationDAO.getBizIdsByOptDeptId(optDeptId);
-        } else {
-            // subAppIds与OperateDeptId同时生效
-            if (optDeptId != null) {
-                subAppIds.addAll(applicationDAO.getBizIdsByOptDeptId(optDeptId));
+        if (appInfo.isAllBizSet()) {
+            return applicationDAO.listAllBizAppBizIds();
+        } else if (appInfo.isBizSet()) {
+            List<Long> subAppIds = appInfo.getSubBizIds();
+            // 兼容发布过程中未完成子业务字段同步的部门型业务集
+            Long optDeptId = appInfo.getOperateDeptId();
+            if (CollectionUtils.isEmpty(subAppIds) && optDeptId != null) {
+                // 使用OperateDeptId
+                subAppIds = applicationDAO.getBizIdsByOptDeptId(optDeptId);
+            } else {
+                // subAppIds与OperateDeptId同时生效
+                if (optDeptId != null) {
+                    subAppIds.addAll(applicationDAO.getBizIdsByOptDeptId(optDeptId));
+                }
             }
+            // 去重
+            subAppIds = new ArrayList<>(new HashSet<>(subAppIds));
+            return subAppIds;
+        } else {
+            FormattingTuple msg = MessageFormatter.format(
+                "app {} is not bizSet app, please check, detail:{}",
+                appInfo.getId(),
+                appInfo
+            );
+            throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
         }
-        // 去重
-        subAppIds = new ArrayList<>(new HashSet<>(subAppIds));
-        return subAppIds;
     }
 
     /**

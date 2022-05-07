@@ -37,6 +37,7 @@ import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.HostTopo;
 import org.jooq.generated.tables.records.HostTopoRecord;
 import org.jooq.types.ULong;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -55,6 +56,12 @@ import java.util.stream.Collectors;
 public class HostTopoDAOImpl implements HostTopoDAO {
 
     private static final HostTopo defaultTable = HostTopo.HOST_TOPO;
+    private final DSLContext defaultContext;
+
+    @Autowired
+    public HostTopoDAOImpl(DSLContext dslContext) {
+        this.defaultContext = dslContext;
+    }
 
     @Override
     public int insertHostTopo(DSLContext dslContext, HostTopoDTO hostTopoDTO) {
@@ -253,6 +260,18 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.MODULE_ID.in(moduleIds));
         return listHostTopoByConditions(dslContext, conditions, start, limit);
+    }
+
+    @Override
+    public List<Long> listHostIdByBizIds(Collection<Long> bizIds) {
+        List<Condition> conditions = new ArrayList<>();
+        if (bizIds != null) {
+            conditions.add(defaultTable.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
+        }
+        val query = defaultContext.select(
+            defaultTable.HOST_ID
+        ).from(defaultTable).where(conditions);
+        return query.fetch().map(record -> record.get(defaultTable.HOST_ID, Long.class));
     }
 
     private HostTopoDTO convertRecordToDto(HostTopoRecord record) {

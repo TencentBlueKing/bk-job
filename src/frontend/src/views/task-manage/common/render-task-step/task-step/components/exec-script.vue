@@ -26,70 +26,68 @@
 -->
 
 <template>
-    <div>
-        <jb-form ref="form" :model="formData" fixed :label-width="110">
-            <item-factory
-                name="scriptName"
-                field="name"
-                :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
-                :form-data="formData"
-                @on-change="handleChange" />
-            <item-factory
-                name="scriptSourceOfTemplate"
-                script-source-field="scriptSource"
-                content-field="content"
-                language-field="scriptLanguage"
-                script-id-field="scriptId"
-                script-version-id-field="scriptVersionId"
-                script-status-field="status"
-                :form-data="formData"
-                @on-change="handleChange"
-                @on-reset="handleScriptContentReset" />
-            <item-factory
-                name="scriptContent"
-                script-source-field="scriptSource"
-                content-field="content"
-                language-field="scriptLanguage"
-                :form-data="formData"
-                :script-variables="scriptVariables"
-                @on-change="handleChange" />
-            <item-factory
-                name="scriptParam"
-                param-field="scriptParam"
-                secure-field="secureParam"
-                :form-data="formData"
-                @on-change="handleChange" />
-            <item-factory
-                name="scriptTimeout"
-                field="timeout"
-                :form-data="formData"
-                @on-change="handleChange" />
-            <item-factory
-                name="errorHandle"
-                field="ignoreError"
-                :form-data="formData"
-                @on-change="handleChange" />
-            <item-factory
-                name="scriptAccount"
-                field="account"
-                script-language-field="scriptLanguage"
-                :form-data="formData"
-                @on-change="handleChange" />
-            <item-factory
-                name="executeTargetOfTemplate"
-                field="executeTarget"
-                :variable="variable"
-                :form-data="formData"
-                @on-change="handleChange" />
-        </jb-form>
-    </div>
+    <jb-form ref="form" :model="formData" fixed :label-width="110">
+        <item-factory
+            name="scriptName"
+            field="name"
+            :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
+            :form-data="formData"
+            @on-change="handleChange" />
+        <item-factory
+            name="scriptSourceOfTemplate"
+            script-source-field="scriptSource"
+            content-field="content"
+            language-field="scriptLanguage"
+            script-id-field="scriptId"
+            script-version-id-field="scriptVersionId"
+            script-status-field="status"
+            :form-data="formData"
+            @on-change="handleChange"
+            @on-reset="handleScriptContentReset" />
+        <item-factory
+            name="scriptContent"
+            script-source-field="scriptSource"
+            content-field="content"
+            language-field="scriptLanguage"
+            :form-data="formData"
+            :script-variables="scriptVariables"
+            @on-change="handleChange" />
+        <item-factory
+            name="scriptParam"
+            param-field="scriptParam"
+            secure-field="secureParam"
+            :form-data="formData"
+            @on-change="handleChange" />
+        <item-factory
+            name="scriptTimeout"
+            field="timeout"
+            :form-data="formData"
+            @on-change="handleChange" />
+        <item-factory
+            name="errorHandle"
+            field="ignoreError"
+            :form-data="formData"
+            @on-change="handleChange" />
+        <item-factory
+            name="scriptAccount"
+            field="account"
+            script-language-field="scriptLanguage"
+            :form-data="formData"
+            @on-change="handleChange" />
+        <item-factory
+            name="executeTargetOfTemplate"
+            field="executeTarget"
+            :variable="variable"
+            :form-data="formData"
+            @on-change="handleChange" />
+    </jb-form>
 </template>
 <script>
     import I18n from '@/i18n';
     import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
     import {
-        scriptErrorAlert,
+        scriptErrorConfirm,
     } from '@utils/assist';
     import ItemFactory from '@components/task-step/script/item-factory';
 
@@ -231,7 +229,7 @@
                     .then(() => true, () => false)
                     .then((validate) => {
                         if (this.$store.state.scriptCheckError) {
-                            scriptErrorAlert();
+                            scriptErrorConfirm();
                             return Promise.reject(new Error(I18n.t('template.脚本中出现高危语句')));
                         }
                         this.$emit('on-change', result, validate);

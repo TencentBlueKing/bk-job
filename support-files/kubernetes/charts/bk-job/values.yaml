@@ -460,6 +460,8 @@ gse:
 
 ## 对接蓝鲸CMDB参数配置
 cmdb:
+  # 供应商，默认为0
+  supplierAccount: 0
   app:
     index:
       # CMDB首页URI
@@ -517,6 +519,19 @@ swagger:
   # 开启开发模式时的Swagger文档地址域名
   url: "swagger.job.com"
 
+## 登录配置
+login:
+  ## 自定义登录配置
+  custom:
+    # 是否对接自定义登录地址，默认不开启（使用蓝鲸集成的统一登录）
+    enabled: false
+    # 页面登录地址
+    loginUrl: "http://login.example.com/login/"
+    # 获取用户信息的接口地址
+    apiUrl: "http://login.example.com/api/"
+    # 完成页面登录后前端通过Cookie提交的凭据的Key，也是后台向apiUrl获取用户信息提交的凭据的Key
+    tokenName: "bk_token"
+
 ## Job Common Config
 job:
   # 作业平台运行所有环境(prod,dev)与模式(kubernetes)，默认生产环境(prod)、K8s容器模式(kubernetes)
@@ -541,7 +556,14 @@ job:
     toggle:
       fileManage:
         # 是否开启文件管理特性，容器化环境默认开启
+        enabled: true 
+      cmdbBizSet:
+        # 是否开启cmdb业务集特性，默认开启
         enabled: true
+      esbApiParamBkBizId:
+        # 是否兼容bk_biz_id参数
+        enabled: true
+
   migration:
     iamModel:
       # 是否开启权限模型migration
@@ -608,6 +630,8 @@ bkLogConfig:
 
 ## job-gateway网关配置
 gatewayConfig:
+  # 模块是否启用，默认启用
+  enabled: true
   loginExemption:
     # 是否开启登录豁免，默认不开启
     enabled: false
@@ -616,7 +640,7 @@ gatewayConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-gateway
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -699,10 +723,12 @@ gatewayConfig:
 
 ## job-manage作业管理配置
 manageConfig:
+  # 模块是否启用，默认启用
+  enabled: true
   image:
     registry: hub.bktencent.com
     repository: blueking/job-manage
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -748,6 +774,8 @@ manageConfig:
 
 ## job-execute执行引擎配置
 executeConfig:
+  # 模块是否启用，默认启用
+  enabled: true
   # 执行日志导出配置
   logExport:
     # 存储后端（artifactory,local），制品库（artifactory）或本地NFS（local），默认制品库
@@ -758,7 +786,7 @@ executeConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -809,7 +837,7 @@ crontabConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-crontab
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -864,10 +892,12 @@ crontabConfig:
 
 ## job-logsvr日志服务配置
 logsvrConfig:
+  # 模块是否启用，默认启用
+  enabled: true
   image:
     registry: hub.bktencent.com
     repository: blueking/job-logsvr
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -912,6 +942,8 @@ logsvrConfig:
 
 ## job-backup备份服务配置
 backupConfig:
+  # 模块是否启用，默认启用
+  enabled: true
   # 存储后端（artifactory,local），制品库（artifactory）或本地NFS（local），默认制品库
   storageBackend: artifactory
   artifactory:
@@ -920,7 +952,7 @@ backupConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -965,10 +997,12 @@ backupConfig:
 
 ## job-analysis统计分析服务配置
 analysisConfig:
+  # 模块是否启用，默认启用
+  enabled: true
   image:
     registry: hub.bktencent.com
     repository: blueking/job-analysis
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1013,10 +1047,12 @@ analysisConfig:
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
+  # 模块是否启用，默认启用
+  enabled: true
   image:
     registry: hub.bktencent.com
     repository: blueking/job-file-gateway
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1061,10 +1097,12 @@ fileGatewayConfig:
 
 ## job-file-worker文件源接入点配置
 fileWorkerConfig:
+  # 模块是否启用，默认启用
+  enabled: true
   image:
     registry: hub.bktencent.com
     repository: blueking/job-file-worker
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1132,10 +1170,12 @@ fileWorkerConfig:
 
 ## job-frontend前端配置
 frontendConfig:
+  # 模块是否启用，默认启用
+  enabled: true
   image:
     registry: hub.bktencent.com
     repository: blueking/job-frontend
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1188,13 +1228,15 @@ frontendConfig:
 
 ## migration迁移任务配置
 migration:
+  # 模块是否启用，默认启用
+  enabled: true
   image:
     # 镜像拉取仓库根地址
     registry: "hub.bktencent.com"
     # 镜像拉取仓库组织与镜像名称
     repository: "blueking/job-migration"
     # 镜像标签
-    tag: 3.4.6-rc.1
+    tag: 3.5.0-rc.3
     # 镜像拉取策略
     pullPolicy: IfNotPresent
 
@@ -1218,6 +1260,6 @@ waitForMigration:
     # 镜像拉取仓库组织与镜像名称
     repository: "groundnuty/k8s-wait-for"
     # 镜像标签
-    tag: 1.3
+    tag: v1.5.1
     # 镜像拉取策略
     pullPolicy: IfNotPresent

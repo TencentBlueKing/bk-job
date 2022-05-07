@@ -40,6 +40,9 @@ import org.hibernate.validator.group.GroupSequenceProvider;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MAX;
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MIN;
+
 @Setter
 @Getter
 @GroupSequenceProvider(EsbAppScopeReqGroupSequenceProvider.class)
@@ -93,7 +96,7 @@ public class EsbAppScopeReq extends EsbJobReq {
         } else if (isExistBkBizIdParam) {
             // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
             this.scopeId = String.valueOf(this.bizId);
-            if (this.bizId >= 8000000L && this.bizId <= 9999999L) {
+            if (this.bizId >= JOB_BUILD_IN_BIZ_SET_ID_MIN && this.bizId <= JOB_BUILD_IN_BIZ_SET_ID_MAX) {
                 this.appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(),
                     String.valueOf(this.bizId));
                 this.scopeType = ResourceScopeTypeEnum.BIZ_SET.getValue();

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -42,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
@@ -215,6 +217,18 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
+    public List<Long> listAllBizAppBizIds() {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
+        Result<Record1<String>> records = context
+            .select(T_APP.BK_SCOPE_ID)
+            .from(T_APP)
+            .where(conditions)
+            .fetch();
+        return records.map(record -> Long.parseLong(record.get(T_APP.BK_SCOPE_ID)));
+    }
+
+    @Override
     public List<ApplicationDTO> listAllBizApps() {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
@@ -243,9 +257,17 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
+    @DeprecatedAppLogic
     public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_TYPE.eq((byte) appType.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.eq(scopeType.getValue()));
         return listAppsByConditions(conditions);
     }
 

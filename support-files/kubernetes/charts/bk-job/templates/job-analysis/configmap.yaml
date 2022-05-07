@@ -1,4 +1,4 @@
-{{- if .Values.analysisConfig }}
+{{- if and (.Values.analysisConfig.enabled) (.Values.analysisConfig) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -54,4 +54,4 @@ data:
             readTimeout: 300000
     server:
       port: {{ .Values.analysisConfig.containerPort }}
-  {{- end}}
+{{- end }}

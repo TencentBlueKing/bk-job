@@ -88,19 +88,35 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "view":
                         return Response.buildSuccessResp(
-                            webAuthService.toAuthResultVO(fileSourceAuthService.authViewFileSource(
-                                username, appResourceScope, Integer.valueOf(resourceId), null))
+                            webAuthService.toAuthResultVO(
+                                isReturnApplyUrl,
+                                fileSourceAuthService.authViewFileSource(
+                                    username,
+                                    appResourceScope,
+                                    Integer.valueOf(resourceId),
+                                    null
+                                )
+                            )
                         );
                     case "create":
                         return Response.buildSuccessResp(
-                            webAuthService.toAuthResultVO(fileSourceAuthService.authCreateFileSource(
-                                username, appResourceScope))
+                            webAuthService.toAuthResultVO(
+                                isReturnApplyUrl,
+                                fileSourceAuthService.authCreateFileSource(username, appResourceScope)
+                            )
                         );
                     case "edit":
                     case "delete":
                         return Response.buildSuccessResp(
-                            webAuthService.toAuthResultVO(fileSourceAuthService.authManageFileSource(
-                                username, appResourceScope, Integer.valueOf(resourceId), null))
+                            webAuthService.toAuthResultVO(
+                                isReturnApplyUrl,
+                                fileSourceAuthService.authManageFileSource(
+                                    username,
+                                    appResourceScope,
+                                    Integer.valueOf(resourceId),
+                                    null
+                                )
+                            )
                         );
                     default:
                         log.error("Unknown operator|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,

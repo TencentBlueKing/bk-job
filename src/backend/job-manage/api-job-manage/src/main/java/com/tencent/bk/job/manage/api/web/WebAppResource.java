@@ -295,7 +295,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取业务动态分组列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/dynamicGroupe", "/scope/{scopeType}/{scopeId}/dynamicGroup"})
+    @GetMapping(value = {"/app/{appId}/dynamicGroup", "/scope/{scopeType}/{scopeId}/dynamicGroup"})
     Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -312,7 +312,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取业务动态分组主机列表")
-    @GetMapping(value = {"/app/{appId}/dynamicGroupe/{dynamicGroupId}",
+    @GetMapping(value = {"/app/{appId}/dynamicGroup/{dynamicGroupId}",
         "/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}"})
     Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(
         @ApiParam("用户名，网关自动传入")
@@ -333,7 +333,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取业务动态分组信息(不含主机)")
-    @GetMapping(value = {"/app/{appId}/dynamicGroupe/{dynamicGroupId}/detailWithoutHosts",
+    @GetMapping(value = {"/app/{appId}/dynamicGroup/{dynamicGroupId}/detailWithoutHosts",
         "/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}/detailWithoutHosts"})
     Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(
         @ApiParam("用户名，网关自动传入")

@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -77,6 +78,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -106,6 +109,7 @@ public class HostServiceImpl implements HostService {
     private final WhiteIPService whiteIPService;
     private final HostCache hostCache;
     private final BizOperateDeptLocalCache bizOperateDeptLocalCache;
+    private final MessageI18nService i18nService;
 
     @Autowired
     public HostServiceImpl(DSLContext dslContext,
@@ -117,7 +121,8 @@ public class HostServiceImpl implements HostService {
                            QueryAgentStatusClient queryAgentStatusClient,
                            WhiteIPService whiteIPService,
                            HostCache hostCache,
-                           BizOperateDeptLocalCache bizOperateDeptLocalCache) {
+                           BizOperateDeptLocalCache bizOperateDeptLocalCache,
+                           MessageI18nService i18nService) {
         this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
@@ -128,6 +133,7 @@ public class HostServiceImpl implements HostService {
         this.whiteIPService = whiteIPService;
         this.hostCache = hostCache;
         this.bizOperateDeptLocalCache = bizOperateDeptLocalCache;
+        this.i18nService = i18nService;
     }
 
     @Override
@@ -364,13 +370,17 @@ public class HostServiceImpl implements HostService {
         if (appInfo == null) {
             throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
+        ccTopologyNodeVO.setObjectId("biz");
+        ccTopologyNodeVO.setObjectName(i18nService.getI18n("cmdb.object.name.biz"));
+        ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
+        ccTopologyNodeVO.setInstanceName(appInfo.getName());
+        if (appInfo.isAllBizSet()) {
+            // 全业务
+            ccTopologyNodeVO.setCount((int) applicationHostDAO.countAllHosts());
+            return ccTopologyNodeVO;
+        } else if (appInfo.isBizSet()) {
             // 业务集
-            CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
-            ccTopologyNodeVO.setObjectId("biz");
-            ccTopologyNodeVO.setObjectId("业务");
-            ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
-            ccTopologyNodeVO.setInstanceName(appInfo.getName());
             ccTopologyNodeVO.setCount((int) applicationHostDAO.countHostsByBizIds(dslContext,
                 topologyHelper.getBizSetSubBizIds(appInfo)));
             return ccTopologyNodeVO;
@@ -853,7 +863,7 @@ public class HostServiceImpl implements HostService {
             moduleIds = getBizModuleIdsByTopoNodes(
                 username, Long.valueOf(appInfo.getScope().getId()), req.getAppTopoNodeList()
             );
-        } else if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        } else if (!appInfo.isAllBizSet() && appInfo.isBizSet()) {
             // 业务集：仅根据业务查主机
             // 查出对应的所有普通业务
             bizIds = topologyHelper.getBizSetSubBizIds(appInfo);
@@ -938,17 +948,24 @@ public class HostServiceImpl implements HostService {
         if (appInfo == null) {
             return hostInfoList;
         }
-        ResourceScopeTypeEnum scopeType = appInfo.getScope().getType();
-        if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+        if (appInfo.isBiz()) {
             hostInfoList.addAll(applicationHostDAO.listHostInfoByIps(
                 Long.valueOf(appInfo.getScope().getId()), ipList));
-        } else if (scopeType == ResourceScopeTypeEnum.BIZ_SET) {
+        } else if (appInfo.isAllBizSet()) {
+            // 全业务
+            hostInfoList.addAll(applicationHostDAO.listHostInfo(null, ipList));
+        } else if (appInfo.isBizSet()) {
+            // 业务集
             List<Long> subBizIds = topologyHelper.getBizSetSubBizIds(appInfo);
             // 直接使用本地缓存数据
             log.debug("subBizIdsSize={}, get host from local db", subBizIds.size());
             hostInfoList.addAll(applicationHostDAO.listHostInfo(subBizIds, ipList));
         } else {
-            log.warn("Not supported scopeType:{}", scopeType);
+            FormattingTuple msg = MessageFormatter.format(
+                "Unexpected app:{}",
+                appInfo
+            );
+            throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
         }
         return hostInfoList;
     }
@@ -1168,7 +1185,7 @@ public class HostServiceImpl implements HostService {
         ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         Set<Long> moduleIds = new HashSet<>();
         List<ApplicationHostDTO> hosts = new ArrayList<>();
-        if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+        if (appInfo.isBiz()) {
             // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
             // 查业务拓扑树
             InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
@@ -1191,7 +1208,10 @@ public class HostServiceImpl implements HostService {
             List<Long> hostIdList =
                 hostTopoDTOList.parallelStream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
             hosts = applicationHostDAO.listHostInfoByHostIds(hostIdList);
-        } else if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        } else if (appInfo.isAllBizSet()) {
+            // 全业务
+            hosts = applicationHostDAO.listAllHostInfo(start, limit);
+        } else if (appInfo.isBizSet()) {
             // 业务集：仅根据业务查主机
             // 查出对应的所有普通业务
             List<Long> allBizIds = topologyHelper.getBizSetSubBizIds(appInfo);

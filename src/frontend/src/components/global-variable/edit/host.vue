@@ -125,7 +125,7 @@
              * @desc 外部调用——移除无效主机
              */
             removeAllInvalidHost () {
-                window.changeAlert = true;
+                window.changeConfirm = true;
                 this.$refs.choostIP.removeAllInvalidHost();
             },
             /**
@@ -140,14 +140,14 @@
             handleClear () {
                 const { hostNodeInfo } = new TaskHostNodeModel({});
                 this.hostNodeInfo = hostNodeInfo;
-                window.changeAlert = true;
+                window.changeConfirm = true;
             },
             /**
              * @desc 提交编辑的数据
              */
             handleChange (hostNodeInfo) {
                 this.hostNodeInfo = Object.freeze(hostNodeInfo);
-                window.changeAlert = true;
+                window.changeConfirm = true;
             },
             /**
              * @desc 外部调用——还原默认值

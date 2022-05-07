@@ -65,7 +65,7 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
     @Override
     public AuthResult authCreateFileSource(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(true, username, ActionId.CREATE_FILE_SOURCE, appResourceScope);
+        return appAuthService.auth(username, ActionId.CREATE_FILE_SOURCE, appResourceScope);
     }
 
     @Override
@@ -73,8 +73,13 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
                                          AppResourceScope appResourceScope,
                                          Integer fileSourceId,
                                          String fileSourceName) {
-        return authService.auth(true, username, ActionId.VIEW_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
-            fileSourceId.toString(), buildAppScopePath(appResourceScope));
+        return authService.auth(
+            username,
+            ActionId.VIEW_FILE_SOURCE,
+            ResourceTypeEnum.FILE_SOURCE,
+            fileSourceId.toString(),
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override
@@ -82,8 +87,13 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
                                            AppResourceScope appResourceScope,
                                            Integer fileSourceId,
                                            String fileSourceName) {
-        return authService.auth(true, username, ActionId.MANAGE_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
-            fileSourceId.toString(), buildAppScopePath(appResourceScope));
+        return authService.auth(
+            username,
+            ActionId.MANAGE_FILE_SOURCE,
+            ResourceTypeEnum.FILE_SOURCE,
+            fileSourceId.toString(),
+            buildAppScopePath(appResourceScope)
+        );
     }
 
     @Override

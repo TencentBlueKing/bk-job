@@ -243,7 +243,7 @@
                     // 拉取模板最新数据
                     if (!isFirst) {
                         setTimeout(() => {
-                            window.changeAlert = false;
+                            window.changeConfirm = false;
                         }, 100);
                     }
                 })
@@ -487,7 +487,7 @@
                         ...this.formData,
                         id: this.isEdit ? this.taskId : 0,
                     }).then((taskId) => {
-                        window.changeAlert = false;
+                        window.changeConfirm = false;
                         return TaskPlanService.fetchTaskPlan({
                             id: taskId,
                         }).then((planList) => {

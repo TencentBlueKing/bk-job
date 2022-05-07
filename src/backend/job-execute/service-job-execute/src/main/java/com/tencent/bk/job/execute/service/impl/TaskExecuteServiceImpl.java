@@ -211,8 +211,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     public Long createTaskInstanceFast(TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance) throws ServiceException {
         log.info("Begin to create task instance and step instance for fast-execution-task, taskInstance: {}, " +
-                "stepInstance: {}",
-            taskInstance, stepInstance);
+                "stepInstance: {}", taskInstance, stepInstance);
         StopWatch watch = new StopWatch("createTaskInstanceFast");
         // 检查任务是否应当被驱逐
         checkTaskEvict(taskInstance);
@@ -1305,7 +1304,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstanceVariableService.saveTaskInstanceVariables(taskVariables);
             taskInstance.setVariables(taskVariables);
         }
-        log.info("Save taskInstance={}", JsonUtils.toJson(taskInstance));
+        log.info("Save taskInstance successfully! taskInstanceId: {}", taskInstance.getId());
         return taskInstance;
     }
 

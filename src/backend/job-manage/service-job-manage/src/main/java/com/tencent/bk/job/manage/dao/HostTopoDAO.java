@@ -51,4 +51,12 @@ public interface HostTopoDAO {
 
     List<HostTopoDTO> listHostTopoByModuleIds(DSLContext dslContext, Collection<Long> moduleIds, Long start,
                                               Long limit);
+
+    /**
+     * 根据CMDB业务IDs查询下属主机ID列表
+     *
+     * @param bizIds 业务ID集合
+     * @return 主机ID列表
+     */
+    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
 }

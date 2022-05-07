@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
@@ -41,9 +42,12 @@ import java.util.List;
 public interface IndexService {
     List<GreetingVO> listGreeting(String username);
 
-    AgentStatistics getAgentStatistics(String username, Long appId);
+    AgentStatistics getAgentStatistics(String username, AppResourceScope appResourceScope);
 
-    PageData<HostInfoVO> listHostsByAgentStatus(String username, Long appId, Integer agentStatus, Long start,
+    PageData<HostInfoVO> listHostsByAgentStatus(String username,
+                                                Long appId,
+                                                Integer agentStatus,
+                                                Long start,
                                                 Long pageSize);
 
     PageData<String> listIPsByAgentStatus(String username, Long appId, Integer agentStatus, Long start, Long pageSize);

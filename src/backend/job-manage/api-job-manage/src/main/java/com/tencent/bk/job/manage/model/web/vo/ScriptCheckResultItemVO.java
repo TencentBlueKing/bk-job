@@ -42,6 +42,8 @@ public class ScriptCheckResultItemVO {
     private String matchContent;
     @ApiModelProperty("级别")
     private Integer level;
+    @ApiModelProperty("高危脚本处理动作")
+    private Integer action;
     @ApiModelProperty("错误代码")
     private String code; // 错误代码
     @ApiModelProperty("错误描述")

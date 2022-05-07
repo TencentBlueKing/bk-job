@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div class="file-source-create-form" v-bkloading="{ isLoading }">
+    <div
+        class="file-source-create-form"
+        v-bkloading="{ isLoading }">
         <jb-form
             v-if="!isLoading"
             ref="fileSourceform"
@@ -54,7 +56,9 @@
                 required
                 :label="$t('file.类型.label')">
                 <bk-radio-group v-model="formData.storageType">
-                    <bk-radio-button value="OSS">{{ $t('file.对象存储') }}</bk-radio-button>
+                    <bk-radio-button value="OSS">
+                        {{ $t('file.对象存储') }}
+                    </bk-radio-button>
                 </bk-radio-group>
             </jb-form-item>
             <jb-form-item
@@ -102,14 +106,18 @@
                             :id="option.id"
                             :name="option.name" />
                     </bk-select>
-                    <bk-checkbox v-model="formData.shareToAllApp">{{ $t('file.全业务') }}</bk-checkbox>
+                    <bk-checkbox v-model="formData.shareToAllApp">
+                        {{ $t('file.全业务') }}
+                    </bk-checkbox>
                 </div>
             </jb-form-item>
             <jb-form-item
                 required
                 :label="$t('file.身份凭证')"
                 property="credentialId">
-                <bk-select v-model="formData.credentialId" :clearable="false">
+                <bk-select
+                    v-model="formData.credentialId"
+                    :clearable="false">
                     <auth-option
                         v-for="option in fileFourceTicketList"
                         :key="option.id"
@@ -124,8 +132,12 @@
                 <bk-select
                     v-model="filePrefixType"
                     :clearable="false">
-                    <bk-option id="${UUID}" name="UUID" />
-                    <bk-option id="custom" :name="$t('file.自定义字符串')" />
+                    <bk-option
+                        id="${UUID}"
+                        name="UUID" />
+                    <bk-option
+                        id="custom"
+                        :name="$t('file.自定义字符串')" />
                 </bk-select>
                 <bk-input
                     v-if="isCustomFilePrefix"
@@ -146,7 +158,9 @@
                             :id="option.id"
                             :name="option.name" />
                     </bk-select>
-                    <bk-checkbox v-model="isWorkerSelectScopeAuto" :disabled="workersList.length < 1">
+                    <bk-checkbox
+                        v-model="isWorkerSelectScopeAuto"
+                        :disabled="workersList.length < 1">
                         {{ $t('file.自动选择接入点') }}
                     </bk-checkbox>
                 </div>
@@ -208,7 +222,7 @@
         // 接入点Id，手动选择时传入，自动选择不传
         workerId: '',
         // 接入点选择范围:APP/PUBLIC/ALL，分别为业务私有接入点/公共接入点/全部
-        workerSelectScope: 'APP',
+        workerSelectScope: 'PUBLIC',
         // 接入点选择模式：AUTO/MANUAL，分别为自动/手动
         workerSelectMode: 'AUTO',
     });
@@ -463,12 +477,10 @@
                         // workerId 不为空手动选择接入点
                         // workerId 为空自动选择接入点
                         params.workerSelectMode = params.workerId ? 'MANUAL' : 'AUTO';
-                        
-                        // 没有设置自定义文件前缀——使用默认值
-                        if (!params.filePrefix) {
+                        if (this.filePrefixType === FileSourceModel.FILE_PERFIX_UUID) {
                             params.filePrefix = FileSourceModel.FILE_PERFIX_UUID;
                         }
-
+                        
                         if (params.id < 0) {
                             return FileSourceManageService.addSource(params)
                                 .then(() => {

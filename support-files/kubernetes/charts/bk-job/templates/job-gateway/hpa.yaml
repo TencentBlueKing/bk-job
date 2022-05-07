@@ -1,4 +1,4 @@
-{{- if .Values.gatewayConfig.autoscaling.enabled }}
+{{- if and (.Values.gatewayConfig.enabled) (.Values.gatewayConfig.autoscaling.enabled) }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:

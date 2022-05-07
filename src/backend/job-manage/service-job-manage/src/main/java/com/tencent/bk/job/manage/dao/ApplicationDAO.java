@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.dao;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import org.jooq.DSLContext;
@@ -45,6 +47,8 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listBizAppsByBizIds(Collection<Long> bizIdList);
 
+    List<Long> listAllBizAppBizIds();
+
     List<ApplicationDTO> listAllApps();
 
     List<ApplicationDTO> listAllAppsWithDeleted();
@@ -57,7 +61,10 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAllBizSetAppsWithDeleted();
 
+    @DeprecatedAppLogic
     List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
+
+    List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
 
     Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
 
