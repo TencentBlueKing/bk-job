@@ -119,6 +119,10 @@ public class AgentTaskDTO {
      */
     private String scriptLogContent;
     /**
+     * 文件任务类型
+     */
+    private Integer mode;
+    /**
      * 结果是否发生变化
      */
     private volatile boolean changed;
