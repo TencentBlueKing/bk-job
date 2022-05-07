@@ -716,7 +716,7 @@
         .layout-left {
             height: calc(100vh - 124px);
             margin-right: auto;
-            flex: 0 1 auto;
+            flex: 1 1 auto;
             transform: translate(0, 0);
 
             .template-container {

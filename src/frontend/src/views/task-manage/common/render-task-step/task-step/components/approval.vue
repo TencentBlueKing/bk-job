@@ -26,59 +26,71 @@
 -->
 
 <template>
-    <div>
-        <jb-form ref="form" :model="formData" :rules="rules" fixed :label-width="110">
-            <item-factory
-                name="stepName"
-                field="name"
-                :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
-                :form-data="formData"
-                @on-change="handleNameChange" />
-            <jb-form-item :label="$t('template.确认人')" :required="true" property="approvalUser">
-                <jb-user-selector
-                    :placeholder="$t('template.输入确认人')"
-                    class="input"
-                    :user="formData.approvalUser.userList"
-                    :role="formData.approvalUser.roleList"
-                    :filter-list="['JOB_EXTRA_OBSERVER']"
-                    @on-change="handleApprovalUserChange" />
-            </jb-form-item>
-            <jb-form-item :label="$t('template.通知方式')">
-                <div class="notify-channel-wraper">
+    <jb-form
+        ref="form"
+        :model="formData"
+        :rules="rules"
+        fixed
+        :label-width="110">
+        <item-factory
+            name="stepName"
+            field="name"
+            :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
+            :form-data="formData"
+            @on-change="handleNameChange" />
+        <jb-form-item
+            :label="$t('template.确认人')"
+            :required="true"
+            property="approvalUser">
+            <jb-user-selector
+                :placeholder="$t('template.输入确认人')"
+                class="input"
+                :user="formData.approvalUser.userList"
+                :role="formData.approvalUser.roleList"
+                :filter-list="['JOB_EXTRA_OBSERVER']"
+                @on-change="handleApprovalUserChange" />
+        </jb-form-item>
+        <jb-form-item :label="$t('template.通知方式')">
+            <div class="notify-channel-wraper">
+                <bk-checkbox
+                    @click.native="handleToggleAllChannel"
+                    :checked="isChannelAll"
+                    :indeterminate="isChannelIndeterminate">
+                    {{ $t('template.全部') }}
+                </bk-checkbox>
+                <bk-checkbox-group
+                    v-model="formData.notifyChannel"
+                    class="all-channel">
                     <bk-checkbox
-                        @click.native="handleToggleAllChannel"
-                        :checked="isChannelAll"
-                        :indeterminate="isChannelIndeterminate">
-                        {{ $t('template.全部') }}
+                        v-for="channel in channleList"
+                        :key="channel.code"
+                        :value="channel.code">
+                        {{ channel.name }}
                     </bk-checkbox>
-                    <bk-checkbox-group v-model="formData.notifyChannel" class="all-channel">
-                        <bk-checkbox
-                            v-for="channel in channleList"
-                            :key="channel.code"
-                            :value="channel.code">
-                            {{ channel.name }}
-                        </bk-checkbox>
-                    </bk-checkbox-group>
-                </div>
-            </jb-form-item>
-            <jb-form-item :label="$t('template.确认描述')">
-                <bk-input class="input" type="textarea" v-model="formData.approvalMessage" :maxlength="1000" />
-            </jb-form-item>
-        </jb-form>
-    </div>
+                </bk-checkbox-group>
+            </div>
+        </jb-form-item>
+        <jb-form-item
+            :label="$t('template.确认描述')"
+            style="margin-bottom: 0;">
+            <bk-input
+                v-model="formData.approvalMessage"
+                class="input"
+                type="textarea"
+                :maxlength="1000" />
+        </jb-form-item>
+    </jb-form>
 </template>
 <script>
-    import _ from 'lodash';
     import I18n from '@/i18n';
     import QueryGlobalSettingService from '@service/query-global-setting';
     import JbUserSelector from '@components/jb-user-selector';
     import ItemFactory from '@components/task-step/file/item-factory';
-    import { genDefaultName } from '@utils/assist';
 
     const getDefaultData = () => ({
-        id: 0,
+        id: -1,
         // 步骤名称
-        name: genDefaultName(I18n.t('template.步骤人工确认')),
+        name: '',
         // 删除标记
         delete: 0,
         // 审批消息
@@ -130,16 +142,14 @@
         watch: {
             data: {
                 handler (newData) {
-                    if (_.isEmpty(newData)) {
-                        return;
+                    // 本地新建的步骤id为-1，已提交后端保存的id大于0
+                    this.formData = Object.assign({}, this.formData, newData);
+                    // 有数据需要自动验证一次
+                    if (newData.id) {
+                        setTimeout(() => {
+                            this.$refs.form.validate();
+                        });
                     }
-                    this.formData = {
-                        ...this.formData,
-                        ...newData,
-                    };
-                    setTimeout(() => {
-                        this.$refs.form.validate();
-                    });
                 },
                 immediate: true,
             },
