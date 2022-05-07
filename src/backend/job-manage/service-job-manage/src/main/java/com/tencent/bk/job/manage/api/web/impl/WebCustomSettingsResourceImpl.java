@@ -24,12 +24,10 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.manage.api.web.WebCustomSettingsResource;
 import com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableEnum;
@@ -59,15 +57,12 @@ import java.util.stream.Collectors;
 public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource {
     private final CustomScriptTemplateService customScriptTemplateService;
     private final MessageI18nService i18nService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebCustomSettingsResourceImpl(CustomScriptTemplateService customScriptTemplateService,
-                                         MessageI18nService i18nService,
-                                         AppScopeMappingService appScopeMappingService) {
+                                         MessageI18nService i18nService) {
         this.customScriptTemplateService = customScriptTemplateService;
         this.i18nService = i18nService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -108,7 +103,6 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
     }
 
     @Override
-    @DeprecatedAppLogic
     public Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(String username,
                                                                                  String scriptLanguages,
                                                                                  String scopeType,

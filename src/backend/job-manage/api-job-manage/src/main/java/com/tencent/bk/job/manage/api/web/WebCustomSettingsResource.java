@@ -68,11 +68,11 @@ public interface WebCustomSettingsResource {
         @ApiParam("脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
         @RequestParam(value = "scriptLanguages", required = false)
             String scriptLanguages,
-        @ApiParam(value = "资源范围类型", required = false)
-        @RequestParam(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @RequestParam(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @RequestParam(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @RequestParam(value = "scopeId")
             String scopeId
     );
 
