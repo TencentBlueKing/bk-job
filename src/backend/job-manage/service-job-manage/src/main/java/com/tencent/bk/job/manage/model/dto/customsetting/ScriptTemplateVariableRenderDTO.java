@@ -37,9 +37,13 @@ import java.util.Map;
 @NoArgsConstructor
 public class ScriptTemplateVariableRenderDTO {
     /**
-     * 业务ID
+     * 资源范围类型
      */
-    private Long appId;
+    private String scopeType;
+    /**
+     * 资源范围ID
+     */
+    private String scopeId;
 
     /**
      * 用户名
@@ -50,16 +54,10 @@ public class ScriptTemplateVariableRenderDTO {
      */
     private Map<String, String> defaultVariablesValues = new HashMap<>();
 
-    public ScriptTemplateVariableRenderDTO(Long appId, String username) {
-        this.appId = appId;
+    public ScriptTemplateVariableRenderDTO(String scopeType, String scopeId, String username) {
+        this.scopeType = scopeType;
+        this.scopeId = scopeId;
         this.username = username;
-    }
-
-    public ScriptTemplateVariableRenderDTO(Long appId, String username,
-                                           Map<String, String> defaultVariablesValues) {
-        this.appId = appId;
-        this.username = username;
-        this.defaultVariablesValues = defaultVariablesValues;
     }
 
     public void addDefaultValue(String variable, String value) {

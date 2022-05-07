@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.manage.api.web.WebCustomSettingsResource;
@@ -112,14 +111,12 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
     @DeprecatedAppLogic
     public Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(String username,
                                                                                  String scriptLanguages,
-                                                                                 Long appId,
                                                                                  String scopeType,
                                                                                  String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         List<ScriptTemplateDTO> scriptTemplates = getUserCustomScriptTemplate(username, scriptLanguages);
-        // 业务ID内置变量设计上需要修改，暂时先使用appId
-        scriptTemplates.forEach(scriptTemplate -> customScriptTemplateService.renderScriptTemplate(
-            new ScriptTemplateVariableRenderDTO(appResourceScope.getAppId(), username), scriptTemplate));
+        scriptTemplates.forEach(
+            scriptTemplate -> customScriptTemplateService.renderScriptTemplate(
+                new ScriptTemplateVariableRenderDTO(scopeType, scopeId, username), scriptTemplate));
         List<ScriptTemplateVO> scriptTemplateVOS = scriptTemplates.stream().map(this::toScriptTemplateVO)
             .collect(Collectors.toList());
         return Response.buildSuccessResp(scriptTemplateVOS);
@@ -159,12 +156,9 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
 
         ScriptTemplateDTO scriptTemplate = new ScriptTemplateDTO(req.getScriptLanguage(), scriptContent);
 
-        Long appId = null;
-        if (StringUtils.isNotBlank(req.getScopeType()) && StringUtils.isNotBlank(req.getScopeId())) {
-            appId = appScopeMappingService.getAppIdByScope(req.getScopeType(), req.getScopeId());
-        }
-        ScriptTemplateVariableRenderDTO variableRender = new ScriptTemplateVariableRenderDTO(appId, username);
-        if (appId == null) {
+        ScriptTemplateVariableRenderDTO variableRender = new ScriptTemplateVariableRenderDTO(req.getScopeType(),
+            req.getScopeId(), username);
+        if (req.getScopeType() == null && req.getScopeId() == null) {
             variableRender.addDefaultValue(ScriptTemplateVariableEnum.BIZ_ID.getName(),
                 ScriptTemplateVariableEnum.BIZ_ID.getDemo());
             variableRender.addDefaultValue(ScriptTemplateVariableEnum.BIZ_NAME.getName(),
