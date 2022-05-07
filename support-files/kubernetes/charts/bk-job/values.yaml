@@ -488,6 +488,11 @@ cmdb:
       # 普通业务从CMDB查询主机的线程数量
       num: 20
 
+## 权限中心配置
+iam:
+  # 作业平台注册到IAM的系统ID
+  systemId: bk_job
+
 ## 蓝鲸制品库配置
 artifactory:
   admin:
