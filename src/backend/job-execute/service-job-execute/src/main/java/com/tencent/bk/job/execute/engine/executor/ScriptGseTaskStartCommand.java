@@ -62,9 +62,9 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -74,6 +74,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -81,6 +82,8 @@ import java.util.Map;
 
 @Slf4j
 public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
+
+    private final ScriptAgentTaskService scriptAgentTaskService;
 
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
@@ -98,7 +101,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     public ScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                      TaskInstanceService taskInstanceService,
                                      GseTaskService gseTaskService,
-                                     AgentTaskService agentTaskService,
+                                     ScriptAgentTaskService scriptAgentTaskService,
                                      AccountService accountService,
                                      TaskInstanceVariableService taskInstanceVariableService,
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -120,7 +123,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         super(resultHandleManager,
             taskInstanceService,
             gseTaskService,
-            agentTaskService,
+            scriptAgentTaskService,
             accountService,
             taskInstanceVariableService,
             stepInstanceVariableValueService,
@@ -138,6 +141,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             taskInstance,
             stepInstance,
             gseTask);
+        this.scriptAgentTaskService = scriptAgentTaskService;
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
     }
@@ -671,7 +675,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 resultHandleTaskKeepaliveManager,
                 exceptionStatusManager,
                 taskEvictPolicyExecutor,
-                agentTaskService,
+                scriptAgentTaskService,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,
@@ -699,8 +703,16 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 stepInstance.getExecuteCount(), buildIpAndLogOffsetMap(targetIps), errorMsg, endTime);
         }
 
-        agentTaskService.batchUpdateAgentTasks(stepInstanceId, executeCount, targetIps, startTime, endTime,
-            IpStatus.SUBMIT_FAILED);
+        List<AgentTaskDTO> notStartAgentTasks = new ArrayList<>();
+        for (String targetIp : targetIps) {
+            AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch, targetIp);
+            agentTask.setStartTime(startTime);
+            agentTask.setEndTime(endTime);
+            agentTask.setTotalTime(0L);
+            agentTask.setStatus(IpStatus.SUBMIT_FAILED.getValue());
+            notStartAgentTasks.add(agentTask);
+        }
+        scriptAgentTaskService.batchUpdateAgentTasks(notStartAgentTasks);
     }
 
     private Map<String, Integer> buildIpAndLogOffsetMap(Collection<String> ips) {

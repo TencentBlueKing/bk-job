@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import org.junit.jupiter.api.DisplayName;
@@ -199,14 +198,6 @@ public class AgentTaskDAOImplIntegrationTest {
         assertThat(agentTasks).extracting("cloudIp").containsOnly("0:127.0.0.1", "0:127.0.0.2");
         assertThat(agentTasks).extracting("stepInstanceId").containsOnly(1L, 1L);
         assertThat(agentTasks).extracting("executeCount").containsOnly(0, 0);
-    }
-
-    @Test
-    public void testDeleteAllAgentTask() {
-        agentTaskDAO.deleteAllAgentTasks(1L, 0);
-
-        List<AgentTaskDTO> agentTasks = agentTaskDAO.listAgentTasks(1L, 0, null, false);
-        assertThat(agentTasks.size()).isEqualTo(0);
     }
 
     @Test

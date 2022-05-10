@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -121,7 +122,7 @@ public class AgentTaskDTO {
     /**
      * 文件任务类型
      */
-    private Integer mode;
+    private FileTaskModeEnum fileTaskMode;
     /**
      * 结果是否发生变化
      */
@@ -131,6 +132,22 @@ public class AgentTaskDTO {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
+    }
+
+    public AgentTaskDTO(long stepInstanceId, int executeCount, int batch, String cloudIp) {
+        this.stepInstanceId = stepInstanceId;
+        this.executeCount = executeCount;
+        this.batch = batch;
+        this.cloudIp = cloudIp;
+    }
+
+    public AgentTaskDTO(long stepInstanceId, int executeCount, int batch, FileTaskModeEnum fileTaskMode,
+                        String cloudIp) {
+        this.stepInstanceId = stepInstanceId;
+        this.executeCount = executeCount;
+        this.batch = batch;
+        this.fileTaskMode = fileTaskMode;
+        this.cloudIp = cloudIp;
     }
 
     public void setStatus(int status) {

@@ -44,7 +44,6 @@ import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingServerBatchDO;
-import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;

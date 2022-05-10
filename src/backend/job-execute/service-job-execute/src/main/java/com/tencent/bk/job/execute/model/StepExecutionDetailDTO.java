@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.model;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepRunModeEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
+import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -89,9 +90,8 @@ public class StepExecutionDetailDTO {
     /**
      * 步骤类型
      *
-     * @see com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum
      */
-    private Integer stepType;
+    private TaskStepTypeEnum stepType;
     /**
      * 步骤执行模式
      *

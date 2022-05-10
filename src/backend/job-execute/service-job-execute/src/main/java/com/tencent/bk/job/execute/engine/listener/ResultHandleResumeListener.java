@@ -48,7 +48,6 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;

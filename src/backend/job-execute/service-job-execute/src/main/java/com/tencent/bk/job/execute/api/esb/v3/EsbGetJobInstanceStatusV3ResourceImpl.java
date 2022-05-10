@@ -40,7 +40,8 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
-import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -57,14 +58,17 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
     private final TaskInstanceService taskInstanceService;
     private final AppScopeMappingService appScopeMappingService;
-    private final AgentTaskService agentTaskService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final FileAgentTaskService fileAgentTaskService;
 
     public EsbGetJobInstanceStatusV3ResourceImpl(TaskInstanceService taskInstanceService,
                                                  AppScopeMappingService appScopeMappingService,
-                                                 AgentTaskService agentTaskService) {
+                                                 ScriptAgentTaskService scriptAgentTaskService,
+                                                 FileAgentTaskService fileAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
-        this.agentTaskService = agentTaskService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
     }
 
     @Override
@@ -139,8 +143,14 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<AgentTaskDTO> agentTaskList = agentTaskService.listAgentTasks(stepInstance.getId(),
-                    stepInstance.getExecuteCount(), null, true);
+                List<AgentTaskDTO> agentTaskList = null;
+                if (stepInstance.isScriptStep()) {
+                    agentTaskList = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
+                        stepInstance.getExecuteCount(), null);
+                } else if (stepInstance.isFileStep()) {
+                    agentTaskList = fileAgentTaskService.listAgentTasks(stepInstance.getId(),
+                        stepInstance.getExecuteCount(), null);
+                }
                 if (CollectionUtils.isNotEmpty(agentTaskList)) {
                     for (AgentTaskDTO ipLog : agentTaskList) {
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();

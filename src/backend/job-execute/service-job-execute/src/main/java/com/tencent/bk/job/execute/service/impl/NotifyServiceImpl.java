@@ -41,9 +41,10 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
-import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.NotifyService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
@@ -90,7 +91,8 @@ public class NotifyServiceImpl implements NotifyService {
     private final ApplicationService applicationService;
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
-    private final AgentTaskService agentTaskService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final FileAgentTaskService fileAgentTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
 
     @Autowired
@@ -100,7 +102,8 @@ public class NotifyServiceImpl implements NotifyService {
                              ApplicationService applicationService,
                              TaskInstanceService taskInstanceService,
                              MessageI18nService i18nService,
-                             AgentTaskService agentTaskService,
+                             ScriptAgentTaskService scriptAgentTaskService,
+                             FileAgentTaskService fileAgentTaskService,
                              TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.jobExecuteConfig = jobExecuteConfig;
         this.notificationResourceClient = notificationResourceClient;
@@ -108,7 +111,8 @@ public class NotifyServiceImpl implements NotifyService {
         this.applicationService = applicationService;
         this.taskInstanceService = taskInstanceService;
         this.i18nService = i18nService;
-        this.agentTaskService = agentTaskService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
     }
 
@@ -262,8 +266,14 @@ public class NotifyServiceImpl implements NotifyService {
                 variablesMap.put("task.step.success_cnt", "" + totalTargetIpCount);
                 variablesMap.put("task.step.failed_cnt", "" + 0);
             } else {
-                int successIpCount = agentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
-                    stepInstanceDTO.getExecuteCount());
+                int successIpCount = 0;
+                if (stepInstanceDTO.isScriptStep()) {
+                    successIpCount = scriptAgentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
+                        stepInstanceDTO.getExecuteCount());
+                } else if (stepInstanceDTO.isFileStep()) {
+                    successIpCount = fileAgentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
+                        stepInstanceDTO.getExecuteCount());
+                }
                 variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));
                 variablesMap.put("task.step.success_cnt", String.valueOf(successIpCount));
             }
@@ -301,11 +311,11 @@ public class NotifyServiceImpl implements NotifyService {
         variablesMap.put("task.operator", taskNotifyDTO.getOperator());
         variablesMap.put("current.date", DateUtils.formatLocalDateTime(LocalDateTime.now(), "yyyy-MM-dd"));
         variablesMap.put("task.step.name", stepInstanceDTO.getName());
-        if (stepInstanceDTO.getStepType().equals(TaskStepTypeEnum.SCRIPT.getType())) {
+        if (stepInstanceDTO.getStepType() == TaskStepTypeEnum.SCRIPT) {
             variablesMap.put("task.step.type", i18nService.getI18n("task.step.type.name.script"));
-        } else if (stepInstanceDTO.getStepType().equals(TaskStepTypeEnum.FILE.getType())) {
+        } else if (stepInstanceDTO.getStepType() == TaskStepTypeEnum.FILE) {
             variablesMap.put("task.step.type", i18nService.getI18n("task.step.type.name.file"));
-        } else if (stepInstanceDTO.getStepType().equals(TaskStepTypeEnum.APPROVAL.getType())) {
+        } else if (stepInstanceDTO.getStepType() == TaskStepTypeEnum.APPROVAL) {
             variablesMap.put("task.step.type", i18nService.getI18n("task.step.type.name.manual_confirm"));
         }
         if (executeStatus == ExecuteStatusEnum.SUCCESS) {

@@ -218,7 +218,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     }
 
     private void initTargetHosts() {
-        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount, batch, true);
+        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount, batch);
         agentTasks.forEach(agentTask -> {
             this.targetIps.add(agentTask.getCloudIp());
             this.agentTaskMap.put(agentTask.getCloudIp(), agentTask);

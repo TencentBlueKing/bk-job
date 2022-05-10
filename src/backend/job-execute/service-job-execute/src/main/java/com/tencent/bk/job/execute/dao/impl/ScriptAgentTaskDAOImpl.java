@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -47,7 +47,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -86,9 +85,9 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     @Override
     public void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks) {
-        String sql = "REPLACE INTO gse_script_agent_task (step_instance_id, execute_count, batch, ip, gse_task_id,"
+        String sql = "replace into gse_script_agent_task (step_instance_id, execute_count, batch, ip, gse_task_id,"
             + "status, start_time, end_time, total_time, error_code, exit_code, tag, log_offset, display_ip" +
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         Object[][] params = new Object[agentTasks.size()][14];
         int batchCount = 0;
         for (AgentTaskDTO agentTask : agentTasks) {
@@ -113,27 +112,27 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     }
 
     @Override
-    public void batchUpdateAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudIp,
-                                      Long startTime, Long endTime, IpStatus ipStatus) {
+    public void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks) {
         String sql = "update gse_script_agent_task set start_time = ?, end_time = ?, status = ?"
-            +" where step_instance_id = ? and execute_count = ? and ip = ?";
-        Object[][] params = new Object[cloudIp.size()][6];
+            + " where step_instance_id = ? and execute_count = ? and batch = ? and ip = ?";
+        Object[][] params = new Object[agentTasks.size()][7];
         int batchCount = 0;
-        for (String ip : cloudIp) {
-            Object[] param = new Object[6];
-            param[0] = startTime;
-            param[1] = endTime;
-            param[2] = ipStatus.getValue();
-            param[3] = stepInstanceId;
-            param[4] = executeCount;
-            param[5] = ip;
+        for (AgentTaskDTO agentTask : agentTasks) {
+            Object[] param = new Object[7];
+            param[0] = agentTask.getStartTime();
+            param[1] = agentTask.getEndTime();
+            param[2] = agentTask.getStatus();
+            param[3] = agentTask.getStepInstanceId();
+            param[4] = agentTask.getExecuteCount();
+            param[5] = agentTask.getBatch();
+            param[6] = agentTask.getIp();
             params[batchCount++] = param;
         }
         CTX.batch(sql, params).execute();
     }
 
     @Override
-    public int getSuccessIpCount(long stepInstanceId, int executeCount) {
+    public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
         Integer count = CTX.selectCount()
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STATUS.in(IpStatus.LAST_SUCCESS.getValue(), IpStatus.SUCCESS.getValue()))
@@ -158,14 +157,14 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
             result.forEach(record -> {
                 IpStatus status = IpStatus.valueOf(record.get(T_GSE_SCRIPT_AGENT_TASK.STATUS));
                 Object ipCount = record.get("ip_count");
-                agentTaskCountMap.put(status, ipCount == null ? 0 : (int)ipCount);
+                agentTaskCountMap.put(status, ipCount == null ? 0 : (int) ipCount);
             });
         }
         return agentTaskCountMap;
     }
 
     @Override
-    public List<AgentTaskResultGroupDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
+    public List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
         SelectConditionStep<?> selectConditionStep =
             CTX.select(T_GSE_SCRIPT_AGENT_TASK.STATUS, T_GSE_SCRIPT_AGENT_TASK.TAG, count().as("ip_count"))
                 .from(T_GSE_SCRIPT_AGENT_TASK)
@@ -179,9 +178,9 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
             .orderBy(T_GSE_SCRIPT_AGENT_TASK.STATUS.asc())
             .fetch();
 
-        List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
+        List<AgentTaskResultGroupBaseDTO> resultGroups = new ArrayList<>();
         result.forEach(record -> {
-            AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO();
+            AgentTaskResultGroupBaseDTO resultGroup = new AgentTaskResultGroupBaseDTO();
             resultGroup.setStatus(record.get(T_GSE_SCRIPT_AGENT_TASK.STATUS));
             resultGroup.setTag(record.get(T_GSE_SCRIPT_AGENT_TASK.TAG));
             Object ipCount = record.get("ip_count");
@@ -357,45 +356,40 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     }
 
     @Override
-    public AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip) {
+    public AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, Integer batch, String cloudIp) {
         Record record = CTX.select(ALL_FIELDS)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount))
-            .and(T_GSE_SCRIPT_AGENT_TASK.IP.eq(ip))
+            .and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch == null ? 0 : batch.shortValue()))
+            .and(T_GSE_SCRIPT_AGENT_TASK.IP.eq(cloudIp))
             .fetchOne();
         return extract(record);
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTasksByIps(Long stepInstanceId, Integer executeCount, String[] ipArray) {
-        Result<Record> result = CTX.select(ALL_FIELDS)
+    public List<String> fuzzySearchIpsByIpKeyword(Long stepInstanceId, Integer executeCount, String ipKeyword) {
+        Result<Record1<String>> result = CTX.selectDistinct(T_GSE_SCRIPT_AGENT_TASK.IP)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount))
-            .and(T_GSE_SCRIPT_AGENT_TASK.IP.in(ipArray))
+            .and(T_GSE_SCRIPT_AGENT_TASK.DISPLAY_IP.like("%" + ipKeyword + "%"))
             .fetch();
-        List<AgentTaskDTO> agentTaskList = new ArrayList<>();
-        if (result.size() != 0) {
-            result.into(record -> agentTaskList.add(extract(record)));
+        if (result.size() == 0) {
+            return Collections.emptyList();
         }
-        return agentTaskList;
+        List<String> cloudIps = new ArrayList<>();
+        result.into(record -> cloudIps.add(record.getValue(T_GSE_SCRIPT_AGENT_TASK.IP)));
+        return cloudIps;
     }
 
     @Override
-    public void deleteAllAgentTasks(long stepInstanceId, int executeCount) {
-        CTX.deleteFrom(T_GSE_SCRIPT_AGENT_TASK)
-            .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((executeCount)))
-            .execute();
-    }
-
-    @Override
-    public int getSuccessRetryCount(long stepInstanceId, String cloudAreaAndIp) {
+    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, String cloudIp) {
         Record record = CTX.select(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_SCRIPT_AGENT_TASK.IP.eq(cloudAreaAndIp))
+            .and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch == null ? 0 : batch.shortValue()))
+            .and(T_GSE_SCRIPT_AGENT_TASK.IP.eq(cloudIp))
             .and(T_GSE_SCRIPT_AGENT_TASK.STATUS.eq(IpStatus.SUCCESS.getValue()))
             .orderBy(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.desc())
             .limit(1)
@@ -405,21 +399,5 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
         } else {
             return 0;
         }
-    }
-
-    @Override
-    public List<String> fuzzySearchTargetIpsByIp(Long stepInstanceId, Integer executeCount, String searchIp) {
-        Result<Record1<String>> result = CTX.select(T_GSE_SCRIPT_AGENT_TASK.IP)
-            .from(T_GSE_SCRIPT_AGENT_TASK)
-            .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount))
-            .and(T_GSE_SCRIPT_AGENT_TASK.DISPLAY_IP.like("%" + searchIp + "%"))
-            .fetch();
-        if (result.size() == 0) {
-            return Collections.emptyList();
-        }
-        List<String> cloudIps = new ArrayList<>();
-        result.into(record -> cloudIps.add(record.getValue(T_GSE_SCRIPT_AGENT_TASK.IP)));
-        return cloudIps;
     }
 }

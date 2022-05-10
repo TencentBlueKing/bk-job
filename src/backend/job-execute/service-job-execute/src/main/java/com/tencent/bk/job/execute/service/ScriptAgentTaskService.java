@@ -22,30 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.service;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
-import java.util.List;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 
 /**
- * Agent任务执行结果分组
+ * GSE Agent 脚本任务 Service
  */
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-public class AgentTaskResultGroupDTO extends AgentTaskResultGroupBaseDTO {
+public interface ScriptAgentTaskService extends AgentTaskService {
+
     /**
-     * Agent任务
+     * 根据IP获取Agent任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param batch          滚动执行批次；传入null或者0将忽略该参数
+     * @param cloudIp        云区域+ip
+     * @return Agent任务
      */
-    private List<AgentTaskDTO> agentTasks;
+    AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, Integer batch, String cloudIp);
 
-    public AgentTaskResultGroupDTO(Integer status, String tag) {
-        super(status, tag);
-    }
-
+    /**
+     * 获取Agent任务实际执行成功的executeCount值(重试场景)
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
+     * @param cloudIp        云区域+IP
+     * @return Agent任务实际执行成功的executeCount值
+     */
+    int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, String cloudIp);
 }

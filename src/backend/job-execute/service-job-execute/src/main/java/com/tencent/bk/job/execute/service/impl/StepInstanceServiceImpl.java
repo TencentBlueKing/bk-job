@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;

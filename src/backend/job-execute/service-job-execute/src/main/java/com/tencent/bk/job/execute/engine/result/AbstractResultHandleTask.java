@@ -412,6 +412,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             notFinishedGseAgentTasks.forEach(agentTask -> {
                 agentTask.setStatus(IpStatus.UNKNOWN.getValue());
                 agentTask.setEndTime(System.currentTimeMillis());
+
             });
         }
         agentTaskService.batchSaveAgentTasks(notFinishedGseAgentTasks);

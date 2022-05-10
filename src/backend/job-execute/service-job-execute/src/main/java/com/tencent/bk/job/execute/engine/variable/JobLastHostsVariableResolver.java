@@ -29,7 +29,6 @@ import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.consts.JobBuildInVariables;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;

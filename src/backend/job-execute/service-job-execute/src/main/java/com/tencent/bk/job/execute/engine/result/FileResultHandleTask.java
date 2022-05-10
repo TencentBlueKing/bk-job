@@ -56,7 +56,7 @@ import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
@@ -171,7 +171,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                                 ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                 ExceptionStatusManager exceptionStatusManager,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                AgentTaskService agentTaskService,
+                                FileAgentTaskService fileAgentTaskService,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -192,7 +192,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             resultHandleTaskKeepaliveManager,
             exceptionStatusManager,
             taskEvictPolicyExecutor,
-            agentTaskService,
+            fileAgentTaskService,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

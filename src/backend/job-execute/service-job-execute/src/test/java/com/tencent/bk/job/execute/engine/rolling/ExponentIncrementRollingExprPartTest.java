@@ -52,6 +52,9 @@ class ExponentIncrementRollingExprPartTest {
         rollingExprPart = ROLLING_EXPR_PART.parseExpr("-1");
         assertThat(rollingExprPart).isNull();
 
+        rollingExprPart = ROLLING_EXPR_PART.parseExpr("+2");
+        assertThat(rollingExprPart).isNull();
+
         assertThrows(RollingExprParseException.class, () -> ROLLING_EXPR_PART.parseExpr("*0"));
     }
 

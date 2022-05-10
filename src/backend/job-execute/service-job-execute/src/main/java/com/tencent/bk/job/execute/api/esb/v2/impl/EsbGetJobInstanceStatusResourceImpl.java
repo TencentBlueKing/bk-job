@@ -42,10 +42,11 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbIpStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.AgentTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -61,15 +62,17 @@ public class EsbGetJobInstanceStatusResourceImpl
 
     private final TaskInstanceService taskInstanceService;
     private final AppScopeMappingService appScopeMappingService;
-    private final AgentTaskService agentTaskService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final FileAgentTaskService fileAgentTaskService;
 
-    public EsbGetJobInstanceStatusResourceImpl(GseTaskService gseTaskService,
-                                               TaskInstanceService taskInstanceService,
+    public EsbGetJobInstanceStatusResourceImpl(TaskInstanceService taskInstanceService,
                                                AppScopeMappingService appScopeMappingService,
-                                               AgentTaskService agentTaskService) {
+                                               ScriptAgentTaskService scriptAgentTaskService,
+                                               FileAgentTaskService fileAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
-        this.agentTaskService = agentTaskService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
     }
 
     @Override
@@ -111,9 +114,20 @@ public class EsbGetJobInstanceStatusResourceImpl
     private Map<Long, List<EsbIpStatusDTO>> getStepIpResult(List<StepInstanceBaseDTO> stepInstanceList) {
         Map<Long, List<EsbIpStatusDTO>> stepIpResult = new HashMap<>();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
-            List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstance.getId(),
-                stepInstance.getExecuteCount(), null, true);
+            List<AgentTaskDTO> agentTasks = null;
+            if (stepInstance.isScriptStep()) {
+                agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
+                    stepInstance.getExecuteCount(), null);
+            } else if (stepInstance.isFileStep()) {
+                agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(),
+                    stepInstance.getExecuteCount(), null);
+            }
             List<EsbIpStatusDTO> ipResultList = Lists.newArrayList();
+            if (CollectionUtils.isEmpty(agentTasks)) {
+                stepIpResult.put(stepInstance.getId(), ipResultList);
+                continue;
+            }
+
             for (AgentTaskDTO agentTask : agentTasks) {
                 EsbIpStatusDTO ipStatus = new EsbIpStatusDTO();
                 ipStatus.setIp(agentTask.getIp());

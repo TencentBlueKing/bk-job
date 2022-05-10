@@ -61,7 +61,7 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
@@ -113,11 +113,13 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
      */
     private final Set<String> fileSourceIps = new HashSet<>();
 
+    private final FileAgentTaskService fileAgentTaskService;
+
 
     public FileGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                    TaskInstanceService taskInstanceService,
                                    GseTaskService gseTaskService,
-                                   AgentTaskService agentTaskService,
+                                   FileAgentTaskService fileAgentTaskService,
                                    AccountService accountService,
                                    TaskInstanceVariableService taskInstanceVariableService,
                                    StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -139,7 +141,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         super(resultHandleManager,
             taskInstanceService,
             gseTaskService,
-            agentTaskService,
+            fileAgentTaskService,
             accountService,
             taskInstanceVariableService,
             stepInstanceVariableValueService,
@@ -158,6 +160,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             stepInstance,
             gseTask);
 
+        this.fileAgentTaskService = fileAgentTaskService;
         this.fileStorageRootPath = fileStorageRootPath;
         this.localUploadDir = NFSUtils.getFileDir(fileStorageRootPath, FileDirTypeConf.UPLOAD_FILE_DIR);
     }
@@ -274,7 +277,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             }
         }
         if (!fileSourceGseAgentTasks.isEmpty()) {
-            agentTaskService.batchSaveAgentTasks(fileSourceGseAgentTasks);
+            fileAgentTaskService.batchSaveAgentTasks(fileSourceGseAgentTasks);
         }
     }
 
@@ -408,7 +411,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 resultHandleTaskKeepaliveManager,
                 exceptionStatusManager,
                 taskEvictPolicyExecutor,
-                agentTaskService,
+                fileAgentTaskService,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,

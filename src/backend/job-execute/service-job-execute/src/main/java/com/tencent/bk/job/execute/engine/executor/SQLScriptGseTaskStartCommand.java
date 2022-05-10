@@ -50,9 +50,9 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -120,7 +120,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
     public SQLScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                         TaskInstanceService taskInstanceService,
                                         GseTaskService gseTaskService,
-                                        AgentTaskService agentTaskService,
+                                        ScriptAgentTaskService scriptAgentTaskService,
                                         AccountService accountService,
                                         TaskInstanceVariableService taskInstanceVariableService,
                                         StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -142,7 +142,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         super(resultHandleManager,
             taskInstanceService,
             gseTaskService,
-            agentTaskService,
+            scriptAgentTaskService,
             accountService,
             taskInstanceVariableService,
             stepInstanceVariableValueService,

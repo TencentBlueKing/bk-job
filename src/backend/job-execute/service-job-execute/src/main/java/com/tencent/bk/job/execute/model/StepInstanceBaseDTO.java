@@ -66,11 +66,15 @@ public class StepInstanceBaseDTO {
      */
     protected String name;
     /**
-     * 步骤类型：1、执行脚本，2、传输文件，3、人工确认, 4、SQL执行
+     * 步骤执行类型：1、执行脚本，2、传输文件，3、人工确认, 4、SQL执行
      *
      * @see StepExecuteTypeEnum
      */
     protected Integer executeType;
+    /**
+     * 步骤类型
+     */
+    protected TaskStepTypeEnum stepType;
     /**
      * 执行人
      */
@@ -136,21 +140,20 @@ public class StepInstanceBaseDTO {
      * @return 步骤类型
      * @see TaskStepTypeEnum
      */
-    public Integer getStepType() {
-        if (executeType != null) {
-            if (executeType.equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
-                || executeType.equals(StepExecuteTypeEnum.EXECUTE_SQL.getValue())) {
-                return TaskStepTypeEnum.SCRIPT.getValue();
-            } else if (executeType.equals(StepExecuteTypeEnum.SEND_FILE.getValue())) {
-                return TaskStepTypeEnum.FILE.getValue();
-            } else if (executeType.equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
-                return TaskStepTypeEnum.APPROVAL.getValue();
-            } else {
-                return null;
+    public TaskStepTypeEnum getStepType() {
+        if (this.stepType == null) {
+            if (executeType != null) {
+                if (executeType.equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
+                    || executeType.equals(StepExecuteTypeEnum.EXECUTE_SQL.getValue())) {
+                    this.stepType = TaskStepTypeEnum.SCRIPT;
+                } else if (executeType.equals(StepExecuteTypeEnum.SEND_FILE.getValue())) {
+                    this.stepType = TaskStepTypeEnum.FILE;
+                } else if (executeType.equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
+                    this.stepType = TaskStepTypeEnum.APPROVAL;
+                }
             }
-        } else {
-            return null;
         }
+        return this.stepType;
     }
 
     /**
@@ -160,15 +163,18 @@ public class StepInstanceBaseDTO {
         return this.stepNum.equals(1) || this.stepNum.equals(this.stepOrder);
     }
 
-
+    /**
+     * 是否文件分发步骤
+     */
     public boolean isFileStep() {
-        return this.executeType != null && this.executeType.equals(StepExecuteTypeEnum.SEND_FILE.getValue());
+        return getStepType() == TaskStepTypeEnum.FILE;
     }
 
+    /**
+     * 是否脚本执行步骤
+     */
     public boolean isScriptStep() {
-        return this.executeType != null
-            && (this.executeType.equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
-            || this.executeType.equals(StepExecuteTypeEnum.EXECUTE_SQL.getValue()));
+        return getStepType() == TaskStepTypeEnum.SCRIPT;
     }
 
     public int getTargetServerTotalCount() {

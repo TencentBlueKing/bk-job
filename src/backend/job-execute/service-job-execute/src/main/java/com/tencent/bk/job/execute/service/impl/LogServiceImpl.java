@@ -32,14 +32,16 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.LogServiceResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
-import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.service.BatchSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.FileLogQueryRequest;
@@ -69,14 +71,18 @@ import java.util.stream.Collectors;
 public class LogServiceImpl implements LogService {
     private final LogServiceResourceClient logServiceResourceClient;
     private final StepInstanceDAO stepInstanceDAO;
-    private final AgentTaskDAO agentTaskDAO;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final FileAgentTaskService fileAgentTaskService;
 
     @Autowired
-    public LogServiceImpl(LogServiceResourceClient logServiceResourceClient, StepInstanceDAO stepInstanceDAO,
-                          AgentTaskDAO agentTaskDAO) {
+    public LogServiceImpl(LogServiceResourceClient logServiceResourceClient,
+                          StepInstanceDAO stepInstanceDAO,
+                          ScriptAgentTaskService scriptAgentTaskService,
+                          FileAgentTaskService fileAgentTaskService) {
         this.logServiceResourceClient = logServiceResourceClient;
         this.stepInstanceDAO = stepInstanceDAO;
-        this.agentTaskDAO = agentTaskDAO;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
     }
 
     @Override
@@ -189,12 +195,14 @@ public class LogServiceImpl implements LogService {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        AgentTaskDTO gseTaskIpLog = agentTaskDAO.getAgentTaskByIp(stepInstanceId, executeCount, ip.convertToStrIp());
-        if (gseTaskIpLog == null) {
+        AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByIp(stepInstanceId, executeCount,
+            stepInstance.getBatch(), ip.convertToStrIp());
+        if (agentTask == null) {
             return null;
         }
-        if (gseTaskIpLog.getStatus() == IpStatus.LAST_SUCCESS.getValue()) {
-            actualExecuteCount = agentTaskDAO.getSuccessRetryCount(stepInstanceId, ip.convertToStrIp());
+        if (agentTask.getStatus() == IpStatus.LAST_SUCCESS.getValue()) {
+            actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId,
+                agentTask.getBatch(), ip.convertToStrIp());
         }
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
@@ -206,7 +214,7 @@ public class LogServiceImpl implements LogService {
                 actualExecuteCount, ip);
             throw new InternalException(resp.getCode());
         }
-        return convertToScriptIpLogContent(resp.getData(), gseTaskIpLog);
+        return convertToScriptIpLogContent(resp.getData(), agentTask);
     }
 
     private ScriptIpLogContent convertToScriptIpLogContent(ServiceIpLogDTO logDTO, AgentTaskDTO gseTaskIpLog) {
@@ -253,12 +261,14 @@ public class LogServiceImpl implements LogService {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        AgentTaskDTO gseTaskIpLog = agentTaskDAO.getAgentTaskByIp(stepInstanceId, executeCount, ip.convertToStrIp());
-        if (gseTaskIpLog == null) {
+        AgentTaskDTO agentTask = fileAgentTaskService.getAgentTask(stepInstanceId, executeCount, 0,
+            FileTaskModeEnum.getFileTaskMode(mode), ip.convertToStrIp());
+        if (agentTask == null) {
             return null;
         }
-        if (gseTaskIpLog.getStatus() == IpStatus.LAST_SUCCESS.getValue()) {
-            actualExecuteCount = agentTaskDAO.getSuccessRetryCount(stepInstanceId, ip.convertToStrIp());
+        if (agentTask.getStatus() == IpStatus.LAST_SUCCESS.getValue()) {
+            actualExecuteCount = fileAgentTaskService.getActualSuccessExecuteCount(stepInstanceId,
+                agentTask.getBatch(), agentTask.getFileTaskMode(), agentTask.getCloudIp());
         }
 
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
@@ -272,7 +282,7 @@ public class LogServiceImpl implements LogService {
             throw new InternalException(resp.getCode());
         }
         List<ServiceFileTaskLogDTO> fileTaskLogs = (resp.getData() == null) ? null : resp.getData().getFileTaskLogs();
-        int ipStatus = gseTaskIpLog.getStatus();
+        int ipStatus = agentTask.getStatus();
         boolean isFinished = (ipStatus != IpStatus.RUNNING.getValue() && ipStatus != IpStatus.WAITING.getValue()) ||
             isAllFileTasksFinished(fileTaskLogs);
         return new FileIpLogContent(stepInstanceId, executeCount, null, fileTaskLogs, isFinished);

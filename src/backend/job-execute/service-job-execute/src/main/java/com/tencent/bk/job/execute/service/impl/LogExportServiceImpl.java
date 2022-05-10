@@ -42,7 +42,6 @@ import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.LogExportService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -190,7 +189,7 @@ public class LogExportServiceImpl implements LogExportService {
         watch.start("listJobIps");
         List<AgentTaskDTO> gseTaskIpLogs = new ArrayList<>();
         if (isGetByIp) {
-            AgentTaskDTO agentTask = agentTaskService.getAgentTask(stepInstanceId, executeCount, ip);
+            AgentTaskDTO agentTask = agentTaskService.getScriptAgentTask(stepInstanceId, executeCount, ip);
             if (agentTask != null) {
                 gseTaskIpLogs.add(agentTask);
             }
