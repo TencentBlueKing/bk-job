@@ -347,16 +347,16 @@
                                     reject(new Error('not save'));
                                 };
                                 const subHeader = () => (
-                                <div>
-                                    <div style="text-align: center">
-                                        <bk-button
-                                            onClick={handleClose}
-                                            style="width: 96px"
-                                            theme="primary">
-                                            { I18n.t('template.去处理') }
-                                        </bk-button>
+                                    <div>
+                                        <div style="text-align: center">
+                                            <bk-button
+                                                onClick={handleClose}
+                                                style="width: 96px"
+                                                theme="primary">
+                                                { I18n.t('template.去处理') }
+                                            </bk-button>
+                                        </div>
                                     </div>
-                                </div>
                                 );
                                 if (this.isLocalFileUploading) {
                                     confirmInfo = this.$bkInfo({
@@ -364,6 +364,7 @@
                                         title: I18n.t('template.本地源文件上传未完成'),
                                         subHeader: subHeader(),
                                         showFooter: false,
+                                        closeIcon: false,
                                     });
                                 } else if (this.isLocalFileUploadFailed) {
                                     confirmInfo = this.$bkInfo({
@@ -371,6 +372,7 @@
                                         title: I18n.t('template.本地源文件上传失败'),
                                         subHeader: subHeader(),
                                         showFooter: false,
+                                        closeIcon: false,
                                     });
                                 } else {
                                     this.$emit('on-change', result, false);
