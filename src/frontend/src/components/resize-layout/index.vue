@@ -179,7 +179,7 @@
              */
             handleMousedown (event) {
                 this.isResizeable = true;
-                this.startScreenX = event.screenX;
+                this.startClientX = event.clientX;
                 this.parentWidth = this.$refs.root.getBoundingClientRect().width;
                 this.moveStartWidth = this.$refs.handle.getBoundingClientRect().width;
                 document.body.style.userSelect = 'none';
@@ -203,9 +203,9 @@
                 }
                 const MAX_WIDTH = this.maxWidth ? this.maxWidth : 0.8 * this.parentWidth;
                 const MIN_WIDTH = this.minWidth ? this.minWidth : 0.1 * this.parentWidth;
-                const { screenX } = event;
+                const { clientX } = event;
                 let newWidth = 0;
-                newWidth = this.startScreenX - screenX + this.moveStartWidth;
+                newWidth = this.startClientX - clientX + this.moveStartWidth;
                 
                 if (newWidth > MAX_WIDTH || newWidth < MIN_WIDTH) {
                     return;
