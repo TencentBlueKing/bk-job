@@ -354,16 +354,16 @@
                                     reject(new Error('not save'));
                                 };
                                 const subHeader = () => (
-                                    <div>
-                                        <div style="text-align: center">
-                                            <bk-button
-                                                onClick={handleClose}
-                                                style="width: 96px"
-                                                theme="primary">
-                                                { I18n.t('template.去处理') }
-                                            </bk-button>
-                                        </div>
+                                <div>
+                                    <div style="text-align: center">
+                                        <bk-button
+                                            onClick={handleClose}
+                                            style="width: 96px"
+                                            theme="primary">
+                                            { I18n.t('template.去处理') }
+                                        </bk-button>
                                     </div>
+                                </div>
                                 );
                                 if (this.isLocalFileUploading) {
                                     confirmInfo = this.$bkInfo({
