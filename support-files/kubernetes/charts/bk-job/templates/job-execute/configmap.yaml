@@ -1,4 +1,4 @@
-{{- if .Values.executeConfig }}
+{{- if .Values.executeConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -186,4 +186,4 @@ data:
       storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
       artifactory:
         repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
-  {{- end}}
+{{- end }}

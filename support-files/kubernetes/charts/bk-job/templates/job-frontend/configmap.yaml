@@ -1,4 +1,4 @@
-{{- if .Values.frontendConfig }}
+{{- if .Values.frontendConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -141,4 +141,4 @@ data:
       }
       default_type application/octet-stream;
     }
-{{- end}}
+{{- end }}

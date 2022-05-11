@@ -1,4 +1,4 @@
-{{- if .Values.fileWorkerConfig }}
+{{- if .Values.fileWorkerConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -34,4 +34,4 @@ data:
           root-url: http://{{ include "common.names.fullname" . }}-gateway/job-file-gateway
     server:
       port: {{ .Values.fileWorkerConfig.containerPort }}
-  {{- end}}
+  {{- end }}

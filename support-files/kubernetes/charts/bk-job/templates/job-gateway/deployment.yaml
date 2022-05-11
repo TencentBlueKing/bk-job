@@ -1,3 +1,4 @@
+{{- if .Values.gatewayConfig.enabled }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -145,3 +146,4 @@ spec:
                 path: keystore.password
               - key: truststore.password
                 path: truststore.password
+{{- end }}

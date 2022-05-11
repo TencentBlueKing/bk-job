@@ -117,7 +117,7 @@ export default {
         '确定失败IP重试？': 'Are you sure?',
         '仅作用于本次执行失败的 IP': 'Step will continue running with retry Failed-host.',
         '确定进入下一步？': 'Are you sure?',
-        跳过当前步骤进入下一步: 'Continue running from the next step',
+        跳过当前步骤进入下一步: 'Ignore the error of current step, and continues to run',
         '确定终止执行任务？': 'Are you sure to terminate the task?',
         终止动作仅对当前还未执行完成的IP有效: 'The termination action is only effect for host that have not yet been finished.',
         '确定重试并继续？': 'Are you sure?',

@@ -47,6 +47,8 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listBizAppsByBizIds(Collection<Long> bizIdList);
 
+    List<Long> listAllBizAppBizIds();
+
     List<ApplicationDTO> listAllApps();
 
     List<ApplicationDTO> listAllAppsWithDeleted();
