@@ -52,7 +52,7 @@ const sacnDialog = (resolve, reject) => {
                     <span style="color: red; font-weight: bold">{ I18n.t('警告！') }</span>
                     <span>{ I18n.t('脚本中出现高危语句') }</span>
                     <span>（</span>
-                    <span>{ I18n.t('详见编辑框右侧') } </span>
+                    <span>{ I18n.t('详见编辑框左侧') } </span>
                     <img src="/static/images/ace-editor/error-tips.png" style="width: 14px; vertical-align: middle;" />
                     <span> { I18n.t('图标的提示') }</span>
                     <span>）</span>
