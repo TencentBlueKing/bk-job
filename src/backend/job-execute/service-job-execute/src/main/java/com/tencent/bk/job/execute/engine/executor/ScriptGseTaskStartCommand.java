@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
@@ -706,9 +707,10 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         List<AgentTaskDTO> notStartAgentTasks = new ArrayList<>();
         for (String targetIp : targetIps) {
             AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch, targetIp);
+            agentTask.setGseTaskId(gseTask.getId());
             agentTask.setStartTime(startTime);
             agentTask.setEndTime(endTime);
-            agentTask.setTotalTime(0L);
+            agentTask.setTotalTime(TaskCostCalculator.calculate(startTime, endTime, null));
             agentTask.setStatus(IpStatus.SUBMIT_FAILED.getValue());
             notStartAgentTasks.add(agentTask);
         }

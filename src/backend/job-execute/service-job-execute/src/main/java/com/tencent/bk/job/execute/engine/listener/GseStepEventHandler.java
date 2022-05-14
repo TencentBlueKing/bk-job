@@ -39,13 +39,16 @@ import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispat
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingServerBatchDO;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -56,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,7 +77,8 @@ public class GseStepEventHandler implements StepEventHandler {
     private final GseTaskService gseTaskService;
     private final RollingConfigService rollingConfigService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
-    private final AgentTaskService agentTaskService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final FileAgentTaskService fileAgentTaskService;
 
     @Autowired
     public GseStepEventHandler(TaskInstanceService taskInstanceService,
@@ -83,7 +88,8 @@ public class GseStepEventHandler implements StepEventHandler {
                                GseTaskService gseTaskService,
                                RollingConfigService rollingConfigService,
                                StepInstanceRollingTaskService stepInstanceRollingTaskService,
-                               AgentTaskService agentTaskService) {
+                               ScriptAgentTaskService scriptAgentTaskService,
+                               FileAgentTaskService fileAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -91,7 +97,8 @@ public class GseStepEventHandler implements StepEventHandler {
         this.gseTaskService = gseTaskService;
         this.rollingConfigService = rollingConfigService;
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
-        this.agentTaskService = agentTaskService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
     }
 
     @Override
@@ -265,7 +272,7 @@ public class GseStepEventHandler implements StepEventHandler {
             agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
                 0, stepInstance.getTargetServers().getInvalidIpList(), IpStatus.HOST_NOT_EXIST));
         }
-        agentTaskService.batchSaveAgentTasks(agentTasks);
+        saveAgentTasks(stepInstance, agentTasks);
     }
 
     private List<AgentTaskDTO> buildGseAgentTasks(long stepInstanceId,
@@ -464,7 +471,7 @@ public class GseStepEventHandler implements StepEventHandler {
             }
 
             long gseTaskId = saveInitialGseTask(stepInstance);
-            saveAgentTasksForRetryFail(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+            saveAgentTasksForRetryFail(stepInstance, stepInstance.getExecuteCount(), stepInstance.getBatch(),
                 gseTaskId);
 
             if (stepInstance.isScriptStep()) {
@@ -485,10 +492,10 @@ public class GseStepEventHandler implements StepEventHandler {
         return RunStatusEnum.FAIL == stepStatus || RunStatusEnum.ABNORMAL_STATE == stepStatus;
     }
 
-    private void saveAgentTasksForRetryFail(long stepInstanceId, int executeCount, Integer batch,
+    private void saveAgentTasksForRetryFail(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
                                             long gseTaskId) {
-        List<AgentTaskDTO> latestAgentTasks =
-            agentTaskService.listAgentTasks(stepInstanceId, executeCount - 1, null, false);
+        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1, batch);
+
         for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
             latestAgentTask.setExecuteCount(executeCount);
             if (!IpStatus.isSuccess(latestAgentTask.getStatus())) {
@@ -499,14 +506,15 @@ public class GseStepEventHandler implements StepEventHandler {
                 latestAgentTask.setGseTaskId(gseTaskId);
             }
         }
-        agentTaskService.batchSaveAgentTasks(latestAgentTasks);
+
+        saveAgentTasks(stepInstance, latestAgentTasks);
     }
 
 
-    private void saveAgentTasksForRetryAll(long stepInstanceId, int executeCount, Integer batch,
+    private void saveAgentTasksForRetryAll(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
                                            long gseTaskId) {
-        List<AgentTaskDTO> latestAgentTasks =
-            agentTaskService.listAgentTasks(stepInstanceId, executeCount - 1, null, false);
+        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1, batch);
+
         for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
             latestAgentTask.setExecuteCount(executeCount);
             if (batch != null && latestAgentTask.getBatch() != batch) {
@@ -515,7 +523,26 @@ public class GseStepEventHandler implements StepEventHandler {
             latestAgentTask.resetTaskInitialStatus();
             latestAgentTask.setGseTaskId(gseTaskId);
         }
-        agentTaskService.batchSaveAgentTasks(latestAgentTasks);
+
+        saveAgentTasks(stepInstance, latestAgentTasks);
+    }
+
+    private List<AgentTaskDTO> listAgentTasks(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch) {
+        List<AgentTaskDTO> agentTasks = Collections.emptyList();
+        if (stepInstance.isScriptStep()) {
+            agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, batch);
+        } else if (stepInstance.isFileStep()) {
+            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, batch);
+        }
+        return agentTasks;
+    }
+
+    private void saveAgentTasks(StepInstanceBaseDTO stepInstance, List<AgentTaskDTO> agentTasks) {
+        if (stepInstance.isScriptStep()) {
+            scriptAgentTaskService.batchSaveAgentTasks(agentTasks);
+        } else if (stepInstance.isFileStep()) {
+            fileAgentTaskService.batchSaveAgentTasks(agentTasks);
+        }
     }
 
     /**
@@ -543,7 +570,7 @@ public class GseStepEventHandler implements StepEventHandler {
             }
 
             long gseTaskId = saveInitialGseTask(stepInstance);
-            saveAgentTasksForRetryAll(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+            saveAgentTasksForRetryAll(stepInstance, stepInstance.getExecuteCount(), stepInstance.getBatch(),
                 gseTaskId);
 
             if (stepInstance.isScriptStep()) {

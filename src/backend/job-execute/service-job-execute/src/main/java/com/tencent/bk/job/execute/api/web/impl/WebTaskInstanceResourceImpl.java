@@ -225,7 +225,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         stepVO.setName(stepInstance.getName());
         StepExecuteTypeEnum stepType = StepExecuteTypeEnum.valueOf(stepInstance.getExecuteType());
         if (stepType == StepExecuteTypeEnum.EXECUTE_SCRIPT || stepType == StepExecuteTypeEnum.EXECUTE_SQL) {
-            stepVO.setType(TaskStepTypeEnum.SCRIPT.getType());
+            stepVO.setType(TaskStepTypeEnum.SCRIPT.getValue());
             ExecuteScriptStepVO scriptStepVO = new ExecuteScriptStepVO();
             if (stepType == StepExecuteTypeEnum.EXECUTE_SCRIPT) {
                 scriptStepVO.setAccountId(stepInstance.getAccountId());
@@ -255,7 +255,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             scriptStepVO.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
             stepVO.setScriptStepInfo(scriptStepVO);
         } else if (stepType == StepExecuteTypeEnum.SEND_FILE) {
-            stepVO.setType(TaskStepTypeEnum.FILE.getType());
+            stepVO.setType(TaskStepTypeEnum.FILE.getValue());
             ExecuteFileStepVO fileStepVO = new ExecuteFileStepVO();
 
             ExecuteFileDestinationInfoVO fileDestinationInfoVO = new ExecuteFileDestinationInfoVO();
@@ -286,7 +286,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             }
             stepVO.setFileStepInfo(fileStepVO);
         } else if (stepType == StepExecuteTypeEnum.MANUAL_CONFIRM) {
-            stepVO.setType(TaskStepTypeEnum.APPROVAL.getType());
+            stepVO.setType(TaskStepTypeEnum.APPROVAL.getValue());
             ExecuteApprovalStepVO approvalStepVO = new ExecuteApprovalStepVO();
             approvalStepVO.setApprovalMessage(stepInstance.getConfirmMessage());
             stepVO.setApprovalStepInfo(approvalStepVO);

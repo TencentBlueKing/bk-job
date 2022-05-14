@@ -48,8 +48,10 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -98,7 +100,9 @@ public class ResultHandleResumeListener {
 
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
-    private final AgentTaskService agentTaskService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+
+    private final FileAgentTaskService fileAgentTaskService;
 
     @Autowired
     public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
@@ -113,7 +117,8 @@ public class ResultHandleResumeListener {
                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                       ExceptionStatusManager exceptionStatusManager,
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                      AgentTaskService agentTaskService) {
+                                      ScriptAgentTaskService scriptAgentTaskService,
+                                      FileAgentTaskService fileAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -126,7 +131,8 @@ public class ResultHandleResumeListener {
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.agentTaskService = agentTaskService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
     }
 
 
@@ -152,8 +158,12 @@ public class ResultHandleResumeListener {
             }
 
             Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-            List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-
+            List<AgentTaskDTO> agentTasks = null;
+            if (stepInstance.isScriptStep()) {
+                agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+            } else if (stepInstance.isFileStep()) {
+                agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+            }
 
             List<TaskVariableDTO> taskVariables =
                 taskInstanceVariableService.getByTaskInstanceId(stepInstance.getTaskInstanceId());
@@ -170,7 +180,7 @@ public class ResultHandleResumeListener {
                     resultHandleTaskKeepaliveManager,
                     exceptionStatusManager,
                     taskEvictPolicyExecutor,
-                    agentTaskService,
+                    scriptAgentTaskService,
                     taskInstance, stepInstance,
                     taskVariablesAnalyzeResult,
                     agentTaskMap,
@@ -202,7 +212,7 @@ public class ResultHandleResumeListener {
                     resultHandleTaskKeepaliveManager,
                     exceptionStatusManager,
                     taskEvictPolicyExecutor,
-                    agentTaskService,
+                    fileAgentTaskService,
                     taskInstance, stepInstance,
                     taskVariablesAnalyzeResult,
                     agentTaskMap,

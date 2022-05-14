@@ -56,7 +56,7 @@ public interface FileAgentTaskService extends AgentTaskService {
      * @param executeCount   执行次数
      * @return 文件任务源ip
      */
-    List<IpDTO> getFileTaskSourceIps(Long stepInstanceId, Integer executeCount);
+    List<IpDTO> getFileSourceIps(Long stepInstanceId, Integer executeCount);
 
     /**
      * @param stepInstanceId 步骤实例ID

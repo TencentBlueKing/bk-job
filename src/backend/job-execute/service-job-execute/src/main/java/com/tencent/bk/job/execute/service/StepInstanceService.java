@@ -24,10 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-
-import java.util.Map;
 
 /**
  * 作业步骤执行实例 Service
@@ -56,14 +53,6 @@ public interface StepInstanceService {
      * @param rollingConfigId 滚动配置ID
      */
     void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId);
-
-    /**
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @return 根据GSE Agent 任务状态分组计数结果
-     */
-    Map<IpStatus, Integer> countStepGseAgentTaskGroupByStatus(long stepInstanceId, int executeCount);
-
     /**
      * 获取下一个步骤实例
      *

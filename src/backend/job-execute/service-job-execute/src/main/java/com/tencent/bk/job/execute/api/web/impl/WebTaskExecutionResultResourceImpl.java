@@ -540,7 +540,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         stepExecutionDetailVO.setEndTime(executionDetail.getEndTime());
         stepExecutionDetailVO.setTotalTime(executionDetail.getTotalTime());
         stepExecutionDetailVO.setIsLastStep(executionDetail.isLastStep());
-        stepExecutionDetailVO.setType(executionDetail.getStepType());
+        stepExecutionDetailVO.setType(executionDetail.getStepType().getValue());
         stepExecutionDetailVO.setRunMode(executionDetail.getRunMode().getValue());
 
         List<ExecutionResultGroupVO> resultGroupVOS = new ArrayList<>();

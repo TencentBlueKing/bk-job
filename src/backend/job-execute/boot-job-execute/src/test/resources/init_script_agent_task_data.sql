@@ -22,32 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+TRUNCATE TABLE job_execute.gse_script_agent_task;
 
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-
-/**
- * GSE Agent 脚本任务 Service
- */
-public interface ScriptAgentTaskService extends AgentTaskService {
-    /**
-     * 根据IP获取Agent任务
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次；传入null或者0将忽略该参数
-     * @param cloudIp        云区域+ip
-     * @return Agent任务
-     */
-    AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, Integer batch, String cloudIp);
-
-    /**
-     * 获取Agent任务实际执行成功的executeCount值(重试场景)
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
-     * @param cloudIp        云区域+IP
-     * @return Agent任务实际执行成功的executeCount值
-     */
-    int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, String cloudIp);
-}
+INSERT INTO job_execute.gse_script_agent_task
+            (step_instance_id,
+             execute_count,
+             batch,
+             ip,
+             gse_task_id,
+             status,
+             start_time,
+             end_time,
+             total_time,
+             error_code,
+             exit_code,
+             tag,
+             log_offset,
+             display_ip)
+VALUES
+    (1,0,1,'0:127.0.0.1',1,9,1565767148000,1565767149000,1316,0,0,'succ',0,'127.0.0.1'),
+    (1,0,2,'0:127.0.0.2',2,9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.2'),
+    (1,0,3,'0:127.0.0.3',3,9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.3'),
+    (1,0,3,'0:127.0.0.4',3,9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.4'),
+    (1,0,3,'0:127.0.0.5',3,11,1565767148000,1565767149000,1211,0,0,'fail',0,'127.0.0.5'),
+    (2,0,0,'0:127.0.0.1',4,9,1565767148000,1565767209000,1211,0,0,'succ',0,'127.0.0.1'),
+    (2,1,0,'0:127.0.0.1',4,9,1565766610000,1565767211000,1215,0,0,'succ',0,'127.0.0.1'),
+    (3,0,0,'0:127.0.0.1',5,9,1565766610000,1565767211000,1215,0,0,'succ',0,'127.0.0.1'),
+    (3,0,0,'0:127.0.0.2',5,9,1565766610000,1565767211000,1215,0,0,'succ',0,'127.0.0.2');

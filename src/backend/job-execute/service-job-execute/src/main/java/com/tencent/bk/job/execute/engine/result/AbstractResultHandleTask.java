@@ -415,7 +415,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
             });
         }
-        agentTaskService.batchSaveAgentTasks(notFinishedGseAgentTasks);
+        agentTaskService.batchUpdateAgentTasks(notFinishedGseAgentTasks);
     }
 
     /*
@@ -549,7 +549,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected void batchSaveChangedGseAgentTasks() {
         List<AgentTaskDTO> changedGseAgentTasks =
             this.agentTaskMap.values().stream().filter(AgentTaskDTO::isChanged).collect(Collectors.toList());
-        agentTaskService.batchSaveAgentTasks(changedGseAgentTasks);
+        agentTaskService.batchUpdateAgentTasks(changedGseAgentTasks);
         changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
     }
 
@@ -578,7 +578,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             agentTask.setStatus(status);
             agentTaskList.add(agentTask);
         }
-        agentTaskService.batchSaveAgentTasks(agentTaskList);
+        agentTaskService.batchUpdateAgentTasks(agentTaskList);
     }
 
     @Override

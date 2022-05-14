@@ -31,7 +31,7 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.TableField;
-import org.jooq.generated.tables.GseTaskLog;
+import org.jooq.generated.tables.GseTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Repository;
 public class GseTaskDAOImpl implements GseTaskDAO {
     private final DSLContext dslContext;
 
-    private static final GseTaskLog TABLE = GseTaskLog.GSE_TASK_LOG;
+    private static final GseTask TABLE = GseTask.GSE_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {TABLE.ID, TABLE.STEP_INSTANCE_ID, TABLE.EXECUTE_COUNT,
         TABLE.BATCH, TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.STATUS, TABLE.GSE_TASK_ID};
 

@@ -44,6 +44,7 @@ import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.LogExportService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +85,7 @@ public class LogExportServiceImpl implements LogExportService {
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
-    private final AgentTaskService agentTaskService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
 
     @Autowired
     public LogExportServiceImpl(LogService logService,
@@ -94,14 +95,14 @@ public class LogExportServiceImpl implements LogExportService {
                                 ArtifactoryClient artifactoryClient,
                                 ArtifactoryConfig artifactoryConfig,
                                 LogExportConfig logExportConfig,
-                                AgentTaskService agentTaskService) {
+                                ScriptAgentTaskService scriptAgentTaskService) {
         this.logService = logService;
         this.redisTemplate = redisTemplate;
         this.taskInstanceService = taskInstanceService;
         this.artifactoryClient = artifactoryClient;
         this.artifactoryConfig = artifactoryConfig;
         this.logExportConfig = logExportConfig;
-        this.agentTaskService = agentTaskService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("log-export-thread-%d").build();
         this.logExportExecutor = new TraceableExecutorService(new ThreadPoolExecutor(10,
             100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), threadFactory), tracing);
@@ -187,24 +188,24 @@ public class LogExportServiceImpl implements LogExportService {
 
         StopWatch watch = new StopWatch("exportJobLog");
         watch.start("listJobIps");
-        List<AgentTaskDTO> gseTaskIpLogs = new ArrayList<>();
+        List<AgentTaskDTO> gseAgentTasks = new ArrayList<>();
         if (isGetByIp) {
-            AgentTaskDTO agentTask = agentTaskService.getScriptAgentTask(stepInstanceId, executeCount, ip);
+            AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByIp(stepInstanceId, executeCount, null, ip);
             if (agentTask != null) {
-                gseTaskIpLogs.add(agentTask);
+                gseAgentTasks.add(agentTask);
             }
         } else {
-            gseTaskIpLogs = agentTaskService.listAgentTasks(stepInstanceId, executeCount, null, true);
+            gseAgentTasks = scriptAgentTaskService.listAgentTasks(stepInstanceId, executeCount, null);
         }
         watch.stop();
 
-        if (gseTaskIpLogs == null || gseTaskIpLogs.isEmpty()) {
+        if (gseAgentTasks == null || gseAgentTasks.isEmpty()) {
             log.warn("Gse task ips are empty! stepInstanceId={}", stepInstanceId);
             markJobFailed(exportJobInfo);
             return;
         }
 
-        Collection<LogBatchQuery> querys = buildLogBatchQuery(stepInstanceId, gseTaskIpLogs);
+        Collection<LogBatchQuery> querys = buildLogBatchQuery(stepInstanceId, gseAgentTasks);
 
         watch.start("getLogContent");
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);

@@ -89,7 +89,7 @@ public class FileAgentTaskServiceImpl implements FileAgentTaskService {
     }
 
     @Override
-    public List<IpDTO> getFileTaskSourceIps(Long stepInstanceId, Integer executeCount) {
+    public List<IpDTO> getFileSourceIps(Long stepInstanceId, Integer executeCount) {
         return fileAgentTaskDAO.getTaskFileSourceIps(stepInstanceId, executeCount)
             .stream().map(IpDTO::fromCloudAreaIdAndIpStr).collect(Collectors.toList());
     }

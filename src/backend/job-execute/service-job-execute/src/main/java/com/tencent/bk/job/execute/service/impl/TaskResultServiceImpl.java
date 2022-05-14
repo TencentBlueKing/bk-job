@@ -932,7 +932,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         Set<String> matchIps = null;
         boolean filterByKeyword = StringUtils.isNotEmpty(keyword);
         if (filterByKeyword) {
-            matchIps = getMatchIps(query);
+            matchIps = getMatchIps(stepInstance, query);
             if (CollectionUtils.isEmpty(matchIps)) {
                 return Collections.emptyList();
             }

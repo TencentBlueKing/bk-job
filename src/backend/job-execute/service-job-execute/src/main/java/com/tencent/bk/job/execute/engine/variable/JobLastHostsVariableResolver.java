@@ -29,7 +29,11 @@ import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.consts.JobBuildInVariables;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,14 +51,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JobLastHostsVariableResolver implements VariableResolver {
     private final TaskInstanceService taskInstanceService;
-    private final AgentTaskService agentTaskService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final FileAgentTaskService fileAgentTaskService;
     private final Set<String> BUILD_IN_VARIABLES = new HashSet<>();
 
     @Autowired
     public JobLastHostsVariableResolver(TaskInstanceService taskInstanceService,
-                                        AgentTaskService agentTaskService) {
+                                        ScriptAgentTaskService scriptAgentTaskService,
+                                        FileAgentTaskService fileAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
-        this.agentTaskService = agentTaskService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
         init();
     }
 
@@ -84,8 +91,8 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         if (JobBuildInVariables.JOB_LAST_ALL.equals(variableName)) {
             hosts = extractAllHosts(preStepInstance);
         } else if (JobBuildInVariables.JOB_LAST_SUCCESS.equals(variableName)) {
-            List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(preStepInstance.getId(),
-                preStepInstance.getExecuteCount(), null, true);
+            List<AgentTaskDTO> agentTasks = listAgentTasks(preStepInstance.getStepType(), preStepInstance.getId(),
+                preStepInstance.getExecuteCount());
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 hosts =
                     agentTasks.stream().filter(agentTask -> (agentTask.getStatus() == IpStatus.SUCCESS.getValue()
@@ -93,8 +100,8 @@ public class JobLastHostsVariableResolver implements VariableResolver {
                         .map(agentTask -> new IpDTO(agentTask.getCloudId(), agentTask.getIp())).collect(Collectors.toSet());
             }
         } else if (JobBuildInVariables.JOB_LAST_FAIL.equals(variableName)) {
-            List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(preStepInstance.getId(),
-                preStepInstance.getExecuteCount(), null, true);
+            List<AgentTaskDTO> agentTasks = listAgentTasks(preStepInstance.getStepType(), preStepInstance.getId(),
+                preStepInstance.getExecuteCount());
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 hosts =
                     agentTasks.stream().filter(agentTask -> (agentTask.getStatus() != IpStatus.SUCCESS.getValue()
@@ -106,6 +113,17 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         log.info("Resolve value from latest executable step instance, variableName: {}, value: {}", variableName,
             value);
         return value;
+    }
+
+    private List<AgentTaskDTO> listAgentTasks(TaskStepTypeEnum stepType, long stepInstanceId, int executeCount) {
+        List<AgentTaskDTO> agentTasks = null;
+        if (stepType == TaskStepTypeEnum.SCRIPT) {
+            agentTasks = scriptAgentTaskService.listAgentTasks(stepInstanceId, executeCount, null);
+        } else if (stepType == TaskStepTypeEnum.FILE) {
+            agentTasks = fileAgentTaskService.listAgentTasks(stepInstanceId, executeCount, null,
+                FileTaskModeEnum.DOWNLOAD);
+        }
+        return agentTasks;
     }
 
 

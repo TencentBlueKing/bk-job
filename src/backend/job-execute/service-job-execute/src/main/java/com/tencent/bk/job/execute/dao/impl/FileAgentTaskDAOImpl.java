@@ -42,6 +42,7 @@ import org.jooq.SelectLimitPercentStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.TableField;
 import org.jooq.generated.tables.GseFileAgentTask;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -83,8 +84,8 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
 
     @Override
     public void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks) {
-        String sql = "replace into gse_file_agent_task (step_instance_id, execute_count, batch, mode, ip, gse_task_id,"
-            + "status, start_time, end_time, total_time, error_code, display_ip" +
+        String sql = "insert into gse_file_agent_task (step_instance_id, execute_count, batch, mode, ip, gse_task_id"
+            + ",status, start_time, end_time, total_time, error_code, display_ip)" +
             " values (?,?,?,?,?,?,?,?,?,?,?,?)";
         Object[][] params = new Object[agentTasks.size()][12];
         int batchCount = 0;
@@ -104,29 +105,32 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             param[11] = agentTask.getDisplayIp();
             params[batchCount++] = param;
         }
-        CTX.batch(sql, params).execute();
+        CTX.transaction(configuration -> DSL.using(configuration).batch(sql, params).execute());
     }
 
     @Override
     public void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks) {
-        String sql = "update gse_file_agent_task set start_time = ?, end_time = ?, total_time = ?, status = ?"
+        String sql = "update gse_file_agent_task set gse_task_id = ?, status = ?, start_time = ?, end_time = ?"
+            + ", total_time = ?, error_code = ?"
             + " where step_instance_id = ? and execute_count = ? and batch = ? and mode = ? and ip = ?";
-        Object[][] params = new Object[agentTasks.size()][9];
+        Object[][] params = new Object[agentTasks.size()][11];
         int batchCount = 0;
         for (AgentTaskDTO agentTask : agentTasks) {
-            Object[] param = new Object[9];
-            param[0] = agentTask.getStartTime();
-            param[1] = agentTask.getEndTime();
-            param[2] = agentTask.getTotalTime();
-            param[3] = agentTask.getStatus();
-            param[4] = agentTask.getStepInstanceId();
-            param[5] = agentTask.getExecuteCount();
-            param[6] = agentTask.getBatch();
-            param[7] = agentTask.getFileTaskMode().getValue();
-            param[8] = agentTask.getCloudIp();
+            Object[] param = new Object[11];
+            param[0] = agentTask.getGseTaskId();
+            param[1] = agentTask.getStatus();
+            param[2] = agentTask.getStartTime();
+            param[3] = agentTask.getEndTime();
+            param[4] = agentTask.getTotalTime();
+            param[5] = agentTask.getErrorCode();
+            param[6] = agentTask.getStepInstanceId();
+            param[7] = agentTask.getExecuteCount();
+            param[8] = agentTask.getBatch();
+            param[9] = agentTask.getFileTaskMode().getValue();
+            param[10] = agentTask.getCloudIp();
             params[batchCount++] = param;
         }
-        CTX.batch(sql, params).execute();
+        CTX.transaction(configuration -> DSL.using(configuration).batch(sql, params).execute());
     }
 
     @Override

@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public interface ScriptAgentTaskDAO {
     /**
-     * 批量新增/更新Agent任务
+     * 批量保存Agent任务
      *
      * @param agentTasks Agent任务
      */

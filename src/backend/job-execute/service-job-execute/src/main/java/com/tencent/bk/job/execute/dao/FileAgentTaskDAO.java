@@ -38,16 +38,16 @@ import java.util.Map;
  */
 public interface FileAgentTaskDAO {
     /**
-     * 批量新增/更新Agent任务
+     * 批量新增Agent任务
      *
      * @param agentTasks Agent任务列表
      */
     void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks);
 
     /**
-     * 批量更新Agent任务结果(status/startTime/endTime/totalTime)
+     * 批量更新Agent任务
      *
-     * @param agentTasks Agent任务列表
+     * @param agentTasks Agent任务
      */
     void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks);
 

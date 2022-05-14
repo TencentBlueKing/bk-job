@@ -46,9 +46,9 @@ public interface AgentTaskService {
     void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks);
 
     /**
-     * 批量更新 GSE Agent 任务
+     * 批量更新Agent任务
      *
-     * @param agentTasks GSE Agent 任务列表
+     * @param agentTasks Agent任务
      */
     void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks);
 
@@ -71,10 +71,10 @@ public interface AgentTaskService {
     List<AgentTaskResultGroupDTO> listAndGroupAgentTasks(long stepInstanceId, int executeCount, Integer batch);
 
     /**
-     * 根据GSE任务ID获取agent任务
+     * 根据GSE任务ID获取Agent任务
      *
      * @param gseTaskId GSE任务ID
-     * @return agent任务
+     * @return Agent任务
      */
     List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId);
 
@@ -84,7 +84,7 @@ public interface AgentTaskService {
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
-     * @return agent任务
+     * @return Agent任务
      */
     List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
                                       Integer executeCount,

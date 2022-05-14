@@ -22,44 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.execute.dao;
 
-import com.tencent.bk.job.execute.dao.StepInstanceDAO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 
-@Slf4j
-@Service
-public class StepInstanceServiceImpl implements StepInstanceService {
+@Deprecated
+@CompatibleImplementation(explain = "兼容历史数据使用，建议使用GseTaskLogDAO", version = "3.6.x")
+public interface GseTaskLogDAO {
+    GseTaskDTO getStepLastExecuteLog(long stepInstanceId);
 
-    private final StepInstanceDAO stepInstanceDAO;
+    void saveGseTaskLog(GseTaskDTO gseTaskLog);
 
-    @Autowired
-    public StepInstanceServiceImpl(StepInstanceDAO stepInstanceDAO) {
-        this.stepInstanceDAO = stepInstanceDAO;
-    }
+    GseTaskDTO getGseTaskLog(long stepInstanceId, int executeCount);
 
-    @Override
-    public void updateStepCurrentBatch(long stepInstanceId, int batch) {
-        stepInstanceDAO.updateStepCurrentBatch(stepInstanceId, batch);
-    }
+    void deleteGseTaskLog(long stepInstanceId, int executeCount);
 
-    @Override
-    public void updateStepCurrentExecuteCount(long stepInstanceId, int executeCount) {
-        stepInstanceDAO.updateStepCurrentExecuteCount(stepInstanceId, executeCount);
-    }
-
-    @Override
-    public void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId) {
-        stepInstanceDAO.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
-    }
-
-    @Override
-    public StepInstanceBaseDTO getNextStepInstance(long taskInstanceId,
-                                                   int currentStepOrder) {
-        return stepInstanceDAO.getNextStepInstance(taskInstanceId, currentStepOrder);
-    }
 }

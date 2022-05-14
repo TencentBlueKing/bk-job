@@ -46,12 +46,15 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceResultAndLog;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceLogRequest;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -60,18 +63,21 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
 
     private final TaskInstanceService taskInstanceService;
     private final AppScopeMappingService appScopeMappingService;
-    private final AgentTaskService agentTaskService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final FileAgentTaskService fileAgentTaskService;
     private final GseTaskService gseTaskService;
     private final LogService logService;
 
     public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
                                             AppScopeMappingService appScopeMappingService,
-                                            AgentTaskService agentTaskService,
+                                            ScriptAgentTaskService scriptAgentTaskService,
+                                            FileAgentTaskService fileAgentTaskService,
                                             GseTaskService gseTaskService,
                                             LogService logService) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
-        this.agentTaskService = agentTaskService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
     }
@@ -112,8 +118,15 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
             EsbStepInstanceResultAndLog stepInstResultAndLog = new EsbStepInstanceResultAndLog();
             stepInstResultAndLog.setFinished(!gseTask.getStatus().equals(RunStatusEnum.BLANK.getValue())
                 && !gseTask.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
-            List<AgentTaskResultGroupDTO> resultGroups =
-                agentTaskService.listAndGroupAgentTasks(stepInstance.getId(), stepInstance.getExecuteCount(), null);
+            List<AgentTaskResultGroupDTO> resultGroups = Collections.emptyList();
+            if (stepInstance.isScriptStep()) {
+                resultGroups = scriptAgentTaskService.listAndGroupAgentTasks(stepInstance.getId(),
+                    stepInstance.getExecuteCount(), null);
+            } else if (stepInstance.isFileStep()) {
+                resultGroups = fileAgentTaskService.listAndGroupAgentTasks(stepInstance.getId(),
+                    stepInstance.getExecuteCount(), null);
+            }
+
             List<EsbStepInstanceResultAndLog.StepInstResultDTO> stepInstResultList =
                 Lists.newArrayListWithCapacity(resultGroups.size());
             for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
