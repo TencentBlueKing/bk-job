@@ -70,6 +70,9 @@
             ip: {
                 type: String,
             },
+            batch: {
+                type: [Number, String],
+            },
             retryCount: {
                 type: Number,
                 required: true,
@@ -167,6 +170,7 @@
                     stepInstanceId: this.stepInstanceId,
                     retryCount: this.retryCount,
                     ip: this.ip,
+                    batch: this.batch,
                 })
                     .then(({
                         finished,
