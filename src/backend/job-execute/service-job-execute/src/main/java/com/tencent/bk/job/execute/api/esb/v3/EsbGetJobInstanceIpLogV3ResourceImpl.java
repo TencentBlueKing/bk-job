@@ -140,7 +140,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
                                 Long cloudAreaId, String ip) {
         ipLog.setLogType(LogTypeEnum.SCRIPT.getValue());
         ScriptIpLogContent logContent = logService.getScriptIpLogContent(stepInstanceId,
-            executeCount, new IpDTO(cloudAreaId, ip));
+            executeCount, null, new IpDTO(cloudAreaId, ip));
         if (logContent != null && StringUtils.isNotBlank(logContent.getContent())) {
             ipLog.setScriptLogContent(logContent.getContent());
         }
@@ -149,7 +149,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
     private void buildFileLog(EsbIpLogV3DTO ipLog, Long stepInstanceId, Integer executeCount,
                               Long cloudAreaId, String ip) {
         ipLog.setLogType(LogTypeEnum.FILE.getValue());
-        FileIpLogContent downloadIpLog = logService.getFileIpLogContent(stepInstanceId, executeCount,
+        FileIpLogContent downloadIpLog = logService.getFileIpLogContent(stepInstanceId, executeCount, null,
             new IpDTO(cloudAreaId, ip), FileDistModeEnum.DOWNLOAD.getValue());
         List<ServiceFileTaskLogDTO> uploadTaskLogs = logService.batchGetFileSourceIpLogContent(
             stepInstanceId, executeCount);

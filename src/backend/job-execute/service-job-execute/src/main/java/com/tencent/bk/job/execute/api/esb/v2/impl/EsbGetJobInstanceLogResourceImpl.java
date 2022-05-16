@@ -180,11 +180,11 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
         for (AgentTaskDTO agentTask : agentTasks) {
             if (stepInstance.isScriptStep()) {
                 ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount,
-                    IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()));
+                    null, IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()));
                 agentTask.setScriptLogContent(scriptIpLogContent == null ? "" : scriptIpLogContent.getContent());
             } else if (stepInstance.isFileStep()) {
                 FileIpLogContent fileIpLogContent = logService.getFileIpLogContent(stepInstanceId, executeCount,
-                    IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()), FileDistModeEnum.DOWNLOAD.getValue());
+                    null, IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()), FileDistModeEnum.DOWNLOAD.getValue());
                 agentTask.setScriptLogContent(fileIpLogContent == null ? "" : fileIpLogContent.getContent());
             }
         }
