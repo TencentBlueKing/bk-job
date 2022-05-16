@@ -88,7 +88,7 @@ public enum BackupJobStatusEnum {
     @JsonValue
     private final Integer status;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static BackupJobStatusEnum valueOf(Integer status) {
         for (BackupJobStatusEnum value : values()) {
             if (value.getStatus().equals(status)) {

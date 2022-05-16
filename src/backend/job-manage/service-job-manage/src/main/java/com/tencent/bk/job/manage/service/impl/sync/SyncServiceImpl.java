@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import brave.Tracing;
-import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
@@ -44,7 +42,6 @@ import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.SyncService;
-import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
@@ -145,8 +142,7 @@ public class SyncServiceImpl implements SyncService {
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient,
-                           BizSetService bizSetService, Tracing tracing,
+                           HostCache hostCache,
                            BizSetEventWatcher bizSetEventWatcher,
                            BizSetRelationEventWatcher bizSetRelationEventWatcher) {
         this.dslContext = dslContext;
@@ -335,7 +331,9 @@ public class SyncServiceImpl implements SyncService {
                     // 从CMDB同步业务信息
                     bizSyncService.syncBizFromCMDB();
                     // 从CMDB同步业务集信息
-                    bizSetSyncService.syncBizSetFromCMDB();
+                    if (FeatureToggle.isCmdbBizSetEnabled()) {
+                        bizSetSyncService.syncBizSetFromCMDB();
+                    }
                     log.info(Thread.currentThread().getName() + ":Finished:sync app from cc");
                     // 将最后同步时间写入Redis
                     redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,

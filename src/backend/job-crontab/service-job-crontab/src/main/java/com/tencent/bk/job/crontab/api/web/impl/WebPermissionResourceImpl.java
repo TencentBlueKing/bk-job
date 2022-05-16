@@ -86,13 +86,13 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "create":
                         return Response.buildSuccessResp(webAuthService.toAuthResultVO(
-                            cronAuthService.authCreateCron(username, appResourceScope)));
+                            isReturnApplyUrl, cronAuthService.authCreateCron(username, appResourceScope)));
                     case "view":
                     case "edit":
                     case "delete":
                     case "manage":
                         return Response.buildSuccessResp(webAuthService.toAuthResultVO(
-                            cronAuthService.authManageCron(
+                            isReturnApplyUrl, cronAuthService.authManageCron(
                                 username, appResourceScope, Long.valueOf(resourceId), null)));
                     default:
                         log.error("Unknown operator|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,

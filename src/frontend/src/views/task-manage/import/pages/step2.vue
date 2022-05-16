@@ -317,7 +317,7 @@
             },
             handleClosePassword () {
                 this.isShowPassword = false;
-                window.changeAlert = false;
+                window.changeConfirm = false;
                 this.$refs.passwordForm.clearError();
                 this.importInfo.log.push({
                     content: I18n.t('template.导入任务已取消！需要重试请点击'),
@@ -348,7 +348,7 @@
                         id: this.id,
                     }).then(() => {
                         this.isShowPassword = false;
-                        window.changeAlert = false;
+                        window.changeConfirm = false;
                         this.fetchImportInfo();
                     }))
                     .finally(() => {

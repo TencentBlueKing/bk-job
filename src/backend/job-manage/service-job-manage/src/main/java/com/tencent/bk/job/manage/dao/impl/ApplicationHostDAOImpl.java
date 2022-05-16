@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -187,7 +188,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     @Override
     public List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        if (bizIds != null) {
+            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        }
         conditions.add(TABLE.IP.in(ips.parallelStream().map(String::trim).collect(Collectors.toList())));
         return listHostInfoByConditions(conditions);
     }
@@ -213,6 +216,18 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         List<Long> hostIdList = getHostIdListBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
             agentStatus, null, null);
         return (long) (hostIdList.size());
+    }
+
+    @Override
+    public Long countHostByIdAndStatus(Collection<Long> hostIds, AgentStatusEnum agentStatus) {
+        List<Condition> conditions = new ArrayList<>();
+        if (hostIds != null) {
+            conditions.add(TABLE.HOST_ID.in(hostIds));
+        }
+        if (agentStatus != null) {
+            conditions.add(TABLE.IS_AGENT_ALIVE.eq(UByte.valueOf(agentStatus.getValue())));
+        }
+        return countHostByConditions(conditions);
     }
 
     @Override
@@ -330,7 +345,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         List<Condition> conditions = buildBizIdCondition(applicationHostInfoCondition.getBizId());
         conditions.addAll(buildCondition(applicationHostInfoCondition, baseSearchCondition));
 
-        long hostCount = getPageHostInfoCount(conditions);
+        long hostCount = countHostByConditions(conditions);
 
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
@@ -836,13 +851,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public long countHostsByBizIds(DSLContext dslContext, Collection<Long> bizIds) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.in(bizIds));
-        return getPageHostInfoCount(conditions);
+        return countHostByConditions(conditions);
     }
 
     @Override
     public long countAllHosts() {
         log.debug("countAllHosts");
-        return getPageHostInfoCount(null);
+        return countHostByConditions(null);
     }
 
     @Override
@@ -851,7 +866,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (osType != null) {
             conditions.add(TABLE.OS_TYPE.eq(osType));
         }
-        return getPageHostInfoCount(conditions);
+        return countHostByConditions(conditions);
     }
 
     @Override
@@ -878,7 +893,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     /**
      * 查询符合条件的主机数量
      */
-    private long getPageHostInfoCount(List<Condition> conditions) {
+    @SuppressWarnings("all")
+    private long countHostByConditions(List<Condition> conditions) {
         if (conditions == null) {
             conditions = Collections.emptyList();
         }
@@ -889,22 +905,12 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         ApplicationDTO appInfo = applicationDAO.getAppByScope(
             new ResourceScope(ResourceScopeTypeEnum.BIZ, "" + bizId)
         );
-        ResourceScope resourceScope = appInfo.getScope();
         List<Condition> conditions = new ArrayList<>();
-        if (resourceScope == null) {
+        if (appInfo.isBiz()) {
             conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
-            return conditions;
-        }
-        switch (resourceScope.getType()) {
-            case BIZ:
-                conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
-                break;
-            case BIZ_SET:
-                List<Long> subAppIds = topologyHelper.getBizSetSubBizIds(appInfo);
-                conditions.add(TABLE.APP_ID.in(subAppIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
-                break;
-            default:
-                break;
+        } else if (!appInfo.isAllBizSet() && appInfo.isBizSet()) {
+            List<Long> subBizIds = topologyHelper.getBizSetSubBizIds(appInfo);
+            conditions.add(TABLE.APP_ID.in(subBizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
         return conditions;
     }

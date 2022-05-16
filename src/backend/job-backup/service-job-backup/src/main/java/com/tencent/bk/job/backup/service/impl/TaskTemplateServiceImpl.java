@@ -27,6 +27,7 @@ package com.tencent.bk.job.backup.service.impl;
 import com.tencent.bk.job.backup.client.ServiceBackupTmpResourceClient;
 import com.tencent.bk.job.backup.client.ServiceTemplateResourceClient;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
@@ -124,7 +125,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 null,
                 null,
                 null,
-                1,
+                JobConstants.REQUEST_SOURCE_JOB_BACKUP,
                 templateCreateUpdateReq
             );
 

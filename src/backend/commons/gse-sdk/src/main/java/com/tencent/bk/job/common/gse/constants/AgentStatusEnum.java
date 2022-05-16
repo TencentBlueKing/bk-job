@@ -50,7 +50,7 @@ public enum AgentStatusEnum {
         this.status = status;
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static AgentStatusEnum valOf(int status) {
         for (AgentStatusEnum agentStatus : values()) {
             if (agentStatus.status == status) {

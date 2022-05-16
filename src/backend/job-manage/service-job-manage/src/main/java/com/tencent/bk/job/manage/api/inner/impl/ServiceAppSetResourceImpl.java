@@ -55,6 +55,9 @@ import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MAX;
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MIN;
+
 @Slf4j
 @RestController
 @DeprecatedAppLogic
@@ -120,7 +123,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
 
     private void checkAppSetId(Long appId) {
         // appSet id should between 8000000 and 9999999
-        if (appId == null || appId < 8000000 || appId > 9999999) {
+        if (appId == null || appId < JOB_BUILD_IN_BIZ_SET_ID_MIN || appId > JOB_BUILD_IN_BIZ_SET_ID_MAX) {
             throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
     }
@@ -177,7 +180,8 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     }
 
     private void checkAddAppSetRequest(TmpAddAppSetRequest request) {
-        if (request.getId() == null || request.getId() > 9999999 || request.getId() < 8000000) {
+        if (request.getId() == null || request.getId() > JOB_BUILD_IN_BIZ_SET_ID_MAX
+            || request.getId() < JOB_BUILD_IN_BIZ_SET_ID_MIN) {
             log.warn("Add app-set, appId is invalid");
             throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }

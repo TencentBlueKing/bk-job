@@ -378,7 +378,7 @@
                             enableSteps: findTemplateStepIds(),
                             variables: this.formData.variables,
                         }).then((newPlanId) => {
-                            window.changeAlert = false;
+                            window.changeConfirm = false;
                             this.isShowSave = false;
                             this.planFormData.name = '';
 

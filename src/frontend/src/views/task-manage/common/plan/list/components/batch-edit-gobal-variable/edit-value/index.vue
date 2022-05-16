@@ -139,7 +139,7 @@
              * @desc 编辑全局变量值更新
              */
             triggerChange () {
-                window.changeAlert = true;
+                window.changeConfirm = true;
                 this.$emit('on-edit-change', Object.assign({}, this.selectVariableValueMap));
             },
             /**

@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -121,7 +122,9 @@ public class ApplicationCache {
             .multiGet(APP_HASH_KEY, buildAppKeys(appIds));
 
         if (CollectionUtils.isNotEmpty(cacheApps)) {
-            applicationList = cacheApps.stream().map(CacheAppDO::toApplicationDTO).collect(Collectors.toList());
+            // appIds中某些值可能在缓存中不存在，批量操作取到的空值需要过滤
+            applicationList = cacheApps.stream().filter(Objects::nonNull).map(CacheAppDO::toApplicationDTO)
+                .collect(Collectors.toList());
         }
         return applicationList;
     }

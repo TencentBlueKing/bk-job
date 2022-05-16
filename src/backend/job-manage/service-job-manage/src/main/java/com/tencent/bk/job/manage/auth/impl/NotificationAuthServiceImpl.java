@@ -55,6 +55,6 @@ public class NotificationAuthServiceImpl implements NotificationAuthService {
 
     @Override
     public AuthResult authNotificationSetting(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(true, username, ActionId.NOTIFICATION_SETTING, appResourceScope);
+        return appAuthService.auth(username, ActionId.NOTIFICATION_SETTING, appResourceScope);
     }
 }

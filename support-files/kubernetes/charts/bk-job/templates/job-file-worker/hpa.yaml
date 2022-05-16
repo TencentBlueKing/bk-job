@@ -1,4 +1,4 @@
-{{- if .Values.fileWorkerConfig.autoscaling.enabled }}
+{{- if and (.Values.fileWorkerConfig.enabled) (.Values.fileWorkerConfig.autoscaling.enabled) }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:

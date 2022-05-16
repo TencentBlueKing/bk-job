@@ -88,7 +88,7 @@ export default {
     },
     getScriptValidation (params) {
         return ScriptManageSource.getValidation(params)
-            .then(({ data }) => data.map(item => new ScriptErrorModel(item)));
+            .then(({ data }) => data.map(item => Object.freeze(new ScriptErrorModel(item))));
     },
     getUploadContent (params) {
         return ScriptManageSource.uploadGetContent(params)

@@ -126,8 +126,9 @@ public class ApplicationDTO {
      */
     @JsonIgnore
     public boolean isAllBizSet() {
-        return scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && attrs != null && attrs.getMatchAllBiz() != null && attrs.getMatchAllBiz();
+        return (appType != null && appType == AppTypeEnum.ALL_APP) ||
+            (scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ_SET
+                && attrs != null && attrs.getMatchAllBiz() != null && attrs.getMatchAllBiz());
     }
 
     /**

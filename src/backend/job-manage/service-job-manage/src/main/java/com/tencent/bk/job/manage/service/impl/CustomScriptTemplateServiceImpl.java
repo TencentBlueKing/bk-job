@@ -51,8 +51,8 @@ import static com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableE
 @Slf4j
 public class CustomScriptTemplateServiceImpl implements CustomScriptTemplateService {
 
-    private CustomScriptTemplateDAO customScriptTemplateDAO;
-    private ApplicationService applicationService;
+    private final CustomScriptTemplateDAO customScriptTemplateDAO;
+    private final ApplicationService applicationService;
 
     @Autowired
     public CustomScriptTemplateServiceImpl(CustomScriptTemplateDAO customScriptTemplateDAO,
@@ -72,16 +72,6 @@ public class CustomScriptTemplateServiceImpl implements CustomScriptTemplateServ
     }
 
     @Override
-    public List<ScriptTemplateDTO> listRenderedCustomScriptTemplate(String username, long appId) {
-        List<ScriptTemplateDTO> scriptTemplates = listCustomScriptTemplate(username);
-        if (CollectionUtils.isNotEmpty(scriptTemplates)) {
-            scriptTemplates.forEach(scriptTemplate ->
-                renderScriptTemplate(new ScriptTemplateVariableRenderDTO(appId, username), scriptTemplate));
-        }
-        return scriptTemplates;
-    }
-
-    @Override
     public void renderScriptTemplate(ScriptTemplateVariableRenderDTO scriptTemplateVariableRender,
                                      ScriptTemplateDTO scriptTemplate) {
         String scriptContent = scriptTemplate.getScriptContent();
@@ -92,16 +82,18 @@ public class CustomScriptTemplateServiceImpl implements CustomScriptTemplateServ
         for (String variable : variables) {
             String variablePattern = "\\{\\{" + variable + "}}";
             if (variable.equals(BIZ_ID.getName())) {
-                if (scriptTemplateVariableRender.getAppId() != null) {
+                if (scriptTemplateVariableRender.getScopeId() != null) {
                     scriptContent = scriptContent.replaceAll(variablePattern,
-                        String.valueOf(scriptTemplateVariableRender.getAppId()));
+                        scriptTemplateVariableRender.getScopeId());
                 } else {
                     scriptContent = scriptContent.replaceAll(variablePattern, scriptTemplateVariableRender
                         .getDefaultVariablesValues().get(variable));
                 }
             } else if (variable.equals(BIZ_NAME.getName())) {
-                if (scriptTemplateVariableRender.getAppId() != null) {
-                    ApplicationDTO app = applicationService.getAppByAppId(scriptTemplateVariableRender.getAppId());
+                if (scriptTemplateVariableRender.getScopeType() != null &&
+                    scriptTemplateVariableRender.getScopeId() != null) {
+                    ApplicationDTO app = applicationService.getAppByScope(scriptTemplateVariableRender.getScopeType(),
+                        scriptTemplateVariableRender.getScopeId());
                     String appName = app == null ? "" : app.getName();
                     scriptContent = scriptContent.replaceAll(variablePattern, appName);
                 } else {

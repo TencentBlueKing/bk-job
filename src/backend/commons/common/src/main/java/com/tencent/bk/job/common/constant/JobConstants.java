@@ -64,4 +64,16 @@ public class JobConstants {
      * 作业最大超时时间，单位秒
      */
     public static final int MAX_JOB_TIMEOUT_SECONDS = 86400;
+    /**
+     * 请求来源：备份服务
+     */
+    public static final int REQUEST_SOURCE_JOB_BACKUP = 1;
+    /**
+     * Job内置业务集的ID范围的最小值
+     */
+    public static final long JOB_BUILD_IN_BIZ_SET_ID_MIN = 8000000L;
+    /**
+     * Job内置业务集的ID范围的最大值
+     */
+    public static final long JOB_BUILD_IN_BIZ_SET_ID_MAX = 9999999L;
 }

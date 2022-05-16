@@ -503,4 +503,10 @@ export default {
     恢复完整拓扑: 'Show full topo',
     '确认退出登录？': 'Are you sure to logout ?',
     数据为空: 'Empty',
+    '警告！': 'Warning !!!',
+    详见编辑框左侧: 'See the tips on the',
+    图标的提示: 'icon on the left side of editor for details',
+    请确定是否要继续执行: 'Are you sure want to continue to run?',
+    继续执行: 'YES',
+    立即取消: 'CANCEL',
 };

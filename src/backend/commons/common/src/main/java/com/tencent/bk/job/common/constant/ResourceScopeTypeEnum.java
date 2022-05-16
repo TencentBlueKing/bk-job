@@ -50,7 +50,7 @@ public enum ResourceScopeTypeEnum {
         this.value = value;
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static ResourceScopeTypeEnum from(String type) {
         for (ResourceScopeTypeEnum scopeType : values()) {
             if (scopeType.value.equals(type)) {

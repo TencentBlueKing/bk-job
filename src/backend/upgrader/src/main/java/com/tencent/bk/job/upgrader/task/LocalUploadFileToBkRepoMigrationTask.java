@@ -268,7 +268,6 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
                 fileList.add(file);
             }
         }
-        fileList.sort((f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
         return fileList;
     }
 

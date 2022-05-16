@@ -98,7 +98,7 @@
             },
             handleChange (value) {
                 this.value = value.trim();
-                window.changeAlert = true;
+                window.changeConfirm = true;
             },
             reset () {
                 this.init();
