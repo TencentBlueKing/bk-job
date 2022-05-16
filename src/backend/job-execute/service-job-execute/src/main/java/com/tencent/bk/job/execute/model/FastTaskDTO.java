@@ -44,7 +44,7 @@ public class FastTaskDTO {
     /**
      * 滚动配置
      */
-    private RollingConfigDTO rollingConfig;
+    private StepRollingConfigDTO rollingConfig;
 
     /**
      * 是否滚动执行

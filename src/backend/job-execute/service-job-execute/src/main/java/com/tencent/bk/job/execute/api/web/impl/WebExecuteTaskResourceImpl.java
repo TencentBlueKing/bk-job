@@ -50,10 +50,10 @@ import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
+import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.web.request.RedoTaskRequest;
@@ -233,7 +233,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, appResourceScope.getAppId(), request);
         String decodeScriptContent = new String(Base64.decodeBase64(request.getContent()), StandardCharsets.UTF_8);
         stepInstance.setScriptContent(decodeScriptContent);
-        RollingConfigDTO rollingConfig = null;
+        StepRollingConfigDTO rollingConfig = null;
         if (request.isRollingEnabled()) {
             rollingConfig = buildRollingConfig(request.getRollingConfig());
         }
@@ -241,12 +241,12 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return createAndStartFastTask(request.isRedoTask(), taskInstance, stepInstance, rollingConfig);
     }
 
-    private RollingConfigDTO buildRollingConfig(RollingConfigVO rollingConfigVO) {
-        RollingConfigDTO rollingConfigDTO = new RollingConfigDTO();
-        rollingConfigDTO.setName("default");
-        rollingConfigDTO.setMode(rollingConfigVO.getMode());
-        rollingConfigDTO.setExpr(rollingConfigVO.getExpr());
-        return rollingConfigDTO;
+    private StepRollingConfigDTO buildRollingConfig(RollingConfigVO rollingConfigVO) {
+        StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
+        stepRollingConfigDTO.setName("default");
+        stepRollingConfigDTO.setMode(rollingConfigVO.getMode());
+        stepRollingConfigDTO.setExpr(rollingConfigVO.getExpr());
+        return stepRollingConfigDTO;
     }
 
     private boolean checkFastExecuteScriptRequest(WebFastExecuteScriptRequest request) {
@@ -372,7 +372,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appResourceScope.getAppId(), request);
         StepInstanceDTO stepInstance = buildFastFileStepInstance(username, appResourceScope.getAppId(), request);
-        RollingConfigDTO rollingConfig = null;
+        StepRollingConfigDTO rollingConfig = null;
         if (request.isRollingEnabled()) {
             rollingConfig = buildRollingConfig(request.getRollingConfig());
         }
@@ -383,7 +383,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     private Response<StepExecuteVO> createAndStartFastTask(boolean isRedoTask,
                                                            TaskInstanceDTO taskInstance,
                                                            StepInstanceDTO stepInstance,
-                                                           RollingConfigDTO rollingConfig) {
+                                                           StepRollingConfigDTO rollingConfig) {
         FastTaskDTO fastTask = FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance)
             .rollingConfig(rollingConfig).build();
         long taskInstanceId;

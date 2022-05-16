@@ -22,55 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.dao;
 
-import com.tencent.bk.job.execute.model.db.RollingConfigDO;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 
 /**
- * 作业实例滚动配置
+ * 作业滚动配置DAO
  */
-@Data
-public class TaskInstanceRollingConfigDTO {
+public interface RollingConfigDAO {
     /**
-     * id
-     */
-    private Long id;
-
-    /**
-     * 执行作业实例id
-     */
-    private Long taskInstanceId;
-
-    /**
-     * 滚动配置名称
-     */
-    private String configName;
-
-    /**
-     * 滚动配置
-     */
-    private RollingConfigDO config;
-
-    /**
-     * 判断是否分批滚动步骤
+     * 保存滚动配置
      *
-     * @param stepInstanceId 步骤实例ID
+     * @param rollingConfig 滚动配置
      */
-    public boolean isBatchRollingStep(long stepInstanceId) {
-        return config != null && CollectionUtils.isNotEmpty(config.getBatchRollingStepInstanceIdList())
-            && config.getBatchRollingStepInstanceIdList().contains(stepInstanceId);
-    }
+    long saveRollingConfig(RollingConfigDTO rollingConfig);
 
     /**
-     * 判断是否全量滚动步骤
+     * 通过滚动配置ID获取滚动配置
      *
-     * @param stepInstanceId 步骤实例ID
+     * @param rollingConfigId 滚动配置ID
+     * @return 滚动配置
      */
-    public boolean isAllRollingStep(long stepInstanceId) {
-        return config != null && CollectionUtils.isNotEmpty(config.getAllRollingStepInstanceIdList())
-            && config.getAllRollingStepInstanceIdList().contains(stepInstanceId);
-    }
+    RollingConfigDTO queryRollingConfigById(Long rollingConfigId);
 }
-

@@ -52,6 +52,7 @@ import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
@@ -62,7 +63,6 @@ import com.tencent.bk.job.execute.model.TaskExecuteResultDTO;
 import com.tencent.bk.job.execute.model.TaskExecutionDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
-import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
@@ -782,7 +782,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private void setRollingInfoForStep(StepInstanceBaseDTO stepInstance,
                                        StepExecutionDetailDTO stepExecutionDetail) {
-        TaskInstanceRollingConfigDTO rollingConfig =
+        RollingConfigDTO rollingConfig =
             rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
 
         Map<Integer, StepInstanceRollingTaskDTO> latestStepInstanceRollingTasks =
@@ -794,7 +794,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                     stepInstanceRollingTask -> stepInstanceRollingTask));
 
         // 如果滚动任务还未调度，那么需要在结果中补充
-        int totalBatch = rollingConfig.getConfig().getTotalBatch();
+        int totalBatch = rollingConfig.getConfigDetail().getTotalBatch();
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks = new ArrayList<>();
         for (int batch = 1; batch <= totalBatch; batch++) {
             StepInstanceRollingTaskDTO stepInstanceRollingTask = latestStepInstanceRollingTasks.get(batch);

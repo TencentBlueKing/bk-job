@@ -30,11 +30,11 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 执行作业实例滚动配置DO
+ * 滚动详细配置DO
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class RollingConfigDO {
+public class RollingConfigDetailDO {
     /**
      * 滚动配置名称
      */

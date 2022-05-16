@@ -25,29 +25,29 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.dao.TaskInstanceRollingConfigDAO;
-import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
-import com.tencent.bk.job.execute.model.db.RollingConfigDO;
+import com.tencent.bk.job.execute.dao.RollingConfigDAO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
+import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.generated.tables.TaskInstanceRollingConfig;
+import org.jooq.generated.tables.RollingConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class TaskInstanceRollingConfigDAOImpl implements TaskInstanceRollingConfigDAO {
+public class RollingConfigDAOImpl implements RollingConfigDAO {
 
-    private static final TaskInstanceRollingConfig TABLE = TaskInstanceRollingConfig.TASK_INSTANCE_ROLLING_CONFIG;
+    private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
     private final DSLContext CTX;
 
     @Autowired
-    public TaskInstanceRollingConfigDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
+    public RollingConfigDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
         this.CTX = ctx;
     }
 
     @Override
-    public long saveRollingConfig(TaskInstanceRollingConfigDTO rollingConfig) {
+    public long saveRollingConfig(RollingConfigDTO rollingConfig) {
         Record record = CTX.insertInto(
             TABLE,
             TABLE.TASK_INSTANCE_ID,
@@ -56,7 +56,7 @@ public class TaskInstanceRollingConfigDAOImpl implements TaskInstanceRollingConf
             .values(
                 rollingConfig.getTaskInstanceId(),
                 rollingConfig.getConfigName(),
-                JsonUtils.toJson(rollingConfig.getConfig()))
+                JsonUtils.toJson(rollingConfig.getConfigDetail()))
             .returning(TABLE.ID)
             .fetchOne();
         assert record != null;
@@ -64,7 +64,7 @@ public class TaskInstanceRollingConfigDAOImpl implements TaskInstanceRollingConf
     }
 
     @Override
-    public TaskInstanceRollingConfigDTO queryRollingConfigById(Long rollingConfigId) {
+    public RollingConfigDTO queryRollingConfigById(Long rollingConfigId) {
         Record record = CTX.select(
             TABLE.ID,
             TABLE.TASK_INSTANCE_ID,
@@ -76,15 +76,15 @@ public class TaskInstanceRollingConfigDAOImpl implements TaskInstanceRollingConf
         return extract(record);
     }
 
-    private TaskInstanceRollingConfigDTO extract(Record record) {
+    private RollingConfigDTO extract(Record record) {
         if (record == null) {
             return null;
         }
-        TaskInstanceRollingConfigDTO rollingConfig = new TaskInstanceRollingConfigDTO();
+        RollingConfigDTO rollingConfig = new RollingConfigDTO();
         rollingConfig.setId(record.get(TABLE.ID));
         rollingConfig.setTaskInstanceId(record.get(TABLE.TASK_INSTANCE_ID));
         rollingConfig.setConfigName(record.get(TABLE.CONFIG_NAME));
-        rollingConfig.setConfig(JsonUtils.fromJson(record.get(TABLE.CONFIG), RollingConfigDO.class));
+        rollingConfig.setConfigDetail(JsonUtils.fromJson(record.get(TABLE.CONFIG), RollingConfigDetailDO.class));
         return rollingConfig;
     }
 }

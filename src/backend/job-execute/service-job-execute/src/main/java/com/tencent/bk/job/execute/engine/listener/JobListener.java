@@ -35,10 +35,10 @@ import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.TaskProcessor;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
-import com.tencent.bk.job.execute.model.db.RollingConfigDO;
+import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -235,9 +235,9 @@ public class JobListener {
 
     private void nextStep(TaskInstanceDTO taskInstance, StepInstanceBaseDTO currentStepInstance) {
         if (currentStepInstance.isRollingStep()) {
-            TaskInstanceRollingConfigDTO taskInstanceRollingConfig =
+            RollingConfigDTO taskInstanceRollingConfig =
                 rollingConfigService.getRollingConfig(currentStepInstance.getRollingConfigId());
-            RollingConfigDO rollingConfig = taskInstanceRollingConfig.getConfig();
+            RollingConfigDetailDO rollingConfig = taskInstanceRollingConfig.getConfigDetail();
             StepInstanceBaseDTO nextStepInstance = getNextStepInstance(taskInstance, currentStepInstance,
                 rollingConfig);
             if (nextStepInstance == null) {
@@ -304,7 +304,7 @@ public class JobListener {
      */
     private StepInstanceBaseDTO getNextStepInstance(TaskInstanceDTO taskInstance,
                                                     StepInstanceBaseDTO currentStepInstance,
-                                                    RollingConfigDO rollingConfig) {
+                                                    RollingConfigDetailDO rollingConfig) {
         StepInstanceBaseDTO nextStepInstance = null;
         if (currentStepInstance.isRollingStep()) {
             int currentBatch = currentStepInstance.getBatch();

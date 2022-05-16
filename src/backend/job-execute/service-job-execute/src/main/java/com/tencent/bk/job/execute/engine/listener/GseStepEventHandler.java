@@ -39,11 +39,11 @@ import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispat
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingServerBatchDO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
@@ -173,7 +173,7 @@ public class GseStepEventHandler implements StepEventHandler {
             || RunStatusEnum.ROLLING_WAITING.getValue() == stepStatus
             || RunStatusEnum.WAITING_USER.getValue() == stepStatus) {
 
-            TaskInstanceRollingConfigDTO rollingConfig = null;
+            RollingConfigDTO rollingConfig = null;
             if (isRollingStep) {
                 rollingConfig = rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
                 log.info("Rolling config: {}", rollingConfig);
@@ -246,7 +246,7 @@ public class GseStepEventHandler implements StepEventHandler {
      */
     private void saveInitialGseAgentTasks(long gseTaskId,
                                           StepInstanceDTO stepInstance,
-                                          TaskInstanceRollingConfigDTO rollingConfig) {
+                                          RollingConfigDTO rollingConfig) {
         List<AgentTaskDTO> agentTasks = new ArrayList<>();
 
         long stepInstanceId = stepInstance.getId();
@@ -255,7 +255,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
         if (stepInstance.isRollingStep()) {
             if (rollingConfig.isBatchRollingStep(stepInstanceId) && stepInstance.isFirstRollingBatch()) {
-                List<RollingServerBatchDO> serverBatchList = rollingConfig.getConfig().getServerBatchList();
+                List<RollingServerBatchDO> serverBatchList = rollingConfig.getConfigDetail().getServerBatchList();
                 serverBatchList.forEach(serverBatch -> agentTasks.addAll(buildGseAgentTasks(stepInstanceId,
                     executeCount, serverBatch.getBatch(), gseTaskId, serverBatch.getServers(), IpStatus.WAITING)));
             } else if (rollingConfig.isAllRollingStep(stepInstanceId)) {
@@ -663,11 +663,11 @@ public class GseStepEventHandler implements StepEventHandler {
 
         if (stepInstance.isRollingStep()) {
             log.info("rolling step");
-            TaskInstanceRollingConfigDTO rollingConfig =
+            RollingConfigDTO rollingConfig =
                 rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
             stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
-            int totalBatch = rollingConfig.getConfig().getTotalBatch();
+            int totalBatch = rollingConfig.getConfigDetail().getTotalBatch();
             log.info("rollingConfig: {}, stepInstance: {}", rollingConfig, stepInstance);
             boolean isLastBatch = totalBatch == stepInstance.getBatch();
             if (isLastBatch) {
@@ -707,9 +707,9 @@ public class GseStepEventHandler implements StepEventHandler {
         }
 
         if (stepInstance.isRollingStep()) {
-            TaskInstanceRollingConfigDTO rollingConfig =
+            RollingConfigDTO rollingConfig =
                 rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
-            RollingModeEnum rollingMode = RollingModeEnum.valOf(rollingConfig.getConfig().getMode());
+            RollingModeEnum rollingMode = RollingModeEnum.valOf(rollingConfig.getConfigDetail().getMode());
             switch (rollingMode) {
                 case IGNORE_ERROR:
                     log.info("Ignore error for rolling step, rollingMode: {}", rollingMode);

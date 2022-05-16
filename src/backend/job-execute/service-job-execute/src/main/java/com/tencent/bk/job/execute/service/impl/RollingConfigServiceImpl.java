@@ -28,15 +28,15 @@ import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.execute.dao.TaskInstanceRollingConfigDAO;
+import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.engine.rolling.RollingBatchServersResolver;
 import com.tencent.bk.job.execute.engine.rolling.RollingServerBatch;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
-import com.tencent.bk.job.execute.model.db.RollingConfigDO;
+import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
+import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.db.RollingServerBatchDO;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -51,11 +51,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RollingConfigServiceImpl implements RollingConfigService {
 
-    private final TaskInstanceRollingConfigDAO taskInstanceRollingConfigDAO;
+    private final RollingConfigDAO rollingConfigDAO;
 
     @Autowired
-    public RollingConfigServiceImpl(TaskInstanceRollingConfigDAO taskInstanceRollingConfigDAO) {
-        this.taskInstanceRollingConfigDAO = taskInstanceRollingConfigDAO;
+    public RollingConfigServiceImpl(RollingConfigDAO rollingConfigDAO) {
+        this.rollingConfigDAO = rollingConfigDAO;
     }
 
     @Override
@@ -63,14 +63,14 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         long rollingConfigId = stepInstance.getRollingConfigId();
         long stepInstanceId = stepInstance.getId();
 
-        TaskInstanceRollingConfigDTO rollingConfig =
-            taskInstanceRollingConfigDAO.queryRollingConfigById(rollingConfigId);
+        RollingConfigDTO rollingConfig =
+            rollingConfigDAO.queryRollingConfigById(rollingConfigId);
         if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
             if (batch == null || batch == 0) {
                 // 忽略滚动批次，返回当前步骤的所有目标服务器
                 return stepInstance.getTargetServers().getIpList();
             } else {
-                return rollingConfig.getConfig().getServerBatchList()
+                return rollingConfig.getConfigDetail().getServerBatchList()
                     .stream().filter(serverBatch -> serverBatch.getBatch().equals(batch))
                     .findFirst().orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR)).getServers();
             }
@@ -80,43 +80,43 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     }
 
     @Override
-    public TaskInstanceRollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask) {
+    public RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask) {
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
 
-        TaskInstanceRollingConfigDTO taskInstanceRollingConfig = new TaskInstanceRollingConfigDTO();
+        RollingConfigDTO taskInstanceRollingConfig = new RollingConfigDTO();
         taskInstanceRollingConfig.setTaskInstanceId(fastTask.getTaskInstance().getId());
 
-        RollingConfigDTO rollingConfig = fastTask.getRollingConfig();
+        StepRollingConfigDTO rollingConfig = fastTask.getRollingConfig();
 
         String rollingConfigName = StringUtils.isBlank(rollingConfig.getName()) ? "default" : rollingConfig.getName();
         taskInstanceRollingConfig.setConfigName(rollingConfigName);
 
-        RollingConfigDO rollingConfigDO = new RollingConfigDO();
-        rollingConfigDO.setName(rollingConfigName);
-        rollingConfigDO.setMode(rollingConfig.getMode());
-        rollingConfigDO.setExpr(rollingConfig.getExpr());
+        RollingConfigDetailDO rollingConfigDetailDO = new RollingConfigDetailDO();
+        rollingConfigDetailDO.setName(rollingConfigName);
+        rollingConfigDetailDO.setMode(rollingConfig.getMode());
+        rollingConfigDetailDO.setExpr(rollingConfig.getExpr());
 
         RollingBatchServersResolver resolver =
             new RollingBatchServersResolver(fastTask.getStepInstance().getTargetServers().getIpList(),
                 rollingConfig.getExpr());
         List<RollingServerBatch> serversBatchList = resolver.resolve();
-        rollingConfigDO.setServerBatchList(
+        rollingConfigDetailDO.setServerBatchList(
             serversBatchList.stream()
                 .map(rollingServerBatch ->
                     new RollingServerBatchDO(rollingServerBatch.getBatch(), rollingServerBatch.getServers()))
                 .collect(Collectors.toList()));
-        rollingConfigDO.setTotalBatch(rollingConfigDO.getServerBatchList().size());
-        taskInstanceRollingConfig.setConfig(rollingConfigDO);
+        rollingConfigDetailDO.setTotalBatch(rollingConfigDetailDO.getServerBatchList().size());
+        taskInstanceRollingConfig.setConfigDetail(rollingConfigDetailDO);
 
-        rollingConfigDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
-        rollingConfigDO.setBatchRollingStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
-        Long rollingConfigId= taskInstanceRollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
+        rollingConfigDetailDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
+        rollingConfigDetailDO.setBatchRollingStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
+        Long rollingConfigId= rollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
         taskInstanceRollingConfig.setId(rollingConfigId);
         return taskInstanceRollingConfig;
     }
 
     @Override
-    public TaskInstanceRollingConfigDTO getRollingConfig(long rollingConfigId) {
-        return taskInstanceRollingConfigDAO.queryRollingConfigById(rollingConfigId);
+    public RollingConfigDTO getRollingConfig(long rollingConfigId) {
+        return rollingConfigDAO.queryRollingConfigById(rollingConfigId);
     }
 }
