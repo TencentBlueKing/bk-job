@@ -28,7 +28,7 @@ BEGIN
       `row_update_time`  datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`),
       UNIQUE KEY `uk_step_id_execute_count_batch` (`step_instance_id`,`execute_count`,`batch`),
-      KEY `idx_gse_task_id` (`gse_task_id`),
+      KEY `idx_gse_task_id` (`gse_task_id`)
     ) ENGINE=InnoDB
       AUTO_INCREMENT=30000000000 
       DEFAULT CHARSET=utf8mb4;
@@ -67,7 +67,7 @@ BEGIN
       `execute_count`    int(11)        NOT NULL DEFAULT '0',
       `batch`            smallint(6)    NOT NULL DEFAULT '0',
       `ip`               varchar(30)    NOT NULL,
-      `type`             tinyint(1)     NOT NULL,
+      `mode`             tinyint(1)     NOT NULL,
       `gse_task_id`      bigint(20)     NOT NULL DEFAULT '0',
       `status`           int(11)        DEFAULT '1',
       `start_time`       bigint(20)     DEFAULT NULL,
@@ -78,7 +78,7 @@ BEGIN
       `row_create_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP,
       `row_update_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`),
-      UNIQUE KEY `uk_step_id_execute_count_batch_type_ip` (`step_instance_id`,`execute_count`,`batch`,`type`,`ip`),
+      UNIQUE KEY `uk_step_id_execute_count_batch_mode_ip` (`step_instance_id`,`execute_count`,`batch`,`mode`,`ip`),
       KEY `idx_step_id_ip` (`step_instance_id`,`ip`),
       KEY `idx_display_ip` (`display_ip`)
     ) ENGINE=InnoDB
