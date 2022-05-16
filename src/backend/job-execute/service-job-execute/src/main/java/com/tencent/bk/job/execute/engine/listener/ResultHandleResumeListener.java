@@ -55,6 +55,7 @@ import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,7 @@ import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -158,7 +160,7 @@ public class ResultHandleResumeListener {
             }
 
             Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-            List<AgentTaskDTO> agentTasks = null;
+            List<AgentTaskDTO> agentTasks = new ArrayList<>();
             if (stepInstance.isScriptStep()) {
                 agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
             } else if (stepInstance.isFileStep()) {
@@ -200,8 +202,10 @@ public class ResultHandleResumeListener {
                 Map<String, String> sourceFileDisplayMap = JobSrcFileUtils.buildSourceFileDisplayMapping(sendFiles,
                     NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(), FileDirTypeConf.UPLOAD_FILE_DIR));
 
-                Set<String> targetIps = agentTasks.stream().filter(AgentTaskDTO::isTargetServer)
-                    .map(AgentTaskDTO::getCloudIp).collect(Collectors.toSet());
+                Set<String> targetIps = agentTasks.stream()
+                    .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
+                    .map(AgentTaskDTO::getCloudIp)
+                    .collect(Collectors.toSet());
                 FileResultHandleTask fileResultHandleTask = new FileResultHandleTask(
                     taskInstanceService,
                     gseTaskService,

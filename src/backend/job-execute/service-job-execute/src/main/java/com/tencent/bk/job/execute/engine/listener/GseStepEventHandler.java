@@ -52,6 +52,7 @@ import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -298,12 +299,11 @@ public class GseStepEventHandler implements StepEventHandler {
         agentTask.setBatch(batch);
         agentTask.setGseTaskId(gseTaskId);
         agentTask.setStatus(status.getValue());
-        agentTask.setTargetServer(true);
+        agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
         agentTask.setIp(server.getIp());
         agentTask.setCloudIp(server.convertToStrIp());
         agentTask.setCloudId(server.getCloudAreaId());
         agentTask.setDisplayIp(server.getIp());
-        agentTask.setSourceServer(false);
         return agentTask;
     }
 
@@ -538,10 +538,13 @@ public class GseStepEventHandler implements StepEventHandler {
     }
 
     private void saveAgentTasks(StepInstanceBaseDTO stepInstance, List<AgentTaskDTO> agentTasks) {
-        if (stepInstance.isScriptStep()) {
-            scriptAgentTaskService.batchSaveAgentTasks(agentTasks);
-        } else if (stepInstance.isFileStep()) {
-            fileAgentTaskService.batchSaveAgentTasks(agentTasks);
+        if (CollectionUtils.isNotEmpty(agentTasks)) {
+            if (stepInstance.isScriptStep()) {
+                scriptAgentTaskService.batchSaveAgentTasks(agentTasks);
+            } else if (stepInstance.isFileStep()) {
+                agentTasks.forEach(agentTask -> agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD));
+                fileAgentTaskService.batchSaveAgentTasks(agentTasks);
+            }
         }
     }
 

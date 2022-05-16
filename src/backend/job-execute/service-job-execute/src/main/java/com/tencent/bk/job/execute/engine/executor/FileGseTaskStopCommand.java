@@ -40,6 +40,7 @@ import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -74,7 +75,10 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
         AccountDTO targetAccount = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
         Set<String> targetIps =
-            agentTasks.stream().filter(AgentTaskDTO::isTargetServer).map(AgentTaskDTO::getCloudIp).collect(Collectors.toSet());
+            agentTasks.stream()
+                .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
+                .map(AgentTaskDTO::getCloudIp)
+                .collect(Collectors.toSet());
         //目标机器的agent
         List<api_agent> agentList = GseRequestUtils.buildAgentList(targetIps, targetAccount.getAccount(),
             targetAccount.getPassword());

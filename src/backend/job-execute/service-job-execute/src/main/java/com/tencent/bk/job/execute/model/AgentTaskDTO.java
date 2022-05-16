@@ -64,14 +64,6 @@ public class AgentTaskDTO {
      */
     private String ip;
     /**
-     * 是否目标服务器
-     */
-    private boolean isTargetServer = true;
-    /**
-     * 是否文件源服务器
-     */
-    private boolean isSourceServer = false;
-    /**
      * 云区域ID
      */
     private Long cloudId;

@@ -67,6 +67,7 @@ import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
@@ -258,27 +259,16 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void initFileSourceGseAgentTasks() {
         List<AgentTaskDTO> fileSourceGseAgentTasks = new ArrayList<>();
         for (String sourceIp : fileSourceIps) {
-            if (targetIps.contains(sourceIp) && agentTaskMap.get(sourceIp) != null) {
-                AgentTaskDTO agentTask = agentTaskMap.get(sourceIp);
-                agentTask.setSourceServer(true);
-                fileSourceGseAgentTasks.add(agentTask);
-            } else {
-                AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch);
-                agentTask.setTargetServer(false);
-                agentTask.setSourceServer(true);
-                agentTask.setStatus(IpStatus.WAITING.getValue());
-                agentTask.setGseTaskId(gseTask.getId());
-                IpDTO sourceHost = IpDTO.fromCloudAreaIdAndIpStr(sourceIp);
-                agentTask.setCloudIp(sourceIp);
-                agentTask.setCloudId(sourceHost.getCloudAreaId());
-                agentTask.setDisplayIp(sourceHost.getIp());
-                agentTaskMap.put(sourceIp, agentTask);
-                fileSourceGseAgentTasks.add(agentTask);
-            }
+            AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch);
+            agentTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
+            agentTask.setCloudIp(sourceIp);
+            agentTask.setStatus(IpStatus.WAITING.getValue());
+            agentTask.setGseTaskId(gseTask.getId());
+            agentTask.setDisplayIp(IpDTO.fromCloudAreaIdAndIpStr(sourceIp).getIp());
+            agentTaskMap.put(sourceIp, agentTask);
+            fileSourceGseAgentTasks.add(agentTask);
         }
-        if (!fileSourceGseAgentTasks.isEmpty()) {
-            fileAgentTaskService.batchSaveAgentTasks(fileSourceGseAgentTasks);
-        }
+        fileAgentTaskService.batchSaveAgentTasks(fileSourceGseAgentTasks);
     }
 
     @Override
