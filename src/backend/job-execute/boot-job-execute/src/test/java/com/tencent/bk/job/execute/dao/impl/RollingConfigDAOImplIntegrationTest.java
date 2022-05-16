@@ -51,7 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:test.properties")
 @SqlConfig(encoding = "utf-8")
-@Sql({"/init_task_instance_rolling_config_data.sql"})
+@Sql({"/init_rolling_config_data.sql"})
 public class RollingConfigDAOImplIntegrationTest {
 
     @Autowired

@@ -326,7 +326,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_variable`
   DEFAULT CHARSET = utf8mb4;
 
 
-CREATE TABLE IF NOT EXISTS `task_instance_rolling_config`
+CREATE TABLE IF NOT EXISTS `rolling_config`
 (
     `id`               bigint(20)   NOT NULL AUTO_INCREMENT,
     `task_instance_id` bigint(20)   NOT NULL DEFAULT '0',
