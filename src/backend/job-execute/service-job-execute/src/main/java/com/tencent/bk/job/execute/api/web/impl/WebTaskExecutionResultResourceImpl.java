@@ -605,7 +605,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                   String scopeId,
                                                                   Long stepInstanceId,
                                                                   Integer executeCount,
-                                                                  String ip) {
+                                                                  String ip,
+                                                                  Integer batch) {
 
         if (stepInstanceId == null || executeCount == null || ip == null) {
             log.warn("Get ip log content, param is illegal!");
@@ -618,7 +619,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
         authViewStepInstance(username, appResourceScope, stepInstanceId);
 
-        ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount,
+        ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount, batch,
             IpDTO.fromCloudAreaIdAndIpStr(ip));
         IpScriptLogContentVO ipScriptLogContentVO = new IpScriptLogContentVO();
         ipScriptLogContentVO.setDisplayIp(ip);
@@ -762,7 +763,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                               Long stepInstanceId,
                                                               Integer executeCount,
                                                               String ip,
-                                                              String mode) {
+                                                              String mode,
+                                                              Integer batch) {
 
         if (stepInstanceId == null || executeCount == null || ip == null) {
             log.warn("Get ip log content, param is illegal!");
@@ -780,7 +782,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         result.setFileDistributionDetails(fileDistDetailVOS);
 
         if ("download".equals(mode)) {
-            FileIpLogContent downloadLog = logService.getFileIpLogContent(stepInstanceId, executeCount,
+            FileIpLogContent downloadLog = logService.getFileIpLogContent(stepInstanceId, executeCount, batch,
                 IpDTO.fromCloudAreaIdAndIpStr(ip), FileDistModeEnum.DOWNLOAD.getValue());
             // downloadLog为null说明步骤还未下发至GSE就被终止
             if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {

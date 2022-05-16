@@ -123,11 +123,13 @@ public interface LogService {
      *
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @param ip             主机ip
      * @return 日志内容
      * @throws ServiceException 异常
      */
-    ScriptIpLogContent getScriptIpLogContent(long stepInstanceId, int executeCount, IpDTO ip) throws ServiceException;
+    ScriptIpLogContent getScriptIpLogContent(long stepInstanceId, int executeCount, Integer batch, IpDTO ip)
+        throws ServiceException;
 
     /**
      * 批量获取脚本执行日志
@@ -147,12 +149,13 @@ public interface LogService {
      *
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @param ip             主机ip
      * @return 日志内容
      * @throws ServiceException 异常
      * @parma mode           文件传输模式
      */
-    FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, IpDTO ip,
+    FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, Integer batch, IpDTO ip,
                                          Integer mode) throws ServiceException;
 
     /**

@@ -252,7 +252,9 @@ public interface WebTaskExecutionResultResource {
         @PathVariable("executeCount")
             Integer executeCount,
         @ApiParam(value = "IP，格式为云区域ID:IP,比如1:10.10.10.10", name = "ip", required = true)
-        @PathVariable("ip") String ip
+        @PathVariable("ip") String ip,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false) Integer batch
     );
 
     @ApiOperation(value = "获取文件分发步骤IP对应的日志", produces = "application/json")
@@ -282,7 +284,10 @@ public interface WebTaskExecutionResultResource {
             String ip,
         @ApiParam(value = "文件任务上传下载标识,upload-上传,download-下载", name = "mode", required = true)
         @RequestParam(value = "mode")
-            String mode
+            String mode,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false)
+            Integer batch
     );
 
     @ApiOperation(value = "获取文件分发步骤文件任务ID对应的执行日志", produces = "application/json")

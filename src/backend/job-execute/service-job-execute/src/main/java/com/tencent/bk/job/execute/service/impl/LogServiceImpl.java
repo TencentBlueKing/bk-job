@@ -190,13 +190,13 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public ScriptIpLogContent getScriptIpLogContent(long stepInstanceId, int executeCount,
+    public ScriptIpLogContent getScriptIpLogContent(long stepInstanceId, int executeCount, Integer batch,
                                                     IpDTO ip) throws ServiceException {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
         AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByIp(stepInstanceId, executeCount,
-            stepInstance.getBatch(), ip.convertToStrIp());
+            batch, ip.convertToStrIp());
         if (agentTask == null) {
             return null;
         }
@@ -256,12 +256,12 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, IpDTO ip,
+    public FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, Integer batch, IpDTO ip,
                                                 Integer mode) throws ServiceException {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        AgentTaskDTO agentTask = fileAgentTaskService.getAgentTask(stepInstanceId, executeCount, 0,
+        AgentTaskDTO agentTask = fileAgentTaskService.getAgentTask(stepInstanceId, executeCount, batch,
             FileTaskModeEnum.getFileTaskMode(mode), ip.convertToStrIp());
         if (agentTask == null) {
             return null;
