@@ -570,6 +570,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                     agentTaskVO.setCloudAreaId(agentTask.getCloudId());
                     agentTaskVO.setCloudAreaName(agentTask.getCloudName());
                     agentTaskVO.setRetryCount(agentTask.getExecuteCount());
+                    agentTaskVO.setBatch(agentTask.getBatch());
                     agentTaskExecutionVOS.add(agentTaskVO);
                 }
             }
