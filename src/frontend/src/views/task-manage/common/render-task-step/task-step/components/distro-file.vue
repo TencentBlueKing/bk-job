@@ -95,7 +95,6 @@
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import I18n from '@/i18n';
     import { mapState } from 'vuex';
     import TaskStepModel from '@model/task/task-step';
@@ -103,15 +102,14 @@
     import CardLayout from '@components/task-step/file/card-layout';
     import ItemFactory from '@components/task-step/file/item-factory';
     import {
-        genDefaultName,
         compareHost,
         detectionSourceFileDupLocation,
     } from '@utils/assist';
 
     const getDefaultData = () => ({
-        id: 0,
+        id: -1,
         // 步骤名称
-        name: genDefaultName(I18n.t('template.步骤分发文件')),
+        name: '',
         // 源文件列表
         fileSourceList: [],
         // 超时
@@ -172,7 +170,9 @@
         watch: {
             data: {
                 handler (newData) {
-                    if (_.isEmpty(newData)) {
+                    // 本地新建的步骤id为-1，已提交后端保存的id大于0
+                    if (!newData.id) {
+                        this.formData = Object.assign({}, this.formData, newData);
                         return;
                     }
                     const {
@@ -191,6 +191,7 @@
                         path,
                         server,
                     };
+                    // 有数据需要自动验证一次
                     setTimeout(() => {
                         this.$refs.form.validate();
                     });
@@ -346,16 +347,16 @@
                                     reject(new Error('not save'));
                                 };
                                 const subHeader = () => (
-                                <div>
-                                    <div style="text-align: center">
-                                        <bk-button
-                                            onClick={handleClose}
-                                            style="width: 96px"
-                                            theme="primary">
-                                            { I18n.t('template.去处理') }
-                                        </bk-button>
+                                    <div>
+                                        <div style="text-align: center">
+                                            <bk-button
+                                                onClick={handleClose}
+                                                style="width: 96px"
+                                                theme="primary">
+                                                { I18n.t('template.去处理') }
+                                            </bk-button>
+                                        </div>
                                     </div>
-                                </div>
                                 );
                                 if (this.isLocalFileUploading) {
                                     confirmInfo = this.$bkInfo({
@@ -363,6 +364,7 @@
                                         title: I18n.t('template.本地源文件上传未完成'),
                                         subHeader: subHeader(),
                                         showFooter: false,
+                                        closeIcon: false,
                                     });
                                 } else if (this.isLocalFileUploadFailed) {
                                     confirmInfo = this.$bkInfo({
@@ -370,6 +372,7 @@
                                         title: I18n.t('template.本地源文件上传失败'),
                                         subHeader: subHeader(),
                                         showFooter: false,
+                                        closeIcon: false,
                                     });
                                 } else {
                                     this.$emit('on-change', result, false);

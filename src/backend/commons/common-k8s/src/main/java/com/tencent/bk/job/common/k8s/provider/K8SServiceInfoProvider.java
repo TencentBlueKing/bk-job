@@ -53,7 +53,6 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
     public final String KEY_HELM_NAMESPACE = "meta.helm.sh/release-namespace";
     public final String KEY_JOB_MS_VERSION = "bk.job.image/tag";
     public final String VERSION_UNKNOWN = "-";
-    public final String NAMESPACE_DEFAULT = "default";
     public final String PHASE_RUNNING = "Running";
     private final DiscoveryClient discoveryClient;
 
@@ -62,11 +61,17 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
         log.debug("K8sServiceInfoServiceImpl inited");
     }
 
+    /**
+     * 从服务实例元数据中提取命名空间
+     *
+     * @param serviceInstance 服务实例
+     * @return 命名空间
+     */
     private String getNameSpace(ServiceInstance serviceInstance) {
         KubernetesServiceInstance k8sServiceInstance = (KubernetesServiceInstance) serviceInstance;
         String namespace = k8sServiceInstance.getNamespace();
         if (StringUtils.isNotBlank(namespace)) return namespace;
-        return serviceInstance.getMetadata().getOrDefault(KEY_HELM_NAMESPACE, NAMESPACE_DEFAULT);
+        return serviceInstance.getMetadata().getOrDefault(KEY_HELM_NAMESPACE, null);
     }
 
     private V1Pod findPodByUid(V1PodList podList, String uid) {
@@ -92,6 +97,12 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
         return ServiceInstanceInfoDTO.STATUS_UNKNOWN;
     }
 
+    /**
+     * 通过K8s API获取服务实例（pod）状态等详细信息
+     *
+     * @param serviceInstance 服务实例
+     * @return 服务实例详细信息
+     */
     private ServiceInstanceInfoDTO getDetailFromK8s(
         ServiceInstance serviceInstance
     ) {
@@ -139,6 +150,11 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
         return serviceInstanceInfoDTO;
     }
 
+    /**
+     * 获取所有服务实例信息
+     *
+     * @return 服务实例信息
+     */
     @Override
     public List<ServiceInstanceInfoDTO> listServiceInfo() {
         List<String> serviceIdList = discoveryClient.getServices();
@@ -155,7 +171,8 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
             } else {
                 return serviceInstance.getServiceId().contains("job-");
             }
-        }).map(this::getDetailFromK8s).collect(Collectors.toList());
+        }).filter(serviceInstance -> getNameSpace(serviceInstance) != null)
+            .map(this::getDetailFromK8s).collect(Collectors.toList());
     }
 
 }

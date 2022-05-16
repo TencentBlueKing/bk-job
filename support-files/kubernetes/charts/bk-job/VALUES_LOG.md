@@ -1,5 +1,14 @@
 # chart values 更新日志
 
+## 0.2.2-rc.1
+1.增加权限中心系统ID配置：
+```shell script
+## 权限中心配置
+iam:
+  # 作业平台注册到IAM的系统ID
+  systemId: bk_job
+```
+
 ## 0.1.53
 1.增加CMDB供应商配置：
 ```shell script
