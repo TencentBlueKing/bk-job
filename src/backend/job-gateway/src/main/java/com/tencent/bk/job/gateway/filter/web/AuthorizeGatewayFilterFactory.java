@@ -86,9 +86,8 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             BkUserDTO user = null;
             // 遍历所有传入token找出当前环境的
             for (String bkToken : bkTokenList) {
-                if (user == null) {
-                    user = loginService.getUser(bkToken);
-                } else {
+                user = loginService.getUser(bkToken);
+                if (user != null) {
                     break;
                 }
             }
