@@ -34,7 +34,9 @@ import org.jooq.DSLContext;
 import java.util.Collection;
 import java.util.List;
 
-
+/**
+ * 业务DAO
+ */
 public interface ApplicationDAO {
 
     ApplicationDTO getCacheAppById(long appId);

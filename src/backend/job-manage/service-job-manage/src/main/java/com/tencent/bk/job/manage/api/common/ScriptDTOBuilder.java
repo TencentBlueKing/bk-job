@@ -36,8 +36,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
-
 @Service
 public class ScriptDTOBuilder {
 
@@ -45,7 +43,6 @@ public class ScriptDTOBuilder {
         ScriptDTO scriptDTO = new ScriptDTO();
         scriptDTO.setId(req.getId());
         scriptDTO.setScriptVersionId(req.getScriptVersionId());
-        scriptDTO.setAppId(req.getAppId());
         scriptDTO.setName(req.getName());
         scriptDTO.setType(req.getType());
         if (req.getType() != null) {
@@ -56,16 +53,15 @@ public class ScriptDTOBuilder {
             }
         }
         scriptDTO.setContent(Base64Util.decodeContentToStr(req.getContent()));
-        scriptDTO.setPublicScript(req.getAppId().equals(PUBLIC_APP_ID));
         if (req.getTags() != null && !req.getTags().isEmpty()) {
-            List<TagDTO> tagDTOS = new ArrayList<>();
+            List<TagDTO> tags = new ArrayList<>();
             for (TagVO tagVO : req.getTags()) {
-                TagDTO tagDTO = new TagDTO();
-                tagDTO.setId(tagVO.getId());
-                tagDTO.setName(tagVO.getName());
-                tagDTOS.add(tagDTO);
+                TagDTO tag = new TagDTO();
+                tag.setId(tagVO.getId());
+                tag.setName(tagVO.getName());
+                tags.add(tag);
             }
-            scriptDTO.setTags(tagDTOS);
+            scriptDTO.setTags(tags);
         }
         scriptDTO.setVersion(req.getVersion());
         scriptDTO.setDescription(req.getDescription());

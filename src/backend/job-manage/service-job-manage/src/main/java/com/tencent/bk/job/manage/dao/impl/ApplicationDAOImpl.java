@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @since 4/11/2019 22:46
+ * 业务DAO
  */
 @Slf4j
 @Repository
@@ -256,18 +256,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         return listAppsByConditions(conditions);
     }
 
-    private void setDefaultValue(ApplicationDTO applicationDTO) {
-        if (applicationDTO.getAppType() == null) {
-            applicationDTO.setAppType(AppTypeEnum.NORMAL);
-        }
-        if (applicationDTO.getBkSupplierAccount() == null) {
-            applicationDTO.setBkSupplierAccount("-1");
-        }
-    }
-
     @Override
     public Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
-        setDefaultValue(applicationDTO);
         val subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
         if (subBizIds != null) {
@@ -320,7 +310,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Override
     public Long insertAppWithSpecifiedAppId(DSLContext dslContext,
                                             ApplicationDTO applicationDTO) {
-        setDefaultValue(applicationDTO);
         val subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
         if (subBizIds != null) {
@@ -367,7 +356,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Override
     @CacheEvict(value = "appInfoCache", key = "#applicationDTO.getId()")
     public int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
-        setDefaultValue(applicationDTO);
         List<Long> subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
         if (subBizIds != null) {

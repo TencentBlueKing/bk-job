@@ -267,7 +267,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                                                                String scopeId,
                                                                String scriptId,
                                                                Boolean publicScript) {
-        Long appId = appResourceScope == null ? PUBLIC_APP_ID : appResourceScope.getAppId();
+        long appId = appResourceScope == null ? PUBLIC_APP_ID : appResourceScope.getAppId();
         ScriptDTO onlineScriptVersion = scriptService.getOnlineScriptVersionByScriptId(username,
             appId, scriptId);
         if (onlineScriptVersion == null) {
@@ -607,7 +607,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
                                          String scopeId,
                                          ScriptCreateUpdateReq scriptCreateUpdateReq) {
         Long appId = appResourceScope == null ? PUBLIC_APP_ID : appResourceScope.getAppId();
-        scriptCreateUpdateReq.setAppId(appId);
         log.info("Save script,operator={},appId={},script={}", username, appId, scriptCreateUpdateReq.toString());
 
         AuthResult authResult = checkSaveScript(username, appResourceScope, scriptCreateUpdateReq);
@@ -634,6 +633,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
         ScriptDTO script = scriptDTOBuilder.buildFromCreateUpdateReq(scriptCreateUpdateReq);
         script.setAppId(appId);
+        script.setPublicScript(appResourceScope == null);
         script.setCreator(username);
         script.setLastModifyUser(username);
         ScriptDTO savedScript = scriptService.saveScript(username, appId, script);
