@@ -75,11 +75,22 @@ public class RequestUtil {
      */
     public static List<String> getCookieValuesFromHeader(ServerHttpRequest request, String cookieName) {
         HttpHeaders headers = request.getHeaders();
-        List<String> cookieStrList = headers.get("cookie");
-        if (CollectionUtils.isEmpty(cookieStrList)) {
+        List<String> cookieList = headers.get("cookie");
+        return getCookieValuesFromCookies(cookieList, cookieName);
+    }
+
+    /**
+     * 从Cookie中解析同一个Key对应的多个Cookie值
+     *
+     * @param cookieList cookie列表
+     * @param cookieName 目标Cookie的Key
+     * @return 多个Cookie值列表
+     */
+    public static List<String> getCookieValuesFromCookies(List<String> cookieList, String cookieName) {
+        if (CollectionUtils.isEmpty(cookieList)) {
             return Collections.emptyList();
         }
-        String cookieStr = cookieStrList.get(0);
+        String cookieStr = cookieList.get(0);
         log.debug("cookie from headers: {}", cookieStr);
         String[] cookies = cookieStr.split(";");
         List<String> cookieValueList = new ArrayList<>();
