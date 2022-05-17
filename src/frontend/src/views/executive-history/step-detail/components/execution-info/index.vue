@@ -105,10 +105,10 @@
                 ref="view"
                 :key="activePanel"
                 :is="renderCom"
-                :name="`${stepInstanceId}_${host.ip}_${retryCount}_${batch}`"
+                :name="`${stepInstanceId}_${host.ip}_${retryCount}`"
                 :step-instance-id="stepInstanceId"
                 :ip="host.ip"
-                :batch="batch"
+                :batch="host.batch"
                 :retry-count="retryCount"
                 :font-size="fontSize"
                 :mode="activePanel"
@@ -161,9 +161,6 @@
             host: {
                 type: Object,
                 required: true,
-            },
-            batch: {
-                type: [Number, String],
             },
             stepInstanceId: {
                 type: Number,

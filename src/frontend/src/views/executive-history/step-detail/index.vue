@@ -136,7 +136,6 @@
                         :step-instance-id="data.stepInstanceId"
                         :retry-count="params.retryCount"
                         :host="currentHost"
-                        :batch="params.batch"
                         :log-filter="params.keyword"
                         :is-file="isFile"
                         :is-task="isTask"
