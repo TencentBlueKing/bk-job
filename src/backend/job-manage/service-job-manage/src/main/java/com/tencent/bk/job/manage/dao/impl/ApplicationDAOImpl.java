@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
@@ -206,6 +207,18 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 .collect(Collectors.toList()))
         );
         return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<Long> listAllBizAppBizIds() {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
+        Result<Record1<String>> records = context
+            .select(T_APP.BK_SCOPE_ID)
+            .from(T_APP)
+            .where(conditions)
+            .fetch();
+        return records.map(record -> Long.parseLong(record.get(T_APP.BK_SCOPE_ID)));
     }
 
     @Override

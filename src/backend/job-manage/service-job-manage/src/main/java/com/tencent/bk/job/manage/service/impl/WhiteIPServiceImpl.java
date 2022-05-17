@@ -406,7 +406,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         List<ServiceWhiteIPInfo> resultList = new ArrayList<>();
         //查出所有Record
         List<WhiteIPRecordDTO> recordList = whiteIPRecordDAO.listAllWhiteIPRecord(dslContext);
-        if(CollectionUtils.isEmpty(recordList)){
+        if (CollectionUtils.isEmpty(recordList)) {
             return resultList;
         }
         //查询appIdList长度为1的业务信息
@@ -416,7 +416,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         recordList.parallelStream().forEach(record -> {
             appIdSet.addAll(record.getAppIdList());
             //添加所有包含生效范围id列表，方便后续一次性查出关联的生效范围code
-            scopeIdSet.addAll(record.getActionScopeList().parallelStream().map(scope -> scope.getActionScopeId()).collect(Collectors.toSet()));
+            scopeIdSet.addAll(record.getActionScopeList().parallelStream()
+                .map(WhiteIPActionScopeDTO::getActionScopeId).collect(Collectors.toSet()));
         });
         if (CollectionUtils.isNotEmpty(appIdSet)) {
             applicationDTOList = applicationService.listAppsByAppIds(appIdSet);

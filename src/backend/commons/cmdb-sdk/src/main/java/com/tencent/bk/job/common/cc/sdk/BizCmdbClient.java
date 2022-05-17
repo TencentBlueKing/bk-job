@@ -76,6 +76,7 @@ import com.tencent.bk.job.common.cc.model.result.SearchCloudAreaResult;
 import com.tencent.bk.job.common.cc.model.result.SearchDynamicGroupResult;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
+import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
@@ -780,6 +781,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
+        appInfo.setAppType(AppTypeEnum.NORMAL);
         appInfo.setOperateDeptId(businessInfo.getOperateDeptId());
         appInfo.setLanguage(businessInfo.getLanguage());
         return appInfo;

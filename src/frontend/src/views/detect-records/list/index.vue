@@ -80,7 +80,7 @@
                 width="200"
                 align="left">
                 <template slot-scope="{ row }">
-                    <span>[{{ row.appId }}] {{ row.appName }}</span>
+                    <span>[{{ row.scopeId }}] {{ row.appName }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column

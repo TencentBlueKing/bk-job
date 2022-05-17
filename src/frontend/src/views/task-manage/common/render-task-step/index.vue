@@ -53,7 +53,7 @@
                             'step-mode-diff': isDiff,
                             'select': isSelect,
                             'not-select': isSelect && !selectValue.includes(step.id),
-                            active: index === currentIndex,
+                            active: index === activeStepIndex,
                         }"
                         :order="genOrder()">
                         <div
@@ -71,27 +71,50 @@
                                 <Icon v-if="isOperation" type="move" class="draggable-flag" />
                             </div>
                             <div v-if="isOperation" class="step-operation">
-                                <Icon
-                                    type="plus-circle"
-                                    class="operation"
-                                    @click="handleShowCreate(index)" />
+                                <div
+                                    class="operation-btn"
+                                    :tippy-tips="$t('template.新建步骤')">
+                                    <Icon type="plus-circle" />
+                                    <div class="dropdown-menu">
+                                        <div
+                                            class="menu-item"
+                                            @click="handleShowCreateWithType('script',index)">
+                                            {{ $t('template.执行脚本') }}
+                                        </div>
+                                        <div
+                                            class="menu-item"
+                                            @click="handleShowCreateWithType('file',index)">
+                                            {{ $t('template.分发文件') }}
+                                        </div>
+                                        <div
+                                            class="menu-item"
+                                            @click="handleShowCreateWithType('approval',index)">
+                                            {{ $t('template.人工确认') }}
+                                        </div>
+                                    </div>
+                                </div>
                                 <Icon
                                     type="minus-circle"
-                                    class="operation"
+                                    class="operation-btn"
+                                    :tippy-tips="$t('template.删除步骤')"
                                     @click="handleDel(index)" />
                                 <Icon
                                     type="edit-2"
-                                    class="operation"
+                                    class="operation-btn"
+                                    :tippy-tips="$t('template.编辑步骤')"
                                     @click="handleShowEdit(index)" />
                                 <Icon
                                     type="step-copy"
-                                    class="operation"
+                                    class="operation-btn"
                                     :tippy-tips="$t('template.克隆步骤')"
                                     @mouseover="handleCloneStepHover(index, true)"
                                     @mouseout="handleCloneStepHover(index, false)"
                                     @click="handleCloneStep(index)" />
                             </div>
-                            <div v-if="isSelect" class="select-flag" @click="handleStepSelect(step)">
+                            <div
+                                v-if="isSelect"
+                                class="select-flag"
+                                @click="handleStepSelect(step)">
                                 <div class="select-checked" />
                             </div>
                             <template v-if="isEdit">
@@ -99,12 +122,16 @@
                                 <div v-if="!step.id" class="step-new-flag">new</div>
                             </template>
                             <!-- 本地验证不通过标记 -->
-                            <div v-if="step.localValidator === false" class="need-validate-falg">
+                            <div
+                                v-if="step.localValidator === false"
+                                class="need-validate-falg">
                                 {{ $t('template.待补全') }}
                             </div>
                         </div>
                         <!-- 执行方案同步diff标记 -->
-                        <div class="diff-order" v-if="diff[step.id] && diff[step.id].type === 'move'">
+                        <div
+                            v-if="diff[step.id] && diff[step.id].type === 'move'"
+                            class="diff-order">
                             <div v-if="diff[step.id].value !== 0" class="order-change">
                                 <Icon :type="`${diff[step.id].value < 0 ? 'down-arrow' : 'up-arrow'}`" />
                                 {{ Math.abs(diff[step.id].value) }}
@@ -118,10 +145,32 @@
                 v-if="isOperation"
                 class="step-create-btn"
                 key="create"
-                v-test="{ type: 'button', value: 'create_step' }"
-                @click="handleShowCreate(-1)">
-                <Icon type="plus" class="action-flag" />
-                {{ $t('template.作业步骤.add') }}
+                v-test="{ type: 'button', value: 'create_step' }">
+                <div class="create-btn-text">
+                    <Icon type="plus" class="mr5" />
+                    {{ $t('template.作业步骤.add') }}
+                </div>
+                <div class="create-step-quick">
+                    <div
+                        class="quick-item"
+                        v-test="{ type: 'button', value: 'create_step' }"
+                        @click="handleShowCreateWithType('script')">
+                        <Icon type="add-script" />
+                        <span class="quick-item-text">{{ $t('template.执行脚本') }}</span>
+                    </div>
+                    <div
+                        class="quick-item"
+                        @click="handleShowCreateWithType('file')">
+                        <Icon type="add-file" />
+                        <span class="quick-item-text">{{ $t('template.分发文件') }}</span>
+                    </div>
+                    <div
+                        class="quick-item"
+                        @click="handleShowCreateWithType('approval')">
+                        <Icon type="add-approval" />
+                        <span class="quick-item-text">{{ $t('template.人工确认') }}</span>
+                    </div>
+                </div>
             </div>
         </div>
         <lower-component v-if="isView">
@@ -210,7 +259,7 @@
                 isShowDetail: false,
                 isShowClone: false,
                 operationType: '',
-                currentIndex: -1,
+                activeStepIndex: -1,
                 operationData: {},
                 detailInfo: {},
                 dragStartIndex: -1,
@@ -357,7 +406,7 @@
                     return;
                 }
                 // 查看步骤详情
-                this.currentIndex = index;
+                this.activeStepIndex = index;
                 this.operationType = 'detail';
                 this.detailInfo = this.steps[index];
                 this.isShowDetail = true;
@@ -375,7 +424,7 @@
              */
             handleShowEdit (index) {
                 this.operationType = 'edit';
-                this.currentIndex = index;
+                this.activeStepIndex = index;
                 this.operationData = this.steps[index];
                 this.isShowOperation = true;
             },
@@ -386,11 +435,11 @@
              */
             handleCloneStepHover (index, isHover) {
                 if (isHover) {
-                    this.currentIndex = index;
+                    this.activeStepIndex = index;
                     this.operationType = 'clone';
                     this.isShowClone = true;
                 } else {
-                    this.currentIndex = -1;
+                    this.activeStepIndex = -1;
                     this.operationType = '';
                     this.isShowClone = false;
                 }
@@ -415,15 +464,23 @@
                 this.$emit('on-change', steps);
             },
             /**
-             * @desc 点击作业模板新建按钮在对应步骤后面追加一个新步骤
-             * @param {Number} index 点击的模板步骤索引
+             * @desc 创建指定类型的步骤
+             * @param { Number } index 在指定的步骤后面新加一个步骤
              */
-            handleShowCreate (index) {
+            handleShowCreateWithType (type, index = -1) {
+                const typeMap = {
+                    script: TaskStepModel.TYPE_SCRIPT,
+                    file: TaskStepModel.TYPE_FILE,
+                    approval: TaskStepModel.TYPE_APPROVAL,
+                };
                 this.operationType = 'create';
-                this.currentIndex = index;
-                this.operationData = {};
+                this.activeStepIndex = index;
+                this.operationData = {
+                    type: typeMap[type],
+                };
                 this.isShowOperation = true;
             },
+            
             /**
              * @desc 删除作业模板新建
              * @param {Number} index 将要的模板步骤索引
@@ -465,16 +522,19 @@
                 operationStep.localValidator = localValidator;
 
                 if (this.operationType === 'create') {
-                    if (this.currentIndex === -1) {
+                    // 新建
+                    if (this.activeStepIndex === -1) {
                         steps.push(operationStep);
                     } else {
-                        steps.splice(this.currentIndex + 1, 0, operationStep);
+                        steps.splice(this.activeStepIndex + 1, 0, operationStep);
                     }
                 } else {
-                    steps.splice(this.currentIndex, 1, operationStep);
+                    // 编辑
+                    steps.splice(this.activeStepIndex, 1, operationStep);
                 }
 
                 this.steps = Object.freeze(steps);
+                console.log('from print stpes = ', this.steps);
                 this.$emit('on-change', steps);
             },
             /**
@@ -834,13 +894,44 @@
             color: #c4c6cc;
             transform: translateX(100%) translateY(-50%);
 
-            .operation {
+            .operation-btn {
+                position: relative;
                 padding: 12px 8px 12px 0;
                 cursor: pointer;
 
                 &.active,
                 &:hover {
                     color: #3a84ff;
+                }
+
+                &:hover {
+                    .dropdown-menu {
+                        display: block;
+                    }
+                }
+
+                .dropdown-menu {
+                    position: absolute;
+                    right: 24px;
+                    bottom: 16px;
+                    display: none;
+                    padding: 6px 0;
+                    font-size: 12px;
+                    color: #63656e;
+                    background: #fff;
+                    border-radius: 2px;
+                    transform: translate(100%, 100%);
+                    box-shadow: 0 0 6px 0 #dcdee5;
+
+                    .menu-item {
+                        padding: 0 16px;
+                        white-space: nowrap;
+
+                        &:hover {
+                            color: #3a84ff;
+                            background-color: #eaf3ff;
+                        }
+                    }
                 }
             }
         }
@@ -903,29 +994,87 @@
     }
 
     .step-create-btn {
-        display: flex;
+        position: relative;
         width: 100%;
         height: 42px;
         margin-top: 10px;
         font-size: 14px;
         color: #979ba5;
-        cursor: pointer;
         border: 1px dashed #c4c6cc;
-        align-items: center;
-        justify-content: center;
 
         &:hover {
-            color: #3a84ff;
             border-color: #3a84ff;
 
-            .action-flag {
-                color: #3a84ff;
+            .create-btn-text {
+                visibility: hidden;
+            }
+
+            .create-step-quick {
+                display: flex;
             }
         }
 
-        .action-flag {
-            margin-right: 5px;
-            color: #c4c6cc;
+        .create-btn-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .create-step-quick {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            display: none;
+            justify-content: flex-end;
+            align-items: center;
+            background-color: rgb(225 236 255 / 60%);
+
+            .quick-item {
+                display: flex;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+
+                &:hover {
+                    color: #3a84ff;
+
+                    .quick-item-text {
+                        display: block;
+                    }
+                }
+
+                &:nth-child(1) {
+                    flex: 1;
+                    margin-right: auto;
+                    margin-left: auto;
+
+                    .quick-item-text {
+                        display: block;
+                    }
+                }
+
+                &:nth-child(n + 2) {
+                    position: relative;
+                    padding: 0 16px;
+
+                    &::before {
+                        position: absolute;
+                        left: 0;
+                        width: 1px;
+                        height: 1em;
+                        background-color: #c4c6cc;
+                        content: "";
+                    }
+                }
+            }
+
+            .quick-item-text {
+                display: none;
+                padding-left: 4px;
+            }
         }
     }
 

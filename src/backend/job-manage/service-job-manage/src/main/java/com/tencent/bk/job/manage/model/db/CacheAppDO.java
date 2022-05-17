@@ -92,6 +92,9 @@ public class CacheAppDO {
     private ApplicationAttrsDO attrs;
 
     public static CacheAppDO fromApplicationDTO(ApplicationDTO application) {
+        if (application == null) {
+            return null;
+        }
         CacheAppDO cacheAppDO = new CacheAppDO();
         cacheAppDO.setId(application.getId());
         cacheAppDO.setScopeType(application.getScope().getType().getValue());
@@ -106,6 +109,9 @@ public class CacheAppDO {
     }
 
     public static ApplicationDTO toApplicationDTO(CacheAppDO cacheAppDO) {
+        if (cacheAppDO == null) {
+            return null;
+        }
         ApplicationDTO application = new ApplicationDTO();
         application.setId(cacheAppDO.getId());
         application.setScope(new ResourceScope(cacheAppDO.getScopeType(), cacheAppDO.getScopeId()));

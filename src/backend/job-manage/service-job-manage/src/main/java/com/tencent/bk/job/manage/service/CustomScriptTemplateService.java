@@ -42,15 +42,6 @@ public interface CustomScriptTemplateService {
     List<ScriptTemplateDTO> listCustomScriptTemplate(String username);
 
     /**
-     * 查询渲染过的用户自定义的脚本模板
-     *
-     * @param username 用户名
-     * @param appId    业务ID
-     * @return 渲染后的脚本模板列表；如果不存在，返回空的List
-     */
-    List<ScriptTemplateDTO> listRenderedCustomScriptTemplate(String username, long appId);
-
-    /**
      * 保存用户的自定义脚本模板
      *
      * @param username       用户名

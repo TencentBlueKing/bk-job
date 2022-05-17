@@ -188,7 +188,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     @Override
     public List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        if (bizIds != null) {
+            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        }
         conditions.add(TABLE.IP.in(ips.parallelStream().map(String::trim).collect(Collectors.toList())));
         return listHostInfoByConditions(conditions);
     }
@@ -903,22 +905,12 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         ApplicationDTO appInfo = applicationDAO.getAppByScope(
             new ResourceScope(ResourceScopeTypeEnum.BIZ, "" + bizId)
         );
-        ResourceScope resourceScope = appInfo.getScope();
         List<Condition> conditions = new ArrayList<>();
-        if (resourceScope == null) {
+        if (appInfo.isBiz()) {
             conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
-            return conditions;
-        }
-        switch (resourceScope.getType()) {
-            case BIZ:
-                conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
-                break;
-            case BIZ_SET:
-                List<Long> subAppIds = topologyHelper.getBizSetSubBizIds(appInfo);
-                conditions.add(TABLE.APP_ID.in(subAppIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
-                break;
-            default:
-                break;
+        } else if (!appInfo.isAllBizSet() && appInfo.isBizSet()) {
+            List<Long> subBizIds = topologyHelper.getBizSetSubBizIds(appInfo);
+            conditions.add(TABLE.APP_ID.in(subBizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
         return conditions;
     }
