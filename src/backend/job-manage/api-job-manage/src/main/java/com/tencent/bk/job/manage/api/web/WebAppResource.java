@@ -96,7 +96,7 @@ public interface WebAppResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @RequestBody FavorAppReq favorAppReq
-        );
+    );
 
     @ApiOperation(value = "取消收藏业务", produces = "application/json")
     @PostMapping(value = "/scope/{scopeType}/{scopeId}/cancelFavor")
