@@ -262,9 +262,22 @@ public class WebAppResourceImpl implements WebAppResource {
     public Response<Integer> cancelFavorApp(String username,
                                             AppResourceScope appResourceScope,
                                             String scopeType,
-                                            String scopeId) {
+                                            String scopeId,
+                                            FavorAppReq favorAppReq) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(
+            favorAppReq.getScopeType(),
+            favorAppReq.getScopeId()
+        );
+        if (applicationDTO == null) {
+            FormattingTuple msg = MessageFormatter.format(
+                "cannot find app by scope ({},{})",
+                scopeType,
+                scopeId
+            );
+            throw new NotFoundException(msg.getMessage(), ErrorCode.APP_NOT_EXIST);
+        }
         return Response.buildSuccessResp(
-            applicationFavorService.cancelFavorApp(username, appResourceScope.getAppId())
+            applicationFavorService.cancelFavorApp(username, applicationDTO.getId())
         );
     }
 
