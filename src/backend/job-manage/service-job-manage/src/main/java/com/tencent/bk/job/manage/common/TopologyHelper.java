@@ -307,7 +307,7 @@ public class TopologyHelper {
      */
     public String getTopologyNodeName(Long appId, Long nodeId, String nodeType) {
         Map<String, Map<Long, String>> nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
-        ApplicationDTO appInfo = applicationDAO.getCacheAppById(appId);
+        ApplicationDTO appInfo = applicationDAO.getAppById(appId);
         if (appInfo == null) {
             return String.valueOf(nodeId);
         }
