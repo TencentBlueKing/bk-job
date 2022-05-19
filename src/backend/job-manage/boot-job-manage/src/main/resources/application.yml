@@ -45,6 +45,8 @@ management:
       enabled: true
     info:
       enabled: true
+    refresh:
+      enabled: true
 server:
   port: 19803
   shutdown: graceful
