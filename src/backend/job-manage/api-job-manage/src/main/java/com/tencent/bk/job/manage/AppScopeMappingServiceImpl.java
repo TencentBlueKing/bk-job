@@ -57,13 +57,18 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
      * 由于appId与resourceScope映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
      */
     private final LoadingCache<Long, ResourceScope> appIdAndScopeCache =
-        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.DAYS)
+        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
             .build(new CacheLoader<Long, ResourceScope>() {
                        @Override
                        public ResourceScope load(Long appId) {
                            ServiceApplicationDTO app = applicationResource.queryAppById(appId);
                            if (app == null) {
                                throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+                           }
+                           if (StringUtils.isEmpty(app.getScopeType()) || StringUtils.isEmpty(app.getScopeId())) {
+                               // 如果查询到的业务缺少scopeType|scopeId参数，抛出异常避免缓存非法数据
+                               log.error("Empty scopeType|scopeId for application, reject cache!");
+                               throw new InternalException("Empty scopeType|scopeId for application", ErrorCode.INTERNAL_ERROR);
                            }
                            return new ResourceScope(app.getScopeType(), app.getScopeId());
                        }
@@ -75,7 +80,7 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
      * 由于resourceScope与appId映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
      */
     private final LoadingCache<ResourceScope, Long> scopeAndAppIdCache =
-        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.DAYS)
+        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
             .build(new CacheLoader<ResourceScope, Long>() {
                        @Override
                        public Long load(ResourceScope resourceScope) {
@@ -84,6 +89,11 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
                                resourceScope.getId());
                            if (app == null) {
                                throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+                           }
+                           if (app.getId() == null) {
+                               // 如果查询到的业务缺少ID参数，抛出异常避免缓存非法数据
+                               log.error("Empty appId for application, reject cache!");
+                               throw new InternalException("Empty appId for application", ErrorCode.INTERNAL_ERROR);
                            }
                            return app.getId();
                        }
