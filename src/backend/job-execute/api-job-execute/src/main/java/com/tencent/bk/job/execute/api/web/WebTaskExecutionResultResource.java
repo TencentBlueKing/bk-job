@@ -58,13 +58,12 @@ import java.util.List;
  * 作业执行情况API-前端调用
  */
 @Api(tags = {"job-execute:web:Task_Execution_Result"})
-@RequestMapping("/web/execution")
+@RequestMapping("/web/execution/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebTaskExecutionResultResource {
     @ApiOperation(value = "获取作业执行历史列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/task-execution-history/list",
-        "/scope/{scopeType}/{scopeId}/task-execution-history/list"})
+    @GetMapping(value = {"/task-execution-history/list"})
     Response<PageData<TaskInstanceVO>> getTaskHistoryList(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -72,59 +71,58 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "任务名称", name = "taskName", required = false)
+        @ApiParam(value = "任务名称", name = "taskName")
         @RequestParam(value = "taskName", required = false)
             String taskName,
-        @ApiParam(value = "任务ID", name = "taskInstanceId", required = false)
+        @ApiParam(value = "任务ID", name = "taskInstanceId")
         @RequestParam(value = "taskInstanceId", required = false)
             Long taskInstanceId,
-        @ApiParam(value = "任务状态", name = "status", required = false)
+        @ApiParam(value = "任务状态", name = "status")
         @RequestParam(value = "status", required = false)
             Integer status,
-        @ApiParam(value = "执行人", name = "operator", required = false)
+        @ApiParam(value = "执行人", name = "operator")
         @RequestParam(value = "operator", required = false)
             String operator,
-        @ApiParam(value = "任务类型", name = "taskType", required = false)
+        @ApiParam(value = "任务类型", name = "taskType")
         @RequestParam(value = "taskType", required = false)
             Integer taskType,
-        @ApiParam(value = "开始时间", name = "startTime", required = false)
+        @ApiParam(value = "开始时间", name = "startTime")
         @RequestParam(value = "startTime", required = false)
             String startTime,
-        @ApiParam(value = "结束时间", name = "endTime", required = false)
+        @ApiParam(value = "结束时间", name = "endTime")
         @RequestParam(value = "endTime", required = false)
             String endTime,
-        @ApiParam(value = "时间范围，单位天;如果使用timeRange参数,将忽略startTime/endTime。最大值:30", name = "timeRange", required = false)
+        @ApiParam(value = "时间范围，单位天;如果使用timeRange参数,将忽略startTime/endTime。最大值:30", name = "timeRange")
         @RequestParam(value = "timeRange", required = false)
             Integer timeRange,
-        @ApiParam(value = "耗时类型", name = "totalTimeType", required = false)
+        @ApiParam(value = "耗时类型", name = "totalTimeType")
         @RequestParam(value = "totalTimeType", required = false)
             TaskTotalTimeTypeEnum totalTimeType,
-        @ApiParam(value = "分页-开始", required = false)
+        @ApiParam(value = "分页-开始")
         @RequestParam(value = "start", required = false)
             Integer start,
-        @ApiParam(value = "分页-每页大小", required = false)
+        @ApiParam(value = "分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize,
-        @ApiParam(value = "定时任务ID", required = false)
+        @ApiParam(value = "定时任务ID")
         @RequestParam(value = "cronTaskId", required = false)
             Long cronTaskId,
-        @ApiParam(value = "执行方式,1-页面执行,2-API调用,3-定时任务。如果传多个用,分隔，比如:1,2", name = "startupModes", required = false)
+        @ApiParam(value = "执行方式,1-页面执行,2-API调用,3-定时任务。如果传多个用,分隔，比如:1,2", name = "startupModes")
         @RequestParam(value = "startupModes", required = false)
             String startupModes,
-        @ApiParam(value = "ip", name = "ip", required = false)
+        @ApiParam(value = "ip", name = "ip")
         @RequestParam(value = "ip", required = false)
             String ip
     );
 
     @ApiOperation(value = "获取作业执行信息", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/task-execution-result/{taskInstanceId}",
-        "/scope/{scopeType}/{scopeId}/task-execution-result/{taskInstanceId}"})
+    @GetMapping(value = {"/task-execution-result/{taskInstanceId}"})
     Response<TaskExecuteResultVO> getTaskExecutionResult(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -132,11 +130,11 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
         @PathVariable("taskInstanceId")
@@ -144,10 +142,9 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取作业步骤执行信息", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/step-execution-result/{stepInstanceId}/{executeCount}",
-        "/app/{appId}/step-execution-result/{stepInstanceId}",
-        "/scope/{scopeType}/{scopeId}/step-execution-result/{stepInstanceId}/{executeCount}",
-        "/scope/{scopeType}/{scopeId}/step-execution-result/{stepInstanceId}"
+    @GetMapping(value = {
+        "/step-execution-result/{stepInstanceId}/{executeCount}",
+        "/step-execution-result/{stepInstanceId}"
     })
     Response<StepExecutionDetailVO> getStepExecutionResult(
         @ApiParam("用户名，网关自动传入")
@@ -156,11 +153,11 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
@@ -192,8 +189,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取快速作业的步骤执行信息", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/step-execution-result/taskInstanceId/{taskInstanceId}",
-        "/scope/{scopeType}/{scopeId}/step-execution-result/taskInstanceId/{taskInstanceId}"})
+    @GetMapping(value = {"/step-execution-result/taskInstanceId/{taskInstanceId}"})
     Response<StepExecutionDetailVO> getFastTaskStepExecutionResult(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -201,22 +197,22 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "任务实例ID", name = "taskInstanceId", required = true)
         @PathVariable("taskInstanceId")
             Long taskInstanceId,
-        @ApiParam(value = "任务执行结果", name = "resultType", required = false)
+        @ApiParam(value = "任务执行结果", name = "resultType")
         @RequestParam(value = "resultType", required = false)
             Integer resultType,
-        @ApiParam(value = "用户脚本输出的结果分组tag", name = "tag", required = false)
+        @ApiParam(value = "用户脚本输出的结果分组tag", name = "tag")
         @RequestParam(value = "tag", required = false)
             String tag,
-        @ApiParam(value = "结果分组下返回的ip最大数", name = "maxIpsPerResultGroup", required = false)
+        @ApiParam(value = "结果分组下返回的ip最大数", name = "maxIpsPerResultGroup")
         @RequestParam(value = "maxIpsPerResultGroup", required = false)
             Integer maxIpsPerResultGroup,
         @ApiParam(value = "排序字段，当前支持totalTime|cloudAreaId|exitCode", name = "orderField")
@@ -228,8 +224,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取IP对应的脚本日志内容", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/step-execution-result/log-content/{stepInstanceId}/{executeCount}/{ip}",
-        "/scope/{scopeType}/{scopeId}/step-execution-result/log-content/{stepInstanceId}/{executeCount}/{ip}"})
+    @GetMapping(value = {"/step-execution-result/log-content/{stepInstanceId}/{executeCount}/{ip}"})
     Response<IpScriptLogContentVO> getScriptLogContentByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -237,11 +232,11 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
@@ -254,8 +249,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取文件分发步骤IP对应的日志", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/{ip}",
-        "/scope/{scopeType}/{scopeId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/{ip}"})
+    @GetMapping(value = {"/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/{ip}"})
     Response<IpFileLogContentVO> getFileLogContentByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -263,11 +257,11 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
@@ -284,10 +278,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取文件分发步骤文件任务ID对应的执行日志", produces = "application/json")
-    @PostMapping(value = {
-        "/app/{appId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/query-by-ids",
-        "/scope/{scopeType}/{scopeId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/query-by" +
-            "-ids"})
+    @PostMapping(value = {"/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/query-by-ids"})
     Response<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -295,11 +286,11 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
@@ -313,8 +304,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/step-execution-result/variable/{stepInstanceId}/{ip}",
-        "/scope/{scopeType}/{scopeId}/step-execution-result/variable/{stepInstanceId}/{ip}"})
+    @GetMapping(value = {"/step-execution-result/variable/{stepInstanceId}/{ip}"})
     Response<List<ExecuteVariableVO>> getStepVariableByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -322,11 +312,11 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
@@ -337,8 +327,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取执行结果分组下的主机列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/step-execution-result/hosts/{stepInstanceId}/{executeCount}",
-        "/scope/{scopeType}/{scopeId}/step-execution-result/hosts/{stepInstanceId}/{executeCount}"})
+    @GetMapping(value = {"/step-execution-result/hosts/{stepInstanceId}/{executeCount}"})
     Response<List<HostDTO>> getHostsByResultType(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -346,11 +335,11 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
@@ -361,7 +350,7 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "任务执行结果", name = "resultType", required = true)
         @RequestParam(value = "resultType")
             Integer resultType,
-        @ApiParam(value = "用户脚本输出的结果分组tag", name = "tag", required = false)
+        @ApiParam(value = "用户脚本输出的结果分组tag", name = "tag")
         @RequestParam(value = "tag", required = false)
             String tag,
         @ApiParam(value = "关键字", name = "keyword")
@@ -370,8 +359,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取步骤执行历史", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/step-execution-history/{stepInstanceId}",
-        "/scope/{scopeType}/{scopeId}/step-execution-history/{stepInstanceId}"})
+    @GetMapping(value = {"/step-execution-history/{stepInstanceId}"})
     Response<List<StepExecutionRecordVO>> listStepExecutionHistory(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -379,11 +367,11 @@ public interface WebTaskExecutionResultResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")

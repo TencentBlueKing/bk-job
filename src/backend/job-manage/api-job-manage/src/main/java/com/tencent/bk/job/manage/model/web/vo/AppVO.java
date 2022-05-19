@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.model.web.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -39,8 +38,7 @@ import lombok.NoArgsConstructor;
 @ApiModel("业务")
 @Data
 public class AppVO {
-    @ApiModelProperty(value = "业务ID", hidden = true)
-    @DeprecatedAppLogic
+    @ApiModelProperty(value = "Job业务ID", hidden = true)
     private Long id;
     @ApiModelProperty("资源范围类型")
     private String scopeType;
@@ -48,9 +46,6 @@ public class AppVO {
     private String scopeId;
     @ApiModelProperty("业务名称")
     private String name;
-    @ApiModelProperty("业务类型")
-    @DeprecatedAppLogic
-    private Integer type;
     @ApiModelProperty("是否有权限")
     private Boolean hasPermission;
     @ApiModelProperty("是否收藏")
@@ -63,7 +58,6 @@ public class AppVO {
                  String scopeType,
                  String scopeId,
                  String name,
-                 Integer type,
                  Boolean hasPermission,
                  Boolean favor,
                  Long favorTime) {
@@ -71,7 +65,6 @@ public class AppVO {
         this.scopeType = scopeType;
         this.scopeId = scopeId;
         this.name = name;
-        this.type = type;
         this.hasPermission = hasPermission;
         this.favor = favor;
         this.favorTime = favorTime;

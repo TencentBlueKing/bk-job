@@ -56,7 +56,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final DSLContext dslContext;
     private final ApplicationDAO applicationDAO;
     private final ApplicationCache applicationCache;
-    private final TopologyHelper topologyHelper;
     private final AccountService accountService;
 
     @Autowired
@@ -68,7 +67,6 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationCache = applicationCache;
-        this.topologyHelper = topologyHelper;
         this.accountService = accountService;
     }
 
@@ -197,11 +195,6 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
         }
         return fullAppIds;
-    }
-
-    @Override
-    public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
-        return applicationDAO.listAppsByType(appType);
     }
 
     @Override

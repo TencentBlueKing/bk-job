@@ -176,8 +176,7 @@ public class WebAppResourceImpl implements WebAppResource {
         if (appResourceScopeResult.getAny()) {
             for (ApplicationDTO app : appList) {
                 AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), app.getAppType().getValue(),
-                    true, null, null);
+                    app.getScope().getId(), app.getName(), true, null, null);
                 finalAppList.add(appVO);
                 availableAppIds.add(app.getId());
             }
@@ -185,8 +184,7 @@ public class WebAppResourceImpl implements WebAppResource {
             // 根据权限中心结果鉴权
             for (ApplicationDTO app : appList) {
                 AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), app.getAppType().getValue(),
-                    true, null, null);
+                    app.getScope().getId(), app.getName(), true, null, null);
                 appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
                 finalAppList.add(appVO);
             }

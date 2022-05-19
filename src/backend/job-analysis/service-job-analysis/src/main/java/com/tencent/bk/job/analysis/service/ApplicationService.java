@@ -30,5 +30,5 @@ import java.util.List;
 
 public interface ApplicationService {
 
-    List<ServiceApplicationDTO> listLocalDBApps(Integer appType);
+    List<ServiceApplicationDTO> listLocalDBApps();
 }

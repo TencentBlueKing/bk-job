@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.manage.model.dto.script;
 
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTemplateVO;
 import io.swagger.annotations.ApiModel;
@@ -31,6 +34,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
 
 @Getter
 @Setter
@@ -54,7 +59,13 @@ public class ScriptCitedTaskTemplateDTO {
 
     public ScriptCitedTemplateVO toVO() {
         ScriptCitedTemplateVO scriptCitedTemplateVO = new ScriptCitedTemplateVO();
-        scriptCitedTemplateVO.setAppId(appId);
+        if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
+            AppScopeMappingService appScopeMappingService =
+                ApplicationContextRegister.getBean(AppScopeMappingService.class);
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+            scriptCitedTemplateVO.setScopeType(resourceScope.getType().getValue());
+            scriptCitedTemplateVO.setScopeId(resourceScope.getId());
+        }
         scriptCitedTemplateVO.setScriptVersion(scriptVersion);
         scriptCitedTemplateVO.setScriptStatus(scriptStatus.getValue());
         scriptCitedTemplateVO.setScriptStatusDesc(scriptStatusDesc);

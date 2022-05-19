@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.web.interceptor;
 import brave.Tracer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -66,8 +65,6 @@ import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_S
 @Component
 public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     private static final Pattern SCOPE_PATTERN = Pattern.compile("/scope/(\\w+)/(\\d+)");
-    @DeprecatedAppLogic
-    private static final Pattern APP_ID_PATTERN = Pattern.compile("/app/(\\d+)");
 
     private final Tracer tracer;
 
@@ -197,12 +194,6 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             return buildAppResourceScope(resourceScope);
         }
 
-        // 兼容当前业务ID路径模式
-        Long appId = parseAppIdFromURI(requestURI);
-        if (appId != null) {
-            return buildAppResourceScope(appId);
-        }
-
         return null;
     }
 
@@ -215,22 +206,8 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return resourceScope;
     }
 
-    private Long parseAppIdFromURI(String requestURI) {
-        Matcher appIdMatcher = APP_ID_PATTERN.matcher(requestURI);
-        Long appId = null;
-        if (appIdMatcher.find()) {
-            appId = Long.valueOf(appIdMatcher.group(1));
-        }
-        return appId;
-    }
-
     private AppResourceScope buildAppResourceScope(ResourceScope resourceScope) {
         Long appId = appScopeMappingService.getAppIdByScope(resourceScope);
-        return new AppResourceScope(appId, resourceScope);
-    }
-
-    private AppResourceScope buildAppResourceScope(Long appId) {
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         return new AppResourceScope(appId, resourceScope);
     }
 
