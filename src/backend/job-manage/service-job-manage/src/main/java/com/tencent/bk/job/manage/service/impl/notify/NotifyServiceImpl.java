@@ -856,7 +856,7 @@ public class NotifyServiceImpl implements NotifyService {
         NotifyTemplateDTO templateDTO,
         Map<String, String> variablesMap
     ) {
-        ApplicationDTO applicationDTO = applicationDAO.getCacheAppById(appId);
+        ApplicationDTO applicationDTO = applicationDAO.getAppById(appId);
         if (applicationDTO == null) {
             log.error("cannot find applicationInfo of appId:{}", appId);
             return null;

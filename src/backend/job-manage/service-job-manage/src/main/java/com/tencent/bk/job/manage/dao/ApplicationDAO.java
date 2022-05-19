@@ -37,8 +37,6 @@ import java.util.List;
 
 public interface ApplicationDAO {
 
-    ApplicationDTO getCacheAppById(long appId);
-
     ApplicationDTO getAppById(long appId);
 
     List<Long> getBizIdsByOptDeptId(Long optDeptId);
