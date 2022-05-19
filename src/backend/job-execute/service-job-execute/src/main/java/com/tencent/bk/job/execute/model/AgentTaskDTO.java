@@ -203,6 +203,7 @@ public class AgentTaskDTO {
         this.startTime = null;
         this.endTime = null;
         this.totalTime = null;
+
         this.errorCode = 0;
         this.scriptLogOffset = 0;
         this.exitCode = null;
