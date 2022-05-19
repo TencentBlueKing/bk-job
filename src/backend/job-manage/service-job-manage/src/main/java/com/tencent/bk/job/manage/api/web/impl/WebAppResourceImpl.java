@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
@@ -64,8 +63,6 @@ import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.helpers.FormattingTuple;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -235,17 +232,6 @@ public class WebAppResourceImpl implements WebAppResource {
         });
     }
 
-    private void assertAppNotNull(ApplicationDTO applicationDTO, String scopeType, String scopeId) {
-        if (applicationDTO == null) {
-            FormattingTuple msg = MessageFormatter.format(
-                "cannot find app by scope ({},{})",
-                scopeType,
-                scopeId
-            );
-            throw new NotFoundException(msg.getMessage(), ErrorCode.APP_NOT_EXIST);
-        }
-    }
-
     @Override
     public Response<Integer> favorApp(String username,
                                       AppResourceScope appResourceScope,
@@ -256,7 +242,6 @@ public class WebAppResourceImpl implements WebAppResource {
             favorAppReq.getScopeType(),
             favorAppReq.getScopeId()
         );
-        assertAppNotNull(applicationDTO, scopeType, scopeId);
         return Response.buildSuccessResp(
             applicationFavorService.favorApp(username, applicationDTO.getId())
         );
@@ -272,7 +257,6 @@ public class WebAppResourceImpl implements WebAppResource {
             favorAppReq.getScopeType(),
             favorAppReq.getScopeId()
         );
-        assertAppNotNull(applicationDTO, scopeType, scopeId);
         return Response.buildSuccessResp(
             applicationFavorService.cancelFavorApp(username, applicationDTO.getId())
         );
