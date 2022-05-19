@@ -96,7 +96,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "根据条件获取业务下的所有账号", produces = "application/json")
-    @GetMapping({"/app/{appId}/accounts/page", "/scope/{scopeType}/{scopeId}/accounts/page"})
+    @GetMapping({"/scope/{scopeType}/{scopeId}/accounts/page"})
     Response<PageData<AccountVO>> listAppAccounts(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -104,11 +104,11 @@ public interface WebAppAccountResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "账号ID：精确搜索（若传入则自动屏蔽其他条件）")
         @RequestParam(value = "id", required = false)
@@ -169,8 +169,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "获取账号详情", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/account/{accountId}",
-        "/scope/{scopeType}/{scopeId}/account/{accountId}"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/account/{accountId}"})
     Response<AccountVO> getAccountById(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -178,11 +177,11 @@ public interface WebAppAccountResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "账号ID", required = true)
         @PathVariable("accountId")
@@ -190,7 +189,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "获取业务下的账号列表，返回简单的账号信息", produces = "application/json")
-    @GetMapping({"/app/{appId}/accounts", "/scope/{scopeType}/{scopeId}/accounts"})
+    @GetMapping({"/scope/{scopeType}/{scopeId}/accounts"})
     Response<List<AccountVO>> listAccounts(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -198,11 +197,11 @@ public interface WebAppAccountResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "账号用途,1-系统账号，2-DB账号,不传表示所有用途", required = false)
         @RequestParam(value = "category", required = false)

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -62,7 +61,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @since 4/11/2019 22:46
+ * 业务DAO
  */
 @Slf4j
 @Repository
@@ -185,12 +184,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllAppsWithDeleted() {
-        List<Condition> conditions = new ArrayList<>();
-        return listAppsByConditions(conditions);
-    }
-
-    @Override
     public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_ID.in(appIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
@@ -235,13 +228,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizSetApps() {
-        List<Condition> conditions = getBasicNotDeletedConditions();
-        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
-        return listAppsByConditions(conditions);
-    }
-
-    @Override
     public List<ApplicationDTO> listAllBizSetAppsWithDeleted() {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
@@ -249,7 +235,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @DeprecatedAppLogic
     public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_TYPE.eq((byte) appType.getValue()));
@@ -263,18 +248,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         return listAppsByConditions(conditions);
     }
 
-    private void setDefaultValue(ApplicationDTO applicationDTO) {
-        if (applicationDTO.getAppType() == null) {
-            applicationDTO.setAppType(AppTypeEnum.NORMAL);
-        }
-        if (applicationDTO.getBkSupplierAccount() == null) {
-            applicationDTO.setBkSupplierAccount("-1");
-        }
-    }
-
     @Override
     public Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
-        setDefaultValue(applicationDTO);
         val subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
         if (subBizIds != null) {
@@ -327,7 +302,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Override
     public Long insertAppWithSpecifiedAppId(DSLContext dslContext,
                                             ApplicationDTO applicationDTO) {
-        setDefaultValue(applicationDTO);
         val subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
         if (subBizIds != null) {
@@ -373,7 +347,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
-        setDefaultValue(applicationDTO);
         List<Long> subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
         if (subBizIds != null) {

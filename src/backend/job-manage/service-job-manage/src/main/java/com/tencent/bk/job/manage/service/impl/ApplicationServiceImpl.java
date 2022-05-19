@@ -56,7 +56,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final DSLContext dslContext;
     private final ApplicationDAO applicationDAO;
     private final ApplicationCache applicationCache;
-    private final TopologyHelper topologyHelper;
     private final AccountService accountService;
 
     @Autowired
@@ -68,7 +67,6 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationCache = applicationCache;
-        this.topologyHelper = topologyHelper;
         this.accountService = accountService;
     }
 
@@ -130,7 +128,8 @@ public class ApplicationServiceImpl implements ApplicationService {
             if (application != null) {
                 applicationCache.addOrUpdateApp(application);
             } else {
-                throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+                log.info("Get app by scope, app not exist in db or cache! resourceScope: {}", resourceScope);
+                throw new NotFoundException("App not found, resourceScope:" + resourceScope, ErrorCode.APP_NOT_EXIST);
             }
         }
         return application;
@@ -168,14 +167,16 @@ public class ApplicationServiceImpl implements ApplicationService {
                 allAppTypeGroupMap.get(AppTypeEnum.NORMAL) : new ArrayList<ApplicationDTO>();
 
             //普通业务按部门分组
-            Map<Long, List<ApplicationDTO>> normalAppGroupMap = normalAppList.stream().filter(normalApp -> normalApp.getOperateDeptId() != null).collect(
+            Map<Long, List<ApplicationDTO>> normalAppGroupMap =
+                normalAppList.stream().filter(normalApp -> normalApp.getOperateDeptId() != null).collect(
                 Collectors.groupingBy(ApplicationDTO::getOperateDeptId));
 
             //查找包含当前业务的业务集
             List<ApplicationDTO> appSetList = allAppTypeGroupMap.get(AppTypeEnum.APP_SET);
             if (appSetList != null && !appSetList.isEmpty()) {
                 appSetList.stream().forEach(appSet -> {
-                    List<Long> subAppIds = appSet.getSubBizIds() == null ? new ArrayList<Long>() : appSet.getSubBizIds();
+                    List<Long> subAppIds = appSet.getSubBizIds() == null ? new ArrayList<Long>() :
+                        appSet.getSubBizIds();
                     Long optDeptId = appSet.getOperateDeptId();
                     if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
                         List<Long> normalAppIdList =
@@ -194,11 +195,6 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
         }
         return fullAppIds;
-    }
-
-    @Override
-    public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
-        return applicationDAO.listAppsByType(appType);
     }
 
     @Override

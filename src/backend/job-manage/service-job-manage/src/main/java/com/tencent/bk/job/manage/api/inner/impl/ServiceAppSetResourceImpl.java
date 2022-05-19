@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -60,7 +60,7 @@ import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_S
 
 @Slf4j
 @RestController
-@DeprecatedAppLogic
+@CompatibleImplementation(explain = "兼容接口，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
 public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
 
     private final ApplicationDAO applicationDAO;

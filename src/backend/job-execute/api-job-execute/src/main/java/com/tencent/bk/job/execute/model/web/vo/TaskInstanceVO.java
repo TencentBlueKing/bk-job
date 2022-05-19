@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
@@ -64,12 +63,6 @@ public class TaskInstanceVO {
      */
     @ApiModelProperty("是否调试执行方案")
     private Boolean debugTask;
-
-    /**
-     * 业务id
-     */
-    @CompatibleImplementation(explain = "为了无损发布保留的历史字段，发布完成需要删除", version = "3.5.1")
-    private Long appId;
 
     /**
      * 资源范围类型

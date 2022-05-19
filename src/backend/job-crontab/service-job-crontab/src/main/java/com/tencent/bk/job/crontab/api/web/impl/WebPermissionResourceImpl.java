@@ -57,19 +57,18 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username, OperationPermissionReq req) {
         return checkOperationPermission(
-            username, req.getAppId(), req.getScopeType(), req.getScopeId(),
+            username, req.getScopeType(), req.getScopeId(),
             req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
     }
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
-                                                           Long appId,
                                                            String scopeType,
                                                            String scopeId,
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        AppResourceScope appResourceScope = toAppResourceScope(appId, scopeType, scopeId);
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         if (StringUtils.isEmpty(operation)) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
@@ -104,9 +103,5 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
-    }
-
-    private AppResourceScope toAppResourceScope(Long appId, String scopeType, String scopeId) {
-        return new AppResourceScope(scopeType, scopeId, appId);
     }
 }

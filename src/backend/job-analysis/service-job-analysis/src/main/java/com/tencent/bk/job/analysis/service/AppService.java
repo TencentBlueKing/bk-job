@@ -135,8 +135,7 @@ public class AppService {
     }
 
     public List<ServiceApplicationDTO> listLocalDBApps() {
-        val resp = applicationResourceClient.listApps(null, null);
-        List<ServiceApplicationDTO> apps = resp.getData();
-        return apps;
+        val resp = applicationResourceClient.listApps(null);
+        return resp.getData();
     }
 }

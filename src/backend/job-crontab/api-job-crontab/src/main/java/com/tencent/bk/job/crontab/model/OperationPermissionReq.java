@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.crontab.model;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -37,11 +36,6 @@ public class OperationPermissionReq {
 
     @ApiModelProperty("资源ID,比如作业ID,定时任务ID;对于部分不需要资源ID的操作(新建),不需要传参")
     private String resourceId;
-
-    @DeprecatedAppLogic
-    @ApiModelProperty("业务ID")
-    private Long appId;
-
     @ApiModelProperty("资源范围类型,biz-cmdb业务,biz_set-cmdb业务集")
     private String scopeType;
 

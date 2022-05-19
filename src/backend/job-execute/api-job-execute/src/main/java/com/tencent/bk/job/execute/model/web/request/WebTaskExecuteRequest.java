@@ -46,7 +46,7 @@ public class WebTaskExecuteRequest {
     /**
      * 全局变量
      */
-    @ApiModelProperty(value = "全局变量", required = false)
+    @ApiModelProperty(value = "全局变量")
     private List<ExecuteVariableVO> taskVariables;
 
 }

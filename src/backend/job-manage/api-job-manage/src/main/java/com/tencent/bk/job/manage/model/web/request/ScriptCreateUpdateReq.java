@@ -59,11 +59,6 @@ public class ScriptCreateUpdateReq {
     @ApiModelProperty(value = "脚本类型,新增脚本/脚本版本时需要传入", required = false)
     private Integer type;
     /**
-     * 业务ID
-     */
-    @ApiModelProperty(value = "业务ID", required = true, example = "2")
-    private Long appId;
-    /**
      * 脚本内容
      */
     @ApiModelProperty(value = "脚本内容,新增脚本/脚本版本时需要传入，BASE64编码", required = false)

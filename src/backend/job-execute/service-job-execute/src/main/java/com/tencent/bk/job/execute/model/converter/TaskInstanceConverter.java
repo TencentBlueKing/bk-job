@@ -47,7 +47,6 @@ public class TaskInstanceConverter {
         TaskInstanceVO taskInstanceVO = new TaskInstanceVO();
         taskInstanceVO.setId(taskInstanceDTO.getId());
 
-        taskInstanceVO.setAppId(taskInstanceDTO.getAppId());
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(taskInstanceDTO.getAppId());
         taskInstanceVO.setScopeType(resourceScope.getType().getValue());
         taskInstanceVO.setScopeId(resourceScope.getId());
