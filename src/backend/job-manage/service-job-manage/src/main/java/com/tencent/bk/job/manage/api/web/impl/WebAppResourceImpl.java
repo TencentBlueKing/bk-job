@@ -235,6 +235,17 @@ public class WebAppResourceImpl implements WebAppResource {
         });
     }
 
+    private void assertAppNotNull(ApplicationDTO applicationDTO, String scopeType, String scopeId) {
+        if (applicationDTO == null) {
+            FormattingTuple msg = MessageFormatter.format(
+                "cannot find app by scope ({},{})",
+                scopeType,
+                scopeId
+            );
+            throw new NotFoundException(msg.getMessage(), ErrorCode.APP_NOT_EXIST);
+        }
+    }
+
     @Override
     public Response<Integer> favorApp(String username,
                                       AppResourceScope appResourceScope,
@@ -245,14 +256,7 @@ public class WebAppResourceImpl implements WebAppResource {
             favorAppReq.getScopeType(),
             favorAppReq.getScopeId()
         );
-        if (applicationDTO == null) {
-            FormattingTuple msg = MessageFormatter.format(
-                "cannot find app by scope ({},{})",
-                scopeType,
-                scopeId
-            );
-            throw new NotFoundException(msg.getMessage(), ErrorCode.APP_NOT_EXIST);
-        }
+        assertAppNotNull(applicationDTO, scopeType, scopeId);
         return Response.buildSuccessResp(
             applicationFavorService.favorApp(username, applicationDTO.getId())
         );
@@ -268,14 +272,7 @@ public class WebAppResourceImpl implements WebAppResource {
             favorAppReq.getScopeType(),
             favorAppReq.getScopeId()
         );
-        if (applicationDTO == null) {
-            FormattingTuple msg = MessageFormatter.format(
-                "cannot find app by scope ({},{})",
-                scopeType,
-                scopeId
-            );
-            throw new NotFoundException(msg.getMessage(), ErrorCode.APP_NOT_EXIST);
-        }
+        assertAppNotNull(applicationDTO, scopeType, scopeId);
         return Response.buildSuccessResp(
             applicationFavorService.cancelFavorApp(username, applicationDTO.getId())
         );
