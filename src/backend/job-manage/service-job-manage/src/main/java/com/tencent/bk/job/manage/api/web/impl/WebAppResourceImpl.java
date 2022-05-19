@@ -74,6 +74,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -161,9 +162,15 @@ public class WebAppResourceImpl implements WebAppResource {
                 if (appResourceScope.getAppId() != null) {
                     return appResourceScope.getAppId();
                 }
-                return appScopeMappingService.getAppIdByScope(
-                    appResourceScope.getType().getValue(), appResourceScope.getId());
-            }).collect(Collectors.toList());
+                try {
+                    return appScopeMappingService.getAppIdByScope(
+                        appResourceScope.getType().getValue(), appResourceScope.getId());
+                } catch (NotFoundException e) {
+                    log.warn("Invalid scope", e);
+                    // 如果业务不存在，那么忽略
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toList());
         // 所有可用的AppId
         List<Long> availableAppIds = new ArrayList<>();
         if (appResourceScopeResult.getAny()) {
