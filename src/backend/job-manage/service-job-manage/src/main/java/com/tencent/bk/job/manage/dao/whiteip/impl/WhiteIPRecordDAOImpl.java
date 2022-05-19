@@ -372,7 +372,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 List<AppVO> appVOList = appIdList.stream().map(appIdStr -> {
                     long appId = Long.parseLong(appIdStr);
                     ApplicationDTO applicationDTO =
-                        applicationDAO.getCacheAppById(appId);
+                        applicationDAO.getAppById(appId);
                     AppVO appVO = new AppVO();
                     if (applicationDTO == null) {
                         appVO.setId(appId);

@@ -51,8 +51,6 @@ import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -90,12 +88,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Autowired
     public ApplicationDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context) {
         this.context = context;
-    }
-
-    @Override
-    @Cacheable(value = "appInfoCache", key = "#appId", unless = "#result == null")
-    public ApplicationDTO getCacheAppById(long appId) {
-        return getAppById(appId);
     }
 
     @Override
@@ -354,7 +346,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#applicationDTO.getId()")
     public int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
         List<Long> subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
@@ -376,7 +367,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#appId")
     public int restoreDeletedApp(DSLContext dslContext, long appId) {
         val query = dslContext.update(T_APP)
             .set(T_APP.IS_DELETED, UByte.valueOf(Bool.FALSE.getValue()))
@@ -389,7 +379,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#appId")
     public int deleteAppByIdSoftly(DSLContext dslContext, long appId) {
         val query = dslContext.update(T_APP)
             .set(T_APP.IS_DELETED, UByte.valueOf(1))
@@ -402,7 +391,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#appId")
     public int updateMaintainers(long appId, String maintainers) {
         return context.update(T_APP)
             .set(T_APP.MAINTAINERS, maintainers)
@@ -411,7 +399,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#appId")
     public int updateSubBizIds(long appId, String subBizIds) {
         return context.update(T_APP)
             .set(T_APP.SUB_APP_IDS, subBizIds)
