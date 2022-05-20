@@ -185,10 +185,10 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                                     //检查步骤
                                     for (ServiceTaskStepDTO taskStepDTO : taskPlanInfoDTO.getStepList()) {
                                         ServiceTaskHostNodeDTO taskHostNodeDTO = null;
-                                        if (taskStepDTO.getType() == TaskStepTypeEnum.SCRIPT.getType()) {
+                                        if (taskStepDTO.getType() == TaskStepTypeEnum.SCRIPT.getValue()) {
                                             taskHostNodeDTO =
                                                 taskStepDTO.getScriptStepInfo().getExecuteTarget().getTargetServer();
-                                        } else if (taskStepDTO.getType() == TaskStepTypeEnum.FILE.getType()) {
+                                        } else if (taskStepDTO.getType() == TaskStepTypeEnum.FILE.getValue()) {
                                             taskHostNodeDTO = taskStepDTO
                                                 .getFileStepInfo()
                                                 .getExecuteTarget()
