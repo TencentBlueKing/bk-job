@@ -54,9 +54,22 @@ public class FeatureToggleConfig {
     @Getter
     @Setter
     public static class ToggleConfig {
+        /**
+         * 特性开关是否开启
+         */
         private boolean enabled = true;
+        /**
+         * 是否支持灰度开启
+         */
         private boolean gray;
-        private List<Long> grayApps;
+        /**
+         * 按灰度业务，生效的业务,gray=true条件下该参数生效
+         */
+        private List<Long> includeApps;
+        /**
+         * 按业务灰度，排除掉的业务,gray=true的条件下该参数生效
+         */
+        private List<Long> excludeApps;
     }
 
     @PostConstruct

@@ -55,6 +55,7 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
     @Override
     protected void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
         log.info("Handle BizSetRelationEvent: {}", event);
+
         String eventType = event.getEventType();
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
@@ -66,6 +67,11 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
                             new ResourceScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), String.valueOf(bizSetId))
                         );
                     if (cacheApplication == null || cacheApplication.isDeleted()) {
+                        return;
+                    }
+                    if (!FeatureToggle.isCmdbBizSetEnabledForApp(cacheApplication.getId())) {
+                        log.info("Ignore cmdb biz set relation event, app[{}] cmdb biz set feature toggle is disabled",
+                            cacheApplication.getId());
                         return;
                     }
                     cacheApplication.setSubBizIds(latestSubBizIds);

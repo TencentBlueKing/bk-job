@@ -55,6 +55,11 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
         String eventType = event.getEventType();
         ApplicationDTO cachedApp =
             applicationService.getAppByScopeIncludingDeleted(latestApp.getScope());
+        if (cachedApp != null && !FeatureToggle.isCmdbBizSetEnabledForApp(cachedApp.getId())) {
+            log.info("Ignore cmdb biz set event, app[{}] cmdb biz set feature toggle is disabled", cachedApp.getId());
+            return;
+        }
+
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:

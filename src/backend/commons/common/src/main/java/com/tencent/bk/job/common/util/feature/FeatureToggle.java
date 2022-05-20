@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.util.feature;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * 特性开关
@@ -53,7 +54,11 @@ public class FeatureToggle {
         FeatureToggleConfig featureToggleConfig = get();
         FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
         return cmdbBizSetConfig.isEnabled()
-            && (!cmdbBizSetConfig.isGray() || cmdbBizSetConfig.getGrayApps().contains(appId));
+            && (!cmdbBizSetConfig.isGray() // 未开启灰度，全量启用
+            || (CollectionUtils.isEmpty(cmdbBizSetConfig.getIncludeApps())
+            || cmdbBizSetConfig.getIncludeApps().contains(appId)) // 如果使用includeApps参数，需要判断是否包含该业务
+            && (CollectionUtils.isEmpty(cmdbBizSetConfig.getExcludeApps())
+            || !cmdbBizSetConfig.getExcludeApps().contains(appId))); // 如果使用excludeApps参数，需要判断是否排除该业务
     }
 
     /**
