@@ -238,14 +238,9 @@ public class SyncServiceImpl implements SyncService {
      * 监听业务集相关的事件
      */
     private void watchBizSetEvent() {
-        if (FeatureToggle.isCmdbBizSetEnabled()) {
-            log.info("Cmdb biz set is enabled, watch biz_set and biz_set_relation resource event");
-            // 开一个常驻线程监听业务集变动事件
-            bizSetEventWatcher.start();
-            bizSetRelationEventWatcher.start();
-        } else {
-            log.info("Cmdb biz set is disabled, ignore related event");
-        }
+        // 开一个常驻线程监听业务集变动事件
+        bizSetEventWatcher.start();
+        bizSetRelationEventWatcher.start();
     }
 
     public boolean addExtraSyncBizHostsTask(Long bizId) {
