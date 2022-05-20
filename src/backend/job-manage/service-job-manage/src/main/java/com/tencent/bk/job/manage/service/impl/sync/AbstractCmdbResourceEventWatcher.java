@@ -122,6 +122,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
         log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis());
         String cursor = null;
+
         while (isWatchingEnabled()) {
             Span span = null;
             try {
@@ -147,6 +148,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 log.error("EventWatch thread fail", t);
                 cursor = null;
             }
+            // 如果事件开关为disabled，间隔30s重新判断是否开启
+            ThreadUtils.sleep(30_000L);
         }
     }
 

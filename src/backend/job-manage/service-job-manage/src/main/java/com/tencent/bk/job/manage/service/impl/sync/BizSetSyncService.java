@@ -100,8 +100,8 @@ public class BizSetSyncService extends BasicAppSyncService {
         List<ApplicationDTO> localBizSetApps = applicationDAO.listAllBizSetAppsWithDeleted();
         // 本地业务bizId
         Set<Long> localBizSetIds =
-            localBizSetApps.stream().
-                map(localBizSetApp -> Long.valueOf(localBizSetApp.getScope().getId()))
+            localBizSetApps.stream()
+                .map(localBizSetApp -> Long.valueOf(localBizSetApp.getScope().getId()))
                 .collect(Collectors.toSet());
         log.info("Local cached bizSetIds: {}", localBizSetIds);
 
@@ -200,5 +200,9 @@ public class BizSetSyncService extends BasicAppSyncService {
         appInfoDTO.setScope(
             new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, bizSetInfo.getId().toString()));
         return appInfoDTO;
+    }
+
+    private void filterGrayBizSet() {
+
     }
 }
