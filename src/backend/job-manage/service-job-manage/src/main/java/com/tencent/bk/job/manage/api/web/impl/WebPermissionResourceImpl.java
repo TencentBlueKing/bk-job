@@ -48,8 +48,6 @@ import com.tencent.bk.job.manage.model.web.request.OperationPermissionReq;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -117,7 +115,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username, OperationPermissionReq req) {
-        return checkOperationPermission(username, req.getAppId(), req.getScopeType(), req.getScopeId(),
+        return checkOperationPermission(username, req.getScopeType(), req.getScopeId(),
             req.getOperation(), req.getResourceId(),
             req.isReturnPermissionDetail());
     }
@@ -129,13 +127,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private PathInfoDTO buildTaskPlanPathInfo(AppResourceScope appResourceScope, Long templateId) {
-        return PathBuilder.newBuilder(
-            IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope), appResourceScope.getId())
-            .child(ResourceTypeEnum.TEMPLATE.getId(), templateId.toString())
-            .build();
     }
 
     private Response<AuthResultVO> checkScriptOperationPermission(String username,
@@ -507,7 +498,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     @Override
     public Response<AuthResultVO> checkOperationPermission(
         String username,
-        Long appId,
         String scopeType,
         String scopeId,
         String operation,
@@ -523,7 +513,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         String resourceType = resourceAndAction[0];
         String action = resourceAndAction[1];
-        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, appId);
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         boolean isReturnApplyUrl = returnPermissionDetail != null && returnPermissionDetail;
 
         switch (resourceType) {

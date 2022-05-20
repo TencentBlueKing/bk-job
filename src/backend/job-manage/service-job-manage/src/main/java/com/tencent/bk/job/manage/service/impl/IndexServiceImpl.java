@@ -121,7 +121,7 @@ public class IndexServiceImpl implements IndexService {
     @Override
     public AgentStatistics getAgentStatistics(String username, AppResourceScope appResourceScope) {
         // 查出业务
-        ApplicationDTO appInfo = applicationDAO.getCacheAppById(appResourceScope.getAppId());
+        ApplicationDTO appInfo = applicationDAO.getAppById(appResourceScope.getAppId());
         Long normalNum;
         Long abnormalNum;
         List<Long> hostIds;
@@ -168,7 +168,7 @@ public class IndexServiceImpl implements IndexService {
      */
     private List<Long> getQueryConditionBizIds(Long appId) {
         // 查出业务
-        ApplicationDTO appInfo = applicationDAO.getCacheAppById(appId);
+        ApplicationDTO appInfo = applicationDAO.getAppById(appId);
         List<Long> bizIds;
         if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
             bizIds = Collections.singletonList(Long.valueOf(appInfo.getScope().getId()));

@@ -61,7 +61,7 @@ import java.util.List;
 public interface WebTagResource {
 
     @ApiOperation(value = "根据条件获取业务下的所有标签", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/tag/list", "/scope/{scopeType}/{scopeId}/tag/list"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/tag/list"})
     Response<PageData<TagVO>> listPageTags(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -69,11 +69,11 @@ public interface WebTagResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam("标签名称,支持模糊查询")
         @RequestParam(value = "name", required = false)
@@ -99,18 +99,18 @@ public interface WebTagResource {
     );
 
     @ApiOperation(value = "根据条件获取业务下的所有标签,仅返回基础信息(id/name/description)", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/tag/basic/list", "/scope/{scopeType}/{scopeId}/tag/basic/list"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/tag/basic/list"})
     Response<List<TagVO>> listTagsBasic(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam("标签名称")
         @RequestParam(value = "name", required = false)
@@ -125,11 +125,11 @@ public interface WebTagResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "标签 ID", required = true)
         @PathVariable("tagId")

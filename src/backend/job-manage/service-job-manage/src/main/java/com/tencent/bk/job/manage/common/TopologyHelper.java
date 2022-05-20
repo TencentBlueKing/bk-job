@@ -38,8 +38,6 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
@@ -254,9 +252,6 @@ public class TopologyHelper {
             return null;
         }
         DynamicGroupInfoVO dynamicGroupInfoVO = new DynamicGroupInfoVO();
-        dynamicGroupInfoVO.setAppId(dynamicGroupInfoDTO.getBizId());
-        AppScopeMappingService appScopeMappingService =
-            ApplicationContextRegister.getBean(AppScopeMappingService.class);
         dynamicGroupInfoVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
         dynamicGroupInfoVO.setScopeId(dynamicGroupInfoDTO.getBizId().toString());
         dynamicGroupInfoVO.setAppName(dynamicGroupInfoDTO.getBizName());
@@ -307,7 +302,7 @@ public class TopologyHelper {
      */
     public String getTopologyNodeName(Long appId, Long nodeId, String nodeType) {
         Map<String, Map<Long, String>> nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
-        ApplicationDTO appInfo = applicationDAO.getCacheAppById(appId);
+        ApplicationDTO appInfo = applicationDAO.getAppById(appId);
         if (appInfo == null) {
             return String.valueOf(nodeId);
         }

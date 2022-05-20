@@ -188,7 +188,6 @@ public class FileWorkerDTO {
         FileWorkerVO fileWorkerVO = new FileWorkerVO();
         fileWorkerVO.setId(id);
 
-        fileWorkerVO.setAppId(appId);
         if (appId != null && appId > 0) {
             // 具体的业务/业务集
             AppScopeMappingService appScopeMappingService =

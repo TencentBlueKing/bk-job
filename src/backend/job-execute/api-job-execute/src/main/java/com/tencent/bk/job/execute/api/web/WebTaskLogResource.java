@@ -62,11 +62,11 @@ public interface WebTaskLogResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
@@ -89,11 +89,11 @@ public interface WebTaskLogResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")

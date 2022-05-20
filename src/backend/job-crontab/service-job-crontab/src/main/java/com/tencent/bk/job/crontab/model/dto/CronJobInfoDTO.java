@@ -188,7 +188,6 @@ public class CronJobInfoDTO {
         }
         CronJobVO cronJobVO = new CronJobVO();
         cronJobVO.setId(cronJobInfo.getId());
-        cronJobVO.setAppId(cronJobInfo.getAppId());
         AppScopeMappingService appScopeMappingService =
             ApplicationContextRegister.getBean(AppScopeMappingService.class);
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(cronJobInfo.getAppId());
@@ -232,7 +231,6 @@ public class CronJobInfoDTO {
         }
         CronJobVO cronJobVO = new CronJobVO();
         cronJobVO.setId(cronJobInfo.getId());
-        cronJobVO.setAppId(cronJobInfo.getAppId());
         AppScopeMappingService appScopeMappingService =
             ApplicationContextRegister.getBean(AppScopeMappingService.class);
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(cronJobInfo.getAppId());

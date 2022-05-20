@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -52,8 +51,6 @@ import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -64,7 +61,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @since 4/11/2019 22:46
+ * 业务DAO
  */
 @Slf4j
 @Repository
@@ -91,12 +88,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Autowired
     public ApplicationDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context) {
         this.context = context;
-    }
-
-    @Override
-    @Cacheable(value = "appInfoCache", key = "#appId", unless = "#result == null")
-    public ApplicationDTO getCacheAppById(long appId) {
-        return getAppById(appId);
     }
 
     @Override
@@ -193,12 +184,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllAppsWithDeleted() {
-        List<Condition> conditions = new ArrayList<>();
-        return listAppsByConditions(conditions);
-    }
-
-    @Override
     public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_ID.in(appIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
@@ -243,13 +228,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizSetApps() {
-        List<Condition> conditions = getBasicNotDeletedConditions();
-        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
-        return listAppsByConditions(conditions);
-    }
-
-    @Override
     public List<ApplicationDTO> listAllBizSetAppsWithDeleted() {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
@@ -257,7 +235,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @DeprecatedAppLogic
     public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_TYPE.eq((byte) appType.getValue()));
@@ -271,18 +248,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         return listAppsByConditions(conditions);
     }
 
-    private void setDefaultValue(ApplicationDTO applicationDTO) {
-        if (applicationDTO.getAppType() == null) {
-            applicationDTO.setAppType(AppTypeEnum.NORMAL);
-        }
-        if (applicationDTO.getBkSupplierAccount() == null) {
-            applicationDTO.setBkSupplierAccount("-1");
-        }
-    }
-
     @Override
     public Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
-        setDefaultValue(applicationDTO);
         val subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
         if (subBizIds != null) {
@@ -335,7 +302,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Override
     public Long insertAppWithSpecifiedAppId(DSLContext dslContext,
                                             ApplicationDTO applicationDTO) {
-        setDefaultValue(applicationDTO);
         val subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
         if (subBizIds != null) {
@@ -380,9 +346,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#applicationDTO.getId()")
     public int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
-        setDefaultValue(applicationDTO);
         List<Long> subBizIds = applicationDTO.getSubBizIds();
         String subBizIdsStr = null;
         if (subBizIds != null) {
@@ -403,7 +367,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#appId")
     public int restoreDeletedApp(DSLContext dslContext, long appId) {
         val query = dslContext.update(T_APP)
             .set(T_APP.IS_DELETED, UByte.valueOf(Bool.FALSE.getValue()))
@@ -416,7 +379,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#appId")
     public int deleteAppByIdSoftly(DSLContext dslContext, long appId) {
         val query = dslContext.update(T_APP)
             .set(T_APP.IS_DELETED, UByte.valueOf(1))
@@ -429,7 +391,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#appId")
     public int updateMaintainers(long appId, String maintainers) {
         return context.update(T_APP)
             .set(T_APP.MAINTAINERS, maintainers)
@@ -438,7 +399,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    @CacheEvict(value = "appInfoCache", key = "#appId")
     public int updateSubBizIds(long appId, String subBizIds) {
         return context.update(T_APP)
             .set(T_APP.SUB_APP_IDS, subBizIds)

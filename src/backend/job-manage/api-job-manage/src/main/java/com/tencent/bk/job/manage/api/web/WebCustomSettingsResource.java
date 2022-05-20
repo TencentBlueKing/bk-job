@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.api.web;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateCreateUpdateReq;
@@ -69,14 +68,10 @@ public interface WebCustomSettingsResource {
         @ApiParam("脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
         @RequestParam(value = "scriptLanguages", required = false)
             String scriptLanguages,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @RequestParam(value = "appId", required = false)
-            Long appId,
-        @ApiParam(value = "资源范围类型", required = false)
+        @ApiParam(value = "资源范围类型")
         @RequestParam(value = "scopeType", required = false)
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
+        @ApiParam(value = "资源范围ID")
         @RequestParam(value = "scopeId", required = false)
             String scopeId
     );

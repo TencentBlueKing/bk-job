@@ -30,6 +30,9 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.common.util.json.LongToDecimalJsonSerializer;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +48,9 @@ public class EsbStepInstanceStatusDTO {
     @JsonProperty("step_instance_analyse_result")
     private List<Map<String, Object>> ayalyseResult;
 
-    @Data
+    @Getter
+    @Setter
+    @ToString
     public static class StepInstance extends EsbAppScopeDTO {
         @JsonProperty("step_instance_id")
         private Long id;

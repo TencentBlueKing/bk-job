@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
@@ -104,10 +103,7 @@ public interface ServiceApplicationResource {
 
     @ApiOperation(value = "获取业务列表", produces = "application/json")
     @GetMapping("/app/list")
-    @DeprecatedAppLogic
     InternalResponse<List<ServiceApplicationDTO>> listApps(
-        @ApiParam(value = "业务类型", allowableValues = "1-普通业务,2-业务集,3-全业务")
-        @RequestParam(value = "appType", required = false) Integer appType,
         @ApiParam(value = "资源范围类型", allowableValues = "1-业务,2-业务集")
         @RequestParam(value = "scopeType", required = false) String scopeType);
 }

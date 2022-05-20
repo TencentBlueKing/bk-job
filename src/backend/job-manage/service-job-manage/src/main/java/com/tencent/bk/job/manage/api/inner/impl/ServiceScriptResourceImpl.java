@@ -102,7 +102,6 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
                                                                      Long lastModifyTime, String lastModifyUser,
                                                                      Integer scriptStatus, Long appId,
                                                                      ScriptCreateUpdateReq scriptCreateUpdateReq) {
-        scriptCreateUpdateReq.setAppId(appId);
         if (log.isDebugEnabled()) {
             log.debug("createScriptWithVersionId,operator={},appId={},script={},status={}", username, appId,
                 scriptCreateUpdateReq, scriptStatus);

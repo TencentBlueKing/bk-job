@@ -22,23 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.annotation;
+package com.tencent.bk.job.manage.model.web.request.app;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import static java.lang.annotation.ElementType.CONSTRUCTOR;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PACKAGE;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE;
+@Data
+@ApiModel("收藏业务")
+public class FavorAppReq {
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(value = {CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE})
-public @interface DeprecatedAppLogic {
+    @ApiModelProperty(value = "要收藏的资源范围类型", required = true)
+    private String scopeType;
+
+    @ApiModelProperty(value = "要收藏的资源范围ID", required = true)
+    private String scopeId;
 }
