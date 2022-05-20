@@ -112,7 +112,8 @@ public interface WebAppResource {
             String scopeType,
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
-            String scopeId
+            String scopeId,
+        @RequestBody FavorAppReq favorAppReq
     );
 
     @ApiOperation(value = "获取业务下的机器列表", produces = "application/json")
