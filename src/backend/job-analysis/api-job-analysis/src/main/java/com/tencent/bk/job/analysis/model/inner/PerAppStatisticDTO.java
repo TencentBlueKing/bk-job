@@ -22,12 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web;
+package com.tencent.bk.job.analysis.model.inner;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.analysis.model.web.PerAppStatisticVO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.PercentageFormatJsonSerializer;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,30 +39,42 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @ApiModel("单个业务的统计信息")
 @Data
-public class PerAppStatisticVO {
+public class PerAppStatisticDTO {
 
+    /**
+     * 业务ID
+     */
     @Deprecated
-    @ApiModelProperty("业务ID(勿用，仅做发布期间兼容)")
     private Long appId;
 
+    /**
+     * 资源范围名称
+     */
     @Deprecated
-    @ApiModelProperty("业务名称(勿用，仅做发布期间兼容)")
     private String appName;
 
-    @ApiModelProperty("资源范围类型(biz:业务，biz_set:业务集)")
-    private String scopeType;
-
-    @ApiModelProperty("资源范围ID")
-    private String scopeId;
-
-    @ApiModelProperty("资源范围名称")
-    private String scopeName;
-
-    @ApiModelProperty("统计量数值")
+    /**
+     * 统计量数值
+     */
     private Long value;
 
-    @ApiModelProperty("占比")
+    /**
+     * 占比
+     */
     @JsonSerialize(using = PercentageFormatJsonSerializer.class)
     private Float ratio;
 
+    public PerAppStatisticVO toPerAppStatisticVO() {
+        PerAppStatisticVO perAppStatisticVO = new PerAppStatisticVO();
+        perAppStatisticVO.setAppId(appId);
+        perAppStatisticVO.setAppName(appName);
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        perAppStatisticVO.setScopeType(resourceScope.getType().getValue());
+        perAppStatisticVO.setScopeId(resourceScope.getId());
+        perAppStatisticVO.setValue(value);
+        perAppStatisticVO.setRatio(ratio);
+        return perAppStatisticVO;
+    }
 }
