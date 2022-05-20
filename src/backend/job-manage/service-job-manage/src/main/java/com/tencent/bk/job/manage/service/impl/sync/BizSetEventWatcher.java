@@ -7,6 +7,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
@@ -103,13 +104,13 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
 
     @Override
     protected boolean isWatchingEnabled() {
-        boolean isEnabled = bizSetService.isBizSetMigratedToCMDB();
-        if (!isEnabled) {
-            log.warn("Job BizSets have not been migrated to CMDB, " +
-                "do not watch bizSet event from CMDB, " +
-                "please use upgrader in package to migrate as soon as possible"
-            );
+        boolean isBizSetMigratedToCMDB = bizSetService.isBizSetMigratedToCMDB();
+        boolean isCmdbBizSetEnabled = FeatureToggle.isCmdbBizSetEnabled();
+        boolean isWatchingEnabled = isBizSetMigratedToCMDB && isCmdbBizSetEnabled;
+        if (!isWatchingEnabled) {
+            log.warn("Watching biz set disabled, isBizSetMigratedToCMDB: {}, isCmdbBizSetEnabled: {}",
+                isBizSetMigratedToCMDB, isCmdbBizSetEnabled);
         }
-        return isEnabled;
+        return isWatchingEnabled;
     }
 }

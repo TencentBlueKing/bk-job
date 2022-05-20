@@ -57,11 +57,6 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
         try {
             while (true) {
                 try {
-                    if (!isWatchingEnabled()) {
-                        ThreadUtils.sleep(60_000);
-                        continue;
-                    }
-
                     boolean lockGotten = tryGetTaskLockPeriodically();
                     if (!lockGotten) {
                         // 30s之后重试
@@ -127,7 +122,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
         log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis());
         String cursor = null;
-        while (true) {
+        while (isWatchingEnabled()) {
             Span span = null;
             try {
                 ResourceWatchResult<E> watchResult;

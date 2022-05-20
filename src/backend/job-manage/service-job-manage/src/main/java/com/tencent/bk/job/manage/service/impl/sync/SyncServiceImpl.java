@@ -333,8 +333,10 @@ public class SyncServiceImpl implements SyncService {
                     // 从CMDB同步业务集信息
                     if (FeatureToggle.isCmdbBizSetEnabled()) {
                         bizSetSyncService.syncBizSetFromCMDB();
+                    } else {
+                        log.info("Cmdb biz set is disabled, skip sync apps!");
                     }
-                    log.info(Thread.currentThread().getName() + ":Finished:sync app from cc");
+                    log.info(Thread.currentThread().getName() + ":Finished:sync app from cmdb");
                     // 将最后同步时间写入Redis
                     redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,
                         "" + System.currentTimeMillis());
