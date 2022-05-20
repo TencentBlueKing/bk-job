@@ -96,7 +96,7 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
         boolean isCmdbBizSetEnabled = FeatureToggle.isCmdbBizSetEnabled();
         boolean isWatchingEnabled = isBizSetMigratedToCMDB && isCmdbBizSetEnabled;
         if (!isWatchingEnabled) {
-            log.warn("Watching biz set disabled, isBizSetMigratedToCMDB: {}, isCmdbBizSetEnabled: {}",
+            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}, isCmdbBizSetEnabled: {}",
                 isBizSetMigratedToCMDB, isCmdbBizSetEnabled);
         }
         return isWatchingEnabled;

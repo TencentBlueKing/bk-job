@@ -146,7 +146,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                         span.error(t);
                     }
                     log.error("EventWatch thread fail", t);
-                    cursor = null;
+                    // 如果处理事件过程中碰到异常，等待30s重试
+                    ThreadUtils.sleep(30_000);
                 }
             }
             // 如果事件开关为disabled，间隔30s重新判断是否开启
