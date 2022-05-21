@@ -30,6 +30,7 @@ import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -110,6 +111,9 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
 
     @Override
     public void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks) {
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            return;
+        }
         String sql = "update gse_file_agent_task set gse_task_id = ?, status = ?, start_time = ?, end_time = ?"
             + ", total_time = ?, error_code = ?"
             + " where step_instance_id = ? and execute_count = ? and batch = ? and mode = ? and ip = ?";

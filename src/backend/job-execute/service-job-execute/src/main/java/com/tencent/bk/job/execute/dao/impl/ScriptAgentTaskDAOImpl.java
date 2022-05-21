@@ -30,6 +30,7 @@ import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -114,6 +115,9 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     @Override
     public void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks) {
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            return;
+        }
         String sql = "update gse_script_agent_task set gse_task_id = ?, status = ?, start_time = ?, end_time = ?"
             + ", total_time = ?, error_code = ?, exit_code = ?, tag = ?, log_offset = ?"
             + " where step_instance_id = ? and execute_count = ? and batch = ? and ip = ?";
