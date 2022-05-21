@@ -94,8 +94,9 @@ public interface ApplicationService {
      * @param scopeType 资源范围类型
      * @param scopeId   资源范围ID
      * @return 业务
+     * @throws NotFoundException 业务/业务集不存在时抛出异常
      */
-    ApplicationDTO getAppByScope(String scopeType, String scopeId);
+    ApplicationDTO getAppByScope(String scopeType, String scopeId) throws NotFoundException;
 
     /**
      * 根据Job业务ID批量查询Job业务
