@@ -134,7 +134,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             param[10] = agentTask.getCloudIp();
             params[batchCount++] = param;
         }
-        CTX.transaction(configuration -> DSL.using(configuration).batch(sql, params).execute());
+        CTX.batch(sql, params).execute();
     }
 
     @Override

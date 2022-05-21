@@ -110,7 +110,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
             param[13] = agentTask.getDisplayIp();
             params[batchCount++] = param;
         }
-        CTX.transaction(configuration -> DSL.using(configuration).batch(sql, params).execute());
+        CTX.batch(sql, params).execute();
     }
 
     @Override
