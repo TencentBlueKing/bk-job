@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import javax.annotation.PostConstruct;
@@ -50,8 +51,10 @@ public class FeatureToggleConfig {
     private ToggleConfig esbApiParamBkBizId = new ToggleConfig();
 
 
+    /**
+     * 特性开关配置
+     */
     @ToString
-    @Getter
     @Setter
     public static class ToggleConfig {
         /**
@@ -59,17 +62,45 @@ public class FeatureToggleConfig {
          */
         private boolean enabled = true;
         /**
-         * 是否支持灰度开启
+         * 是否支持灰度
          */
         private boolean gray;
         /**
-         * 按灰度业务，生效的业务,gray=true条件下该参数生效
+         * 灰度-白名单
          */
-        private List<Long> includeApps;
+        private List<String> include;
         /**
-         * 按业务灰度，排除掉的业务,gray=true的条件下该参数生效
+         * 灰度-黑名单
          */
-        private List<Long> excludeApps;
+        private List<String> exclude;
+
+        /**
+         * 判断是否开启特性 - 灰度
+         */
+        public boolean isOpen(String value) {
+            if (!enabled) {
+                // 特性开关未开启
+                return false;
+            }
+            if (!gray) {
+                // 未开启灰度，全量开启
+                return true;
+            }
+            // 如果配置exclude参数，需要优先判断灰度黑名单
+            if (CollectionUtils.isNotEmpty(exclude) && exclude.contains(value)) {
+                return false;
+            }
+            // 是否在灰度白名单中
+            return CollectionUtils.isNotEmpty(include) && include.contains(value);
+        }
+
+        /**
+         * 判断是否开启特性
+         */
+        public boolean isOpen() {
+            return enabled;
+        }
+
     }
 
     @PostConstruct

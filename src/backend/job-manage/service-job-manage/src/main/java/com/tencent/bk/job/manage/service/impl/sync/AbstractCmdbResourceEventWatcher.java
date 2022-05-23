@@ -139,8 +139,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                     }
                     log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
                     cursor = handleWatchResult(watchResult, cursor);
-                    // 10s/watch一次
-                    ThreadUtils.sleep(10_000);
+                    // 1s/watch一次
+                    ThreadUtils.sleep(1_000);
                 } catch (Throwable t) {
                     if (span != null) {
                         span.error(t);

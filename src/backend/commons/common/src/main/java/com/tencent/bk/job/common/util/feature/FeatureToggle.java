@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.util.feature;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * 特性开关
@@ -46,28 +45,24 @@ public class FeatureToggle {
     }
 
     /**
-     * 业务是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     * 业务是否对接cmdb业务集
      *
      * @param appId Job业务ID
      */
     public static boolean isCmdbBizSetEnabledForApp(Long appId) {
         FeatureToggleConfig featureToggleConfig = get();
         FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
-        return cmdbBizSetConfig.isEnabled()
-            && (!cmdbBizSetConfig.isGray() // 未开启灰度，全量启用
-            || (CollectionUtils.isEmpty(cmdbBizSetConfig.getIncludeApps())
-            || cmdbBizSetConfig.getIncludeApps().contains(appId)) // 如果使用includeApps参数，需要判断是否包含该业务
-            && (CollectionUtils.isEmpty(cmdbBizSetConfig.getExcludeApps())
-            || !cmdbBizSetConfig.getExcludeApps().contains(appId))); // 如果使用excludeApps参数，需要判断是否排除该业务
+        return cmdbBizSetConfig.isOpen(String.valueOf(appId));
     }
 
+
     /**
-     * 是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     * 是否对接cmdb业务集
      */
     public static boolean isCmdbBizSetEnabled() {
         FeatureToggleConfig featureToggleConfig = get();
         FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
-        return cmdbBizSetConfig.isEnabled();
+        return cmdbBizSetConfig.isOpen();
     }
 
     /**
@@ -76,6 +71,6 @@ public class FeatureToggle {
     public static boolean isBkBizIdEnabled() {
         FeatureToggleConfig featureToggleConfig = get();
         FeatureToggleConfig.ToggleConfig toggleConfig = featureToggleConfig.getEsbApiParamBkBizId();
-        return toggleConfig.isEnabled();
+        return toggleConfig.isOpen();
     }
 }
