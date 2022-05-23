@@ -44,6 +44,7 @@ import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
@@ -452,7 +453,9 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                 genNormalAppWhiteIPInfo(whiteIPRecordDTO, actionScopeDTOMap, resultList);
             }
         }
-        log.debug(String.format("WhiteIPInfos before merge:%s", resultList));
+        if (log.isDebugEnabled()) {
+            log.debug("WhiteIPInfos before merge:{}", JsonUtils.toJson(resultList));
+        }
         // 合并IP相同的多条记录
         Map<String, ServiceWhiteIPInfo> resultMap = new HashMap<>();
         for (ServiceWhiteIPInfo whiteIPInfo : resultList) {
@@ -465,7 +468,9 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         }
         resultList.clear();
         resultList.addAll(resultMap.values());
-        log.debug(String.format("WhiteIPInfos after merge:%s", resultList));
+        if (log.isDebugEnabled()) {
+            log.debug("WhiteIPInfos after merge:{}", JsonUtils.toJson(resultList));
+        }
         return resultList;
     }
 
@@ -565,7 +570,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                     actionScopeDTOMap.get(actionScope.getActionScopeId()) == null ? null :
                         actionScopeDTOMap.get(actionScope.getActionScopeId()).get(0);
                 if (actionScopeDTO == null) {
-                    log.error("Cannot find actionScopeDTO by id {}", actionScope.getActionScopeId());
+                    log.warn("Cannot find actionScopeDTO by id {}", actionScope.getActionScopeId());
                 } else {
                     allAppActionScopeList.add(actionScopeDTO.getCode());
                 }
