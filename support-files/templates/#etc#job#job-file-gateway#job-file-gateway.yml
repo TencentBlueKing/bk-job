@@ -1,9 +1,6 @@
 spring:
   application:
     name: job-file-gateway
-  cloud:
-    refresh:
-      extra-refreshable: javax.sql.DataSource
   datasource:
     job-file-gateway:
       driver-class-name: com.mysql.cj.jdbc.Driver
