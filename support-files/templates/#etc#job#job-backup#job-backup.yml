@@ -1,9 +1,6 @@
 spring:
   application:
     name: job-backup
-  cloud:
-    refresh:
-      extra-refreshable: javax.sql.DataSource
   datasource:
     job-backup:
       driver-class-name: com.mysql.cj.jdbc.Driver
