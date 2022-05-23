@@ -73,7 +73,7 @@ public class TaskEvictPolicyExecutor {
     public boolean updateEvictedTaskStatus(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
         long endTime = System.currentTimeMillis();
         Long taskInstanceId = stepInstance.getTaskInstanceId();
-        if (!RunStatusEnum.getFinishedStatusValueList().contains(stepInstance.getStatus())) {
+        if (RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(stepInstance.getStatus()))) {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             taskInstanceService.updateStepExecutionInfo(
@@ -90,7 +90,7 @@ public class TaskEvictPolicyExecutor {
                 stepInstance.getStatus()
             );
         }
-        if (!RunStatusEnum.getFinishedStatusValueList().contains(taskInstance.getStatus())) {
+        if (RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(taskInstance.getStatus()))) {
             long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
                 taskInstance.getTotalTime());
             taskInstanceService.updateTaskExecutionInfo(

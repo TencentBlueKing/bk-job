@@ -58,8 +58,7 @@ public class TaskInstanceConverter {
             i18nService.getI18n(TaskStartupModeEnum.getStartupMode(taskInstanceDTO.getStartupMode()).getI18nKey()));
         taskInstanceVO.setStatus(taskInstanceDTO.getStatus());
         taskInstanceVO.setStatusDesc(
-            i18nService.getI18n(Objects.requireNonNull(
-                RunStatusEnum.valueOf(taskInstanceDTO.getStatus())).getI18nKey()));
+            i18nService.getI18n(RunStatusEnum.valueOf(taskInstanceDTO.getStatus()).getI18nKey()));
         taskInstanceVO.setType(taskInstanceDTO.getType());
         taskInstanceVO.setTypeDesc(
             i18nService.getI18n(Objects.requireNonNull(TaskTypeEnum.valueOf(taskInstanceDTO.getType())).getI18nKey()));
@@ -88,8 +87,7 @@ public class TaskInstanceConverter {
             i18nService.getI18n(Objects.requireNonNull(TaskTypeEnum.valueOf(taskInstanceDTO.getType())).getI18nKey()));
         serviceTaskInstance.setStatus(taskInstanceDTO.getStatus());
         serviceTaskInstance.setStatusDesc(
-            i18nService.getI18n(Objects.requireNonNull(RunStatusEnum.valueOf(taskInstanceDTO.getStatus()))
-                .getI18nKey()));
+            i18nService.getI18n(RunStatusEnum.valueOf(taskInstanceDTO.getStatus()).getI18nKey()));
         serviceTaskInstance.setDebugTask(taskInstanceDTO.isDebugTask());
         serviceTaskInstance.setTaskId(taskInstanceDTO.getTaskId());
         serviceTaskInstance.setTemplateId(taskInstanceDTO.getTaskTemplateId());
