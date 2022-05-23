@@ -199,7 +199,7 @@ public class CommonStatisticService {
             perAppStatisticDTOList.add(perAppStatisticDTO);
         }
         for (PerAppStatisticDTO perAppStatisticDTO : perAppStatisticDTOList) {
-            perAppStatisticDTO.setAppName(appService.getAppNameFromCache(perAppStatisticDTO.getAppId()));
+            perAppStatisticDTO.setScopeName(appService.getAppNameFromCache(perAppStatisticDTO.getAppId()));
             perAppStatisticDTO.setRatio(perAppStatisticDTO.getValue().floatValue() / totalValue);
         }
         perAppStatisticDTOList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));

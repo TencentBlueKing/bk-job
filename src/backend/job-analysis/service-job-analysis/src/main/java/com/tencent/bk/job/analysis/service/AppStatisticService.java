@@ -123,7 +123,7 @@ public class AppStatisticService extends CommonStatisticService {
         for (SimpleAppInfoDTO applicationDTO : applicationDTOList) {
             PerAppStatisticDTO perAppStatisticDTO = new PerAppStatisticDTO();
             perAppStatisticDTO.setAppId(applicationDTO.getId());
-            perAppStatisticDTO.setAppName(applicationDTO.getName());
+            perAppStatisticDTO.setScopeName(applicationDTO.getName());
             perAppStatisticDTO.setValue(1L);
             perAppStatisticDTO.setRatio(1.0f / applicationDTOList.size());
             perAppStatisticDTOList.add(perAppStatisticDTO);
