@@ -413,7 +413,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         Set<Long> appIdSet = new HashSet<>();
         Set<Long> scopeIdSet = new HashSet<>();
         List<ApplicationDTO> applicationDTOList = new ArrayList<>();
-        recordList.parallelStream().forEach(record -> {
+        recordList.forEach(record -> {
             appIdSet.addAll(record.getAppIdList());
             //添加所有包含生效范围id列表，方便后续一次性查出关联的生效范围code
             scopeIdSet.addAll(record.getActionScopeList().parallelStream()
