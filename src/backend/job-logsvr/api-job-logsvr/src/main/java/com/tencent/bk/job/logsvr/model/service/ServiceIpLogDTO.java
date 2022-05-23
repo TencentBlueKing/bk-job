@@ -44,15 +44,20 @@ public class ServiceIpLogDTO {
     @ApiModelProperty("步骤实例ID")
     private Long stepInstanceId;
     /**
-     * ip
-     */
-    @ApiModelProperty("ip")
-    private String ip;
-    /**
      * 执行次数
      */
     @ApiModelProperty("执行次数")
     private Integer executeCount;
+    /**
+     * 滚动执行批次
+     */
+    @ApiModelProperty("滚动执行批次")
+    private Integer batch;
+    /**
+     * ip
+     */
+    @ApiModelProperty("ip")
+    private String ip;
 
     /**
      * 脚本日志内容

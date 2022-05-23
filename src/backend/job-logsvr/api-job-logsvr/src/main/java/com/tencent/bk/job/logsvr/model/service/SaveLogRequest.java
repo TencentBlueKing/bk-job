@@ -59,6 +59,12 @@ public class SaveLogRequest {
     private Integer executeCount;
 
     /**
+     * 滚动批次
+     */
+    @ApiModelProperty(value = "滚动批次", required = true)
+    private Integer batch;
+
+    /**
      * 脚本日志内容
      */
     @ApiModelProperty(value = "脚本日志内容,新协议")

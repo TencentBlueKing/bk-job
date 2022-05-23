@@ -57,6 +57,10 @@ public class TaskIpLog {
      */
     private Integer executeCount;
     /**
+     * 滚动批次
+     */
+    private Integer batch;
+    /**
      * 脚本任务执行日志
      */
     private ScriptTaskLog scriptTaskLog;
@@ -74,12 +78,15 @@ public class TaskIpLog {
     @Override
     public String toString() {
         return new StringJoiner(", ", TaskIpLog.class.getSimpleName() + "[", "]")
+            .add("fileTaskLogs=" + fileTaskLogs)
             .add("jobCreateDate='" + jobCreateDate + "'")
             .add("stepInstanceId=" + stepInstanceId)
             .add("ip='" + ip + "'")
             .add("executeCount=" + executeCount)
+            .add("batch=" + batch)
             .add("scriptTaskLog=" + scriptTaskLog)
-            .add("fileTaskLogs=" + fileTaskLogs)
+            .add("scriptContent='" + scriptContent + "'")
+            .add("logType=" + logType)
             .toString();
     }
 }
