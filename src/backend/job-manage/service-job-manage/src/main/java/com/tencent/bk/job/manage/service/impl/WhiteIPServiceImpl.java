@@ -28,7 +28,6 @@ import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.RequestIdLogger;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -436,60 +435,37 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         Map<Long, List<ActionScopeDTO>> actionScopeDTOMap = actionScopeDTOList.parallelStream().collect(
             Collectors.groupingBy(ActionScopeDTO::getId));
 
-        if (CollectionUtils.isNotEmpty(recordList)) {
-            for (WhiteIPRecordDTO whiteIPRecordDTO : recordList) {
-                boolean isAllApp = false;
-                List<Long> appIdList = whiteIPRecordDTO.getAppIdList();
-                for (Long appId : appIdList) {
-                    ApplicationDTO applicationDTO = applicationDTOMap.get(appId) == null ? null :
-                        applicationDTOMap.get(appId).get(0);
-                    if (applicationDTO != null && applicationDTO.getAppType() == AppTypeEnum.ALL_APP) {
-                        isAllApp = true;
-                        break;
-                    }
-                }
+        for (WhiteIPRecordDTO whiteIPRecordDTO : recordList) {
+            boolean isAllApp = false;
+            List<Long> appIdList = whiteIPRecordDTO.getAppIdList();
+            for (Long appId : appIdList) {
+                ApplicationDTO applicationDTO = applicationDTOMap.get(appId) == null ? null :
+                    applicationDTOMap.get(appId).get(0);
+                isAllApp = applicationDTO != null && applicationDTO.isAllBizSet();
                 if (isAllApp) {
-                    //封装全业务
-                    List<WhiteIPIPDTO> whiteIPIPDTOList = whiteIPRecordDTO.getIpList();
-                    whiteIPIPDTOList.forEach(whiteIPIPDTO -> {
-                        ServiceWhiteIPInfo serviceWhiteIPInfo = new ServiceWhiteIPInfo();
-                        serviceWhiteIPInfo.setForAllApp(true);
-                        List<String> allAppActionScopeList = new ArrayList<>();
-                        for (WhiteIPActionScopeDTO actionScope : whiteIPRecordDTO.getActionScopeList()) {
-                            ActionScopeDTO actionScopeDTO =
-                                actionScopeDTOMap.get(actionScope.getActionScopeId()) == null ? null :
-                                    actionScopeDTOMap.get(actionScope.getActionScopeId()).get(0);
-                            if (actionScopeDTO == null) {
-                                log.error("Cannot find actionScopeDTO by id {}", actionScope.getActionScopeId());
-                            } else {
-                                allAppActionScopeList.add(actionScopeDTO.getCode());
-                            }
-                        }
-                        serviceWhiteIPInfo.setAllAppActionScopeList(allAppActionScopeList);
-                        serviceWhiteIPInfo.setAppIdActionScopeMap(new HashMap<>());
-                        serviceWhiteIPInfo.setCloudId(whiteIPIPDTO.getCloudAreaId());
-                        serviceWhiteIPInfo.setIp(whiteIPIPDTO.getIp());
-                        resultList.add(serviceWhiteIPInfo);
-                    });
-                } else {
-                    genNormalAppWhiteIPInfo(whiteIPRecordDTO, actionScopeDTOMap, resultList);
+                    break;
                 }
             }
-            log.debug(String.format("WhiteIPInfos before merge:%s", resultList));
-            // 合并IP相同的多条记录
-            Map<String, ServiceWhiteIPInfo> resultMap = new HashMap<>();
-            for (ServiceWhiteIPInfo whiteIPInfo : resultList) {
-                String key = whiteIPInfo.getCloudId().toString() + ":" + whiteIPInfo.getIp();
-                if (resultMap.containsKey(key)) {
-                    resultMap.put(key, mergeServiceWhiteIPInfo(resultMap.get(key), whiteIPInfo));
-                } else {
-                    resultMap.put(key, whiteIPInfo);
-                }
+            if (isAllApp) {
+                genAllAppWhiteIPInfo(whiteIPRecordDTO, actionScopeDTOMap, resultList);
+            } else {
+                genNormalAppWhiteIPInfo(whiteIPRecordDTO, actionScopeDTOMap, resultList);
             }
-            resultList.clear();
-            resultList.addAll(resultMap.values());
-            log.debug(String.format("WhiteIPInfos after merge:%s", resultList));
         }
+        log.debug(String.format("WhiteIPInfos before merge:%s", resultList));
+        // 合并IP相同的多条记录
+        Map<String, ServiceWhiteIPInfo> resultMap = new HashMap<>();
+        for (ServiceWhiteIPInfo whiteIPInfo : resultList) {
+            String key = whiteIPInfo.getCloudId().toString() + ":" + whiteIPInfo.getIp();
+            if (resultMap.containsKey(key)) {
+                resultMap.put(key, mergeServiceWhiteIPInfo(resultMap.get(key), whiteIPInfo));
+            } else {
+                resultMap.put(key, whiteIPInfo);
+            }
+        }
+        resultList.clear();
+        resultList.addAll(resultMap.values());
+        log.debug(String.format("WhiteIPInfos after merge:%s", resultList));
         return resultList;
     }
 
@@ -568,6 +544,47 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         return finalList;
     }
 
+    /**
+     * 生成全业务对应的白名单信息
+     *
+     * @param whiteIPRecordDTO  白名单记录
+     * @param actionScopeDTOMap 作用范围Map
+     * @param resultList        白名单信息结果列表
+     */
+    private void genAllAppWhiteIPInfo(WhiteIPRecordDTO whiteIPRecordDTO,
+                                      Map<Long, List<ActionScopeDTO>> actionScopeDTOMap,
+                                      List<ServiceWhiteIPInfo> resultList) {
+        //封装全业务
+        List<WhiteIPIPDTO> whiteIPIPDTOList = whiteIPRecordDTO.getIpList();
+        whiteIPIPDTOList.forEach(whiteIPIPDTO -> {
+            ServiceWhiteIPInfo serviceWhiteIPInfo = new ServiceWhiteIPInfo();
+            serviceWhiteIPInfo.setForAllApp(true);
+            List<String> allAppActionScopeList = new ArrayList<>();
+            for (WhiteIPActionScopeDTO actionScope : whiteIPRecordDTO.getActionScopeList()) {
+                ActionScopeDTO actionScopeDTO =
+                    actionScopeDTOMap.get(actionScope.getActionScopeId()) == null ? null :
+                        actionScopeDTOMap.get(actionScope.getActionScopeId()).get(0);
+                if (actionScopeDTO == null) {
+                    log.error("Cannot find actionScopeDTO by id {}", actionScope.getActionScopeId());
+                } else {
+                    allAppActionScopeList.add(actionScopeDTO.getCode());
+                }
+            }
+            serviceWhiteIPInfo.setAllAppActionScopeList(allAppActionScopeList);
+            serviceWhiteIPInfo.setAppIdActionScopeMap(new HashMap<>());
+            serviceWhiteIPInfo.setCloudId(whiteIPIPDTO.getCloudAreaId());
+            serviceWhiteIPInfo.setIp(whiteIPIPDTO.getIp());
+            resultList.add(serviceWhiteIPInfo);
+        });
+    }
+
+    /**
+     * 生成普通业务对应的白名单信息
+     *
+     * @param whiteIPRecordDTO  白名单记录
+     * @param actionScopeDTOMap 作用范围Map
+     * @param resultList        白名单信息结果列表
+     */
     private void genNormalAppWhiteIPInfo(WhiteIPRecordDTO whiteIPRecordDTO,
                                          Map<Long, List<ActionScopeDTO>> actionScopeDTOMap,
                                          List<ServiceWhiteIPInfo> resultList) {
