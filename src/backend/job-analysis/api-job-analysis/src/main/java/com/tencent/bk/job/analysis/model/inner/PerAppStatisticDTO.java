@@ -44,14 +44,12 @@ public class PerAppStatisticDTO {
     /**
      * 业务ID
      */
-    @Deprecated
     private Long appId;
 
     /**
      * 资源范围名称
      */
-    @Deprecated
-    private String appName;
+    private String scopeName;
 
     /**
      * 统计量数值
@@ -66,13 +64,15 @@ public class PerAppStatisticDTO {
 
     public PerAppStatisticVO toPerAppStatisticVO() {
         PerAppStatisticVO perAppStatisticVO = new PerAppStatisticVO();
+        // TODO:发布后去除
         perAppStatisticVO.setAppId(appId);
-        perAppStatisticVO.setAppName(appName);
+        perAppStatisticVO.setAppName(scopeName);
         AppScopeMappingService appScopeMappingService =
             ApplicationContextRegister.getBean(AppScopeMappingService.class);
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         perAppStatisticVO.setScopeType(resourceScope.getType().getValue());
         perAppStatisticVO.setScopeId(resourceScope.getId());
+        perAppStatisticVO.setScopeName(scopeName);
         perAppStatisticVO.setValue(value);
         perAppStatisticVO.setRatio(ratio);
         return perAppStatisticVO;
