@@ -40,7 +40,7 @@ import java.util.List;
 @Slf4j
 public class FileLogsCollectionLoader extends CollectionLoaderBase {
 
-    private static final String IDX_STEP_EXECUTE_COUNT_BATCH_MODE_IP = "stepId_executeCount_batch_mode_ip";
+    private static final String IDX_STEP_EXECUTE_COUNT_MODE_IP = "stepId_executeCount_mode_ip";
     private static final String IDX_STEP_EXECUTE_COUNT_TASK_ID = "stepId_executeCount_taskId";
     private static final String IDX_STEP_ID_HASHED = "stepId_hashed";
 
@@ -65,26 +65,27 @@ public class FileLogsCollectionLoader extends CollectionLoaderBase {
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_ID_HASHED, collectionName);
         }
 
-        if (!indexes.contains(IDX_STEP_EXECUTE_COUNT_BATCH_MODE_IP)) {
-            log.info("Create index {} for collection: {} start...", IDX_STEP_EXECUTE_COUNT_BATCH_MODE_IP,
+        if (!indexes.contains(IDX_STEP_EXECUTE_COUNT_MODE_IP)) {
+            log.info("Create index {} for collection: {} start...", IDX_STEP_EXECUTE_COUNT_MODE_IP,
                 collectionName);
             IndexOptions indexOptions = new IndexOptions();
             indexOptions.background(false);
-            indexOptions.name(IDX_STEP_EXECUTE_COUNT_BATCH_MODE_IP);
+            indexOptions.name(IDX_STEP_EXECUTE_COUNT_MODE_IP);
             collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"batch\":1,\"mode\":1,\"ip\":1}"),
                 indexOptions);
-            log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_BATCH_MODE_IP,
+            log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_MODE_IP,
                 collectionName);
 
         }
 
         if (!indexes.contains(IDX_STEP_EXECUTE_COUNT_TASK_ID)) {
-            log.info("Create index stepId_executeCount_taskId for collection: {} start...", collectionName);
+            log.info("Create index {} for collection: {} start...", IDX_STEP_EXECUTE_COUNT_TASK_ID, collectionName);
             IndexOptions indexOptions = new IndexOptions();
             indexOptions.background(false);
             indexOptions.name(IDX_STEP_EXECUTE_COUNT_TASK_ID);
             collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"taskId\":1}"), indexOptions);
-            log.info("Create index stepId_executeCount_taskId for collection: {} successfully!", collectionName);
+            log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_TASK_ID,
+                collectionName);
         }
         log.info("Create index for collection : {} successfully!", collectionName);
     }

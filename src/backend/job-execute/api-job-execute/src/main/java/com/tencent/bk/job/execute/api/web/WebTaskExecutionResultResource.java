@@ -304,6 +304,9 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
         @PathVariable("executeCount")
             Integer executeCount,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false)
+            Integer batch,
         @ApiParam(value = "文件任务ID列表", name = "taskIds", required = true)
         @RequestBody
             List<String> taskIds

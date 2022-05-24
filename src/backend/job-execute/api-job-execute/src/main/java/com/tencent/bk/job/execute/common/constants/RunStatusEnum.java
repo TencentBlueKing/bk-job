@@ -24,9 +24,8 @@
 
 package com.tencent.bk.job.execute.common.constants;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 作业执行状态
@@ -90,23 +89,22 @@ public enum RunStatusEnum {
     ROLLING_WAITING(15);
 
     private final Integer value;
-
-    private static final List<Integer> FINISHED_STATUS_LIST = new ArrayList<>();
+    private static final Set<RunStatusEnum> FINISHED_STATUS_SET = new HashSet<>();
 
     static {
-        FINISHED_STATUS_LIST.add(SUCCESS.value);
-        FINISHED_STATUS_LIST.add(FAIL.value);
-        FINISHED_STATUS_LIST.add(SKIPPED.value);
-        FINISHED_STATUS_LIST.add(IGNORE_ERROR.value);
-        FINISHED_STATUS_LIST.add(TERMINATED.value);
-        FINISHED_STATUS_LIST.add(ABNORMAL_STATE.value);
-        FINISHED_STATUS_LIST.add(STOP_SUCCESS.value);
-        FINISHED_STATUS_LIST.add(CONFIRM_TERMINATED.value);
-        FINISHED_STATUS_LIST.add(ABANDONED.value);
+        FINISHED_STATUS_SET.add(SUCCESS);
+        FINISHED_STATUS_SET.add(FAIL);
+        FINISHED_STATUS_SET.add(SKIPPED);
+        FINISHED_STATUS_SET.add(IGNORE_ERROR);
+        FINISHED_STATUS_SET.add(TERMINATED);
+        FINISHED_STATUS_SET.add(ABNORMAL_STATE);
+        FINISHED_STATUS_SET.add(STOP_SUCCESS);
+        FINISHED_STATUS_SET.add(CONFIRM_TERMINATED);
+        FINISHED_STATUS_SET.add(ABANDONED);
     }
 
-    RunStatusEnum(Integer val) {
-        this.value = val;
+    RunStatusEnum(Integer status) {
+        this.value = status;
     }
 
     public static RunStatusEnum valueOf(int status) {
@@ -115,14 +113,7 @@ public enum RunStatusEnum {
                 return runStatusEnum;
             }
         }
-        return null;
-    }
-
-    /**
-     * 获取终止态的状态列表
-     */
-    public static List<Integer> getFinishedStatusValueList() {
-        return Collections.unmodifiableList(FINISHED_STATUS_LIST);
+        throw new IllegalArgumentException("Invalid run status[" + status + "]");
     }
 
     /**
@@ -131,10 +122,7 @@ public enum RunStatusEnum {
      * @param status 状态
      */
     public static boolean isFinishedStatus(RunStatusEnum status) {
-        if (status == null) {
-            return false;
-        }
-        return FINISHED_STATUS_LIST.contains(status.value);
+        return FINISHED_STATUS_SET.contains(status);
     }
 
     public Integer getValue() {

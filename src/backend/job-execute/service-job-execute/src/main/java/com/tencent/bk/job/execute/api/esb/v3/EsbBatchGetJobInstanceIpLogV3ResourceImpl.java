@@ -174,7 +174,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         String jobCreateDate = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         List<ScriptIpLogContent> ipLogContentList = logService.batchGetScriptIpLogContent(jobCreateDate,
-            stepInstance.getId(), stepInstance.getExecuteCount(),
+            stepInstance.getId(), stepInstance.getExecuteCount(), null,
             ipList.stream().map(cloudIp -> new IpDTO(cloudIp.getCloudAreaId(), cloudIp.getIp()))
                 .collect(Collectors.toList()));
 
@@ -198,7 +198,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         esbIpLogs.setLogType(LogTypeEnum.FILE.getValue());
 
         ServiceIpLogsDTO ipLogs = logService.batchGetFileIpLogContent(
-            stepInstance.getId(), stepInstance.getExecuteCount(),
+            stepInstance.getId(), stepInstance.getExecuteCount(), null,
             ipList.stream().map(cloudIp -> new IpDTO(cloudIp.getCloudAreaId(), cloudIp.getIp()))
                 .collect(Collectors.toList()));
 

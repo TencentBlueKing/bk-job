@@ -30,7 +30,6 @@ import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
-import com.mongodb.client.result.DeleteResult;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
@@ -82,6 +81,7 @@ public class LogServiceImpl implements LogService {
         }
     }
 
+
     @Override
     public void saveLogs(LogTypeEnum logType, List<TaskIpLog> taskIpLogs) {
         if (logType == LogTypeEnum.SCRIPT) {
@@ -98,9 +98,9 @@ public class LogServiceImpl implements LogService {
             .map(taskIpLog -> buildScriptLogDoc(taskIpLog.getScriptTaskLog())).collect(Collectors.toList());
         List<List<Document>> batchDocList = BatchUtil.buildBatchList(scriptLogDocList, BATCH_SIZE);
         long start = System.currentTimeMillis();
-        batchDocList.parallelStream().forEach(docs -> {
-            logCollectionFactory.getCollection(collectionName).insertMany(docs, new InsertManyOptions().ordered(false));
-        });
+        batchDocList.parallelStream().forEach(docs ->
+            logCollectionFactory.getCollection(collectionName)
+                .insertMany(docs, new InsertManyOptions().ordered(false)));
         long end = System.currentTimeMillis();
         log.info("Batch write script logs, docSize: {}, cost: {} ms", scriptLogDocList.size(), end - start);
     }
@@ -114,10 +114,8 @@ public class LogServiceImpl implements LogService {
         List<List<WriteModel<Document>>> batchList = BatchUtil.buildBatchList(updateOps, BATCH_SIZE);
 
         long start = System.currentTimeMillis();
-        batchList.parallelStream().forEach(batchOps -> {
-            logCollectionFactory.getCollection(collectionName)
-                .bulkWrite(batchOps, new BulkWriteOptions().ordered(false));
-        });
+        batchList.parallelStream().forEach(batchOps -> logCollectionFactory.getCollection(collectionName)
+            .bulkWrite(batchOps, new BulkWriteOptions().ordered(false)));
         long end = System.currentTimeMillis();
         log.warn("Batch write file logs, stepInstanceId: {}, opSize: {}, cost: {} ms",
             taskIpLogs.get(0).getStepInstanceId(), updateOps.size(), end - start);
@@ -129,12 +127,15 @@ public class LogServiceImpl implements LogService {
             long stepInstanceId = taskIpLog.getStepInstanceId();
             String ip = taskIpLog.getIp();
             int executeCount = taskIpLog.getExecuteCount();
+            int batch = taskIpLog.getBatch();
             List<FileTaskLog> fileTaskLogs = taskIpLog.getFileTaskLogs();
 
             if (CollectionUtils.isNotEmpty(taskIpLog.getFileTaskLogs())) {
                 fileTaskLogs.forEach(fileTaskLog -> {
-                    BasicDBObject filter = buildQueryDocForFileTaskLog(stepInstanceId, executeCount, fileTaskLog);
-                    BasicDBObject update = buildUpdateDocForFileTaskLog(stepInstanceId, executeCount, ip, fileTaskLog);
+                    BasicDBObject filter = buildQueryDocForFileTaskLog(stepInstanceId, executeCount, batch,
+                        fileTaskLog);
+                    BasicDBObject update = buildUpdateDocForFileTaskLog(stepInstanceId, executeCount, batch, ip,
+                        fileTaskLog);
                     UpdateOneModel<Document> updateOp = new UpdateOneModel<>(filter, update,
                         new UpdateOptions().upsert(true));
                     updateOps.add(updateOp);
@@ -158,8 +159,8 @@ public class LogServiceImpl implements LogService {
         int executeCount = taskIpLog.getExecuteCount();
         String ip = taskIpLog.getIp();
         if (log.isDebugEnabled()) {
-            log.debug("Save script log, stepInstanceId: {}, executeCount: {}, ip: {}", stepInstanceId, executeCount,
-                ip);
+            log.debug("Save script log, stepInstanceId: {}, executeCount: {}, batch: {}, ip: {}",
+                stepInstanceId, executeCount, taskIpLog.getBatch(), ip);
         }
         String collectionName = buildLogCollectionName(taskIpLog.getJobCreateDate(), logType);
 
@@ -169,8 +170,8 @@ public class LogServiceImpl implements LogService {
         } finally {
             long cost = (System.currentTimeMillis() - start);
             if (cost > 10L) {
-                log.warn("Save log slow, stepInstanceId: {}, executeCount: {}, ip: {}, cost: {} ms", stepInstanceId,
-                    executeCount, ip, cost);
+                log.warn("Save log slow, stepInstanceId: {}, executeCount: {}, batch: {}, ip: {}, cost: {} ms",
+                    stepInstanceId, executeCount, taskIpLog.getBatch(), ip, cost);
             }
         }
     }
@@ -181,12 +182,12 @@ public class LogServiceImpl implements LogService {
         String ip = taskIpLog.getIp();
         if (taskIpLog.getFileTaskLogs().size() == 1) {
             if (log.isDebugEnabled()) {
-                log.debug("Save file log, stepInstanceId: {}, executeCount: {}, ip: {}", stepInstanceId, executeCount
-                    , ip);
+                log.debug("Save file log, stepInstanceId: {}, executeCount: {}, batch: {}, ip: {}",
+                    stepInstanceId, executeCount, taskIpLog.getBatch(), ip);
             }
             taskIpLog.getFileTaskLogs().parallelStream()
-                .forEach(fileTaskLog -> writeFileLog(taskIpLog.getJobCreateDate(),
-                    taskIpLog.getStepInstanceId(), taskIpLog.getExecuteCount(), taskIpLog.getIp(), fileTaskLog));
+                .forEach(fileTaskLog -> writeFileLog(taskIpLog.getJobCreateDate(), taskIpLog.getStepInstanceId(),
+                    taskIpLog.getExecuteCount(), taskIpLog.getBatch(), taskIpLog.getIp(), fileTaskLog));
         } else {
             batchWriteFileLogs(Collections.singletonList(taskIpLog));
         }
@@ -196,19 +197,22 @@ public class LogServiceImpl implements LogService {
         Document doc = new Document();
         doc.put("stepId", scriptTaskLog.getStepInstanceId());
         doc.put("executeCount", scriptTaskLog.getExecuteCount());
+        if (scriptTaskLog.getBatch() != null && scriptTaskLog.getBatch() > 0) {
+            doc.put("batch", scriptTaskLog.getBatch());
+        }
         doc.put("ip", scriptTaskLog.getIp());
         doc.put("content", scriptTaskLog.getContent());
         doc.put("offset", scriptTaskLog.getOffset());
         return doc;
     }
 
-    private void writeFileLog(String jobCreateDate, long stepInstanceId, int executeCount, String ip,
+    private void writeFileLog(String jobCreateDate, long stepInstanceId, int executeCount, int batch, String ip,
                               FileTaskLog fileTaskLog) {
         long start = System.currentTimeMillis();
         String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.FILE);
         try {
-            BasicDBObject filter = buildQueryDocForFileTaskLog(stepInstanceId, executeCount, fileTaskLog);
-            BasicDBObject update = buildUpdateDocForFileTaskLog(stepInstanceId, executeCount, ip, fileTaskLog);
+            BasicDBObject filter = buildQueryDocForFileTaskLog(stepInstanceId, executeCount, batch, fileTaskLog);
+            BasicDBObject update = buildUpdateDocForFileTaskLog(stepInstanceId, executeCount, batch, ip, fileTaskLog);
             logCollectionFactory.getCollection(collectionName)
                 .updateOne(filter, update, new UpdateOptions().upsert(true));
         } finally {
@@ -220,16 +224,19 @@ public class LogServiceImpl implements LogService {
         }
     }
 
-    private BasicDBObject buildQueryDocForFileTaskLog(long stepInstanceId, int executeCount,
+    private BasicDBObject buildQueryDocForFileTaskLog(long stepInstanceId, int executeCount, Integer batch,
                                                       FileTaskLog fileTaskLog) {
         BasicDBObject filter = new BasicDBObject();
         filter.append("stepId", stepInstanceId);
         filter.append("executeCount", executeCount);
+        if (batch != null && batch > 0) {
+            filter.append("batch", batch);
+        }
         filter.append("taskId", fileTaskLog.getTaskId());
         return filter;
     }
 
-    private BasicDBObject buildUpdateDocForFileTaskLog(long stepInstanceId, int executeCount, String ip,
+    private BasicDBObject buildUpdateDocForFileTaskLog(long stepInstanceId, int executeCount, Integer batch, String ip,
                                                        FileTaskLog fileTaskLog) {
         BasicDBObject update = new BasicDBObject();
         BasicDBObject setDBObject = new BasicDBObject();
@@ -239,6 +246,9 @@ public class LogServiceImpl implements LogService {
             .append("mode", fileTaskLog.getMode())
             .append("ip", ip)
             .append("taskId", fileTaskLog.getTaskId());
+        if (batch != null && batch > 0) {
+            setDBObject.append("batch", batch);
+        }
         if (StringUtils.isNotEmpty(fileTaskLog.getSrcIp())) {
             setDBObject.append("srcIp", fileTaskLog.getSrcIp());
         }
@@ -335,6 +345,9 @@ public class LogServiceImpl implements LogService {
             } else if (StringUtils.isNotEmpty(getLogRequest.getIp())) {
                 query.addCriteria(Criteria.where("ip").is(getLogRequest.getIp()));
             }
+            if (getLogRequest.getBatch() != null && getLogRequest.getBatch() > 0) {
+                query.addCriteria(Criteria.where("batch").is(getLogRequest.getBatch()));
+            }
 
             List<FileTaskLog> fileTaskLogs = mongoTemplate.find(query, FileTaskLog.class, collectionName);
             if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
@@ -355,16 +368,20 @@ public class LogServiceImpl implements LogService {
         String collectionName = buildLogCollectionName(getLogRequest.getJobCreateDate(), LogTypeEnum.SCRIPT);
         long stepInstanceId = getLogRequest.getStepInstanceId();
         int executeCount = getLogRequest.getExecuteCount();
+        Integer batch = getLogRequest.getBatch();
         String ip = getLogRequest.getIps().get(0);
 
         try {
             Query query = new Query();
             query.addCriteria(Criteria.where("stepId").is(stepInstanceId));
             query.addCriteria(Criteria.where("executeCount").is(executeCount));
+            if (batch != null && batch > 0) {
+                query.addCriteria(Criteria.where("batch").is(batch));
+            }
             query.addCriteria(Criteria.where("ip").is(ip));
             List<ScriptTaskLog> scriptLogs = mongoTemplate.find(query, ScriptTaskLog.class, collectionName);
 
-            TaskIpLog taskIpLog = buildTaskIpLog(stepInstanceId, executeCount, ip, scriptLogs);
+            TaskIpLog taskIpLog = buildTaskIpLog(stepInstanceId, executeCount, batch, ip, scriptLogs);
 
             if (log.isDebugEnabled()) {
                 log.debug("Get log by ip, stepInstanceId: {}, executeCount: {}, ip: {}, scriptLogs: {}",
@@ -388,6 +405,7 @@ public class LogServiceImpl implements LogService {
         String collectionName = buildLogCollectionName(getLogRequest.getJobCreateDate(), LogTypeEnum.SCRIPT);
         long stepInstanceId = getLogRequest.getStepInstanceId();
         int executeCount = getLogRequest.getExecuteCount();
+        Integer batch = getLogRequest.getBatch();
         List<String> ips = getLogRequest.getIps();
 
         try {
@@ -395,6 +413,9 @@ public class LogServiceImpl implements LogService {
             query.addCriteria(Criteria.where("stepId").is(stepInstanceId));
             query.addCriteria(Criteria.where("executeCount").is(executeCount));
             query.addCriteria(Criteria.where("ip").in(ips));
+            if (batch != null && batch > 0) {
+                query.addCriteria(Criteria.where("batch").is(batch));
+            }
             List<ScriptTaskLog> scriptLogs = mongoTemplate.find(query, ScriptTaskLog.class, collectionName);
 
             if (CollectionUtils.isEmpty(scriptLogs)) {
@@ -404,9 +425,9 @@ public class LogServiceImpl implements LogService {
             Map<String, List<ScriptTaskLog>> scriptTaskLogGroups = groupScriptTaskLogsByIp(scriptLogs);
 
             List<TaskIpLog> taskIpLogs = new ArrayList<>(scriptTaskLogGroups.size());
-            scriptTaskLogGroups.forEach((ip, scriptLogGroup) -> {
-                taskIpLogs.add(buildTaskIpLog(stepInstanceId, executeCount, ip, scriptLogGroup));
-            });
+            scriptTaskLogGroups.forEach(
+                (ip, scriptLogGroup) ->
+                    taskIpLogs.add(buildTaskIpLog(stepInstanceId, executeCount, batch, ip, scriptLogGroup)));
             return taskIpLogs;
         } finally {
             long cost = (System.currentTimeMillis() - start);
@@ -427,10 +448,12 @@ public class LogServiceImpl implements LogService {
         return scriptLogsGroups;
     }
 
-    private TaskIpLog buildTaskIpLog(long stepInstanceId, int executeCount, String ip, List<ScriptTaskLog> scriptLogs) {
+    private TaskIpLog buildTaskIpLog(long stepInstanceId, int executeCount, Integer batch, String ip,
+                                     List<ScriptTaskLog> scriptLogs) {
         TaskIpLog taskIpLog = new TaskIpLog();
         taskIpLog.setStepInstanceId(stepInstanceId);
         taskIpLog.setExecuteCount(executeCount);
+        taskIpLog.setBatch(batch);
         taskIpLog.setIp(ip);
 
         scriptLogs.sort(ScriptTaskLog.LOG_OFFSET_COMPARATOR);
@@ -441,7 +464,7 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public List<FileTaskLog> getFileLogsByTaskIds(String jobCreateDate, long stepInstanceId, int executeCount,
-                                                  List<String> taskIds) {
+                                                  Integer batch, List<String> taskIds) {
         long start = System.currentTimeMillis();
         String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.FILE);
         try {
@@ -449,6 +472,9 @@ public class LogServiceImpl implements LogService {
             query.addCriteria(Criteria.where("stepId").is(stepInstanceId));
             query.addCriteria(Criteria.where("executeCount").is(executeCount));
             query.addCriteria(Criteria.where("taskId").in(taskIds));
+            if (batch != null && batch > 0) {
+                query.addCriteria(Criteria.where("batch").is(batch));
+            }
             List<FileTaskLog> fileTaskLogs = mongoTemplate.find(query, FileTaskLog.class, collectionName);
             if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
                 fileTaskLogs.forEach(taskTaskLog ->
@@ -465,20 +491,10 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public long deleteStepContent(Long stepInstanceId, Integer executeCount, String jobCreateDate) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("stepId").is(stepInstanceId));
-        query.addCriteria(Criteria.where("executeCount").is(executeCount));
-        DeleteResult deleteResult = mongoTemplate.remove(query, buildLogCollectionName(jobCreateDate,
-            LogTypeEnum.SCRIPT));
-        return deleteResult.getDeletedCount();
-    }
-
-    @Override
-    public List<IpDTO> getIpsByKeyword(long stepInstanceId, Integer executeCount, String jobCreateDate,
-                                       String keyword) {
+    public List<IpDTO> getIpsByKeyword(String jobCreateDate, long stepInstanceId, int executeCount,
+                                       Integer batch, String keyword) {
         String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
-        Query query = buildQueryForKeywordSearch(stepInstanceId, executeCount, keyword);
+        Query query = buildQueryForKeywordSearch(stepInstanceId, executeCount, batch, keyword);
         query.fields().include("ip");
         List<ScriptTaskLog> logs = mongoTemplate.find(query, ScriptTaskLog.class, collectionName);
         if (logs.isEmpty()) {
@@ -491,13 +507,16 @@ public class LogServiceImpl implements LogService {
             .collect(Collectors.toList());
     }
 
-    private Query buildQueryForKeywordSearch(long stepInstanceId, int executeCount, String keyword) {
+    private Query buildQueryForKeywordSearch(long stepInstanceId, int executeCount, Integer batch, String keyword) {
         Query query = new Query();
         query.addCriteria(Criteria.where("stepId").is(stepInstanceId));
         if (executeCount == 0) {
             query.addCriteria(Criteria.where("executeCount").is(executeCount));
         } else {
             query.addCriteria(Criteria.where("executeCount").lte(executeCount));
+        }
+        if (batch != null && batch > 0) {
+            query.addCriteria(Criteria.where("batch").is(batch));
         }
         Pattern pattern = Pattern.compile(keyword.replaceAll("['$&|`;#]", ""),
             Pattern.LITERAL | Pattern.CASE_INSENSITIVE);

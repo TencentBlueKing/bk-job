@@ -40,7 +40,7 @@ import java.util.List;
 @Slf4j
 public class ScriptLogsCollectionLoader extends CollectionLoaderBase {
 
-    private static final String IDX_STEP_ID_EXECUTE_COUNT_BATCH_IP = "stepId_executeCount_batch_ip";
+    private static final String IDX_STEP_ID_EXECUTE_COUNT_IP = "stepId_executeCount_ip";
     private static final String IDX_STEP_ID_HASHED = "stepId_hashed";
 
     @Override
@@ -64,14 +64,14 @@ public class ScriptLogsCollectionLoader extends CollectionLoaderBase {
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_ID_HASHED, collectionName);
         }
 
-        if (!indexes.contains(IDX_STEP_ID_EXECUTE_COUNT_BATCH_IP)) {
-            log.info("Create index {} for collection: {} start...", IDX_STEP_ID_EXECUTE_COUNT_BATCH_IP, collectionName);
+        if (!indexes.contains(IDX_STEP_ID_EXECUTE_COUNT_IP)) {
+            log.info("Create index {} for collection: {} start...", IDX_STEP_ID_EXECUTE_COUNT_IP, collectionName);
             IndexOptions indexOption2 = new IndexOptions();
             indexOption2.background(false);
-            indexOption2.name(IDX_STEP_ID_EXECUTE_COUNT_BATCH_IP);
+            indexOption2.name(IDX_STEP_ID_EXECUTE_COUNT_IP);
             collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"batch\":1,\"ip\":1}"),
                 indexOption2);
-            log.info("Create index {} for collection: {} successfully!", IDX_STEP_ID_EXECUTE_COUNT_BATCH_IP,
+            log.info("Create index {} for collection: {} successfully!", IDX_STEP_ID_EXECUTE_COUNT_IP,
                 collectionName);
         }
 

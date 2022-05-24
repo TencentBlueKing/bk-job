@@ -642,7 +642,8 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         Set<String> matchIpsByLogKeywordSearch = null;
         if (StringUtils.isNotBlank(query.getLogKeyword())) {
-            List<IpDTO> matchHosts = getHostsByLogContentKeyword(stepInstanceId, executeCount, query.getLogKeyword());
+            List<IpDTO> matchHosts = getHostsByLogContentKeyword(stepInstanceId, executeCount,
+                query.getBatch(), query.getLogKeyword());
             if (CollectionUtils.isNotEmpty(matchHosts)) {
                 matchIpsByLogKeywordSearch = matchHosts.stream().map(IpDTO::convertToStrIp).collect(Collectors.toSet());
             }
@@ -821,13 +822,14 @@ public class TaskResultServiceImpl implements TaskResultService {
             StepRunModeEnum.ROLLING_IN_BATCH : StepRunModeEnum.ROLLING_ALL);
     }
 
-    private List<IpDTO> getHostsByLogContentKeyword(long stepInstanceId, int executeCount, String keyword) {
+    private List<IpDTO> getHostsByLogContentKeyword(long stepInstanceId, int executeCount, Integer batch,
+                                                    String keyword) {
         String searchKey = keyword.replaceAll("'", "").replaceAll("\\$", "")
             .replaceAll("&", "").replaceAll("\\$", "")
             .replaceAll("\\|", "").replaceAll("`", "")
             .replaceAll(";", "");
 
-        return logService.getIpsByContentKeyword(stepInstanceId, executeCount, searchKey);
+        return logService.getIpsByContentKeyword(stepInstanceId, executeCount, batch, searchKey);
     }
 
     private List<IpDTO> fuzzySearchHostsByIp(StepInstanceBaseDTO stepInstance, int executeCount, String searchIp) {

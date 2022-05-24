@@ -119,7 +119,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -378,8 +377,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         taskExecutionVO.setName(taskExecutionDTO.getName());
         taskExecutionVO.setType(taskExecutionDTO.getType());
         taskExecutionVO.setStatus(taskExecutionDTO.getStatus());
-        taskExecutionVO.setStatusDesc(i18nService.getI18n(Objects.requireNonNull(
-            RunStatusEnum.valueOf(taskExecutionDTO.getStatus())).getI18nKey()));
+        taskExecutionVO.setStatusDesc(i18nService.getI18n(
+            RunStatusEnum.valueOf(taskExecutionDTO.getStatus()).getI18nKey()));
         taskExecutionVO.setTaskInstanceId(taskExecutionDTO.getTaskInstanceId());
         taskExecutionVO.setTaskId(taskExecutionDTO.getTaskId());
         taskExecutionVO.setTemplateId(taskExecutionDTO.getTaskTemplateId());
@@ -532,10 +531,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         stepExecutionDetailVO.setStepInstanceId(executionDetail.getStepInstanceId());
         stepExecutionDetailVO.setRetryCount(executionDetail.getExecuteCount());
         stepExecutionDetailVO.setStatus(executionDetail.getStatus());
-        RunStatusEnum stepStatus = RunStatusEnum.valueOf(executionDetail.getStatus());
-        if (stepStatus != null) {
-            stepExecutionDetailVO.setStatusDesc(i18nService.getI18n(stepStatus.getI18nKey()));
-        }
+        stepExecutionDetailVO.setStatusDesc(
+            i18nService.getI18n(RunStatusEnum.valueOf(executionDetail.getStatus()).getI18nKey()));
         stepExecutionDetailVO.setStartTime(executionDetail.getStartTime());
         stepExecutionDetailVO.setEndTime(executionDetail.getEndTime());
         stepExecutionDetailVO.setTotalTime(executionDetail.getTotalTime());
@@ -798,7 +795,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             Collections.sort(fileDistDetailVOS);
         } else {
             List<ServiceFileTaskLogDTO> fileTaskLogs = logService.batchGetFileSourceIpLogContent(stepInstanceId,
-                executeCount);
+                executeCount, batch);
             if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
                 fileTaskLogs.forEach(fileTaskLog -> {
                     if (fileTaskLog.getMode().equals(FileDistModeEnum.DOWNLOAD.getValue())) {
@@ -868,11 +865,12 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                                    String scopeId,
                                                                                    Long stepInstanceId,
                                                                                    Integer executeCount,
+                                                                                   Integer batch,
                                                                                    List<String> taskIds) {
         authViewStepInstance(username, appResourceScope, stepInstanceId);
 
-        List<ServiceFileTaskLogDTO> fileTaskLogs = logService.getFileLogContentByTaskIds(stepInstanceId, executeCount
-            , taskIds);
+        List<ServiceFileTaskLogDTO> fileTaskLogs = logService.getFileLogContentByTaskIds(stepInstanceId, executeCount,
+            batch, taskIds);
         if (CollectionUtils.isEmpty(fileTaskLogs)) {
             return Response.buildSuccessResp(null);
         }

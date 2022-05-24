@@ -59,9 +59,9 @@ public class SaveLogRequest {
     private Integer executeCount;
 
     /**
-     * 滚动批次
+     * 滚动执行批次
      */
-    @ApiModelProperty(value = "滚动批次", required = true)
+    @ApiModelProperty(value = "滚动批次")
     private Integer batch;
 
     /**
@@ -84,8 +84,9 @@ public class SaveLogRequest {
         return new StringJoiner(", ", SaveLogRequest.class.getSimpleName() + "[", "]")
             .add("jobCreateDate='" + jobCreateDate + "'")
             .add("stepInstanceId=" + stepInstanceId)
-            .add("ip='" + ip + "'")
             .add("executeCount=" + executeCount)
+            .add("batch=" + batch)
+            .add("ip='" + ip + "'")
             .add("logType=" + logType)
             .toString();
     }

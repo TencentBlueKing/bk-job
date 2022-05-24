@@ -130,8 +130,6 @@ data:
               taskStatisticsOutput:
                 consumer:
                   maxConcurrency: 10
-        refresh:
-          extra-refreshable: javax.sql.DataSource
       datasource:
         job-execute:
           driver-class-name: com.mysql.cj.jdbc.Driver

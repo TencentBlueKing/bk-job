@@ -701,7 +701,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void saveNotStartedAgentTasks(Long startTime, Long endTime, String errorMsg) {
         if (StringUtils.isNotEmpty(errorMsg)) {
             logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
-                stepInstance.getExecuteCount(), buildIpAndLogOffsetMap(targetIps), errorMsg, endTime);
+                executeCount, batch, buildIpAndLogOffsetMap(targetIps), errorMsg, endTime);
         }
 
         List<AgentTaskDTO> notStartAgentTasks = new ArrayList<>();

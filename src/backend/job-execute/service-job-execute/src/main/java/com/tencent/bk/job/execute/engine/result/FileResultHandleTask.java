@@ -1048,7 +1048,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     private void writeFileTaskLogContent(Map<String, ServiceIpLogDTO> executionLogs) {
         executionLogs.forEach((ip, executionLog) ->
             logService.writeFileLogWithTimestamp(taskInstance.getCreateTime(), stepInstanceId,
-                stepInstance.getExecuteCount(), ip, executionLog, System.currentTimeMillis()));
+                stepInstance.getExecuteCount(), stepInstance.getBatch(), ip, executionLog, System.currentTimeMillis()));
     }
 
     /**

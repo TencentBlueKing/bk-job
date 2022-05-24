@@ -68,7 +68,7 @@ public interface LogService {
      * @return 日志内容
      * @throws ServiceException 异常
      */
-    List<TaskIpLog> batchGetScriptLogByIps(ScriptLogQuery query) throws ServiceException;
+    List<TaskIpLog> batchGetScriptLogByIps(ScriptLogQuery query);
 
     /**
      * 获取ip对应的文件任务日志
@@ -82,7 +82,6 @@ public interface LogService {
      * 根据分发模式获取
      *
      * @param query 获取执行日志请求
-     * @return
      */
     List<FileTaskLog> getFileLogs(FileLogQuery query);
 
@@ -92,31 +91,31 @@ public interface LogService {
      * @param jobCreateDate  创建时间
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次
      * @param taskIds        任务ID列表
-     * @return
+     * @return 文件任务执行日志
      */
-    List<FileTaskLog> getFileLogsByTaskIds(String jobCreateDate, long stepInstanceId, int executeCount,
+    List<FileTaskLog> getFileLogsByTaskIds(String jobCreateDate,
+                                           long stepInstanceId,
+                                           int executeCount,
+                                           Integer batch,
                                            List<String> taskIds);
 
 
     /**
-     * 删除步骤日志
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param jobCreateDate  任务创建时间,yyyy_MM_dd
-     */
-    long deleteStepContent(Long stepInstanceId, Integer executeCount, String jobCreateDate);
-
-    /**
      * 返回日志内容包含关键字的任务对应的主机ip
      *
+     * @param jobCreateDate  创建时间
      * @param stepInstanceId 步骤ID
      * @param executeCount   执行次数
-     * @param jobCreateDate  创建时间
+     * @param batch          滚动执行批次
      * @param keyword        查询关键字
      * @return ip
      */
-    List<IpDTO> getIpsByKeyword(long stepInstanceId, Integer executeCount, String jobCreateDate, String keyword);
+    List<IpDTO> getIpsByKeyword(String jobCreateDate,
+                                long stepInstanceId,
+                                int executeCount,
+                                Integer batch,
+                                String keyword);
 
 }

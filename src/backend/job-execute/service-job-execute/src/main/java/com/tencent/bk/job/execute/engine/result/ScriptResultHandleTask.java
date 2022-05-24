@@ -349,7 +349,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     private void saveScriptLogContent(List<ServiceScriptLogDTO> logs) {
         logService.batchWriteScriptLog(DateUtils.formatUnixTimestamp(taskInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC")), stepInstanceId, stepInstance.getExecuteCount(),
-            logs);
+            stepInstance.getBatch(), logs);
     }
 
     private void analyseIpResult(api_agent_task_rst ipResult, AgentTaskDTO agentTask, String cloudIp,
@@ -629,7 +629,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         unfinishedIPSet.addAll(this.runningIpSet);
         if (StringUtils.isNotEmpty(errorMsg)) {
             logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
-                stepInstance.getExecuteCount(), buildIpAndLogOffsetMap(unfinishedIPSet), errorMsg, endTime);
+                stepInstance.getExecuteCount(), stepInstance.getBatch(), buildIpAndLogOffsetMap(unfinishedIPSet),
+                errorMsg, endTime);
         }
     }
 

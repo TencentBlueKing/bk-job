@@ -144,8 +144,8 @@ public class EsbGetJobInstanceStatusResourceImpl
                                                                  List<StepInstanceBaseDTO> stepInstances,
                                                                  Map<Long, List<EsbIpStatusDTO>> stepIpResultMap) {
         EsbJobInstanceStatusDTO jobInstanceStatus = new EsbJobInstanceStatusDTO();
-        jobInstanceStatus.setIsFinished(!taskInstance.getStatus().equals(RunStatusEnum.BLANK.getValue())
-            && !taskInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
+        jobInstanceStatus.setIsFinished(
+            RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(taskInstance.getStatus())));
 
         EsbJobInstanceStatusDTO.JobInstance jobInstance = new EsbJobInstanceStatusDTO.JobInstance();
         EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskInstance.getAppId(), jobInstance);

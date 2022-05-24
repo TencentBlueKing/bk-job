@@ -152,7 +152,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
         FileIpLogContent downloadIpLog = logService.getFileIpLogContent(stepInstanceId, executeCount, null,
             new IpDTO(cloudAreaId, ip), FileDistModeEnum.DOWNLOAD.getValue());
         List<ServiceFileTaskLogDTO> uploadTaskLogs = logService.batchGetFileSourceIpLogContent(
-            stepInstanceId, executeCount);
+            stepInstanceId, executeCount, null);
 
         List<EsbFileLogV3DTO> fileLogs = new ArrayList<>();
         fileLogs.addAll(buildDownloadFileLogs(downloadIpLog));

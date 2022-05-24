@@ -58,9 +58,10 @@ public class LogServiceImplIntegrationTest {
         TaskIpLog taskIpLog1 = new TaskIpLog();
         taskIpLog1.setStepInstanceId(1L);
         taskIpLog1.setExecuteCount(0);
+        taskIpLog1.setBatch(1);
         taskIpLog1.setJobCreateDate("2020_07_29");
         taskIpLog1.setIp("0:127.0.0.1");
-        ScriptTaskLog scriptTaskLog1 = new ScriptTaskLog(1L, "0:127.0.0.1", 0, "hello", 10);
+        ScriptTaskLog scriptTaskLog1 = new ScriptTaskLog(1L, 0, 1, "0:127.0.0.1", "hello", 10);
         taskIpLog1.setScriptTaskLog(scriptTaskLog1);
         taskIpLog1.setLogType(LogTypeEnum.SCRIPT.getValue());
         logService.saveLog(taskIpLog1);
@@ -68,8 +69,9 @@ public class LogServiceImplIntegrationTest {
         TaskIpLog taskIpLog2 = new TaskIpLog();
         taskIpLog2.setStepInstanceId(1L);
         taskIpLog2.setExecuteCount(0);
+        taskIpLog2.setBatch(1);
         taskIpLog2.setJobCreateDate("2020_07_29");
-        ScriptTaskLog scriptTaskLog2 = new ScriptTaskLog(1L, "0:127.0.0.1", 0, "world", 20);
+        ScriptTaskLog scriptTaskLog2 = new ScriptTaskLog(1L, 0, 1, "0:127.0.0.1", "world", 20);
         taskIpLog2.setScriptTaskLog(scriptTaskLog2);
         taskIpLog2.setLogType(LogTypeEnum.SCRIPT.getValue());
         logService.saveLog(taskIpLog2);
@@ -77,13 +79,40 @@ public class LogServiceImplIntegrationTest {
         ScriptLogQuery searchRequest = new ScriptLogQuery();
         searchRequest.setStepInstanceId(1L);
         searchRequest.setExecuteCount(0);
+        searchRequest.setBatch(1);
         searchRequest.setJobCreateDate("2020_07_29");
         searchRequest.setIps(Collections.singletonList("0:127.0.0.1"));
         TaskIpLog result = logService.getScriptLogByIp(searchRequest);
         assertThat(result.getStepInstanceId()).isEqualTo(1L);
         assertThat(result.getExecuteCount()).isEqualTo(0);
+        assertThat(result.getBatch()).isEqualTo(1);
         assertThat(result.getIp()).isEqualTo("0:127.0.0.1");
         assertThat(result.getScriptContent()).isEqualTo("helloworld");
+
+
+
+        TaskIpLog taskIpLog3 = new TaskIpLog();
+        taskIpLog3.setStepInstanceId(2L);
+        taskIpLog3.setExecuteCount(0);
+        taskIpLog3.setBatch(null);
+        taskIpLog3.setJobCreateDate("2020_07_29");
+        ScriptTaskLog scriptTaskLog3 = new ScriptTaskLog(2L, 0, null, "0:127.0.0.1", "abc", 20);
+        taskIpLog3.setScriptTaskLog(scriptTaskLog3);
+        taskIpLog3.setLogType(LogTypeEnum.SCRIPT.getValue());
+        logService.saveLog(taskIpLog3);
+
+        searchRequest = new ScriptLogQuery();
+        searchRequest.setStepInstanceId(2L);
+        searchRequest.setExecuteCount(0);
+        searchRequest.setBatch(null);
+        searchRequest.setJobCreateDate("2020_07_29");
+        searchRequest.setIps(Collections.singletonList("0:127.0.0.1"));
+        result = logService.getScriptLogByIp(searchRequest);
+        assertThat(result.getStepInstanceId()).isEqualTo(2L);
+        assertThat(result.getExecuteCount()).isEqualTo(0);
+        assertThat(result.getBatch()).isEqualTo(null);
+        assertThat(result.getIp()).isEqualTo("0:127.0.0.1");
+        assertThat(result.getScriptContent()).isEqualTo("abc");
     }
 
 //    @Test

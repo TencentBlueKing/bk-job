@@ -216,7 +216,7 @@ public class LogExportServiceImpl implements LogExportService {
                 for (List<IpDTO> ips : query.getIpBatches()) {
                     List<ScriptIpLogContent> scriptIpLogContentList =
                         logService.batchGetScriptIpLogContent(jobCreateDate, stepInstanceId, query.getExecuteCount(),
-                            ips);
+                            null, ips);
                     for (ScriptIpLogContent scriptIpLogContent : scriptIpLogContentList) {
                         if (scriptIpLogContent != null && StringUtils.isNotEmpty(scriptIpLogContent.getContent())) {
                             String[] logList = scriptIpLogContent.getContent().split("\n");

@@ -771,7 +771,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
     private void setAbnormalStatusForStep(StepInstanceDTO stepInstance) {
         long endTime = System.currentTimeMillis();
-        if (!RunStatusEnum.getFinishedStatusValueList().contains(stepInstance.getStatus())) {
+        if (!RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(stepInstance.getStatus()))) {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             taskInstanceService.updateStepExecutionInfo(
