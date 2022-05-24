@@ -146,14 +146,18 @@ public class HostWatchThread extends Thread {
         ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
         Long hostId = hostInfoDTO.getHostId();
         ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
-        Long appId = oldHostInfoDTO.getBizId();
+        Long appId = oldHostInfoDTO == null ? null : oldHostInfoDTO.getBizId();
         try {
-            appHostsUpdateHelper.waitAndStartBizHostsUpdating(appId);
+            if (appId != null && appId > 0) {
+                appHostsUpdateHelper.waitAndStartBizHostsUpdating(appId);
+            }
             handleOneEventIndeed(event);
         } catch (Throwable t) {
             log.error(String.format("Fail to handle hostEvent of appId %d, event:%s", appId, event), t);
         } finally {
-            appHostsUpdateHelper.endToUpdateBizHosts(appId);
+            if (appId != null && appId > 0) {
+                appHostsUpdateHelper.endToUpdateBizHosts(appId);
+            }
         }
     }
 
