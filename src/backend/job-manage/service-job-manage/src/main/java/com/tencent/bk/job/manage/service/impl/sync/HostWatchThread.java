@@ -328,7 +328,7 @@ public class HostWatchThread extends Thread {
      */
     class AppHostEventsHandler extends EventsHandler<HostEventDetail> {
 
-        public AppHostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> queue) {
+        AppHostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> queue) {
             super(queue);
         }
 
