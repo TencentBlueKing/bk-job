@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
@@ -183,10 +184,28 @@ public class BizWatchThread extends Thread {
         return cursor;
     }
 
+    private void tryToCreateApp(ApplicationDTO app) {
+        try {
+            applicationService.createApp(app);
+        } catch (DataAccessException e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
+                // 若已存在则忽略
+            } else {
+                log.error("insertApp fail:appInfo=" + app, e);
+            }
+        }
+    }
+
     private void handleOneEvent(ResourceEvent<BizEventDetail> event) {
         String eventType = event.getEventType();
         ApplicationDTO newestApp = BizEventDetail.toAppInfoDTO(event.getDetail());
-        ApplicationDTO cachedApp = applicationService.getAppByScope(newestApp.getScope());
+        ApplicationDTO cachedApp = null;
+        try {
+            cachedApp = applicationService.getAppByScope(newestApp.getScope());
+        } catch (NotFoundException e) {
+            log.debug("cannot find app by scope:{}, need to create", newestApp.getScope());
+        }
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
@@ -195,14 +214,12 @@ public class BizWatchThread extends Thread {
                         updateBizProps(cachedApp, newestApp);
                         applicationService.updateApp(cachedApp);
                     } else {
-                        try {
-                            applicationService.createApp(newestApp);
-                        } catch (DataAccessException e) {
-                            String errorMessage = e.getMessage();
-                            if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
-                                // 若已存在则忽略
-                            } else {
-                                log.error("insertApp fail:appInfo=" + newestApp, e);
+                        if (ResourceWatchReq.EVENT_TYPE_CREATE.equals(eventType)) {
+                            tryToCreateApp(newestApp);
+                        } else {
+                            // 不存在的业务（已归档）的Update事件，忽略
+                            if (log.isDebugEnabled()) {
+                                log.debug("ignore update event of invalid app:{}", JsonUtils.toJson(event));
                             }
                         }
                     }
