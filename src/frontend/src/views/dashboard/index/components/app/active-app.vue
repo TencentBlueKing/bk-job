@@ -52,8 +52,8 @@
                     <bk-table :data="listData" :max-height="420">
                         <bk-table-column
                             :label="$t('dashboard.业务名')"
-                            prop="appName"
-                            key="appName"
+                            prop="scopeName"
+                            key="scopeName"
                             align="left" />
                     </bk-table>
                 </div>
