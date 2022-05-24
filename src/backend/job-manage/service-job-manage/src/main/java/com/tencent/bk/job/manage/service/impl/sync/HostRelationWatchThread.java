@@ -156,7 +156,6 @@ public class HostRelationWatchThread extends Thread {
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
         Long appId = hostTopoDTO.getBizId();
         try {
-            appHostsUpdateHelper.waitAndStartBizHostsUpdating(appId);
             StopWatch watch = new StopWatch();
             watch.start("handleOneEventIndeed");
             handleOneEventIndeed(event);
@@ -168,8 +167,6 @@ public class HostRelationWatchThread extends Thread {
             }
         } catch (Throwable t) {
             log.error(String.format("Fail to handle hostRelationEvent of appId %d, event:%s", appId, event), t);
-        } finally {
-            appHostsUpdateHelper.endToUpdateBizHosts(appId);
         }
     }
 
