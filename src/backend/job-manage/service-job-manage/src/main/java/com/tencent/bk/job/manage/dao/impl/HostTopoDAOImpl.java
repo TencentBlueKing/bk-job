@@ -108,7 +108,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
                 null,
                 null,
                 null
-            );
+            ).onDuplicateKeyIgnore();
             BatchBindStep batchQuery = dslContext.batch(insertQuery);
             for (HostTopoDTO hostTopoDTO : subList) {
                 batchQuery = batchQuery.bind(
