@@ -54,7 +54,7 @@ export default class DangerousRecord {
         this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
-        this.appName = payload.appName;
+        this.scopeName = payload.scopeName;
         this.checkResultItems = payload.checkResultItems;
         this.client = payload.client;
         this.createTime = payload.createTime;
