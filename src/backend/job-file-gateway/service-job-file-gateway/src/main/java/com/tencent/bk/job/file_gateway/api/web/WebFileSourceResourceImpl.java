@@ -268,6 +268,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
                     new String[]{resourceScope.getType().getValue() + "," + resourceScope.getId()}
                 );
             }
+            sharedAppIdList.add(sharedAppId);
         }
         fileSourceDTO.setSharedAppIdList(sharedAppIdList);
         fileSourceDTO.setShareToAllApp(fileSourceCreateUpdateReq.getShareToAllApp());
