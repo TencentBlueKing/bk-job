@@ -24,21 +24,31 @@
 
 package com.tencent.bk.job.common.cc.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @since 19/12/2019 21:26
+ * cmdb 过滤查询模型
  */
-@Getter
-@Setter
-@ToString
-public class BaseConditionDTO {
+@Data
+public class PropertyFilterDTO {
+    /**
+     * 组合查询条件
+     */
+    private String condition;
+    /**
+     * 过滤规则
+     */
+    private List<IRule> rules = new ArrayList<>();
 
-    private String field;
-
-    private String operator;
-
-    private Object value;
+    /**
+     * 新增过滤规则
+     *
+     * @param rule 过滤规则
+     */
+    public void addRule(IRule rule) {
+        this.rules.add(rule);
+    }
 }

@@ -1324,9 +1324,14 @@ public class HostServiceImpl implements HostService {
         // 从缓存中查询主机信息，并判断主机是否在业务下
         checkCachedHosts(hostIps, includeBizIds, hostsInOtherApp, notExistHosts);
 
-        // 如果主机不在缓存中，那么进一步从DB查询主，并判断主机是否在业务下
+        // 如果主机不在缓存中，那么从已同步到Job的主机中查询
         if (CollectionUtils.isNotEmpty(notExistHosts)) {
-            checkNotCachedHosts(includeBizIds, hostsInOtherApp, notExistHosts);
+            checkSyncHosts(includeBizIds, hostsInOtherApp, notExistHosts);
+        }
+
+        // 如果主机不在已同步到Job的主机中, 那么从cmdb直接查询
+        if (CollectionUtils.isNotEmpty(notExistHosts)) {
+            checkHostsFromCmdb(includeBizIds, hostsInOtherApp, notExistHosts);
         }
 
         List<IpDTO> invalidHosts = new ArrayList<>();
@@ -1365,7 +1370,7 @@ public class HostServiceImpl implements HostService {
             CacheHostDO cacheHost = cacheHosts.get(i);
             if (cacheHost != null) {
                 if (!includeBizIds.contains(cacheHost.getBizId())) {
-                    hostsInOtherApp.add(new BasicAppHost(cacheHost.getAppId(), cacheHost.getBizId(),
+                    hostsInOtherApp.add(new BasicAppHost(cacheHost.getBizId(),
                         cacheHost.getCloudAreaId(), cacheHost.getIp()));
                 }
             } else {
@@ -1374,20 +1379,54 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    private void checkNotCachedHosts(List<Long> includeBizIds,
-                                     List<BasicAppHost> hostsInOtherApp,
-                                     List<IpDTO> notExistHosts) {
+    private void checkSyncHosts(List<Long> includeBizIds,
+                                List<BasicAppHost> hostsInOtherApp,
+                                List<IpDTO> notExistHosts) {
         List<ApplicationHostDTO> appHosts = applicationHostDAO.listHosts(notExistHosts);
         if (CollectionUtils.isNotEmpty(appHosts)) {
             for (ApplicationHostDTO appHost : appHosts) {
+                if (appHost.getBizId() == null) {
+                    log.info("Host: {} missing bizId, skip!", appHost.getCloudIp());
+                    // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
+                    continue;
+                }
                 IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
                 notExistHosts.remove(hostIp);
                 hostCache.addOrUpdateHost(appHost);
                 if (!includeBizIds.contains(appHost.getBizId())) {
-                    hostsInOtherApp.add(new BasicAppHost(appHost.getAppId(), appHost.getBizId(),
+                    hostsInOtherApp.add(new BasicAppHost(appHost.getBizId(),
                         appHost.getCloudAreaId(), appHost.getIp()));
                 }
             }
+        }
+    }
+
+    private void checkHostsFromCmdb(List<Long> includeBizIds,
+                                    List<BasicAppHost> hostsInOtherApp,
+                                    List<IpDTO> notExistHosts) {
+
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
+        try {
+            List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByIps(notExistHosts);
+            if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
+                List<IpDTO> cmdbExistHostIps = cmdbExistHosts.stream()
+                    .map(host -> new IpDTO(host.getCloudAreaId(), host.getIp()))
+                    .collect(Collectors.toList());
+                notExistHosts.removeAll(cmdbExistHostIps);
+                log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
+
+                applicationHostDAO.batchInsertAppHostInfo(dslContext, cmdbExistHosts);
+                hostCache.addOrUpdateHosts(cmdbExistHosts);
+
+                cmdbExistHosts.forEach(syncHost -> {
+                    if (!includeBizIds.contains(syncHost.getBizId())) {
+                        hostsInOtherApp.add(new BasicAppHost(syncHost.getBizId(),
+                            syncHost.getCloudAreaId(), syncHost.getIp()));
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.warn("Handle hosts that may not be synchronized from cmdb fail!", e);
         }
     }
 
@@ -1397,13 +1436,11 @@ public class HostServiceImpl implements HostService {
 
     @Data
     private static class BasicAppHost {
-        private Long appId;
         private Long bizId;
         private Long cloudAreaId;
         private String ip;
 
-        private BasicAppHost(Long appId, Long bizId, Long cloudAreaId, String ip) {
-            this.appId = appId;
+        private BasicAppHost(Long bizId, Long cloudAreaId, String ip) {
             this.bizId = bizId;
             this.cloudAreaId = cloudAreaId;
             this.ip = ip;

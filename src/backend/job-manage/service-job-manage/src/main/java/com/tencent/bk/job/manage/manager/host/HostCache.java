@@ -105,6 +105,15 @@ public class HostCache {
         redisTemplate.opsForValue().set(hostKey, cacheHost, 1, TimeUnit.DAYS);
     }
 
+    /**
+     * 批量更新缓存中的主机
+     *
+     * @param hosts 主机列表
+     */
+    public void addOrUpdateHosts(List<ApplicationHostDTO> hosts) {
+        hosts.forEach(this::addOrUpdateHost);
+    }
+
     private String buildHostKey(ApplicationHostDTO applicationHostDTO) {
         return buildHostKey(applicationHostDTO.getCloudAreaId(),
             applicationHostDTO.getIp());
