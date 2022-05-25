@@ -1326,11 +1326,13 @@ public class HostServiceImpl implements HostService {
 
         // 如果主机不在缓存中，那么从已同步到Job的主机中查询
         if (CollectionUtils.isNotEmpty(notExistHosts)) {
+            log.info("Hosts not in cached, check hosts by synced hosts. notCacheHosts: {}", notExistHosts);
             checkSyncHosts(includeBizIds, hostsInOtherApp, notExistHosts);
         }
 
         // 如果主机不在已同步到Job的主机中, 那么从cmdb直接查询
         if (CollectionUtils.isNotEmpty(notExistHosts)) {
+            log.info("Hosts not synced, check hosts by cmdb. notSyncedHosts: {}", notExistHosts);
             checkHostsFromCmdb(includeBizIds, hostsInOtherApp, notExistHosts);
         }
 
