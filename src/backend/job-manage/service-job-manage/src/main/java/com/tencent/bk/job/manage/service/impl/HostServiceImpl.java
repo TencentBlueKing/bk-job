@@ -1415,7 +1415,6 @@ public class HostServiceImpl implements HostService {
                 notExistHosts.removeAll(cmdbExistHostIps);
                 log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
 
-                applicationHostDAO.batchInsertAppHostInfo(dslContext, cmdbExistHosts);
                 hostCache.addOrUpdateHosts(cmdbExistHosts);
 
                 cmdbExistHosts.forEach(syncHost -> {
