@@ -1430,7 +1430,33 @@ public class HostServiceImpl implements HostService {
     }
 
     public List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps) {
-        return applicationHostDAO.listHosts(hostIps);
+        // 从Job已同步的主机中查询
+        List<ApplicationHostDTO> syncedHosts = applicationHostDAO.listHosts(hostIps);
+        Map<String, ApplicationHostDTO> hostsMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(syncedHosts)) {
+            syncedHosts.forEach(syncedHost -> hostsMap.put(syncedHost.getCloudIp(), syncedHost));
+        }
+
+        List<ApplicationHostDTO> resultHosts = new ArrayList<>();
+        List<IpDTO> notSyncedHostIps = new ArrayList<>();
+        hostIps.forEach(hostIp -> {
+            ApplicationHostDTO host = hostsMap.get(hostIp.convertToStrIp());
+            if (host == null || host.getBizId() == null || host.getBizId() <= 0) {
+                notSyncedHostIps.add(hostIp);
+            } else {
+                resultHosts.add(host);
+            }
+        });
+        // 如果从已同步的主机中没有查询到的主机或者主机信息不完整，那么从cmdb实时查询
+        if (CollectionUtils.isNotEmpty(notSyncedHostIps)) {
+            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
+            List<ApplicationHostDTO> hostsFromCmdb = bizCmdbClient.listHostsByIps(notSyncedHostIps);
+            if (CollectionUtils.isNotEmpty(hostsFromCmdb)) {
+                resultHosts.addAll(hostsFromCmdb);
+            }
+        }
+
+        return resultHosts;
     }
 
     @Data
