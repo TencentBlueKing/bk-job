@@ -102,8 +102,8 @@
                         v-model="formData.sharedScopeList">
                         <bk-option
                             v-for="scopeItem in scopeList"
-                            :key="`${scopeItem.scopeType}_${scopeItem.scopeId}`"
-                            :id="`${scopeItem.scopeType}_${scopeItem.scopeId}`"
+                            :key="`#${scopeItem.scopeType}#${scopeItem.scopeId}`"
+                            :id="`#${scopeItem.scopeType}#${scopeItem.scopeId}`"
                             :name="scopeItem.name" />
                     </bk-select>
                     <bk-checkbox v-model="formData.shareToAllApp">
@@ -380,12 +380,23 @@
             },
             /**
              * @desc 获取业务列表数据
+             *
+             * 需过滤掉当前业务
              */
             fetchScopeList () {
                 return AppManageService.fetchAppList()
                     .then((data) => {
-                        this.scopeList = Object.freeze(data);
-                        console.log('feom app l ist = ', data);
+                        const {
+                            SCOPE_TYPE,
+                            SCOPE_ID,
+                        } = window.PROJECT_CONFIG;
+                        this.scopeList = Object.freeze(data.reduce((result, item) => {
+                            if (item.scopeType === SCOPE_TYPE && item.scopeId === SCOPE_ID) {
+                                return result;
+                            }
+                            result.push(item);
+                            return result;
+                        }, []));
                     });
             },
             /**
@@ -441,7 +452,7 @@
                         publicFlag,
                         storageType,
                         shareToAllApp,
-                        sharedScopeList: sharedScopeList.map(({ type, id }) => `${type}_${id}`),
+                        sharedScopeList: sharedScopeList.map(({ type, id }) => `#${type}#${id}`),
                         workerId,
                         workerSelectMode,
                         workerSelectScope,
@@ -482,7 +493,7 @@
                             params.filePrefix = FileSourceModel.FILE_PERFIX_UUID;
                         }
                         params.sharedScopeList = params.sharedScopeList.map((item) => {
-                            const [type, id] = item.split('_');
+                            const [, type, id] = item.match(/^#([^#]+)#(.*)/);
                             return {
                                 type,
                                 id,

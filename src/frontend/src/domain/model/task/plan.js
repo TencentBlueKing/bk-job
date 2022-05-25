@@ -31,7 +31,6 @@ export default class Plan {
     constructor (payload) {
         this.id = payload.id;
         this.name = payload.name;
-        this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
         this.favored = Boolean(payload.favored);
