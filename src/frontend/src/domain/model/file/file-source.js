@@ -74,7 +74,7 @@ export default class SourceFile extends Model {
         this.lastModifyUser = payload.lastModifyUser;
         this.publicFlag = payload.publicFlag;
         this.shareToAllApp = payload.shareToAllApp;
-        this.sharedAppIdList = payload.sharedAppIdList;
+        this.sharedScopeList = payload.sharedScopeList;
         this.status = payload.status;
         this.storageType = payload.storageType;
         this.workerId = payload.workerId;

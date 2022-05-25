@@ -91,7 +91,7 @@
                 v-if="formData.publicFlag"
                 :label="$t('file.共享对象')"
                 required
-                property="sharedAppIdList">
+                property="sharedScopeList">
                 <div class="share-object-box">
                     <bk-select
                         class="share-app-select"
@@ -99,7 +99,7 @@
                         searchable
                         multiple
                         :disabled="formData.shareToAllApp"
-                        v-model="formData.sharedAppIdList">
+                        v-model="formData.sharedScopeList">
                         <bk-option
                             v-for="option in appList"
                             :key="option.id"
@@ -216,7 +216,7 @@
         // 是否共享到全业务
         shareToAllApp: false,
         // 共享的业务Id列表
-        sharedAppIdList: [],
+        sharedScopeList: [],
         // 存储类型
         storageType: 'OSS',
         // 接入点Id，手动选择时传入，自动选择不传
@@ -268,11 +268,11 @@
         },
         watch: {
             /**
-             * @desc 共享对象为全业务，清空 sharedAppIdList
+             * @desc 共享对象为全业务，清空 sharedScopeList
              */
             'formData.shareToAllApp' (newVal) {
                 if (newVal) {
-                    this.formData.sharedAppIdList = [];
+                    this.formData.sharedScopeList = [];
                 }
             },
             /**
@@ -344,13 +344,13 @@
                         trigger: 'blur',
                     },
                 ],
-                sharedAppIdList: [
+                sharedScopeList: [
                     {
-                        validator: (sharedAppIdList) => {
+                        validator: (sharedScopeList) => {
                             if (this.formData.shareToAllApp) {
                                 return true;
                             }
-                            return sharedAppIdList.length > 0;
+                            return sharedScopeList.length > 0;
                         },
                         message: I18n.t('file.共享对象必填'),
                         trigger: 'blur',
@@ -423,7 +423,7 @@
                         publicFlag,
                         storageType,
                         shareToAllApp,
-                        sharedAppIdList,
+                        sharedScopeList,
                         workerId,
                         workerSelectMode,
                         workerSelectScope,
@@ -440,7 +440,7 @@
                         publicFlag,
                         storageType,
                         shareToAllApp,
-                        sharedAppIdList,
+                        sharedScopeList,
                         workerId,
                         workerSelectMode,
                         workerSelectScope,
