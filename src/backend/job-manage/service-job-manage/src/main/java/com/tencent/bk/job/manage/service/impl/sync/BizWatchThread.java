@@ -41,7 +41,6 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.exception.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
@@ -187,13 +186,8 @@ public class BizWatchThread extends Thread {
     private void tryToCreateApp(ApplicationDTO app) {
         try {
             applicationService.createApp(app);
-        } catch (DataAccessException e) {
-            String errorMessage = e.getMessage();
-            if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
-                // 若已存在则忽略
-            } else {
-                log.error("insertApp fail:appInfo=" + app, e);
-            }
+        } catch (Exception e) {
+            log.error("create app fail:appInfo=" + app, e);
         }
     }
 
@@ -228,7 +222,11 @@ public class BizWatchThread extends Thread {
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationService.deleteApp(cachedApp.getId());
+                if (cachedApp != null) {
+                    applicationService.deleteApp(cachedApp.getId());
+                } else {
+                    log.info("ignore delete event of app not exist:{}", event);
+                }
                 break;
             default:
                 break;
