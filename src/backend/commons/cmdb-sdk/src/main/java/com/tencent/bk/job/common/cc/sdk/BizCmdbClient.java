@@ -1066,7 +1066,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     private List<ApplicationHostDTO> listHostsWithoutBiz(ListHostsWithoutBizReq req) {
-        int limit = 1;
+        int limit = 500;
         int start = 0;
         PageDTO page = new PageDTO(start, limit, "");
         req.setPage(page);
