@@ -101,10 +101,10 @@
                         :disabled="formData.shareToAllApp"
                         v-model="formData.sharedScopeList">
                         <bk-option
-                            v-for="option in appList"
-                            :key="option.id"
-                            :id="option.id"
-                            :name="option.name" />
+                            v-for="scopeItem in scopeList"
+                            :key="`${scopeItem.scopeType}_${scopeItem.scopeId}`"
+                            :id="`${scopeItem.scopeType}_${scopeItem.scopeId}`"
+                            :name="scopeItem.name" />
                     </bk-select>
                     <bk-checkbox v-model="formData.shareToAllApp">
                         {{ $t('file.全业务') }}
@@ -248,7 +248,7 @@
                 // 文件源参数
                 fileSourceParamList: [],
                 // 业务列表
-                appList: [],
+                scopeList: [],
                 // 文件源凭证列表
                 fileFourceTicketList: [],
                 // 自动选择接入点
@@ -295,7 +295,7 @@
         created () {
             const taskQueue = [
                 this.fetchSourceTypeList(),
-                this.fetchAppList(),
+                this.fetchScopeList(),
                 this.fetchTicketList(),
                 this.fetchWorkersList(),
             ];
@@ -381,10 +381,11 @@
             /**
              * @desc 获取业务列表数据
              */
-            fetchAppList () {
+            fetchScopeList () {
                 return AppManageService.fetchAppList()
                     .then((data) => {
-                        this.appList = Object.freeze(data);
+                        this.scopeList = Object.freeze(data);
+                        console.log('feom app l ist = ', data);
                     });
             },
             /**
@@ -440,7 +441,7 @@
                         publicFlag,
                         storageType,
                         shareToAllApp,
-                        sharedScopeList,
+                        sharedScopeList: sharedScopeList.map(({ type, id }) => `${type}_${id}`),
                         workerId,
                         workerSelectMode,
                         workerSelectScope,
@@ -480,6 +481,13 @@
                         if (this.filePrefixType === FileSourceModel.FILE_PERFIX_UUID) {
                             params.filePrefix = FileSourceModel.FILE_PERFIX_UUID;
                         }
+                        params.sharedScopeList = params.sharedScopeList.map((item) => {
+                            const [type, id] = item.split('_');
+                            return {
+                                type,
+                                id,
+                            };
+                        });
                         
                         if (params.id < 0) {
                             return FileSourceManageService.addSource(params)
