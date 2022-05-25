@@ -35,13 +35,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
  * 文件源
  */
+@Slf4j
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -171,7 +174,18 @@ public class FileSourceDTO {
         fileSourceVO.setStorageType(fileSourceDTO.getFileSourceType().getStorageType());
         fileSourceVO.setFileSourceInfoMap(fileSourceDTO.getFileSourceInfoMap());
         fileSourceVO.setPublicFlag(fileSourceDTO.getPublicFlag());
-        fileSourceVO.setSharedAppIdList(fileSourceDTO.getSharedAppIdList());
+        List<Long> sharedAppIdList = fileSourceDTO.getSharedAppIdList();
+        List<ResourceScope> sharedScopeList = new ArrayList<>();
+        Map<Long, ResourceScope> map = appScopeMappingService.getScopeByAppIds(sharedAppIdList);
+        for (Long appId : sharedAppIdList) {
+            ResourceScope scope = map.get(appId);
+            if (scope == null) {
+                log.warn("cannot find scope by appId:{}, ignore", appId);
+            } else {
+                sharedScopeList.add(scope);
+            }
+        }
+        fileSourceVO.setSharedScopeList(sharedScopeList);
         fileSourceVO.setShareToAllApp(fileSourceDTO.getShareToAllApp());
         fileSourceVO.setCredentialId(fileSourceDTO.getCredentialId());
         fileSourceVO.setFilePrefix(fileSourceDTO.getFilePrefix());

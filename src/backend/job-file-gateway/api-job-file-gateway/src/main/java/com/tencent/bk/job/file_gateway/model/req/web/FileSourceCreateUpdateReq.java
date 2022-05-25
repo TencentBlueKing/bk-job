@@ -66,7 +66,7 @@ public class FileSourceCreateUpdateReq {
     @ApiModelProperty(value = "是否为公共文件源", required = true)
     private Boolean publicFlag;
     /**
-     * 共享的业务Id集合
+     * 共享的资源范围列表
      */
     @ApiModelProperty(value = "共享的资源范围列表", required = true)
     private List<ResourceScope> sharedScopeList;
