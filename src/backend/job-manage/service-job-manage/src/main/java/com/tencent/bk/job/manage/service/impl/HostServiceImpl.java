@@ -1385,7 +1385,7 @@ public class HostServiceImpl implements HostService {
         List<ApplicationHostDTO> appHosts = applicationHostDAO.listHosts(notExistHosts);
         if (CollectionUtils.isNotEmpty(appHosts)) {
             for (ApplicationHostDTO appHost : appHosts) {
-                if (appHost.getBizId() == null) {
+                if (appHost.getBizId() == null || appHost.getBizId() < 0) {
                     log.info("Host: {} missing bizId, skip!", appHost.getCloudIp());
                     // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
                     continue;
