@@ -108,7 +108,8 @@ public class Actions {
     // 全局设置
     public static final ActionInfo GLOBAL_SETTINGS = new ActionInfo(ActionId.GLOBAL_SETTINGS);
     // 运营视图查看
-    public static final ActionInfo DASHBOARD_VIEW = new ActionInfo(ActionId.DASHBOARD_VIEW);
+    public static final ActionInfo DASHBOARD_VIEW = new ActionInfo(ActionId.DASHBOARD_VIEW,
+        ResourceTypeEnum.DASHBOARD_VIEW);
     // 服务状态查看
     public static final ActionInfo SERVICE_STATE_ACCESS = new ActionInfo(ActionId.SERVICE_STATE_ACCESS);
     // 业务查看
