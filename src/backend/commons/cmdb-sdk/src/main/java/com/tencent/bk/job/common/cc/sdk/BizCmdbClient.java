@@ -30,7 +30,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.cc.model.BaseConditionDTO;
+import com.tencent.bk.job.common.cc.model.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
 import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
@@ -41,8 +41,9 @@ import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
-import com.tencent.bk.job.common.cc.model.ConditionDTO;
+import com.tencent.bk.job.common.cc.model.ComposeRuleDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
 import com.tencent.bk.job.common.cc.model.req.ExecuteDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.FindHostBizRelationsReq;
@@ -63,9 +64,9 @@ import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ExecuteDynamicGroupHostResult;
-import com.tencent.bk.job.common.cc.model.result.FindHostBizRelationsResult;
 import com.tencent.bk.job.common.cc.model.result.FindModuleHostRelationResult;
 import com.tencent.bk.job.common.cc.model.result.GetBizInternalModuleResult;
+import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ListBizHostResult;
@@ -959,13 +960,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<FindHostBizRelationsResult> findHostBizRelations(String uin, List<Long> hostIdList) {
+    public List<HostBizRelationDTO> findHostBizRelations(String uin, List<Long> hostIdList) {
         FindHostBizRelationsReq req = makeBaseReq(FindHostBizRelationsReq.class, defaultUin, defaultSupplierAccount);
         req.setHostIdList(hostIdList);
-        EsbResp<List<FindHostBizRelationsResult>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
-            FIND_HOST_BIZ_RELATIONS, req, new TypeReference<EsbResp<List<FindHostBizRelationsResult>>>() {
+        EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
+            FIND_HOST_BIZ_RELATIONS, req, new TypeReference<EsbResp<List<HostBizRelationDTO>>>() {
             });
-        List<FindHostBizRelationsResult> results = esbResp.getData();
+        List<HostBizRelationDTO> results = esbResp.getData();
         if (esbResp.getData() == null) {
             return Collections.emptyList();
         }
@@ -977,16 +978,14 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
         ListBizHostReq req = makeBaseReq(ListBizHostReq.class, defaultUin, defaultSupplierAccount);
         req.setBizId(input.getBizId());
-        ConditionDTO condition = new ConditionDTO();
+        PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("AND");
-        List<BaseConditionDTO> rules = new ArrayList<>();
         input.ipList.removeIf(StringUtils::isBlank);
-        BaseConditionDTO baseConditionDTO = new BaseConditionDTO();
-        baseConditionDTO.setField("bk_host_innerip");
-        baseConditionDTO.setOperator("in");
-        baseConditionDTO.setValue(input.ipList);
-        rules.add(baseConditionDTO);
-        condition.setRules(rules);
+        BaseRuleDTO baseRuleDTO = new BaseRuleDTO();
+        baseRuleDTO.setField("bk_host_innerip");
+        baseRuleDTO.setOperator("in");
+        baseRuleDTO.setValue(input.ipList);
+        condition.addRule(baseRuleDTO);
         req.setCondition(condition);
 
         int limit = 200;
@@ -1020,34 +1019,100 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     @Override
     public ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip) {
         ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
-        ConditionDTO condition = new ConditionDTO();
+        PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("AND");
-        List<BaseConditionDTO> rules = new ArrayList<>();
-        BaseConditionDTO ipCondition = new BaseConditionDTO();
-        ipCondition.setField("bk_host_innerip");
-        ipCondition.setOperator("equal");
-        ipCondition.setValue(ip);
-        BaseConditionDTO cloudAreaIdCondition = new BaseConditionDTO();
-        cloudAreaIdCondition.setField("bk_cloud_id");
-        cloudAreaIdCondition.setOperator("equal");
-        cloudAreaIdCondition.setValue(cloudAreaId);
-        rules.add(ipCondition);
-        rules.add(cloudAreaIdCondition);
-        condition.setRules(rules);
+        BaseRuleDTO ipRule = new BaseRuleDTO();
+        ipRule.setField("bk_host_innerip");
+        ipRule.setOperator("equal");
+        ipRule.setValue(ip);
+        condition.addRule(ipRule);
+        BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
+        bkCloudIdRule.setField("bk_cloud_id");
+        bkCloudIdRule.setOperator("equal");
+        bkCloudIdRule.setValue(cloudAreaId);
+        condition.addRule(bkCloudIdRule);
         req.setCondition(condition);
 
-        int limit = 1;
+        List<ApplicationHostDTO> hosts = listHostsWithoutBiz(req);
+        return hosts.size() > 0 ? hosts.get(0) : null;
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostsByIps(List<IpDTO> hostIps) {
+        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        PropertyFilterDTO condition = new PropertyFilterDTO();
+        condition.setCondition("OR");
+        Map<Long, List<IpDTO>> hostGroups = groupHostsByCloudAreaId(hostIps);
+        hostGroups.forEach((bkCloudId, hosts) -> {
+            ComposeRuleDTO hostRule = new ComposeRuleDTO();
+            hostRule.setCondition("AND");
+            BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
+            bkCloudIdRule.setField("bk_cloud_id");
+            bkCloudIdRule.setOperator("equal");
+            bkCloudIdRule.setValue(bkCloudId);
+            hostRule.addRule(bkCloudIdRule);
+
+            BaseRuleDTO ipRule = new BaseRuleDTO();
+            ipRule.setField("bk_host_innerip");
+            ipRule.setOperator("in");
+            ipRule.setValue(hosts.stream().map(IpDTO::getIp).collect(Collectors.toList()));
+            hostRule.addRule(ipRule);
+
+            condition.addRule(hostRule);
+        });
+        req.setCondition(condition);
+
+        return listHostsWithoutBiz(req);
+    }
+
+    private List<ApplicationHostDTO> listHostsWithoutBiz(ListHostsWithoutBizReq req) {
+        int limit = 500;
         int start = 0;
         PageDTO page = new PageDTO(start, limit, "");
         req.setPage(page);
-        EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ
-            , req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
+        EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ,
+            req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
             });
         ListHostsWithoutBizResult pageData = esbResp.getData();
         if (esbResp.getData() == null || CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
-            return null;
+            return Collections.emptyList();
         }
-        return convertHost(-1L, pageData.getInfo().get(0));
+
+        List<ApplicationHostDTO> hosts =
+            pageData.getInfo().stream().map(host -> convertHost(-1, host)).collect(Collectors.toList());
+
+        // 设置主机业务信息
+        setBizRelationInfo(hosts);
+
+        return hosts;
+    }
+
+    private void setBizRelationInfo(List<ApplicationHostDTO> hosts) {
+        List<Long> hostIds = hosts.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
+        List<HostBizRelationDTO> hostBizRelations = findHostBizRelations(null, hostIds);
+        Map<Long, List<HostBizRelationDTO>> hostBizRelationMap =
+            hostBizRelations.stream().collect(
+                Collectors.groupingBy(HostBizRelationDTO::getHostId));
+        // 设置bizId/moduleId/setId
+        hosts.forEach(host -> {
+            List<HostBizRelationDTO> relations = hostBizRelationMap.get(host.getHostId());
+            if (CollectionUtils.isEmpty(relations)) {
+                return;
+            }
+            host.setBizId(relations.get(0).getBizId());
+            List<Long> moduleIds = new ArrayList<>();
+            List<Long> setIds = new ArrayList<>();
+            relations.forEach(relation -> {
+                moduleIds.add(relation.getModuleId());
+                setIds.add(relation.getSetId());
+            });
+            host.setModuleId(moduleIds);
+            host.setSetId(setIds);
+        });
+    }
+
+    private Map<Long, List<IpDTO>> groupHostsByCloudAreaId(List<IpDTO> hostIps) {
+        return hostIps.stream().collect(Collectors.groupingBy(IpDTO::getCloudAreaId));
     }
 
     @Override
