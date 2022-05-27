@@ -211,7 +211,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     public Long createTaskInstanceFast(TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance) throws ServiceException {
         log.info("Begin to create task instance and step instance for fast-execution-task, taskInstance: {}, " +
-                "stepInstance: {}", taskInstance, stepInstance);
+            "stepInstance: {}", taskInstance, stepInstance);
         StopWatch watch = new StopWatch("createTaskInstanceFast");
         // 检查任务是否应当被驱逐
         checkTaskEvict(taskInstance);
@@ -393,23 +393,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 isScriptSpecifiedById = true;
             }
             if (isScriptSpecifiedById) {
-                if (script == null) {
-                    log.warn("Script is not exist, appId={}, scriptId: {}, scriptVersionId={}", stepInstance.getAppId(),
-                        stepInstance.getScriptId(), scriptVersionId);
-                    throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-                }
-                if (!script.isPublicScript() && !script.getAppId().equals(appId)) {
-                    log.warn("Script is not exist in app, appId={}, scriptId: {}, scriptVersionId={}",
-                        stepInstance.getAppId(),
-                        stepInstance.getScriptId(), scriptVersionId);
-                    stepInstance.setScriptVersionId(script.getScriptVersionId());
-                    throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-                }
-                if (!script.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
-                    log.warn("Script is not online, should not execute! appId={}, scriptId: {}, scriptVersionId={}",
-                        stepInstance.getAppId(), script.getId(), scriptVersionId);
-                    throw new FailedPreconditionException(ErrorCode.SCRIPT_NOT_ONLINE_SHOULD_NOT_EXECUTE);
-                }
+                checkScriptExist(appId, stepInstance, script);
+                checkScriptStatusExecutable(script);
+
                 if (StringUtils.isEmpty(stepInstance.getScriptId())) {
                     stepInstance.setScriptId(script.getId());
                 }
@@ -431,6 +417,32 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 检查高危脚本
         checkScriptMatchDangerousRule(taskInstance, stepInstance);
         return script;
+    }
+
+    private void checkScriptExist(long appId, StepInstanceDTO stepInstance, ServiceScriptDTO script) {
+        if (script == null) {
+            log.warn("Script is not exist, appId={}, scriptId: {}, scriptVersionId={}", appId,
+                stepInstance.getScriptId(), stepInstance.getScriptVersionId());
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
+        }
+        if (!script.isPublicScript() && !script.getAppId().equals(appId)) {
+            log.warn("Script is not exist in app, appId={}, scriptId: {}, scriptVersionId={}",
+                stepInstance.getAppId(), stepInstance.getScriptId(), stepInstance.getScriptVersionId());
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
+        }
+    }
+
+    private void checkScriptStatusExecutable(ServiceScriptDTO script) {
+        JobResourceStatusEnum scriptStatus = JobResourceStatusEnum.getJobResourceStatus(script.getStatus());
+        // 只有"已上线"和"已下线"的脚本状态可以执行
+        if (JobResourceStatusEnum.ONLINE != scriptStatus && JobResourceStatusEnum.OFFLINE != scriptStatus) {
+            log.warn("Script status is {}, should not execute! ScriptId: {}, scriptVersionId={}",
+                scriptStatus, script.getId(), script.getScriptVersionId());
+            throw new FailedPreconditionException(ErrorCode.SCRIPT_NOT_EXECUTABLE_STATUS,
+                new String[] {
+                    scriptStatus.getStatusI18nKey()
+                });
+        }
     }
 
     private void checkScriptMatchDangerousRule(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
