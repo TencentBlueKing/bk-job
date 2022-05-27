@@ -440,7 +440,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 scriptStatus, script.getId(), script.getScriptVersionId());
             throw new FailedPreconditionException(ErrorCode.SCRIPT_NOT_EXECUTABLE_STATUS,
                 new String[] {
-                    scriptStatus.getStatusI18nKey()
+                    "{" + scriptStatus.getStatusI18nKey() + "}"
                 });
         }
     }
