@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -40,12 +39,6 @@ import java.util.List;
 public class DynamicGroupInfoVO {
 
     /**
-     * 业务id
-     */
-    @CompatibleImplementation(explain = "为了无损发布保留的历史字段，发布完成需要删除", version = "3.5.1")
-    private Long appId;
-
-    /**
      * 资源范围类型
      */
     @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
@@ -57,8 +50,12 @@ public class DynamicGroupInfoVO {
     @ApiModelProperty("资源范围ID")
     private String scopeId;
 
+    @Deprecated
     @ApiModelProperty("业务名")
     private String appName;
+
+    @ApiModelProperty("资源范围名称")
+    private String scopeName;
 
     @ApiModelProperty("动态分组 ID")
     private String id;

@@ -38,11 +38,22 @@ import lombok.NoArgsConstructor;
 @Data
 public class PerAppStatisticVO {
 
-    @ApiModelProperty("业务ID")
+    @Deprecated
+    @ApiModelProperty("业务ID(勿用，仅做发布期间兼容)")
     private Long appId;
 
-    @ApiModelProperty("业务名称")
+    @Deprecated
+    @ApiModelProperty("业务名称(勿用，仅做发布期间兼容)")
     private String appName;
+
+    @ApiModelProperty("资源范围类型(biz:业务，biz_set:业务集)")
+    private String scopeType;
+
+    @ApiModelProperty("资源范围ID")
+    private String scopeId;
+
+    @ApiModelProperty("资源范围名称")
+    private String scopeName;
 
     @ApiModelProperty("统计量数值")
     private Long value;

@@ -10,6 +10,7 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,7 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
     @Override
     protected void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
         log.info("Handle BizSetRelationEvent: {}", event);
+
         String eventType = event.getEventType();
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
@@ -65,6 +67,11 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
                             new ResourceScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), String.valueOf(bizSetId))
                         );
                     if (cacheApplication == null || cacheApplication.isDeleted()) {
+                        return;
+                    }
+                    if (!FeatureToggle.isCmdbBizSetEnabledForApp(cacheApplication.getId())) {
+                        log.info("Ignore cmdb biz set relation event, app[{}] cmdb biz set feature toggle is disabled",
+                            cacheApplication.getId());
                         return;
                     }
                     cacheApplication.setSubBizIds(latestSubBizIds);
@@ -85,13 +92,13 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
 
     @Override
     protected boolean isWatchingEnabled() {
-        boolean isEnabled = bizSetService.isBizSetMigratedToCMDB();
-        if (!isEnabled) {
-            log.warn("Job BizSets have not been migrated to CMDB, " +
-                "do not watch bizSet event from CMDB, " +
-                "please use upgrader in package to migrate as soon as possible"
-            );
+        boolean isBizSetMigratedToCMDB = bizSetService.isBizSetMigratedToCMDB();
+        boolean isCmdbBizSetEnabled = FeatureToggle.isCmdbBizSetEnabled();
+        boolean isWatchingEnabled = isBizSetMigratedToCMDB && isCmdbBizSetEnabled;
+        if (!isWatchingEnabled) {
+            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}, isCmdbBizSetEnabled: {}",
+                isBizSetMigratedToCMDB, isCmdbBizSetEnabled);
         }
-        return isEnabled;
+        return isWatchingEnabled;
     }
 }

@@ -160,7 +160,6 @@ public class TaskPlanInfoDTO {
     public static TaskPlanVO toVO(TaskPlanInfoDTO planInfo) {
         TaskPlanVO planVO = new TaskPlanVO();
         planVO.setId(planInfo.getId());
-        planVO.setAppId(planInfo.getAppId());
         AppScopeMappingService appScopeMappingService =
             ApplicationContextRegister.getBean(AppScopeMappingService.class);
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(planInfo.getAppId());

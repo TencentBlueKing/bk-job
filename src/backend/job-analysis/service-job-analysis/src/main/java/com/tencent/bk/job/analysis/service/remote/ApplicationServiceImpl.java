@@ -45,8 +45,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public List<ServiceApplicationDTO> listLocalDBApps(Integer appType) {
-        val result = applicationResourceClient.listApps(appType, null);
+    public List<ServiceApplicationDTO> listLocalDBApps() {
+        val result = applicationResourceClient.listApps(null);
         if (result == null) {
             throw new RuntimeException("Job-manage unavailable, please check");
         } else {

@@ -22,25 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.manage.model.web.request.app;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+@Data
+@ApiModel("收藏业务")
+public class FavorAppReq {
 
-public class FindHostBizRelationsResult {
+    @ApiModelProperty(value = "要收藏的资源范围类型", required = true)
+    private String scopeType;
 
-    @JsonProperty("bk_biz_id")
-    private Long bizId;
-
-    @JsonProperty("bk_host_id")
-    private Long hostId;
-
-    @JsonProperty("bk_module_id")
-    private Long moduleId;
-
-    @JsonProperty("bk_set_id")
-    private Long setId;
-
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
+    @ApiModelProperty(value = "要收藏的资源范围ID", required = true)
+    private String scopeId;
 }

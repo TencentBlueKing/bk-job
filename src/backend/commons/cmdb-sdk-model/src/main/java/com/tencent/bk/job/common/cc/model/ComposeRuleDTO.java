@@ -22,23 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.annotation;
+package com.tencent.bk.job.common.cc.model;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import static java.lang.annotation.ElementType.CONSTRUCTOR;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PACKAGE;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE;
+import java.util.ArrayList;
+import java.util.List;
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(value = {CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE})
-public @interface DeprecatedAppLogic {
+/**
+ * cmdb 组合查询规则
+ */
+@Getter
+@Setter
+@ToString
+public class ComposeRuleDTO implements IRule {
+    /**
+     * 组合查询条件
+     */
+    private String condition;
+    /**
+     * 过滤规则
+     */
+    private List<IRule> rules = new ArrayList<>();
+
+    /**
+     * 新增过滤规则
+     *
+     * @param rule 过滤规则
+     */
+    public void addRule(IRule rule) {
+        this.rules.add(rule);
+    }
 }

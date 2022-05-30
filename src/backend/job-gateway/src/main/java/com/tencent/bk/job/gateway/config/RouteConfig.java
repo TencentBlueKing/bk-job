@@ -28,11 +28,15 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.web.service.LoginService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpCookie;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
@@ -40,8 +44,11 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 
+@Slf4j
 @Configuration
 public class RouteConfig {
     @Bean
@@ -50,7 +57,8 @@ public class RouteConfig {
     }
 
     @Bean
-    public UserHandler userHandler(@Autowired LoginService loginService, @Autowired MessageI18nService i18nService, @Autowired LoginExemptionConfig loginExemptionConfig) {
+    public UserHandler userHandler(@Autowired LoginService loginService, @Autowired MessageI18nService i18nService,
+                                   @Autowired LoginExemptionConfig loginExemptionConfig) {
         return new UserHandler(loginService, i18nService, loginExemptionConfig);
     }
 
@@ -84,10 +92,26 @@ public class RouteConfig {
                 return ServerResponse.ok().body(Mono.just(resp), Response.class);
             }
             MultiValueMap<String, HttpCookie> cookieMap = request.cookies();
-            HttpCookie bkTokenCookie = cookieMap.get(loginService.getCookieNameForToken()).get(0);
 
-            String bkToken = bkTokenCookie.getValue();
-            BkUserDTO user = loginService.getUser(bkToken);
+            String tokenCookieName = loginService.getCookieNameForToken();
+            List<String> cookieList = request.headers().header("cookie");
+
+            List<String> bkTokenList = RequestUtil.getCookieValuesFromCookies(cookieList, tokenCookieName);
+            if (CollectionUtils.isEmpty(bkTokenList)) {
+                log.warn("Fail to parse token from headers, please check");
+                String bkToken = cookieMap.getFirst(tokenCookieName).getValue();
+                if (StringUtils.isNotBlank(bkToken)) {
+                    bkTokenList.add(bkToken);
+                }
+            }
+            BkUserDTO user = null;
+            // 遍历所有传入token找出当前环境的
+            for (String bkToken : bkTokenList) {
+                user = loginService.getUser(bkToken);
+                if (user != null) {
+                    break;
+                }
+            }
             if (user == null) {
                 Response<?> resp = Response.buildCommonFailResp(ErrorCode.USER_NOT_EXIST_OR_NOT_LOGIN_IN);
                 return ServerResponse.ok().body(Mono.just(resp), Response.class);

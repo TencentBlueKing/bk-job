@@ -37,6 +37,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
 
 /**
  * 用户token校验
@@ -70,15 +73,28 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
             String tokenCookieName = loginService.getCookieNameForToken();
-            String bkToken = RequestUtil.getCookieValue(request, tokenCookieName);
-
-            if (StringUtils.isBlank(bkToken)) {
+            List<String> bkTokenList = RequestUtil.getCookieValuesFromHeader(request, tokenCookieName);
+            if (CollectionUtils.isEmpty(bkTokenList)) {
+                log.warn("Fail to parse token from headers, please check");
+                String bkToken = RequestUtil.getCookieValue(request, tokenCookieName);
+                if (StringUtils.isNotBlank(bkToken)) {
+                    bkTokenList.add(bkToken);
+                }
+            }
+            if (CollectionUtils.isEmpty(bkTokenList)) {
                 log.warn("Cookie {} is empty,illegal request!", tokenCookieName);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 response.getHeaders().add("x-login-url", loginService.getLoginRedirectUrl());
                 return response.setComplete();
             }
-            BkUserDTO user = loginService.getUser(bkToken);
+            BkUserDTO user = null;
+            // 遍历所有传入token找出当前环境的
+            for (String bkToken : bkTokenList) {
+                user = loginService.getUser(bkToken);
+                if (user != null) {
+                    break;
+                }
+            }
             if (user == null) {
                 log.warn("Invalid user token");
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
