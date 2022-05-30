@@ -30,10 +30,10 @@ import com.tencent.bk.job.analysis.consts.DistributionMetricEnum;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
-import com.tencent.bk.job.analysis.model.inner.PerAppStatisticDTO;
 import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
 import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
+import com.tencent.bk.job.analysis.model.web.PerAppStatisticVO;
 import com.tencent.bk.job.analysis.util.calc.SimpleMomYoyCalculator;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
@@ -177,8 +177,8 @@ public class CommonStatisticService {
         return trendElementVOList;
     }
 
-    public List<PerAppStatisticDTO> listByPerApp(String resource, TotalMetricEnum metric, List<Long> appIdList,
-                                                 String date) {
+    public List<PerAppStatisticVO> listByPerApp(String resource, TotalMetricEnum metric, List<Long> appIdList,
+                                                String date) {
         // 增加筛选范围：已接入的业务
         List<Long> scopedAppIdList = CustomCollectionUtils.mergeList(appIdList, getJoinedAppIdList(date));
         List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(
@@ -187,22 +187,27 @@ public class CommonStatisticService {
             resource,
             StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX + metric.name(), date);
-        List<PerAppStatisticDTO> perAppStatisticDTOList = new ArrayList<>();
-        long totalValue = 0L;
+        List<PerAppStatisticVO> perAppStatisticVOList = new ArrayList<>();
+        Long totalValue = 0L;
         for (StatisticsDTO statisticsDTO : statisticsDTOList) {
             Long appId = statisticsDTO.getAppId();
-            long value = Long.parseLong(statisticsDTO.getValue());
+            Long value = Long.parseLong(statisticsDTO.getValue());
             totalValue += value;
-            PerAppStatisticDTO perAppStatisticDTO = new PerAppStatisticDTO();
-            perAppStatisticDTO.setAppId(appId);
-            perAppStatisticDTO.setValue(value);
-            perAppStatisticDTOList.add(perAppStatisticDTO);
+            PerAppStatisticVO perAppStatisticVO = new PerAppStatisticVO();
+            perAppStatisticVO.setAppId(appId);
+            perAppStatisticVO.setValue(value);
+            perAppStatisticVOList.add(perAppStatisticVO);
         }
-        for (PerAppStatisticDTO perAppStatisticDTO : perAppStatisticDTOList) {
-            perAppStatisticDTO.setScopeName(appService.getAppNameFromCache(perAppStatisticDTO.getAppId()));
-            perAppStatisticDTO.setRatio(perAppStatisticDTO.getValue().floatValue() / totalValue);
+        for (PerAppStatisticVO perAppStatisticVO : perAppStatisticVOList) {
+            perAppStatisticVO.setAppName(appService.getAppNameFromCache(perAppStatisticVO.getAppId()));
+            perAppStatisticVO.setRatio(perAppStatisticVO.getValue().floatValue() / totalValue);
         }
-        perAppStatisticDTOList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-        return perAppStatisticDTOList;
+        perAppStatisticVOList.sort(new Comparator<PerAppStatisticVO>() {
+            @Override
+            public int compare(PerAppStatisticVO o1, PerAppStatisticVO o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+        return perAppStatisticVOList;
     }
 }

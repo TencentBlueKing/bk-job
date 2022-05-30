@@ -49,17 +49,23 @@ public class ScriptTaskLog {
     @Field("stepId")
     private Long stepInstanceId;
     /**
-     * 执行任务的主机ip
-     */
-    @JsonProperty("ip")
-    @Field("ip")
-    private String ip;
-    /**
      * 执行次数
      */
     @JsonProperty("executeCount")
     @Field("executeCount")
     private Integer executeCount;
+    /**
+     * 滚动执行批次
+     */
+    @JsonProperty("batch")
+    @Field("batch")
+    private Integer batch;
+    /**
+     * 执行任务的主机ip
+     */
+    @JsonProperty("ip")
+    @Field("ip")
+    private String ip;
     /**
      * 日志内容
      */
@@ -73,10 +79,16 @@ public class ScriptTaskLog {
     @Field("offset")
     private Integer offset;
 
-    public ScriptTaskLog(Long stepInstanceId, String ip, Integer executeCount, String content, Integer offset) {
+    public ScriptTaskLog(Long stepInstanceId,
+                         Integer executeCount,
+                         Integer batch,
+                         String ip,
+                         String content,
+                         Integer offset) {
         this.stepInstanceId = stepInstanceId;
-        this.ip = ip;
         this.executeCount = executeCount;
+        this.batch = batch;
+        this.ip = ip;
         this.content = content;
         this.offset = offset;
     }

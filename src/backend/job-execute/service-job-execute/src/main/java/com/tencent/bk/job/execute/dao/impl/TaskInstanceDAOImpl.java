@@ -85,15 +85,15 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                 taskInstance.getAppId(),
                 taskInstance.getName(),
                 taskInstance.getOperator(),
-                JooqDataTypeUtil.getByteFromInteger(taskInstance.getStartupMode()),
-                taskInstance.getCurrentStepId(),
-                JooqDataTypeUtil.getByteFromInteger(taskInstance.getStatus()),
+                JooqDataTypeUtil.toByte(taskInstance.getStartupMode()),
+                taskInstance.getCurrentStepInstanceId(),
+                JooqDataTypeUtil.toByte(taskInstance.getStatus()),
                 taskInstance.getStartTime(),
                 taskInstance.getEndTime(),
                 taskInstance.getTotalTime(),
                 taskInstance.getCreateTime(),
                 taskInstance.getCallbackUrl(),
-                JooqDataTypeUtil.getByteFromInteger(taskInstance.getType()),
+                JooqDataTypeUtil.toByte(taskInstance.getType()),
                 taskInstance.getAppCode())
             .returning(TABLE.ID).fetchOne();
         return record.getValue(TABLE.ID);
@@ -122,11 +122,11 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         taskInstance.setDebugTask(record.get(TaskInstance.TASK_INSTANCE.IS_DEBUG_TASK) == 1);
         taskInstance.setAppId(record.get(TaskInstance.TASK_INSTANCE.APP_ID));
         taskInstance.setName(record.get(TaskInstance.TASK_INSTANCE.NAME));
-        taskInstance.setType(JooqDataTypeUtil.getIntegerFromByte(record.get(TaskInstance.TASK_INSTANCE.TYPE)));
+        taskInstance.setType(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.TYPE)));
         taskInstance.setOperator(record.get(TaskInstance.TASK_INSTANCE.OPERATOR));
-        taskInstance.setStartupMode(JooqDataTypeUtil.getIntegerFromByte(record.get(TaskInstance.TASK_INSTANCE.STARTUP_MODE)));
-        taskInstance.setCurrentStepId(record.get(TaskInstance.TASK_INSTANCE.CURRENT_STEP_ID));
-        taskInstance.setStatus(JooqDataTypeUtil.getIntegerFromByte(record.get(TaskInstance.TASK_INSTANCE.STATUS)));
+        taskInstance.setStartupMode(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.STARTUP_MODE)));
+        taskInstance.setCurrentStepInstanceId(record.get(TaskInstance.TASK_INSTANCE.CURRENT_STEP_ID));
+        taskInstance.setStatus(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.STATUS)));
         taskInstance.setStartTime(record.get(TaskInstance.TASK_INSTANCE.START_TIME));
         taskInstance.setEndTime(record.get(TaskInstance.TASK_INSTANCE.END_TIME));
         taskInstance.setTotalTime(record.get(TaskInstance.TASK_INSTANCE.TOTAL_TIME));
@@ -202,7 +202,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     public void resetTaskStatus(Long taskInstanceId) {
         ctx.update(TABLE).setNull(TABLE.START_TIME).setNull(TABLE.END_TIME).setNull(TABLE.TOTAL_TIME)
             .setNull(TABLE.CURRENT_STEP_ID)
-            .set(TABLE.STATUS, JooqDataTypeUtil.getByteFromInteger(RunStatusEnum.BLANK.getValue()))
+            .set(TABLE.STATUS, JooqDataTypeUtil.toByte(RunStatusEnum.BLANK.getValue()))
             .where(TABLE.ID.eq(taskInstanceId))
             .execute();
     }
@@ -314,17 +314,17 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             conditions.add(TABLE.NAME.like("%" + taskQuery.getTaskName() + "%"));
         }
         if (taskQuery.getStatus() != null) {
-            conditions.add(TABLE.STATUS.eq(JooqDataTypeUtil.getByteFromInteger(taskQuery.getStatus().getValue())));
+            conditions.add(TABLE.STATUS.eq(JooqDataTypeUtil.toByte(taskQuery.getStatus().getValue())));
         }
         if (CollectionUtils.isNotEmpty(taskQuery.getStartupModes())) {
             if (taskQuery.getStartupModes().size() == 0) {
-                conditions.add(TABLE.STARTUP_MODE.eq(JooqDataTypeUtil.getByteFromInteger(taskQuery.getStartupModes().get(0).getValue())));
+                conditions.add(TABLE.STARTUP_MODE.eq(JooqDataTypeUtil.toByte(taskQuery.getStartupModes().get(0).getValue())));
             } else {
                 conditions.add(TABLE.STARTUP_MODE.in(taskQuery.getStartupModeValues()));
             }
         }
         if (taskQuery.getTaskType() != null) {
-            conditions.add(TABLE.TYPE.eq(JooqDataTypeUtil.getByteFromInteger(taskQuery.getTaskType().getValue())));
+            conditions.add(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(taskQuery.getTaskType().getValue())));
         }
         if (taskQuery.getStartTime() != null) {
             conditions.add(TABLE.CREATE_TIME.ge(taskQuery.getStartTime()));
@@ -398,7 +398,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         UpdateSetMoreStep<TaskInstanceRecord> updateSetMoreStep = null;
         if (status != null) {
             updateSetMoreStep = ctx.update(TABLE).set(TABLE.STATUS,
-                JooqDataTypeUtil.getByteFromInteger(status.getValue()));
+                JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (currentStepId != null) {
             if (updateSetMoreStep == null) {
@@ -435,7 +435,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     }
 
     @Override
-    public void resetTaskExecuteInfoForResume(long taskInstanceId) {
+    public void resetTaskExecuteInfoForRetry(long taskInstanceId) {
         ctx.update(TABLE)
             .setNull(TABLE.END_TIME)
             .setNull(TABLE.TOTAL_TIME)

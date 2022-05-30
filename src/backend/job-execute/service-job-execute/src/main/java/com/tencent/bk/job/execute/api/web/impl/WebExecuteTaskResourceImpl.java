@@ -38,7 +38,6 @@ import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.web.WebExecuteTaskResource;
-import com.tencent.bk.job.execute.client.GlobalSettingsClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -47,11 +46,13 @@ import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
+import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.web.request.RedoTaskRequest;
@@ -65,6 +66,7 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteHostVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
 import com.tencent.bk.job.execute.model.web.vo.StepOperationVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
@@ -93,13 +95,10 @@ import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.STRING;
 @Slf4j
 public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     private final TaskExecuteService taskExecuteService;
-    private final GlobalSettingsClient globalSettingsClient;
 
     @Autowired
-    public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
-                                      GlobalSettingsClient globalSettingsClient) {
+    public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.globalSettingsClient = globalSettingsClient;
     }
 
     @Override
@@ -115,11 +114,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         }
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
 
-        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
             TaskExecuteParam.builder().appId(appResourceScope.getAppId()).planId(request.getTaskId())
                 .operator(username).executeVariableValues(executeVariableValues)
                 .startupMode(TaskStartupModeEnum.NORMAL).build());
-        taskExecuteService.startTask(taskInstanceDTO.getId());
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -163,7 +161,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForRedo(appResourceScope.getAppId(),
             request.getTaskInstanceId(), username, executeVariableValues);
-        taskExecuteService.startTask(taskInstanceDTO.getId());
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -232,8 +229,20 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, appResourceScope.getAppId(), request);
         String decodeScriptContent = new String(Base64.decodeBase64(request.getContent()), StandardCharsets.UTF_8);
         stepInstance.setScriptContent(decodeScriptContent);
+        StepRollingConfigDTO rollingConfig = null;
+        if (request.isRollingEnabled()) {
+            rollingConfig = buildRollingConfig(request.getRollingConfig());
+        }
 
-        return createAndStartFastTask(request.isRedoTask(), taskInstance, stepInstance);
+        return createAndStartFastTask(request.isRedoTask(), taskInstance, stepInstance, rollingConfig);
+    }
+
+    private StepRollingConfigDTO buildRollingConfig(RollingConfigVO rollingConfigVO) {
+        StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
+        stepRollingConfigDTO.setName("default");
+        stepRollingConfigDTO.setMode(rollingConfigVO.getMode());
+        stepRollingConfigDTO.setExpr(rollingConfigVO.getExpr());
+        return stepRollingConfigDTO;
     }
 
     private boolean checkFastExecuteScriptRequest(WebFastExecuteScriptRequest request) {
@@ -308,7 +317,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         if (request.isRedoTask()) {
             taskInstance.setId(request.getTaskInstanceId());
@@ -359,19 +368,26 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appResourceScope.getAppId(), request);
         StepInstanceDTO stepInstance = buildFastFileStepInstance(username, appResourceScope.getAppId(), request);
+        StepRollingConfigDTO rollingConfig = null;
+        if (request.isRollingEnabled()) {
+            rollingConfig = buildRollingConfig(request.getRollingConfig());
+        }
 
-        return createAndStartFastTask(false, taskInstance, stepInstance);
+        return createAndStartFastTask(false, taskInstance, stepInstance, rollingConfig);
     }
 
-    private Response<StepExecuteVO> createAndStartFastTask(boolean isRedoTask, TaskInstanceDTO taskInstance,
-                                                           StepInstanceDTO stepInstance) {
+    private Response<StepExecuteVO> createAndStartFastTask(boolean isRedoTask,
+                                                           TaskInstanceDTO taskInstance,
+                                                           StepInstanceDTO stepInstance,
+                                                           StepRollingConfigDTO rollingConfig) {
+        FastTaskDTO fastTask = FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance)
+            .rollingConfig(rollingConfig).build();
         long taskInstanceId;
         if (!isRedoTask) {
-            taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
+            taskInstanceId = taskExecuteService.executeFastTask(fastTask);
         } else {
-            taskInstanceId = taskExecuteService.createTaskInstanceForFastTaskRedo(taskInstance, stepInstance);
+            taskInstanceId = taskExecuteService.redoFastTask(fastTask);
         }
-        taskExecuteService.startTask(taskInstanceId);
         StepExecuteVO stepExecuteVO = new StepExecuteVO();
         stepExecuteVO.setTaskInstanceId(taskInstanceId);
         stepExecuteVO.setStepInstanceId(stepInstance.getId());
@@ -452,7 +468,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         return taskInstance;
     }

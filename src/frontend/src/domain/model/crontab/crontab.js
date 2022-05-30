@@ -52,6 +52,7 @@ export default class Crontab {
     };
 
     constructor (payload) {
+        this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
         this.creator = payload.creator;

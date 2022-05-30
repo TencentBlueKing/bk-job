@@ -42,35 +42,22 @@ import java.util.Map;
 public interface LogService {
 
     /**
-     * 写job系统日志(非用户脚本输出)
-     *
-     * @param jobCreateTime        任务创建时间
-     * @param stepInstanceId       步骤实例ID
-     * @param executeCount         执行次数
-     * @param cloudAreaIdAndIp     云区域ID:IP
-     * @param content              日志内容
-     * @param offset               日志偏移 - 字节
-     * @param logTimeInMillSeconds 日志时间
-     * @throws ServiceException 写入失败，返回ServiceException
-     */
-    void writeJobSystemScriptLog(long jobCreateTime, long stepInstanceId, int executeCount,
-                                 String cloudAreaIdAndIp, String content, int offset,
-                                 Long logTimeInMillSeconds) throws ServiceException;
-
-    /**
      * 批量写job系统日志(非用户脚本输出)
      *
      * @param jobCreateTime        任务创建时间
      * @param stepInstanceId       步骤实例ID
      * @param executeCount         执行次数
+     * @param batch                滚动执行批次;非滚动步骤传入null
      * @param ipsAndOffset         主机列表以及对应的日志偏移
      * @param content              日志内容
      * @param logTimeInMillSeconds 日志时间
-     * @throws ServiceException 写入失败，返回ServiceException
      */
-    void batchWriteJobSystemScriptLog(long jobCreateTime, long stepInstanceId, int executeCount,
+    void batchWriteJobSystemScriptLog(long jobCreateTime,
+                                      long stepInstanceId,
+                                      int executeCount,
+                                      Integer batch,
                                       Map<String, Integer> ipsAndOffset, String content,
-                                      Long logTimeInMillSeconds) throws ServiceException;
+                                      Long logTimeInMillSeconds);
 
     /**
      * 构造job系统日志
@@ -90,11 +77,11 @@ public interface LogService {
      * @param jobCreateDate  任务创建时间
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @param scriptLog      脚本日志
-     * @throws ServiceException 写入失败，返回ServiceException
      */
-    void writeScriptLog(String jobCreateDate, long stepInstanceId, int executeCount,
-                        ServiceScriptLogDTO scriptLog) throws ServiceException;
+    void writeScriptLog(String jobCreateDate, long stepInstanceId, int executeCount, Integer batch,
+                        ServiceScriptLogDTO scriptLog);
 
     /**
      * 写脚本执行日志
@@ -102,32 +89,24 @@ public interface LogService {
      * @param jobCreateDate  任务创建时间
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @param scriptLogs     脚本日志
-     * @throws ServiceException 写入失败，返回ServiceException
      */
-    void batchWriteScriptLog(String jobCreateDate, long stepInstanceId, int executeCount,
-                             List<ServiceScriptLogDTO> scriptLogs) throws ServiceException;
+    void batchWriteScriptLog(String jobCreateDate, long stepInstanceId, int executeCount, Integer batch,
+                             List<ServiceScriptLogDTO> scriptLogs);
 
-    /**
-     * 删除步骤实例对应的日志
-     *
-     * @param jobCreateDate  任务创建时间
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @throws ServiceException 删除失败，返回ServiceException
-     */
-    void deleteStepLog(String jobCreateDate, long stepInstanceId, int executeCount) throws ServiceException;
 
     /**
      * 获取脚本执行日志
      *
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @param ip             主机ip
      * @return 日志内容
-     * @throws ServiceException 异常
      */
-    ScriptIpLogContent getScriptIpLogContent(long stepInstanceId, int executeCount, IpDTO ip) throws ServiceException;
+    ScriptIpLogContent getScriptIpLogContent(long stepInstanceId, int executeCount, Integer batch, IpDTO ip)
+    ;
 
     /**
      * 批量获取脚本执行日志
@@ -135,71 +114,75 @@ public interface LogService {
      * @param jobCreateDateStr 作业创建时间
      * @param stepInstanceId   步骤实例 ID
      * @param executeCount     执行次数
+     * @param batch            滚动执行批次;非滚动步骤传入null
      * @param ips              主机列表,最大支持1000个
      * @return 日志内容
-     * @throws ServiceException 异常
      */
     List<ScriptIpLogContent> batchGetScriptIpLogContent(String jobCreateDateStr, long stepInstanceId, int executeCount,
-                                                        List<IpDTO> ips) throws ServiceException;
+                                                        Integer batch, List<IpDTO> ips);
 
     /**
      * 获取脚本执行日志
      *
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @param ip             主机ip
+     * @param mode           文件传输模式
      * @return 日志内容
      * @throws ServiceException 异常
-     * @parma mode           文件传输模式
      */
-    FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, IpDTO ip,
-                                         Integer mode) throws ServiceException;
+    FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, Integer batch, IpDTO ip,
+                                         Integer mode);
 
     /**
      * 获取脚本执行日志
      *
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @param taskIds        文件任务ID列表
      * @return 日志内容
-     * @throws ServiceException 异常
      */
-    List<ServiceFileTaskLogDTO> getFileLogContentByTaskIds(long stepInstanceId, int executeCount,
-                                                           List<String> taskIds) throws ServiceException;
+    List<ServiceFileTaskLogDTO> getFileLogContentByTaskIds(long stepInstanceId, int executeCount, Integer batch,
+                                                           List<String> taskIds);
 
     /**
      * 获取文件任务文件源日志
      *
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @return 日志内容
-     * @throws ServiceException
      */
     List<ServiceFileTaskLogDTO> batchGetFileSourceIpLogContent(long stepInstanceId,
-                                                               int executeCount) throws ServiceException;
+                                                               int executeCount,
+                                                               Integer batch);
 
     /**
      * 获取文件任务文件源日志
      *
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @param ips            服务器列表
      * @return 日志内容
-     * @throws ServiceException
      */
     ServiceIpLogsDTO batchGetFileIpLogContent(long stepInstanceId,
-                                              int executeCount, List<IpDTO> ips) throws ServiceException;
+                                              int executeCount,
+                                              Integer batch,
+                                              List<IpDTO> ips);
 
     /**
      * 根据关键字获取对应的ip
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;非滚动步骤传入null
      * @param keyword        关键字
      * @return ips
-     * @throws ServiceException 查询失败返回ServcieException
      */
-    List<IpDTO> getIpsByContentKeyword(long stepInstanceId, int executeCount, String keyword) throws ServiceException;
+    List<IpDTO> getIpsByContentKeyword(long stepInstanceId, int executeCount, Integer batch, String keyword);
 
     /**
      * 写日志
@@ -207,14 +190,14 @@ public interface LogService {
      * @param jobCreateTime        任务创建时间
      * @param stepInstanceId       步骤实例ID
      * @param executeCount         执行次数
-     * @param cloudAreaIdAndIp     云区域ID:IP
+     * @param batch                滚动执行批次;非滚动步骤传入null
+     * @param cloudIp     云区域ID:IP
      * @param executionLog         文件任务执行日志
      * @param logTimeInMillSeconds 日志时间
-     * @throws ServiceException 写入失败，返回ServiceException
      */
-    void writeFileLogWithTimestamp(long jobCreateTime, long stepInstanceId, int executeCount,
-                                   String cloudAreaIdAndIp, ServiceIpLogDTO executionLog,
-                                   Long logTimeInMillSeconds) throws ServiceException;
+    void writeFileLogWithTimestamp(long jobCreateTime, long stepInstanceId, int executeCount, Integer batch,
+                                   String cloudIp, ServiceIpLogDTO executionLog,
+                                   Long logTimeInMillSeconds);
 
     /**
      * 写文件日志日志

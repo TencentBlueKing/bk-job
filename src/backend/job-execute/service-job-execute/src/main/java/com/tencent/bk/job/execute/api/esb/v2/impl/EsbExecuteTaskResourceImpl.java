@@ -100,7 +100,7 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
                 executeVariableValues.add(taskVariableDTO);
             }
         }
-        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
             TaskExecuteParam
                 .builder()
                 .appId(request.getAppId())
@@ -111,7 +111,6 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
                 .callbackUrl(request.getCallbackUrl())
                 .appCode(request.getAppCode())
                 .build());
-        taskExecuteService.startTask(taskInstanceDTO.getId());
 
         EsbJobExecuteDTO result = new EsbJobExecuteDTO();
         result.setTaskInstanceId(taskInstanceDTO.getId());

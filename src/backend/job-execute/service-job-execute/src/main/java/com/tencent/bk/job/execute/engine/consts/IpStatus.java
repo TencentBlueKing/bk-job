@@ -176,4 +176,19 @@ public enum IpStatus {
     public String getI18nKey() {
         return "agent.task.status." + this.name().toLowerCase();
     }
+
+    public static boolean isSuccess(IpStatus status) {
+        if (status == null) {
+            return false;
+        }
+        return status == SUCCESS || status == LAST_SUCCESS;
+    }
+
+    public static boolean isSuccess(Integer status) {
+        if (status == null) {
+            return false;
+        }
+        return status.equals(SUCCESS.getValue()) || status.equals(LAST_SUCCESS.getValue());
+    }
+
 }

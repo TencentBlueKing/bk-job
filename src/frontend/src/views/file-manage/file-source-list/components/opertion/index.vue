@@ -91,7 +91,7 @@
                 v-if="formData.publicFlag"
                 :label="$t('file.共享对象')"
                 required
-                property="sharedScopeList">
+                property="sharedAppIdList">
                 <div class="share-object-box">
                     <bk-select
                         class="share-app-select"
@@ -99,12 +99,12 @@
                         searchable
                         multiple
                         :disabled="formData.shareToAllApp"
-                        v-model="formData.sharedScopeList">
+                        v-model="formData.sharedAppIdList">
                         <bk-option
-                            v-for="scopeItem in scopeList"
-                            :key="`#${scopeItem.scopeType}#${scopeItem.scopeId}`"
-                            :id="`#${scopeItem.scopeType}#${scopeItem.scopeId}`"
-                            :name="scopeItem.name" />
+                            v-for="option in appList"
+                            :key="option.id"
+                            :id="option.id"
+                            :name="option.name" />
                     </bk-select>
                     <bk-checkbox v-model="formData.shareToAllApp">
                         {{ $t('file.全业务') }}
@@ -216,7 +216,7 @@
         // 是否共享到全业务
         shareToAllApp: false,
         // 共享的业务Id列表
-        sharedScopeList: [],
+        sharedAppIdList: [],
         // 存储类型
         storageType: 'OSS',
         // 接入点Id，手动选择时传入，自动选择不传
@@ -248,7 +248,7 @@
                 // 文件源参数
                 fileSourceParamList: [],
                 // 业务列表
-                scopeList: [],
+                appList: [],
                 // 文件源凭证列表
                 fileFourceTicketList: [],
                 // 自动选择接入点
@@ -268,11 +268,11 @@
         },
         watch: {
             /**
-             * @desc 共享对象为全业务，清空 sharedScopeList
+             * @desc 共享对象为全业务，清空 sharedAppIdList
              */
             'formData.shareToAllApp' (newVal) {
                 if (newVal) {
-                    this.formData.sharedScopeList = [];
+                    this.formData.sharedAppIdList = [];
                 }
             },
             /**
@@ -295,7 +295,7 @@
         created () {
             const taskQueue = [
                 this.fetchSourceTypeList(),
-                this.fetchScopeList(),
+                this.fetchAppList(),
                 this.fetchTicketList(),
                 this.fetchWorkersList(),
             ];
@@ -344,13 +344,13 @@
                         trigger: 'blur',
                     },
                 ],
-                sharedScopeList: [
+                sharedAppIdList: [
                     {
-                        validator: (sharedScopeList) => {
+                        validator: (sharedAppIdList) => {
                             if (this.formData.shareToAllApp) {
                                 return true;
                             }
-                            return sharedScopeList.length > 0;
+                            return sharedAppIdList.length > 0;
                         },
                         message: I18n.t('file.共享对象必填'),
                         trigger: 'blur',
@@ -380,23 +380,11 @@
             },
             /**
              * @desc 获取业务列表数据
-             *
-             * 需过滤掉当前业务
              */
-            fetchScopeList () {
+            fetchAppList () {
                 return AppManageService.fetchAppList()
                     .then((data) => {
-                        const {
-                            SCOPE_TYPE,
-                            SCOPE_ID,
-                        } = window.PROJECT_CONFIG;
-                        this.scopeList = Object.freeze(data.reduce((result, item) => {
-                            if (item.scopeType === SCOPE_TYPE && item.scopeId === SCOPE_ID) {
-                                return result;
-                            }
-                            result.push(item);
-                            return result;
-                        }, []));
+                        this.appList = Object.freeze(data);
                     });
             },
             /**
@@ -435,7 +423,7 @@
                         publicFlag,
                         storageType,
                         shareToAllApp,
-                        sharedScopeList,
+                        sharedAppIdList,
                         workerId,
                         workerSelectMode,
                         workerSelectScope,
@@ -452,7 +440,7 @@
                         publicFlag,
                         storageType,
                         shareToAllApp,
-                        sharedScopeList: sharedScopeList.map(({ type, id }) => `#${type}#${id}`),
+                        sharedAppIdList,
                         workerId,
                         workerSelectMode,
                         workerSelectScope,
@@ -492,13 +480,6 @@
                         if (this.filePrefixType === FileSourceModel.FILE_PERFIX_UUID) {
                             params.filePrefix = FileSourceModel.FILE_PERFIX_UUID;
                         }
-                        params.sharedScopeList = params.sharedScopeList.map((item) => {
-                            const [, type, id] = item.match(/^#([^#]+)#(.*)/);
-                            return {
-                                type,
-                                id,
-                            };
-                        });
                         
                         if (params.id < 0) {
                             return FileSourceManageService.addSource(params)

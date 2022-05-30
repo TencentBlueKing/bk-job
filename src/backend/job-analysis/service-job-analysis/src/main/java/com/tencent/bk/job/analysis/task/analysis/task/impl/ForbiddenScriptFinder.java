@@ -103,7 +103,7 @@ public class ForbiddenScriptFinder extends BaseAnalysisTask {
         List<BadTplPlanInfo> badTplPlanInfoList
     ) {
         Long appId = taskTemplateInfoDTO.getAppId();
-        if (taskStepDTO.getType() == TaskStepTypeEnum.SCRIPT.getType()) {
+        if (taskStepDTO.getType() == TaskStepTypeEnum.SCRIPT.getValue()) {
             if (taskStepDTO.getScriptStepInfo().getScriptSource()
                 == TaskScriptSourceEnum.CITING.getType()) {
                 ServiceScriptDTO scriptVersion = null;
@@ -156,7 +156,7 @@ public class ForbiddenScriptFinder extends BaseAnalysisTask {
         List<BadTplPlanInfo> badTplPlanInfoList
     ) {
         Long appId = taskTemplateInfoDTO.getAppId();
-        if (taskStepDTO.getType() == TaskStepTypeEnum.SCRIPT.getType()) {
+        if (taskStepDTO.getType() == TaskStepTypeEnum.SCRIPT.getValue()) {
             if (taskStepDTO.getScriptStepInfo().getScriptSource()
                 == TaskScriptSourceEnum.CITING.getType()) {
                 ServiceScriptDTO scriptVersion = null;

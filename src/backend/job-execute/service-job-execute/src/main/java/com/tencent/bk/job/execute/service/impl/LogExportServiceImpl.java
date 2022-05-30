@@ -38,13 +38,13 @@ import com.tencent.bk.job.execute.common.trace.executors.TraceableExecutorServic
 import com.tencent.bk.job.execute.config.ArtifactoryConfig;
 import com.tencent.bk.job.execute.config.LogExportConfig;
 import com.tencent.bk.job.execute.constants.LogExportStatusEnum;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
 import com.tencent.bk.job.execute.service.LogExportService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +78,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class LogExportServiceImpl implements LogExportService {
     private static final String EXPORT_KEY_PREFIX = "execute:log:export:";
-    private final GseTaskLogService gseTaskLogService;
     private final LogService logService;
     private final TraceableExecutorService logExportExecutor;
     private final StringRedisTemplate redisTemplate;
@@ -86,21 +85,24 @@ public class LogExportServiceImpl implements LogExportService {
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
+    private final ScriptAgentTaskService scriptAgentTaskService;
 
     @Autowired
-    public LogExportServiceImpl(GseTaskLogService gseTaskLogService, LogService logService, Tracing tracing,
+    public LogExportServiceImpl(LogService logService,
+                                Tracing tracing,
                                 StringRedisTemplate redisTemplate,
                                 TaskInstanceService taskInstanceService,
                                 ArtifactoryClient artifactoryClient,
                                 ArtifactoryConfig artifactoryConfig,
-                                LogExportConfig logExportConfig) {
-        this.gseTaskLogService = gseTaskLogService;
+                                LogExportConfig logExportConfig,
+                                ScriptAgentTaskService scriptAgentTaskService) {
         this.logService = logService;
         this.redisTemplate = redisTemplate;
         this.taskInstanceService = taskInstanceService;
         this.artifactoryClient = artifactoryClient;
         this.artifactoryConfig = artifactoryConfig;
         this.logExportConfig = logExportConfig;
+        this.scriptAgentTaskService = scriptAgentTaskService;
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("log-export-thread-%d").build();
         this.logExportExecutor = new TraceableExecutorService(new ThreadPoolExecutor(10,
             100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), threadFactory), tracing);
@@ -186,24 +188,24 @@ public class LogExportServiceImpl implements LogExportService {
 
         StopWatch watch = new StopWatch("exportJobLog");
         watch.start("listJobIps");
-        List<GseTaskIpLogDTO> gseTaskIpLogs = new ArrayList<>();
+        List<AgentTaskDTO> gseAgentTasks = new ArrayList<>();
         if (isGetByIp) {
-            GseTaskIpLogDTO gseTaskIpLog = gseTaskLogService.getIpLog(stepInstanceId, executeCount, ip);
-            if (gseTaskIpLog != null) {
-                gseTaskIpLogs.add(gseTaskIpLog);
+            AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByIp(stepInstanceId, executeCount, null, ip);
+            if (agentTask != null) {
+                gseAgentTasks.add(agentTask);
             }
         } else {
-            gseTaskIpLogs = gseTaskLogService.getIpLog(stepInstanceId, executeCount, true);
+            gseAgentTasks = scriptAgentTaskService.listAgentTasks(stepInstanceId, executeCount, null);
         }
         watch.stop();
 
-        if (gseTaskIpLogs == null || gseTaskIpLogs.isEmpty()) {
+        if (gseAgentTasks == null || gseAgentTasks.isEmpty()) {
             log.warn("Gse task ips are empty! stepInstanceId={}", stepInstanceId);
             markJobFailed(exportJobInfo);
             return;
         }
 
-        Collection<LogBatchQuery> querys = buildLogBatchQuery(stepInstanceId, gseTaskIpLogs);
+        Collection<LogBatchQuery> querys = buildLogBatchQuery(stepInstanceId, gseAgentTasks);
 
         watch.start("getLogContent");
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
@@ -214,7 +216,7 @@ public class LogExportServiceImpl implements LogExportService {
                 for (List<IpDTO> ips : query.getIpBatches()) {
                     List<ScriptIpLogContent> scriptIpLogContentList =
                         logService.batchGetScriptIpLogContent(jobCreateDate, stepInstanceId, query.getExecuteCount(),
-                            ips);
+                            null, ips);
                     for (ScriptIpLogContent scriptIpLogContent : scriptIpLogContentList) {
                         if (scriptIpLogContent != null && StringUtils.isNotEmpty(scriptIpLogContent.getContent())) {
                             String[] logList = scriptIpLogContent.getContent().split("\n");
@@ -285,12 +287,12 @@ public class LogExportServiceImpl implements LogExportService {
         }
     }
 
-    private Collection<LogBatchQuery> buildLogBatchQuery(long stepInstanceId, List<GseTaskIpLogDTO> gseTaskIpLogs) {
+    private Collection<LogBatchQuery> buildLogBatchQuery(long stepInstanceId, List<AgentTaskDTO> gseTaskIpLogs) {
         Map<Integer, LogBatchQuery> batchQueryGroups = new HashMap<>();
         gseTaskIpLogs.forEach(gseTaskIpLog -> {
             LogBatchQuery query = batchQueryGroups.computeIfAbsent(gseTaskIpLog.getExecuteCount(),
                 (executeCount) -> new LogBatchQuery(stepInstanceId, executeCount));
-            query.addIp(new IpDTO(gseTaskIpLog.getCloudAreaId(), gseTaskIpLog.getIp()));
+            query.addIp(new IpDTO(gseTaskIpLog.getCloudId(), gseTaskIpLog.getIp()));
         });
         batchQueryGroups.values().forEach(LogBatchQuery::batchIps);
         return batchQueryGroups.values();

@@ -103,6 +103,7 @@ The project contains a mixture of vue/java/shell and other languages. They can b
     |- job-gateway  # Microservice Gateway
     |- job-logsvr   # Log Management Microservice
     |- job-manage   # Job Management Microservice
+    |- job-ticket   # Ticket Management Microservice
     |- upgrader     # Upgrade Facility Tools
 ```
 

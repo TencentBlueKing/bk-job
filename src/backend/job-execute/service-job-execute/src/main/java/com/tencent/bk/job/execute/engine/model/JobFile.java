@@ -48,7 +48,7 @@ public class JobFile {
     /**
      * 文件源主机ip
      */
-    private String cloudAreaIdAndIp;
+    private String cloudIp;
     /**
      * 文件路径(用户输入)
      */
@@ -97,19 +97,19 @@ public class JobFile {
     private String uniqueKey;
 
     /**
-     * @param cloudAreaIdAndIp 云区域:IP
+     * @param cloudIp 云区域:IP
      * @param dir              目录名称
      * @param fileName         文件名
      */
-    public JobFile(String cloudAreaIdAndIp, String dir, String fileName) {
-        this.cloudAreaIdAndIp = cloudAreaIdAndIp;
+    public JobFile(String cloudIp, String dir, String fileName) {
+        this.cloudIp = cloudIp;
         this.dir = dir;
         this.fileName = fileName;
     }
 
     /**
      * @param isLocalUploadFile 是否本地文件
-     * @param cloudAreaIdAndIp  云区域:IP
+     * @param cloudIp  云区域:IP
      * @param filePath          文件路径
      * @param dir               目录名称
      * @param fileName          文件名
@@ -117,10 +117,10 @@ public class JobFile {
      * @param password          源文件密码
      * @param displayFilePath   要展示的文件路径
      */
-    public JobFile(boolean isLocalUploadFile, String cloudAreaIdAndIp, String filePath, String dir,
+    public JobFile(boolean isLocalUploadFile, String cloudIp, String filePath, String dir,
                    String fileName, String account, String password, String displayFilePath) {
         this.localUploadFile = isLocalUploadFile;
-        this.cloudAreaIdAndIp = cloudAreaIdAndIp;
+        this.cloudIp = cloudIp;
         this.filePath = filePath;
         this.dir = dir;
         this.fileName = fileName;
@@ -130,10 +130,10 @@ public class JobFile {
         this.sensitive = this.localUploadFile;
     }
 
-    public JobFile(boolean isLocalUploadFile, String cloudAreaIdAndIp, String filePath, String displayFilePath,
+    public JobFile(boolean isLocalUploadFile, String cloudIp, String filePath, String displayFilePath,
                    String dir, String fileName, Long appId, Long accountId, String accountAlias) {
         this.localUploadFile = isLocalUploadFile;
-        this.cloudAreaIdAndIp = cloudAreaIdAndIp;
+        this.cloudIp = cloudIp;
         this.filePath = filePath;
         this.displayFilePath = displayFilePath;
         this.dir = dir;
@@ -157,8 +157,8 @@ public class JobFile {
         }
         JobFile target = (JobFile) obj;
 
-        if (this.cloudAreaIdAndIp == null || target.cloudAreaIdAndIp == null
-            || !this.cloudAreaIdAndIp.equals(target.cloudAreaIdAndIp)) {
+        if (this.cloudIp == null || target.cloudIp == null
+            || !this.cloudIp.equals(target.cloudIp)) {
             return false;
         }
         if (this.dir == null || target.dir == null || !this.dir.equals(target.dir)) {
@@ -172,7 +172,7 @@ public class JobFile {
 
     @Override
     public int hashCode() {
-        return Objects.hash(cloudAreaIdAndIp, dir, fileName, account);
+        return Objects.hash(cloudIp, dir, fileName, account);
     }
 
     public String getDisplayFilePath() {
@@ -194,7 +194,7 @@ public class JobFile {
         if (localUploadFile) {
             this.uniqueKey = fileName;
         } else {
-            this.uniqueKey = getCloudAreaIdAndIp() + ":" + getStandardFilePath();
+            this.uniqueKey = getCloudIp() + ":" + getStandardFilePath();
         }
         return this.uniqueKey;
     }

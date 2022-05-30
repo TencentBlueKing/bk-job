@@ -49,18 +49,32 @@ public class ScriptLogQuery {
      * 执行次数
      */
     private Integer executeCount;
+    /**
+     * 滚动执行批次
+     */
+    private Integer batch;
 
-    public ScriptLogQuery(String jobCreateDate, Long stepInstanceId, String ip, Integer executeCount) {
+    public ScriptLogQuery(String jobCreateDate,
+                          Long stepInstanceId,
+                          Integer executeCount,
+                          Integer batch,
+                          String ip) {
         this.jobCreateDate = jobCreateDate;
         this.stepInstanceId = stepInstanceId;
-        this.ips = Collections.singletonList(ip);
         this.executeCount = executeCount;
+        this.batch = batch;
+        this.ips = Collections.singletonList(ip);
     }
 
-    public ScriptLogQuery(String jobCreateDate, Long stepInstanceId, List<String> ips, Integer executeCount) {
+    public ScriptLogQuery(String jobCreateDate,
+                          Long stepInstanceId,
+                          Integer executeCount,
+                          Integer batch,
+                          List<String> ips) {
         this.jobCreateDate = jobCreateDate;
         this.stepInstanceId = stepInstanceId;
-        this.ips = ips;
         this.executeCount = executeCount;
+        this.batch = batch;
+        this.ips = ips;
     }
 }

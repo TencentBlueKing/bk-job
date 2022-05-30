@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.service;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -39,43 +39,35 @@ import java.util.List;
  */
 public interface TaskExecuteService {
     /**
-     * 创建快速作业实例
+     * 快速执行作业
      *
-     * @param taskInstance 作业实例
-     * @param stepInstance 步骤实例
+     * @param fastTask 快速执行作业
      * @return 作业实例 ID
-     * @throws ServiceException
      */
-    Long createTaskInstanceFast(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance)
-        throws ServiceException;
+    Long executeFastTask(FastTaskDTO fastTask);
 
     /**
-     * 创建重做的快速作业实例
+     * 重做快速作业实例
      *
-     * @param taskInstance 作业实例
-     * @param stepInstance 步骤实例
+     * @param fastTask 快速作业
      * @return 作业实例 ID
-     * @throws ServiceException
      */
-    Long createTaskInstanceForFastTaskRedo(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance)
-        throws ServiceException;
+    Long redoFastTask(FastTaskDTO fastTask);
 
     /**
      * 启动作业
      *
      * @param taskInstanceId 作业实例 ID
-     * @throws ServiceException
      */
-    void startTask(long taskInstanceId) throws ServiceException;
+    void startTask(long taskInstanceId);
 
     /**
      * 创建作业实例
      *
      * @param executeParam 作业执行参数
      * @return 创建的作业实例
-     * @throws ServiceException
      */
-    TaskInstanceDTO createTaskInstanceForTask(TaskExecuteParam executeParam) throws ServiceException;
+    TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam);
 
     /**
      * 创建重做作业实例

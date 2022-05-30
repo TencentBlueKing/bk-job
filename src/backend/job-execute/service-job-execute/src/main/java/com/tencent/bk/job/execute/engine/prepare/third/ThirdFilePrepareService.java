@@ -31,7 +31,8 @@ import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
@@ -72,7 +73,7 @@ public class ThirdFilePrepareService {
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final AccountService accountService;
     private final LogService logService;
-    private final TaskExecuteControlMsgSender taskControlMsgSender;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final Map<Long, ThirdFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
@@ -80,14 +81,14 @@ public class ThirdFilePrepareService {
                                    FileSourceTaskResourceClient fileSourceTaskResource,
                                    TaskInstanceService taskInstanceService,
                                    FileSourceTaskLogDAO fileSourceTaskLogDAO, AccountService accountService,
-                                   LogService logService, TaskExecuteControlMsgSender taskControlMsgSender) {
+                                   LogService logService, TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.resultHandleManager = resultHandleManager;
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.taskInstanceService = taskInstanceService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
         this.accountService = accountService;
         this.logService = logService;
-        this.taskControlMsgSender = taskControlMsgSender;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
     }
 
     private void setTaskInfoIntoThirdFileSource(TaskInfoDTO taskInfoDTO, FileSourceDTO fileSourceDTO) {
@@ -209,7 +210,8 @@ public class ThirdFilePrepareService {
         List<FileSourceDTO> thirdFileSourceList = thirdFileSource.getLeft();
         List<FileSourceTaskContent> fileSourceTaskList = thirdFileSource.getRight();
         if (thirdFileSourceList == null || thirdFileSourceList.isEmpty()) {
-            taskControlMsgSender.startGseStep(stepInstance.getId());
+            // TODO-Rolling
+            taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstance.getId(), null));
             return null;
         }
         log.debug("Start FileSourceBatchTask: {}", fileSourceTaskList);
@@ -299,7 +301,7 @@ public class ThirdFilePrepareService {
                 new RecordableThirdFilePrepareTaskResultHandler(stepInstance.getId(), resultHandler)
             );
         batchResultHandleTask.initDependentService(fileSourceTaskResource, taskInstanceService, accountService,
-            logService, taskControlMsgSender, fileSourceTaskLogDAO);
+            logService, taskExecuteMQEventDispatcher, fileSourceTaskLogDAO);
         resultHandleManager.handleDeliveredTask(batchResultHandleTask);
         return batchResultHandleTask;
     }
@@ -312,7 +314,8 @@ public class ThirdFilePrepareService {
         req.setStepInstanceId(stepInstanceId);
         req.setExecuteCount(executeCount);
         req.setFileSourceTaskList(fileSourceTaskList);
-        InternalResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username, req);
+        InternalResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username,
+            req);
         log.debug("resp={}", resp);
         if (resp.isSuccess()) {
             return resp.getData();

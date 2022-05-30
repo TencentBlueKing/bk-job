@@ -47,6 +47,9 @@ public class FileLogQueryRequest {
     @ApiModelProperty(value = "执行次数", required = true)
     private Integer executeCount;
 
+    @ApiModelProperty(value = "滚动执行批次")
+    private Integer batch;
+
     @ApiModelProperty("服务器IP列表;如果ips参数不为空，那么忽略ip参数")
     private List<String> ips;
 

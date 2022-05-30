@@ -38,27 +38,10 @@ public class I18nUtil {
             return "";
         }
         if (params != null && params.length > 0) {
-            // 如果参数中包含需要国际化的字符(格式:{i18n_key})，那么需要国际化参数
-            buildI18nParams(params);
             return i18nService.getI18nWithArgs(key, params);
         } else {
             return i18nService.getI18n(key);
         }
-    }
-
-    private static Object[] buildI18nParams(Object[] params) {
-        for (int i = 0; i < params.length; i++) {
-            Object errorParam = params[i];
-            if (errorParam instanceof String) {
-                String paramStr = (String) errorParam;
-                if (paramStr.startsWith("{") && paramStr.endsWith("}")) {
-                    // 国际化处理
-                    String i18nKey = paramStr.substring(1, paramStr.length() - 1);
-                    params[i] = getI18nMessage(i18nKey);
-                }
-            }
-        }
-        return params;
     }
 
     public static String getI18nMessage(String key) {

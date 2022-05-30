@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.execute.dao.GseTaskLogDAO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.generated.tables.GseTaskLog;
@@ -34,19 +34,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
+@Deprecated
+@CompatibleImplementation(explain = "兼容历史数据使用，建议使用GseTaskLogDAO", version = "3.6.x")
 @Repository
 public class GseTaskLogDAOImpl implements GseTaskLogDAO {
-    private DSLContext create;
+    private final DSLContext CTX;
 
     @Autowired
-    public GseTaskLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext create) {
-        this.create = create;
+    public GseTaskLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
+        this.CTX = CTX;
     }
 
     @Override
-    public GseTaskLogDTO getStepLastExecuteLog(long stepInstanceId) {
+    public GseTaskDTO getStepLastExecuteLog(long stepInstanceId) {
         GseTaskLog t = GseTaskLog.GSE_TASK_LOG;
-        Record record = create.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
+        Record record = CTX.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
             t.STATUS, t.GSE_TASK_ID)
             .from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -56,11 +58,11 @@ public class GseTaskLogDAOImpl implements GseTaskLogDAO {
         return extractInfo(record);
     }
 
-    private GseTaskLogDTO extractInfo(Record record) {
+    private GseTaskDTO extractInfo(Record record) {
         if (record == null) {
             return null;
         }
-        GseTaskLogDTO gseTaskLogDTO = new GseTaskLogDTO();
+        GseTaskDTO gseTaskLogDTO = new GseTaskDTO();
         GseTaskLog t = GseTaskLog.GSE_TASK_LOG;
 
         gseTaskLogDTO.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
@@ -74,30 +76,30 @@ public class GseTaskLogDAOImpl implements GseTaskLogDAO {
     }
 
     @Override
-    public void saveGseTaskLog(GseTaskLogDTO gseTaskLog) {
+    public void saveGseTaskLog(GseTaskDTO gseTaskLog) {
         GseTaskLog t = GseTaskLog.GSE_TASK_LOG;
-        create.insertInto(t, t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME, t.STATUS,
+        CTX.insertInto(t, t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME, t.STATUS,
             t.GSE_TASK_ID)
             .values(gseTaskLog.getStepInstanceId(),
                 gseTaskLog.getExecuteCount(),
                 gseTaskLog.getStartTime(),
                 gseTaskLog.getEndTime(),
                 gseTaskLog.getTotalTime(),
-                JooqDataTypeUtil.getByteFromInteger(gseTaskLog.getStatus()),
+                gseTaskLog.getStatus().byteValue(),
                 gseTaskLog.getGseTaskId())
             .onDuplicateKeyUpdate()
             .set(t.START_TIME, gseTaskLog.getStartTime())
             .set(t.END_TIME, gseTaskLog.getEndTime())
             .set(t.TOTAL_TIME, gseTaskLog.getTotalTime())
-            .set(t.STATUS, JooqDataTypeUtil.getByteFromInteger(gseTaskLog.getStatus())).set(t.GSE_TASK_ID,
-            gseTaskLog.getGseTaskId())
+            .set(t.STATUS, gseTaskLog.getStatus().byteValue())
+            .set(t.GSE_TASK_ID, gseTaskLog.getGseTaskId())
             .execute();
     }
 
     @Override
-    public GseTaskLogDTO getGseTaskLog(long stepInstanceId, int executeCount) {
+    public GseTaskDTO getGseTaskLog(long stepInstanceId, int executeCount) {
         GseTaskLog t = GseTaskLog.GSE_TASK_LOG;
-        Record record = create.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
+        Record record = CTX.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
             t.STATUS, t.GSE_TASK_ID).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
@@ -108,7 +110,7 @@ public class GseTaskLogDAOImpl implements GseTaskLogDAO {
     @Override
     public void deleteGseTaskLog(long stepInstanceId, int executeCount) {
         GseTaskLog t = GseTaskLog.GSE_TASK_LOG;
-        create.deleteFrom(t).where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+        CTX.deleteFrom(t).where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
             .execute();
     }
