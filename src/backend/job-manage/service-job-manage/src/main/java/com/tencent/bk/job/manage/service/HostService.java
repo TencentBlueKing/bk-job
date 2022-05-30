@@ -194,7 +194,7 @@ public interface HostService {
     List<IpDTO> checkAppHosts(Long appId, List<IpDTO> hostIps);
 
     /**
-     * 根据主机IP批量获取主机
+     * 根据主机IP批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
      *
      * @param hostIps 主机IP
      * @return 主机

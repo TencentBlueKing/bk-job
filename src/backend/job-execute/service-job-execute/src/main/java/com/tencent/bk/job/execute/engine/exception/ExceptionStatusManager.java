@@ -48,7 +48,7 @@ public class ExceptionStatusManager {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         long endTime = System.currentTimeMillis();
         Long taskInstanceId = stepInstance.getTaskInstanceId();
-        if (!RunStatusEnum.getFinishedStatusValueList().contains(stepInstance.getStatus())) {
+        if (RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(stepInstance.getStatus()))) {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             taskInstanceService.updateStepExecutionInfo(
@@ -66,7 +66,7 @@ public class ExceptionStatusManager {
             );
         }
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        if (!RunStatusEnum.getFinishedStatusValueList().contains(taskInstance.getStatus())) {
+        if (RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(taskInstance.getStatus()))) {
             long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
                 taskInstance.getTotalTime());
             taskInstanceService.updateTaskExecutionInfo(

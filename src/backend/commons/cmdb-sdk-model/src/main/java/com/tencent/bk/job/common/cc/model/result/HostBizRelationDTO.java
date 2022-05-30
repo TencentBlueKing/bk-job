@@ -22,27 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.cc.model.result;
+
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import com.tencent.bk.job.common.model.dto.PageDTO;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-import java.util.Arrays;
-import java.util.List;
+/**
+ * 主机业务关系信息
+ */
+@Data
+public class HostBizRelationDTO {
 
-@Getter
-@Setter
-public class ListHostsWithoutBizReq extends EsbReq {
-    @JsonProperty("host_property_filter")
-    private PropertyFilterDTO condition;
+    @JsonProperty("bk_biz_id")
+    private Long bizId;
 
-    @JsonProperty("fields")
-    private List<String> fields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name",
-        "bk_cloud_id");
+    @JsonProperty("bk_host_id")
+    private Long hostId;
 
-    private PageDTO page;
+    @JsonProperty("bk_module_id")
+    private Long moduleId;
+
+    @JsonProperty("bk_set_id")
+    private Long setId;
+
+    @JsonProperty("bk_supplier_account")
+    private String supplierAccount;
 }

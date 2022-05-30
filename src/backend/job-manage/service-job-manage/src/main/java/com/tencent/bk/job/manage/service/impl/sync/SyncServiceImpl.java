@@ -223,14 +223,23 @@ public class SyncServiceImpl implements SyncService {
     private void watchHostEvent() {
         // 开一个常驻线程监听主机资源变动事件
         hostWatchThread = new HostWatchThread(
-            dslContext, applicationHostDAO, queryAgentStatusClient,
-            redisTemplate, appHostsUpdateHelper, hostCache);
+            dslContext,
+            applicationHostDAO,
+            queryAgentStatusClient,
+            redisTemplate,
+            hostCache
+        );
         hostWatchThread.start();
 
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
-            dslContext, applicationHostDAO, hostTopoDAO,
-            redisTemplate, this, appHostsUpdateHelper, hostCache);
+            dslContext,
+            applicationHostDAO,
+            hostTopoDAO,
+            redisTemplate,
+            this,
+            hostCache
+        );
         hostRelationWatchThread.start();
     }
 
@@ -238,14 +247,9 @@ public class SyncServiceImpl implements SyncService {
      * 监听业务集相关的事件
      */
     private void watchBizSetEvent() {
-        if (FeatureToggle.isCmdbBizSetEnabled()) {
-            log.info("Cmdb biz set is enabled, watch biz_set and biz_set_relation resource event");
-            // 开一个常驻线程监听业务集变动事件
-            bizSetEventWatcher.start();
-            bizSetRelationEventWatcher.start();
-        } else {
-            log.info("Cmdb biz set is disabled, ignore related event");
-        }
+        // 开一个常驻线程监听业务集变动事件
+        bizSetEventWatcher.start();
+        bizSetRelationEventWatcher.start();
     }
 
     public boolean addExtraSyncBizHostsTask(Long bizId) {
@@ -333,8 +337,10 @@ public class SyncServiceImpl implements SyncService {
                     // 从CMDB同步业务集信息
                     if (FeatureToggle.isCmdbBizSetEnabled()) {
                         bizSetSyncService.syncBizSetFromCMDB();
+                    } else {
+                        log.info("Cmdb biz set is disabled, skip sync apps!");
                     }
-                    log.info(Thread.currentThread().getName() + ":Finished:sync app from cc");
+                    log.info(Thread.currentThread().getName() + ":Finished:sync app from cmdb");
                     // 将最后同步时间写入Redis
                     redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,
                         "" + System.currentTimeMillis());

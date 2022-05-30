@@ -1,9 +1,6 @@
 spring:
   application:
     name: job-analysis
-  cloud:
-    refresh:
-      extra-refreshable: javax.sql.DataSource
   datasource:
     job-analysis:
       driver-class-name: com.mysql.cj.jdbc.Driver

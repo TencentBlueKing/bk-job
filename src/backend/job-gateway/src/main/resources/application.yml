@@ -231,7 +231,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh
       base-path: /actuator
     enabled-by-default: false
   endpoint:
@@ -259,6 +259,8 @@ management:
     scheduledtasks:
       enabled: true
     info:
+      enabled: true
+    refresh:
       enabled: true
 
 job:

@@ -24,25 +24,83 @@
 
 package com.tencent.bk.job.execute.common.constants;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 作业执行状态
  */
 public enum RunStatusEnum {
-    BLANK(1, "等待执行"), RUNNING(2, "正在执行"), SUCCESS(3, "执行成功"),
-    FAIL(4, "执行失败"), SKIPPED(5, "跳过"), IGNORE_ERROR(6, "忽略错误"),
-    WAITING(7, "等待用户"), TERMINATED(8, "手动结束"), ABNORMAL_STATE(9, "状态异常"),
-    STOPPING(10, "强制终止中"), STOP_SUCCESS(11, "强制终止成功"),
-    CONFIRM_TERMINATED(13, "确认终止"), ABANDONED(14, "被丢弃");
+    /**
+     * 等待执行
+     */
+    BLANK(1),
+    /**
+     * 正在执行
+     */
+    RUNNING(2),
+    /**
+     * 执行成功
+     */
+    SUCCESS(3),
+    /**
+     * 执行失败
+     */
+    FAIL(4),
+    /**
+     * 跳过
+     */
+    SKIPPED(5),
+    /**
+     * 忽略错误
+     */
+    IGNORE_ERROR(6),
+    /**
+     * 等待用户
+     */
+    WAITING(7),
+    /**
+     * 手动结束
+     */
+    TERMINATED(8),
+    /**
+     * 状态异常
+     */
+    ABNORMAL_STATE(9),
+    /**
+     * 强制终止中
+     */
+    STOPPING(10),
+    /**
+     * 强制终止成功
+     */
+    STOP_SUCCESS(11),
+    /**
+     * 确认终止
+     */
+    CONFIRM_TERMINATED(13),
+    /**
+     * 被丢弃
+     */
+    ABANDONED(14);
 
     private final Integer value;
-    private final String name;
+    private static final Set<RunStatusEnum> FINISHED_STATUS_SET = new HashSet<>();
 
-    RunStatusEnum(Integer val, String name) {
-        this.value = val;
-        this.name = name;
+    static {
+        FINISHED_STATUS_SET.add(SUCCESS);
+        FINISHED_STATUS_SET.add(FAIL);
+        FINISHED_STATUS_SET.add(SKIPPED);
+        FINISHED_STATUS_SET.add(IGNORE_ERROR);
+        FINISHED_STATUS_SET.add(TERMINATED);
+        FINISHED_STATUS_SET.add(ABNORMAL_STATE);
+        FINISHED_STATUS_SET.add(STOP_SUCCESS);
+        FINISHED_STATUS_SET.add(CONFIRM_TERMINATED);
+        FINISHED_STATUS_SET.add(ABANDONED);
+    }
+
+    RunStatusEnum(Integer status) {
+        this.value = status;
     }
 
     public static RunStatusEnum valueOf(int status) {
@@ -51,34 +109,20 @@ public enum RunStatusEnum {
                 return runStatusEnum;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Invalid run status[" + status + "]");
     }
 
     /**
-     * 获取终止态的状态列表
+     * 判断是否是终止态的状态
      *
-     * @return
+     * @param status 状态
      */
-    public static List<Integer> getFinishedStatusValueList() {
-        List<Integer> finishedStatusValueList = new ArrayList<>();
-        finishedStatusValueList.add(SUCCESS.value);
-        finishedStatusValueList.add(FAIL.value);
-        finishedStatusValueList.add(SKIPPED.value);
-        finishedStatusValueList.add(IGNORE_ERROR.value);
-        finishedStatusValueList.add(TERMINATED.value);
-        finishedStatusValueList.add(ABNORMAL_STATE.value);
-        finishedStatusValueList.add(STOP_SUCCESS.value);
-        finishedStatusValueList.add(CONFIRM_TERMINATED.value);
-        finishedStatusValueList.add(ABANDONED.value);
-        return finishedStatusValueList;
+    public static boolean isFinishedStatus(RunStatusEnum status) {
+        return FINISHED_STATUS_SET.contains(status);
     }
 
     public Integer getValue() {
         return value;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getI18nKey() {

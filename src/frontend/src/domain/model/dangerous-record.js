@@ -51,10 +51,9 @@ export default class DangerousRecord {
 
     constructor (payload) {
         this.action = payload.action;
-        this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
-        this.appName = payload.appName;
+        this.scopeName = payload.scopeName;
         this.checkResultItems = payload.checkResultItems;
         this.client = payload.client;
         this.createTime = payload.createTime;

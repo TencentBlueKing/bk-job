@@ -75,12 +75,12 @@
             <bk-table-column
                 v-if="allRenderColumnMap.appId"
                 :label="$t('detectRecords.业务.colHead')"
-                prop="appName"
-                key="appName"
+                prop="scopeName"
+                key="scopeName"
                 width="200"
                 align="left">
                 <template slot-scope="{ row }">
-                    <span>[{{ row.scopeId }}] {{ row.appName }}</span>
+                    <span>[{{ row.scopeId }}] {{ row.scopeName }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
