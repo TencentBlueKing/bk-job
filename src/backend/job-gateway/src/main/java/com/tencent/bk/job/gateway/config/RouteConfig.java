@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -98,7 +99,10 @@ public class RouteConfig {
             List<String> bkTokenList = RequestUtil.getCookieValuesFromCookies(cookieList, tokenCookieName);
             if (CollectionUtils.isEmpty(bkTokenList)) {
                 log.warn("Fail to parse token from headers, please check");
-                bkTokenList.add(cookieMap.getFirst(tokenCookieName).getValue());
+                String bkToken = cookieMap.getFirst(tokenCookieName).getValue();
+                if (StringUtils.isNotBlank(bkToken)) {
+                    bkTokenList.add(bkToken);
+                }
             }
             BkUserDTO user = null;
             // 遍历所有传入token找出当前环境的
