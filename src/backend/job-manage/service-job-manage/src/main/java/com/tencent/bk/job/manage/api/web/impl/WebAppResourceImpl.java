@@ -341,19 +341,6 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<PageData<String>> listIpByBizTopologyNodes(String username,
-                                                               AppResourceScope appResourceScope,
-                                                               String scopeType,
-                                                               String scopeId,
-                                                               ListHostByBizTopologyNodesReq req) {
-        return Response.buildSuccessResp(
-            hostService.listIPByBizTopologyNodes(
-                username, appResourceScope, req
-            )
-        );
-    }
-
-    @Override
     public Response<List<AppTopologyTreeNode>> getNodeDetail(String username,
                                                              AppResourceScope appResourceScope,
                                                              String scopeType,

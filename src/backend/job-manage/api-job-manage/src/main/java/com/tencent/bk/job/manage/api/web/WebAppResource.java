@@ -216,27 +216,6 @@ public interface WebAppResource {
             ListHostByBizTopologyNodesReq req
     );
 
-    @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]"
-        , produces = "application/json")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/IPs/nodes"})
-    Response<PageData<String>> listIpByBizTopologyNodes(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "拓扑节点集合与分页信息", required = true)
-        @RequestBody
-            ListHostByBizTopologyNodesReq req
-    );
-
     @ApiOperation(value = "获取节点详情", produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/detail"})
     Response<List<AppTopologyTreeNode>> getNodeDetail(

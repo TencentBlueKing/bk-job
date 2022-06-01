@@ -808,23 +808,6 @@ public class HostServiceImpl implements HostService {
         return false;
     }
 
-    @Override
-    public PageData<String> listIPByBizTopologyNodes(String username,
-                                                     AppResourceScope appResourceScope,
-                                                     ListHostByBizTopologyNodesReq req) {
-        PageData<HostInfoVO> hostInfoVOResult = listHostByAppTopologyNodes(username, appResourceScope, req);
-        List<String> data =
-            hostInfoVOResult.getData().parallelStream()
-                .map(it -> it.getCloudAreaInfo().getId().toString() + ":" + it.getIp())
-                .collect(Collectors.toList());
-        return new PageData<>(
-            hostInfoVOResult.getStart(),
-            hostInfoVOResult.getPageSize(),
-            hostInfoVOResult.getTotal(),
-            data
-        );
-    }
-
     public List<HostInfoVO> getHostInfoVOsByHostInfoDTOs(List<ApplicationHostDTO> hosts) {
         return hosts.stream().map(it -> {
             String ip = it.getIp();
