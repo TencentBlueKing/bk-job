@@ -24,17 +24,27 @@
 
 package com.tencent.bk.job.common.cc.model;
 
-import lombok.Data;
-
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * @since 19/12/2019 21:25
+ * cmdb 查询规则
  */
-@Data
-public class ConditionDTO {
-
-    private String condition;
-
-    private List<BaseConditionDTO> rules;
+@Getter
+@Setter
+@ToString
+public class BaseRuleDTO implements IRule {
+    /**
+     * 字段名
+     */
+    private String field;
+    /**
+     * 操作符,可选值 equal,not_equal,in,not_in,less,less_or_equal,greater,greater_or_equal,between,not_between
+     */
+    private String operator;
+    /**
+     * 操作值，不同的operator对应不同的value格式
+     */
+    private Object value;
 }
