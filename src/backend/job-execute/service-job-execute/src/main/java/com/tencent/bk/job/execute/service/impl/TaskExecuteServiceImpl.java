@@ -57,16 +57,20 @@ import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
+import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
@@ -76,7 +80,9 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
 import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -144,17 +150,19 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final AccountService accountService;
     private final ScriptService scriptService;
-    private final TaskExecuteControlMsgSender controlMsgSender;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final TaskOperationLogService taskOperationLogService;
     private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final HostService hostService;
     private final ServiceUserResourceClient userResource;
     private final ExecuteAuthService executeAuthService;
     private final ExecutorService GET_HOSTS_BY_TOPO_EXECUTOR;
     private final DangerousScriptCheckService dangerousScriptCheckService;
+    private final RollingConfigService rollingConfigService;
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
@@ -163,33 +171,37 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     @Autowired
     public TaskExecuteServiceImpl(AccountService accountService,
                                   TaskInstanceService taskInstanceService,
-                                  TaskExecuteControlMsgSender controlMsgSender,
+                                  TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
                                   QueryAgentStatusClient queryAgentStatusClient,
                                   TaskOperationLogService taskOperationLogService,
                                   ScriptService scriptService,
+                                  StepInstanceService stepInstanceService,
                                   HostService hostService,
                                   ServiceUserResourceClient userResource,
                                   ExecuteAuthService executeAuthService,
                                   Tracing tracing,
                                   DangerousScriptCheckService dangerousScriptCheckService,
                                   JobExecuteConfig jobExecuteConfig,
-                                  TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
+                                  TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+                                  RollingConfigService rollingConfigService) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
-        this.controlMsgSender = controlMsgSender;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.taskPlanService = taskPlanService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.taskOperationLogService = taskOperationLogService;
         this.scriptService = scriptService;
+        this.stepInstanceService = stepInstanceService;
         this.hostService = hostService;
         this.userResource = userResource;
         this.executeAuthService = executeAuthService;
         this.GET_HOSTS_BY_TOPO_EXECUTOR = new TraceableExecutorService(new ThreadPoolExecutor(50,
             100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>()), tracing);
         this.dangerousScriptCheckService = dangerousScriptCheckService;
+        this.rollingConfigService = rollingConfigService;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
     }
@@ -208,10 +220,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public Long createTaskInstanceFast(TaskInstanceDTO taskInstance,
-                                       StepInstanceDTO stepInstance) throws ServiceException {
-        log.info("Begin to create task instance and step instance for fast-execution-task, taskInstance: {}, " +
-            "stepInstance: {}", taskInstance, stepInstance);
+    public Long executeFastTask(FastTaskDTO fastTask) {
+        log.info("Begin to create task instance and step instance for fast-execution-task, task: {}", fastTask);
+        TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
+        StepInstanceDTO stepInstance = fastTask.getStepInstance();
         StopWatch watch = new StopWatch("createTaskInstanceFast");
         // 检查任务是否应当被驱逐
         checkTaskEvict(taskInstance);
@@ -222,14 +234,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             watch.start("checkAndSetScriptInfoIfScriptTask");
             checkAndSetScriptInfoForFast(taskInstance, stepInstance);
             watch.stop();
+
             // 设置账号信息
             watch.start("setAccountInfo");
             checkAndSetAccountInfo(stepInstance, taskInstance.getAppId());
             watch.stop();
+
             // 获取ip列表
             watch.start("setServerInfoFastJob");
             setServerInfoFastJob(stepInstance);
             watch.stop();
+
             //检查ip
             watch.start("checkHosts");
             checkHosts(stepInstance, shouldIgnoreInvalidHost(taskInstance));
@@ -240,14 +255,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkStepInstanceConstraint(taskInstance, Collections.singletonList(stepInstance));
             watch.stop();
 
+            // 鉴权
             watch.start("authFastExecute");
             authFastExecute(taskInstance, stepInstance);
             watch.stop();
 
+            // 保存作业、步骤实例
             watch.start("saveInstance");
             Long taskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
             taskInstance.setId(taskInstanceId);
-
             stepInstance.setTaskInstanceId(taskInstanceId);
             stepInstance.setStepNum(1);
             stepInstance.setStepOrder(1);
@@ -255,10 +271,26 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setId(stepInstanceId);
             watch.stop();
 
+            // 保存滚动配置
+            if (fastTask.isRollingEnabled()) {
+                watch.start("saveRollingConfig");
+                RollingConfigDTO rollingConfig = rollingConfigService.saveRollingConfigForFastJob(fastTask);
+                long rollingConfigId = rollingConfig.getId();
+                stepInstanceService.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
+                watch.stop();
+            }
+
+            // 记录操作日志
             watch.start("saveOperationLog");
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
                 UserOperationEnum.START));
             watch.stop();
+
+            // 启动作业
+            watch.start("startJob");
+            startTask(taskInstanceId);
+            watch.stop();
+
             return taskInstanceId;
         } finally {
             if (watch.isRunning()) {
@@ -864,8 +896,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public Long createTaskInstanceForFastTaskRedo(TaskInstanceDTO taskInstance,
-                                                  StepInstanceDTO stepInstance) throws ServiceException {
+    public Long redoFastTask(FastTaskDTO fastTask) {
+        TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
+        StepInstanceDTO stepInstance = fastTask.getStepInstance();
         long taskInstanceId = taskInstance.getId();
         if (StringUtils.isNotEmpty(stepInstance.getScriptParam()) && stepInstance.getScriptParam().equals("******")) {
             // 重做快速任务，如果是敏感参数，并且用户未修改脚本参数值(******为与前端的约定，表示用户未修改脚本参数值)，需要从原始任务取值
@@ -877,17 +910,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setScriptParam(originStepInstance.getScriptParam());
             stepInstance.setSecureParam(originStepInstance.isSecureParam());
         }
-        return createTaskInstanceFast(taskInstance, stepInstance);
+        return executeFastTask(fastTask);
     }
 
     @Override
     public void startTask(long taskInstanceId) {
         log.info("Start task, taskInstanceId={}", taskInstanceId);
-        controlMsgSender.startTask(taskInstanceId);
+        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.startJob(taskInstanceId));
     }
 
     @Override
-    public TaskInstanceDTO createTaskInstanceForTask(TaskExecuteParam executeParam) throws ServiceException {
+    public TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam) {
         StopWatch watch = new StopWatch("createTaskInstanceForTask");
         try {
 
@@ -931,6 +964,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
                 UserOperationEnum.START));
             watch.stop();
+
+            // 启动作业
+            watch.start("startJob");
+            startTask(taskInstance.getId());
+            watch.stop();
+
             return taskInstance;
         } finally {
             if (watch.isRunning()) {
@@ -1191,7 +1230,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstance.setName(taskName);
         taskInstance.setTaskId(taskPlan.getId());
         taskInstance.setTaskTemplateId(taskPlan.getTaskTemplateId());
-        taskInstance.setCurrentStepId(-1L);
+        taskInstance.setCurrentStepInstanceId(-1L);
         taskInstance.setDebugTask(taskPlan.getDebugTask());
         taskInstance.setCallbackUrl(executeParam.getCallbackUrl());
         taskInstance.setAppCode(executeParam.getAppCode());
@@ -1270,6 +1309,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
             UserOperationEnum.START));
+
+        // 启动作业
+        startTask(taskInstanceId);
+
         return taskInstance;
     }
 
@@ -1285,7 +1328,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstance.setName(originTaskInstance.getName());
         taskInstance.setTaskId(originTaskInstance.getTaskId());
         taskInstance.setTaskTemplateId(originTaskInstance.getTaskTemplateId());
-        taskInstance.setCurrentStepId(-1L);
+        taskInstance.setCurrentStepInstanceId(-1L);
         taskInstance.setDebugTask(false);
         return taskInstance;
     }
@@ -1840,6 +1883,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             case SKIP:
                 skipStep(stepInstance, operator);
                 break;
+            case ROLLING_CONTINUE:
+                continueRolling(stepInstance, operator);
+                break;
             default:
                 log.warn("Undefined step operation!");
                 break;
@@ -1847,10 +1893,29 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return executeCount;
     }
 
+    private void continueRolling(StepInstanceDTO stepInstance, String operator) {
+        // 只有“等待用户”的滚动步骤可以继续滚动
+        if (!(stepInstance.getStatus().equals(RunStatusEnum.WAITING_USER.getValue()))) {
+            log.warn("StepInstance:{} status is not fail, Unsupported Operation:{}", stepInstance.getId(),
+                "rolling-continue");
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
+        }
+        if (!(stepInstance.isRollingStep())) {
+            log.warn("StepInstance:{} is not rolling step, Unsupported Operation:{}", stepInstance.getId(),
+                "rolling-continue");
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
+        }
+
+        // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
+        taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
+            stepInstance.getBatch() + 1));
+    }
+
     private void confirmTerminate(StepInstanceDTO stepInstance, String operator, String reason) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         // 只有人工确认等待中的任务，可以进行“终止流程”操作
-        if (!RunStatusEnum.WAITING.getValue().equals(stepInstance.getStatus())) {
+        if (!RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus())) {
             log.warn("StepInstance:{} status is not waiting, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-terminate");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -1870,7 +1935,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstanceService.updateConfirmReason(stepInstance.getId(), reason);
         taskInstanceService.updateStepOperator(stepInstance.getId(), operator);
 
-        controlMsgSender.confirmStepTerminate(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepTerminate(stepInstance.getId()));
     }
 
     private void confirmRestart(StepInstanceDTO stepInstance, String operator) {
@@ -1887,7 +1952,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         taskOperationLogService.saveOperationLog(buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.CONFIRM_RESTART));
-        controlMsgSender.confirmStepRestart(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepRestart(stepInstance.getId()));
     }
 
     private void checkConfirmUser(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance,
@@ -1925,7 +1990,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 "-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (!(RunStatusEnum.WAITING.getValue().equals(stepInstance.getStatus()))) {
+        if (!(RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus()))) {
             log.warn("StepInstance:{} status is not waiting, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -1945,7 +2010,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
 
-        controlMsgSender.confirmStepContinue(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepContinue(stepInstance.getId()));
     }
 
     private void nextStep(StepInstanceDTO stepInstance, String operator) {
@@ -1961,7 +2026,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
-        controlMsgSender.nextStep(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.nextStep(stepInstance.getId()));
     }
 
     private void retryStepFail(StepInstanceDTO stepInstance, String operator) {
@@ -1971,10 +2036,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 "-fail");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
+        // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.RUNNING.getValue());
-//        taskInstanceService.addStepExecuteCount(stepInstance.getId());
-        controlMsgSender.retryStepFail(stepInstance.getId());
+        taskInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_FAIL);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -1987,10 +2052,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("StepInstance:{} status is not fail, Unsupported Operation:{}", stepInstance.getId(), "retry-all");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
+        // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.RUNNING.getValue());
-//        taskInstanceService.addStepExecuteCount(stepInstance.getId());
-        controlMsgSender.retryStepAll(stepInstance.getId());
+        taskInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepAll(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_ALL);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2006,7 +2071,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        controlMsgSender.ignoreStepError(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.ignoreError(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.IGNORE_ERROR);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2018,7 +2083,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("StepInstance:{} status is not stopping, Unsupported Operation:{}", stepInstance.getId(), "skip");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        controlMsgSender.skipStep(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.skipStep(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator, UserOperationEnum.SKIP_STEP);
         taskOperationLogService.saveOperationLog(operationLog);
     }
@@ -2062,15 +2127,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
-        if (!RunStatusEnum.RUNNING.getValue().equals(taskInstance.getStatus())) {
-            log.warn("TaskInstance:{} status is not running, should not terminate it!", taskInstance.getId());
+        if (!RunStatusEnum.RUNNING.getValue().equals(taskInstance.getStatus())
+            && !RunStatusEnum.WAITING_USER.getValue().equals(taskInstance.getStatus())) {
+            log.warn("TaskInstance:{} status is not running/waiting, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         if (RunStatusEnum.STOPPING.getValue().equals(taskInstance.getStatus())) {
             log.warn("TaskInstance:{} status is stopping now, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.TASK_STOPPING_DO_NOT_REPEAT);
         }
-        controlMsgSender.stopTask(taskInstanceId);
+        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstanceId));
         OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);
         taskOperationLogService.saveOperationLog(operationLog);
     }

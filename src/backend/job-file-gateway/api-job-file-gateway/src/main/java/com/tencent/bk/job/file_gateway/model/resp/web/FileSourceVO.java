@@ -25,7 +25,6 @@
 package com.tencent.bk.job.file_gateway.model.resp.web;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -90,10 +89,10 @@ public class FileSourceVO {
     @ApiModelProperty("是否为公共文件源")
     private Boolean publicFlag;
     /**
-     * 共享的资源范围列表
+     * 共享的业务Id列表
      */
-    @ApiModelProperty(value = "共享的资源范围列表", required = true)
-    private List<ResourceScope> sharedScopeList;
+    @ApiModelProperty("共享的业务Id列表")
+    private List<Long> sharedAppIdList;
     /**
      * 是否共享到全业务
      */

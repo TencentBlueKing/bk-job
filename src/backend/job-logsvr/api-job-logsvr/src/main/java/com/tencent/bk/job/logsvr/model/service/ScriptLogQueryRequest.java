@@ -28,9 +28,25 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 脚本日志查询请求
+ */
 @Data
 public class ScriptLogQueryRequest {
+    /**
+     * 步骤实例ID
+     */
     private Long stepInstanceId;
+    /**
+     * 执行次数
+     */
     private Integer executeCount;
+    /**
+     * 滚动执行批次，可能为null
+     */
+    private Integer batch;
+    /**
+     * 查询的主机IP列表
+     */
     private List<String> ips;
 }

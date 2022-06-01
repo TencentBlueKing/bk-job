@@ -30,7 +30,10 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.listener.event.EventSource;
+import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
@@ -82,7 +85,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private TaskInstanceService taskInstanceService;
     private AccountService accountService;
     private LogService logService;
-    private TaskExecuteControlMsgSender taskControlMsgSender;
+    private TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private ThirdFilePrepareTaskResultHandler resultHandler;
     private int pullTimes = 0;
@@ -112,14 +115,14 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         TaskInstanceService taskInstanceService,
         AccountService accountService,
         LogService logService,
-        TaskExecuteControlMsgSender taskControlMsgSender,
+        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
         FileSourceTaskLogDAO fileSourceTaskLogDAO
     ) {
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.taskInstanceService = taskInstanceService;
         this.accountService = accountService;
         this.logService = logService;
-        this.taskControlMsgSender = taskControlMsgSender;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
     }
 
@@ -227,7 +230,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         List<FileSourceTaskStatusDTO> resultList = batchTaskStatusDTO.getFileSourceTaskStatusInfoList();
         if (resultList.isEmpty()) {
             // 直接进行下一步
-            taskControlMsgSender.continueGseFileStep(stepInstance.getId());
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.continueGseFileStep(stepInstance.getId()));
         } else {
             // 需要处理业务
             boolean allSuccess = true;
@@ -270,7 +273,9 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                             //业务无root账号，报错提示
                             log.warn("No root account in appId={}, plz config one", stepInstance.getAppId());
                             taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
-                            taskControlMsgSender.refreshTask(stepInstance.getTaskInstanceId());
+                            taskExecuteMQEventDispatcher.dispatchJobEvent(
+                                JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                                    EventSource.buildStepEventSource(stepInstance.getId())));
                             return;
                         }
                         fileSourceDTO.setAccountId(accountDTO.getId());
@@ -313,7 +318,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private void writeLogs(StepInstanceDTO stepInstance, List<ServiceIpLogDTO> logDTOList) {
         for (ServiceIpLogDTO serviceLogDTO : logDTOList) {
             logService.writeFileLogWithTimestamp(stepInstance.getCreateTime(), stepInstance.getId(),
-                stepInstance.getExecuteCount(), serviceLogDTO.getIp(), serviceLogDTO, System.currentTimeMillis());
+                stepInstance.getExecuteCount(), stepInstance.getBatch(), serviceLogDTO.getIp(),
+                serviceLogDTO, System.currentTimeMillis());
         }
     }
 

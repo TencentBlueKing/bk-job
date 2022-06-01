@@ -58,7 +58,7 @@ public enum RunStatusEnum {
     /**
      * 等待用户
      */
-    WAITING(7),
+    WAITING_USER(7),
     /**
      * 手动结束
      */
@@ -82,7 +82,11 @@ public enum RunStatusEnum {
     /**
      * 被丢弃
      */
-    ABANDONED(14);
+    ABANDONED(14),
+    /**
+     * 滚动等待
+     */
+    ROLLING_WAITING(15);
 
     private final Integer value;
     private static final Set<RunStatusEnum> FINISHED_STATUS_SET = new HashSet<>();
@@ -113,7 +117,7 @@ public enum RunStatusEnum {
     }
 
     /**
-     * 判断是否是终止态的状态
+     * 是否终止态
      *
      * @param status 状态
      */
@@ -125,6 +129,9 @@ public enum RunStatusEnum {
         return value;
     }
 
+    /**
+     * 获取国际化Key
+     **/
     public String getI18nKey() {
         return "task.run.status." + this.name().toLowerCase();
     }

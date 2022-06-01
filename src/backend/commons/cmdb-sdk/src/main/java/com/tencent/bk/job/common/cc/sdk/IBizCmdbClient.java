@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
-import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
+import com.tencent.bk.job.common.cc.model.result.FindHostBizRelationsResult;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
@@ -156,14 +156,6 @@ public interface IBizCmdbClient {
     ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip);
 
     /**
-     * 根据IP批量获取主机
-     *
-     * @param hostIps 云区域+IP列表
-     * @return 主机列表
-     */
-    List<ApplicationHostDTO> listHostsByIps(List<IpDTO> hostIps);
-
-    /**
      * 批量获取业务下的主机列表
      *
      * @param bizId  cmdb业务ID
@@ -172,7 +164,7 @@ public interface IBizCmdbClient {
      */
     List<ApplicationHostDTO> listBizHosts(long bizId, Collection<IpDTO> ipList);
 
-    List<HostBizRelationDTO> findHostBizRelations(String uin, List<Long> hostIdList);
+    List<FindHostBizRelationsResult> findHostBizRelations(String uin, List<Long> hostIdList);
 
     /**
      * 获取CMDB对象属性信息列表

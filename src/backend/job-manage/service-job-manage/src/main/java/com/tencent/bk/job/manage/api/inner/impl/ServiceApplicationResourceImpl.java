@@ -152,11 +152,8 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
             InternalResponse.buildSuccessResp(appList);
         }
 
-        if (scopeType != null) {
-            appList = appList.stream().filter(
-                app -> app.getScope().getType() == ResourceScopeTypeEnum.from(scopeType)
-            ).collect(Collectors.toList());
-        }
+        appList = appList.stream().filter(app -> app.getScope().getType() == ResourceScopeTypeEnum.from(scopeType))
+            .collect(Collectors.toList());
 
         List<ServiceApplicationDTO> resultList =
             appList.stream().map(this::convertToServiceApp).collect(Collectors.toList());

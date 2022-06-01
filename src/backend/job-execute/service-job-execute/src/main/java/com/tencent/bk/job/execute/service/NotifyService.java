@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 
 /**
@@ -50,4 +52,28 @@ public interface NotifyService {
      * @param taskNotifyDTO 通知
      */
     void notifyTaskConfirm(TaskNotifyDTO taskNotifyDTO);
+
+    /**
+     * 发送作业执行失败通知给 MQ
+     *
+     * @param taskInstance 作业实例
+     * @param stepInstance 步骤实例
+     */
+    void asyncSendMQFailTaskNotification(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance);
+
+    /**
+     * 发送作业执行成功通知给 MQ
+     *
+     * @param taskInstance 作业实例
+     * @param stepInstance 步骤实例
+     */
+    void asyncSendMQSuccessTaskNotification(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance);
+
+    /**
+     * 发送人工确认通知给 MQ
+     *
+     * @param taskInstance 作业实例
+     * @param stepInstance 步骤实例
+     */
+    void asyncSendMQConfirmNotification(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance);
 }

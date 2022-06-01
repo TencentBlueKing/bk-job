@@ -66,7 +66,7 @@ public class JobSrcFileUtils {
         for (JobFile srcFile : srcFiles) {
             // 本地文件的源ip是本机ip，展开源文件IP地址宏采用"0.0.0.0"
             String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir, srcFile.isLocalUploadFile() ?
-                "0_0.0.0.0" : srcFile.getCloudAreaIdAndIp());
+                "0_0.0.0.0" : srcFile.getCloudIp());
             destDirPath = MacroUtil.resolveDate(destDirPath, currentTime);
             addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetFileName);
         }

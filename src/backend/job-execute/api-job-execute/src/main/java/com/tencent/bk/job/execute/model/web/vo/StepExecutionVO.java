@@ -75,4 +75,10 @@ public class StepExecutionVO {
     private boolean currentStepRunning;
     @ApiModelProperty("是否最后一个步骤")
     private Boolean isLastStep;
+    @ApiModelProperty("滚动执行批次总数;如果非滚动执行，那么该值为空")
+    private Integer totalBatch;
+    @ApiModelProperty("滚动执行当前执行批次;如果非滚动执行，那么该值为空")
+    private Integer currentBatch;
+    @ApiModelProperty("滚动配置名称")
+    private String rollingConfigName;
 }

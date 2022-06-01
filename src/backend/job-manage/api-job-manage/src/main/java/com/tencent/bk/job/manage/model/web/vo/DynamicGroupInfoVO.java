@@ -50,12 +50,8 @@ public class DynamicGroupInfoVO {
     @ApiModelProperty("资源范围ID")
     private String scopeId;
 
-    @Deprecated
     @ApiModelProperty("业务名")
     private String appName;
-
-    @ApiModelProperty("资源范围名称")
-    private String scopeName;
 
     @ApiModelProperty("动态分组 ID")
     private String id;

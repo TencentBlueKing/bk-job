@@ -223,23 +223,14 @@ public class SyncServiceImpl implements SyncService {
     private void watchHostEvent() {
         // 开一个常驻线程监听主机资源变动事件
         hostWatchThread = new HostWatchThread(
-            dslContext,
-            applicationHostDAO,
-            queryAgentStatusClient,
-            redisTemplate,
-            hostCache
-        );
+            dslContext, applicationHostDAO, queryAgentStatusClient,
+            redisTemplate, appHostsUpdateHelper, hostCache);
         hostWatchThread.start();
 
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
-            dslContext,
-            applicationHostDAO,
-            hostTopoDAO,
-            redisTemplate,
-            this,
-            hostCache
-        );
+            dslContext, applicationHostDAO, hostTopoDAO,
+            redisTemplate, this, appHostsUpdateHelper, hostCache);
         hostRelationWatchThread.start();
     }
 

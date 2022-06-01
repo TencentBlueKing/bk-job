@@ -27,10 +27,13 @@ package com.tencent.bk.job.execute.engine.variable;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.consts.JobBuildInVariables;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,14 +51,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JobLastHostsVariableResolver implements VariableResolver {
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskLogService gseTaskLogService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final FileAgentTaskService fileAgentTaskService;
     private final Set<String> BUILD_IN_VARIABLES = new HashSet<>();
 
     @Autowired
     public JobLastHostsVariableResolver(TaskInstanceService taskInstanceService,
-                                        GseTaskLogService gseTaskLogService) {
+                                        ScriptAgentTaskService scriptAgentTaskService,
+                                        FileAgentTaskService fileAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
-        this.gseTaskLogService = gseTaskLogService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
         init();
     }
 
@@ -76,7 +82,8 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         StepInstanceDTO preStepInstance = taskInstanceService.getPreExecutableStepInstance(taskInstanceId,
             stepInstanceId);
         if (preStepInstance == null) {
-            log.info("Resolve value from latest executable step instance, but no pre step exist! taskInstanceId: {}, stepInstanceId:{}",
+            log.info("Resolve value from latest executable step instance, but no pre step exist! taskInstanceId: {}, " +
+                    "stepInstanceId:{}",
                 taskInstanceId, stepInstanceId);
             return null;
         }
@@ -84,28 +91,39 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         if (JobBuildInVariables.JOB_LAST_ALL.equals(variableName)) {
             hosts = extractAllHosts(preStepInstance);
         } else if (JobBuildInVariables.JOB_LAST_SUCCESS.equals(variableName)) {
-            List<GseTaskIpLogDTO> ipLogs = gseTaskLogService.getIpLog(preStepInstance.getId(),
-                preStepInstance.getExecuteCount(), true);
-            if (CollectionUtils.isNotEmpty(ipLogs)) {
+            List<AgentTaskDTO> agentTasks = listAgentTasks(preStepInstance.getStepType(), preStepInstance.getId(),
+                preStepInstance.getExecuteCount());
+            if (CollectionUtils.isNotEmpty(agentTasks)) {
                 hosts =
-                    ipLogs.stream().filter(ipLog -> (ipLog.getStatus() == IpStatus.SUCCESS.getValue()
-                        || ipLog.getStatus() == IpStatus.LAST_SUCCESS.getValue()))
-                        .map(ipLog -> new IpDTO(ipLog.getCloudAreaId(), ipLog.getIp())).collect(Collectors.toSet());
+                    agentTasks.stream().filter(agentTask -> (agentTask.getStatus() == IpStatus.SUCCESS.getValue()
+                        || agentTask.getStatus() == IpStatus.LAST_SUCCESS.getValue()))
+                        .map(agentTask -> new IpDTO(agentTask.getCloudId(), agentTask.getIp())).collect(Collectors.toSet());
             }
         } else if (JobBuildInVariables.JOB_LAST_FAIL.equals(variableName)) {
-            List<GseTaskIpLogDTO> ipLogs = gseTaskLogService.getIpLog(preStepInstance.getId(),
-                preStepInstance.getExecuteCount(), true);
-            if (CollectionUtils.isNotEmpty(ipLogs)) {
+            List<AgentTaskDTO> agentTasks = listAgentTasks(preStepInstance.getStepType(), preStepInstance.getId(),
+                preStepInstance.getExecuteCount());
+            if (CollectionUtils.isNotEmpty(agentTasks)) {
                 hosts =
-                    ipLogs.stream().filter(ipLog -> (ipLog.getStatus() != IpStatus.SUCCESS.getValue()
-                        && ipLog.getStatus() != IpStatus.LAST_SUCCESS.getValue()))
-                        .map(ipLog -> new IpDTO(ipLog.getCloudAreaId(), ipLog.getIp())).collect(Collectors.toSet());
+                    agentTasks.stream().filter(agentTask -> (agentTask.getStatus() != IpStatus.SUCCESS.getValue()
+                        && agentTask.getStatus() != IpStatus.LAST_SUCCESS.getValue()))
+                        .map(agentTask -> new IpDTO(agentTask.getCloudId(), agentTask.getIp())).collect(Collectors.toSet());
             }
         }
         String value = VariableResolveUtils.formatHosts(hosts);
         log.info("Resolve value from latest executable step instance, variableName: {}, value: {}", variableName,
             value);
         return value;
+    }
+
+    private List<AgentTaskDTO> listAgentTasks(TaskStepTypeEnum stepType, long stepInstanceId, int executeCount) {
+        List<AgentTaskDTO> agentTasks = null;
+        if (stepType == TaskStepTypeEnum.SCRIPT) {
+            agentTasks = scriptAgentTaskService.listAgentTasks(stepInstanceId, executeCount, null);
+        } else if (stepType == TaskStepTypeEnum.FILE) {
+            agentTasks = fileAgentTaskService.listAgentTasks(stepInstanceId, executeCount, null,
+                FileTaskModeEnum.DOWNLOAD);
+        }
+        return agentTasks;
     }
 
 

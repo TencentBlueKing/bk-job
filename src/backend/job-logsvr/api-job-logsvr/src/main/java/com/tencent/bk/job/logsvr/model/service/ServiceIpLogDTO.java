@@ -44,20 +44,25 @@ public class ServiceIpLogDTO {
     @ApiModelProperty("步骤实例ID")
     private Long stepInstanceId;
     /**
-     * ip
-     */
-    @ApiModelProperty("ip")
-    private String ip;
-    /**
      * 执行次数
      */
     @ApiModelProperty("执行次数")
     private Integer executeCount;
+    /**
+     * 滚动执行批次
+     */
+    @ApiModelProperty("滚动执行批次")
+    private Integer batch;
+    /**
+     * ip
+     */
+    @ApiModelProperty("ip")
+    private String ip;
 
     /**
      * 脚本日志内容
      */
-    @ApiModelProperty(value = "脚本日志内容,新协议，保存日志的时候需要传入,查询日志的时候该字段无效")
+    @ApiModelProperty(value = "脚本日志内容，保存日志的时候需要传入,查询日志的时候该字段无效")
     @JsonProperty("scriptLog")
     private ServiceScriptLogDTO scriptLog;
 
@@ -77,8 +82,9 @@ public class ServiceIpLogDTO {
     public String toString() {
         StringJoiner joiner = new StringJoiner(", ", ServiceIpLogDTO.class.getSimpleName() + "[", "]")
             .add("stepInstanceId=" + stepInstanceId)
-            .add("ip='" + ip + "'")
             .add("executeCount=" + executeCount)
+            .add("batch=" + batch)
+            .add("ip='" + ip + "'")
             .add("scriptLog=" + scriptLog)
             .add("fileTaskLogSize=" + (fileTaskLogs == null ? 0 : fileTaskLogs.size()));
         return joiner.toString();

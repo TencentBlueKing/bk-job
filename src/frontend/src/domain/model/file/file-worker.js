@@ -29,6 +29,7 @@ import I18n from '@/i18n';
 export default class FileWorker extends Model {
     constructor (payload) {
         super();
+        this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
         this.id = payload.id;

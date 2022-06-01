@@ -26,15 +26,12 @@ package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
@@ -50,7 +47,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -60,16 +56,13 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
 
     private final FileSourceService fileSourceService;
     private final FileSourceAuthService fileSourceAuthService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebFileSourceResourceImpl(
         FileSourceService fileSourceService,
-        FileSourceAuthService fileSourceAuthService,
-        AppScopeMappingService appScopeMappingService) {
+        FileSourceAuthService fileSourceAuthService) {
         this.fileSourceService = fileSourceService;
         this.fileSourceAuthService = fileSourceAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     private void checkParam(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
@@ -257,20 +250,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         );
         fileSourceDTO.setFileSourceInfoMap(fileSourceCreateUpdateReq.getFileSourceInfoMap());
         fileSourceDTO.setPublicFlag(fileSourceCreateUpdateReq.getPublicFlag());
-        List<ResourceScope> sharedScopeList = fileSourceCreateUpdateReq.getSharedScopeList();
-        Map<ResourceScope, Long> map = appScopeMappingService.getAppIdByScopeList(sharedScopeList);
-        List<Long> sharedAppIdList = new ArrayList<>();
-        for (ResourceScope resourceScope : sharedScopeList) {
-            Long sharedAppId = map.get(resourceScope);
-            if (sharedAppId == null) {
-                throw new InvalidParamException(
-                    ErrorCode.SCOPE_NOT_EXIST,
-                    new String[]{resourceScope.getType().getValue() + "," + resourceScope.getId()}
-                );
-            }
-            sharedAppIdList.add(sharedAppId);
-        }
-        fileSourceDTO.setSharedAppIdList(sharedAppIdList);
+        fileSourceDTO.setSharedAppIdList(fileSourceCreateUpdateReq.getSharedAppIdList());
         fileSourceDTO.setShareToAllApp(fileSourceCreateUpdateReq.getShareToAllApp());
         fileSourceDTO.setCredentialId(fileSourceCreateUpdateReq.getCredentialId());
         fileSourceDTO.setFilePrefix(fileSourceCreateUpdateReq.getFilePrefix());

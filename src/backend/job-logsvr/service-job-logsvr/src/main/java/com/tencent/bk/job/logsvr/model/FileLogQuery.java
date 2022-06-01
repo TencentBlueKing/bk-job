@@ -56,6 +56,10 @@ public class FileLogQuery {
      */
     private Integer executeCount;
     /**
+     * 滚动执行批次
+     */
+    private Integer batch;
+    /**
      * 分发模式
      *
      * @see com.tencent.bk.job.logsvr.consts.FileTaskModeEnum
