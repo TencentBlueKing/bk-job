@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.config.LoginExemptionConfig;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -75,7 +76,10 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             List<String> bkTokenList = RequestUtil.getCookieValuesFromHeader(request, tokenCookieName);
             if (CollectionUtils.isEmpty(bkTokenList)) {
                 log.warn("Fail to parse token from headers, please check");
-                bkTokenList.add(RequestUtil.getCookieValue(request, tokenCookieName));
+                String bkToken = RequestUtil.getCookieValue(request, tokenCookieName);
+                if (StringUtils.isNotBlank(bkToken)) {
+                    bkTokenList.add(bkToken);
+                }
             }
             if (CollectionUtils.isEmpty(bkTokenList)) {
                 log.warn("Cookie {} is empty,illegal request!", tokenCookieName);
