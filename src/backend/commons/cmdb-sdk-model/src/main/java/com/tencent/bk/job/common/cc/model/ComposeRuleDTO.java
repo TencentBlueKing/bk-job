@@ -22,25 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
 
-public class FindHostBizRelationsResult {
+/**
+ * cmdb 组合查询规则
+ */
+@Getter
+@Setter
+@ToString
+public class ComposeRuleDTO implements IRule {
+    /**
+     * 组合查询条件
+     */
+    private String condition;
+    /**
+     * 过滤规则
+     */
+    private List<IRule> rules = new ArrayList<>();
 
-    @JsonProperty("bk_biz_id")
-    private Long bizId;
-
-    @JsonProperty("bk_host_id")
-    private Long hostId;
-
-    @JsonProperty("bk_module_id")
-    private Long moduleId;
-
-    @JsonProperty("bk_set_id")
-    private Long setId;
-
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
+    /**
+     * 新增过滤规则
+     *
+     * @param rule 过滤规则
+     */
+    public void addRule(IRule rule) {
+        this.rules.add(rule);
+    }
 }
