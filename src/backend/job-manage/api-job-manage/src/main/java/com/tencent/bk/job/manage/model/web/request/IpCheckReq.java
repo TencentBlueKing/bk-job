@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -35,11 +36,15 @@ import java.util.List;
 @ApiModel("IP检查请求报文")
 public class IpCheckReq {
 
-    @ApiModelProperty(value = "应用场景：脚本执行/文件分发", required = false)
+    @ApiModelProperty(value = "应用场景：脚本执行/文件分发")
     ActionScopeEnum actionScope;
 
-    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip", required = true)
+    @CompatibleImplementation(explain = "兼容IPv6版本发布过程接口调用", version = "3.7.0")
+    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip")
     List<String> ipList;
+
+    @ApiModelProperty(value = "hostId列表", required = true)
+    List<Long> hostIdList;
 
 }
 
