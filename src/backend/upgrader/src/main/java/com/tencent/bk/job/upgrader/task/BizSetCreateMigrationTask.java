@@ -154,8 +154,8 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
         if (operateDeptId != null) {
             Rule operateDeptIdRule = new Rule();
             operateDeptIdRule.setField("bk_operate_dept_id");
-            operateDeptIdRule.setOperator(Rule.OPERATOR_EQUAL);
-            operateDeptIdRule.setValue(operateDeptId);
+            operateDeptIdRule.setOperator(Rule.OPERATOR_IN);
+            operateDeptIdRule.setValue(Collections.singletonList(operateDeptId));
             rules.add(operateDeptIdRule);
         }
 
