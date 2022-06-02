@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service;
 
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 
 import java.util.Collection;
@@ -51,4 +52,24 @@ public interface BizHostService {
      */
     List<ApplicationHostDTO> getHostsByBizAndHostIds(Collection<Long> bizIds,
                                                      Collection<Long> hostIds);
+
+    /**
+     * 根据条件查询主机ID
+     *
+     * @param bizIds         业务ID集合
+     * @param moduleIds      模块ID集合
+     * @param cloudAreaIds   云区域ID集合
+     * @param searchContents 搜索关键字列表
+     * @param agentStatus    agent状态
+     * @param start          数据起始位置
+     * @param limit          查询数据条数
+     * @return 主机列表
+     */
+    PageData<Long> pageListHostId(Collection<Long> bizIds,
+                                  Collection<Long> moduleIds,
+                                  Collection<Long> cloudAreaIds,
+                                  List<String> searchContents,
+                                  Integer agentStatus,
+                                  Long start,
+                                  Long limit);
 }

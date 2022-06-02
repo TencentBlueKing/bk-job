@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -216,10 +217,33 @@ public interface WebAppResource {
             ListHostByBizTopologyNodesReq req
     );
 
+    @CompatibleImplementation(
+        explain = "仅用作IPv6上线发布过程中的兼容，后续切换为listHostIdByBizTopologyNodes", version = "3.7.0")
     @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]"
         , produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/IPs/nodes"})
     Response<PageData<String>> listIpByBizTopologyNodes(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "拓扑节点集合与分页信息", required = true)
+        @RequestBody
+            ListHostByBizTopologyNodesReq req
+    );
+
+    @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器hostIds"
+        , produces = "application/json")
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostIds/nodes"})
+    Response<PageData<Long>> listHostIdByBizTopologyNodes(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

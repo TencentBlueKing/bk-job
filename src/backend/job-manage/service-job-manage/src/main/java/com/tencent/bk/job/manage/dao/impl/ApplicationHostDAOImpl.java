@@ -213,7 +213,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                               Collection<Long> cloudAreaIds, List<String> searchContents,
                                               Integer agentStatus) {
-        List<Long> hostIdList = getHostIdListBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
+        List<Long> hostIdList = listHostIdBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
             agentStatus, null, null);
         return (long) (hostIdList.size());
     }
@@ -238,14 +238,19 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                                                                  Integer agentStatus,
                                                                  Long start,
                                                                  Long limit) {
-        List<Long> hostIdList = getHostIdListBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
+        List<Long> hostIdList = listHostIdBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
             agentStatus, start, limit);
         return listHostInfoByHostIds(hostIdList);
     }
 
-    public List<Long> getHostIdListBySearchContents(Collection<Long> appIds, Collection<Long> moduleIds,
-                                                    Collection<Long> cloudAreaIds, List<String> searchContents,
-                                                    Integer agentStatus, Long start, Long limit) {
+    @Override
+    public List<Long> listHostIdBySearchContents(Collection<Long> appIds,
+                                                 Collection<Long> moduleIds,
+                                                 Collection<Long> cloudAreaIds,
+                                                 List<String> searchContents,
+                                                 Integer agentStatus,
+                                                 Long start,
+                                                 Long limit) {
         Host tHost = Host.HOST;
         HostTopo tHostTopo = HostTopo.HOST_TOPO;
         List<Condition> conditions = new ArrayList<>();
@@ -810,7 +815,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     @Override
     public int deleteBizHostInfoByBizId(DSLContext dslContext, long bizId) {
         // 先查出所有的hostId
-        List<Long> hostIds = getHostIdListBySearchContents(Collections.singleton(bizId), null, null, null, null, null
+        List<Long> hostIds = listHostIdBySearchContents(Collections.singleton(bizId), null, null, null, null, null
             , null);
         // 删除拓扑信息+主机信息
         return batchDeleteBizHostInfoById(dslContext, bizId, hostIds);

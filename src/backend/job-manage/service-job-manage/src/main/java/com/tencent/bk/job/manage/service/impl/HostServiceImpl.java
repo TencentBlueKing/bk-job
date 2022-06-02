@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
@@ -55,6 +54,7 @@ import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
+import com.tencent.bk.job.manage.common.util.StringParamUtil;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.app.BizOperateDeptLocalCache;
@@ -72,6 +72,7 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.WhiteIPService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
+import com.tencent.bk.job.manage.service.impl.topo.BizTopoService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -86,7 +87,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -114,6 +114,9 @@ public class HostServiceImpl implements HostService {
 
     @Autowired
     private AgentStatusService agentStatusService;
+
+    @Autowired
+    private BizTopoService bizTopoService;
 
     @Autowired
     public HostServiceImpl(DSLContext dslContext,
@@ -765,22 +768,6 @@ public class HostServiceImpl implements HostService {
         return topologyTree;
     }
 
-    private boolean matchSearchContent(String searchContent, String targetStr) {
-        if (searchContent == null) {
-            return true;
-        }
-        if (targetStr == null) {
-            return false;
-        }
-        String[] searchContents = searchContent.split("[;,；，\\n\\s|\\u00A0]+");
-        for (String content : searchContents) {
-            if (StringUtils.isNotBlank(content) && targetStr.toLowerCase().contains(content.toLowerCase())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public PageData<String> listIPByBizTopologyNodes(String username,
                                                      AppResourceScope appResourceScope,
@@ -833,8 +820,9 @@ public class HostServiceImpl implements HostService {
         List<Long> bizIds = null;
         if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
             // 普通业务需要以moduleIds作为查询条件
-            moduleIds = getBizModuleIdsByTopoNodes(
-                username, Long.valueOf(appInfo.getScope().getId()), req.getAppTopoNodeList()
+            moduleIds = bizTopoService.findAllModuleIdsOfNodes(
+                Long.valueOf(appInfo.getScope().getId()),
+                req.getAppTopoNodeList()
             );
         } else if (!appInfo.isAllBizSet() && appInfo.isBizSet()) {
             // 业务集：仅根据业务查主机
@@ -842,22 +830,13 @@ public class HostServiceImpl implements HostService {
             bizIds = topologyHelper.getBizSetSubBizIds(appInfo);
         }
 
-        //获取所有云区域，找出名称符合条件的所有CloudAreaId
-        List<Long> cloudAreaIds = null;
-        if (StringUtils.isNotBlank(searchContent)) {
-            cloudAreaIds = new ArrayList<>();
-            List<CcCloudAreaInfoDTO> allCloudAreaInfos = cloudAreaService.getCloudAreaList();
-            for (CcCloudAreaInfoDTO it : allCloudAreaInfos) {
-                if (matchSearchContent(searchContent, it.getName())) {
-                    cloudAreaIds.add(it.getId());
-                }
-            }
-            log.debug("filter by cloudAreaIds={}", cloudAreaIds);
-        }
         List<String> searchContents = null;
-        if (req.getSearchContent() != null) {
-            searchContents = Arrays.asList(searchContent.split("[;,；，\\n\\s|\\u00A0]+"));
+        if (searchContent != null) {
+            searchContents = StringParamUtil.splitByNormalSeparator(searchContent);
         }
+
+        //获取所有云区域，找出名称符合条件的所有CloudAreaId
+        List<Long> cloudAreaIds = cloudAreaService.getAnyNameMatchedCloudAreaIds(searchContents);
         watch.stop();
         //分页
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
@@ -1107,40 +1086,6 @@ public class HostServiceImpl implements HostService {
     public List<HostInfoVO> listHostByAppTopologyNodes(String username, Long appId,
                                                        List<AppTopologyTreeNode> appTopoNodeList) {
         return listHostByAppTopologyNodes(username, appId, appTopoNodeList, null, null);
-    }
-
-    private List<Long> getBizModuleIdsByTopoNodes(String username,
-                                                  Long bizId,
-                                                  List<AppTopologyTreeNode> appTopoNodeList) {
-        if (appTopoNodeList == null || appTopoNodeList.isEmpty()) {
-            return Collections.emptyList();
-        }
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
-        // 查出业务
-        ApplicationDTO appInfo = applicationService.getAppByScope(
-            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
-        );
-        List<Long> moduleIds = new ArrayList<>();
-        // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
-        // 查业务拓扑树
-        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
-        if (appTopologyTree == null) {
-            throw new InternalException("Fail to getBizTopo of bizId " + bizId + " from CMDB",
-                ErrorCode.INTERNAL_ERROR);
-        }
-        for (AppTopologyTreeNode treeNode : appTopoNodeList) {
-            CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
-            // 查拓扑节点完整信息
-            InstanceTopologyDTO completeNode = TopologyUtil.findNodeFromTopo(appTopologyTree, ccInstanceDTO);
-            if (completeNode == null) {
-                log.warn("Cannot find node in topo, node:{}, topo:", JsonUtils.toJson(ccInstanceDTO));
-                TopologyUtil.printTopo(appTopologyTree);
-                throw new InternalException("Fail to find node {objectId:" + ccInstanceDTO.getObjectType() + "," +
-                    "instanceId:" + ccInstanceDTO.getInstanceId() + ") from app topo", ErrorCode.INTERNAL_ERROR);
-            }
-            moduleIds.addAll(TopologyUtil.findModuleIdsFromTopo(completeNode));
-        }
-        return moduleIds;
     }
 
     private List<HostInfoVO> listHostByAppTopologyNodes(String username,

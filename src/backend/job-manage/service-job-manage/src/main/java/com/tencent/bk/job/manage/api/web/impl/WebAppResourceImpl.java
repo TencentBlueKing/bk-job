@@ -364,6 +364,27 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
+    public Response<PageData<Long>> listHostIdByBizTopologyNodes(String username,
+                                                                 AppResourceScope appResourceScope,
+                                                                 String scopeType,
+                                                                 String scopeId,
+                                                                 ListHostByBizTopologyNodesReq req) {
+        // 参数标准化
+        Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
+        return Response.buildSuccessResp(
+            scopeHostService.listHostIdByBizTopologyNodes(
+                username,
+                appResourceScope,
+                req.getAppTopoNodeList(),
+                req.getSearchContent(),
+                req.getAgentStatus(),
+                pagePair.getLeft(),
+                pagePair.getRight()
+            )
+        );
+    }
+
+    @Override
     public Response<List<AppTopologyTreeNode>> getNodeDetail(String username,
                                                              AppResourceScope appResourceScope,
                                                              String scopeType,

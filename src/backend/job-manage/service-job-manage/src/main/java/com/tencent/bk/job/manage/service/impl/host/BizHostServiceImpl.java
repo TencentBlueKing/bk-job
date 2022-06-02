@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.host;
 
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
@@ -33,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -74,5 +76,37 @@ public class BizHostServiceImpl implements BizHostService {
             );
         }
         return applicationHostDAO.listHostInfoByHostIds(hostIdsInBiz);
+    }
+
+    @Override
+    public PageData<Long> pageListHostId(Collection<Long> bizIds,
+                                         Collection<Long> moduleIds,
+                                         Collection<Long> cloudAreaIds,
+                                         List<String> searchContents,
+                                         Integer agentStatus,
+                                         Long start,
+                                         Long limit) {
+        StopWatch watch = new StopWatch("pageListHostId");
+        watch.start("listHostInfoBySearchContents");
+        List<Long> hostIdList = applicationHostDAO.listHostIdBySearchContents(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            searchContents,
+            agentStatus,
+            start,
+            limit
+        );
+        watch.stop();
+        watch.start("countHostInfoBySearchContents");
+        Long count = applicationHostDAO.countHostInfoBySearchContents(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            searchContents,
+            agentStatus
+        );
+        watch.stop();
+        return new PageData<>(start.intValue(), limit.intValue(), count, hostIdList);
     }
 }

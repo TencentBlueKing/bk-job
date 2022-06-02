@@ -24,15 +24,21 @@
 
 package com.tencent.bk.job.manage.service.impl.host;
 
+import com.tencent.bk.job.common.cc.service.CloudAreaService;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.manage.common.util.StringParamUtil;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.BizHostService;
 import com.tencent.bk.job.manage.service.ScopeHostService;
+import com.tencent.bk.job.manage.service.impl.topo.BizTopoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -47,12 +53,18 @@ public class ScopeHostServiceImpl implements ScopeHostService {
 
     private final ApplicationService applicationService;
     private final BizHostService bizHostService;
+    private final CloudAreaService cloudAreaService;
+    private final BizTopoService bizTopoService;
 
     @Autowired
     public ScopeHostServiceImpl(ApplicationService applicationService,
-                                BizHostService bizHostService) {
+                                BizHostService bizHostService,
+                                CloudAreaService cloudAreaService,
+                                BizTopoService bizTopoService) {
         this.applicationService = applicationService;
         this.bizHostService = bizHostService;
+        this.cloudAreaService = cloudAreaService;
+        this.bizTopoService = bizTopoService;
     }
 
     @Override
@@ -72,5 +84,50 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
             return bizHostService.getHostsByBizAndHostIds(Collections.singletonList(bizId), hostIds);
         }
+    }
+
+    @Override
+    public PageData<Long> listHostIdByBizTopologyNodes(String username,
+                                                       AppResourceScope appResourceScope,
+                                                       List<AppTopologyTreeNode> appTopoNodeList,
+                                                       String searchContent,
+                                                       Integer agentStatus,
+                                                       Long start,
+                                                       Long pageSize) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        StopWatch watch = new StopWatch("listHostByBizTopologyNodes");
+        watch.start("genConditions");
+        List<Long> moduleIds = null;
+        List<Long> bizIds = null;
+        if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            log.debug("listHostIdByBizTopologyNodes of allBizSet:{}", appResourceScope);
+        } else if (applicationDTO.isBizSet()) {
+            // 业务集
+            bizIds = applicationDTO.getSubBizIds();
+        } else {
+            // 普通业务
+            Long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, appTopoNodeList);
+        }
+        watch.stop();
+
+        List<String> searchContents = null;
+        if (searchContent != null) {
+            searchContents = StringParamUtil.splitByNormalSeparator(searchContent);
+        }
+
+        //获取所有云区域，找出名称符合条件的所有CloudAreaId
+        List<Long> cloudAreaIds = cloudAreaService.getAnyNameMatchedCloudAreaIds(searchContents);
+
+        return bizHostService.pageListHostId(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            searchContents,
+            agentStatus,
+            start,
+            pageSize
+        );
     }
 }

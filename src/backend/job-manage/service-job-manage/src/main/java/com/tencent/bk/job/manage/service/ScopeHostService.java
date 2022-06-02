@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.manage.service;
 
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 
 import java.util.Collection;
 import java.util.List;
@@ -46,4 +48,24 @@ public interface ScopeHostService {
     List<ApplicationHostDTO> getScopeHostsByIds(String username,
                                                 AppResourceScope appResourceScope,
                                                 Collection<Long> hostIds);
+
+    /**
+     * 根据拓扑节点、模糊搜索关键字、agent状态分页查询查询资源范围下的主机
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param appTopoNodeList  拓扑节点列表
+     * @param searchContent    模糊搜索关键字（同时对主机IP/主机名/操作系统/云区域名称进行模糊搜索）
+     * @param agentStatus      筛选条件：agentStatus：0为异常，1为正常
+     * @param start            数据起始位置
+     * @param pageSize         拉取数量
+     * @return hostId列表
+     */
+    PageData<Long> listHostIdByBizTopologyNodes(String username,
+                                                AppResourceScope appResourceScope,
+                                                List<AppTopologyTreeNode> appTopoNodeList,
+                                                String searchContent,
+                                                Integer agentStatus,
+                                                Long start,
+                                                Long pageSize);
 }
