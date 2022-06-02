@@ -33,8 +33,8 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-@ApiModel("IP检查请求报文")
-public class IpCheckReq {
+@ApiModel("主机检查请求报文")
+public class HostCheckReq {
 
     @ApiModelProperty(value = "应用场景：脚本执行/文件分发")
     ActionScopeEnum actionScope;

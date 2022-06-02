@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.service.HostService;
+import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -50,14 +51,17 @@ public class AgentStatusSyncService {
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostService hostService;
+    private final AgentStatusService agentStatusService;
 
     @Autowired
     public AgentStatusSyncService(ApplicationDAO applicationDAO,
                                   ApplicationHostDAO applicationHostDAO,
-                                  HostService hostService) {
+                                  HostService hostService,
+                                  AgentStatusService agentStatusService) {
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.hostService = hostService;
+        this.agentStatusService = agentStatusService;
     }
 
     private Pair<Long, Long> syncBizHostAgentStatus(Long bizId) {
@@ -69,7 +73,7 @@ public class AgentStatusSyncService {
         appHostAgentStatusWatch.stop();
         appHostAgentStatusWatch.start("getAgentStatusByAppInfo from GSE");
         long startTime = System.currentTimeMillis();
-        hostService.fillAgentStatus(localBizAppHosts);
+        agentStatusService.fillRealTimeAgentStatus(localBizAppHosts);
         gseInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
         appHostAgentStatusWatch.stop();
         appHostAgentStatusWatch.start("updateHosts to local DB");

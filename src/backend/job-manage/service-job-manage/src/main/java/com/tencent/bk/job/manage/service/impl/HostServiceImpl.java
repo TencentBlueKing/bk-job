@@ -71,6 +71,7 @@ import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.WhiteIPService;
+import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -110,6 +111,9 @@ public class HostServiceImpl implements HostService {
     private final HostCache hostCache;
     private final BizOperateDeptLocalCache bizOperateDeptLocalCache;
     private final MessageI18nService i18nService;
+
+    @Autowired
+    private AgentStatusService agentStatusService;
 
     @Autowired
     public HostServiceImpl(DSLContext dslContext,
@@ -333,14 +337,6 @@ public class HostServiceImpl implements HostService {
         return applicationHostDAO.countHostsByOsType(osType);
     }
 
-    public static List<String> buildIpList(List<ApplicationHostDTO> hosts) {
-        List<String> ipList = new ArrayList<>();
-        for (ApplicationHostDTO host : hosts) {
-            ipList.add(host.getCloudAreaId() + ":" + host.getIp());
-        }
-        return ipList;
-    }
-
     public static void fillAgentStatus(Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap,
                                        List<HostInfoVO> ipListStatus) {
         if (CollectionUtils.isNotEmpty(ipListStatus)) {
@@ -504,7 +500,7 @@ public class HostServiceImpl implements HostService {
                 return hostInfoVO;
             }).collect(Collectors.toList());
             // 收集涉及的IP列表
-            List<String> ipWithCloudIdList = buildIpList(hosts);
+            List<String> ipWithCloudIdList = ApplicationHostDTO.buildIpList(hosts);
             allIpWithCloudIdList.addAll(ipWithCloudIdList);
             // 构造最终数据
             nodeInfoVO.setNodeType(completeNode.getObjectId());
@@ -576,7 +572,6 @@ public class HostServiceImpl implements HostService {
                         ipList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
                     } else {
                         log.warn("Wrong host info! No cloud area!|{}", groupHost);
-                        continue;
                     }
                 }
 
@@ -705,9 +700,8 @@ public class HostServiceImpl implements HostService {
         // 从DB拿主机
         List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByBizId(bizId);
         log.info("find {} hosts from DB", dbHosts.size());
-        List<ApplicationHostDTO> hosts = dbHosts;
         watch.stop();
-        List<HostInfoVO> hostInfoVOList = hosts.stream().map(it -> {
+        List<HostInfoVO> hostInfoVOList = dbHosts.stream().map(it -> {
             HostInfoVO hostInfoVO = new HostInfoVO();
             hostInfoVO.setHostId(it.getHostId());
             hostInfoVO.setOs(it.getOs());
@@ -722,14 +716,14 @@ public class HostServiceImpl implements HostService {
         if (updateAgentStatus) {
             watch.start("batchGetAgentStatus");
             Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-                queryAgentStatusClient.batchGetAgentStatus(buildIpList(hosts));
+                queryAgentStatusClient.batchGetAgentStatus(ApplicationHostDTO.buildIpList(dbHosts));
             fillAgentStatus(agentStatusMap, hostInfoVOList);
             watch.stop();
         }
         //将主机挂载到topo树
         watch.start("setToTopoTree");
         for (int i = 0; i < hostInfoVOList.size(); i++) {
-            ApplicationHostDTO host = hosts.get(i);
+            ApplicationHostDTO host = dbHosts.get(i);
             HostInfoVO hostInfoVO = hostInfoVOList.get(i);
             host.getModuleId().forEach(moduleId -> {
                 CcTopologyNodeVO moduleNode = map.get(moduleId);
@@ -745,27 +739,6 @@ public class HostServiceImpl implements HostService {
         countHosts(topologyTree);
         watch.stop();
         log.debug(watch.toString());
-    }
-
-    public void fillAgentStatus(List<ApplicationHostDTO> hosts) {
-        // 查出节点下主机与Agent状态
-        List<String> ipWithCloudIdList = buildIpList(hosts);
-        // 批量设置agent状态
-        Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-            queryAgentStatusClient.batchGetAgentStatus(ipWithCloudIdList);
-        if (CollectionUtils.isNotEmpty(hosts)) {
-            for (ApplicationHostDTO hostInfoDTO : hosts) {
-                if (hostInfoDTO != null) {
-                    String ip = hostInfoDTO.getCloudAreaId() + ":" + hostInfoDTO.getIp();
-                    QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(ip);
-                    if (agentStatus != null && agentStatus.status == 1) {
-                        hostInfoDTO.setGseAgentAlive(true);
-                    } else {
-                        hostInfoDTO.setGseAgentAlive(false);
-                    }
-                }
-            }
-        }
     }
 
     @Override
@@ -898,7 +871,7 @@ public class HostServiceImpl implements HostService {
         cloudIPDTOList.forEach(cloudIPDTO -> {
             String ip = cloudIPDTO.getIp();
             if (cloudIPDTO.getCloudAreaId() != null) {
-                if (map.keySet().contains(ip)) {
+                if (map.containsKey(ip)) {
                     Set<Long> set = map.get(ip);
                     set.add(cloudIPDTO.getCloudAreaId());
                     map.put(ip, set);
@@ -907,8 +880,6 @@ public class HostServiceImpl implements HostService {
                     set.add(cloudIPDTO.getCloudAreaId());
                     map.put(ip, set);
                 }
-            } else {
-                //未指定云区域的IP不作为过滤条件
             }
         });
         return applicationHostDTOList.stream().filter(ApplicationHostDTO -> {
@@ -956,23 +927,23 @@ public class HostServiceImpl implements HostService {
     private List<CloudIPDTO> parseInputCloudIPList(List<String> checkIpList) {
         List<CloudIPDTO> inputCloudIPList = new ArrayList<>();
         checkIpList = checkIpList.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
-        for (int i = 0; i < checkIpList.size(); i++) {
-            String ip = checkIpList.get(i);
-            if (!StringUtils.isBlank(ip)) {
-                if (ip.contains(":") || ip.contains("：")) {
-                    //有云区域Id
-                    try {
-                        Pattern pattern = Pattern.compile("[:：]");
-                        String[] arr = pattern.split(ip);
-                        inputCloudIPList.add(new CloudIPDTO(Long.parseLong(arr[0].trim()), arr[1].trim()));
-                    } catch (Exception e) {
-                        log.warn("Invalid Ip:" + ip, e);
-                        throw new InternalException("every ip in checkIpList must contain cloudAreaId",
-                            ErrorCode.INTERNAL_ERROR);
-                    }
-                } else {
-                    inputCloudIPList.add(new CloudIPDTO(null, ip.trim()));
+        for (String ip : checkIpList) {
+            if (StringUtils.isBlank(ip)) {
+                continue;
+            }
+            if (ip.contains(":") || ip.contains("：")) {
+                //有云区域Id
+                try {
+                    Pattern pattern = Pattern.compile("[:：]");
+                    String[] arr = pattern.split(ip);
+                    inputCloudIPList.add(new CloudIPDTO(Long.parseLong(arr[0].trim()), arr[1].trim()));
+                } catch (Exception e) {
+                    log.warn("Invalid Ip:" + ip, e);
+                    throw new InternalException("every ip in checkIpList must contain cloudAreaId",
+                        ErrorCode.INTERNAL_ERROR);
                 }
+            } else {
+                inputCloudIPList.add(new CloudIPDTO(null, ip.trim()));
             }
         }
         return inputCloudIPList;
@@ -1202,7 +1173,7 @@ public class HostServiceImpl implements HostService {
         }
 
         // 查出节点下主机与Agent状态
-        List<String> ipWithCloudIdList = buildIpList(hosts);
+        List<String> ipWithCloudIdList = ApplicationHostDTO.buildIpList(hosts);
         // 批量设置agent状态
         Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
             queryAgentStatusClient.batchGetAgentStatus(ipWithCloudIdList);
@@ -1267,7 +1238,7 @@ public class HostServiceImpl implements HostService {
                     hostDTOsByDynamicGroupIds.addAll(applicationHostDTOList);
                 }
             });
-            fillAgentStatus(hostDTOsByDynamicGroupIds);
+            agentStatusService.fillRealTimeAgentStatus(hostDTOsByDynamicGroupIds);
             List<HostInfoVO> hostsByDynamicGroupIds = getHostInfoVOsByHostInfoDTOs(hostDTOsByDynamicGroupIds);
             log.debug("hostsByDynamicGroupIds={}", hostsByDynamicGroupIds);
             allHostsSet.addAll(hostsByDynamicGroupIds);

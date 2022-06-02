@@ -22,50 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
-import org.jooq.DSLContext;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 
 import java.util.Collection;
 import java.util.List;
 
-public interface HostTopoDAO {
-    int insertHostTopo(DSLContext dslContext, HostTopoDTO hostTopoDTO);
-
-    int batchInsertHostTopo(DSLContext dslContext, List<HostTopoDTO> hostTopoDTOList);
-
-    int deleteHostTopoByHostId(DSLContext dslContext, Long appId, Long hostId);
-
-    int deleteHostTopo(DSLContext dslContext, Long hostId, Long appId, Long setId, Long moduleId);
-
-    int batchDeleteHostTopo(DSLContext dslContext, List<Long> hostIdList);
-
-    int countHostTopo(DSLContext dslContext, Long bizId, Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostId(DSLContext dslContext, Long hostId);
-
-    List<HostTopoDTO> listHostTopoBySetId(DSLContext dslContext, Long setId);
-
-    List<HostTopoDTO> listHostTopoByModuleId(DSLContext dslContext, Long moduleId);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(DSLContext dslContext, Collection<Long> moduleIds, Long start,
-                                              Long limit);
+/**
+ * 资源范围主机相关服务
+ */
+public interface ScopeHostService {
 
     /**
-     * 根据CMDB业务IDs查询下属主机ID列表
+     * 根据 HostId 列表查询主机信息
      *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param hostIds          主机ID集合
+     * @return 主机信息列表
      */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
-
-    /**
-     * 根据CMDB业务ID与主机ID集合查询下属主机ID列表
-     *
-     * @param bizIds  业务ID集合
-     * @param hostIds 主机ID集合
-     * @return 主机ID列表
-     */
-    List<Long> listHostIdByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds);
+    List<ApplicationHostDTO> getScopeHostsByIds(String username,
+                                                AppResourceScope appResourceScope,
+                                                Collection<Long> hostIds);
 }

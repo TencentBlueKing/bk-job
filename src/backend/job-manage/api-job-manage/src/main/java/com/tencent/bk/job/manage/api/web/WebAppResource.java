@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
-import com.tencent.bk.job.manage.model.web.request.IpCheckReq;
+import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
@@ -333,9 +333,9 @@ public interface WebAppResource {
             List<String> dynamicGroupIds
     );
 
-    @ApiOperation(value = "根据输入 IP 获取机器信息")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/ip/check"})
-    Response<List<HostInfoVO>> listHostByIp(
+    @ApiOperation(value = "根据用户选择/输入的主机信息获取真实存在的机器信息")
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/ip/check", "/scope/{scopeType}/{scopeId}/host/check"})
+    Response<List<HostInfoVO>> checkHosts(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -348,9 +348,9 @@ public interface WebAppResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "用户输入的 IP 列表", required = true)
+        @ApiParam(value = "用户选择/输入的主机信息", required = true)
         @RequestBody
-            IpCheckReq req
+            HostCheckReq req
     );
 
     @ApiOperation(value = "查询主机统计信息")
