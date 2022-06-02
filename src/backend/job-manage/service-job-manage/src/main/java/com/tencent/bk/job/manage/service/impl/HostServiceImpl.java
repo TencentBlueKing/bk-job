@@ -1183,6 +1183,7 @@ public class HostServiceImpl implements HostService {
         log.info("Input=({},{},{})", username, appId, JsonUtils.toJson(agentStatisticsReq));
         ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
         List<HostInfoVO> hostsByIp = getHostsByIp(username, appId, null, agentStatisticsReq.getIpList());
+        // TODO:增加对hostIdList处理的逻辑
         log.debug("hostsByIp={}", hostsByIp);
         Set<HostInfoVO> allHostsSet = new HashSet<>(hostsByIp);
         List<HostInfoVO> hostsByNodes = listHostByAppTopologyNodes(username, appId,
