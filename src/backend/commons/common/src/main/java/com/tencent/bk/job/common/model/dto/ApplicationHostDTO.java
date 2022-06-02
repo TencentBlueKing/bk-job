@@ -60,6 +60,14 @@ public class ApplicationHostDTO {
      * IP
      */
     private String ip;
+    /**
+     * IPv6
+     */
+    private String ipv6;
+    /**
+     * AgentId
+     */
+    private String agentId;
 
     /**
      * 展示用的IP
@@ -117,6 +125,7 @@ public class ApplicationHostDTO {
         hostInfoVO.setHostId(hostId);
         hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(cloudAreaId, cloudIp));
         hostInfoVO.setIp(ip);
+        hostInfoVO.setIpv6(ipv6);
         hostInfoVO.setDisplayIp(displayIp);
         hostInfoVO.setIpDesc(ipDesc);
         hostInfoVO.setOs(os);

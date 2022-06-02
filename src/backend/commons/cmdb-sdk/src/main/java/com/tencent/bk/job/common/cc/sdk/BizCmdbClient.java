@@ -95,6 +95,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
@@ -281,7 +282,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopoWithLock(long bizId) {
-        ReentrantLock lock = null;
+        ReentrantLock lock;
         if (bizInstTopoMap.containsKey(bizId)
             && bizInstTopoMap.get(bizId).getRight() > System.currentTimeMillis() - 30 * 1000) {
             return bizInstTopoMap.get(bizId).getLeft();
@@ -389,7 +390,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
      * 防止参数完全相同的请求在并发时多次请求CMDB，降低对CMDB的请求量
      */
     public InstanceTopologyDTO getBizInternalModuleWithLock(long bizId) {
-        ReentrantLock lock = null;
+        ReentrantLock lock;
         if (bizInternalTopoMap.containsKey(bizId)
             && bizInternalTopoMap.get(bizId).getRight() > System.currentTimeMillis() - 30 * 1000) {
             return bizInternalTopoMap.get(bizId).getLeft();
@@ -566,12 +567,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 totalCount -= limit;
             }
             futures.forEach(it -> {
-                try {
-                    while (!it.isDone()) {
-                        Thread.sleep(100);
-                    }
-                } catch (InterruptedException e) {
-                    log.warn("sleep interrupted", e);
+                while (!it.isDone()) {
+                    ThreadUtils.sleep(100);
                 }
             });
             Long endTime = System.currentTimeMillis();
@@ -646,6 +643,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
         applicationHostDTO.setBizId(bizId);
         applicationHostDTO.setDisplayIp(multiIp);
+        applicationHostDTO.setIpv6(host.getIpv6());
+        applicationHostDTO.setAgentId(host.getAgentId());
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         applicationHostDTO.setHostId(host.getHostId());
         fillAgentInfo(applicationHostDTO, host);
@@ -1240,8 +1239,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     public ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
-        req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name", "bk_os_type",
-            "bk_cloud_id"));
+        req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_agent_id",
+            "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id"));
         req.setResource("host");
         req.setCursor(cursor);
         req.setStartTime(startTime);

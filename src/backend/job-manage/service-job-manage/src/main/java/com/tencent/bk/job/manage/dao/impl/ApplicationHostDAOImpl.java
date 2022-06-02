@@ -465,7 +465,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.OS_TYPE,
                 TABLE.MODULE_TYPE,
                 TABLE.IS_AGENT_ALIVE,
-                TABLE.CLOUD_IP
+                TABLE.CLOUD_IP,
+                TABLE.IP_V6,
+                TABLE.AGENT_ID
             ).values(
                 ULong.valueOf(applicationHostDTO.getHostId()),
                 ULong.valueOf(applicationHostDTO.getBizId()),
@@ -479,7 +481,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 applicationHostDTO.getOsType(),
                 finalModuleTypeStr,
                 UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0),
-                applicationHostDTO.getCloudIp()
+                applicationHostDTO.getCloudIp(),
+                applicationHostDTO.getIpv6(),
+                applicationHostDTO.getAgentId()
             );
             try {
                 result[0] = query.execute();
@@ -523,9 +527,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     TABLE.OS_TYPE,
                     TABLE.MODULE_TYPE,
                     TABLE.IS_AGENT_ALIVE,
-                    TABLE.CLOUD_IP
+                    TABLE.CLOUD_IP,
+                    TABLE.IP_V6,
+                    TABLE.AGENT_ID
                 ).values(
                     (ULong) null,
+                    null,
+                    null,
                     null,
                     null,
                     null,
@@ -571,7 +579,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         applicationHostDTO.getOsType(),
                         moduleTypeStr,
                         UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0),
-                        applicationHostDTO.getCloudIp()
+                        applicationHostDTO.getCloudIp(),
+                        applicationHostDTO.getIpv6(),
+                        applicationHostDTO.getAgentId()
                     );
                     hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
                 }
@@ -586,6 +596,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum[0];
     }
 
+    @SuppressWarnings("all")
     @Override
     public boolean existAppHostInfoByHostId(DSLContext dslContext, ApplicationHostDTO applicationHostDTO) {
         setDefaultValue(applicationHostDTO);
@@ -618,6 +629,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
     }
 
+    @SuppressWarnings("all")
     @Override
     public boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId) {
         val query = dslContext.selectCount().from(TABLE)
@@ -667,6 +679,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                 .set(TABLE.MODULE_TYPE, moduleTypeStr)
                 .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
+                .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+                .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
                 .where(conditions);
             try {
                 affectedNum[0] = query.execute();
@@ -725,6 +739,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                         .set(TABLE.MODULE_TYPE, moduleTypeStr)
                         .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
+                        .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+                        .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
                         .where(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())))
                         .and(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getBizId())))
                     );
