@@ -30,6 +30,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -41,10 +42,10 @@ public class HostCheckReq {
 
     @CompatibleImplementation(explain = "兼容IPv6版本发布过程接口调用", version = "3.7.0")
     @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip")
-    List<String> ipList;
+    List<String> ipList = new ArrayList<>();
 
     @ApiModelProperty(value = "hostId列表", required = true)
-    List<Long> hostIdList;
+    List<Long> hostIdList = new ArrayList<>();
 
 }
 

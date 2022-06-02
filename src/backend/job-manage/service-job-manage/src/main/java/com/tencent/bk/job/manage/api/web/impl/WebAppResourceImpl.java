@@ -64,6 +64,7 @@ import com.tencent.bk.job.manage.service.ScopeHostService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -495,6 +496,9 @@ public class WebAppResourceImpl implements WebAppResource {
             req.getActionScope(),
             req.getIpList()
         );
+        if (CollectionUtils.isEmpty(req.getHostIdList())) {
+            return Response.buildSuccessResp(hostListByIp);
+        }
         List<HostInfoVO> hostList = new ArrayList<>(hostListByIp);
         Set<Long> hostIdSet = new HashSet<>(req.getHostIdList());
         hostListByIp.forEach(host -> hostIdSet.remove(host.getHostId()));
