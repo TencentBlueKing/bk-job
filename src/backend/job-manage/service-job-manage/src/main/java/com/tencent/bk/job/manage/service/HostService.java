@@ -121,6 +121,10 @@ public interface HostService {
                                                     AppResourceScope appResourceScope,
                                                     ListHostByBizTopologyNodesReq req);
 
+    PageData<String> listIPByBizTopologyNodes(String username,
+                                              AppResourceScope appResourceScope,
+                                              ListHostByBizTopologyNodesReq req);
+
     List<AppTopologyTreeNode> getAppTopologyTreeNodeDetail(String username,
                                                            AppResourceScope appResourceScope,
                                                            List<AppTopologyTreeNode> treeNodeList);
