@@ -1,6 +1,6 @@
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,11 +19,11 @@ public class RollingServerBatchContext {
     /**
      * 需要分批的服务器
      */
-    private List<IpDTO> servers;
+    private List<HostDTO> servers;
     /**
      * 未分批的服务器
      */
-    private List<IpDTO> remainedServers;
+    private List<HostDTO> remainedServers;
     /**
      * 需要分批的服务器数量
      */
@@ -42,7 +42,7 @@ public class RollingServerBatchContext {
      *
      * @param servers     所有参与滚动的主机
      */
-    public RollingServerBatchContext(List<IpDTO> servers) {
+    public RollingServerBatchContext(List<HostDTO> servers) {
         this.servers = servers;
         this.remainedServers = new ArrayList<>(this.servers);
         this.totalServersSize = servers.size();
@@ -68,7 +68,7 @@ public class RollingServerBatchContext {
      *
      * @param resolvedServers 已经解析(分批)过的主机
      */
-    public void removeResolvedServers(Collection<IpDTO> resolvedServers) {
+    public void removeResolvedServers(Collection<HostDTO> resolvedServers) {
         this.remainedServers.removeAll(resolvedServers);
     }
 

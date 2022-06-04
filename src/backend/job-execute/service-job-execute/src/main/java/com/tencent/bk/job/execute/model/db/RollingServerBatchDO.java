@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -45,9 +45,9 @@ public class RollingServerBatchDO {
     /**
      * 该批次的目标服务器
      */
-    private List<IpDTO> servers;
+    private List<HostDTO> servers;
 
-    public RollingServerBatchDO(Integer batch, List<IpDTO> servers) {
+    public RollingServerBatchDO(Integer batch, List<HostDTO> servers) {
         this.batch = batch;
         this.servers = servers;
     }

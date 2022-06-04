@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -72,7 +72,7 @@ public class HostServiceImpl implements HostService {
     private final AppScopeMappingService appScopeMappingService;
 
     private volatile boolean isWhiteIpConfigLoaded = false;
-    private final Map<IpDTO, ServiceWhiteIPInfo> whiteIpConfig = new ConcurrentHashMap<>();
+    private final Map<HostDTO, ServiceWhiteIPInfo> whiteIpConfig = new ConcurrentHashMap<>();
 
     private final LoadingCache<Long, String> cloudAreaNameCache = CacheBuilder.newBuilder()
         .maximumSize(10000).expireAfterWrite(1, TimeUnit.HOURS).
@@ -107,25 +107,35 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public Map<IpDTO, ServiceHostDTO> batchGetHosts(List<IpDTO> hostIps) {
+    public Map<HostDTO, ServiceHostDTO> batchGetHosts(List<HostDTO> hostIps) {
         List<ServiceHostDTO> hosts = hostResourceClient.batchGetHosts(
             new ServiceBatchGetHostsReq(hostIps)).getData();
-        Map<IpDTO, ServiceHostDTO> hostMap = new HashMap<>();
-        hosts.forEach(host -> hostMap.put(new IpDTO(host.getCloudAreaId(), host.getIp()), host));
+        Map<HostDTO, ServiceHostDTO> hostMap = new HashMap<>();
+        hosts.forEach(host -> hostMap.put(new HostDTO(host.getCloudAreaId(), host.getIp()), host));
         return hostMap;
     }
 
     @Override
-    public List<String> getHostAllowedAction(long appId, IpDTO host) {
+    public ServiceHostDTO getHost(HostDTO host) {
+        List<ServiceHostDTO> hosts = hostResourceClient.batchGetHosts(
+            new ServiceBatchGetHostsReq(Collections.singletonList(host))).getData();
+        if (CollectionUtils.isEmpty(hosts)) {
+            return null;
+        }
+        return hosts.get(0);
+    }
+
+    @Override
+    public List<String> getHostAllowedAction(long appId, HostDTO host) {
         try {
             InternalResponse<List<String>> resp = whiteIpResourceClient.getWhiteIPActionScopes(appId, host.getIp(),
-                host.getCloudAreaId());
+                host.getBkCloudId());
             if (!resp.isSuccess()) {
                 log.warn("Get white ip action scopes return fail resp, appId:{}, host:{}", appId,
-                    host.convertToStrIp());
+                    host.toCloudIp());
                 return Collections.emptyList();
             }
-            log.info("Get white ip action scopes, appId:{}, host:{}, resp:{}", appId, host.convertToStrIp(), resp);
+            log.info("Get white ip action scopes, appId:{}, host:{}, resp:{}", appId, host.toCloudIp(), resp);
             return resp.getData();
         } catch (Exception e) {
             log.warn("GetHostAllowedAction fail!", e);
@@ -148,7 +158,7 @@ public class HostServiceImpl implements HostService {
         List<ServiceWhiteIPInfo> whiteIpInfos = resp.getData();
         whiteIpConfig.clear();
         whiteIpInfos.forEach(whiteIpInfo ->
-            whiteIpConfig.put(new IpDTO(whiteIpInfo.getCloudId(), whiteIpInfo.getIp()), whiteIpInfo));
+            whiteIpConfig.put(new HostDTO(whiteIpInfo.getCloudId(), whiteIpInfo.getIp()), whiteIpInfo));
 
         long cost = System.currentTimeMillis() - start;
         if (cost > 1000L) {
@@ -158,7 +168,7 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public boolean isMatchWhiteIpRule(long appId, IpDTO host, String action) {
+    public boolean isMatchWhiteIpRule(long appId, HostDTO host, String action) {
         try {
             if (!isWhiteIpConfigLoaded) {
                 syncWhiteIpConfig();
@@ -182,20 +192,20 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<IpDTO> checkAppHosts(Long appId, Collection<IpDTO> hostIps) {
-        InternalResponse<List<IpDTO>> response =
+    public List<HostDTO> checkAppHosts(Long appId, Collection<HostDTO> hostIps) {
+        InternalResponse<List<HostDTO>> response =
             hostResourceClient.checkAppHosts(appId, new ServiceCheckAppHostsReq(new ArrayList<>(hostIps)));
         return response.getData();
     }
 
     @Override
-    public List<IpDTO> getIpByDynamicGroupId(long appId, String groupId) throws ObtainHostServiceException {
+    public List<HostDTO> getIpByDynamicGroupId(long appId, String groupId) throws ObtainHostServiceException {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         try {
             ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
             List<CcGroupHostPropDTO> cmdbGroupHostList =
                 bizCmdbClient.getCustomGroupIp(Long.parseLong(resourceScope.getId()), groupId);
-            List<IpDTO> ips = new ArrayList<>();
+            List<HostDTO> ips = new ArrayList<>();
             if (cmdbGroupHostList == null || cmdbGroupHostList.isEmpty()) {
                 return ips;
             }
@@ -212,7 +222,7 @@ public class HostServiceImpl implements HostService {
                         "hostIp={}", appId, groupId, hostProp.getIp());
                     continue;
                 }
-                IpDTO ip = new IpDTO(hostCloudId.getInstanceId(), hostProp.getIp());
+                HostDTO ip = new HostDTO(hostCloudId.getInstanceId(), hostProp.getIp());
                 ips.add(ip);
             }
             log.info("Get hosts by groupId, appId={}, groupId={}, hosts={}", appId, groupId, ips);
@@ -223,17 +233,17 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances) {
+    public List<HostDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         long bizId = Long.parseLong(resourceScope.getId());
         List<ApplicationHostDTO> appHosts = bizCmdbClient.getHosts(bizId, ccInstances);
-        List<IpDTO> ips = new ArrayList<>();
+        List<HostDTO> ips = new ArrayList<>();
         if (appHosts == null || appHosts.isEmpty()) {
             return ips;
         }
         for (ApplicationHostDTO hostProp : appHosts) {
-            IpDTO ip = new IpDTO(hostProp.getCloudAreaId(), hostProp.getIp());
+            HostDTO ip = new HostDTO(hostProp.getCloudAreaId(), hostProp.getIp());
             ips.add(ip);
         }
         log.info("Get hosts by cc topo nodes, appId={}, nodes={}, hosts={}", appId, ccInstances, ips);

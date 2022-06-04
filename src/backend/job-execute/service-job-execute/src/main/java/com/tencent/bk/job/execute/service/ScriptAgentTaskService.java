@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 
 /**
@@ -31,23 +32,23 @@ import com.tencent.bk.job.execute.model.AgentTaskDTO;
  */
 public interface ScriptAgentTaskService extends AgentTaskService {
     /**
-     * 根据IP获取Agent任务
+     * 根据主机ID获取Agent任务
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
-     * @param cloudIp        云区域+ip
+     * @param host           主机
      * @return Agent任务
      */
-    AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, Integer batch, String cloudIp);
+    AgentTaskDTO getAgentTaskByHost(Long stepInstanceId, Integer executeCount, Integer batch, HostDTO host);
 
     /**
      * 获取Agent任务实际执行成功的executeCount值(重试场景)
      *
      * @param stepInstanceId 步骤实例ID
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
-     * @param cloudIp        云区域+IP
+     * @param host           主机
      * @return Agent任务实际执行成功的executeCount值
      */
-    int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, String cloudIp);
+    int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, HostDTO host);
 }

@@ -59,10 +59,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand {
@@ -87,14 +85,9 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
 
     /**
-     * gse 原子任务信息
+     * GSE 目标 Agent 任务, Map<AgentId,AgentTask>
      */
-    protected Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-    /**
-     * 目标主机
-     */
-    protected Set<String> targetIps = new HashSet<>();
-
+    protected Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
 
     /**
      * 全局参数分析结果
@@ -219,10 +212,9 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
     private void initTargetHosts() {
         List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount, batch);
-        agentTasks.forEach(agentTask -> {
-            this.targetIps.add(agentTask.getCloudIp());
-            this.agentTaskMap.put(agentTask.getCloudIp(), agentTask);
-        });
+        agentTasks.stream()
+            .filter(AgentTaskDTO::isTarget)
+            .forEach(agentTask -> this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask));
     }
 
     private void initVariables() {

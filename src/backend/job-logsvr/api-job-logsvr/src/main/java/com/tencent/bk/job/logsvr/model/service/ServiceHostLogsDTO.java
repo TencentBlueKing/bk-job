@@ -22,43 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.logsvr.model.service;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-/**
- * 脚本日志内容
- */
+import java.util.List;
+
+@ApiModel("主机执行日志-批量")
 @Data
-@NoArgsConstructor
-public class ScriptIpLogContent {
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class ServiceHostLogsDTO {
     /**
-     * 步骤实例ID
+     * 作业步骤实例ID
      */
-    private long stepInstanceId;
+    @ApiModelProperty("步骤实例ID")
+    private Long stepInstanceId;
+
     /**
      * 执行次数
      */
-    private int executeCount;
-    /**
-     * 目标IP
-     */
-    private String ip;
-    /**
-     * 日志内容
-     */
-    private String content;
-    /**
-     * 日志是否拉取完成
-     */
-    private boolean finished;
+    @ApiModelProperty("执行次数")
+    private Integer executeCount;
 
-    public ScriptIpLogContent(long stepInstanceId, int executeCount, String ip, String content, boolean finished) {
-        this.stepInstanceId = stepInstanceId;
-        this.executeCount = executeCount;
-        this.ip = ip;
-        this.content = content;
-        this.finished = finished;
-    }
+    /**
+     * 主机执行日志列表
+     */
+    @ApiModelProperty(value = "主机执行日志")
+    @JsonProperty("ipLogs")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，发布后删除", version = "3.6.x")
+    private List<ServiceHostLogDTO> ipLogs;
+
+    /**
+     * 主机执行日志列表
+     */
+    @ApiModelProperty(value = "主机执行日志")
+    @JsonProperty("hostLogs")
+    private List<ServiceHostLogDTO> hostLogs;
 }

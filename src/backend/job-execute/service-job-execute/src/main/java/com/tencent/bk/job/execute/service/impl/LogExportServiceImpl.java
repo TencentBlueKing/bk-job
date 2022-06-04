@@ -28,7 +28,7 @@ import brave.Tracing;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -40,7 +40,7 @@ import com.tencent.bk.job.execute.config.LogExportConfig;
 import com.tencent.bk.job.execute.constants.LogExportStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
-import com.tencent.bk.job.execute.model.ScriptIpLogContent;
+import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.LogExportService;
 import com.tencent.bk.job.execute.service.LogService;
@@ -213,18 +213,18 @@ public class LogExportServiceImpl implements LogExportService {
             "yyyy_MM_dd", ZoneId.of("UTC"));
         try (PrintWriter out = new PrintWriter(logFile, "UTF-8")) {
             for (LogBatchQuery query : querys) {
-                for (List<IpDTO> ips : query.getIpBatches()) {
-                    List<ScriptIpLogContent> scriptIpLogContentList =
-                        logService.batchGetScriptIpLogContent(jobCreateDate, stepInstanceId, query.getExecuteCount(),
+                for (List<HostDTO> ips : query.getIpBatches()) {
+                    List<ScriptHostLogContent> scriptHostLogContentList =
+                        logService.batchGetScriptHostLogContent(jobCreateDate, stepInstanceId, query.getExecuteCount(),
                             null, ips);
-                    for (ScriptIpLogContent scriptIpLogContent : scriptIpLogContentList) {
-                        if (scriptIpLogContent != null && StringUtils.isNotEmpty(scriptIpLogContent.getContent())) {
-                            String[] logList = scriptIpLogContent.getContent().split("\n");
+                    for (ScriptHostLogContent scriptHostLogContent : scriptHostLogContentList) {
+                        if (scriptHostLogContent != null && StringUtils.isNotEmpty(scriptHostLogContent.getContent())) {
+                            String[] logList = scriptHostLogContent.getContent().split("\n");
                             for (String log : logList) {
                                 if (isGetByIp) {
                                     out.println(log);
                                 } else {
-                                    out.println(scriptIpLogContent.getIp() + " | " + log);
+                                    out.println(scriptHostLogContent.getIp() + " | " + log);
                                 }
                             }
                         }
@@ -292,7 +292,7 @@ public class LogExportServiceImpl implements LogExportService {
         gseTaskIpLogs.forEach(gseTaskIpLog -> {
             LogBatchQuery query = batchQueryGroups.computeIfAbsent(gseTaskIpLog.getExecuteCount(),
                 (executeCount) -> new LogBatchQuery(stepInstanceId, executeCount));
-            query.addIp(new IpDTO(gseTaskIpLog.getCloudId(), gseTaskIpLog.getIp()));
+            query.addIp(new HostDTO(gseTaskIpLog.getCloudId(), gseTaskIpLog.getIp()));
         });
         batchQueryGroups.values().forEach(LogBatchQuery::batchIps);
         return batchQueryGroups.values();
@@ -303,15 +303,15 @@ public class LogExportServiceImpl implements LogExportService {
         private static final int MAX_BATCH_IPS = 1000;
         private long stepInstanceId;
         private int executeCount;
-        private List<IpDTO> ips = new ArrayList<>();
-        private List<List<IpDTO>> ipBatches;
+        private List<HostDTO> ips = new ArrayList<>();
+        private List<List<HostDTO>> ipBatches;
 
         LogBatchQuery(long stepInstanceId, int executeCount) {
             this.stepInstanceId = stepInstanceId;
             this.executeCount = executeCount;
         }
 
-        void addIp(IpDTO ip) {
+        void addIp(HostDTO ip) {
             if (ips == null) {
                 ips = new ArrayList<>();
             }

@@ -25,12 +25,11 @@
 package com.tencent.bk.job.execute.dao;
 
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * ScriptAgentTaskDAO
@@ -41,14 +40,14 @@ public interface ScriptAgentTaskDAO {
      *
      * @param agentTasks Agent任务
      */
-    void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks);
+    void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks);
 
     /**
      * 批量更新Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks);
+    void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks);
 
     /**
      * 获取步骤成功执行的Agent任务数量
@@ -58,15 +57,6 @@ public interface ScriptAgentTaskDAO {
      * @return 步骤成功执行的Agent任务数量
      */
     int getSuccessAgentTaskCount(long stepInstanceId, int executeCount);
-
-    /**
-     * 根据GSE Agent 任务状态分组计数结果
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @return 根据GSE Agent 任务状态分组计数结果
-     */
-    Map<IpStatus, Integer> countStepAgentTaskGroupByStatus(long stepInstanceId, int executeCount);
 
     /**
      * 查询执行结果分组
@@ -137,35 +127,25 @@ public interface ScriptAgentTaskDAO {
     List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId);
 
     /**
-     * 根据IP查询Agent任务
+     * 根据hostId查询Agent任务
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
-     * @param cloudIp        云区域+IP
+     * @param hostId         主机ID
      * @return Agent任务
      */
-    AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, Integer batch, String cloudIp);
-
-    /**
-     * 获取任务目标ip - 根据ip模糊匹配
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param ipKeyword      用于检索的IP关键字
-     * @return 匹配的任务目标IP列表
-     */
-    List<String> fuzzySearchIpsByIpKeyword(Long stepInstanceId, Integer executeCount, String ipKeyword);
+    AgentTaskDTO getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch, long hostId);
 
     /**
      * 获取Agent任务实际执行成功的executeCount值(重试场景)
      *
      * @param stepInstanceId 步骤实例ID
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
-     * @param cloudIp        云区域+IP
+     * @param hostId         主机ID
      * @return Agent任务实际执行成功的executeCount值
      */
-    int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, String cloudIp);
+    int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, long hostId);
 
 
 }

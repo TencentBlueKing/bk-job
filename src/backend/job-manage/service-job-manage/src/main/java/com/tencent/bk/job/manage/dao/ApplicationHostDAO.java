@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import org.jooq.DSLContext;
 
 import java.util.Collection;
@@ -110,5 +110,5 @@ public interface ApplicationHostDAO {
 
     long syncHostTopo(DSLContext dslContext, Long hostId);
 
-    List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps);
+    List<ApplicationHostDTO> listHosts(Collection<HostDTO> hostIps);
 }

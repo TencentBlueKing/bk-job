@@ -24,41 +24,44 @@
 
 package com.tencent.bk.job.logsvr.model.service;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 import java.util.List;
 
 /**
- * 文件任务执行日志查询请求
+ * 脚本日志查询请求
  */
-@Getter
-@Setter
-@ToString
-public class FileLogQueryRequest {
-    @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
-    private String jobCreateDate;
-
+@Data
+@ApiModel("脚本日志查询请求")
+public class ServiceScriptLogQueryRequest {
+    /**
+     * 步骤实例ID
+     */
     @ApiModelProperty(value = "步骤实例ID", required = true)
     private Long stepInstanceId;
 
+    /**
+     * 执行次数
+     */
     @ApiModelProperty(value = "执行次数", required = true)
     private Integer executeCount;
 
-    @ApiModelProperty(value = "滚动执行批次")
+    /**
+     * 滚动执行批次，可能为null
+     */
+    @ApiModelProperty(value = "滚动执行批次，可能为null")
     private Integer batch;
 
-    @ApiModelProperty("服务器IP列表;如果ips参数不为空，那么忽略ip参数")
+    @ApiModelProperty("主机IP列表;兼容参数,如果hostIds参数不为空，那么忽略ips参数")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", version = "3.7.x")
     private List<String> ips;
 
-    @ApiModelProperty("服务器IP")
-    private String ip;
-
     /**
-     * @see com.tencent.bk.job.logsvr.consts.FileTaskModeEnum
+     * 查询的主机ID列表
      */
-    @ApiModelProperty("分发模式,0:upload,1:download")
-    private Integer mode;
+    @ApiModelProperty("查询的主机ID列表")
+    private List<Long> hostIds;
 }

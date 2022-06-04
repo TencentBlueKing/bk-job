@@ -25,11 +25,11 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.common.constant.RollingModeEnum;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
@@ -258,20 +258,20 @@ public class GseStepEventHandler implements StepEventHandler {
             if (rollingConfig.isBatchRollingStep(stepInstanceId) && stepInstance.isFirstRollingBatch()) {
                 List<RollingServerBatchDO> serverBatchList = rollingConfig.getConfigDetail().getServerBatchList();
                 serverBatchList.forEach(serverBatch -> agentTasks.addAll(buildGseAgentTasks(stepInstanceId,
-                    executeCount, serverBatch.getBatch(), gseTaskId, serverBatch.getServers(), IpStatus.WAITING)));
+                    executeCount, serverBatch.getBatch(), gseTaskId, serverBatch.getServers(), AgentTaskStatus.WAITING)));
             } else if (rollingConfig.isAllRollingStep(stepInstanceId)) {
                 agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
-                    gseTaskId, stepInstance.getTargetServers().getIpList(), IpStatus.WAITING));
+                    gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatus.WAITING));
             }
         } else {
             agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
-                gseTaskId, stepInstance.getTargetServers().getIpList(), IpStatus.WAITING));
+                gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatus.WAITING));
         }
 
         // 无效主机
         if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getInvalidIpList())) {
             agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
-                0, stepInstance.getTargetServers().getInvalidIpList(), IpStatus.HOST_NOT_EXIST));
+                0, stepInstance.getTargetServers().getInvalidIpList(), AgentTaskStatus.HOST_NOT_EXIST));
         }
         saveAgentTasks(stepInstance, agentTasks);
     }
@@ -280,8 +280,8 @@ public class GseStepEventHandler implements StepEventHandler {
                                                   int executeCount,
                                                   int batch,
                                                   long gseTaskId,
-                                                  List<IpDTO> servers,
-                                                  IpStatus status) {
+                                                  List<HostDTO> servers,
+                                                  AgentTaskStatus status) {
         return servers.stream()
             .map(server -> buildGseAgentTask(stepInstanceId, executeCount, batch, gseTaskId, server, status))
             .collect(Collectors.toList());
@@ -291,8 +291,8 @@ public class GseStepEventHandler implements StepEventHandler {
                                              int executeCount,
                                              int batch,
                                              long gseTaskId,
-                                             IpDTO server,
-                                             IpStatus status) {
+                                             HostDTO server,
+                                             AgentTaskStatus status) {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(stepInstanceId);
         agentTask.setExecuteCount(executeCount);
@@ -301,8 +301,8 @@ public class GseStepEventHandler implements StepEventHandler {
         agentTask.setStatus(status.getValue());
         agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
         agentTask.setIp(server.getIp());
-        agentTask.setCloudIp(server.convertToStrIp());
-        agentTask.setCloudId(server.getCloudAreaId());
+        agentTask.setCloudIp(server.toCloudIp());
+        agentTask.setCloudId(server.getBkCloudId());
         agentTask.setDisplayIp(server.getIp());
         return agentTask;
     }
@@ -498,7 +498,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
         for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
             latestAgentTask.setExecuteCount(executeCount);
-            if (!IpStatus.isSuccess(latestAgentTask.getStatus())) {
+            if (!AgentTaskStatus.isSuccess(latestAgentTask.getStatus())) {
                 if (batch != null && latestAgentTask.getBatch() != batch) {
                     continue;
                 }

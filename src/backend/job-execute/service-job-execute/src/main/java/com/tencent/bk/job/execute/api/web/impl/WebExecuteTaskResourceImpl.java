@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -509,8 +509,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         ExecuteServersVO hostNode = target.getHostNodeInfo();
         ServersDTO serversDTO = new ServersDTO();
         if (CollectionUtils.isNotEmpty(hostNode.getIpList())) {
-            List<IpDTO> staticIpList = new ArrayList<>();
-            hostNode.getIpList().forEach(host -> staticIpList.add(new IpDTO(host.getCloudAreaInfo().getId(),
+            List<HostDTO> staticIpList = new ArrayList<>();
+            hostNode.getIpList().forEach(host -> staticIpList.add(new HostDTO(host.getCloudAreaInfo().getId(),
                 host.getIp())));
             serversDTO.setStaticIpList(staticIpList);
         }

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Data;
 
 import java.util.List;
@@ -36,5 +36,5 @@ import java.util.List;
 public class RollingServerBatch {
     private RollingExprPart rollingExprPart;
     private int batch;
-    private List<IpDTO> servers;
+    private List<HostDTO> servers;
 }

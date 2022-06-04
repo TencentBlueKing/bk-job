@@ -41,7 +41,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -668,8 +668,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private String convertToIpListStr(Collection<IpDTO> ips) {
-        return StringUtils.join(ips.stream().map(ipDTO ->
-            ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()).collect(Collectors.toList()), ",");
+        return StringUtils.join(ips.stream().map(hostDTO ->
+            hostDTO.getCloudAreaId() + ":" + hostDTO.getIp()).collect(Collectors.toList()), ",");
     }
 
     /**

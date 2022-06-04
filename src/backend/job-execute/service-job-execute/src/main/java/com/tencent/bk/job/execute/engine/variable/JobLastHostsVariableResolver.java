@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.variable;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.consts.JobBuildInVariables;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -87,7 +87,7 @@ public class JobLastHostsVariableResolver implements VariableResolver {
                 taskInstanceId, stepInstanceId);
             return null;
         }
-        Set<IpDTO> hosts = null;
+        Set<HostDTO> hosts = null;
         if (JobBuildInVariables.JOB_LAST_ALL.equals(variableName)) {
             hosts = extractAllHosts(preStepInstance);
         } else if (JobBuildInVariables.JOB_LAST_SUCCESS.equals(variableName)) {
@@ -95,18 +95,18 @@ public class JobLastHostsVariableResolver implements VariableResolver {
                 preStepInstance.getExecuteCount());
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 hosts =
-                    agentTasks.stream().filter(agentTask -> (agentTask.getStatus() == IpStatus.SUCCESS.getValue()
-                        || agentTask.getStatus() == IpStatus.LAST_SUCCESS.getValue()))
-                        .map(agentTask -> new IpDTO(agentTask.getCloudId(), agentTask.getIp())).collect(Collectors.toSet());
+                    agentTasks.stream().filter(agentTask -> (agentTask.getStatus() == AgentTaskStatus.SUCCESS.getValue()
+                        || agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()))
+                        .map(agentTask -> new HostDTO(agentTask.getCloudId(), agentTask.getIp())).collect(Collectors.toSet());
             }
         } else if (JobBuildInVariables.JOB_LAST_FAIL.equals(variableName)) {
             List<AgentTaskDTO> agentTasks = listAgentTasks(preStepInstance.getStepType(), preStepInstance.getId(),
                 preStepInstance.getExecuteCount());
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 hosts =
-                    agentTasks.stream().filter(agentTask -> (agentTask.getStatus() != IpStatus.SUCCESS.getValue()
-                        && agentTask.getStatus() != IpStatus.LAST_SUCCESS.getValue()))
-                        .map(agentTask -> new IpDTO(agentTask.getCloudId(), agentTask.getIp())).collect(Collectors.toSet());
+                    agentTasks.stream().filter(agentTask -> (agentTask.getStatus() != AgentTaskStatus.SUCCESS.getValue()
+                        && agentTask.getStatus() != AgentTaskStatus.LAST_SUCCESS.getValue()))
+                        .map(agentTask -> new HostDTO(agentTask.getCloudId(), agentTask.getIp())).collect(Collectors.toSet());
             }
         }
         String value = VariableResolveUtils.formatHosts(hosts);
@@ -127,8 +127,8 @@ public class JobLastHostsVariableResolver implements VariableResolver {
     }
 
 
-    private Set<IpDTO> extractAllHosts(StepInstanceDTO stepInstance) {
-        Set<IpDTO> hosts = new HashSet<>();
+    private Set<HostDTO> extractAllHosts(StepInstanceDTO stepInstance) {
+        Set<HostDTO> hosts = new HashSet<>();
         if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getIpList())) {
             hosts.addAll(stepInstance.getTargetServers().getIpList());
         }

@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -58,7 +58,7 @@ public class RollingBatchServersResolver {
      * @param servers     滚动执行的主机
      * @param rollingExpr 滚动表达式
      */
-    public RollingBatchServersResolver(List<IpDTO> servers, String rollingExpr) {
+    public RollingBatchServersResolver(List<HostDTO> servers, String rollingExpr) {
         this.context = new RollingServerBatchContext(servers);
         this.rollingExpr = rollingExpr;
     }
@@ -73,7 +73,7 @@ public class RollingBatchServersResolver {
         while (context.hasRemainedServer()) {
             context.increaseBatchCount();
             RollingExprPart rollingExprPart = rollingExpr.nextRollingExprPart(context.getBatchCount());
-            List<IpDTO> serversOnBatch = rollingExprPart.compute(context);
+            List<HostDTO> serversOnBatch = rollingExprPart.compute(context);
             context.removeResolvedServers(serversOnBatch);
             RollingServerBatch rollingServerBatch = new RollingServerBatch();
             rollingServerBatch.setBatch(context.getBatchCount());

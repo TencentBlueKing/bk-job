@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.engine.rolling.RollingBatchServersResolver;
 import com.tencent.bk.job.execute.engine.rolling.RollingServerBatch;
@@ -59,7 +59,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     }
 
     @Override
-    public List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch) {
+    public List<HostDTO> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch) {
         long rollingConfigId = stepInstance.getRollingConfigId();
         long stepInstanceId = stepInstance.getId();
 

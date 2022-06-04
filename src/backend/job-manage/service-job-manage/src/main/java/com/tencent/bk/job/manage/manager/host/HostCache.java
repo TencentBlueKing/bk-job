@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.manager.host;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.db.CacheHostDO;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +64,7 @@ public class HostCache {
      * @param hosts 主机列表
      * @return 缓存的主机列表, 按照传入的hosts排序。如果该主机不存在，List中对应索引的值为null
      */
-    public List<CacheHostDO> batchGetHosts(List<IpDTO> hosts) {
+    public List<CacheHostDO> batchGetHosts(List<HostDTO> hosts) {
         List<String> hostKeys = hosts.stream().map(this::buildHostKey).collect(Collectors.toList());
         try {
             return (List<CacheHostDO>) redisTemplate.opsForValue().multiGet(hostKeys);
@@ -119,8 +119,8 @@ public class HostCache {
             applicationHostDTO.getIp());
     }
 
-    private String buildHostKey(IpDTO host) {
-        String cloudIp = host.getCloudAreaId() + ":" + host.getIp();
+    private String buildHostKey(HostDTO host) {
+        String cloudIp = host.getBkCloudId() + ":" + host.getIp();
         return HOST_KEY_PREFIX + cloudIp;
     }
 

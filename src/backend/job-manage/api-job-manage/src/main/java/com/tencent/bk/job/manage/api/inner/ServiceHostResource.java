@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.api.inner;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
@@ -86,7 +86,7 @@ public interface ServiceHostResource {
      */
     @ApiOperation(value = "检查主机是否在业务下", produces = "application/json")
     @PostMapping("/app/{appId}/host/checkAppHosts")
-    InternalResponse<List<IpDTO>> checkAppHosts(
+    InternalResponse<List<HostDTO>> checkAppHosts(
         @PathVariable("appId") Long appId,
         @RequestBody ServiceCheckAppHostsReq req
     );

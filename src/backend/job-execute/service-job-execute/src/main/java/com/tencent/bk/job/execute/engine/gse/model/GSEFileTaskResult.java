@@ -178,15 +178,14 @@ public class GSEFileTaskResult {
      */
     private TaskType taskType;
 
-
-    public String getSourceCloudIp() {
+    public String getSourceAgentId() {
         if (sourceCloudId == null || sourceIp == null) {
             return null;
         }
         return sourceCloudId + ":" + sourceIp;
     }
 
-    public String getDestCloudIp() {
+    public String getDestAgentId() {
         if (destCloudId == null || destIp == null) {
             return null;
         }
@@ -232,15 +231,15 @@ public class GSEFileTaskResult {
         }
         if (isDownloadMode()) {
             if (StringUtils.isNotEmpty(sourceIp)) {
-                this.taskId = concat(mode.toString(), getSourceCloudIp(), getStandardSourceFilePath(),
-                    getDestCloudIp(), getStandardDestFilePath());
+                this.taskId = concat(mode.toString(), getDestAgentId(), getStandardSourceFilePath(),
+                    getDestAgentId(), getStandardDestFilePath());
             } else {
                 // GSE BUG, 兼容处理
                 this.taskId = concat(mode.toString(), "*", getStandardSourceFilePath(),
-                    getDestCloudIp(), getStandardDestFilePath());
+                    getDestAgentId(), getStandardDestFilePath());
             }
         } else {
-            this.taskId = concat(mode.toString(), getSourceCloudIp(), getStandardSourceFilePath());
+            this.taskId = concat(mode.toString(), getSourceAgentId(), getStandardSourceFilePath());
         }
         return this.taskId;
     }

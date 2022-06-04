@@ -45,7 +45,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -1303,8 +1303,8 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<IpDTO> checkAppHosts(Long appId,
-                                     List<IpDTO> hostIps) {
+    public List<HostDTO> checkAppHosts(Long appId,
+                                       List<HostDTO> hostIps) {
         ApplicationDTO application = applicationService.getAppByAppId(appId);
 
         if (application.isAllBizSet()) {
@@ -1319,7 +1319,7 @@ public class HostServiceImpl implements HostService {
         }
 
         List<BasicAppHost> hostsInOtherApp = new ArrayList<>();
-        List<IpDTO> notExistHosts = new ArrayList<>();
+        List<HostDTO> notExistHosts = new ArrayList<>();
 
         // 从缓存中查询主机信息，并判断主机是否在业务下
         checkCachedHosts(hostIps, includeBizIds, hostsInOtherApp, notExistHosts);
@@ -1336,11 +1336,11 @@ public class HostServiceImpl implements HostService {
             checkHostsFromCmdb(includeBizIds, hostsInOtherApp, notExistHosts);
         }
 
-        List<IpDTO> invalidHosts = new ArrayList<>();
+        List<HostDTO> invalidHosts = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(notExistHosts) || CollectionUtils.isNotEmpty(hostsInOtherApp)) {
             invalidHosts.addAll(notExistHosts);
             invalidHosts.addAll(hostsInOtherApp.stream()
-                .map(host -> new IpDTO(host.getCloudAreaId(), host.getIp())).collect(Collectors.toList()));
+                .map(host -> new HostDTO(host.getCloudAreaId(), host.getIp())).collect(Collectors.toList()));
             log.info("Contains invalid hosts, appId: {}, notExistHosts: {}, hostsInOtherApp: {}",
                 appId, notExistHosts, hostsInOtherApp);
         }
@@ -1362,13 +1362,13 @@ public class HostServiceImpl implements HostService {
         return bizIdList;
     }
 
-    private void checkCachedHosts(List<IpDTO> hostIps,
+    private void checkCachedHosts(List<HostDTO> hostIps,
                                   List<Long> includeBizIds,
                                   List<BasicAppHost> hostsInOtherApp,
-                                  List<IpDTO> notExistHosts) {
+                                  List<HostDTO> notExistHosts) {
         List<CacheHostDO> cacheHosts = hostCache.batchGetHosts(hostIps);
         for (int i = 0; i < hostIps.size(); i++) {
-            IpDTO hostIp = hostIps.get(i);
+            HostDTO hostIp = hostIps.get(i);
             CacheHostDO cacheHost = cacheHosts.get(i);
             if (cacheHost != null) {
                 if (!includeBizIds.contains(cacheHost.getBizId())) {
@@ -1383,7 +1383,7 @@ public class HostServiceImpl implements HostService {
 
     private void checkSyncHosts(List<Long> includeBizIds,
                                 List<BasicAppHost> hostsInOtherApp,
-                                List<IpDTO> notExistHosts) {
+                                List<HostDTO> notExistHosts) {
         List<ApplicationHostDTO> appHosts = applicationHostDAO.listHosts(notExistHosts);
         if (CollectionUtils.isNotEmpty(appHosts)) {
             for (ApplicationHostDTO appHost : appHosts) {
@@ -1392,7 +1392,7 @@ public class HostServiceImpl implements HostService {
                     // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
                     continue;
                 }
-                IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
+                HostDTO hostIp = new HostDTO(appHost.getCloudAreaId(), appHost.getIp());
                 notExistHosts.remove(hostIp);
                 hostCache.addOrUpdateHost(appHost);
                 if (!includeBizIds.contains(appHost.getBizId())) {
@@ -1405,14 +1405,14 @@ public class HostServiceImpl implements HostService {
 
     private void checkHostsFromCmdb(List<Long> includeBizIds,
                                     List<BasicAppHost> hostsInOtherApp,
-                                    List<IpDTO> notExistHosts) {
+                                    List<HostDTO> notExistHosts) {
 
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         try {
             List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByIps(notExistHosts);
             if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
-                List<IpDTO> cmdbExistHostIps = cmdbExistHosts.stream()
-                    .map(host -> new IpDTO(host.getCloudAreaId(), host.getIp()))
+                List<HostDTO> cmdbExistHostIps = cmdbExistHosts.stream()
+                    .map(host -> new HostDTO(host.getCloudAreaId(), host.getIp()))
                     .collect(Collectors.toList());
                 notExistHosts.removeAll(cmdbExistHostIps);
                 log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
@@ -1431,7 +1431,7 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    public List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps) {
+    public List<ApplicationHostDTO> listHosts(Collection<HostDTO> hostIps) {
         // 从Job已同步的主机中查询
         List<ApplicationHostDTO> syncedHosts = applicationHostDAO.listHosts(hostIps);
         Map<String, ApplicationHostDTO> hostsMap = new HashMap<>();
@@ -1440,9 +1440,9 @@ public class HostServiceImpl implements HostService {
         }
 
         List<ApplicationHostDTO> resultHosts = new ArrayList<>();
-        List<IpDTO> notSyncedHostIps = new ArrayList<>();
+        List<HostDTO> notSyncedHostIps = new ArrayList<>();
         hostIps.forEach(hostIp -> {
-            ApplicationHostDTO host = hostsMap.get(hostIp.convertToStrIp());
+            ApplicationHostDTO host = hostsMap.get(hostIp.toCloudIp());
             if (host == null || host.getBizId() == null || host.getBizId() <= 0) {
                 notSyncedHostIps.add(hostIp);
             } else {

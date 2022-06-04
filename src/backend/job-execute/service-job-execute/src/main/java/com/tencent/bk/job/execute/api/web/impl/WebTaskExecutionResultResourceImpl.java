@@ -43,7 +43,6 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -59,12 +58,12 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
-import com.tencent.bk.job.execute.model.ScriptIpLogContent;
+import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepExecutionDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
@@ -545,7 +544,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             ExecutionResultGroupVO executionResultGroupVO = new ExecutionResultGroupVO();
             executionResultGroupVO.setResultType(resultGroup.getStatus());
             executionResultGroupVO.setResultTypeDesc(
-                i18nService.getI18n(IpStatus.valueOf(resultGroup.getStatus()).getI18nKey()));
+                i18nService.getI18n(AgentTaskStatus.valueOf(resultGroup.getStatus()).getI18nKey()));
             executionResultGroupVO.setTag(resultGroup.getTag());
             executionResultGroupVO.setAgentTaskSize(resultGroup.getTotalAgentTasks());
 
@@ -559,7 +558,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                     agentTaskVO.setStartTime(agentTask.getStartTime());
                     agentTaskVO.setStatus(agentTask.getStatus());
                     agentTaskVO.setStatusDesc(
-                        i18nService.getI18n(IpStatus.valueOf(agentTask.getStatus()).getI18nKey()));
+                        i18nService.getI18n(AgentTaskStatus.valueOf(agentTask.getStatus()).getI18nKey()));
                     agentTaskVO.setErrorCode(agentTask.getErrorCode());
                     agentTaskVO.setExitCode(agentTask.getExitCode());
                     agentTaskVO.setTag(agentTask.getTag());
@@ -610,20 +609,20 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             log.warn("Get ip log content, param is illegal!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        if (!IpUtils.checkCloudAreaIdAndIpStr(ip)) {
+        if (!IpUtils.checkCloudIp(ip)) {
             log.warn("Get ip log content, param ip is illegal! ip={}", ip);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         authViewStepInstance(username, appResourceScope, stepInstanceId);
 
-        ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount, batch,
-            IpDTO.fromCloudAreaIdAndIpStr(ip));
+        ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId, executeCount, batch,
+            HostDTO.fromCloudIp(ip));
         IpScriptLogContentVO ipScriptLogContentVO = new IpScriptLogContentVO();
         ipScriptLogContentVO.setDisplayIp(ip);
-        if (scriptIpLogContent != null) {
-            ipScriptLogContentVO.setLogContent(scriptIpLogContent.getContent());
-            ipScriptLogContentVO.setFinished(scriptIpLogContent.isFinished());
+        if (scriptHostLogContent != null) {
+            ipScriptLogContentVO.setLogContent(scriptHostLogContent.getContent());
+            ipScriptLogContentVO.setFinished(scriptHostLogContent.isFinished());
         }
         return Response.buildSuccessResp(ipScriptLogContentVO);
     }
@@ -768,7 +767,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             log.warn("Get ip log content, param is illegal!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        if (!IpUtils.checkCloudAreaIdAndIpStr(ip)) {
+        if (!IpUtils.checkCloudIp(ip)) {
             log.warn("Get ip log content, param ip is illegal! ip={}", ip);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -781,7 +780,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
         if ("download".equals(mode)) {
             FileIpLogContent downloadLog = logService.getFileIpLogContent(stepInstanceId, executeCount, batch,
-                IpDTO.fromCloudAreaIdAndIpStr(ip), FileDistModeEnum.DOWNLOAD.getValue());
+                HostDTO.fromCloudIp(ip), FileDistModeEnum.DOWNLOAD.getValue());
             // downloadLog为null说明步骤还未下发至GSE就被终止
             if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {
                 downloadLog.getFileTaskLogs().forEach(fileLog -> {
@@ -903,10 +902,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                         Integer resultType,
                                                         String tag,
                                                         String keyword) {
-        List<IpDTO> hosts = taskResultService.getHostsByResultType(username, appResourceScope.getAppId(),
+        List<HostDTO> hosts = taskResultService.getHostsByResultType(username, appResourceScope.getAppId(),
             stepInstanceId, executeCount, batch, resultType, tag, keyword);
-        return Response.buildSuccessResp(hosts.stream().map(IpDTO::toHost)
-            .collect(Collectors.toList()));
+        return Response.buildSuccessResp(hosts);
     }
 
     @Override

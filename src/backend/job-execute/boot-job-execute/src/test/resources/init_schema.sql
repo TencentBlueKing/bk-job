@@ -211,7 +211,8 @@ CREATE TABLE IF NOT EXISTS `gse_script_agent_task`
     `step_instance_id` bigint(20)     NOT NULL,
     `execute_count`    int(11)        NOT NULL DEFAULT '0',
     `batch`            smallint(6)    NOT NULL DEFAULT '0',
-    `ip`               varchar(30)    NOT NULL,
+    `host_id`          bigint(20)     NOT NULL DEFAULT '0',
+    `agent_id`         varchar(64)    NOT NULL DEFAULT '',
     `gse_task_id`      bigint(20)     NOT NULL DEFAULT '0',
     `status`           int(11)        DEFAULT '1',
     `start_time`       bigint(20)     DEFAULT NULL,
@@ -221,12 +222,10 @@ CREATE TABLE IF NOT EXISTS `gse_script_agent_task`
     `exit_code`        int(11)        DEFAULT NULL,
     `tag`              varchar(256)   DEFAULT '',
     `log_offset`       int(11)        NOT NULL DEFAULT '0',
-    `display_ip`       varchar(30)    NOT NULL,
     `row_create_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY (`step_instance_id`,`execute_count`,`batch`,`ip`),
-    KEY (`step_instance_id`,`ip`),
-    KEY (`display_ip`)
+    UNIQUE KEY (`step_instance_id`,`execute_count`,`batch`,`host_id`),
+    KEY (`step_instance_id`,`host_id`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `gse_file_agent_task`
@@ -235,7 +234,8 @@ CREATE TABLE IF NOT EXISTS `gse_file_agent_task`
     `step_instance_id` bigint(20)     NOT NULL,
     `execute_count`    int(11)        NOT NULL DEFAULT '0',
     `batch`            smallint(6)    NOT NULL DEFAULT '0',
-    `ip`               varchar(30)    NOT NULL,
+    `host_id`          bigint(20)     NOT NULL DEFAULT '0',
+    `agent_id`         varchar(64)    NOT NULL DEFAULT '',
     `mode`             tinyint(1)     NOT NULL,
     `gse_task_id`      bigint(20)     NOT NULL DEFAULT '0',
     `status`           int(11)        DEFAULT '1',
@@ -243,12 +243,10 @@ CREATE TABLE IF NOT EXISTS `gse_file_agent_task`
     `end_time`         bigint(20)     DEFAULT NULL,
     `total_time`       bigint(20)     DEFAULT NULL,
     `error_code`       int(11)        DEFAULT '0',
-    `display_ip`       varchar(30)    NOT NULL,
     `row_create_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY (`step_instance_id`,`execute_count`,`batch`,`mode`,`ip`),
-    KEY (`step_instance_id`,`ip`),
-    KEY (`display_ip`)
+    UNIQUE KEY (`step_instance_id`,`execute_count`,`batch`,`mode`,`host_id`),
+    KEY (`step_instance_id`,`host_id`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `operation_log`

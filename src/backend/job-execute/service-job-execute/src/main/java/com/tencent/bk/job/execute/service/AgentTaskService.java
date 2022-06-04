@@ -25,13 +25,12 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * GSE Agent 任务 Service
@@ -43,14 +42,14 @@ public interface AgentTaskService {
      *
      * @param agentTasks GSE Agent 任务列表
      */
-    void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks);
+    void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks);
 
     /**
      * 批量更新Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks);
+    void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks);
 
     /**
      * 获取执行成功的Agent任务数量
@@ -129,15 +128,6 @@ public interface AgentTaskService {
                                                    String tag);
 
     /**
-     * 根据GSE Agent 任务状态分组计数结果
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @return 根据GSE Agent 任务状态分组计数结果
-     */
-    Map<IpStatus, Integer> countStepAgentTaskByStatus(long stepInstanceId, int executeCount);
-
-    /**
      * 查询执行结果分组
      *
      * @param stepInstanceId 步骤实例ID
@@ -146,14 +136,4 @@ public interface AgentTaskService {
      * @return 执行结果分组
      */
     List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
-
-    /**
-     * 获取任务目标ip - 根据ip关键字模糊匹配
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param ipKeyword      用于检索的IP关键字
-     * @return 匹配的任务目标IP列表
-     */
-    List<String> fuzzySearchTargetIpsByIpKeyword(Long stepInstanceId, Integer executeCount, String ipKeyword);
 }

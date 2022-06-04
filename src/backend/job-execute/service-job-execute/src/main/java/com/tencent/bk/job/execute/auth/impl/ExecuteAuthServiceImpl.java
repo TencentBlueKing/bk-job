@@ -42,7 +42,7 @@ import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
@@ -372,7 +372,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         Map<String, String> ip2HostIdMap
     ) {
         List<InstanceDTO> hostInstanceList = new ArrayList<>();
-        Map<IpDTO, ServiceHostDTO> appHosts =
+        Map<HostDTO, ServiceHostDTO> appHosts =
             hostService.batchGetHosts(servers.getStaticIpList());
         servers.getStaticIpList().forEach(hostIp -> {
             InstanceDTO hostInstance = new InstanceDTO();
@@ -391,7 +391,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                 buildAppScopeResourcePath(appResourceScope, ResourceTypeEnum.HOST, hostIdStr));
             hostInstanceList.add(hostInstance);
 
-            ip2HostIdMap.put(hostIp.convertToStrIp(), host.getHostId().toString());
+            ip2HostIdMap.put(hostIp.toCloudIp(), host.getHostId().toString());
         });
         return hostInstanceList;
     }
@@ -449,7 +449,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         List<PermissionResource> hostResources = new ArrayList<>();
         servers.getStaticIpList().forEach(ipDTO -> {
             PermissionResource resource = new PermissionResource();
-            resource.setResourceId(ip2HostIdMap.get(ipDTO.convertToStrIp()));
+            resource.setResourceId(ip2HostIdMap.get(ipDTO.toCloudIp()));
             resource.setResourceType(ResourceTypeEnum.HOST);
             resource.setSubResourceType("host");
             resource.setResourceName(ipDTO.getIp());

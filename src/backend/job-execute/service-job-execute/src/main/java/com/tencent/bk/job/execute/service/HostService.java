@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 
 import java.util.Collection;
@@ -43,7 +43,15 @@ public interface HostService {
      * @param hostIps 主机Ip列表
      * @return 主机信息
      */
-    Map<IpDTO, ServiceHostDTO> batchGetHosts(List<IpDTO> hostIps);
+    Map<HostDTO, ServiceHostDTO> batchGetHosts(List<HostDTO> hostIps);
+
+    /**
+     * 获取主机信息
+     *
+     * @param host 主机
+     * @return 主机信息
+     */
+    ServiceHostDTO getHost(HostDTO host);
 
     /**
      * 查询主机在白名单中允许的操作
@@ -52,7 +60,7 @@ public interface HostService {
      * @param host  主机
      * @return 允许的操作
      */
-    List<String> getHostAllowedAction(long appId, IpDTO host);
+    List<String> getHostAllowedAction(long appId, HostDTO host);
 
     /**
      * 判断IP白名单是否配置该主机的对应操作
@@ -62,7 +70,7 @@ public interface HostService {
      * @param action 操作
      * @return 是否配置规则
      */
-    boolean isMatchWhiteIpRule(long appId, IpDTO host, String action);
+    boolean isMatchWhiteIpRule(long appId, HostDTO host, String action);
 
     /**
      * 检查主机是否在业务下
@@ -71,7 +79,7 @@ public interface HostService {
      * @param hostIps 主机列表
      * @return 非法的主机
      */
-    List<IpDTO> checkAppHosts(Long appId, Collection<IpDTO> hostIps);
+    List<HostDTO> checkAppHosts(Long appId, Collection<HostDTO> hostIps);
 
     /**
      * 获取动态分组主机
@@ -80,7 +88,7 @@ public interface HostService {
      * @param groupId 动态分组ID
      * @return 主机列表
      */
-    List<IpDTO> getIpByDynamicGroupId(long appId, String groupId);
+    List<HostDTO> getIpByDynamicGroupId(long appId, String groupId);
 
     /**
      * 根据topo节点获取主机
@@ -89,7 +97,7 @@ public interface HostService {
      * @param ccInstances topo节点列表
      * @return 主机列表
      */
-    List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances);
+    List<HostDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances);
 
     /**
      * 获取主机云区域名称

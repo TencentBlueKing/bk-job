@@ -1,9 +1,8 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
@@ -15,8 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,12 +29,12 @@ public class FileAgentTaskServiceImpl implements FileAgentTaskService {
     }
 
     @Override
-    public void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks) {
+    public void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks) {
         fileAgentTaskDAO.batchSaveAgentTasks(agentTasks);
     }
 
     @Override
-    public void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks) {
+    public void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks) {
         fileAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
     }
 
@@ -89,30 +88,15 @@ public class FileAgentTaskServiceImpl implements FileAgentTaskService {
     }
 
     @Override
-    public List<IpDTO> getFileSourceIps(Long stepInstanceId, Integer executeCount) {
-        return fileAgentTaskDAO.getTaskFileSourceIps(stepInstanceId, executeCount)
-            .stream().map(IpDTO::fromCloudAreaIdAndIpStr).collect(Collectors.toList());
-    }
-
-    @Override
-    public Map<IpStatus, Integer> countStepAgentTaskByStatus(long stepInstanceId, int executeCount) {
-        return fileAgentTaskDAO.countStepAgentTaskGroupByStatus(stepInstanceId, executeCount);
-    }
-
-    @Override
     public List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
         return fileAgentTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
     }
 
     @Override
     public AgentTaskDTO getAgentTask(Long stepInstanceId, Integer executeCount, Integer batch,
-                                     FileTaskModeEnum fileTaskMode, String cloudIp) {
-        return fileAgentTaskDAO.getAgentTaskByIp(stepInstanceId, executeCount, batch, fileTaskMode, cloudIp);
-    }
-
-    @Override
-    public List<String> fuzzySearchTargetIpsByIpKeyword(Long stepInstanceId, Integer executeCount, String ipKeyword) {
-        return fileAgentTaskDAO.fuzzySearchTargetIpsByIp(stepInstanceId, executeCount, ipKeyword);
+                                     FileTaskModeEnum fileTaskMode, HostDTO host) {
+        return fileAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount, batch, fileTaskMode,
+            host.getHostId());
     }
 
     @Override
@@ -121,7 +105,7 @@ public class FileAgentTaskServiceImpl implements FileAgentTaskService {
     }
 
     @Override
-    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, FileTaskModeEnum mode, String cloudIp) {
-        return fileAgentTaskDAO.getActualSuccessExecuteCount(stepInstanceId, batch, mode, cloudIp);
+    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, FileTaskModeEnum mode, HostDTO host) {
+        return fileAgentTaskDAO.getActualSuccessExecuteCount(stepInstanceId, batch, mode, host.getHostId());
     }
 }

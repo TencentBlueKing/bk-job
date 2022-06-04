@@ -46,7 +46,7 @@ public class EsbIpDTO {
     @JsonProperty("bk_cloud_id")
     @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
     @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
-    private Long cloudAreaId;
+    private Long bkCloudId;
 
     @JsonProperty("ip")
     @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
@@ -60,7 +60,7 @@ public class EsbIpDTO {
             return null;
         }
         EsbIpDTO esbIp = new EsbIpDTO();
-        esbIp.setCloudAreaId(applicationHostInfo.getCloudAreaId());
+        esbIp.setBkCloudId(applicationHostInfo.getCloudAreaId());
         esbIp.setIp(applicationHostInfo.getIp());
         return esbIp;
     }
@@ -70,13 +70,13 @@ public class EsbIpDTO {
             return null;
         }
         EsbIpDTO esbIp = new EsbIpDTO();
-        esbIp.setCloudAreaId(host.getCloudAreaId());
+        esbIp.setBkCloudId(host.getBkCloudId());
         esbIp.setIp(host.getIp());
         return esbIp;
     }
 
     public static EsbIpDTO fromCloudIp(String cloudIp) {
-        if (!IpUtils.checkCloudAreaIdAndIpStr(cloudIp)) {
+        if (!IpUtils.checkCloudIp(cloudIp)) {
             return null;
         }
         String[] ipProps = cloudIp.split(IpUtils.COLON);

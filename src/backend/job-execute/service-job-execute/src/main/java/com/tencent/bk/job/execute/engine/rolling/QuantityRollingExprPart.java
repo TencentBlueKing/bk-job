@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
 import lombok.Getter;
 import lombok.Setter;
@@ -70,8 +70,8 @@ public class QuantityRollingExprPart extends RollingExprPart {
     }
 
     @Override
-    public List<IpDTO> compute(RollingServerBatchContext context) throws RollingExprParseException {
-        List<IpDTO> candidateServers = context.getRemainedServers();
+    public List<HostDTO> compute(RollingServerBatchContext context) throws RollingExprParseException {
+        List<HostDTO> candidateServers = context.getRemainedServers();
         return new ArrayList<>(candidateServers.subList(0, Math.min(this.quantity, candidateServers.size())));
     }
 }

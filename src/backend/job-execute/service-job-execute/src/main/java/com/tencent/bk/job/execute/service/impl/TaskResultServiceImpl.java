@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -45,7 +45,7 @@ import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
@@ -405,10 +405,10 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
         AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO();
-        resultGroup.setStatus(IpStatus.WAITING.getValue());
+        resultGroup.setStatus(AgentTaskStatus.WAITING.getValue());
         resultGroup.setTag(null);
 
-        List<IpDTO> targetServers = filterTargetServersByBatch(stepInstance, batch);
+        List<HostDTO> targetServers = filterTargetServersByBatch(stepInstance, batch);
 
         List<AgentTaskDTO> agentTasks = new ArrayList<>();
         // 如果需要根据IP过滤，那么需要重新计算Agent任务总数
@@ -423,7 +423,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (CollectionUtils.isNotEmpty(targetServers)) {
             int maxAgentTasks = (maxAgentTasksForResultGroup != null ?
                 Math.min(maxAgentTasksForResultGroup, targetServers.size()) : targetServers.size());
-            for (IpDTO targetServer : targetServers) {
+            for (HostDTO targetServer : targetServers) {
                 String ip = targetServer.getIp();
                 if (fuzzyFilterByIp && !ip.contains(fuzzySearchIp)) {
                     // 如果需要根据IP过滤，那么过滤掉不匹配的任务
@@ -431,12 +431,12 @@ public class TaskResultServiceImpl implements TaskResultService {
                 }
                 if (maxAgentTasks-- > 0) {
                     AgentTaskDTO agentTask = new AgentTaskDTO();
-                    agentTask.setCloudIp(targetServer.getCloudAreaId() + ":" + targetServer.getIp());
-                    Long cloudAreaId = targetServer.getCloudAreaId();
+                    agentTask.setCloudIp(targetServer.getBkCloudId() + ":" + targetServer.getIp());
+                    Long cloudAreaId = targetServer.getBkCloudId();
                     agentTask.setCloudId(cloudAreaId);
                     agentTask.setCloudName(hostService.getCloudAreaName(cloudAreaId));
                     agentTask.setDisplayIp(targetServer.getIp());
-                    agentTask.setStatus(IpStatus.WAITING.getValue());
+                    agentTask.setStatus(AgentTaskStatus.WAITING.getValue());
                     agentTask.setTag(null);
                     agentTask.setErrorCode(0);
                     agentTask.setExitCode(0);
@@ -451,8 +451,8 @@ public class TaskResultServiceImpl implements TaskResultService {
         return stepExecuteDetail;
     }
 
-    private List<IpDTO> filterTargetServersByBatch(StepInstanceBaseDTO stepInstance, Integer batch) {
-        List<IpDTO> targetServers;
+    private List<HostDTO> filterTargetServersByBatch(StepInstanceBaseDTO stepInstance, Integer batch) {
+        List<HostDTO> targetServers;
         if (stepInstance.isRollingStep()) {
             targetServers = rollingConfigService.getRollingServers(stepInstance, batch);
         } else {
@@ -642,17 +642,17 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         Set<String> matchIpsByLogKeywordSearch = null;
         if (StringUtils.isNotBlank(query.getLogKeyword())) {
-            List<IpDTO> matchHosts = getHostsByLogContentKeyword(stepInstanceId, executeCount,
+            List<HostDTO> matchHosts = getHostsByLogContentKeyword(stepInstanceId, executeCount,
                 query.getBatch(), query.getLogKeyword());
             if (CollectionUtils.isNotEmpty(matchHosts)) {
-                matchIpsByLogKeywordSearch = matchHosts.stream().map(IpDTO::convertToStrIp).collect(Collectors.toSet());
+                matchIpsByLogKeywordSearch = matchHosts.stream().map(HostDTO::toCloudIp).collect(Collectors.toSet());
             }
         }
         Set<String> matchIpsByIpSearch = null;
         if (StringUtils.isNotBlank(query.getSearchIp())) {
-            List<IpDTO> matchHosts = fuzzySearchHostsByIp(stepInstance, executeCount, query.getSearchIp());
+            List<HostDTO> matchHosts = fuzzySearchHostsByIp(stepInstance, executeCount, query.getSearchIp());
             if (CollectionUtils.isNotEmpty(matchHosts)) {
-                matchIpsByIpSearch = matchHosts.stream().map(IpDTO::convertToStrIp).collect(Collectors.toSet());
+                matchIpsByIpSearch = matchHosts.stream().map(HostDTO::toCloudIp).collect(Collectors.toSet());
             }
         }
 
@@ -822,8 +822,8 @@ public class TaskResultServiceImpl implements TaskResultService {
             StepRunModeEnum.ROLLING_IN_BATCH : StepRunModeEnum.ROLLING_ALL);
     }
 
-    private List<IpDTO> getHostsByLogContentKeyword(long stepInstanceId, int executeCount, Integer batch,
-                                                    String keyword) {
+    private List<HostDTO> getHostsByLogContentKeyword(long stepInstanceId, int executeCount, Integer batch,
+                                                      String keyword) {
         String searchKey = keyword.replaceAll("'", "").replaceAll("\\$", "")
             .replaceAll("&", "").replaceAll("\\$", "")
             .replaceAll("\\|", "").replaceAll("`", "")
@@ -832,13 +832,13 @@ public class TaskResultServiceImpl implements TaskResultService {
         return logService.getIpsByContentKeyword(stepInstanceId, executeCount, batch, searchKey);
     }
 
-    private List<IpDTO> fuzzySearchHostsByIp(StepInstanceBaseDTO stepInstance, int executeCount, String searchIp) {
+    private List<HostDTO> fuzzySearchHostsByIp(StepInstanceBaseDTO stepInstance, int executeCount, String searchIp) {
         if (stepInstance.isScriptStep()) {
             return scriptAgentTaskService.fuzzySearchTargetIpsByIpKeyword(stepInstance.getId(), executeCount, searchIp)
-                .stream().map(IpDTO::fromCloudAreaIdAndIpStr).collect(Collectors.toList());
+                .stream().map(HostDTO::fromCloudIp).collect(Collectors.toList());
         } else if (stepInstance.isFileStep()) {
             return fileAgentTaskService.fuzzySearchTargetIpsByIpKeyword(stepInstance.getId(), executeCount, searchIp)
-                .stream().map(IpDTO::fromCloudAreaIdAndIpStr).collect(Collectors.toList());
+                .stream().map(HostDTO::fromCloudIp).collect(Collectors.toList());
         } else {
             return Collections.emptyList();
         }
@@ -909,14 +909,14 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     @Override
-    public List<IpDTO> getHostsByResultType(String username,
-                                            Long appId,
-                                            Long stepInstanceId,
-                                            Integer executeCount,
-                                            Integer batch,
-                                            Integer resultType,
-                                            String tag,
-                                            String keyword) {
+    public List<HostDTO> getHostsByResultType(String username,
+                                              Long appId,
+                                              Long stepInstanceId,
+                                              Integer executeCount,
+                                              Integer batch,
+                                              Integer resultType,
+                                              String tag,
+                                              String keyword) {
         StepInstanceBaseDTO stepInstance = checkGetStepExecutionDetail(username, appId, stepInstanceId);
 
         if (!stepInstance.getAppId().equals(appId)) {
@@ -956,13 +956,13 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (CollectionUtils.isEmpty(agentTaskGroupByResultType)) {
             return Collections.emptyList();
         }
-        List<IpDTO> hosts = agentTaskGroupByResultType.stream()
-            .map(gseTaskIpLog -> new IpDTO(gseTaskIpLog.getCloudId(), gseTaskIpLog.getIp()))
+        List<HostDTO> hosts = agentTaskGroupByResultType.stream()
+            .map(gseTaskIpLog -> new HostDTO(gseTaskIpLog.getCloudId(), gseTaskIpLog.getIp()))
             .collect(Collectors.toList());
         if (filterByKeyword && CollectionUtils.isNotEmpty(matchIps)) {
-            List<IpDTO> finalHosts = new ArrayList<>();
-            for (IpDTO host : hosts) {
-                if (matchIps.contains(host.convertToStrIp())) {
+            List<HostDTO> finalHosts = new ArrayList<>();
+            for (HostDTO host : hosts) {
+                if (matchIps.contains(host.toCloudIp())) {
                     finalHosts.add(host);
                 }
             }

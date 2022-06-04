@@ -24,43 +24,42 @@
 
 package com.tencent.bk.job.logsvr.model.service;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
-import java.util.StringJoiner;
 
 /**
- * 批量保存执行日志请求
+ * 文件任务执行日志查询请求
  */
-@ApiModel("批量保存执行日志请求")
-@Getter
-@Setter
-public class BatchSaveLogRequest {
-    /**
-     * 作业实例创建时间
-     */
+@Data
+@ApiModel("文件任务执行日志查询请求")
+public class ServiceFileLogQueryRequest {
+
     @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
     private String jobCreateDate;
-    /**
-     * 执行日志
-     */
-    @ApiModelProperty(value = "执行日志", required = true)
-    private List<ServiceIpLogDTO> logs;
+
+    @ApiModelProperty(value = "步骤实例ID", required = true)
+    private Long stepInstanceId;
+
+    @ApiModelProperty(value = "执行次数", required = true)
+    private Integer executeCount;
+
+    @ApiModelProperty(value = "滚动执行批次")
+    private Integer batch;
+
+    @ApiModelProperty("主机ID列表")
+    private List<Long> hostIds;
+
+    @ApiModelProperty("IP列表;如果hostIds参数不为空，那么忽略ips参数")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", version = "3.7.x")
+    private List<String> ips;
 
     /**
-     * 日志类型
+     * @see com.tencent.bk.job.logsvr.consts.FileTaskModeEnum
      */
-    private Integer logType;
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", BatchSaveLogRequest.class.getSimpleName() + "[", "]")
-            .add("jobCreateDate='" + jobCreateDate + "'")
-            .add("logType='" + logType + "'")
-            .add("logs=" + logs)
-            .toString();
-    }
+    @ApiModelProperty("分发模式,0:upload,1:download")
+    private Integer mode;
 }

@@ -1,8 +1,8 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,12 +28,12 @@ public class ScriptAgentTaskServiceImpl implements ScriptAgentTaskService {
     }
 
     @Override
-    public void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks) {
+    public void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks) {
         scriptAgentTaskDAO.batchSaveAgentTasks(agentTasks);
     }
 
     @Override
-    public void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks) {
+    public void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks) {
         scriptAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
     }
 
@@ -92,23 +92,13 @@ public class ScriptAgentTaskServiceImpl implements ScriptAgentTaskService {
     }
 
     @Override
-    public Map<IpStatus, Integer> countStepAgentTaskByStatus(long stepInstanceId, int executeCount) {
-        return scriptAgentTaskDAO.countStepAgentTaskGroupByStatus(stepInstanceId, executeCount);
+    public AgentTaskDTO getAgentTaskByHost(Long stepInstanceId, Integer executeCount, Integer batch, HostDTO host) {
+        return scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount, batch, host.getHostId());
     }
 
     @Override
-    public AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, Integer batch, String cloudIp) {
-        return scriptAgentTaskDAO.getAgentTaskByIp(stepInstanceId, executeCount, batch, cloudIp);
-    }
-
-    @Override
-    public List<String> fuzzySearchTargetIpsByIpKeyword(Long stepInstanceId, Integer executeCount, String ipKeyword) {
-        return scriptAgentTaskDAO.fuzzySearchIpsByIpKeyword(stepInstanceId, executeCount, ipKeyword);
-    }
-
-    @Override
-    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, String cloudIp) {
-        return scriptAgentTaskDAO.getActualSuccessExecuteCount(stepInstanceId, batch, cloudIp);
+    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, HostDTO host) {
+        return scriptAgentTaskDAO.getActualSuccessExecuteCount(stepInstanceId, batch, host.getHostId());
     }
 
 }

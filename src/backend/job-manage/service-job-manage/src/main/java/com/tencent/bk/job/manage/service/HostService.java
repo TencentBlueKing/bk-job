@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
@@ -191,7 +191,7 @@ public interface HostService {
      * @param hostIps 被检查的主机
      * @return 非法的主机
      */
-    List<IpDTO> checkAppHosts(Long appId, List<IpDTO> hostIps);
+    List<HostDTO> checkAppHosts(Long appId, List<HostDTO> hostIps);
 
     /**
      * 根据主机IP批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
@@ -199,5 +199,5 @@ public interface HostService {
      * @param hostIps 主机IP
      * @return 主机
      */
-    List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps);
+    List<ApplicationHostDTO> listHosts(Collection<HostDTO> hostIps);
 }

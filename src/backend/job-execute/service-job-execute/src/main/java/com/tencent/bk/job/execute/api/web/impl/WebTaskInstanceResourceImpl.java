@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.execute.api.web.WebTaskInstanceResource;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -303,9 +303,9 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         ExecuteServersVO taskHostNodeVO = new ExecuteServersVO();
         if (serversDTO.getIpList() != null) {
             List<ExecuteHostVO> hosts = new ArrayList<>();
-            for (IpDTO ip : serversDTO.getIpList()) {
+            for (HostDTO ip : serversDTO.getIpList()) {
                 ExecuteHostVO host = new ExecuteHostVO();
-                ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getCloudAreaId(), ip.getIp());
+                ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getBkCloudId(), ip.getIp());
                 host.setIp(ip.getIp());
                 host.setAlive(ip.getAlive());
                 host.setCloudAreaInfo(cloudAreaInfoVO);
@@ -358,12 +358,12 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             if (servers.getIpList() != null) {
                 ExecuteServersVO taskHostNodeVO = new ExecuteServersVO();
                 List<ExecuteHostVO> hosts = new ArrayList<>(servers.getIpList().size());
-                for (IpDTO ip : servers.getIpList()) {
+                for (HostDTO ip : servers.getIpList()) {
                     ExecuteHostVO host = new ExecuteHostVO();
                     host.setIp(ip.getIp());
                     host.setAlive(ip.getAlive());
-                    ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getCloudAreaId(),
-                        hostService.getCloudAreaName(ip.getCloudAreaId()));
+                    ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getBkCloudId(),
+                        hostService.getCloudAreaName(ip.getBkCloudId()));
                     host.setCloudAreaInfo(cloudAreaInfoVO);
                     hosts.add(host);
                 }

@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.engine.prepare.third;
 
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
@@ -96,10 +96,10 @@ public class ThirdFilePrepareService {
         if (fileSourceDTO.getServers() == null) {
             fileSourceDTO.setServers(new ServersDTO());
         }
-        List<IpDTO> ipDTOList = new ArrayList<>();
-        ipDTOList.add(new IpDTO(taskInfoDTO.getCloudId(), taskInfoDTO.getIp()));
-        fileSourceDTO.getServers().setStaticIpList(ipDTOList);
-        fileSourceDTO.getServers().setIpList(ipDTOList);
+        List<HostDTO> hostDTOList = new ArrayList<>();
+        hostDTOList.add(new HostDTO(taskInfoDTO.getCloudId(), taskInfoDTO.getIp()));
+        fileSourceDTO.getServers().setStaticIpList(hostDTOList);
+        fileSourceDTO.getServers().setIpList(hostDTOList);
         fileSourceDTO.setFileSourceTaskId(fileSourceTaskId);
         fileSourceDTO.getFiles().forEach(fileDetailDTO -> {
             // 第二次处理，加上文件源名称的文件路径

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.prepare.third;
 
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -51,7 +51,7 @@ import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
@@ -174,7 +174,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             int maxLogSize = 0;
             // 写日志
             for (FileSourceTaskStatusDTO fileSourceTaskStatusDTO : fileSourceTaskStatusInfoList) {
-                List<ServiceIpLogDTO> logList = fileSourceTaskStatusDTO.getLogList();
+                List<ServiceHostLogDTO> logList = fileSourceTaskStatusDTO.getLogList();
                 if (logList != null && !logList.isEmpty()) {
                     writeLogs(stepInstance, logList);
                     if (logList.size() > maxLogSize) {
@@ -281,13 +281,13 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                         fileSourceDTO.setAccountId(accountDTO.getId());
                         fileSourceDTO.setLocalUpload(false);
                         ServersDTO servers = new ServersDTO();
-                        IpDTO ipDTO = new IpDTO(fileSourceTaskStatusDTO.getCloudId(), fileSourceTaskStatusDTO.getIp());
-                        List<IpDTO> ipDTOList = Collections.singletonList(ipDTO);
-                        servers.addStaticIps(ipDTOList);
+                        HostDTO hostDTO = new HostDTO(fileSourceTaskStatusDTO.getCloudId(), fileSourceTaskStatusDTO.getIp());
+                        List<HostDTO> hostDTOList = Collections.singletonList(hostDTO);
+                        servers.addStaticIps(hostDTOList);
                         if (servers.getIpList() == null) {
-                            servers.setIpList(ipDTOList);
+                            servers.setIpList(hostDTOList);
                         } else {
-                            servers.getIpList().addAll(ipDTOList);
+                            servers.getIpList().addAll(hostDTOList);
                             // 去重
                             servers.setIpList(new ArrayList<>(new HashSet<>(servers.getIpList())));
                         }
@@ -315,10 +315,11 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         }
     }
 
-    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceIpLogDTO> logDTOList) {
-        for (ServiceIpLogDTO serviceLogDTO : logDTOList) {
+    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceHostLogDTO> logDTOList) {
+        for (ServiceHostLogDTO serviceLogDTO : logDTOList) {
             logService.writeFileLogWithTimestamp(stepInstance.getCreateTime(), stepInstance.getId(),
-                stepInstance.getExecuteCount(), stepInstance.getBatch(), serviceLogDTO.getIp(),
+                stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                HostDTO.fromHostIdAndAgentId(serviceLogDTO.getHostId(), serviceLogDTO.
                 serviceLogDTO, System.currentTimeMillis());
         }
     }

@@ -69,12 +69,12 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
     @Override
     public void execute() {
         log.info("Stop gse task, gseTask:" + gseTaskUniqueName);
-        Set<String> terminateIps = new HashSet<>();
-        stepInstance.getTargetServers().getIpList().forEach(targetIp -> terminateIps.add(targetIp.convertToStrIp()));
+        Set<String> terminateAgentIds = new HashSet<>();
+        stepInstance.getTargetServers().getIpList().forEach(targetHost -> terminateAgentIds.add(targetHost.getAgentId()));
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(terminateIps, accountInfo.getAccount(),
+        List<api_agent> agentList = GseRequestUtils.buildAgentList(terminateAgentIds, accountInfo.getAccount(),
             accountInfo.getPassword());
         api_stop_task_request stopTaskRequest = new api_stop_task_request();
         stopTaskRequest.setStop_task_id(gseTask.getGseTaskId());

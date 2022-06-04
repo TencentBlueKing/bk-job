@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
@@ -41,7 +41,7 @@ import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
-import com.tencent.bk.job.execute.model.ScriptIpLogContent;
+import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceResultAndLog;
@@ -179,12 +179,12 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
 
         for (AgentTaskDTO agentTask : agentTasks) {
             if (stepInstance.isScriptStep()) {
-                ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount,
-                    null, IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()));
-                agentTask.setScriptLogContent(scriptIpLogContent == null ? "" : scriptIpLogContent.getContent());
+                ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId, executeCount,
+                    null, HostDTO.fromCloudIp(agentTask.getCloudIp()));
+                agentTask.setScriptLogContent(scriptHostLogContent == null ? "" : scriptHostLogContent.getContent());
             } else if (stepInstance.isFileStep()) {
                 FileIpLogContent fileIpLogContent = logService.getFileIpLogContent(stepInstanceId, executeCount,
-                    null, IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()), FileDistModeEnum.DOWNLOAD.getValue());
+                    null, HostDTO.fromCloudIp(agentTask.getCloudIp()), FileDistModeEnum.DOWNLOAD.getValue());
                 agentTask.setScriptLogContent(fileIpLogContent == null ? "" : fileIpLogContent.getContent());
             }
         }

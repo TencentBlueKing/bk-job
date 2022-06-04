@@ -192,7 +192,7 @@ public class ResultHandleResumeListener {
                 resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
             } else if (stepInstance.isFileStep()) {
                 Set<JobFile> sendFiles = JobSrcFileUtils.parseSendFileList(stepInstance,
-                    agentService.getLocalAgentBindIp(),
+                    agentService.getLocalAgentHost(),
                     storageSystemConfig.getJobStorageRootPath());
                 String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
                 Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
