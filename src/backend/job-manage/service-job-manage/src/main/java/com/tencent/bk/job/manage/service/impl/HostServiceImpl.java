@@ -51,10 +51,10 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
-import com.tencent.bk.job.manage.common.util.StringParamUtil;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.app.BizOperateDeptLocalCache;
@@ -832,7 +832,7 @@ public class HostServiceImpl implements HostService {
 
         List<String> searchContents = null;
         if (searchContent != null) {
-            searchContents = StringParamUtil.splitByNormalSeparator(searchContent);
+            searchContents = StringUtil.splitByNormalSeparator(searchContent);
         }
 
         //获取所有云区域，找出名称符合条件的所有CloudAreaId

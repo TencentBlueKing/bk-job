@@ -50,6 +50,22 @@ import java.util.stream.Collectors;
 public class StringUtil {
 
     /**
+     * 使用常见的多个字符[;,；，\n\s|\u00A0]+分割字符串
+     *
+     * @param str 目标字符串
+     * @return 分割后的字符串列表
+     */
+    public static List<String> splitByNormalSeparator(String str) {
+        if (str == null) {
+            return Collections.emptyList();
+        }
+        if (StringUtils.isBlank(str)) {
+            return Collections.singletonList(str);
+        }
+        return Arrays.asList(str.split("[;,；，\\n\\s|\\u00A0]+"));
+    }
+
+    /**
      * 使用对象中的字段值替换路径中的占位符
      *
      * @param path 原始路径
@@ -155,7 +171,7 @@ public class StringUtil {
      */
     @SuppressWarnings("all")
     public static <T> List<T> strToList(String str, Class<T> clazz, String separator) {
-        if (str == null || str.isEmpty() || StringUtils.isBlank(str)) {
+        if (StringUtils.isBlank(str)) {
             return Collections.emptyList();
         }
         return Arrays.stream(str.trim().split(separator)).filter(StringUtils::isNotBlank)

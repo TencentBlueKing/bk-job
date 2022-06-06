@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -65,6 +66,9 @@ public class BizHostServiceImpl implements BizHostService {
 
     @Override
     public List<ApplicationHostDTO> getHostsByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds) {
+        if (CollectionUtils.isEmpty(bizIds) || CollectionUtils.isEmpty(hostIds)) {
+            return Collections.emptyList();
+        }
         List<Long> hostIdsInBiz = hostTopoDAO.listHostIdByBizAndHostIds(bizIds, hostIds);
         if (CollectionUtils.isNotEmpty(hostIds) && hostIdsInBiz.size() != hostIds.size()) {
             Set<Long> hostIdsSet = new HashSet<>(hostIds);

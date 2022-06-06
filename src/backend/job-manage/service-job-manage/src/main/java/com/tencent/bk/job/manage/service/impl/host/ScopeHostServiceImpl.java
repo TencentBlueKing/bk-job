@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.common.util.StringParamUtil;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.BizHostService;
@@ -114,7 +114,7 @@ public class ScopeHostServiceImpl implements ScopeHostService {
 
         List<String> searchContents = null;
         if (searchContent != null) {
-            searchContents = StringParamUtil.splitByNormalSeparator(searchContent);
+            searchContents = StringUtil.splitByNormalSeparator(searchContent);
         }
 
         //获取所有云区域，找出名称符合条件的所有CloudAreaId

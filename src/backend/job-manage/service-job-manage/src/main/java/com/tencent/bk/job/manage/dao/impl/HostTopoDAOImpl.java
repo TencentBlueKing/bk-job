@@ -28,6 +28,7 @@ import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -277,10 +278,10 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     @Override
     public List<Long> listHostIdByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds) {
         List<Condition> conditions = new ArrayList<>();
-        if (bizIds != null) {
+        if (CollectionUtils.isNotEmpty(bizIds)) {
             conditions.add(defaultTable.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
-        if (hostIds != null) {
+        if (CollectionUtils.isNotEmpty(hostIds)) {
             conditions.add(defaultTable.HOST_ID.in(hostIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
         return listHostIdByConditions(conditions);

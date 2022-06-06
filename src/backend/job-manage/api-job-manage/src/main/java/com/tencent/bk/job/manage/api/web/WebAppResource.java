@@ -378,6 +378,7 @@ public interface WebAppResource {
             List<String> dynamicGroupIds
     );
 
+    @CompatibleImplementation(explain = "旧的/ip/check仅用于发布过程兼容", version = "3.7.0")
     @ApiOperation(value = "根据用户选择/输入的主机信息获取真实存在的机器信息")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/ip/check", "/scope/{scopeType}/{scopeId}/host/check"})
     Response<List<HostInfoVO>> checkHosts(
