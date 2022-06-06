@@ -52,6 +52,9 @@ public class HostInfoVO {
     @ApiModelProperty("主机 IP")
     private String ip;
 
+    @ApiModelProperty("主机 IPv6")
+    private String ipv6;
+
     @ApiModelProperty("展示用的IP，主要针对多内网IP问题")
     private String displayIp;
 

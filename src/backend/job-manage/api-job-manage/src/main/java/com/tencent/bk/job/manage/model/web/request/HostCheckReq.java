@@ -22,32 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.manage.model.web.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
-@ToString
-public class FindModuleHostRelationReq extends EsbReq {
-    @JsonProperty("bk_biz_id")
-    private long bizId;
-    @JsonProperty("bk_module_ids")
-    private List<Long> moduleIdList;
+@Data
+@ApiModel("主机检查请求报文")
+public class HostCheckReq {
 
-    @JsonProperty("module_fields")
-    private List<String> moduleFields = Arrays.asList("bk_module_id", "bk_set_id");
+    @ApiModelProperty(value = "应用场景：脚本执行/文件分发")
+    ActionScopeEnum actionScope;
 
-    @JsonProperty("host_fields")
-    private List<String> hostFields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6",
-        "bk_agent_id", "bk_host_name", "bk_os_name", "bk_cloud_id", "bk_os_type");
+    @CompatibleImplementation(explain = "兼容IPv6版本发布过程接口调用", version = "3.7.0")
+    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip")
+    List<String> ipList = new ArrayList<>();
 
-    private Page page;
+    @ApiModelProperty(value = "hostId列表", required = true)
+    List<Long> hostIdList = new ArrayList<>();
+
 }
+
+

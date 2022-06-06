@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
+import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,6 +60,14 @@ public class ApplicationHostDTO {
      * IP
      */
     private String ip;
+    /**
+     * IPv6
+     */
+    private String ipv6;
+    /**
+     * AgentId
+     */
+    private String agentId;
 
     /**
      * 展示用的IP
@@ -108,6 +119,27 @@ public class ApplicationHostDTO {
      * IP 列表，搜索用参数
      */
     private List<String> ipList;
+
+    public HostInfoVO toVO() {
+        HostInfoVO hostInfoVO = new HostInfoVO();
+        hostInfoVO.setHostId(hostId);
+        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(cloudAreaId, cloudIp));
+        hostInfoVO.setIp(ip);
+        hostInfoVO.setIpv6(ipv6);
+        hostInfoVO.setDisplayIp(displayIp);
+        hostInfoVO.setIpDesc(ipDesc);
+        hostInfoVO.setOs(os);
+        hostInfoVO.setAlive(gseAgentAlive ? 1 : 0);
+        return hostInfoVO;
+    }
+
+    public static List<String> buildIpList(List<ApplicationHostDTO> hosts) {
+        List<String> ipList = new ArrayList<>();
+        for (ApplicationHostDTO host : hosts) {
+            ipList.add(host.getCloudAreaId() + ":" + host.getIp());
+        }
+        return ipList;
+    }
 
     public String getCloudIp() {
         if (StringUtils.isNotBlank(cloudIp)) {

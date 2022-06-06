@@ -22,50 +22,54 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
-import org.jooq.DSLContext;
+import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 
 import java.util.Collection;
 import java.util.List;
 
-public interface HostTopoDAO {
-    int insertHostTopo(DSLContext dslContext, HostTopoDTO hostTopoDTO);
-
-    int batchInsertHostTopo(DSLContext dslContext, List<HostTopoDTO> hostTopoDTOList);
-
-    int deleteHostTopoByHostId(DSLContext dslContext, Long appId, Long hostId);
-
-    int deleteHostTopo(DSLContext dslContext, Long hostId, Long appId, Long setId, Long moduleId);
-
-    int batchDeleteHostTopo(DSLContext dslContext, List<Long> hostIdList);
-
-    int countHostTopo(DSLContext dslContext, Long bizId, Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostId(DSLContext dslContext, Long hostId);
-
-    List<HostTopoDTO> listHostTopoBySetId(DSLContext dslContext, Long setId);
-
-    List<HostTopoDTO> listHostTopoByModuleId(DSLContext dslContext, Long moduleId);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(DSLContext dslContext, Collection<Long> moduleIds, Long start,
-                                              Long limit);
+/**
+ * 业务主机相关服务
+ */
+public interface BizHostService {
 
     /**
-     * 根据CMDB业务IDs查询下属主机ID列表
+     * 根据 hostId 集合查询主机信息
      *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
+     * @param hostIds 主机 ID集合
+     * @return 主机信息列表
      */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
+    List<ApplicationHostDTO> getHostsByHostIds(Collection<Long> hostIds);
 
     /**
-     * 根据CMDB业务ID与主机ID集合查询下属主机ID列表
+     * 根据 bizId、hostId集合查询主机信息
      *
-     * @param bizIds  业务ID集合
-     * @param hostIds 主机ID集合
-     * @return 主机ID列表
+     * @param bizIds  业务 ID集合
+     * @param hostIds 主机 ID集合
+     * @return 主机信息列表
      */
-    List<Long> listHostIdByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds);
+    List<ApplicationHostDTO> getHostsByBizAndHostIds(Collection<Long> bizIds,
+                                                     Collection<Long> hostIds);
+
+    /**
+     * 根据条件查询主机ID
+     *
+     * @param bizIds         业务ID集合
+     * @param moduleIds      模块ID集合
+     * @param cloudAreaIds   云区域ID集合
+     * @param searchContents 搜索关键字列表
+     * @param agentStatus    agent状态
+     * @param start          数据起始位置
+     * @param limit          查询数据条数
+     * @return 主机列表
+     */
+    PageData<Long> pageListHostId(Collection<Long> bizIds,
+                                  Collection<Long> moduleIds,
+                                  Collection<Long> cloudAreaIds,
+                                  List<String> searchContents,
+                                  Integer agentStatus,
+                                  Long start,
+                                  Long limit);
 }

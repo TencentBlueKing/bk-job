@@ -213,7 +213,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                               Collection<Long> cloudAreaIds, List<String> searchContents,
                                               Integer agentStatus) {
-        List<Long> hostIdList = getHostIdListBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
+        List<Long> hostIdList = listHostIdBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
             agentStatus, null, null);
         return (long) (hostIdList.size());
     }
@@ -238,14 +238,19 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                                                                  Integer agentStatus,
                                                                  Long start,
                                                                  Long limit) {
-        List<Long> hostIdList = getHostIdListBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
+        List<Long> hostIdList = listHostIdBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
             agentStatus, start, limit);
         return listHostInfoByHostIds(hostIdList);
     }
 
-    public List<Long> getHostIdListBySearchContents(Collection<Long> appIds, Collection<Long> moduleIds,
-                                                    Collection<Long> cloudAreaIds, List<String> searchContents,
-                                                    Integer agentStatus, Long start, Long limit) {
+    @Override
+    public List<Long> listHostIdBySearchContents(Collection<Long> appIds,
+                                                 Collection<Long> moduleIds,
+                                                 Collection<Long> cloudAreaIds,
+                                                 List<String> searchContents,
+                                                 Integer agentStatus,
+                                                 Long start,
+                                                 Long limit) {
         Host tHost = Host.HOST;
         HostTopo tHostTopo = HostTopo.HOST_TOPO;
         List<Condition> conditions = new ArrayList<>();
@@ -460,7 +465,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.OS_TYPE,
                 TABLE.MODULE_TYPE,
                 TABLE.IS_AGENT_ALIVE,
-                TABLE.CLOUD_IP
+                TABLE.CLOUD_IP,
+                TABLE.IP_V6,
+                TABLE.AGENT_ID
             ).values(
                 ULong.valueOf(applicationHostDTO.getHostId()),
                 ULong.valueOf(applicationHostDTO.getBizId()),
@@ -474,7 +481,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 applicationHostDTO.getOsType(),
                 finalModuleTypeStr,
                 UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0),
-                applicationHostDTO.getCloudIp()
+                applicationHostDTO.getCloudIp(),
+                applicationHostDTO.getIpv6(),
+                applicationHostDTO.getAgentId()
             );
             try {
                 result[0] = query.execute();
@@ -518,9 +527,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     TABLE.OS_TYPE,
                     TABLE.MODULE_TYPE,
                     TABLE.IS_AGENT_ALIVE,
-                    TABLE.CLOUD_IP
+                    TABLE.CLOUD_IP,
+                    TABLE.IP_V6,
+                    TABLE.AGENT_ID
                 ).values(
                     (ULong) null,
+                    null,
+                    null,
                     null,
                     null,
                     null,
@@ -566,7 +579,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         applicationHostDTO.getOsType(),
                         moduleTypeStr,
                         UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0),
-                        applicationHostDTO.getCloudIp()
+                        applicationHostDTO.getCloudIp(),
+                        applicationHostDTO.getIpv6(),
+                        applicationHostDTO.getAgentId()
                     );
                     hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
                 }
@@ -581,6 +596,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum[0];
     }
 
+    @SuppressWarnings("all")
     @Override
     public boolean existAppHostInfoByHostId(DSLContext dslContext, ApplicationHostDTO applicationHostDTO) {
         setDefaultValue(applicationHostDTO);
@@ -613,6 +629,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
     }
 
+    @SuppressWarnings("all")
     @Override
     public boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId) {
         val query = dslContext.selectCount().from(TABLE)
@@ -662,6 +679,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                 .set(TABLE.MODULE_TYPE, moduleTypeStr)
                 .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
+                .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+                .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
                 .where(conditions);
             try {
                 affectedNum[0] = query.execute();
@@ -720,6 +739,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                         .set(TABLE.MODULE_TYPE, moduleTypeStr)
                         .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
+                        .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+                        .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
                         .where(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())))
                         .and(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getBizId())))
                     );
@@ -810,7 +831,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     @Override
     public int deleteBizHostInfoByBizId(DSLContext dslContext, long bizId) {
         // 先查出所有的hostId
-        List<Long> hostIds = getHostIdListBySearchContents(Collections.singleton(bizId), null, null, null, null, null
+        List<Long> hostIds = listHostIdBySearchContents(Collections.singleton(bizId), null, null, null, null, null
             , null);
         // 删除拓扑信息+主机信息
         return batchDeleteBizHostInfoById(dslContext, bizId, hostIds);

@@ -22,25 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request;
+package com.tencent.bk.job.manage.config;
 
-import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.constants.EsbLang;
+import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+@Configuration
+public class BizCmdbClientAutoConfig {
 
-@Data
-@ApiModel("IP检查请求报文")
-public class IpCheckReq {
-
-    @ApiModelProperty(value = "应用场景：脚本执行/文件分发", required = false)
-    ActionScopeEnum actionScope;
-
-    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip", required = true)
-    List<String> ipList;
-
+    @Bean
+    @Autowired
+    public BizCmdbClient bizCmdbClient(EsbConfig esbConfig,
+                                       CmdbConfig cmdbConfig,
+                                       QueryAgentStatusClient queryAgentStatusClient,
+                                       MeterRegistry meterRegistry) {
+        return new BizCmdbClient(
+            esbConfig,
+            cmdbConfig,
+            EsbLang.EN,
+            queryAgentStatusClient,
+            meterRegistry
+        );
+    }
 }
-
-
