@@ -167,7 +167,17 @@ public class HostWatchThread extends Thread {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 //去除没有IP的主机信息
                 if (StringUtils.isBlank(hostInfoDTO.getDisplayIp())) {
-                    applicationHostDAO.deleteBizHostInfoById(dslContext, null, hostInfoDTO.getHostId());
+                    int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(
+                        dslContext,
+                        null,
+                        hostInfoDTO.getHostId()
+                    );
+                    log.info(
+                        "{} host deleted, id={} ,ip={}",
+                        affectedRowNum,
+                        hostInfoDTO.getHostId(),
+                        hostInfoDTO.getIp()
+                    );
                     break;
                 }
                 //找出Agent有效的IP，并设置Agent状态
@@ -212,7 +222,17 @@ public class HostWatchThread extends Thread {
                 hostCache.addOrUpdateHost(hostInfoDTO);
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationHostDAO.deleteBizHostInfoById(dslContext, null, hostInfoDTO.getHostId());
+                int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(
+                    dslContext,
+                    null,
+                    hostInfoDTO.getHostId()
+                );
+                log.info(
+                    "{} host deleted, id={} ,ip={}",
+                    affectedRowNum,
+                    hostInfoDTO.getHostId(),
+                    hostInfoDTO.getIp()
+                );
                 hostCache.deleteHost(hostInfoDTO);
                 break;
             default:

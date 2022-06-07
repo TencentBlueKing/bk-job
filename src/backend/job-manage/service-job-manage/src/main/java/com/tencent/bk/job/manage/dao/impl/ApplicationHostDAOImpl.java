@@ -581,6 +581,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum[0];
     }
 
+    @SuppressWarnings("all")
     @Override
     public boolean existAppHostInfoByHostId(DSLContext dslContext, ApplicationHostDTO applicationHostDTO) {
         setDefaultValue(applicationHostDTO);
@@ -613,6 +614,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
     }
 
+    @SuppressWarnings("all")
     @Override
     public boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId) {
         val query = dslContext.selectCount().from(TABLE)
@@ -741,30 +743,30 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long appHostId) {
+    public int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long hostId) {
         int[] affectedNum = new int[]{-1};
         List<Condition> conditions = new ArrayList<>();
         if (bizId != null) {
             conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
         }
-        if (appHostId != null) {
-            conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(appHostId)));
+        if (hostId != null) {
+            conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(hostId)));
         }
         dslContext.transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
             affectedNum[0] = context.deleteFrom(TABLE)
                 .where(conditions)
                 .execute();
-            hostTopoDAO.deleteHostTopoByHostId(context, bizId, appHostId);
+            hostTopoDAO.deleteHostTopoByHostId(context, bizId, hostId);
         });
         return affectedNum[0];
     }
 
     @Override
-    public int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> appHostIdList) {
+    public int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> hostIdList) {
         int[] affectedNum = new int[]{0};
         int batchSize = 1000;
-        int size = appHostIdList.size();
+        int size = hostIdList.size();
         List<Condition> conditions = new ArrayList<>();
         dslContext.transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
@@ -774,7 +776,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             do {
                 end = start + batchSize;
                 end = Math.min(end, size);
-                List<Long> subList = appHostIdList.subList(start, end);
+                List<Long> subList = hostIdList.subList(start, end);
                 if (bizId != null) {
                     queryList.add(context.deleteFrom(TABLE)
                         .where(TABLE.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList())))
@@ -802,7 +804,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     affectedNum[0] += result;
                 }
             }
-            hostTopoDAO.batchDeleteHostTopo(context, appHostIdList);
+            hostTopoDAO.batchDeleteHostTopo(context, hostIdList);
         });
         return affectedNum[0];
     }
@@ -814,19 +816,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             , null);
         // 删除拓扑信息+主机信息
         return batchDeleteBizHostInfoById(dslContext, bizId, hostIds);
-    }
-
-    @Override
-    public int deleteBizHostInfoNotInBizs(DSLContext dslContext, Set<Long> notInBizIds) {
-        val records = dslContext.select(TABLE.HOST_ID).from(TABLE)
-            .where(TABLE.APP_ID.notIn(notInBizIds.stream().map(ULong::valueOf).collect(Collectors.toSet())))
-            .fetch();
-        if (CollectionUtils.isNotEmpty(records)) {
-            List<Long> hostIds = records.map(it -> it.get(0, Long.class));
-            // 删除拓扑信息+主机信息
-            return batchDeleteBizHostInfoById(dslContext, null, hostIds);
-        }
-        return 0;
     }
 
     @Override

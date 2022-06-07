@@ -304,13 +304,14 @@ public class HostServiceImpl implements HostService {
         } catch (Throwable throwable) {
             log.warn("Fail to batchDeleteAppHostInfoById, try to delete one by one", throwable);
             // 批量删除失败，尝试逐条删除
-            for (ApplicationHostDTO ApplicationHostDTO : deleteList) {
+            for (ApplicationHostDTO host : deleteList) {
                 try {
-                    applicationHostDAO.deleteBizHostInfoById(dslContext, bizId, ApplicationHostDTO.getHostId());
+                    int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(dslContext, bizId, host.getHostId());
+                    log.info("{} host ({},{}) deleted", affectedRowNum, host.getHostId(), host.getIp());
                 } catch (Throwable t) {
                     log.error("deleteHost fail:appId={},hostInfo={}", bizId,
-                        ApplicationHostDTO, t);
-                    deleteFailHostIds.add(ApplicationHostDTO.getHostId());
+                        host, t);
+                    deleteFailHostIds.add(host.getHostId());
                 }
             }
         }
@@ -576,7 +577,6 @@ public class HostServiceImpl implements HostService {
                         ipList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
                     } else {
                         log.warn("Wrong host info! No cloud area!|{}", groupHost);
-                        continue;
                     }
                 }
 
@@ -705,9 +705,8 @@ public class HostServiceImpl implements HostService {
         // 从DB拿主机
         List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByBizId(bizId);
         log.info("find {} hosts from DB", dbHosts.size());
-        List<ApplicationHostDTO> hosts = dbHosts;
         watch.stop();
-        List<HostInfoVO> hostInfoVOList = hosts.stream().map(it -> {
+        List<HostInfoVO> hostInfoVOList = dbHosts.stream().map(it -> {
             HostInfoVO hostInfoVO = new HostInfoVO();
             hostInfoVO.setHostId(it.getHostId());
             hostInfoVO.setOs(it.getOs());
@@ -722,14 +721,14 @@ public class HostServiceImpl implements HostService {
         if (updateAgentStatus) {
             watch.start("batchGetAgentStatus");
             Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-                queryAgentStatusClient.batchGetAgentStatus(buildIpList(hosts));
+                queryAgentStatusClient.batchGetAgentStatus(buildIpList(dbHosts));
             fillAgentStatus(agentStatusMap, hostInfoVOList);
             watch.stop();
         }
         //将主机挂载到topo树
         watch.start("setToTopoTree");
         for (int i = 0; i < hostInfoVOList.size(); i++) {
-            ApplicationHostDTO host = hosts.get(i);
+            ApplicationHostDTO host = dbHosts.get(i);
             HostInfoVO hostInfoVO = hostInfoVOList.get(i);
             host.getModuleId().forEach(moduleId -> {
                 CcTopologyNodeVO moduleNode = map.get(moduleId);
@@ -758,11 +757,7 @@ public class HostServiceImpl implements HostService {
                 if (hostInfoDTO != null) {
                     String ip = hostInfoDTO.getCloudAreaId() + ":" + hostInfoDTO.getIp();
                     QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(ip);
-                    if (agentStatus != null && agentStatus.status == 1) {
-                        hostInfoDTO.setGseAgentAlive(true);
-                    } else {
-                        hostInfoDTO.setGseAgentAlive(false);
-                    }
+                    hostInfoDTO.setGseAgentAlive(agentStatus != null && agentStatus.status == 1);
                 }
             }
         }
@@ -915,7 +910,7 @@ public class HostServiceImpl implements HostService {
         cloudIPDTOList.forEach(cloudIPDTO -> {
             String ip = cloudIPDTO.getIp();
             if (cloudIPDTO.getCloudAreaId() != null) {
-                if (map.keySet().contains(ip)) {
+                if (map.containsKey(ip)) {
                     Set<Long> set = map.get(ip);
                     set.add(cloudIPDTO.getCloudAreaId());
                     map.put(ip, set);
