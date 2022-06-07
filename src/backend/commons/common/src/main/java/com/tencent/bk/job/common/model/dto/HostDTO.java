@@ -96,6 +96,11 @@ public class HostDTO implements Cloneable {
         this.ip = ip;
     }
 
+    public static HostDTO fromHostId(Long hostId) {
+        HostDTO hostDTO = new HostDTO();
+        hostDTO.setHostId(hostId);
+        return hostDTO;
+    }
     public static HostDTO fromHostIdAndAgentId(Long hostId, String agentId) {
         HostDTO hostDTO = new HostDTO();
         hostDTO.setHostId(hostId);

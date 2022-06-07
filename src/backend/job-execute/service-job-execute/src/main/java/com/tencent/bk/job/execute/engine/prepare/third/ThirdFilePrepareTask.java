@@ -319,8 +319,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         for (ServiceHostLogDTO serviceLogDTO : logDTOList) {
             logService.writeFileLogWithTimestamp(stepInstance.getCreateTime(), stepInstance.getId(),
                 stepInstance.getExecuteCount(), stepInstance.getBatch(),
-                HostDTO.fromHostIdAndAgentId(serviceLogDTO.getHostId(), serviceLogDTO.
-                serviceLogDTO, System.currentTimeMillis());
+                HostDTO.fromHostId(serviceLogDTO.getHostId()), serviceLogDTO, System.currentTimeMillis());
         }
     }
 

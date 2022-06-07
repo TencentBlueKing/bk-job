@@ -190,8 +190,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     GseLogBatchPullResult<api_task_detail_result> pullGseTaskResultInBatches() {
         if (pullAgentIdBatches.isEmpty()) {
             Set<String> queryAgentIds = new HashSet<>();
-            queryAgentIds.addAll(notStartedAgentIds);
-            queryAgentIds.addAll(runningAgentIds);
+            queryAgentIds.addAll(notStartedTargetAgentIds);
+            queryAgentIds.addAll(runningTargetAgentIds);
             List<String> queryAgentIdList = new ArrayList<>(queryAgentIds);
             pullAgentIdBatches = BatchUtil.buildBatchList(queryAgentIdList, currentBatchSize);
         }
@@ -283,10 +283,10 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             String agentId = agentTaskResult.getGse_composite_id() + ":" + agentTaskResult.getIp();
 
             // 该Agent已经日志分析结束，不要再分析
-            if (this.analyseFinishedAgentIds.contains(agentId)) {
+            if (this.analyseFinishedTargetAgentIds.contains(agentId)) {
                 continue;
             }
-            AgentTaskDTO agentTask = agentTaskMap.get(agentId);
+            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
             if (agentTask == null) {
                 continue;
             }
@@ -377,8 +377,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                     // 0：原子任务已派发；
                 case RUNNING:
                     // 1：原子任务执行中；
-                    notStartedAgentIds.remove(agentId);
-                    runningAgentIds.add(agentId);
+                    notStartedTargetAgentIds.remove(agentId);
+                    runningTargetAgentIds.add(agentId);
                     agentTask.setStatus(AgentTaskStatus.RUNNING.getValue());
                     break;
                 case SUCCESS:
@@ -388,15 +388,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                             || taskVariablesAnalyzeResult.isExistNamespaceVar())) {
                             //对于包含云参或者上下文参数的任务，下发任务的时候包含了2个任务；第一个是执行用户脚本；第二个获取参数的值
                             agentTask.setStatus(AgentTaskStatus.RUNNING.getValue());
-                            notStartedAgentIds.remove(agentId);
-                            runningAgentIds.add(agentId);
+                            notStartedTargetAgentIds.remove(agentId);
+                            runningTargetAgentIds.add(agentId);
                             refreshPullLogProgress("", agentId, 1);
                         } else {
                             //普通任务，拉取日志，设置为成功
                             dealAgentFinish(agentId, agentResult, agentTask);
                             agentTask.setStatus(AgentTaskStatus.SUCCESS.getValue());
                             if (this.targetAgentIds.contains(agentId)) {
-                                successAgentIds.add(agentId);
+                                successTargetAgentIds.add(agentId);
                             }
                         }
                     } else {
@@ -404,7 +404,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                         dealAgentFinish(agentId, agentResult, agentTask);
                         agentTask.setStatus(AgentTaskStatus.SUCCESS.getValue());
                         if (this.targetAgentIds.contains(agentId)) {
-                            successAgentIds.add(agentId);
+                            successTargetAgentIds.add(agentId);
                         }
                         parseVariableValueFromResult(agentResult, agentId);
                     }
@@ -531,7 +531,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         for (Map.Entry<String, Map<String, String>> entry : namespaceParamValues.entrySet()) {
             HostVariableValuesDTO hostVariableValues = new HostVariableValuesDTO();
             List<VariableValueDTO> paramValues = toVariableValuesList(entry.getValue());
-            AgentTaskDTO agentTask = agentTaskMap.get(entry.getKey());
+            AgentTaskDTO agentTask = targetAgentTasks.get(entry.getKey());
             hostVariableValues.setHostId(agentTask.getHostId());
             hostVariableValues.setAgentId(entry.getKey());
             hostVariableValues.setValues(paramValues);
@@ -600,9 +600,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
      */
     private GseTaskExecuteResult analyseExecuteResult() {
         GseTaskExecuteResult rst;
-        if (this.notStartedAgentIds.isEmpty() && this.runningAgentIds.isEmpty()) {
+        if (this.notStartedTargetAgentIds.isEmpty() && this.runningTargetAgentIds.isEmpty()) {
             int targetAgentNum = this.targetAgentIds.size();
-            int successTargetAgentNum = this.successAgentIds.size();
+            int successTargetAgentNum = this.successTargetAgentIds.size();
             boolean isSuccess = !stepInstance.hasInvalidHost() && successTargetAgentNum == targetAgentNum;
             if (isSuccess) {
                 rst = GseTaskExecuteResult.SUCCESS;
@@ -624,8 +624,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         super.saveFailInfoForUnfinishedAgentTask(status, errorMsg);
         long endTime = System.currentTimeMillis();
         Set<String> unfinishedAgentIds = new HashSet<>();
-        unfinishedAgentIds.addAll(notStartedAgentIds);
-        unfinishedAgentIds.addAll(this.runningAgentIds);
+        unfinishedAgentIds.addAll(notStartedTargetAgentIds);
+        unfinishedAgentIds.addAll(this.runningTargetAgentIds);
         if (StringUtils.isNotEmpty(errorMsg)) {
             logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
                 stepInstance.getExecuteCount(), stepInstance.getBatch(),
@@ -637,7 +637,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     private Map<String, Integer> buildAgentIdAndLogOffsetMap(Collection<String> agentIds) {
         Map<String, Integer> agentIdAndLogOffsetMap = new HashMap<>();
         agentIds.forEach(agentId -> {
-            AgentTaskDTO agentTask = agentTaskMap.get(agentId);
+            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
             if (agentTask != null) {
                 agentIdAndLogOffsetMap.put(agentId, agentTask.getScriptLogOffset());
             } else {

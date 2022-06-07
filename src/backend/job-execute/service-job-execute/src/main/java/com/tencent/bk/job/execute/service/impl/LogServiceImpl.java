@@ -83,7 +83,8 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public ServiceScriptLogDTO buildSystemScriptLog(HostDTO host, String content, int offset, Long logTimeInMillSeconds) {
+    public ServiceScriptLogDTO buildSystemScriptLog(HostDTO host, String content, int offset,
+                                                    Long logTimeInMillSeconds) {
         String logDateTime;
         if (logTimeInMillSeconds != null) {
             logDateTime = DateUtils.formatUnixTimestamp(logTimeInMillSeconds, ChronoUnit.MILLIS,
@@ -393,6 +394,15 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> fileLogs) {
+        String logDateTime = "[" + DateUtils.formatUnixTimestamp(System.currentTimeMillis(), ChronoUnit.MILLIS,
+            "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault()) + "]";
+        fileLogs.forEach(fileLog -> {
+            if (CollectionUtils.isNotEmpty(fileLog.getFileTaskLogs())) {
+                fileLog.getFileTaskLogs().forEach(
+                    fileTaskLog -> fileTaskLog.setContent(logDateTime + fileTaskLog.getContent() + "\n"));
+            }
+        });
+
         ServiceBatchSaveLogRequest request = new ServiceBatchSaveLogRequest();
         request.setJobCreateDate(DateUtils.formatUnixTimestamp(jobCreateTime, ChronoUnit.MILLIS, "yyyy_MM_dd",
             ZoneId.of("UTC")));

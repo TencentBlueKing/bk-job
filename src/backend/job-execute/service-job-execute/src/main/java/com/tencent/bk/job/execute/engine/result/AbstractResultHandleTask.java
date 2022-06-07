@@ -32,37 +32,16 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.listener.event.EventSource;
-import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
-import com.tencent.bk.job.execute.engine.listener.event.GseTaskResultHandleTaskResumeEvent;
-import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.model.GseLog;
-import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
-import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
-import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.listener.event.*;
+import com.tencent.bk.job.execute.engine.model.*;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.GseTaskDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.AgentTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.util.StopWatch;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -127,9 +106,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected GseTaskDTO gseTask;
     /**
-     * GSE 主机任务执行结果
+     * GSE 主机任务执行结果，Map<AgentId, AgentTaskDTO>
      */
-    protected Map<String, AgentTaskDTO> agentTaskMap;
+    protected Map<String, AgentTaskDTO> targetAgentTasks;
     /**
      * 全局参数分析结果
      */
@@ -143,23 +122,27 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected Set<String> targetAgentIds = new HashSet<>();
     /**
-     * 未开始任务的服务器
+     * 未开始任务的目标服务器
      */
-    protected Set<String> notStartedAgentIds = new HashSet<>();
+    protected Set<String> notStartedTargetAgentIds = new HashSet<>();
     /**
-     * 正在执行任务的服务器
+     * 正在执行任务的目标服务器
      */
-    protected Set<String> runningAgentIds = new HashSet<>();
+    protected Set<String> runningTargetAgentIds = new HashSet<>();
 
     // ---------------- analysed task execution result for server --------------------
     /**
      * 已经分析结果完成的目标服务器
      */
-    protected Set<String> analyseFinishedAgentIds = new HashSet<>();
+    protected Set<String> analyseFinishedTargetAgentIds = new HashSet<>();
     /**
-     * 执行成功的服务器
+     * 执行成功的目标服务器
      */
-    protected Set<String> successAgentIds = new HashSet<>();
+    protected Set<String> successTargetAgentIds = new HashSet<>();
+    /**
+     * Agent ID 与 hostID 映射关系
+     */
+    protected Map<String, Long> agentHostIdMap = new HashMap<>();
     /**
      * 任务成功被终止
      */
@@ -211,7 +194,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                       Map<String, AgentTaskDTO> agentTaskMap,
+                                       Map<String, AgentTaskDTO> targetAgentTasks,
                                        GseTaskDTO gseTask,
                                        String requestId) {
         this.taskInstanceService = taskInstanceService;
@@ -231,14 +214,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.appId = stepInstance.getAppId();
         this.stepInstanceId = stepInstance.getId();
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
-        this.agentTaskMap = agentTaskMap;
+        this.targetAgentTasks = targetAgentTasks;
         this.gseTask = gseTask;
         this.targetAgentIds.addAll(
-            agentTaskMap.values().stream()
+            targetAgentTasks.values().stream()
                 .filter(AgentTaskDTO::isTarget)
                 .map(AgentTaskDTO::getAgentId)
                 .collect(Collectors.toList()));
-        this.notStartedAgentIds.addAll(targetAgentIds);
+        this.notStartedTargetAgentIds.addAll(targetAgentIds);
 
         // 如果是执行方案，需要初始化全局变量
         if (taskInstance.isPlanInstance()) {
@@ -400,7 +383,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private void saveStatusWhenSkip() {
         List<AgentTaskDTO> notFinishedGseAgentTasks =
-            agentTaskMap.values().stream().filter(not(AgentTaskDTO::isFinished)).collect(Collectors.toList());
+            targetAgentTasks.values().stream().filter(not(AgentTaskDTO::isFinished)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(notFinishedGseAgentTasks)) {
             notFinishedGseAgentTasks.forEach(agentTask -> {
                 agentTask.setStatus(AgentTaskStatus.UNKNOWN.getValue());
@@ -486,9 +469,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         log.info("[{}]: Deal agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
             stepInstanceId, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
-        notStartedAgentIds.remove(agentId);
-        runningAgentIds.remove(agentId);
-        analyseFinishedAgentIds.add(agentId);
+        notStartedTargetAgentIds.remove(agentId);
+        runningTargetAgentIds.remove(agentId);
+        analyseFinishedTargetAgentIds.add(agentId);
 
         if (endTime - startTime <= 0) {
             agentTask.setTotalTime(100L);
@@ -519,7 +502,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         long gseTotalTime = endTime - startTime;
 
         int targetAgentNum = this.targetAgentIds.size();
-        int allSuccessAgentNum = this.successAgentIds.size();
+        int allSuccessAgentNum = this.successTargetAgentIds.size();
         boolean isSuccess = !stepInstance.hasInvalidHost() && allSuccessAgentNum == targetAgentNum;
 
         saveGseTaskExecutionInfo(result, isSuccess, endTime, gseTotalTime);
@@ -542,21 +525,21 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     protected void batchSaveChangedGseAgentTasks() {
         List<AgentTaskDTO> changedGseAgentTasks =
-            this.agentTaskMap.values().stream().filter(AgentTaskDTO::isChanged).collect(Collectors.toList());
+            this.targetAgentTasks.values().stream().filter(AgentTaskDTO::isChanged).collect(Collectors.toList());
         agentTaskService.batchUpdateAgentTasks(changedGseAgentTasks);
         changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
     }
 
     protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatus status, String errorMsg) {
         log.info("[{}]: Deal unfinished agent result| noStartJobAgentIds : {}| runningJobAgentIds : {}",
-            stepInstanceId, notStartedAgentIds, runningAgentIds);
+            stepInstanceId, notStartedTargetAgentIds, runningTargetAgentIds);
         Set<String> unfinishedAgentIds = new HashSet<>();
-        unfinishedAgentIds.addAll(notStartedAgentIds);
-        unfinishedAgentIds.addAll(runningAgentIds);
+        unfinishedAgentIds.addAll(notStartedTargetAgentIds);
+        unfinishedAgentIds.addAll(runningTargetAgentIds);
         long startTime = (gseTask != null && gseTask.getStartTime() != null) ?
             gseTask.getStartTime() : System.currentTimeMillis();
         for (String agentId : unfinishedAgentIds) {
-            AgentTaskDTO agentTask = agentTaskMap.get(agentId);
+            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
             agentTask.setStartTime(startTime);
             agentTask.setEndTime(System.currentTimeMillis());
             agentTask.setStatus(status.getValue());
