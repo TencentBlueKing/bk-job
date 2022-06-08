@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
+import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ import lombok.val;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.DeleteConditionStep;
 import org.jooq.Query;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
@@ -152,7 +154,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public int batchDeleteHostTopo(DSLContext dslContext, List<Long> hostIdList) {
+    public int batchDeleteHostTopo(DSLContext dslContext, Long bizId, List<Long> hostIdList) {
         int batchSize = 1000;
         int size = hostIdList.size();
         int start = 0;
@@ -163,7 +165,12 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             end = start + batchSize;
             end = Math.min(end, size);
             List<Long> subList = hostIdList.subList(start, end);
-            queryList.add(dslContext.deleteFrom(defaultTable).where(defaultTable.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList()))));
+            DeleteConditionStep<HostTopoRecord> step = dslContext.deleteFrom(defaultTable)
+                .where(defaultTable.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList())));
+            if (bizId != null) {
+                step = step.and(defaultTable.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
+            }
+            queryList.add(step);
             // SQL语句达到批量即执行
             if (queryList.size() >= batchSize) {
                 int[] results = dslContext.batch(queryList).execute();
@@ -181,6 +188,11 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             }
         }
         return affectedNum;
+    }
+
+    @Override
+    public int batchDeleteHostTopo(DSLContext dslContext, List<Long> hostIdList) {
+        return batchDeleteHostTopo(dslContext, null, hostIdList);
     }
 
     private List<HostTopoDTO> listHostTopoByConditions(DSLContext dslContext, Collection<Condition> conditions) {

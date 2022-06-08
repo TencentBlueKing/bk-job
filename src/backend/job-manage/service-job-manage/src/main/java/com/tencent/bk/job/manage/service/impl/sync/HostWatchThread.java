@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -201,7 +202,7 @@ public class HostWatchThread extends Thread {
                         applicationHostDAO.updateBizHostInfoByHostId(dslContext, oldHostInfoDTO.getBizId(),
                             hostInfoDTO);
                     } else {
-                        hostInfoDTO.setBizId(-1L);
+                        hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
                         try {
                             applicationHostDAO.insertAppHostWithoutTopo(dslContext, hostInfoDTO);
                         } catch (DataAccessException e) {

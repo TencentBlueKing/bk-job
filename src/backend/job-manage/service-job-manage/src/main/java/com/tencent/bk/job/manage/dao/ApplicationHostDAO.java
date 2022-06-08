@@ -80,6 +80,8 @@ public interface ApplicationHostDAO {
 
     int insertAppHostInfo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
 
+    int insertOrUpdateHost(DSLContext dslContext, ApplicationHostDTO hostDTO);
+
     int batchInsertAppHostInfo(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
 
     boolean existAppHostInfoByHostId(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);

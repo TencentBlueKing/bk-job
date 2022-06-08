@@ -154,27 +154,8 @@ public class HostServiceImpl implements HostService {
 
     private boolean insertOrUpdateOneAppHost(Long bizId, ApplicationHostDTO infoDTO) {
         try {
-            applicationHostDAO.insertAppHostInfo(dslContext, infoDTO);
+            applicationHostDAO.insertOrUpdateHost(dslContext, infoDTO);
             hostCache.addOrUpdateHost(infoDTO);
-        } catch (DataAccessException e) {
-            String errorMessage = e.getMessage();
-            if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
-                log.warn(String.format(
-                    "insertHost fail, try to update:Duplicate entry:bizId=%d," +
-                        "insert hostInfo=%s, old " +
-                        "hostInfo=%s", bizId, infoDTO,
-                    applicationHostDAO.getHostById(infoDTO.getHostId())), e);
-                try {
-                    // 插入失败了就应当更新，以后来的数据为准
-                    applicationHostDAO.updateBizHostInfoByHostId(dslContext, bizId, infoDTO);
-                } catch (Throwable t) {
-                    log.error(String.format("update after insert fail:bizId=%d,hostInfo=%s", bizId, infoDTO), t);
-                    return false;
-                }
-            } else {
-                log.error(String.format("insertHost fail:bizId=%d,hostInfo=%s", bizId, infoDTO), e);
-                return false;
-            }
         } catch (Throwable t) {
             log.error(String.format("insertHost fail:bizId=%d,hostInfo=%s", bizId, infoDTO), t);
             return false;
@@ -288,44 +269,19 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<Long> deleteHostsFromBiz(Long bizId, List<ApplicationHostDTO> deleteList) {
+    public List<Long> removeHostsFromBiz(Long bizId, List<ApplicationHostDTO> hostList) {
+        List<Long> hostIdList = hostList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
         StopWatch watch = new StopWatch();
-        // 删除主机
-        watch.start("deleteAppHostInfo");
+        watch.start("deleteHostTopoOfBiz");
         List<Long> deleteFailHostIds = new ArrayList<>();
-        boolean batchDeleted = false;
-        try {
-            // 尝试批量删除
-            if (!deleteList.isEmpty()) {
-                applicationHostDAO.batchDeleteBizHostInfoById(dslContext, bizId,
-                    deleteList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList()));
-            }
-            batchDeleted = true;
-        } catch (Throwable throwable) {
-            log.warn("Fail to batchDeleteAppHostInfoById, try to delete one by one", throwable);
-            // 批量删除失败，尝试逐条删除
-            for (ApplicationHostDTO host : deleteList) {
-                try {
-                    int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(dslContext, bizId, host.getHostId());
-                    log.info("{} host ({},{}) deleted", affectedRowNum, host.getHostId(), host.getIp());
-                } catch (Throwable t) {
-                    log.error("deleteHost fail:appId={},hostInfo={}", bizId,
-                        host, t);
-                    deleteFailHostIds.add(host.getHostId());
-                }
-            }
-        }
+        // 删除业务与主机的关系
+        hostTopoDAO.batchDeleteHostTopo(dslContext, bizId, hostIdList);
         watch.stop();
-        if (!batchDeleted) {
-            watch.start("log deleteAppHostInfo");
-            if (!deleteFailHostIds.isEmpty()) {
-                log.warn(String.format("appId=%s,deleteFailHostIds.size=%d,deleteFailHostIds=%s",
-                    bizId, deleteFailHostIds.size(), String.join(",",
-                        deleteFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-            }
-            watch.stop();
-        }
-        log.debug("Performance:deleteHostsFromApp:appId={},{}", bizId, watch.prettyPrint());
+        watch.start("syncHostTopo");
+        // 同步主机关系到host表
+        hostIdList.forEach(hostId -> applicationHostDAO.syncHostTopo(dslContext, hostId));
+        watch.stop();
+        log.debug("Performance:removeHostsFromBiz:bizId={},{}", bizId, watch.prettyPrint());
         return deleteFailHostIds;
     }
 

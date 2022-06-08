@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -42,6 +43,7 @@ import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.BatchBindStep;
@@ -374,13 +376,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
 
     private void setDefaultValue(ApplicationHostDTO applicationHostDTO) {
         if (applicationHostDTO.getHostId() == null) {
-            applicationHostDTO.setHostId(-1L);
+            applicationHostDTO.setHostId(0L);
         }
         if (applicationHostDTO.getBizId() == null) {
-            applicationHostDTO.setBizId(-1L);
+            applicationHostDTO.setBizId(JobConstants.PUBLIC_APP_ID);
         }
         if (applicationHostDTO.getCloudAreaId() == null) {
-            applicationHostDTO.setCloudAreaId(-1L);
+            applicationHostDTO.setCloudAreaId(0L);
         }
         if (applicationHostDTO.getSetId() == null) {
             applicationHostDTO.setSetId(new ArrayList<>());
@@ -415,39 +417,40 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
 
     @Override
     public int insertAppHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO) {
-        return insertAppHostInfo(dslContext, applicationHostDTO, false);
+        return insertOrUpdateHost(dslContext, applicationHostDTO, false, false);
     }
 
     @Override
     public int insertAppHostInfo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO) {
-        return insertAppHostInfo(dslContext, applicationHostDTO, true);
+        return insertOrUpdateHost(dslContext, applicationHostDTO, true, false);
     }
 
-    private int insertAppHostInfo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO,
-                                  Boolean insertTopo) {
+    @Override
+    public int insertOrUpdateHost(DSLContext dslContext, ApplicationHostDTO hostDTO) {
+        return insertOrUpdateHost(dslContext, hostDTO, true, true);
+    }
+
+    private int insertOrUpdateHost(DSLContext dslContext,
+                                   ApplicationHostDTO applicationHostDTO,
+                                   Boolean insertTopo,
+                                   boolean onConflictUpdate) {
         setDefaultValue(applicationHostDTO);
-        String moduleIdsStr = null;
-        List<Long> moduleIdList = applicationHostDTO.getModuleId();
-        if (moduleIdList != null) {
-            moduleIdsStr = moduleIdList.stream().map(Object::toString).collect(Collectors.joining(","));
-        }
-        String setIdsStr = null;
-        List<Long> setIdList = applicationHostDTO.getSetId();
-        if (setIdList != null) {
-            setIdsStr = setIdList.stream().map(Object::toString).collect(Collectors.joining(","));
-        }
-        String moduleTypeStr = null;
-        List<Long> moduleTypeList = applicationHostDTO.getModuleType();
-        if (moduleTypeList != null) {
-            moduleTypeStr = moduleTypeList.stream().map(Object::toString).collect(Collectors.joining(","));
-        }
         int[] result = new int[]{-1};
-        String finalSetIdsStr = setIdsStr;
-        String finalModuleIdsStr = moduleIdsStr;
-        String finalModuleTypeStr = moduleTypeStr;
+        String finalSetIdsStr = applicationHostDTO.getSetIdsStr();
+        String finalModuleIdsStr = applicationHostDTO.getModuleIdsStr();
+        String finalModuleTypeStr = applicationHostDTO.getModuleTypeStr();
         dslContext.transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
-            val query = context.insertInto(TABLE,
+            ULong bizId = ULong.valueOf(applicationHostDTO.getBizId());
+            String ip = applicationHostDTO.getIp();
+            String ipDesc = applicationHostDTO.getIpDesc();
+            ULong cloudAreaId = ULong.valueOf(applicationHostDTO.getCloudAreaId());
+            String displayIp = applicationHostDTO.getDisplayIp();
+            String os = applicationHostDTO.getOs();
+            String osType = applicationHostDTO.getOsType();
+            UByte gseAgentAlive = UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0);
+            String cloudIp = applicationHostDTO.getCloudIp();
+            var query = context.insertInto(TABLE,
                 TABLE.HOST_ID,
                 TABLE.APP_ID,
                 TABLE.IP,
@@ -463,21 +466,38 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.CLOUD_IP
             ).values(
                 ULong.valueOf(applicationHostDTO.getHostId()),
-                ULong.valueOf(applicationHostDTO.getBizId()),
-                applicationHostDTO.getIp(),
-                applicationHostDTO.getIpDesc(),
+                bizId,
+                ip,
+                ipDesc,
                 finalSetIdsStr,
                 finalModuleIdsStr,
-                ULong.valueOf(applicationHostDTO.getCloudAreaId()),
-                applicationHostDTO.getDisplayIp(),
-                applicationHostDTO.getOs(),
-                applicationHostDTO.getOsType(),
+                cloudAreaId,
+                displayIp,
+                os,
+                osType,
                 finalModuleTypeStr,
-                UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0),
-                applicationHostDTO.getCloudIp()
+                gseAgentAlive,
+                cloudIp
             );
             try {
-                result[0] = query.execute();
+                if (onConflictUpdate) {
+                    result[0] = query.onDuplicateKeyUpdate()
+                        .set(TABLE.APP_ID, bizId)
+                        .set(TABLE.IP, ip)
+                        .set(TABLE.IP_DESC, ipDesc)
+                        .set(TABLE.SET_IDS, finalSetIdsStr)
+                        .set(TABLE.MODULE_IDS, finalModuleIdsStr)
+                        .set(TABLE.CLOUD_AREA_ID, cloudAreaId)
+                        .set(TABLE.DISPLAY_IP, displayIp)
+                        .set(TABLE.OS, os)
+                        .set(TABLE.OS_TYPE, osType)
+                        .set(TABLE.MODULE_TYPE, finalModuleTypeStr)
+                        .set(TABLE.IS_AGENT_ALIVE, gseAgentAlive)
+                        .set(TABLE.CLOUD_IP, cloudIp)
+                        .execute();
+                } else {
+                    result[0] = query.execute();
+                }
             } catch (Throwable t) {
                 log.info("SQL=" + query.getSQL(ParamType.INLINED));
                 throw t;
@@ -538,33 +558,18 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 List<HostTopoDTO> hostTopoDTOList = new ArrayList<>();
                 for (ApplicationHostDTO applicationHostDTO : subList) {
                     setDefaultValue(applicationHostDTO);
-                    String moduleIdsStr = null;
-                    List<Long> moduleIdList = applicationHostDTO.getModuleId();
-                    if (moduleIdList != null) {
-                        moduleIdsStr = moduleIdList.stream().map(Object::toString).collect(Collectors.joining(","));
-                    }
-                    String setIdsStr = null;
-                    List<Long> setIdList = applicationHostDTO.getSetId();
-                    if (setIdList != null) {
-                        setIdsStr = setIdList.stream().map(Object::toString).collect(Collectors.joining(","));
-                    }
-                    String moduleTypeStr = null;
-                    List<Long> moduleTypeList = applicationHostDTO.getModuleType();
-                    if (moduleTypeList != null) {
-                        moduleTypeStr = moduleTypeList.stream().map(Object::toString).collect(Collectors.joining(","));
-                    }
                     batchQuery = batchQuery.bind(
                         ULong.valueOf(applicationHostDTO.getHostId()),
                         ULong.valueOf(applicationHostDTO.getBizId()),
                         applicationHostDTO.getIp(),
                         applicationHostDTO.getIpDesc(),
-                        setIdsStr,
-                        moduleIdsStr,
+                        applicationHostDTO.getSetIdsStr(),
+                        applicationHostDTO.getModuleIdsStr(),
                         ULong.valueOf(applicationHostDTO.getCloudAreaId()),
                         applicationHostDTO.getDisplayIp(),
                         applicationHostDTO.getOs(),
                         applicationHostDTO.getOsType(),
-                        moduleTypeStr,
+                        applicationHostDTO.getModuleTypeStr(),
                         UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0),
                         applicationHostDTO.getCloudIp()
                     );
@@ -588,23 +593,17 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (applicationHostDTO.getHostId() == -1L) {
             return false;
         }
-        String moduleIdsStr =
-            applicationHostDTO.getModuleId().stream().map(Object::toString).collect(Collectors.joining(","));
-        String setIdsStr = applicationHostDTO.getSetId().stream().map(Object::toString)
-            .collect(Collectors.joining(","));
-        String moduleTypeStr =
-            applicationHostDTO.getModuleType().stream().map(Object::toString).collect(Collectors.joining(","));
         val query = dslContext.selectCount().from(TABLE)
             .where(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getBizId())))
             .and(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())))
             .and(TABLE.IP.eq(applicationHostDTO.getIp()))
             .and(TABLE.IP_DESC.eq(applicationHostDTO.getIpDesc()))
-            .and(TABLE.SET_IDS.eq(setIdsStr))
-            .and(TABLE.MODULE_IDS.eq(moduleIdsStr))
+            .and(TABLE.SET_IDS.eq(applicationHostDTO.getSetIdsStr()))
+            .and(TABLE.MODULE_IDS.eq(applicationHostDTO.getModuleIdsStr()))
             .and(TABLE.CLOUD_AREA_ID.eq(ULong.valueOf(applicationHostDTO.getCloudAreaId())))
             .and(TABLE.DISPLAY_IP.eq(applicationHostDTO.getDisplayIp()))
             .and(TABLE.OS.eq(applicationHostDTO.getOs()))
-            .and(TABLE.MODULE_TYPE.eq(moduleTypeStr))
+            .and(TABLE.MODULE_TYPE.eq(applicationHostDTO.getModuleTypeStr()))
             .and(TABLE.IS_AGENT_ALIVE.eq(UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0)));
         try {
             return query.fetchOne(0, Long.class) >= 1;
@@ -634,12 +633,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (applicationHostDTO.getHostId() == -1L) {
             return -1;
         }
-        String moduleIdsStr =
-            applicationHostDTO.getModuleId().stream().map(Object::toString).collect(Collectors.joining(","));
-        String setIdsStr = applicationHostDTO.getSetId().stream().map(Object::toString)
-            .collect(Collectors.joining(","));
-        String moduleTypeStr =
-            applicationHostDTO.getModuleType().stream().map(Object::toString).collect(Collectors.joining(","));
         int[] affectedNum = new int[]{-1};
         List<Condition> conditions = new ArrayList<>();
         if (bizId != null) {
@@ -656,13 +649,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .set(TABLE.IP, applicationHostDTO.getIp())
                 .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
                 .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
-                .set(TABLE.SET_IDS, setIdsStr)
-                .set(TABLE.MODULE_IDS, moduleIdsStr)
+                .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
+                .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
                 .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
                 .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
                 .set(TABLE.OS, applicationHostDTO.getOs())
                 .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
-                .set(TABLE.MODULE_TYPE, moduleTypeStr)
+                .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
                 .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
                 .where(conditions);
             try {
@@ -700,27 +693,18 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         log.warn("Unexpected hostId==-1,hostInfo={}", applicationHostDTO);
                         continue;
                     }
-                    String moduleIdsStr =
-                        applicationHostDTO.getModuleId().stream().map(Object::toString)
-                            .collect(Collectors.joining(","));
-                    String setIdsStr =
-                        applicationHostDTO.getSetId().stream().map(Object::toString)
-                            .collect(Collectors.joining(","));
-                    String moduleTypeStr =
-                        applicationHostDTO.getModuleType().stream().map(Object::toString)
-                            .collect(Collectors.joining(","));
                     queryList.add(dslContext.update(TABLE)
                         .set(TABLE.APP_ID, ULong.valueOf(applicationHostDTO.getBizId()))
                         .set(TABLE.IP, applicationHostDTO.getIp())
                         .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
                         .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
-                        .set(TABLE.SET_IDS, setIdsStr)
-                        .set(TABLE.MODULE_IDS, moduleIdsStr)
+                        .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
+                        .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
                         .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
                         .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
                         .set(TABLE.OS, applicationHostDTO.getOs())
                         .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
-                        .set(TABLE.MODULE_TYPE, moduleTypeStr)
+                        .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
                         .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
                         .where(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())))
                         .and(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getBizId())))
@@ -872,6 +856,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             List<Long> moduleTypes = moduleIds.parallelStream().map(it -> 1L).collect(Collectors.toList());
             if (!hostTopoDTOList.isEmpty()) {
                 hostInfoDTO.setBizId(hostTopoDTOList.get(0).getBizId());
+            } else {
+                hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
             }
             hostInfoDTO.setSetId(setIds);
             hostInfoDTO.setModuleId(moduleIds);
