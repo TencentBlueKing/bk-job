@@ -24,28 +24,53 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * Agent任务执行结果分组
+ * GSE Agent 任务详情，包含主机的详细信息
  */
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-public class AgentTaskResultGroupDTO extends AgentTaskResultGroupBaseDTO {
+public class AgentTaskDetailDTO extends AgentTaskDTO {
     /**
-     * Agent任务
+     * 服务器IP,不包含云区域
      */
-    private List<AgentTaskDetailDTO> agentTasks;
+    private String ip;
+    /**
+     * 云区域ID
+     */
+    private Long bkCloudId;
+    /**
+     * 云区域名称
+     */
+    private String bkCloudName;
+    /**
+     * 展示给用户的IP
+     */
+    private String displayIp;
 
-    public AgentTaskResultGroupDTO(Integer status, String tag) {
-        super(status, tag);
+    public AgentTaskDetailDTO(AgentTaskDTO agentTask) {
+        super(agentTask);
+        if (StringUtils.isNotEmpty(agentTask.getCloudIp())) {
+            HostDTO host = HostDTO.fromCloudIp(agentTask.getAgentId());
+            this.ip = host.getIp();
+            this.bkCloudId = host.getBkCloudId();
+        }
+    }
+
+    public String getDisplayIp() {
+        if (StringUtils.isNotEmpty(displayIp)) {
+            return displayIp;
+        } else {
+            return ip;
+        }
     }
 
 }

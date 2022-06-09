@@ -67,8 +67,16 @@ public class ServiceScriptLogDTO {
 
     public ServiceScriptLogDTO(HostDTO host, Integer offset, String content) {
         this.hostId = host.getHostId();
-        this.cloudIp = host.getIp();
+        if (host.getIp() != null && host.getBkCloudId() != null) {
+            this.cloudIp = host.toCloudIp();
+        }
         this.offset = offset;
+        this.content = content;
+    }
+
+    public ServiceScriptLogDTO(Long hostId, String cloudIp, String content) {
+        this.hostId = hostId;
+        this.cloudIp = cloudIp;
         this.content = content;
     }
 }

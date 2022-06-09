@@ -59,7 +59,7 @@ import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
@@ -90,9 +90,7 @@ import com.tencent.bk.job.execute.model.web.vo.StepExecutionVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteResultVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecutionVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
-import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -136,8 +134,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final ServiceNotificationResourceClient notifyResource;
     private final ExecuteAuthService executeAuthService;
     private final WebAuthService webAuthService;
-    private final HostService hostService;
-    private final StepInstanceService stepInstanceService;
 
 
     private final LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
@@ -190,9 +186,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                               TaskInstanceVariableService taskInstanceVariableService,
                                               ServiceNotificationResourceClient notifyResource,
                                               ExecuteAuthService executeAuthService,
-                                              WebAuthService webAuthService,
-                                              HostService hostService,
-                                              StepInstanceService stepInstanceService) {
+                                              WebAuthService webAuthService) {
         this.taskResultService = taskResultService;
         this.i18nService = i18nService;
         this.logService = logService;
@@ -202,8 +196,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         this.notifyResource = notifyResource;
         this.executeAuthService = executeAuthService;
         this.webAuthService = webAuthService;
-        this.hostService = hostService;
-        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -544,7 +536,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         stepExecutionDetailVO.setType(executionDetail.getStepType().getValue());
         stepExecutionDetailVO.setRunMode(executionDetail.getRunMode().getValue());
 
-        Map<Long, HostDTO> stepHosts = stepInstanceService.computeStepHosts(executionDetail.getStepInstance());
         List<ExecutionResultGroupVO> resultGroupVOS = new ArrayList<>();
         for (AgentTaskResultGroupDTO resultGroup : executionDetail.getResultGroups()) {
             ExecutionResultGroupVO executionResultGroupVO = new ExecutionResultGroupVO();
@@ -556,11 +547,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
             List<AgentTaskExecutionVO> agentTaskExecutionVOS = new ArrayList<>();
             if (resultGroup.getAgentTasks() != null) {
-                for (AgentTaskDTO agentTask : resultGroup.getAgentTasks()) {
+                for (AgentTaskDetailDTO agentTask : resultGroup.getAgentTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
-                    HostDTO host = stepHosts.get(agentTask.getHostId());
-                    agentTaskVO.setIp(host.toCloudIp());
-                    agentTaskVO.setDisplayIp(host.getDisplayIp());
+                    agentTaskVO.setIp(agentTask.getCloudIp());
+                    agentTaskVO.setDisplayIp(agentTask.getDisplayIp());
                     agentTaskVO.setEndTime(agentTask.getEndTime());
                     agentTaskVO.setStartTime(agentTask.getStartTime());
                     agentTaskVO.setStatus(agentTask.getStatus());
@@ -570,9 +560,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                     agentTaskVO.setExitCode(agentTask.getExitCode());
                     agentTaskVO.setTag(agentTask.getTag());
                     agentTaskVO.setTotalTime(agentTask.getTotalTime());
-                    agentTaskVO.setCloudAreaId(host.getBkCloudId());
-                    agentTaskVO.setCloudAreaName(StringUtils.isNotEmpty(host.getBkCloudName()) ? host.getBkCloudName()
-                        : hostService.getCloudAreaName(host.getBkCloudId()));
+                    agentTaskVO.setCloudAreaId(agentTask.getBkCloudId());
+                    agentTaskVO.setCloudAreaName(agentTask.getBkCloudName());
                     agentTaskVO.setRetryCount(agentTask.getExecuteCount());
                     agentTaskVO.setBatch(agentTask.getBatch());
                     agentTaskExecutionVOS.add(agentTaskVO);
@@ -624,7 +613,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
         authViewStepInstance(username, appResourceScope, stepInstanceId);
 
-        ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId, executeCount, batch,
+        ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId, executeCount,
+            batch,
             HostDTO.fromCloudIp(ip));
         IpScriptLogContentVO ipScriptLogContentVO = new IpScriptLogContentVO();
         ipScriptLogContentVO.setDisplayIp(ip);

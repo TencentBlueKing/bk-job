@@ -139,7 +139,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         result.setIp(taskHostLog.getIp());
         if (taskHostLog.getScriptTaskLog() != null) {
             result.setScriptLog(new ServiceScriptLogDTO(taskHostLog.getHostId(), taskHostLog.getIp(),
-                null, taskHostLog.getScriptContent()));
+                taskHostLog.getScriptContent()));
         }
         if (CollectionUtils.isNotEmpty(taskHostLog.getFileTaskLogs())) {
             result.setFileTaskLogs(taskHostLog.getFileTaskLogs().stream()
