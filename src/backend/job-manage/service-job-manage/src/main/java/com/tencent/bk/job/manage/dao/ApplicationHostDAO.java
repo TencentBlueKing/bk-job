@@ -71,6 +71,8 @@ public interface ApplicationHostDAO {
 
     List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips);
 
+    List<ApplicationHostDTO> listHostInfoByBizAndCloudIPs(Collection<Long> bizIds, Collection<String> cloudIPs);
+
     List<ApplicationHostDTO> listHostInfoBySourceAndIps(long cloudAreaId, Set<String> ips);
 
     PageData<ApplicationHostDTO> listHostInfoByPage(ApplicationHostDTO applicationHostInfoCondition,

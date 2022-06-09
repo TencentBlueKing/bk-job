@@ -198,6 +198,16 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<ApplicationHostDTO> listHostInfoByBizAndCloudIPs(Collection<Long> bizIds, Collection<String> cloudIPs) {
+        List<Condition> conditions = new ArrayList<>();
+        if (bizIds != null) {
+            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        }
+        conditions.add(TABLE.CLOUD_IP.in(cloudIPs.parallelStream().map(String::trim).collect(Collectors.toList())));
+        return listHostInfoByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoByBizIds(Collection<Long> bizIds, Long start, Long limit) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
