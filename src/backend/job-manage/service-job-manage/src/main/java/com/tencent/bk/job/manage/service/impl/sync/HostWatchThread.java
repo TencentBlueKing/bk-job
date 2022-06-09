@@ -220,7 +220,9 @@ public class HostWatchThread extends Thread {
                     // 从拓扑表向主机表同步拓扑数据
                     applicationHostDAO.syncHostTopo(dslContext, hostInfoDTO.getHostId());
                 }
-                hostCache.addOrUpdateHost(hostInfoDTO);
+                if (hostInfoDTO.getBizId() != null && hostInfoDTO.getBizId() > 0) {
+                    hostCache.addOrUpdateHost(hostInfoDTO);
+                }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
                 int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(
