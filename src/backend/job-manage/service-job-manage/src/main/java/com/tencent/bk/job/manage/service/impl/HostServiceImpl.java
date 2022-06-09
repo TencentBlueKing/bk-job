@@ -80,8 +80,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
-import org.slf4j.helpers.FormattingTuple;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -1346,6 +1344,9 @@ public class HostServiceImpl implements HostService {
                     continue;
                 }
                 IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
+                if (appHost.getBizId() == JobConstants.PUBLIC_APP_ID) {
+                    continue;
+                }
                 notExistHosts.remove(hostIp);
                 hostCache.addOrUpdateHost(appHost);
                 if (!includeBizIds.contains(appHost.getBizId())) {
