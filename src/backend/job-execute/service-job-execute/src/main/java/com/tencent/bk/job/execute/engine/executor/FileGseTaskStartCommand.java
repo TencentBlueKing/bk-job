@@ -420,6 +420,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 stepInstance,
                 taskVariablesAnalyzeResult,
                 targetAgentTaskMap,
+                sourceAgentTaskMap,
                 gseTask,
                 sendFiles,
                 fileStorageRootPath,

@@ -52,7 +52,6 @@ import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -99,33 +98,13 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public void writeScriptLog(String jobCreateDate, long stepInstanceId, int executeCount, Integer batch,
-                               ServiceScriptLogDTO scriptLog) {
-        if (scriptLog == null || StringUtils.isEmpty(scriptLog.getContent())) {
-            return;
-        }
-        ServiceSaveLogRequest request = new ServiceSaveLogRequest();
-        request.setStepInstanceId(stepInstanceId);
-        request.setExecuteCount(executeCount);
-        request.setBatch(batch);
-        request.setIp(scriptLog.getCloudIp());
-        request.setJobCreateDate(jobCreateDate);
-        request.setScriptLog(scriptLog);
-        request.setLogType(LogTypeEnum.SCRIPT.getValue());
-        InternalResponse resp = logServiceResourceClient.saveLog(request);
-        if (!resp.isSuccess()) {
-            log.error("Write log content fail, stepInstanceId:{}, executeCount:{}, batch: {}",
-                stepInstanceId, executeCount, batch);
-            throw new InternalException(resp.getCode());
-        }
-    }
-
-    @Override
-    public void batchWriteScriptLog(String jobCreateDate, long stepInstanceId, int executeCount, Integer batch,
+    public void batchWriteScriptLog(long jobCreateTime, long stepInstanceId, int executeCount, Integer batch,
                                     List<ServiceScriptLogDTO> scriptLogs) {
         if (CollectionUtils.isEmpty(scriptLogs)) {
             return;
         }
+        String jobCreateDate = DateUtils.formatUnixTimestamp(jobCreateTime, ChronoUnit.MILLIS,
+            "yyyy_MM_dd", ZoneId.of("UTC"));
         ServiceBatchSaveLogRequest request = new ServiceBatchSaveLogRequest();
         request.setJobCreateDate(jobCreateDate);
         request.setLogType(LogTypeEnum.SCRIPT.getValue());

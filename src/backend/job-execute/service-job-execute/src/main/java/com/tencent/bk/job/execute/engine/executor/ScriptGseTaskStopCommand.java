@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -41,9 +42,9 @@ import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
@@ -69,8 +70,10 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
     @Override
     public void execute() {
         log.info("Stop gse task, gseTask:" + gseTaskUniqueName);
-        Set<String> terminateAgentIds = new HashSet<>();
-        stepInstance.getTargetServers().getIpList().forEach(targetHost -> terminateAgentIds.add(targetHost.getAgentId()));
+        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        Set<String> terminateAgentIds = agentTasks.stream()
+            .map(AgentTaskDTO::getAgentId)
+            .collect(Collectors.toSet());
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());

@@ -32,16 +32,37 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.listener.event.*;
-import com.tencent.bk.job.execute.engine.model.*;
+import com.tencent.bk.job.execute.engine.listener.event.EventSource;
+import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
+import com.tencent.bk.job.execute.engine.listener.event.GseTaskResultHandleTaskResumeEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
+import com.tencent.bk.job.execute.engine.model.GseLog;
+import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
+import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
+import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.model.*;
-import com.tencent.bk.job.execute.service.*;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.util.StopWatch;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -216,11 +237,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
         this.targetAgentTasks = targetAgentTasks;
         this.gseTask = gseTask;
-        this.targetAgentIds.addAll(
-            targetAgentTasks.values().stream()
-                .filter(AgentTaskDTO::isTarget)
-                .map(AgentTaskDTO::getAgentId)
-                .collect(Collectors.toList()));
+
+        targetAgentTasks.values().forEach(agentTask -> {
+            this.targetAgentIds.add(agentTask.getAgentId());
+            this.agentHostIdMap.put(agentTask.getAgentId(), agentTask.getHostId());
+        });
         this.notStartedTargetAgentIds.addAll(targetAgentIds);
 
         // 如果是执行方案，需要初始化全局变量

@@ -104,7 +104,7 @@ public class JobSrcFileUtils {
      * 从步骤解析源文件，处理服务器文件、本地文件、第三方源文件的差异，统一为IP+Path信息
      *
      * @param stepInstance      步骤
-     * @param localHost         job local server
+     * @param localHost         job local host
      * @param jobStorageRootDir job共享存储根目录
      * @return 多个要分发的源文件信息集合
      */
@@ -137,14 +137,12 @@ public class JobSrcFileUtils {
                         if (predicate.test(sourceHost)) {
                             // 第三方源文件的displayName不同
                             if (isThirdFile) {
-                                sendFiles.add(new JobFile(false, sourceHost.getHostId(),
-                                    sourceHost.getAgentId(), sourceHost.toCloudIp(),
+                                sendFiles.add(new JobFile(false, sourceHost,
                                     file.getThirdFilePathWithFileSourceName(),
                                     file.getThirdFilePathWithFileSourceName(),
                                     dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
                             } else {
-                                sendFiles.add(new JobFile(false, sourceHost.getHostId(),
-                                    sourceHost.getAgentId(), sourceHost.toCloudIp(), filePath, filePath, dir,
+                                sendFiles.add(new JobFile(false, sourceHost, filePath, filePath, dir,
                                     fileName, stepInstance.getAppId(), accountId, accountAlias));
                             }
                         }
@@ -162,15 +160,13 @@ public class JobSrcFileUtils {
                     if (servers != null && servers.getIpList() != null && !servers.getIpList().isEmpty()) {
                         List<HostDTO> ipList = servers.getIpList();
                         for (HostDTO hostDTO : ipList) {
-                            sendFiles.add(new JobFile(fileSource.isLocalUpload(), hostDTO.getHostId(),
-                                hostDTO.getAgentId(), hostDTO.toCloudIp(), file.getFilePath(), dir, fileName,
-                                "root", null,
+                            sendFiles.add(new JobFile(fileSource.isLocalUpload(), hostDTO, file.getFilePath(), dir,
+                                fileName, "root", null,
                                 FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                         }
                     } else {
-                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), localHost.getHostId(),
-                            localHost.getAgentId(), localHost.toCloudIp(), file.getFilePath(), dir, fileName,
-                            "root", null,
+                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), localHost, file.getFilePath(), dir,
+                            fileName, "root", null,
                             FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                     }
                 }
@@ -183,8 +179,8 @@ public class JobSrcFileUtils {
                     String fileName = fileNameAndPath.getRight();
                     List<HostDTO> ipList = fileSource.getServers().getIpList();
                     for (HostDTO hostDTO : ipList) {
-                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), hostDTO.getHostId(), hostDTO.getAgentId(),
-                            hostDTO.toCloudIp(), file.getFilePath(), dir, fileName, "root", null,
+                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), hostDTO, file.getFilePath(), dir,
+                            fileName, "root", null,
                             FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                     }
                 }

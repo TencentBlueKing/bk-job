@@ -205,12 +205,12 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      * 初始化执行上下文，在GSE任务下发前调用
      */
     private void initExecutionContext() {
-        initTargetHosts();
+        initTargetAgentTasks();
         initVariables();
         preExecute();
     }
 
-    private void initTargetHosts() {
+    private void initTargetAgentTasks() {
         List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount, batch);
         agentTasks.stream()
             .filter(AgentTaskDTO::isTarget)

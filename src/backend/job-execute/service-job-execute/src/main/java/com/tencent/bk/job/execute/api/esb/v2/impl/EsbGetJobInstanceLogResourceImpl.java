@@ -50,12 +50,14 @@ import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -67,19 +69,22 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
     private final FileAgentTaskService fileAgentTaskService;
     private final GseTaskService gseTaskService;
     private final LogService logService;
+    private final StepInstanceService stepInstanceService;
 
     public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
                                             AppScopeMappingService appScopeMappingService,
                                             ScriptAgentTaskService scriptAgentTaskService,
                                             FileAgentTaskService fileAgentTaskService,
                                             GseTaskService gseTaskService,
-                                            LogService logService) {
+                                            LogService logService,
+                                            StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -101,6 +106,7 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
             taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
         List<EsbStepInstanceResultAndLog> stepInstResultAndLogList = Lists.newArrayList();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
+            Map<Long, HostDTO> stepHosts = stepInstanceService.computeStepHosts(stepInstance);
             // TODO Rolling
             GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(),
                 stepInstance.getExecuteCount(), 0);
@@ -139,6 +145,7 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
                 List<EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO> esbGseAgentTaskList =
                     Lists.newArrayListWithCapacity(agentTasks.size());
                 for (AgentTaskDTO agentTask : agentTasks) {
+                    HostDTO host = stepHosts.get(agentTask.getHostId());
                     EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO esbGseAgentTaskDTO =
                         new EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO();
                     esbGseAgentTaskDTO.setLogContent(Utils.htmlEncode(agentTask.getScriptLogContent()));
@@ -148,8 +155,8 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
                     esbGseAgentTaskDTO.setErrCode(agentTask.getErrorCode());
                     esbGseAgentTaskDTO.setExitCode(agentTask.getExitCode());
                     esbGseAgentTaskDTO.setTotalTime(agentTask.getTotalTime());
-                    esbGseAgentTaskDTO.setCloudAreaId(agentTask.getCloudId());
-                    esbGseAgentTaskDTO.setIp(agentTask.getIp());
+                    esbGseAgentTaskDTO.setCloudAreaId(host.getBkCloudId());
+                    esbGseAgentTaskDTO.setIp(host.getIp());
                     esbGseAgentTaskList.add(esbGseAgentTaskDTO);
                 }
                 stepInstResult.setIpLogs(esbGseAgentTaskList);
@@ -173,14 +180,15 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
         return ValidateResult.pass();
     }
 
-    private void addLogContent(StepInstanceBaseDTO stepInstance, List<AgentTaskDTO> agentTasks) {
+    private void addLogContent(StepInstanceBaseDTO stepInstance, List<AgentTaskDTO> agentTasks,
+                               Map<Long, HostDTO> stepHosts) {
         long stepInstanceId = stepInstance.getId();
         int executeCount = stepInstance.getExecuteCount();
 
         for (AgentTaskDTO agentTask : agentTasks) {
             if (stepInstance.isScriptStep()) {
                 ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId, executeCount,
-                    null, HostDTO.fromCloudIp(agentTask.getCloudIp()));
+                    null, agentTask.getHost());
                 agentTask.setScriptLogContent(scriptHostLogContent == null ? "" : scriptHostLogContent.getContent());
             } else if (stepInstance.isFileStep()) {
                 FileIpLogContent fileIpLogContent = logService.getFileIpLogContent(stepInstanceId, executeCount,

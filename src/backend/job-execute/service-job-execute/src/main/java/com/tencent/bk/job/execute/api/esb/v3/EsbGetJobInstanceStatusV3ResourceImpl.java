@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -42,6 +43,7 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,6 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -60,15 +63,18 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
     private final AppScopeMappingService appScopeMappingService;
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
+    private final StepInstanceService stepInstanceService;
 
     public EsbGetJobInstanceStatusV3ResourceImpl(TaskInstanceService taskInstanceService,
                                                  AppScopeMappingService appScopeMappingService,
                                                  ScriptAgentTaskService scriptAgentTaskService,
-                                                 FileAgentTaskService fileAgentTaskService) {
+                                                 FileAgentTaskService fileAgentTaskService,
+                                                 StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -150,18 +156,20 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
                     agentTaskList = fileAgentTaskService.listAgentTasks(stepInstance.getId(),
                         stepInstance.getExecuteCount(), null);
                 }
+                Map<Long, HostDTO> stepHosts = stepInstanceService.computeStepHosts(stepInstance);
                 if (CollectionUtils.isNotEmpty(agentTaskList)) {
-                    for (AgentTaskDTO ipLog : agentTaskList) {
+                    for (AgentTaskDTO agentTask : agentTaskList) {
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
-                        stepIpResult.setCloudAreaId(ipLog.getCloudId());
-                        stepIpResult.setIp(ipLog.getIp());
-                        stepIpResult.setExitCode(ipLog.getExitCode());
-                        stepIpResult.setErrorCode(ipLog.getErrorCode());
-                        stepIpResult.setStartTime(ipLog.getStartTime());
-                        stepIpResult.setEndTime(ipLog.getEndTime());
-                        stepIpResult.setTotalTime(ipLog.getTotalTime());
-                        stepIpResult.setTag(ipLog.getTag());
-                        stepIpResult.setStatus(ipLog.getStatus());
+                        HostDTO host = stepHosts.get(agentTask.getHostId());
+                        stepIpResult.setCloudAreaId(host.getBkCloudId());
+                        stepIpResult.setIp(host.getIp());
+                        stepIpResult.setExitCode(agentTask.getExitCode());
+                        stepIpResult.setErrorCode(agentTask.getErrorCode());
+                        stepIpResult.setStartTime(agentTask.getStartTime());
+                        stepIpResult.setEndTime(agentTask.getEndTime());
+                        stepIpResult.setTotalTime(agentTask.getTotalTime());
+                        stepIpResult.setTag(agentTask.getTag());
+                        stepIpResult.setStatus(agentTask.getStatus());
                         stepIpResults.add(stepIpResult);
                     }
                 }

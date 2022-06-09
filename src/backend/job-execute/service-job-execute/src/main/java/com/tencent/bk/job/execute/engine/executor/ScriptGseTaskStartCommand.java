@@ -76,8 +76,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -199,8 +197,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
         List<api_agent> agentList = GseRequestUtils.buildAgentList(targetAgentTaskMap.keySet(),
-            accountInfo.getAccount(),
-            accountInfo.getPassword());
+            accountInfo.getAccount(), accountInfo.getPassword());
         api_script_request request = GseRequestUtils.buildScriptRequest(agentList, scriptContent, scriptFileName,
             scriptFilePath, resolvedScriptParam, timeout);
         request.setM_caller(buildGSETraceInfo());
@@ -712,9 +709,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             agentTask.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), now, null));
             agentTask.setStatus(AgentTaskStatus.SUBMIT_FAILED.getValue());
         }
-        String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
-        logService.batchWriteScriptLog(taskCreateDateStr, stepInstanceId, executeCount, batch, scriptLogs);
+        logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
         scriptAgentTaskService.batchUpdateAgentTasks(targetAgentTaskMap.values());
     }
 }

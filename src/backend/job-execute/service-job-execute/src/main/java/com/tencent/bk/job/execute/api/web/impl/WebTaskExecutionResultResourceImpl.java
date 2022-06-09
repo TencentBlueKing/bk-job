@@ -43,7 +43,6 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -91,7 +90,9 @@ import com.tencent.bk.job.execute.model.web.vo.StepExecutionVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteResultVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecutionVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
+import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -135,6 +136,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final ServiceNotificationResourceClient notifyResource;
     private final ExecuteAuthService executeAuthService;
     private final WebAuthService webAuthService;
+    private final HostService hostService;
+    private final StepInstanceService stepInstanceService;
+
 
     private final LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
@@ -187,7 +191,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                               ServiceNotificationResourceClient notifyResource,
                                               ExecuteAuthService executeAuthService,
                                               WebAuthService webAuthService,
-                                              AppScopeMappingService appScopeMappingService) {
+                                              HostService hostService,
+                                              StepInstanceService stepInstanceService) {
         this.taskResultService = taskResultService;
         this.i18nService = i18nService;
         this.logService = logService;
@@ -197,6 +202,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         this.notifyResource = notifyResource;
         this.executeAuthService = executeAuthService;
         this.webAuthService = webAuthService;
+        this.hostService = hostService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -397,9 +404,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             stepExecutionVO.setEndTime(stepExecutionDTO.getEndTime());
             stepExecutionVO.setStatus(stepExecutionDTO.getStatus());
             RunStatusEnum runStatus = RunStatusEnum.valueOf(stepExecutionDTO.getStatus());
-            if (runStatus != null) {
-                stepExecutionVO.setStatusDesc(i18nService.getI18n(runStatus.getI18nKey()));
-            }
+            stepExecutionVO.setStatusDesc(i18nService.getI18n(runStatus.getI18nKey()));
             stepExecutionVO.setTotalTime(stepExecutionDTO.getTotalTime());
             stepExecutionVO.setType(stepExecutionDTO.getType());
             stepExecutionVO.setCurrentStepRunning(taskExecuteResultDTO.getTaskInstanceExecutionResult()
@@ -539,6 +544,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         stepExecutionDetailVO.setType(executionDetail.getStepType().getValue());
         stepExecutionDetailVO.setRunMode(executionDetail.getRunMode().getValue());
 
+        Map<Long, HostDTO> stepHosts = stepInstanceService.computeStepHosts(executionDetail.getStepInstance());
         List<ExecutionResultGroupVO> resultGroupVOS = new ArrayList<>();
         for (AgentTaskResultGroupDTO resultGroup : executionDetail.getResultGroups()) {
             ExecutionResultGroupVO executionResultGroupVO = new ExecutionResultGroupVO();
@@ -552,8 +558,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             if (resultGroup.getAgentTasks() != null) {
                 for (AgentTaskDTO agentTask : resultGroup.getAgentTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
-                    agentTaskVO.setIp(agentTask.getCloudIp());
-                    agentTaskVO.setDisplayIp(agentTask.getDisplayIp());
+                    HostDTO host = stepHosts.get(agentTask.getHostId());
+                    agentTaskVO.setIp(host.toCloudIp());
+                    agentTaskVO.setDisplayIp(host.getDisplayIp());
                     agentTaskVO.setEndTime(agentTask.getEndTime());
                     agentTaskVO.setStartTime(agentTask.getStartTime());
                     agentTaskVO.setStatus(agentTask.getStatus());
@@ -563,8 +570,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                     agentTaskVO.setExitCode(agentTask.getExitCode());
                     agentTaskVO.setTag(agentTask.getTag());
                     agentTaskVO.setTotalTime(agentTask.getTotalTime());
-                    agentTaskVO.setCloudAreaId(agentTask.getCloudId());
-                    agentTaskVO.setCloudAreaName(agentTask.getCloudName());
+                    agentTaskVO.setCloudAreaId(host.getBkCloudId());
+                    agentTaskVO.setCloudAreaName(StringUtils.isNotEmpty(host.getBkCloudName()) ? host.getBkCloudName()
+                        : hostService.getCloudAreaName(host.getBkCloudId()));
                     agentTaskVO.setRetryCount(agentTask.getExecuteCount());
                     agentTaskVO.setBatch(agentTask.getBatch());
                     agentTaskExecutionVOS.add(agentTaskVO);

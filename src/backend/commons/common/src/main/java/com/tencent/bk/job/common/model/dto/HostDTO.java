@@ -35,6 +35,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -80,6 +81,12 @@ public class HostDTO implements Cloneable {
     private String ip;
 
     /**
+     * 主机显示IP
+     */
+    @JsonProperty("displayIp")
+    private String displayIp;
+
+    /**
      * 主机IP - ipv6
      */
     @JsonProperty("ipv6")
@@ -118,6 +125,14 @@ public class HostDTO implements Cloneable {
 
     public String toCloudIp() {
         return bkCloudId + ":" + ip;
+    }
+
+    public String getDisplayIp() {
+        if (StringUtils.isNotEmpty(displayIp)) {
+            return displayIp;
+        } else {
+            return ip;
+        }
     }
 
     public static HostInfoVO toVO(HostDTO host) {

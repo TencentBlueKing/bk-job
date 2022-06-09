@@ -280,9 +280,9 @@ public class GseStepEventHandler implements StepEventHandler {
                                                   int executeCount,
                                                   int batch,
                                                   long gseTaskId,
-                                                  List<HostDTO> servers,
+                                                  List<HostDTO> hosts,
                                                   AgentTaskStatus status) {
-        return servers.stream()
+        return hosts.stream()
             .map(server -> buildGseAgentTask(stepInstanceId, executeCount, batch, gseTaskId, server, status))
             .collect(Collectors.toList());
     }
@@ -291,7 +291,7 @@ public class GseStepEventHandler implements StepEventHandler {
                                              int executeCount,
                                              int batch,
                                              long gseTaskId,
-                                             HostDTO server,
+                                             HostDTO host,
                                              AgentTaskStatus status) {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(stepInstanceId);
@@ -300,10 +300,7 @@ public class GseStepEventHandler implements StepEventHandler {
         agentTask.setGseTaskId(gseTaskId);
         agentTask.setStatus(status.getValue());
         agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
-        agentTask.setIp(server.getIp());
-        agentTask.setCloudIp(server.toCloudIp());
-        agentTask.setCloudId(server.getBkCloudId());
-        agentTask.setDisplayIp(server.getIp());
+        agentTask.setHostId(host.getHostId());
         return agentTask;
     }
 

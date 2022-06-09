@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
@@ -45,6 +46,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetStepInstanceStatusRequest;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
@@ -65,15 +67,18 @@ public class EsbGetStepInstanceStatusResourceImpl
     private final TaskResultService taskResultService;
     private final MessageI18nService i18nService;
     private final AppScopeMappingService appScopeMappingService;
+    private final StepInstanceService stepInstanceService;
 
     public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService,
                                                 TaskInstanceService taskInstanceService,
                                                 AppScopeMappingService appScopeMappingService,
-                                                TaskResultService taskResultService) {
+                                                TaskResultService taskResultService,
+                                                StepInstanceService stepInstanceService) {
         this.i18nService = i18nService;
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
         this.taskResultService = taskResultService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -97,7 +102,7 @@ public class EsbGetStepInstanceStatusResourceImpl
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getTaskInstanceId());
         authViewTaskInstance(request.getUserName(), request.getAppResourceScope(), taskInstance);
         resultData.setIsFinished(stepExecutionDetail.isFinished());
-        resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail.getResultGroups()));
+        resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail));
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {
@@ -142,11 +147,14 @@ public class EsbGetStepInstanceStatusResourceImpl
         return ValidateResult.pass();
     }
 
-    private List<Map<String, Object>> convertToStandardAnalyseResult(List<AgentTaskResultGroupDTO> resultGroups) {
+    private List<Map<String, Object>> convertToStandardAnalyseResult(StepExecutionDetailDTO stepExecutionDetail) {
         List<Map<String, Object>> standardStepAnalyseResultList = new ArrayList<>();
+        List<AgentTaskResultGroupDTO> resultGroups = stepExecutionDetail.getResultGroups();
         if (resultGroups == null || resultGroups.isEmpty()) {
             return standardStepAnalyseResultList;
         }
+
+        Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepExecutionDetail.getStepInstance());
         for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
             Map<String, Object> standardStepAnalyseResult = new HashMap<>();
             List<AgentTaskDTO> agentTasks = resultGroup.getAgentTasks();
@@ -154,7 +162,8 @@ public class EsbGetStepInstanceStatusResourceImpl
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 List<EsbIpDTO> ips = new ArrayList<>();
                 for (AgentTaskDTO agentTask : agentTasks) {
-                    ips.add(new EsbIpDTO(agentTask.getCloudId(), agentTask.getIp()));
+                    HostDTO host = hosts.get(agentTask.getHostId());
+                    ips.add(new EsbIpDTO(host.getBkCloudId(), host.getIp()));
                 }
                 standardStepAnalyseResult.put("ip_list", ips);
 

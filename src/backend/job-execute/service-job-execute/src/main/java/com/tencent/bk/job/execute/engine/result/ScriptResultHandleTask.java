@@ -67,8 +67,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.nio.charset.StandardCharsets;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -78,6 +76,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * 脚本任务执行结果处理
@@ -323,7 +322,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs, api_agent_task_rst agentTaskResult,
                                                      String agentId, AgentTaskDTO agentTask, long currentTime) {
         if (GSECode.AtomicErrorCode.getErrorCode(agentTaskResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(agentTask.getHostId(), agentId, agentTaskResult.getBk_error_msg(),
+            logs.add(logService.buildSystemScriptLog(agentTask.getHost(), agentTaskResult.getBk_error_msg(),
                 agentTask.getScriptLogOffset(),
                 currentTime));
         } else {
@@ -337,15 +336,14 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                 offset += bytes;
                 agentTask.setScriptLogOffset(offset);
             }
-            logs.add(new ServiceScriptLogDTO(agentId, offset, agentTaskResult.getScreen()));
+            logs.add(new ServiceScriptLogDTO(agentTask.getHost(), offset, agentTaskResult.getScreen()));
         }
         // 刷新日志拉取偏移量
         refreshPullLogProgress(agentTaskResult.getScreen(), agentId, agentTaskResult.getAtomic_task_id());
     }
 
     private void saveScriptLogContent(List<ServiceScriptLogDTO> logs) {
-        logService.batchWriteScriptLog(DateUtils.formatUnixTimestamp(taskInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC")), stepInstanceId, stepInstance.getExecuteCount(),
+        logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
             stepInstance.getBatch(), logs);
     }
 
@@ -625,12 +623,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         long endTime = System.currentTimeMillis();
         Set<String> unfinishedAgentIds = new HashSet<>();
         unfinishedAgentIds.addAll(notStartedTargetAgentIds);
-        unfinishedAgentIds.addAll(this.runningTargetAgentIds);
+        unfinishedAgentIds.addAll(runningTargetAgentIds);
         if (StringUtils.isNotEmpty(errorMsg)) {
-            logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
-                stepInstance.getExecuteCount(), stepInstance.getBatch(),
-                buildAgentIdAndLogOffsetMap(unfinishedAgentIds),
-                errorMsg, endTime);
+            List<ServiceScriptLogDTO> scriptLogs = unfinishedAgentIds.stream().map(agentId -> {
+                AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
+                return logService.buildSystemScriptLog(agentTask.getHost(), errorMsg, agentTask.getScriptLogOffset(),
+                    endTime);
+                }).collect(Collectors.toList());
+            logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
+                stepInstance.getBatch(), scriptLogs);
         }
     }
 

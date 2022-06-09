@@ -54,25 +54,13 @@ public interface LogService {
     /**
      * 写脚本执行日志
      *
-     * @param jobCreateDate  任务创建时间
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次;非滚动步骤传入null
-     * @param scriptLog      脚本日志
-     */
-    void writeScriptLog(String jobCreateDate, long stepInstanceId, int executeCount, Integer batch,
-                        ServiceScriptLogDTO scriptLog);
-
-    /**
-     * 写脚本执行日志
-     *
-     * @param jobCreateDate  任务创建时间
+     * @param jobCreateTime  任务创建时间
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次;非滚动步骤传入null
      * @param scriptLogs     脚本日志
      */
-    void batchWriteScriptLog(String jobCreateDate, long stepInstanceId, int executeCount, Integer batch,
+    void batchWriteScriptLog(long jobCreateTime, long stepInstanceId, int executeCount, Integer batch,
                              List<ServiceScriptLogDTO> scriptLogs);
 
 
