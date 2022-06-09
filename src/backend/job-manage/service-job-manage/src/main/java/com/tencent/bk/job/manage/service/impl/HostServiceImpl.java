@@ -1067,7 +1067,9 @@ public class HostServiceImpl implements HostService {
                 notInAppIPList.add(cloudIPDTO);
             }
         }
-        log.warn("ips not in cmdb:{}", StringUtil.concatCollection(notInCmdbIpList));
+        if (!notInCmdbIpList.isEmpty()) {
+            log.warn("ips not in cmdb:{}", StringUtil.concatCollection(notInCmdbIpList));
+        }
         notInAppIPList.addAll(notInCmdbIpList);
     }
 
@@ -1103,11 +1105,13 @@ public class HostServiceImpl implements HostService {
         List<CloudIPDTO> notInAppIPList = new ArrayList<>();
         separateNotInAppIP(appId, inputNotWhiteIPList, inAppIPList, notInAppIPList);
         // 4.不在业务下的IP打印出来
-        log.warn(
-            "ips not in app {}:{}",
-            appId,
-            StringUtil.concatCollection(notInAppIPList)
-        );
+        if (!notInAppIPList.isEmpty()) {
+            log.warn(
+                "ips not in app {}:{}",
+                appId,
+                StringUtil.concatCollection(notInAppIPList)
+            );
+        }
         // 5.查询主机详情
         List<CloudIPDTO> validIPList = new ArrayList<>(inputWhiteIPList);
         validIPList.addAll(inAppIPList);
