@@ -54,6 +54,7 @@ public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
     // 脚本版本状态（0：未上线，1：已上线，2：已下线，3：已禁用）
     private int status;
 
+    @JsonProperty("version_desc")
     private String versionDesc;
 
     private String creator;
