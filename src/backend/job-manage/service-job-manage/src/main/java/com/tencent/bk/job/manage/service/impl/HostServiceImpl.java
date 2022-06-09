@@ -859,70 +859,6 @@ public class HostServiceImpl implements HostService {
             finalHostInfoVOList);
     }
 
-    private List<ApplicationHostDTO> filterBySpecifiedCloudId(
-        List<CloudIPDTO> cloudIPDTOList,
-        List<ApplicationHostDTO> applicationHostDTOList
-    ) {
-        //生成指定的云区域Map
-        Map<String, Set<Long>> map = new HashMap<>();
-        cloudIPDTOList.forEach(cloudIPDTO -> {
-            String ip = cloudIPDTO.getIp();
-            if (cloudIPDTO.getCloudAreaId() != null) {
-                if (map.containsKey(ip)) {
-                    Set<Long> set = map.get(ip);
-                    set.add(cloudIPDTO.getCloudAreaId());
-                    map.put(ip, set);
-                } else {
-                    Set<Long> set = new HashSet<>();
-                    set.add(cloudIPDTO.getCloudAreaId());
-                    map.put(ip, set);
-                }
-            } else {
-                //未指定云区域的IP不作为过滤条件
-            }
-        });
-        return applicationHostDTOList.stream().filter(ApplicationHostDTO -> {
-            Set<String> keySet = map.keySet();
-            String ip = ApplicationHostDTO.getIp();
-            Long cloudId = ApplicationHostDTO.getCloudAreaId();
-            if (keySet.contains(ip)) {
-                return map.get(ip).contains(cloudId);
-            }
-            return true;
-        }).collect(Collectors.toList());
-    }
-
-    public List<ApplicationHostDTO> getHostInfoById(String username, Long appId, List<String> ipList) {
-        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
-        if (CollectionUtils.isEmpty(ipList)) {
-            return hostInfoList;
-        }
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
-        if (appInfo == null) {
-            return hostInfoList;
-        }
-        if (appInfo.isBiz()) {
-            hostInfoList.addAll(applicationHostDAO.listHostInfoByIps(
-                Long.valueOf(appInfo.getScope().getId()), ipList));
-        } else if (appInfo.isAllBizSet()) {
-            // 全业务
-            hostInfoList.addAll(applicationHostDAO.listHostInfo(null, ipList));
-        } else if (appInfo.isBizSet()) {
-            // 业务集
-            List<Long> subBizIds = topologyHelper.getBizSetSubBizIds(appInfo);
-            // 直接使用本地缓存数据
-            log.debug("subBizIdsSize={}, get host from local db", subBizIds.size());
-            hostInfoList.addAll(applicationHostDAO.listHostInfo(subBizIds, ipList));
-        } else {
-            FormattingTuple msg = MessageFormatter.format(
-                "Unexpected app:{}",
-                appInfo
-            );
-            throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
-        }
-        return hostInfoList;
-    }
-
     private List<CloudIPDTO> parseInputCloudIPList(List<String> checkIpList) {
         List<CloudIPDTO> inputCloudIPList = new ArrayList<>();
         Pattern pattern = Pattern.compile("[:：]");
@@ -939,38 +875,6 @@ public class HostServiceImpl implements HostService {
             }
         }
         return inputCloudIPList;
-    }
-
-    private void separateWhiteIP(
-        List<CloudIPDTO> inputCloudIPList,
-        List<CloudIPDTO> inputWhiteIPList,
-        List<CloudIPDTO> inputNotWhiteIPList,
-        Map<String, List<CloudIPDTO>> whiteIPMap
-    ) {
-        Set<String> whiteIPSet = whiteIPMap.keySet();
-        inputCloudIPList.forEach(cloudIPDTO -> {
-            String ip = cloudIPDTO.getIp();
-            Long cloudId = cloudIPDTO.getCloudAreaId();
-            if (whiteIPSet.contains(ip)) {
-                Set<Long> whiteCloudIdSet =
-                    whiteIPMap.get(ip).stream().map(CloudIPDTO::getCloudAreaId).collect(Collectors.toSet());
-                if (cloudId == null) {
-                    //输入IP时未指定云区域，白名单中的所有云区域都可以用
-                    for (Long cloudAreaId : whiteCloudIdSet) {
-                        inputWhiteIPList.add(new CloudIPDTO(cloudAreaId, ip));
-                    }
-                } else {
-                    //输入IP时指定了云区域
-                    if (whiteCloudIdSet.contains(cloudId)) {
-                        inputWhiteIPList.add(cloudIPDTO);
-                    } else {
-                        inputNotWhiteIPList.add(cloudIPDTO);
-                    }
-                }
-            } else {
-                inputNotWhiteIPList.add(cloudIPDTO);
-            }
-        });
     }
 
     private List<String> buildCloudIPList(List<CloudIPDTO> cloudIPDTOList) {
