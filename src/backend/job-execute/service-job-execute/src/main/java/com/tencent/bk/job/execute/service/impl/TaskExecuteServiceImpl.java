@@ -206,25 +206,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
     }
 
-    private static List<HostDTO> getHostsContainsNotAllowedAction(Map<HostDTO, Set<String>> hostBindActions,
-                                                                  Map<HostDTO, List<String>> hostAllowedActions) {
-        List<HostDTO> invalidHosts = new ArrayList<>();
-        for (Map.Entry<HostDTO, Set<String>> binding : hostBindActions.entrySet()) {
-            HostDTO host = binding.getKey();
-            if (!hostAllowedActions.containsKey(host)
-                || !hostAllowedActions.get(host).containsAll(binding.getValue())) {
-                invalidHosts.add(host);
-            }
-        }
-        return invalidHosts;
-    }
-
     @Override
     public Long executeFastTask(FastTaskDTO fastTask) {
         log.info("Begin to create task instance and step instance for fast-execution-task, task: {}", fastTask);
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
-        StopWatch watch = new StopWatch("createTaskInstanceFast");
+
+        StopWatch watch = new StopWatch("executeFastTask");
         // 检查任务是否应当被驱逐
         checkTaskEvict(taskInstance);
         standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
@@ -247,7 +235,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             //检查主机
             watch.start("checkHosts");
-            checkHosts(Collections.singletonList(stepInstance));
+            checkAndSetHosts(Collections.singletonList(stepInstance));
             watch.stop();
 
             // 检查步骤约束
@@ -662,12 +650,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     /**
-     * 检查主机的合法性
+     * 设置主机信息并检查主机的合法性并
      *
      * @param stepInstanceList 步骤列表
      * @throws ServiceException 如果包含不合法的主机，抛出异常
      */
-    private void checkHosts(List<StepInstanceDTO> stepInstanceList)
+    private void checkAndSetHosts(List<StepInstanceDTO> stepInstanceList)
         throws ServiceException {
         long appId = stepInstanceList.get(0).getAppId();
 
@@ -781,6 +769,19 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         log.debug("Host bind actions:{}", hostBindActionsMap);
 
         return getHostsContainsNotAllowedAction(hostBindActionsMap, hostAllowActionsMap);
+    }
+
+    private static List<HostDTO> getHostsContainsNotAllowedAction(Map<HostDTO, Set<String>> hostBindActions,
+                                                                  Map<HostDTO, List<String>> hostAllowedActions) {
+        List<HostDTO> invalidHosts = new ArrayList<>();
+        for (Map.Entry<HostDTO, Set<String>> binding : hostBindActions.entrySet()) {
+            HostDTO host = binding.getKey();
+            if (!hostAllowedActions.containsKey(host)
+                || !hostAllowedActions.get(host).containsAll(binding.getValue())) {
+                invalidHosts.add(host);
+            }
+        }
+        return invalidHosts;
     }
 
     private Map<HostDTO, Set<String>> getHostBindActions(List<StepInstanceDTO> stepInstanceList,
@@ -919,7 +920,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 检查主机合法性
             watch.start("checkHost");
-            checkHosts(stepInstanceList);
+            checkAndSetHosts(stepInstanceList);
             watch.stop();
 
             // 检查步骤约束
@@ -1276,7 +1277,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
 
         // 检查主机合法性
-        checkHosts(stepInstanceList);
+        checkAndSetHosts(stepInstanceList);
 
         // 检查步骤约束
         checkStepInstanceConstraint(taskInstance, stepInstanceList);
@@ -2141,7 +2142,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 检查主机合法性
         watch.start("checkHost");
-        checkHosts(taskInfo.getStepInstances());
+        checkAndSetHosts(taskInfo.getStepInstances());
         watch.stop();
 
         watch.start("auth-execute-job");
