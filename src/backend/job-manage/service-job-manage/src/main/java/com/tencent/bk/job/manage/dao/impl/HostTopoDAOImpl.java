@@ -156,14 +156,14 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     @Override
     public int batchDeleteHostTopo(DSLContext dslContext, Long bizId, List<Long> hostIdList) {
         int batchSize = 1000;
+        int maxQueryNum = 100;
         int size = hostIdList.size();
         int start = 0;
         int end;
         List<Query> queryList = new ArrayList<>();
         int affectedNum = 0;
         do {
-            end = start + batchSize;
-            end = Math.min(end, size);
+            end = Math.min(start + batchSize, size);
             List<Long> subList = hostIdList.subList(start, end);
             DeleteConditionStep<HostTopoRecord> step = dslContext.deleteFrom(defaultTable)
                 .where(defaultTable.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList())));
@@ -171,8 +171,8 @@ public class HostTopoDAOImpl implements HostTopoDAO {
                 step = step.and(defaultTable.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
             }
             queryList.add(step);
-            // SQL语句达到批量即执行
-            if (queryList.size() >= batchSize) {
+            // SQL语句达到最大语句数量即执行
+            if (queryList.size() >= maxQueryNum) {
                 int[] results = dslContext.batch(queryList).execute();
                 queryList.clear();
                 for (int result : results) {
