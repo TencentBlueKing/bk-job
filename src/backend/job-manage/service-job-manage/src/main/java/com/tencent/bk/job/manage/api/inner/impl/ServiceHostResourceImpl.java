@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
+import com.tencent.bk.job.manage.model.inner.ServiceHostCheckResultDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
@@ -131,6 +132,12 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     public InternalResponse<List<HostDTO>> checkAppHosts(Long appId,
                                                          ServiceCheckAppHostsReq req) {
         return InternalResponse.buildSuccessResp(hostService.checkAppHosts(appId, req.getHosts()));
+    }
+
+    @Override
+    public InternalResponse<ServiceHostCheckResultDTO> checkAndGetHosts(Long appId,
+                                                                        ServiceCheckAppHostsReq req) {
+        return InternalResponse.buildSuccessResp(hostService.checkAndGetHosts(appId, req.getHosts()));
     }
 
     @Override

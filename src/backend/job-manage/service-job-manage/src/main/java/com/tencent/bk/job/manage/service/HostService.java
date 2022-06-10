@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -33,6 +34,7 @@ import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
+import com.tencent.bk.job.manage.model.inner.ServiceHostCheckResultDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
@@ -187,11 +189,21 @@ public interface HostService {
     /**
      * 检查主机是否在业务下
      *
-     * @param appId   Job业务ID
-     * @param hostIps 被检查的主机
+     * @param appId Job业务ID
+     * @param hosts 被检查的主机
      * @return 非法的主机
      */
-    List<HostDTO> checkAppHosts(Long appId, List<HostDTO> hostIps);
+    @CompatibleImplementation(name = "rolling_execution", explain = "兼容方法，发布完成之后删除", version = "3.6.x")
+    List<HostDTO> checkAppHosts(Long appId, List<HostDTO> hosts);
+
+    /**
+     * 检查主机是否在业务下
+     *
+     * @param appId Job业务ID
+     * @param hosts 被检查的主机
+     * @return 非法的主机
+     */
+    ServiceHostCheckResultDTO checkAndGetHosts(Long appId, List<HostDTO> hosts);
 
     /**
      * 根据主机IP批量获取主机。如果在同步的主机中不存在，那么从cmdb查询

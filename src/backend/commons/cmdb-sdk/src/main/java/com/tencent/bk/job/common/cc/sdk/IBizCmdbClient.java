@@ -158,10 +158,18 @@ public interface IBizCmdbClient {
     /**
      * 根据IP批量获取主机
      *
-     * @param hostIps 云区域+IP列表
+     * @param cloudIps 云区域+IP列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByIps(List<HostDTO> hostIps);
+    List<ApplicationHostDTO> listHostsByIps(List<String> cloudIps);
+
+    /**
+     * 根据IP批量获取主机
+     *
+     * @param hostIds 主机ID列表
+     * @return 主机列表
+     */
+    List<ApplicationHostDTO> listHostsByHostIds(List<Long> hostIds);
 
     /**
      * 批量获取业务下的主机列表

@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
@@ -945,10 +944,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHosts(Collection<HostDTO> hostIps) {
+    public List<ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps) {
         List<Condition> conditions = new ArrayList<>();
-        List<String> cloudIpList = hostIps.stream().map(HostDTO::toCloudIp).collect(Collectors.toList());
-        conditions.add(TABLE.CLOUD_IP.in(cloudIpList));
+        conditions.add(TABLE.CLOUD_IP.in(cloudIps));
         return queryHostsByCondition(conditions);
     }
 

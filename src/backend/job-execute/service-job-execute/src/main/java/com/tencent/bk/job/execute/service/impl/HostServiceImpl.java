@@ -43,6 +43,7 @@ import com.tencent.bk.job.execute.client.ServiceHostResourceClient;
 import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
 import com.tencent.bk.job.execute.common.exception.ObtainHostServiceException;
 import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.manage.model.inner.ServiceHostCheckResultDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
@@ -72,23 +73,23 @@ public class HostServiceImpl implements HostService {
     private final AppScopeMappingService appScopeMappingService;
 
     private volatile boolean isWhiteIpConfigLoaded = false;
-    private final Map<HostDTO, ServiceWhiteIPInfo> whiteIpConfig = new ConcurrentHashMap<>();
+    private final Map<String, ServiceWhiteIPInfo> whiteIpConfig = new ConcurrentHashMap<>();
 
     private final LoadingCache<Long, String> cloudAreaNameCache = CacheBuilder.newBuilder()
         .maximumSize(10000).expireAfterWrite(1, TimeUnit.HOURS).
             build(new CacheLoader<Long, String>() {
-                @Override
-                public String load(Long cloudAreaId) {
-                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-                    List<CcCloudAreaInfoDTO> cloudAreaList = bizCmdbClient.getCloudAreaList();
-                    if (cloudAreaList == null || cloudAreaList.isEmpty()) {
-                        log.warn("Get all cloud area return empty!");
-                        return "Unknown";
-                    }
-                    log.info("Get all cloud area, result={}", JsonUtils.toJson(cloudAreaList));
-                    for (CcCloudAreaInfoDTO cloudArea : cloudAreaList) {
-                        if (cloudArea.getId().equals(cloudAreaId)) {
-                            return cloudArea.getName();
+                      @Override
+                      public String load(Long cloudAreaId) {
+                          IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
+                          List<CcCloudAreaInfoDTO> cloudAreaList = bizCmdbClient.getCloudAreaList();
+                          if (cloudAreaList == null || cloudAreaList.isEmpty()) {
+                              log.warn("Get all cloud area return empty!");
+                              return "Unknown";
+                          }
+                          log.info("Get all cloud area, result={}", JsonUtils.toJson(cloudAreaList));
+                          for (CcCloudAreaInfoDTO cloudArea : cloudAreaList) {
+                              if (cloudArea.getId().equals(cloudAreaId)) {
+                                  return cloudArea.getName();
                               }
                           }
                           log.info("No found cloud area for cloudAreaId:{}", cloudAreaId);
@@ -158,7 +159,7 @@ public class HostServiceImpl implements HostService {
         List<ServiceWhiteIPInfo> whiteIpInfos = resp.getData();
         whiteIpConfig.clear();
         whiteIpInfos.forEach(whiteIpInfo ->
-            whiteIpConfig.put(new HostDTO(whiteIpInfo.getCloudId(), whiteIpInfo.getIp()), whiteIpInfo));
+            whiteIpConfig.put(whiteIpInfo.getCloudId() + ":" + whiteIpInfo.getIp(), whiteIpInfo));
 
         long cost = System.currentTimeMillis() - start;
         if (cost > 1000L) {
@@ -168,12 +169,12 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public boolean isMatchWhiteIpRule(long appId, HostDTO host, String action) {
+    public boolean isMatchWhiteIpRule(long appId, String cloudIp, String action) {
         try {
             if (!isWhiteIpConfigLoaded) {
                 syncWhiteIpConfig();
             }
-            ServiceWhiteIPInfo whiteIpInfo = whiteIpConfig.get(host);
+            ServiceWhiteIPInfo whiteIpInfo = whiteIpConfig.get(cloudIp);
             if (whiteIpInfo == null) {
                 return false;
             }
@@ -195,6 +196,14 @@ public class HostServiceImpl implements HostService {
     public List<HostDTO> checkAppHosts(Long appId, Collection<HostDTO> hostIps) {
         InternalResponse<List<HostDTO>> response =
             hostResourceClient.checkAppHosts(appId, new ServiceCheckAppHostsReq(new ArrayList<>(hostIps)));
+        return response.getData();
+    }
+
+    @Override
+    public ServiceHostCheckResultDTO checkAndGetHosts(Long appId,
+                                                      Collection<HostDTO> hosts) {
+        InternalResponse<ServiceHostCheckResultDTO> response =
+            hostResourceClient.checkAndGetHosts(appId, new ServiceCheckAppHostsReq(new ArrayList<>(hosts)));
         return response.getData();
     }
 

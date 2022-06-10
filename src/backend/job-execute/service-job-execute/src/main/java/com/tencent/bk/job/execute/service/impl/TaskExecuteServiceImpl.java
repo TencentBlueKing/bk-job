@@ -98,6 +98,7 @@ import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceHostCheckResultDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
@@ -471,7 +472,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("Script status is {}, should not execute! ScriptId: {}, scriptVersionId={}",
                 scriptStatus, script.getId(), script.getScriptVersionId());
             throw new FailedPreconditionException(ErrorCode.SCRIPT_NOT_EXECUTABLE_STATUS,
-                new String[] {
+                new String[]{
                     "{" + scriptStatus.getStatusI18nKey() + "}"
                 });
         }
@@ -571,7 +572,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isNotEmpty(servers.getStaticIpList())) {
             servers.setStaticIpList(servers.getStaticIpList().stream()
                 .filter(host -> {
-                    boolean isWhiteIp = hostService.isMatchWhiteIpRule(appId, host, action.name());
+                    boolean isWhiteIp = hostService.isMatchWhiteIpRule(appId, host.toCloudIp(), action.name());
                     if (isWhiteIp) {
                         log.info("Host: {} is white ip, skip auth!", host.toCloudIp());
                     }
@@ -679,8 +680,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         // 检查是否在当前业务下
-        Collection<HostDTO> unavailableHosts = checkHostsNotInApp(appId, checkHosts);
-        if (unavailableHosts.isEmpty()) {
+        ServiceHostCheckResultDTO hosts = hostService.checkAndGetHosts(appId, checkHosts);
+        if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
+
             return;
         }
 
