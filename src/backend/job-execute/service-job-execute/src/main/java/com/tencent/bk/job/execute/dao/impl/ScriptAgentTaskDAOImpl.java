@@ -85,7 +85,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     public void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks) {
         String sql = "insert into gse_script_agent_task (step_instance_id, execute_count, batch, host_id, agent_id, "
             + "gse_task_id, status, start_time, end_time, total_time, error_code, exit_code, tag, log_offset)"
-            + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         Object[][] params = new Object[agentTasks.size()][14];
         int batchCount = 0;
         for (AgentTaskDTO agentTask : agentTasks) {

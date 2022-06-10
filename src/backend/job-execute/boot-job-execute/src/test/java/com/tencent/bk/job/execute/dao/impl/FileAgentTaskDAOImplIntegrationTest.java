@@ -102,8 +102,8 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask2.setExecuteCount(0);
         agentTask2.setBatch(1);
         agentTask2.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
-        agentTask1.setHostId(102L);
-        agentTask1.setAgentId("0:127.0.0.2");
+        agentTask2.setHostId(102L);
+        agentTask2.setAgentId("0:127.0.0.2");
         agentTask2.setGseTaskId(1001L);
         agentTask2.setErrorCode(88);
         agentTask2.setStartTime(1572858330000L);
@@ -137,8 +137,8 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask2Return.getBatch()).isEqualTo(1);
         assertThat(agentTask2Return.getFileTaskMode()).isEqualTo(FileTaskModeEnum.DOWNLOAD);
-        assertThat(agentTask1Return.getHostId()).isEqualTo(102L);
-        assertThat(agentTask1Return.getAgentId()).isEqualTo("0:127.0.0.2");
+        assertThat(agentTask2Return.getHostId()).isEqualTo(102L);
+        assertThat(agentTask2Return.getAgentId()).isEqualTo("0:127.0.0.2");
         assertThat(agentTask2Return.getGseTaskId()).isEqualTo(1001L);
         assertThat(agentTask2Return.getStartTime()).isEqualTo(1572858330000L);
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
@@ -205,7 +205,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask2Return.getBatch()).isEqualTo(2);
         assertThat(agentTask2Return.getGseTaskId()).isEqualTo(1001L);
-        assertThat(agentTask1Return.getHostId()).isEqualTo(103L);
+        assertThat(agentTask2Return.getHostId()).isEqualTo(103L);
         assertThat(agentTask2Return.getAgentId()).isEqualTo("0:127.0.0.3");
         assertThat(agentTask2Return.getStartTime()).isEqualTo(1572858330000L);
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);

@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -176,7 +177,17 @@ public class HostWatchThread extends Thread {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 //去除没有IP的主机信息
                 if (StringUtils.isBlank(hostInfoDTO.getDisplayIp())) {
-                    applicationHostDAO.deleteBizHostInfoById(dslContext, null, hostInfoDTO.getHostId());
+                    int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(
+                        dslContext,
+                        null,
+                        hostInfoDTO.getHostId()
+                    );
+                    log.info(
+                        "{} host deleted, id={} ,ip={}",
+                        affectedRowNum,
+                        hostInfoDTO.getHostId(),
+                        hostInfoDTO.getIp()
+                    );
                     break;
                 }
                 //找出Agent有效的IP，并设置Agent状态
@@ -200,7 +211,7 @@ public class HostWatchThread extends Thread {
                         applicationHostDAO.updateBizHostInfoByHostId(dslContext, oldHostInfoDTO.getBizId(),
                             hostInfoDTO);
                     } else {
-                        hostInfoDTO.setBizId(-1L);
+                        hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
                         try {
                             applicationHostDAO.insertAppHostWithoutTopo(dslContext, hostInfoDTO);
                         } catch (DataAccessException e) {
@@ -218,10 +229,22 @@ public class HostWatchThread extends Thread {
                     // 从拓扑表向主机表同步拓扑数据
                     applicationHostDAO.syncHostTopo(dslContext, hostInfoDTO.getHostId());
                 }
-                hostCache.addOrUpdateHost(hostInfoDTO);
+                if (hostInfoDTO.getBizId() != null && hostInfoDTO.getBizId() > 0) {
+                    hostCache.addOrUpdateHost(hostInfoDTO);
+                }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationHostDAO.deleteBizHostInfoById(dslContext, null, hostInfoDTO.getHostId());
+                int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(
+                    dslContext,
+                    null,
+                    hostInfoDTO.getHostId()
+                );
+                log.info(
+                    "{} host deleted, id={} ,ip={}",
+                    affectedRowNum,
+                    hostInfoDTO.getHostId(),
+                    hostInfoDTO.getIp()
+                );
                 hostCache.deleteHost(hostInfoDTO);
                 break;
             default:
