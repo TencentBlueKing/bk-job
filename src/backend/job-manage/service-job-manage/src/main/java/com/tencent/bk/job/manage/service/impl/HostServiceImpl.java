@@ -62,7 +62,7 @@ import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.model.db.CacheHostDO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceHostCheckResultDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
@@ -1477,9 +1477,9 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public ServiceHostCheckResultDTO checkAndGetHosts(Long appId,
-                                                      List<HostDTO> hosts) {
-        ServiceHostCheckResultDTO result = new ServiceHostCheckResultDTO();
+    public ServiceListAppHostResultDTO listAppHosts(Long appId,
+                                                    List<HostDTO> hosts) {
+        ServiceListAppHostResultDTO result = new ServiceListAppHostResultDTO();
         ApplicationDTO application = applicationService.getAppByAppId(appId);
 
         Pair<List<HostDTO>, List<BasicAppHost>> hostResult = listAppHosts(hosts);
@@ -1516,7 +1516,6 @@ public class HostServiceImpl implements HostService {
         result.setNotExistHosts(notExistHosts);
         result.setValidHosts(validHosts);
         result.setNotInAppHosts(notInAppHosts);
-        result.setWhiteHosts(null);
 
         return result;
     }

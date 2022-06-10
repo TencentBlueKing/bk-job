@@ -43,8 +43,8 @@ import com.tencent.bk.job.execute.client.ServiceHostResourceClient;
 import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
 import com.tencent.bk.job.execute.common.exception.ObtainHostServiceException;
 import com.tencent.bk.job.execute.service.HostService;
-import com.tencent.bk.job.manage.model.inner.ServiceHostCheckResultDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
@@ -193,17 +193,10 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<HostDTO> checkAppHosts(Long appId, Collection<HostDTO> hostIps) {
-        InternalResponse<List<HostDTO>> response =
-            hostResourceClient.checkAppHosts(appId, new ServiceCheckAppHostsReq(new ArrayList<>(hostIps)));
-        return response.getData();
-    }
-
-    @Override
-    public ServiceHostCheckResultDTO checkAndGetHosts(Long appId,
-                                                      Collection<HostDTO> hosts) {
-        InternalResponse<ServiceHostCheckResultDTO> response =
-            hostResourceClient.checkAndGetHosts(appId, new ServiceCheckAppHostsReq(new ArrayList<>(hosts)));
+    public ServiceListAppHostResultDTO batchGetAppHosts(Long appId,
+                                                        Collection<HostDTO> hosts) {
+        InternalResponse<ServiceListAppHostResultDTO> response =
+            hostResourceClient.batchGetAppHosts(appId, new ServiceCheckAppHostsReq(new ArrayList<>(hosts)));
         return response.getData();
     }
 

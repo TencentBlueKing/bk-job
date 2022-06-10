@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
-import com.tencent.bk.job.manage.model.inner.ServiceHostCheckResultDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
@@ -197,13 +197,12 @@ public interface HostService {
     List<HostDTO> checkAppHosts(Long appId, List<HostDTO> hosts);
 
     /**
-     * 检查主机是否在业务下
+     * 获取业务下的主机
      *
      * @param appId Job业务ID
-     * @param hosts 被检查的主机
-     * @return 非法的主机
+     * @param hosts 主机列表
      */
-    ServiceHostCheckResultDTO checkAndGetHosts(Long appId, List<HostDTO> hosts);
+    ServiceListAppHostResultDTO listAppHosts(Long appId, List<HostDTO> hosts);
 
     /**
      * 根据主机IP批量获取主机。如果在同步的主机中不存在，那么从cmdb查询

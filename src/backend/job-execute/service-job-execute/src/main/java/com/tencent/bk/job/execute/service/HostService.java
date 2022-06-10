@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceHostCheckResultDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -74,22 +74,13 @@ public interface HostService {
     boolean isMatchWhiteIpRule(long appId, String cloudIp, String action);
 
     /**
-     * 检查主机是否在业务下
-     *
-     * @param appId   Job业务ID
-     * @param hostIps 主机列表
-     * @return 非法的主机
-     */
-    List<HostDTO> checkAppHosts(Long appId, Collection<HostDTO> hostIps);
-
-    /**
-     * 检查并获取主机
+     * 获取业务下的主机列表
      *
      * @param appId Job业务ID
      * @param hosts 主机列表
      * @return 主机信息
      */
-    ServiceHostCheckResultDTO checkAndGetHosts(Long appId, Collection<HostDTO> hosts);
+    ServiceListAppHostResultDTO batchGetAppHosts(Long appId, Collection<HostDTO> hosts);
 
     /**
      * 获取动态分组主机
