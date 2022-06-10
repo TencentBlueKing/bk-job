@@ -29,6 +29,10 @@ package com.tencent.bk.job.common.constant;
  */
 public class JobConstants {
     /**
+     * 默认云区域ID
+     */
+    public static final long DEFAULT_CLOUD_AREA_ID = 0L;
+    /**
      * 公共资源对应的业务ID(比如公共脚本)
      */
     public static final long PUBLIC_APP_ID = 0L;

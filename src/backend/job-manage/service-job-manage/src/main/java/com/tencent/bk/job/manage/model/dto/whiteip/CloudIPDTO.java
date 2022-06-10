@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.whiteip;
 
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,4 +46,12 @@ public class CloudIPDTO {
      * IP列表
      */
     private String ip;
+
+    public String getCloudIP() {
+        return cloudAreaId + ":" + ip;
+    }
+
+    public IpDTO toIpDTO() {
+        return new IpDTO(cloudAreaId, ip);
+    }
 }

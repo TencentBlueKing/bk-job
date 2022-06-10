@@ -87,9 +87,11 @@ public class BasicAppSyncService {
         log.info("deleteAppFromDb:" + applicationDTO.getId());
         //先删Job业务对应主机
         if (applicationDTO.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
-            applicationHostDAO.deleteBizHostInfoByBizId(
-                dslContext, Long.parseLong(applicationDTO.getScope().getId())
+            long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            int deletedHostNum = applicationHostDAO.deleteBizHostInfoByBizId(
+                dslContext, bizId
             );
+            log.info("{} hosts of biz {} deleted", deletedHostNum, bizId);
         }
         //再删Job业务本身
         applicationService.deleteApp(applicationDTO.getId());

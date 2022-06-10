@@ -194,7 +194,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public List<CloudIPDTO> listWhiteIP(Long appId, ActionScopeEnum actionScope) {
-        List<Long> fullAppIds = applicationService.getBizSetAppIdsForBiz(appId);
+        List<Long> fullAppIds = applicationService.getRelatedAppIds(appId);
         log.info("appId={}, contains by fullAppIds={}", appId, fullAppIds);
         ActionScopeDTO actionScopeDTO = null;
         if (actionScope != null) {
@@ -336,17 +336,15 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             cloudAreaId = record.getIpList().get(0).getCloudAreaId();
         }
         val applicationInfoList = applicationDAO.listAppsByAppIds(record.getAppIdList());
-        List<AppVO> appVOList = applicationInfoList.stream().map(it -> {
-            return new AppVO(
-                it.getId(),
-                it.getScope().getType().getValue(),
-                it.getScope().getId(),
-                it.getName(),
-                null,
-                null,
-                null
-            );
-        }).collect(Collectors.toList());
+        List<AppVO> appVOList = applicationInfoList.stream().map(it -> new AppVO(
+            it.getId(),
+            it.getScope().getType().getValue(),
+            it.getScope().getId(),
+            it.getName(),
+            null,
+            null,
+            null
+        )).collect(Collectors.toList());
         return new WhiteIPRecordVO(
             id,
             cloudAreaId,
@@ -395,9 +393,9 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     @Override
     public List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId) {
         log.info("Input=({},{},{})", appId, ip, cloudAreaId);
-        // 1.找出包含当前业务的业务集与全业务
-        List<Long> fullAppIds = applicationService.getBizSetAppIdsForBiz(appId);
-        // 2.再找对应的白名单
+        // 1.找出与当前业务关联的所有appId
+        List<Long> fullAppIds = applicationService.getRelatedAppIds(appId);
+        // 2.再查对应的白名单
         return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, fullAppIds, ip, cloudAreaId);
     }
 
