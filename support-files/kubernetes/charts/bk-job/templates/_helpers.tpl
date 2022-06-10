@@ -309,7 +309,7 @@ Return the RabbitMQ Port
 */}}
 {{- define "job.rabbitmq.port" -}}
 {{- if .Values.rabbitmq.enabled }}
-    {{- printf "%d" (.Values.rabbitmq.service.port | int ) -}}
+    {{- printf "%d" (.Values.rabbitmq.service.ports.amqp | int ) -}}
 {{- else -}}
     {{- printf "%d" (.Values.externalRabbitMQ.port | int ) -}}
 {{- end -}}
