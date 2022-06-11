@@ -319,6 +319,8 @@ public class LogServiceImpl implements LogService {
 
             List<ScriptTaskLogDoc> scriptLogs = mongoTemplate.find(query, ScriptTaskLogDoc.class, collectionName);
 
+            log.info("scriptLogs: {}", scriptLogs);
+
             if (CollectionUtils.isEmpty(scriptLogs)) {
                 return Collections.emptyList();
             }
@@ -442,6 +444,7 @@ public class LogServiceImpl implements LogService {
                         buildTaskHostLog(stepInstanceId, executeCount, batch, null, ip, scriptLogGroup)));
         }
 
+        log.info("taskHostLogs: {}", taskHostLogs);
         return taskHostLogs;
     }
 
