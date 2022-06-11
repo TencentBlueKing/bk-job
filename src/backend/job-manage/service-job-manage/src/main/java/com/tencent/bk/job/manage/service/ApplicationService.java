@@ -115,12 +115,12 @@ public interface ApplicationService {
     List<ApplicationDTO> listBizAppsByBizIds(Collection<Long> bizIds);
 
     /**
-     * 根据当前业务Id查询包含该业务的业务集
+     * 根据目标业务appId查询与该业务关联的业务集、全业务的appId（包含自身）
      *
-     * @param appId 业务ID
-     * @return 包含该业务的业务集ID列表
+     * @param appId 目标业务appId
+     * @return 与目标业务关联的业务集、全业务的appId（包含自身）
      */
-    List<Long> getBizSetAppIdsForBiz(Long appId);
+    List<Long> getRelatedAppIds(Long appId);
 
     /**
      * 根据资源范围类型获取业务列表

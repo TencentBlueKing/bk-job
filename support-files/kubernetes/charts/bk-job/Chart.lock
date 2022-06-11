@@ -1,21 +1,21 @@
 dependencies:
 - name: common
   repository: https://charts.bitnami.com/bitnami
-  version: 1.7.1
+  version: 1.16.0
 - name: nginx-ingress-controller
   repository: https://charts.bitnami.com/bitnami
-  version: 7.6.17
+  version: 9.2.6
 - name: mariadb
   repository: https://charts.bitnami.com/bitnami
-  version: 9.4.1
+  version: 11.0.10
 - name: redis
   repository: https://charts.bitnami.com/bitnami
-  version: 14.8.7
+  version: 16.11.3
 - name: mongodb
   repository: https://charts.bitnami.com/bitnami
-  version: 10.23.8
+  version: 12.1.16
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
-  version: 8.19.1
-digest: sha256:0f98c0f24b1f55feb4712285d11bab2939050c631239fe72f412b950b0a29a2b
-generated: "2021-08-05T15:42:56.734084053+08:00"
+  version: 10.1.5
+digest: sha256:fcd11070086307d1587c6521ddecab59a109a72821ee7897ec148438d4f18789
+generated: "2022-06-07T20:14:25.373143519+08:00"
