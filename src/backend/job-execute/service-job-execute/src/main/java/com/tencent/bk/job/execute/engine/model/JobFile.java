@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.model;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.util.FilePathUtils;
 import lombok.Data;
 import lombok.ToString;
@@ -32,7 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Objects;
 
 /**
- * 分发的单个文件信息（一个IP+一个Path），含用户输入的原始路径、解析后的真实路径、用于展示的路径等信息
+ * 分发的单个文件信息，含用户输入的原始路径、解析后的真实路径、用于展示的路径等信息
  */
 @Data
 @ToString(exclude = {"password"})
@@ -46,9 +48,21 @@ public class JobFile {
      */
     private boolean sensitive;
     /**
-     * 文件源主机ip
+     * 文件源主机-云区域ID
      */
-    private String cloudIp;
+    private Long bkCloudId;
+    /**
+     * 文件源主机-ipv4
+     */
+    private String ip;
+    /**
+     * 文件源主机ID
+     */
+    private Long hostId;
+    /**
+     * 文件源主机agentId
+     */
+    private String agentId;
     /**
      * 文件路径(用户输入)
      */
@@ -97,19 +111,8 @@ public class JobFile {
     private String uniqueKey;
 
     /**
-     * @param cloudIp 云区域:IP
-     * @param dir              目录名称
-     * @param fileName         文件名
-     */
-    public JobFile(String cloudIp, String dir, String fileName) {
-        this.cloudIp = cloudIp;
-        this.dir = dir;
-        this.fileName = fileName;
-    }
-
-    /**
      * @param isLocalUploadFile 是否本地文件
-     * @param cloudIp  云区域:IP
+     * @param host              源文件主机
      * @param filePath          文件路径
      * @param dir               目录名称
      * @param fileName          文件名
@@ -117,10 +120,21 @@ public class JobFile {
      * @param password          源文件密码
      * @param displayFilePath   要展示的文件路径
      */
-    public JobFile(boolean isLocalUploadFile, String cloudIp, String filePath, String dir,
-                   String fileName, String account, String password, String displayFilePath) {
+    public JobFile(boolean isLocalUploadFile,
+                   HostDTO host,
+                   String filePath,
+                   String dir,
+                   String fileName,
+                   String account,
+                   String password,
+                   String displayFilePath) {
         this.localUploadFile = isLocalUploadFile;
-        this.cloudIp = cloudIp;
+        if (host != null) {
+            this.hostId = host.getHostId();
+            this.agentId = host.getAgentId();
+            this.bkCloudId = host.getBkCloudId();
+            this.ip = host.getIp();
+        }
         this.filePath = filePath;
         this.dir = dir;
         this.fileName = fileName;
@@ -130,10 +144,22 @@ public class JobFile {
         this.sensitive = this.localUploadFile;
     }
 
-    public JobFile(boolean isLocalUploadFile, String cloudIp, String filePath, String displayFilePath,
-                   String dir, String fileName, Long appId, Long accountId, String accountAlias) {
+    public JobFile(boolean isLocalUploadFile,
+                   HostDTO host,
+                   String filePath,
+                   String displayFilePath,
+                   String dir,
+                   String fileName,
+                   Long appId,
+                   Long accountId,
+                   String accountAlias) {
         this.localUploadFile = isLocalUploadFile;
-        this.cloudIp = cloudIp;
+        if (host != null) {
+            this.hostId = host.getHostId();
+            this.agentId = host.getAgentId();
+            this.bkCloudId = host.getBkCloudId();
+            this.ip = host.getIp();
+        }
         this.filePath = filePath;
         this.displayFilePath = displayFilePath;
         this.dir = dir;
@@ -157,8 +183,8 @@ public class JobFile {
         }
         JobFile target = (JobFile) obj;
 
-        if (this.cloudIp == null || target.cloudIp == null
-            || !this.cloudIp.equals(target.cloudIp)) {
+        if (this.hostId == null || target.hostId == null
+            || !this.hostId.equals(target.hostId)) {
             return false;
         }
         if (this.dir == null || target.dir == null || !this.dir.equals(target.dir)) {
@@ -172,7 +198,7 @@ public class JobFile {
 
     @Override
     public int hashCode() {
-        return Objects.hash(cloudIp, dir, fileName, account);
+        return Objects.hash(hostId, dir, fileName, account);
     }
 
     public String getDisplayFilePath() {
@@ -194,7 +220,7 @@ public class JobFile {
         if (localUploadFile) {
             this.uniqueKey = fileName;
         } else {
-            this.uniqueKey = getCloudIp() + ":" + getStandardFilePath();
+            this.uniqueKey = getHostId() + ":" + getStandardFilePath();
         }
         return this.uniqueKey;
     }
@@ -210,5 +236,10 @@ public class JobFile {
 
     public boolean isDir() {
         return this.filePath.endsWith("/") || this.filePath.endsWith("\\");
+    }
+
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续需要区分ipv4/ipv6", version = "3.7.x")
+    public String getCloudIp() {
+        return bkCloudId + ":" + ip;
     }
 }

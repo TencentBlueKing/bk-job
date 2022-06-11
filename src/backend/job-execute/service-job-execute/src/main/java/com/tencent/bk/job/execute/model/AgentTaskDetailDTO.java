@@ -22,45 +22,55 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model.service;
+package com.tencent.bk.job.execute.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.List;
-import java.util.StringJoiner;
+import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * 批量保存执行日志请求
+ * GSE Agent 任务详情，包含主机的详细信息
  */
-@ApiModel("批量保存执行日志请求")
 @Getter
 @Setter
-public class BatchSaveLogRequest {
+@ToString
+@NoArgsConstructor
+public class AgentTaskDetailDTO extends AgentTaskDTO {
     /**
-     * 作业实例创建时间
+     * 服务器IP,不包含云区域
      */
-    @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
-    private String jobCreateDate;
+    private String ip;
     /**
-     * 执行日志
+     * 云区域ID
      */
-    @ApiModelProperty(value = "执行日志", required = true)
-    private List<ServiceIpLogDTO> logs;
+    private Long bkCloudId;
+    /**
+     * 云区域名称
+     */
+    private String bkCloudName;
+    /**
+     * 展示给用户的IP
+     */
+    private String displayIp;
 
-    /**
-     * 日志类型
-     */
-    private Integer logType;
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", BatchSaveLogRequest.class.getSimpleName() + "[", "]")
-            .add("jobCreateDate='" + jobCreateDate + "'")
-            .add("logType='" + logType + "'")
-            .add("logs=" + logs)
-            .toString();
+    public AgentTaskDetailDTO(AgentTaskDTO agentTask) {
+        super(agentTask);
+        if (StringUtils.isNotEmpty(agentTask.getCloudIp())) {
+            HostDTO host = HostDTO.fromCloudIp(agentTask.getAgentId());
+            this.ip = host.getIp();
+            this.bkCloudId = host.getBkCloudId();
+        }
     }
+
+    public String getDisplayIp() {
+        if (StringUtils.isNotEmpty(displayIp)) {
+            return displayIp;
+        } else {
+            return ip;
+        }
+    }
+
 }

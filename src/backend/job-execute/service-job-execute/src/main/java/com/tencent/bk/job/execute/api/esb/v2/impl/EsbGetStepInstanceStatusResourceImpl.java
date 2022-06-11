@@ -36,8 +36,8 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
@@ -97,7 +97,7 @@ public class EsbGetStepInstanceStatusResourceImpl
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getTaskInstanceId());
         authViewTaskInstance(request.getUserName(), request.getAppResourceScope(), taskInstance);
         resultData.setIsFinished(stepExecutionDetail.isFinished());
-        resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail.getResultGroups()));
+        resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail));
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {
@@ -142,19 +142,21 @@ public class EsbGetStepInstanceStatusResourceImpl
         return ValidateResult.pass();
     }
 
-    private List<Map<String, Object>> convertToStandardAnalyseResult(List<AgentTaskResultGroupDTO> resultGroups) {
+    private List<Map<String, Object>> convertToStandardAnalyseResult(StepExecutionDetailDTO stepExecutionDetail) {
         List<Map<String, Object>> standardStepAnalyseResultList = new ArrayList<>();
+        List<AgentTaskResultGroupDTO> resultGroups = stepExecutionDetail.getResultGroups();
         if (resultGroups == null || resultGroups.isEmpty()) {
             return standardStepAnalyseResultList;
         }
+
         for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
             Map<String, Object> standardStepAnalyseResult = new HashMap<>();
-            List<AgentTaskDTO> agentTasks = resultGroup.getAgentTasks();
+            List<AgentTaskDetailDTO> agentTasks = resultGroup.getAgentTasks();
             standardStepAnalyseResult.put("count", CollectionUtils.isEmpty(agentTasks) ? 0 : agentTasks.size());
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 List<EsbIpDTO> ips = new ArrayList<>();
-                for (AgentTaskDTO agentTask : agentTasks) {
-                    ips.add(new EsbIpDTO(agentTask.getCloudId(), agentTask.getIp()));
+                for (AgentTaskDetailDTO agentTask : agentTasks) {
+                    ips.add(new EsbIpDTO(agentTask.getBkCloudId(), agentTask.getIp()));
                 }
                 standardStepAnalyseResult.put("ip_list", ips);
 
@@ -162,7 +164,7 @@ public class EsbGetStepInstanceStatusResourceImpl
 
             standardStepAnalyseResult.put("result_type", resultGroup.getStatus());
             standardStepAnalyseResult.put("result_type_text",
-                i18nService.getI18n(IpStatus.valueOf(resultGroup.getStatus()).getI18nKey()));
+                i18nService.getI18n(AgentTaskStatus.valueOf(resultGroup.getStatus()).getI18nKey()));
 
             standardStepAnalyseResultList.add(standardStepAnalyseResult);
         }

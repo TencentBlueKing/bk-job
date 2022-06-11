@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.logsvr.model;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,11 +36,11 @@ import java.util.StringJoiner;
  */
 @Getter
 @Setter
-public class TaskIpLog {
+public class TaskHostLog {
     /**
      * 文件任务执行日志
      */
-    List<FileTaskLog> fileTaskLogs;
+    List<FileTaskLogDoc> fileTaskLogs;
     /**
      * 作业实例创建时间,格式yyyy_MM_dd
      */
@@ -51,7 +52,12 @@ public class TaskIpLog {
     /**
      * 执行任务的主机ip
      */
+    @CompatibleImplementation(explain = "兼容参数,由于IP不再唯一，后续使用hostId参数替换", version = "3.7.x")
     private String ip;
+    /**
+     * 主机ID
+     */
+    private Long hostId;
     /**
      * 执行次数
      */
@@ -63,7 +69,7 @@ public class TaskIpLog {
     /**
      * 脚本任务执行日志
      */
-    private ScriptTaskLog scriptTaskLog;
+    private ScriptTaskLogDoc scriptTaskLog;
     /**
      * 脚本任务执行日志内容
      */
@@ -77,10 +83,11 @@ public class TaskIpLog {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", TaskIpLog.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", TaskHostLog.class.getSimpleName() + "[", "]")
             .add("fileTaskLogs=" + fileTaskLogs)
             .add("jobCreateDate='" + jobCreateDate + "'")
             .add("stepInstanceId=" + stepInstanceId)
+            .add("hostId='" + hostId + "'")
             .add("ip='" + ip + "'")
             .add("executeCount=" + executeCount)
             .add("batch=" + batch)

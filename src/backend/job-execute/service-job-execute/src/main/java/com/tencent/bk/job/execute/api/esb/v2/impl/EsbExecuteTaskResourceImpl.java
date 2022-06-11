@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbExecuteTaskResource;
@@ -144,8 +144,8 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
         ServersDTO serversDTO = new ServersDTO();
         if (servers != null) {
             if (servers.getIps() != null) {
-                List<IpDTO> staticIpList = new ArrayList<>();
-                servers.getIps().forEach(ip -> staticIpList.add(new IpDTO(ip.getCloudAreaId(), ip.getIp())));
+                List<HostDTO> staticIpList = new ArrayList<>();
+                servers.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
                 serversDTO.setStaticIpList(staticIpList);
             }
             if (servers.getDynamicGroupIds() != null) {
@@ -162,8 +162,8 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
             }
         } else {
             if (ipList != null) {
-                List<IpDTO> staticIpList = new ArrayList<>();
-                ipList.forEach(ip -> staticIpList.add(new IpDTO(ip.getCloudAreaId(), ip.getIp())));
+                List<HostDTO> staticIpList = new ArrayList<>();
+                ipList.forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
                 serversDTO.setStaticIpList(staticIpList);
             }
             if (dynamicGroupIdList != null) {

@@ -40,7 +40,7 @@ import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -158,10 +158,18 @@ public interface IBizCmdbClient {
     /**
      * 根据IP批量获取主机
      *
-     * @param hostIps 云区域+IP列表
+     * @param cloudIps 云区域+IP列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByIps(List<IpDTO> hostIps);
+    List<ApplicationHostDTO> listHostsByIps(List<String> cloudIps);
+
+    /**
+     * 根据IP批量获取主机
+     *
+     * @param hostIds 主机ID列表
+     * @return 主机列表
+     */
+    List<ApplicationHostDTO> listHostsByHostIds(List<Long> hostIds);
 
     /**
      * 批量获取业务下的主机列表
@@ -170,7 +178,7 @@ public interface IBizCmdbClient {
      * @param ipList 主机IP列表
      * @return 主机
      */
-    List<ApplicationHostDTO> listBizHosts(long bizId, Collection<IpDTO> ipList);
+    List<ApplicationHostDTO> listBizHosts(long bizId, Collection<HostDTO> ipList);
 
     List<HostBizRelationDTO> findHostBizRelations(String uin, List<Long> hostIdList);
 

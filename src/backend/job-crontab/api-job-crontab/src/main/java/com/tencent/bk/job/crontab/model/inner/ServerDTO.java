@@ -134,7 +134,7 @@ public class ServerDTO {
         }
         if (CollectionUtils.isNotEmpty(server.getIps())) {
             List<HostDTO> staticIpList = new ArrayList<>();
-            server.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getCloudAreaId(), ip.getIp())));
+            server.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
             serverDTO.setIps(staticIpList);
         }
         return serverDTO;

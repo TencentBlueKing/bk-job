@@ -25,16 +25,15 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
-import com.tencent.bk.job.execute.model.ScriptIpLogContent;
+import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceIpLogsDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 日志服务
@@ -42,57 +41,26 @@ import java.util.Map;
 public interface LogService {
 
     /**
-     * 批量写job系统日志(非用户脚本输出)
-     *
-     * @param jobCreateTime        任务创建时间
-     * @param stepInstanceId       步骤实例ID
-     * @param executeCount         执行次数
-     * @param batch                滚动执行批次;非滚动步骤传入null
-     * @param ipsAndOffset         主机列表以及对应的日志偏移
-     * @param content              日志内容
-     * @param logTimeInMillSeconds 日志时间
-     */
-    void batchWriteJobSystemScriptLog(long jobCreateTime,
-                                      long stepInstanceId,
-                                      int executeCount,
-                                      Integer batch,
-                                      Map<String, Integer> ipsAndOffset, String content,
-                                      Long logTimeInMillSeconds);
-
-    /**
      * 构造job系统日志
      *
-     * @param cloudIp              云区域ID:IP
+     * @param host                 主机
      * @param content              日志原始内容
      * @param offset               日志偏移 - 字节
      * @param logTimeInMillSeconds 日志时间
      * @return 系统日志
      */
-    ServiceScriptLogDTO buildSystemScriptLog(String cloudIp, String content, int offset,
-                                             Long logTimeInMillSeconds);
+    ServiceScriptLogDTO buildSystemScriptLog(HostDTO host, String content, int offset, Long logTimeInMillSeconds);
 
     /**
      * 写脚本执行日志
      *
-     * @param jobCreateDate  任务创建时间
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次;非滚动步骤传入null
-     * @param scriptLog      脚本日志
-     */
-    void writeScriptLog(String jobCreateDate, long stepInstanceId, int executeCount, Integer batch,
-                        ServiceScriptLogDTO scriptLog);
-
-    /**
-     * 写脚本执行日志
-     *
-     * @param jobCreateDate  任务创建时间
+     * @param jobCreateTime  任务创建时间
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次;非滚动步骤传入null
      * @param scriptLogs     脚本日志
      */
-    void batchWriteScriptLog(String jobCreateDate, long stepInstanceId, int executeCount, Integer batch,
+    void batchWriteScriptLog(long jobCreateTime, long stepInstanceId, int executeCount, Integer batch,
                              List<ServiceScriptLogDTO> scriptLogs);
 
 
@@ -102,11 +70,10 @@ public interface LogService {
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次;非滚动步骤传入null
-     * @param ip             主机ip
+     * @param host           主机
      * @return 日志内容
      */
-    ScriptIpLogContent getScriptIpLogContent(long stepInstanceId, int executeCount, Integer batch, IpDTO ip)
-    ;
+    ScriptHostLogContent getScriptHostLogContent(long stepInstanceId, int executeCount, Integer batch, HostDTO host);
 
     /**
      * 批量获取脚本执行日志
@@ -115,11 +82,11 @@ public interface LogService {
      * @param stepInstanceId   步骤实例 ID
      * @param executeCount     执行次数
      * @param batch            滚动执行批次;非滚动步骤传入null
-     * @param ips              主机列表,最大支持1000个
+     * @param hosts            主机列表,最大支持1000个
      * @return 日志内容
      */
-    List<ScriptIpLogContent> batchGetScriptIpLogContent(String jobCreateDateStr, long stepInstanceId, int executeCount,
-                                                        Integer batch, List<IpDTO> ips);
+    List<ScriptHostLogContent> batchGetScriptHostLogContent(String jobCreateDateStr, long stepInstanceId,
+                                                            int executeCount, Integer batch, List<HostDTO> hosts);
 
     /**
      * 获取脚本执行日志
@@ -127,12 +94,12 @@ public interface LogService {
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次;非滚动步骤传入null
-     * @param ip             主机ip
+     * @param host           主机
      * @param mode           文件传输模式
      * @return 日志内容
      * @throws ServiceException 异常
      */
-    FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, Integer batch, IpDTO ip,
+    FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, Integer batch, HostDTO host,
                                          Integer mode);
 
     /**
@@ -165,13 +132,13 @@ public interface LogService {
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次;非滚动步骤传入null
-     * @param ips            服务器列表
+     * @param hosts          主机列表
      * @return 日志内容
      */
-    ServiceIpLogsDTO batchGetFileIpLogContent(long stepInstanceId,
-                                              int executeCount,
-                                              Integer batch,
-                                              List<IpDTO> ips);
+    ServiceHostLogsDTO batchGetFileIpLogContent(long stepInstanceId,
+                                                int executeCount,
+                                                Integer batch,
+                                                List<HostDTO> hosts);
 
     /**
      * 根据关键字获取对应的ip
@@ -182,7 +149,7 @@ public interface LogService {
      * @param keyword        关键字
      * @return ips
      */
-    List<IpDTO> getIpsByContentKeyword(long stepInstanceId, int executeCount, Integer batch, String keyword);
+    List<HostDTO> getIpsByContentKeyword(long stepInstanceId, int executeCount, Integer batch, String keyword);
 
     /**
      * 写日志
@@ -191,13 +158,14 @@ public interface LogService {
      * @param stepInstanceId       步骤实例ID
      * @param executeCount         执行次数
      * @param batch                滚动执行批次;非滚动步骤传入null
-     * @param cloudIp     云区域ID:IP
+     * @param host                 主机
      * @param executionLog         文件任务执行日志
      * @param logTimeInMillSeconds 日志时间
      */
     void writeFileLogWithTimestamp(long jobCreateTime, long stepInstanceId, int executeCount, Integer batch,
-                                   String cloudIp, ServiceIpLogDTO executionLog,
+                                   HostDTO host, ServiceHostLogDTO executionLog,
                                    Long logTimeInMillSeconds);
+
 
     /**
      * 写文件日志日志
@@ -205,6 +173,6 @@ public interface LogService {
      * @param jobCreateTime 任务创建时间
      * @param fileLogs      文件任务执行日志
      */
-    void writeFileLogs(long jobCreateTime, List<ServiceIpLogDTO> fileLogs);
+    void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> fileLogs);
 
 }

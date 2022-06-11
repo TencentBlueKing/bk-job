@@ -22,30 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.variable;
+package com.tencent.bk.job.logsvr.model.service;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import org.apache.commons.collections4.CollectionUtils;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import java.util.Collection;
-import java.util.StringJoiner;
+import java.util.List;
 
 /**
- * 变量解析工具类
+ * 脚本日志查询请求
  */
-public class VariableResolveUtils {
+@Data
+@ApiModel("脚本日志查询请求")
+public class ServiceScriptLogQueryRequest {
     /**
-     * 格式化主机值
-     *
-     * @param hosts 主机列表
-     * @return 主机值
+     * 步骤实例ID
      */
-    public static String formatHosts(Collection<HostDTO> hosts) {
-        if (CollectionUtils.isEmpty(hosts)) {
-            return null;
-        }
-        StringJoiner joiner = new StringJoiner(",");
-        hosts.forEach(host -> joiner.add(host.toCloudIp()));
-        return joiner.toString();
-    }
+    @ApiModelProperty(value = "步骤实例ID", required = true)
+    private Long stepInstanceId;
+
+    /**
+     * 执行次数
+     */
+    @ApiModelProperty(value = "执行次数", required = true)
+    private Integer executeCount;
+
+    /**
+     * 滚动执行批次，可能为null
+     */
+    @ApiModelProperty(value = "滚动执行批次，可能为null")
+    private Integer batch;
+
+    @ApiModelProperty("主机IP列表;兼容参数,如果hostIds参数不为空，那么忽略ips参数")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", version = "3.7.x")
+    private List<String> ips;
+
+    /**
+     * 查询的主机ID列表
+     */
+    @ApiModelProperty("查询的主机ID列表")
+    private List<Long> hostIds;
 }

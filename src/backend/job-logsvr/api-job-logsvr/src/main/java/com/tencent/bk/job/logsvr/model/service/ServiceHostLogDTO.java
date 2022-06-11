@@ -26,38 +26,48 @@ package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
 
 @ApiModel("主机执行日志")
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ServiceIpLogDTO {
+public class ServiceHostLogDTO {
     /**
      * 作业步骤实例ID
      */
     @ApiModelProperty("步骤实例ID")
     private Long stepInstanceId;
+
     /**
      * 执行次数
      */
     @ApiModelProperty("执行次数")
     private Integer executeCount;
+
     /**
      * 滚动执行批次
      */
     @ApiModelProperty("滚动执行批次")
     private Integer batch;
+
     /**
      * ip
      */
-    @ApiModelProperty("ip")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostId替换", version = "3.7.x")
+    @ApiModelProperty(value = "ip, 兼容参数, 如果存在hostId那么忽略ip参数")
     private String ip;
+
+    /**
+     * 主机ID
+     */
+    @ApiModelProperty(value = "主机ID")
+    private Long hostId;
 
     /**
      * 脚本日志内容
@@ -76,17 +86,5 @@ public class ServiceIpLogDTO {
             fileTaskLogs = new ArrayList<>();
         }
         fileTaskLogs.add(fileTaskDetailLog);
-    }
-
-    @Override
-    public String toString() {
-        StringJoiner joiner = new StringJoiner(", ", ServiceIpLogDTO.class.getSimpleName() + "[", "]")
-            .add("stepInstanceId=" + stepInstanceId)
-            .add("executeCount=" + executeCount)
-            .add("batch=" + batch)
-            .add("ip='" + ip + "'")
-            .add("scriptLog=" + scriptLog)
-            .add("fileTaskLogSize=" + (fileTaskLogs == null ? 0 : fileTaskLogs.size()));
-        return joiner.toString();
     }
 }

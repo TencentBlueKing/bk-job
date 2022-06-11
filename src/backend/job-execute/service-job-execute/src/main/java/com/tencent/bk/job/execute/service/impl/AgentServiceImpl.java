@@ -25,10 +25,12 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.consts.Consts;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,36 +50,39 @@ import java.util.StringJoiner;
 @Slf4j
 public class AgentServiceImpl implements AgentService {
     private final QueryAgentStatusClient queryAgentStatusClient;
-    private volatile String agentBindIp;
+    private final HostService hostService;
+    private volatile HostDTO agentHost;
 
     @Autowired
-    public AgentServiceImpl(QueryAgentStatusClient queryAgentStatusClient) {
+    public AgentServiceImpl(QueryAgentStatusClient queryAgentStatusClient,
+                            HostService hostService) {
         this.queryAgentStatusClient = queryAgentStatusClient;
+        this.hostService = hostService;
     }
 
     @Override
-    public String getLocalAgentBindIp() {
-        if (StringUtils.isNotBlank(agentBindIp)) {
-            return agentBindIp;
+    public HostDTO getLocalAgentHost() {
+        if (agentHost != null) {
+            return agentHost;
         }
-        return getAgentBindIp();
+        return getAgentBindHost();
     }
 
     @Override
     public ServersDTO getLocalServersDTO() {
-        List<IpDTO> ipDTOList = new ArrayList<>();
-        ipDTOList.add(new IpDTO((long) Consts.DEFAULT_CLOUD_ID, getLocalAgentBindIp()));
+        List<HostDTO> hostDTOList = new ArrayList<>();
+        hostDTOList.add(getLocalAgentHost());
         ServersDTO servers = new ServersDTO();
-        servers.setStaticIpList(ipDTOList);
-        servers.setIpList(ipDTOList);
+        servers.setStaticIpList(hostDTOList);
+        servers.setIpList(hostDTOList);
         return servers;
     }
 
-    private String getAgentBindIp() {
-        log.info("Get local agent bind ip!");
+    private HostDTO getAgentBindHost() {
+        log.info("Get local agent bind host!");
         synchronized (this) {
-            if (StringUtils.isNotBlank(agentBindIp)) {
-                return agentBindIp;
+            if (agentHost != null) {
+                return agentHost;
             }
             String physicalMachineMultiIp;
             String nodeIP = System.getenv("BK_JOB_NODE_IP");
@@ -92,9 +97,12 @@ public class AgentServiceImpl implements AgentService {
                 }
                 physicalMachineMultiIp = sj.toString();
             }
-            agentBindIp = queryAgentStatusClient.getHostIpByAgentStatus(physicalMachineMultiIp, Consts.DEFAULT_CLOUD_ID);
+            String agentBindIp = queryAgentStatusClient.getHostIpByAgentStatus(physicalMachineMultiIp,
+                Consts.DEFAULT_CLOUD_ID);
             log.info("Local agent bind ip is {}", agentBindIp);
-            return agentBindIp;
+            ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindIp));
+            agentHost = HostDTO.fromHostIdAndAgentId(host.getHostId(), agentBindIp);
+            return agentHost;
         }
     }
 

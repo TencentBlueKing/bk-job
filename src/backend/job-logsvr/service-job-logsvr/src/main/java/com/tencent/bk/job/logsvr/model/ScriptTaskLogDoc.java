@@ -26,6 +26,7 @@ package com.tencent.bk.job.logsvr.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -40,7 +41,7 @@ import java.util.Comparator;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @NoArgsConstructor
 @Document
-public class ScriptTaskLog {
+public class ScriptTaskLogDoc {
     public static final ScriptTaskLogOffsetComparator LOG_OFFSET_COMPARATOR = new ScriptTaskLogOffsetComparator();
     /**
      * 作业步骤实例ID
@@ -63,9 +64,16 @@ public class ScriptTaskLog {
     /**
      * 执行任务的主机ip
      */
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostId替换", version = "3.7.x")
     @JsonProperty("ip")
     @Field("ip")
     private String ip;
+    /**
+     * 执行任务的主机hostId
+     */
+    @JsonProperty("hostId")
+    @Field("hostId")
+    private Long hostId;
     /**
      * 日志内容
      */
@@ -79,24 +87,26 @@ public class ScriptTaskLog {
     @Field("offset")
     private Integer offset;
 
-    public ScriptTaskLog(Long stepInstanceId,
-                         Integer executeCount,
-                         Integer batch,
-                         String ip,
-                         String content,
-                         Integer offset) {
+    public ScriptTaskLogDoc(Long stepInstanceId,
+                            Integer executeCount,
+                            Integer batch,
+                            Long hostId,
+                            String ip,
+                            String content,
+                            Integer offset) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
+        this.hostId = hostId;
         this.ip = ip;
         this.content = content;
         this.offset = offset;
     }
 
-    private static class ScriptTaskLogOffsetComparator implements Comparator<ScriptTaskLog> {
+    private static class ScriptTaskLogOffsetComparator implements Comparator<ScriptTaskLogDoc> {
 
         @Override
-        public int compare(ScriptTaskLog log1, ScriptTaskLog log2) {
+        public int compare(ScriptTaskLogDoc log1, ScriptTaskLogDoc log2) {
             if (log1 == null || log2 == null) {
                 return 0;
             }

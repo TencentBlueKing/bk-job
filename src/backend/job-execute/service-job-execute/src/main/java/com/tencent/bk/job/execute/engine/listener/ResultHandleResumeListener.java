@@ -55,7 +55,6 @@ import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
-import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * 执行引擎事件处理-任务恢复
@@ -166,68 +164,16 @@ public class ResultHandleResumeListener {
             } else if (stepInstance.isFileStep()) {
                 agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
             }
+            agentTasks.forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
 
             List<TaskVariableDTO> taskVariables =
                 taskInstanceVariableService.getByTaskInstanceId(stepInstance.getTaskInstanceId());
             TaskVariablesAnalyzeResult taskVariablesAnalyzeResult = new TaskVariablesAnalyzeResult(taskVariables);
 
             if (stepInstance.isScriptStep()) {
-                ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
-                    taskInstanceService,
-                    gseTaskService,
-                    logService,
-                    taskInstanceVariableService,
-                    stepInstanceVariableValueService,
-                    taskExecuteMQEventDispatcher,
-                    resultHandleTaskKeepaliveManager,
-                    exceptionStatusManager,
-                    taskEvictPolicyExecutor,
-                    scriptAgentTaskService,
-                    taskInstance, stepInstance,
-                    taskVariablesAnalyzeResult,
-                    agentTaskMap,
-                    gseTask,
-                    agentTaskMap.keySet(),
-                    requestId);
-                resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
+                resumeScriptTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, gseTask, requestId);
             } else if (stepInstance.isFileStep()) {
-                Set<JobFile> sendFiles = JobSrcFileUtils.parseSendFileList(stepInstance,
-                    agentService.getLocalAgentBindIp(),
-                    storageSystemConfig.getJobStorageRootPath());
-                String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
-                Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
-                    sendFiles, targetDir, stepInstance.getFileTargetName());
-                Map<String, String> sourceDestPathMap = buildSourceDestPathMap(srcAndDestMap);
-                // 初始化显示名称映射Map
-                Map<String, String> sourceFileDisplayMap = JobSrcFileUtils.buildSourceFileDisplayMapping(sendFiles,
-                    NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(), FileDirTypeConf.UPLOAD_FILE_DIR));
-
-                Set<String> targetIps = agentTasks.stream()
-                    .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
-                    .map(AgentTaskDTO::getCloudIp)
-                    .collect(Collectors.toSet());
-                FileResultHandleTask fileResultHandleTask = new FileResultHandleTask(
-                    taskInstanceService,
-                    gseTaskService,
-                    logService,
-                    taskInstanceVariableService,
-                    stepInstanceVariableValueService,
-                    taskExecuteMQEventDispatcher,
-                    resultHandleTaskKeepaliveManager,
-                    exceptionStatusManager,
-                    taskEvictPolicyExecutor,
-                    fileAgentTaskService,
-                    taskInstance, stepInstance,
-                    taskVariablesAnalyzeResult,
-                    agentTaskMap,
-                    gseTask,
-                    targetIps,
-                    sendFiles,
-                    storageSystemConfig.getJobStorageRootPath(),
-                    sourceDestPathMap,
-                    sourceFileDisplayMap,
-                    requestId);
-                resultHandleManager.handleDeliveredTask(fileResultHandleTask);
+                resumeFileTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, gseTask, requestId);
             } else {
                 log.error("Not support resume step type! stepType: {}", stepInstance.getExecuteType());
             }
@@ -237,11 +183,90 @@ public class ResultHandleResumeListener {
         }
     }
 
+    private void resumeScriptTask(TaskInstanceDTO taskInstance,
+                                  StepInstanceDTO stepInstance,
+                                  TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
+                                  GseTaskDTO gseTask,
+                                  String requestId) {
+        Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
+        List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        agentTasks.forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
+
+
+        ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
+            taskInstanceService,
+            gseTaskService,
+            logService,
+            taskInstanceVariableService,
+            stepInstanceVariableValueService,
+            taskExecuteMQEventDispatcher,
+            resultHandleTaskKeepaliveManager,
+            exceptionStatusManager,
+            taskEvictPolicyExecutor,
+            scriptAgentTaskService,
+            taskInstance, stepInstance,
+            taskVariablesAnalyzeResult,
+            agentTaskMap,
+            gseTask,
+            requestId);
+        resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
+    }
+
+    private void resumeFileTask(TaskInstanceDTO taskInstance,
+                                StepInstanceDTO stepInstance,
+                                TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
+                                GseTaskDTO gseTask,
+                                String requestId) {
+        Set<JobFile> sendFiles = JobSrcFileUtils.parseSendFileList(stepInstance,
+            agentService.getLocalAgentHost(),
+            storageSystemConfig.getJobStorageRootPath());
+        String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
+        Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
+            sendFiles, targetDir, stepInstance.getFileTargetName());
+        Map<String, String> sourceDestPathMap = buildSourceDestPathMap(srcAndDestMap);
+        // 初始化显示名称映射Map
+        Map<String, String> sourceFileDisplayMap = JobSrcFileUtils.buildSourceFileDisplayMapping(sendFiles,
+            NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(), FileDirTypeConf.UPLOAD_FILE_DIR));
+
+        Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
+        Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
+        List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        agentTasks.forEach(agentTask -> {
+            if (agentTask.isTarget()) {
+                targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);
+            } else {
+                sourceAgentTaskMap.put(agentTask.getAgentId(), agentTask);
+            }
+        });
+
+        FileResultHandleTask fileResultHandleTask = new FileResultHandleTask(
+            taskInstanceService,
+            gseTaskService,
+            logService,
+            taskInstanceVariableService,
+            stepInstanceVariableValueService,
+            taskExecuteMQEventDispatcher,
+            resultHandleTaskKeepaliveManager,
+            exceptionStatusManager,
+            taskEvictPolicyExecutor,
+            fileAgentTaskService,
+            taskInstance,
+            stepInstance,
+            taskVariablesAnalyzeResult,
+            targetAgentTaskMap,
+            sourceAgentTaskMap,
+            gseTask,
+            sendFiles,
+            storageSystemConfig.getJobStorageRootPath(),
+            sourceDestPathMap,
+            sourceFileDisplayMap,
+            requestId);
+        resultHandleManager.handleDeliveredTask(fileResultHandleTask);
+    }
+
     private Map<String, String> buildSourceDestPathMap(Map<String, FileDest> srcAndDestMap) {
         Map<String, String> sourceDestPathMap = new HashMap<>();
-        srcAndDestMap.forEach((fileKey, dest) -> {
-            sourceDestPathMap.put(fileKey, dest.getDestPath());
-        });
+        srcAndDestMap.forEach((fileKey, dest) -> sourceDestPathMap.put(fileKey, dest.getDestPath()));
         return sourceDestPathMap;
     }
 

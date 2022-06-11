@@ -55,28 +55,27 @@ public class FileAgentTaskDAOImplIntegrationTest {
     private FileAgentTaskDAO fileAgentTaskDAO;
 
     @Test
-    @DisplayName("根据IP获取Agent任务")
-    public void testGetAgentTaskByIp() {
-        String ip = "0:127.0.0.1";
+    @DisplayName("根据主机ID获取Agent任务")
+    public void testGetAgentTaskByHostId() {
+        long hostId = 101L;
         long stepInstanceId = 1L;
         int executeCount = 0;
         int batch = 1;
         FileTaskModeEnum mode = FileTaskModeEnum.UPLOAD;
-        AgentTaskDTO agentTask = fileAgentTaskDAO.getAgentTaskByIp(stepInstanceId, executeCount, batch, mode, ip);
+        AgentTaskDTO agentTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount, batch, mode, hostId);
 
         assertThat(agentTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(agentTask.getExecuteCount()).isEqualTo(executeCount);
         assertThat(agentTask.getBatch()).isEqualTo(batch);
         assertThat(agentTask.getFileTaskMode()).isEqualTo(FileTaskModeEnum.UPLOAD);
-        assertThat(agentTask.getCloudIp()).isEqualTo(ip);
+        assertThat(agentTask.getHostId()).isEqualTo(hostId);
+        assertThat(agentTask.getAgentId()).isEqualTo("0:127.0.0.1");
         assertThat(agentTask.getGseTaskId()).isEqualTo(1L);
         assertThat(agentTask.getStatus()).isEqualTo(9);
         assertThat(agentTask.getStartTime()).isEqualTo(1565767148000L);
         assertThat(agentTask.getEndTime()).isEqualTo(1565767149000L);
         assertThat(agentTask.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask.getErrorCode()).isEqualTo(0);
-        assertThat(agentTask.getCloudId()).isEqualTo(0);
-        assertThat(agentTask.getDisplayIp()).isEqualTo("127.0.0.1");
     }
 
     @Test
@@ -88,9 +87,9 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask1.setExecuteCount(0);
         agentTask1.setBatch(1);
         agentTask1.setFileTaskMode(FileTaskModeEnum.UPLOAD);
-        agentTask1.setCloudIp("0:127.0.0.1");
+        agentTask1.setHostId(101L);
+        agentTask1.setAgentId("0:127.0.0.1");
         agentTask1.setGseTaskId(1000L);
-        agentTask1.setDisplayIp("127.0.0.1");
         agentTask1.setStartTime(1572858334000L);
         agentTask1.setEndTime(1572858335000L);
         agentTask1.setTotalTime(1000L);
@@ -103,10 +102,10 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask2.setExecuteCount(0);
         agentTask2.setBatch(1);
         agentTask2.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
-        agentTask2.setCloudIp("0:127.0.0.2");
+        agentTask2.setHostId(102L);
+        agentTask2.setAgentId("0:127.0.0.2");
         agentTask2.setGseTaskId(1001L);
         agentTask2.setErrorCode(88);
-        agentTask2.setDisplayIp("127.0.0.2");
         agentTask2.setStartTime(1572858330000L);
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
@@ -116,15 +115,15 @@ public class FileAgentTaskDAOImplIntegrationTest {
 
         fileAgentTaskDAO.batchSaveAgentTasks(agentTaskList);
 
-        AgentTaskDTO agentTask1Return = fileAgentTaskDAO.getAgentTaskByIp(100L, 0, 1,
-            FileTaskModeEnum.UPLOAD, "0:127.0.0.1");
+        AgentTaskDTO agentTask1Return = fileAgentTaskDAO.getAgentTaskByHostId(100L, 0, 1,
+            FileTaskModeEnum.UPLOAD, 101L);
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(agentTask1Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask1Return.getBatch()).isEqualTo(1);
         assertThat(agentTask1Return.getFileTaskMode()).isEqualTo(FileTaskModeEnum.UPLOAD);
-        assertThat(agentTask1Return.getCloudIp()).isEqualTo("0:127.0.0.1");
+        assertThat(agentTask1Return.getHostId()).isEqualTo(101L);
+        assertThat(agentTask1Return.getAgentId()).isEqualTo("0:127.0.0.1");
         assertThat(agentTask1Return.getGseTaskId()).isEqualTo(1000L);
-        assertThat(agentTask1Return.getDisplayIp()).isEqualTo("127.0.0.1");
         assertThat(agentTask1Return.getStartTime()).isEqualTo(1572858334000L);
         assertThat(agentTask1Return.getEndTime()).isEqualTo(1572858335000L);
         assertThat(agentTask1Return.getTotalTime()).isEqualTo(1000L);
@@ -132,15 +131,15 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getStatus()).isEqualTo(1);
 
 
-        AgentTaskDTO agentTask2Return = fileAgentTaskDAO.getAgentTaskByIp(100L, 0, 1,
-            FileTaskModeEnum.DOWNLOAD, "0:127.0.0.2");
+        AgentTaskDTO agentTask2Return = fileAgentTaskDAO.getAgentTaskByHostId(100L, 0, 1,
+            FileTaskModeEnum.DOWNLOAD, 102L);
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask2Return.getBatch()).isEqualTo(1);
         assertThat(agentTask2Return.getFileTaskMode()).isEqualTo(FileTaskModeEnum.DOWNLOAD);
+        assertThat(agentTask2Return.getHostId()).isEqualTo(102L);
+        assertThat(agentTask2Return.getAgentId()).isEqualTo("0:127.0.0.2");
         assertThat(agentTask2Return.getGseTaskId()).isEqualTo(1001L);
-        assertThat(agentTask2Return.getCloudIp()).isEqualTo("0:127.0.0.2");
-        assertThat(agentTask2Return.getDisplayIp()).isEqualTo("127.0.0.2");
         assertThat(agentTask2Return.getStartTime()).isEqualTo(1572858330000L);
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
@@ -157,9 +156,9 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask1.setExecuteCount(0);
         agentTask1.setBatch(2);
         agentTask1.setFileTaskMode(FileTaskModeEnum.UPLOAD);
-        agentTask1.setCloudIp("0:127.0.0.1");
+        agentTask1.setHostId(101L);
+        agentTask1.setAgentId("0:127.0.0.1");
         agentTask1.setGseTaskId(1000L);
-        agentTask1.setDisplayIp("127.0.0.1");
         agentTask1.setStartTime(1572858334000L);
         agentTask1.setEndTime(1572858335000L);
         agentTask1.setTotalTime(1000L);
@@ -172,10 +171,10 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask2.setExecuteCount(0);
         agentTask2.setBatch(2);
         agentTask2.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
-        agentTask2.setCloudIp("0:127.0.0.3");
+        agentTask2.setHostId(103L);
+        agentTask2.setAgentId("0:127.0.0.3");
         agentTask2.setGseTaskId(1001L);
         agentTask2.setErrorCode(88);
-        agentTask2.setDisplayIp("127.0.0.3");
         agentTask2.setStartTime(1572858330000L);
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
@@ -185,14 +184,14 @@ public class FileAgentTaskDAOImplIntegrationTest {
 
         fileAgentTaskDAO.batchUpdateAgentTasks(agentTaskList);
 
-        AgentTaskDTO agentTask1Return = fileAgentTaskDAO.getAgentTaskByIp(1L, 0, 2,
-            FileTaskModeEnum.UPLOAD, "0:127.0.0.1");
+        AgentTaskDTO agentTask1Return = fileAgentTaskDAO.getAgentTaskByHostId(1L, 0, 2,
+            FileTaskModeEnum.UPLOAD, 101L);
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTask1Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask1Return.getBatch()).isEqualTo(2);
-        assertThat(agentTask1Return.getCloudIp()).isEqualTo("0:127.0.0.1");
+        assertThat(agentTask1Return.getAgentId()).isEqualTo("0:127.0.0.1");
+        assertThat(agentTask1Return.getHostId()).isEqualTo(101L);
         assertThat(agentTask1Return.getGseTaskId()).isEqualTo(1000L);
-        assertThat(agentTask1Return.getDisplayIp()).isEqualTo("127.0.0.1");
         assertThat(agentTask1Return.getStartTime()).isEqualTo(1572858334000L);
         assertThat(agentTask1Return.getEndTime()).isEqualTo(1572858335000L);
         assertThat(agentTask1Return.getTotalTime()).isEqualTo(1000L);
@@ -200,14 +199,14 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getStatus()).isEqualTo(1);
 
 
-        AgentTaskDTO agentTask2Return = fileAgentTaskDAO.getAgentTaskByIp(1L, 0, 2,
-            FileTaskModeEnum.DOWNLOAD, "0:127.0.0.3");
+        AgentTaskDTO agentTask2Return = fileAgentTaskDAO.getAgentTaskByHostId(1L, 0, 2,
+            FileTaskModeEnum.DOWNLOAD, 103L);
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask2Return.getBatch()).isEqualTo(2);
         assertThat(agentTask2Return.getGseTaskId()).isEqualTo(1001L);
-        assertThat(agentTask2Return.getCloudIp()).isEqualTo("0:127.0.0.3");
-        assertThat(agentTask2Return.getDisplayIp()).isEqualTo("127.0.0.3");
+        assertThat(agentTask2Return.getHostId()).isEqualTo(103L);
+        assertThat(agentTask2Return.getAgentId()).isEqualTo("0:127.0.0.3");
         assertThat(agentTask2Return.getStartTime()).isEqualTo(1572858330000L);
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
@@ -252,16 +251,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTasks.get(0).getExecuteCount()).isEqualTo(0);
         assertThat(agentTasks.get(0).getBatch()).isEqualTo(2);
         assertThat(agentTasks.get(0).getStatus()).isEqualTo(9);
-        assertThat(agentTasks).extracting("cloudIp").containsOnly("0:127.0.0.3");
+        assertThat(agentTasks).extracting("hostId").containsOnly(103L);
     }
-
-
-    @Test
-    public void testFuzzySearchIpsByIpKeyword() {
-        List<String> matchIps = fileAgentTaskDAO.fuzzySearchTargetIpsByIp(1L, 0, "0.0.2");
-        assertThat(matchIps.size()).isEqualTo(1);
-        assertThat(matchIps.get(0)).isEqualTo("0:127.0.0.2");
-    }
-
 
 }

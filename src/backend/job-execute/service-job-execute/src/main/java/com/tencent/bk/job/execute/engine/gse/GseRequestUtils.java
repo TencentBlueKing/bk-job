@@ -45,7 +45,6 @@ import com.tencent.bk.gse.taskapi.api_stop_task_request;
 import com.tencent.bk.gse.taskapi.api_task_detail_result;
 import com.tencent.bk.gse.taskapi.api_task_request;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
@@ -63,7 +62,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -123,41 +121,21 @@ public class GseRequestUtils {
         return copyFileInfo;
     }
 
-    /**
-     * 创建 Agent 列表
-     *
-     * @param userName 用户名
-     * @param passwd   密码
-     * @return Agent列表
-     */
-    public static List<api_agent> buildAgentList(Set<String> jobIpSet, String userName, String passwd) {
+
+    public static List<api_agent> buildAgentList(Collection<String> agentIds, String userName, String password) {
         List<api_agent> agentList = new ArrayList<>();
-        for (String ip : jobIpSet) {
-            api_agent agent = buildAgent(ip, userName, passwd);
+        for (String agentId : agentIds) {
+            api_agent agent = buildAgent(agentId, userName, password);
             agentList.add(agent);
         }
         return agentList;
     }
 
-    public static List<api_agent> buildAgentList(List<IpDTO> ipList, String userName, String passwd) {
-        List<api_agent> agentList = new ArrayList<>();
-        for (IpDTO ipDTO : ipList) {
-            String fullIp = ipDTO.getCloudAreaId() + ":" + ipDTO.getIp();
-            api_agent agent = buildAgent(fullIp, userName, passwd);
-            agentList.add(agent);
-        }
-        return agentList;
-    }
-
-    /**
-     * @param userName 用户名
-     * @param cloudIp  云区域:IP
-     * @return Agent
-     */
-    public static api_agent buildAgent(String cloudIp, String userName, String passwd) {
+    public static api_agent buildAgent(String agentId, String userName, String password) {
+        // 在gse api v1, agentId=云区域:IP
         int source = 0;
         String ip;
-        String[] ipArray = cloudIp.split(":");
+        String[] ipArray = agentId.split(":");
         if (ipArray.length > 1) {
             source = Integer.parseInt(ipArray[0]);
             ip = ipArray[1];
@@ -167,8 +145,8 @@ public class GseRequestUtils {
 
         api_auth auth = new api_auth();
         auth.setUser(userName);
-        if (passwd != null) {
-            auth.setPassword(passwd);
+        if (password != null) {
+            auth.setPassword(password);
         } else {
             auth.setPassword("");
         }

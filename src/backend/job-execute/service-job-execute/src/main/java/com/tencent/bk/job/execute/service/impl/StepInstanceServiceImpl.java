@@ -24,12 +24,18 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
+import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -61,5 +67,24 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     public StepInstanceBaseDTO getNextStepInstance(long taskInstanceId,
                                                    int currentStepOrder) {
         return stepInstanceDAO.getNextStepInstance(taskInstanceId, currentStepOrder);
+    }
+
+    @Override
+    public Map<Long, HostDTO> computeStepHosts(StepInstanceBaseDTO stepInstance) {
+        Map<Long, HostDTO> hosts = new HashMap<>();
+        stepInstance.getTargetServers().getIpList().forEach(host -> hosts.put(host.getHostId(), host));
+        if (stepInstance.isFileStep()) {
+            FileStepInstanceDTO fileStepInstance = stepInstanceDAO.getFileStepInstance(stepInstance.getId());
+            if (CollectionUtils.isNotEmpty(fileStepInstance.getResolvedFileSourceList())) {
+                fileStepInstance.getResolvedFileSourceList().forEach(
+                    fileSource -> {
+                        if (fileSource.getServers() != null
+                            && CollectionUtils.isNotEmpty(fileSource.getServers().getIpList())) {
+                            fileSource.getServers().getIpList().forEach(host -> hosts.put(host.getHostId(), host));
+                        }
+                    });
+            }
+        }
+        return hosts;
     }
 }

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.util.ip;
 
 import com.google.common.collect.Lists;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -67,7 +67,7 @@ public class IpUtils {
      * @param cloudAreaIdAndIp 云区域ID:服务器IP
      * @return
      */
-    public static boolean checkCloudAreaIdAndIpStr(String cloudAreaIdAndIp) {
+    public static boolean checkCloudIp(String cloudAreaIdAndIp) {
         if (StringUtils.isEmpty(cloudAreaIdAndIp)) {
             return false;
         }
@@ -90,15 +90,15 @@ public class IpUtils {
     /**
      * 校验ip
      *
-     * @param ipDTO IP
+     * @param hostDTO IP
      * @return
      */
-    public static boolean checkIpDTO(IpDTO ipDTO) {
-        if (ipDTO == null || ipDTO.getCloudAreaId() == null || StringUtils.isEmpty(ipDTO.getIp().trim())) {
-            log.warn("Both cloudAreaId and ip is required, ip={}", ipDTO);
+    public static boolean checkIpDTO(HostDTO hostDTO) {
+        if (hostDTO == null || hostDTO.getBkCloudId() == null || StringUtils.isEmpty(hostDTO.getIp().trim())) {
+            log.warn("Both cloudAreaId and ip is required, ip={}", hostDTO);
             return false;
         }
-        Matcher matcher = IP_PATTERN.matcher(ipDTO.getIp().trim());
+        Matcher matcher = IP_PATTERN.matcher(hostDTO.getIp().trim());
         return matcher.matches();
     }
 
@@ -122,7 +122,7 @@ public class IpUtils {
      * @param ipListStr
      * @return
      */
-    public static Collection<IpDTO> convertCloudAndIpListStrToIpDTOList(String ipListStr) {
+    public static Collection<HostDTO> convertCloudAndIpListStrToIpDTOList(String ipListStr) {
         if (StringUtils.isEmpty(ipListStr)) {
             return Lists.newArrayList();
         }
@@ -135,17 +135,17 @@ public class IpUtils {
      * @param cloudAreaAndIpStrList ip列表
      * @return IpDTO列表
      */
-    public static Collection<IpDTO> convertCloudAndIpStrListToIpDTOList(Collection<String> cloudAreaAndIpStrList) {
-        List<IpDTO> ipDTOList = new ArrayList<>();
+    public static Collection<HostDTO> convertCloudAndIpStrListToIpDTOList(Collection<String> cloudAreaAndIpStrList) {
+        List<HostDTO> hostDTOList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(cloudAreaAndIpStrList)) {
             for (String cloudAreaAndIp : cloudAreaAndIpStrList) {
-                IpDTO ipDto = transform(cloudAreaAndIp);
-                if (ipDto != null) {
-                    ipDTOList.add(ipDto);
+                HostDTO hostDto = transform(cloudAreaAndIp);
+                if (hostDto != null) {
+                    hostDTOList.add(hostDto);
                 }
             }
         }
-        return ipDTOList;
+        return hostDTOList;
     }
 
     /**
@@ -154,20 +154,20 @@ public class IpUtils {
      * @param cloudAreaAndIp
      * @return
      */
-    public static IpDTO transform(String cloudAreaAndIp) {
-        IpDTO ipDTO = null;
+    public static HostDTO transform(String cloudAreaAndIp) {
+        HostDTO hostDTO = null;
         if (cloudAreaAndIp != null) {
             String[] split = cloudAreaAndIp.split(COLON);
             if (split.length == 2) {
                 long cloudAreaId = optLong(split[0].trim(), DEFAULT_CLOUD_ID);
                 if (cloudAreaId == 1)
                     cloudAreaId = DEFAULT_CLOUD_ID;
-                ipDTO = new IpDTO(cloudAreaId, split[1].trim());
+                hostDTO = new HostDTO(cloudAreaId, split[1].trim());
             } else {
-                ipDTO = new IpDTO(DEFAULT_CLOUD_ID, cloudAreaAndIp.trim());
+                hostDTO = new HostDTO(DEFAULT_CLOUD_ID, cloudAreaAndIp.trim());
             }
         }
-        return ipDTO;
+        return hostDTO;
     }
 
     private static long optLong(String str, long defaultValue) {

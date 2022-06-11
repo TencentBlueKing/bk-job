@@ -24,46 +24,32 @@
 
 package com.tencent.bk.job.logsvr.model.service;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
-import java.util.StringJoiner;
 
-@ApiModel("主机执行日志-批量")
-@Getter
-@Setter
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ServiceIpLogsDTO {
+/**
+ * 批量保存执行日志请求
+ */
+@ApiModel("批量保存执行日志请求")
+@Data
+public class ServiceBatchSaveLogRequest {
     /**
-     * 作业步骤实例ID
+     * 作业实例创建时间
      */
-    @ApiModelProperty("步骤实例ID")
-    private Long stepInstanceId;
-
-    /**
-     * 执行次数
-     */
-    @ApiModelProperty("执行次数")
-    private Integer executeCount;
+    @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
+    private String jobCreateDate;
 
     /**
-     * 主机执行日志列表
+     * 执行日志
      */
-    @ApiModelProperty(value = "主机执行日志")
-    @JsonProperty("ipLogs")
-    private List<ServiceIpLogDTO> ipLogs;
+    @ApiModelProperty(value = "执行日志", required = true)
+    private List<ServiceHostLogDTO> logs;
 
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", ServiceIpLogsDTO.class.getSimpleName() + "[", "]")
-            .add("stepInstanceId=" + stepInstanceId)
-            .add("executeCount=" + executeCount)
-            .add("ipLogs=" + ipLogs)
-            .toString();
-    }
+    /**
+     * 日志类型
+     */
+    private Integer logType;
 }

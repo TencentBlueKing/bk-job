@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.service;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
@@ -110,14 +110,14 @@ public interface TaskResultService {
      * @param keyword        脚本日志关键字
      * @return 主机列表
      */
-    List<IpDTO> getHostsByResultType(String username,
-                                     Long appId,
-                                     Long stepInstanceId,
-                                     Integer batch,
-                                     Integer executeCount,
-                                     Integer resultType,
-                                     String tag,
-                                     String keyword);
+    List<HostDTO> getHostsByResultType(String username,
+                                       Long appId,
+                                       Long stepInstanceId,
+                                       Integer batch,
+                                       Integer executeCount,
+                                       Integer resultType,
+                                       String tag,
+                                       String keyword);
 
     /**
      * 获取步骤执行历史

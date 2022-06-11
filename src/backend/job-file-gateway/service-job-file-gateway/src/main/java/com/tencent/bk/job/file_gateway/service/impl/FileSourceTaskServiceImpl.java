@@ -57,7 +57,7 @@ import com.tencent.bk.job.file_gateway.service.context.impl.DefaultTaskContext;
 import com.tencent.bk.job.file_gateway.service.listener.FileTaskStatusChangeListener;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,11 +189,11 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                           String downloadPath, Long fileSize, String speed, Integer progress, String content) {
         String taskId = fileSourceTaskDTO.getId();
         String fileSizeStr = FileSizeUtil.getFileSizeStr(fileSize);
-        ServiceIpLogDTO serviceIpLogDTO = new ServiceIpLogDTO();
-        serviceIpLogDTO.setStepInstanceId(fileSourceTaskDTO.getStepInstanceId());
-        serviceIpLogDTO.setExecuteCount(fileSourceTaskDTO.getExecuteCount());
+        ServiceHostLogDTO serviceHostLogDTO = new ServiceHostLogDTO();
+        serviceHostLogDTO.setStepInstanceId(fileSourceTaskDTO.getStepInstanceId());
+        serviceHostLogDTO.setExecuteCount(fileSourceTaskDTO.getExecuteCount());
         String sourceIp = fileWorkerDTO.getCloudAreaId().toString() + ":" + fileWorkerDTO.getInnerIp();
-        serviceIpLogDTO.setIp(sourceIp);
+        serviceHostLogDTO.setIp(sourceIp);
         // 追加文件源名称
         // 日志定位坐标：（文件源，文件路径），需要区分不同文件源下相同文件路径的日志
         FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(dslContext, fileSourceTaskDTO.getFileSourceId());
@@ -214,9 +214,9 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         serviceFileTaskLogDTO.setStatus(FileDistStatusEnum.PULLING.getValue());
         serviceFileTaskLogDTO.setStatusDesc(FileDistStatusEnum.PULLING.getName());
         fileTaskLogs.add(serviceFileTaskLogDTO);
-        serviceIpLogDTO.setFileTaskLogs(fileTaskLogs);
+        serviceHostLogDTO.setFileTaskLogs(fileTaskLogs);
         // 写入Redis
-        redisTemplate.opsForList().rightPush(PREFIX_REDIS_TASK_LOG + taskId, serviceIpLogDTO);
+        redisTemplate.opsForList().rightPush(PREFIX_REDIS_TASK_LOG + taskId, serviceHostLogDTO);
         // 一小时后过期
         redisTemplate.expireAt(PREFIX_REDIS_TASK_LOG + taskId, new Date(System.currentTimeMillis() + 3600 * 1000));
     }
@@ -340,7 +340,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             logEnd = logSize;
         }
         log.debug("logStart={},logEnd={}", logStart, logEnd);
-        List<ServiceIpLogDTO> logDTOList = redisTemplate.opsForList().range(PREFIX_REDIS_TASK_LOG + taskId, logStart,
+        List<ServiceHostLogDTO> logDTOList = redisTemplate.opsForList().range(PREFIX_REDIS_TASK_LOG + taskId, logStart,
             logEnd);
         log.debug("logDTOList={}", logDTOList);
         fileSourceTaskStatusDTO.setLogList(logDTOList);

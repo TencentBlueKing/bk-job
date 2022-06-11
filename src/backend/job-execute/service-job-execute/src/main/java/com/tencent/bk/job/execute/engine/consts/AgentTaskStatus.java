@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.execute.engine.consts;
 
-public enum IpStatus {
+/**
+ * Agent 任务状态
+ */
+public enum AgentTaskStatus {
     /**
      * 未知错误
      */
@@ -153,17 +156,17 @@ public enum IpStatus {
 
     private final int status;
 
-    IpStatus(int status) {
+    AgentTaskStatus(int status) {
         this.status = status;
     }
 
-    public static IpStatus valueOf(Integer status) {
+    public static AgentTaskStatus valueOf(Integer status) {
         if (status == null) {
             return null;
         }
-        for (IpStatus ipStatus : values()) {
-            if (ipStatus.status == status) {
-                return ipStatus;
+        for (AgentTaskStatus agentTaskStatus : values()) {
+            if (agentTaskStatus.status == status) {
+                return agentTaskStatus;
             }
         }
         return UNKNOWN_ERROR;
@@ -177,7 +180,7 @@ public enum IpStatus {
         return "agent.task.status." + this.name().toLowerCase();
     }
 
-    public static boolean isSuccess(IpStatus status) {
+    public static boolean isSuccess(AgentTaskStatus status) {
         if (status == null) {
             return false;
         }

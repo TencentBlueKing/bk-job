@@ -125,7 +125,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
             if (StringUtils.isNotEmpty(taskInstance.getAppCode())) {
                 traceInfoMap.put("APP_CODE", taskInstance.getAppCode());
             }
-            traceInfoMap.put("CALLER_IP", agentService.getLocalAgentBindIp());
+            traceInfoMap.put("CALLER_IP", agentService.getLocalAgentHost().getIp());
             traceInfoMap.put("TASK_ACCOUNT", stepInstance.getOperator());
         } catch (Throwable e) {
             log.error("Build trace info map for gse failed");

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
@@ -87,8 +87,8 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(stepInstance.getTotalTime()).isEqualTo(1111L);
         assertThat(stepInstance.getCreateTime()).isEqualTo(1572868800000L);
         assertThat(stepInstance.getTargetServers()).isNotNull();
-        List<IpDTO> expectedServer = new ArrayList<>();
-        expectedServer.add(new IpDTO(0L, "127.0.0.1"));
+        List<HostDTO> expectedServer = new ArrayList<>();
+        expectedServer.add(new HostDTO(0L, "127.0.0.1"));
         assertThat(stepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
         assertThat(stepInstance.getBatch()).isEqualTo(0);
     }
@@ -102,8 +102,8 @@ public class StepInstanceDAOImplIntegrationTest {
         stepInstanceDTO.setStepId(1L);
         stepInstanceDTO.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
         ServersDTO servers = new ServersDTO();
-        List<IpDTO> ipList = new ArrayList<>();
-        ipList.add(new IpDTO(0L, "127.0.0.1"));
+        List<HostDTO> ipList = new ArrayList<>();
+        ipList.add(new HostDTO(0L, "127.0.0.1"));
         servers.setIpList(ipList);
         stepInstanceDTO.setTargetServers(servers);
         stepInstanceDTO.setOperator("admin");
@@ -128,8 +128,8 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getExecuteType()).isEqualTo(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
         assertThat(returnStepInstance.getIpList()).isEqualTo("0:127.0.0.1");
         assertThat(returnStepInstance.getTargetServers().getIpList()).hasSize(1);
-        List<IpDTO> expectedServer = new ArrayList<>();
-        expectedServer.add(new IpDTO(0L, "127.0.0.1"));
+        List<HostDTO> expectedServer = new ArrayList<>();
+        expectedServer.add(new HostDTO(0L, "127.0.0.1"));
         assertThat(returnStepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
         assertThat(returnStepInstance.getOperator()).isEqualTo("admin");
         assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS.getValue());
@@ -338,7 +338,7 @@ public class StepInstanceDAOImplIntegrationTest {
         fileSource.setLocalUpload(false);
         fileSource.setFileType(TaskFileTypeEnum.SERVER.getType());
         ServersDTO fileSourceServers = new ServersDTO();
-        fileSourceServers.setIpList(Lists.newArrayList(new IpDTO(1L, "10.10.10.10")));
+        fileSourceServers.setIpList(Lists.newArrayList(new HostDTO(1L, "10.10.10.10")));
         fileSource.setServers(fileSourceServers);
         FileDetailDTO fileDetail = new FileDetailDTO();
         fileDetail.setFilePath("/tmp/1.log");
@@ -368,7 +368,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers()).isNotNull();
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers().getIpList()).isNotEmpty();
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers().getIpList())
-            .containsOnly(new IpDTO(1L,
+            .containsOnly(new HostDTO(1L,
             "10.10.10.10"));
         assertThat(savedStepInstance.getFileSourceList().get(0).getFiles()).isNotEmpty();
         assertThat(savedStepInstance.getFileSourceList().get(0).getFiles().get(0).getFilePath())
@@ -457,8 +457,8 @@ public class StepInstanceDAOImplIntegrationTest {
         fileSourceDTO.setAccountId(1L);
         fileSourceDTO.setAccount("root");
         ServersDTO servers = new ServersDTO();
-        List<IpDTO> ips = new ArrayList<>();
-        ips.add(new IpDTO(1L, "10.10.10.10"));
+        List<HostDTO> ips = new ArrayList<>();
+        ips.add(new HostDTO(1L, "10.10.10.10"));
         servers.setIpList(ips);
         fileSourceDTO.setServers(servers);
         fileSources.add(fileSourceDTO);
@@ -475,7 +475,7 @@ public class StepInstanceDAOImplIntegrationTest {
             "/data/logs/1.log");
         assertThat(updatedStepInstance.getFileSourceList().get(0).getFiles().get(0).getResolvedFilePath()).isEqualTo(
             "/data/logs/1.log");
-        assertThat(updatedStepInstance.getFileSourceList().get(0).getServers().getIpList()).contains(new IpDTO(1L, 
+        assertThat(updatedStepInstance.getFileSourceList().get(0).getServers().getIpList()).contains(new HostDTO(1L,
             "10.10.10.10"));
     }
 

@@ -25,33 +25,42 @@
 package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
-import java.util.StringJoiner;
 
 @ApiModel("执行日志保存请求")
-@Getter
-@Setter
-public class SaveLogRequest {
+@Data
+public class ServiceSaveLogRequest {
     /**
      * 作业实例创建时间
      */
     @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
     private String jobCreateDate;
+
     /**
      * 作业步骤实例ID
      */
     @ApiModelProperty(value = "步骤实例ID", required = true)
     private Long stepInstanceId;
+
     /**
      * ip
      */
-    @ApiModelProperty(value = "ip", required = true)
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容参数,由于IP不再唯一，后续使用hostId参数替换",
+        version = "3.7.x")
+    @ApiModelProperty(value = "ip, 兼容参数, 如果存在hostId那么忽略ip参数")
     private String ip;
+
+    /**
+     * 主机ID
+     */
+    @ApiModelProperty(value = "主机ID")
+    private Long hostId;
+
     /**
      * 执行次数
      */
@@ -67,27 +76,21 @@ public class SaveLogRequest {
     /**
      * 脚本日志内容
      */
-    @ApiModelProperty(value = "脚本日志内容,新协议")
+    @ApiModelProperty(value = "脚本日志内容")
     @JsonProperty("scriptLog")
     private ServiceScriptLogDTO scriptLog;
 
     /**
      * 文件日志
      */
-    @ApiModelProperty
+    @ApiModelProperty(value = "文件任务日志")
     private List<ServiceFileTaskLogDTO> fileTaskLogs;
 
+    /**
+     * 日志类型
+     *
+     * @see com.tencent.bk.job.logsvr.consts.LogTypeEnum
+     */
+    @ApiModelProperty(value = "日志类型,1-script;2-file")
     private Integer logType;
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", SaveLogRequest.class.getSimpleName() + "[", "]")
-            .add("jobCreateDate='" + jobCreateDate + "'")
-            .add("stepInstanceId=" + stepInstanceId)
-            .add("executeCount=" + executeCount)
-            .add("batch=" + batch)
-            .add("ip='" + ip + "'")
-            .add("logType=" + logType)
-            .toString();
-    }
 }
