@@ -627,11 +627,6 @@ public class GseStepEventHandler implements StepEventHandler {
 
         GseTaskDTO gseTask = gseTaskService.getGseTask(gseTaskId);
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
-        if (gseTaskStatus == null) {
-            log.error("Refresh step fail, undefined gse task status, stepInstanceId: {}, gseTaskStatus: {}",
-                stepInstance.getId(), gseTask.getStatus());
-            return;
-        }
         log.info("Refresh step according to gse task status, stepInstanceId: {}, gseTaskStatus: {}",
             stepInstance.getId(), gseTaskStatus.name());
 

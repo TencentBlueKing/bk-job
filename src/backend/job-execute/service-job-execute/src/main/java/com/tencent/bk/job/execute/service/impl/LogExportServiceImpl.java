@@ -110,12 +110,12 @@ public class LogExportServiceImpl implements LogExportService {
 
     @Override
     public LogExportJobInfoDTO packageLogFile(String username, Long appId, Long stepInstanceId, Long hostId,
-                                              int executeCount,
+                                              String ip, int executeCount,
                                               String logFileDir, String logFileName, Boolean repackage) {
         log.debug("Package log file for {}|{}|{}|{}|{}|{}|{}|{}", username, appId, stepInstanceId, hostId, executeCount,
             logFileDir, logFileName, repackage);
         LogExportJobInfoDTO exportJobInfo = new LogExportJobInfoDTO();
-        exportJobInfo.setJobKey(getExportJobKey(appId, stepInstanceId, hostId));
+        exportJobInfo.setJobKey(getExportJobKey(appId, stepInstanceId, hostId, ip));
         exportJobInfo.setStatus(LogExportStatusEnum.INIT);
 
         if (repackage) {
@@ -128,7 +128,7 @@ public class LogExportServiceImpl implements LogExportService {
         boolean isGetByHost = hostId != null;
 
         if (isGetByHost) {
-            doPackage(exportJobInfo, stepInstanceId, hostId, executeCount, logFileDir, logFileName);
+            doPackage(exportJobInfo, stepInstanceId, hostId, ip, executeCount, logFileDir, logFileName);
         } else {
             logExportExecutor.execute(() -> {
                 String requestId = UUID.randomUUID().toString();
@@ -141,7 +141,7 @@ public class LogExportServiceImpl implements LogExportService {
                         exportJobInfo.setStatus(LogExportStatusEnum.PROCESSING);
                         saveExportInfo(exportJobInfo);
 
-                        doPackage(exportJobInfo, stepInstanceId, hostId, executeCount, logFileDir, logFileName);
+                        doPackage(exportJobInfo, stepInstanceId, hostId, ip, executeCount, logFileDir, logFileName);
                     } else {
                         log.error("Job already running!|{}|{}|{}|{}", requestId, appId, stepInstanceId, hostId);
                     }
@@ -164,8 +164,8 @@ public class LogExportServiceImpl implements LogExportService {
     }
 
     @Override
-    public LogExportJobInfoDTO getExportInfo(Long appId, Long stepInstanceId, Long hostId) {
-        return JsonUtils.fromJson(redisTemplate.opsForValue().get(getExportJobKey(appId, stepInstanceId, hostId)),
+    public LogExportJobInfoDTO getExportInfo(Long appId, Long stepInstanceId, Long hostId, String ip) {
+        return JsonUtils.fromJson(redisTemplate.opsForValue().get(getExportJobKey(appId, stepInstanceId, hostId, ip)),
             LogExportJobInfoDTO.class);
     }
 
@@ -177,12 +177,19 @@ public class LogExportServiceImpl implements LogExportService {
         redisTemplate.delete(jobKey);
     }
 
-    private String getExportJobKey(Long appId, Long stepInstanceId, Long hostId) {
-        return EXPORT_KEY_PREFIX + appId + ":" + stepInstanceId + ":" + hostId;
+    private String getExportJobKey(Long appId, Long stepInstanceId, Long hostId, String ip) {
+        String key = EXPORT_KEY_PREFIX + appId + ":" + stepInstanceId + ":";
+        if (hostId != null) {
+            key = key + hostId;
+        } else {
+            key = key + ip;
+        }
+        return key;
     }
 
-    private void doPackage(LogExportJobInfoDTO exportJobInfo, Long stepInstanceId, Long hostId, int executeCount,
-                           String logFileDir, String logFileName) {
+    private void doPackage(LogExportJobInfoDTO exportJobInfo, long stepInstanceId, Long hostId,
+                           String ip, int executeCount, String logFileDir, String logFileName) {
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         boolean isGetByHost = hostId != null;
         File logFile = new File(logFileDir + logFileName);
 
@@ -190,8 +197,11 @@ public class LogExportServiceImpl implements LogExportService {
         watch.start("listJobIps");
         List<AgentTaskDTO> gseAgentTasks = new ArrayList<>();
         if (isGetByHost) {
-            AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstanceId, executeCount, null,
-                HostDTO.fromHostId(hostId));
+            HostDTO host = new HostDTO();
+            host.setHostId(hostId);
+            host.setIp(ip);
+            AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, null,
+                host);
             if (agentTask != null) {
                 gseAgentTasks.add(agentTask);
             }
@@ -209,7 +219,6 @@ public class LogExportServiceImpl implements LogExportService {
         Collection<LogBatchQuery> querys = buildLogBatchQuery(stepInstanceId, gseAgentTasks);
 
         watch.start("getLogContent");
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         String jobCreateDate = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         try (PrintWriter out = new PrintWriter(logFile, "UTF-8")) {
@@ -293,7 +302,13 @@ public class LogExportServiceImpl implements LogExportService {
         agentTasks.forEach(agentTask -> {
             LogBatchQuery query = batchQueryGroups.computeIfAbsent(agentTask.getExecuteCount(),
                 (executeCount) -> new LogBatchQuery(stepInstanceId, executeCount));
-            query.addHost(HostDTO.fromHostId(agentTask.getHostId()));
+            HostDTO queryHost = null;
+            if (agentTask.getHostId() != null) {
+                queryHost = HostDTO.fromHostId(agentTask.getHostId());
+            } else if (StringUtils.isNotEmpty(agentTask.getCloudIp())) {
+                queryHost = HostDTO.fromCloudIp(agentTask.getCloudIp());
+            }
+            query.addHost(queryHost);
         });
         batchQueryGroups.values().forEach(LogBatchQuery::batchHosts);
         return batchQueryGroups.values();

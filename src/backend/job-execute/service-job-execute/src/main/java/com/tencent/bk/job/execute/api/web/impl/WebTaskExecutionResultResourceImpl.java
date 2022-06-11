@@ -614,8 +614,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         authViewStepInstance(username, appResourceScope, stepInstanceId);
 
         ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId, executeCount,
-            batch,
-            HostDTO.fromCloudIp(ip));
+            batch, HostDTO.fromCloudIp(ip));
         IpScriptLogContentVO ipScriptLogContentVO = new IpScriptLogContentVO();
         ipScriptLogContentVO.setDisplayIp(ip);
         if (scriptHostLogContent != null) {

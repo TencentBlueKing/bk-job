@@ -74,6 +74,9 @@ public interface WebTaskLogResource {
         @ApiParam(value = "hostId", name = "hostId")
         @RequestParam(value = "hostId", required = false)
             Long hostId,
+        @ApiParam(value = "ip", name = "ip")
+        @RequestParam(value = "ip", required = false)
+            String ip,
         @ApiParam(value = "重新打包", name = "repackage")
         @RequestParam(value = "repackage", required = false)
             Boolean repackage
@@ -100,6 +103,9 @@ public interface WebTaskLogResource {
             Long stepInstanceId,
         @ApiParam(value = "hostId", name = "hostId")
         @RequestParam(value = "hostId", required = false)
-            Long hostId
+            Long hostId,
+        @ApiParam(value = "ip", name = "ip")
+        @RequestParam(value = "ip", required = false)
+            String ip
     );
 }

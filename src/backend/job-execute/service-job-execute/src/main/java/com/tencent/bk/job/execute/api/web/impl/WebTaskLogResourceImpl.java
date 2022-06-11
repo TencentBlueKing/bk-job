@@ -118,6 +118,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                String scopeId,
                                                                Long stepInstanceId,
                                                                Long hostId,
+                                                               String ip,
                                                                Boolean repackage) {
         Long appId = appResourceScope.getAppId();
 
@@ -132,7 +133,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         if (!repackage) {
             log.debug("Do not need repackage, check exist job");
-            LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId);
+            LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, ip);
             if (exportInfo != null) {
                 log.debug("Find exist job info|{}", exportInfo);
                 switch (exportInfo.getStatus()) {
@@ -169,7 +170,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
-        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId,
+        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, ip,
             executeCount, logFileDir, logFileName, repackage);
         return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
     }
@@ -242,7 +243,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                  String scopeType,
                                                                  String scopeId,
                                                                  Long stepInstanceId,
-                                                                 Long hostId) {
+                                                                 Long hostId,
+                                                                 String ip) {
         Long appId = appResourceScope.getAppId();
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
@@ -260,10 +262,10 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
             if (StringUtils.isBlank(logFileName)) {
                 return ResponseEntity.notFound().build();
             }
-            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, executeCount,
+            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, ip, executeCount,
                 logFileDir, logFileName, false);
         } else {
-            exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId);
+            exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, ip);
         }
 
         if (exportInfo != null) {

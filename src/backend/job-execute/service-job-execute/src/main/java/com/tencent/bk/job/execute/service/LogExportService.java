@@ -31,8 +31,8 @@ import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
  */
 public interface LogExportService {
 
-    LogExportJobInfoDTO packageLogFile(String username, Long appId, Long stepInstanceId, Long hostId, int executeCount,
-                                       String logFileDir, String logFileName, Boolean repackage);
+    LogExportJobInfoDTO packageLogFile(String username, Long appId, Long stepInstanceId, Long hostId, String ip,
+                                       int executeCount, String logFileDir, String logFileName, Boolean repackage);
 
-    LogExportJobInfoDTO getExportInfo(Long appId, Long stepInstanceId, Long hostId);
+    LogExportJobInfoDTO getExportInfo(Long appId, Long stepInstanceId, Long hostId, String ip);
 }

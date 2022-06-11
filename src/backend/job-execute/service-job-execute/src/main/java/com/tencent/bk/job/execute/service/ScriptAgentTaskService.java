@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 
 /**
  * GSE Agent 脚本任务 Service
@@ -34,13 +35,16 @@ public interface ScriptAgentTaskService extends AgentTaskService {
     /**
      * 根据主机ID获取Agent任务
      *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次；传入null或者0将忽略该参数
-     * @param host           主机
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        滚动执行批次；传入null或者0将忽略该参数
+     * @param host         主机
      * @return Agent任务
      */
-    AgentTaskDTO getAgentTaskByHost(Long stepInstanceId, Integer executeCount, Integer batch, HostDTO host);
+    AgentTaskDTO getAgentTaskByHost(StepInstanceBaseDTO stepInstance,
+                                    Integer executeCount,
+                                    Integer batch,
+                                    HostDTO host);
 
     /**
      * 获取Agent任务实际执行成功的executeCount值(重试场景)

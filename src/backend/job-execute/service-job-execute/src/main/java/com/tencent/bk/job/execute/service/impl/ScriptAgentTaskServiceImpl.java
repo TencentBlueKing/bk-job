@@ -1,6 +1,8 @@
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -62,8 +64,24 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public AgentTaskDTO getAgentTaskByHost(Long stepInstanceId, Integer executeCount, Integer batch, HostDTO host) {
-        return scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount, batch, host.getHostId());
+    public AgentTaskDTO getAgentTaskByHost(StepInstanceBaseDTO stepInstance,
+                                           Integer executeCount,
+                                           Integer batch,
+                                           HostDTO host) {
+        AgentTaskDTO agentTask;
+        Long hostId = host.getHostId();
+        if (hostId == null) {
+            // 根据ip反查hostId
+            String cloudIp = host.toCloudIp();
+            hostId = stepInstance.getTargetServers().getIpList().stream()
+                .filter(targetHost -> cloudIp.equals(targetHost.toCloudIp()))
+                .findFirst()
+                .orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR))
+                .getHostId();
+        }
+        agentTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch,
+            hostId);
+        return agentTask;
     }
 
     @Override
@@ -97,7 +115,6 @@ public class ScriptAgentTaskServiceImpl
             executeCount, batch, status, tag);
         return fillHostDetail(stepInstance, agentTasks);
     }
-
 
 
     @Override

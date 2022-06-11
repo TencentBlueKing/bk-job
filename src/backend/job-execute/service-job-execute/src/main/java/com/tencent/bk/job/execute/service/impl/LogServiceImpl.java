@@ -138,8 +138,7 @@ public class LogServiceImpl implements LogService {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstanceId, executeCount,
-            batch, host);
+        AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch, host);
         if (agentTask == null) {
             return null;
         }
@@ -150,12 +149,12 @@ public class LogServiceImpl implements LogService {
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         InternalResponse<ServiceHostLogDTO> resp;
-        if (host.getHostId() != null) {
+        if (agentTask.getHostId() != null) {
             resp = logServiceResourceClient.getScriptHostLogByHostId(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, host.getHostId(), batch);
+                stepInstanceId, actualExecuteCount, agentTask.getHostId(), batch);
         } else {
             resp = logServiceResourceClient.getScriptHostLogByIp(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, host.getIp(), batch);
+                stepInstanceId, actualExecuteCount, agentTask.getCloudIp(), batch);
         }
         if (!resp.isSuccess()) {
             log.error("Get script log content by host error, stepInstanceId={}, executeCount={}, batch={}, host={}",
