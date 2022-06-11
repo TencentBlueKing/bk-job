@@ -121,7 +121,6 @@ public class SyncServiceImpl implements SyncService {
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
     private final HostSyncService hostSyncService;
-    private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final AgentStatusSyncService agentStatusSyncService;
     private final HostCache hostCache;
     private final BizSetEventWatcher bizSetEventWatcher;
@@ -141,7 +140,6 @@ public class SyncServiceImpl implements SyncService {
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           AppHostsUpdateHelper appHostsUpdateHelper,
                            HostCache hostCache,
                            BizSetEventWatcher bizSetEventWatcher,
                            BizSetRelationEventWatcher bizSetRelationEventWatcher) {
@@ -161,7 +159,6 @@ public class SyncServiceImpl implements SyncService {
         this.bizSetSyncService = bizSetSyncService;
         this.hostSyncService = hostSyncService;
         this.agentStatusSyncService = agentStatusSyncService;
-        this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.hostCache = hostCache;
         this.bizSetEventWatcher = bizSetEventWatcher;
         this.bizSetRelationEventWatcher = bizSetRelationEventWatcher;
@@ -223,14 +220,23 @@ public class SyncServiceImpl implements SyncService {
     private void watchHostEvent() {
         // 开一个常驻线程监听主机资源变动事件
         hostWatchThread = new HostWatchThread(
-            dslContext, applicationHostDAO, queryAgentStatusClient,
-            redisTemplate, appHostsUpdateHelper, hostCache);
+            dslContext,
+            applicationHostDAO,
+            queryAgentStatusClient,
+            redisTemplate,
+            hostCache
+        );
         hostWatchThread.start();
 
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
-            dslContext, applicationHostDAO, hostTopoDAO,
-            redisTemplate, this, appHostsUpdateHelper, hostCache);
+            dslContext,
+            applicationHostDAO,
+            hostTopoDAO,
+            redisTemplate,
+            this,
+            hostCache
+        );
         hostRelationWatchThread.start();
     }
 

@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -79,7 +80,6 @@ public class HostRelationWatchThread extends Thread {
     private final HostTopoDAO hostTopoDAO;
     private final RedisTemplate<String, String> redisTemplate;
     private final SyncService syncService;
-    private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final List<AppHostRelationEventsHandler> eventsHandlerList;
     private final HostCache hostCache;
 
@@ -95,14 +95,12 @@ public class HostRelationWatchThread extends Thread {
                                    HostTopoDAO hostTopoDAO,
                                    RedisTemplate<String, String> redisTemplate,
                                    SyncService syncService,
-                                   AppHostsUpdateHelper appHostsUpdateHelper,
                                    HostCache hostCache) {
         this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.redisTemplate = redisTemplate;
         this.syncService = syncService;
-        this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostRelationWatchThread-" + instanceNum.getAndIncrement());
         this.eventsHandlerList = new ArrayList<>();
@@ -156,7 +154,6 @@ public class HostRelationWatchThread extends Thread {
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
         Long appId = hostTopoDTO.getBizId();
         try {
-            appHostsUpdateHelper.waitAndStartBizHostsUpdating(appId);
             StopWatch watch = new StopWatch();
             watch.start("handleOneEventIndeed");
             handleOneEventIndeed(event);
@@ -168,8 +165,6 @@ public class HostRelationWatchThread extends Thread {
             }
         } catch (Throwable t) {
             log.error(String.format("Fail to handle hostRelationEvent of appId %d, event:%s", appId, event), t);
-        } finally {
-            appHostsUpdateHelper.endToUpdateBizHosts(appId);
         }
     }
 
@@ -278,11 +273,7 @@ public class HostRelationWatchThread extends Thread {
                 boolean lockGotten = LockUtils.tryGetDistributedLock(REDIS_KEY_RESOURCE_WATCH_HOST_RELATION_JOB_LOCK,
                     machineIp, 50);
                 if (!lockGotten) {
-                    try {
-                        sleep(100);
-                    } catch (InterruptedException e) {
-                        log.warn("Sleep interrupted", e);
-                    }
+                    ThreadUtils.sleep(100);
                     continue;
                 }
                 String runningMachine =
@@ -290,11 +281,7 @@ public class HostRelationWatchThread extends Thread {
                 if (StringUtils.isNotBlank(runningMachine)) {
                     //已有同步线程在跑，不再同步
                     log.info("hostRelationWatch thread already running on {}", runningMachine);
-                    try {
-                        sleep(30000);
-                    } catch (InterruptedException e) {
-                        log.warn("Sleep interrupted", e);
-                    }
+                    ThreadUtils.sleep(30000);
                     continue;
                 }
                 // 开一个心跳子线程，维护当前机器正在WatchResource的状态
@@ -323,13 +310,10 @@ public class HostRelationWatchThread extends Thread {
                         log.info("hostRelationWatchResult={}", JsonUtils.toJson(hostRelationWatchResult));
                         cursor = handleHostRelationWatchResult(hostRelationWatchResult);
                         // 1s/watch一次
-                        sleep(1000);
+                        ThreadUtils.sleep(1000);
                     }
                 } catch (Throwable t) {
                     log.error("hostRelationWatch thread fail", t);
-                    // 重置Watch起始位置为10分钟前
-                    startTime = System.currentTimeMillis() / 1000 - 10 * 60;
-                    cursor = null;
                 } finally {
                     hostRelationWatchRedisKeyHeartBeatThread.setRunFlag(false);
                     watch.stop();
@@ -337,18 +321,11 @@ public class HostRelationWatchThread extends Thread {
                 }
             } catch (Throwable t) {
                 log.error("HostRelationWatchThread quit unexpectedly", t);
-                // 重置Watch起始位置为10分钟前
-                startTime = System.currentTimeMillis() / 1000 - 10 * 60;
-                cursor = null;
             } finally {
-                try {
-                    do {
-                        // 5s/重试一次
-                        sleep(5000);
-                    } while (!hostRelationWatchFlag.get());
-                } catch (InterruptedException e) {
-                    log.error("sleep interrupted", e);
-                }
+                do {
+                    // 5s/重试一次
+                    ThreadUtils.sleep(5000);
+                } while (!hostRelationWatchFlag.get());
             }
         }
     }
