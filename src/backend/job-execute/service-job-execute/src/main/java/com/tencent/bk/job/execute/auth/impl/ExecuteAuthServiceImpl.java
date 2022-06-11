@@ -59,10 +59,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -131,7 +129,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
             return AuthResult.pass();
         }
-        Map<String, String> ip2HostIdMap = new HashMap<>();
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         log.debug("Auth Fast transfer file, username:{}, appResourceScope:{}, hostInstances:{}", username,
@@ -145,8 +142,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
         AuthResult authResult = AuthResult.fail();
 
-        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(appResourceScope, servers
-        );
+        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(appResourceScope, servers);
         authResult.addRequiredPermissions(ActionId.QUICK_TRANSFER_FILE, hostResources);
         log.debug("Auth execute script, authResult:{}", authResult);
         return authResult;

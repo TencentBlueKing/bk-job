@@ -208,7 +208,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public Long executeFastTask(FastTaskDTO fastTask) {
-        log.info("Begin to create task instance and step instance for fast-execution-task, task: {}", fastTask);
+        log.info("Begin to execute fast task: {}", fastTask);
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
 
@@ -655,8 +655,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * @param stepInstanceList 步骤列表
      * @throws ServiceException 如果包含不合法的主机，抛出异常
      */
-    private void checkAndSetHosts(List<StepInstanceDTO> stepInstanceList)
-        throws ServiceException {
+    private void checkAndSetHosts(List<StepInstanceDTO> stepInstanceList) throws ServiceException {
         long appId = stepInstanceList.get(0).getAppId();
 
         Set<HostDTO> checkHosts = new HashSet<>();
@@ -1035,9 +1034,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator, step.getId(), step.getName(),
                 executeType);
             TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
-            if (stepType == null) {
-                throw new InternalException(ErrorCode.INTERNAL_ERROR);
-            }
             switch (stepType) {
                 case SCRIPT:
                     // 解析全局变量，放到targetServers中，进一步解析节点、动态分组对应的主机统一放到ipList中
