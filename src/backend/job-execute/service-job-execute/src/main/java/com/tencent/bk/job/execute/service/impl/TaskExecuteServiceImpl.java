@@ -686,14 +686,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void fillStepHostDetail(List<StepInstanceDTO> stepInstanceList, ServiceListAppHostResultDTO hosts) {
         Map<String, HostDTO> hostMap = new HashMap<>();
-        hosts.getValidHosts().forEach(host -> {
-            hostMap.put("hostId:" + host.getHostId(), host);
-            hostMap.put("hostIp:" + host.toCloudIp(), host);
-        });
-        hosts.getNotInAppHosts().forEach(host -> {
-            hostMap.put("hostId:" + host.getHostId(), host);
-            hostMap.put("hostIp:" + host.toCloudIp(), host);
-        });
+        if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
+            hosts.getValidHosts().forEach(host -> {
+                hostMap.put("hostId:" + host.getHostId(), host);
+                hostMap.put("hostIp:" + host.toCloudIp(), host);
+            });
+        }
+        if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
+            hosts.getNotInAppHosts().forEach(host -> {
+                hostMap.put("hostId:" + host.getHostId(), host);
+                hostMap.put("hostIp:" + host.toCloudIp(), host);
+            });
+        }
 
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {

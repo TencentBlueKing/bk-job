@@ -1386,7 +1386,7 @@ public class HostServiceImpl implements HostService {
     }
 
     public List<ApplicationHostDTO> listHosts(Collection<HostDTO> hosts) {
-        Pair<List<HostDTO>, List<BasicAppHost>> hostResult = listAppHosts(hosts);
+        Pair<List<HostDTO>, List<BasicAppHost>> hostResult = listHostsFromCacheOrCmdb(hosts);
         if (CollectionUtils.isEmpty(hostResult.getRight())) {
             return Collections.emptyList();
         }
@@ -1434,25 +1434,31 @@ public class HostServiceImpl implements HostService {
         ServiceListAppHostResultDTO result = new ServiceListAppHostResultDTO();
         ApplicationDTO application = applicationService.getAppByAppId(appId);
 
-        Pair<List<HostDTO>, List<BasicAppHost>> hostResult = listAppHosts(hosts);
+        Pair<List<HostDTO>, List<BasicAppHost>> hostResult = listHostsFromCacheOrCmdb(hosts);
         List<HostDTO> notExistHosts = hostResult.getLeft();
         List<BasicAppHost> existHosts = hostResult.getRight();
         List<HostDTO> validHosts = new ArrayList<>();
         List<HostDTO> notInAppHosts = new ArrayList<>();
 
+        if (application.isAllBizSet()) {
+            // 如果是全业务，所以主机都是合法的
+            result.setNotExistHosts(notExistHosts);
+            result.setValidHosts(existHosts.stream().map(BasicAppHost::toHostDTO).collect(Collectors.toList()));
+            result.setNotInAppHosts(Collections.emptyList());
+            return result;
+        }
+
+        // 普通业务集和普通业务需要判断主机是否归属于业务
         List<Long> includeBizIds = buildIncludeBizIdList(application);
         if (CollectionUtils.isEmpty(includeBizIds)) {
             log.warn("App do not contains any biz, appId:{}", appId);
+            result.setValidHosts(Collections.emptyList());
+            result.setNotExistHosts(Collections.emptyList());
             result.setNotInAppHosts(hosts);
             return result;
         }
 
         existHosts.forEach(existHost -> {
-            if (application.isAllBizSet()) {
-                // cmdb全业务包含了所有业务下的主机
-                validHosts.add(existHost.toHostDTO());
-                return;
-            }
             if (includeBizIds.contains(existHost.getBizId())) {
                 validHosts.add(existHost.toHostDTO());
             } else {
@@ -1472,7 +1478,7 @@ public class HostServiceImpl implements HostService {
         return result;
     }
 
-    private Pair<List<HostDTO>, List<BasicAppHost>> listAppHosts(Collection<HostDTO> hosts) {
+    private Pair<List<HostDTO>, List<BasicAppHost>> listHostsFromCacheOrCmdb(Collection<HostDTO> hosts) {
         List<BasicAppHost> appHosts = new ArrayList<>();
         List<HostDTO> notExistHosts = new ArrayList<>();
         List<Long> hostIds = new ArrayList<>();
@@ -1485,7 +1491,7 @@ public class HostServiceImpl implements HostService {
             }
         });
         if (CollectionUtils.isNotEmpty(hostIds)) {
-            Pair<List<Long>, List<BasicAppHost>> result = listHosts(hostIds, new ListHostByHostIdsStrategy());
+            Pair<List<Long>, List<BasicAppHost>> result = listHostsByStrategy(hostIds, new ListHostByHostIdsStrategy());
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
                 result.getLeft().forEach(notExistHostId -> {
@@ -1494,7 +1500,7 @@ public class HostServiceImpl implements HostService {
             }
         }
         if (CollectionUtils.isNotEmpty(cloudIps)) {
-            Pair<List<String>, List<BasicAppHost>> result = listHosts(cloudIps, new ListHostByIpsStrategy());
+            Pair<List<String>, List<BasicAppHost>> result = listHostsByStrategy(cloudIps, new ListHostByIpsStrategy());
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
                 result.getLeft().forEach(notExistCloudIp -> {
@@ -1505,7 +1511,8 @@ public class HostServiceImpl implements HostService {
         return Pair.of(notExistHosts, appHosts);
     }
 
-    private <K> Pair<List<K>, List<BasicAppHost>> listHosts(List<K> keys, ListHostStrategy<K> listHostStrategy) {
+    private <K> Pair<List<K>, List<BasicAppHost>> listHostsByStrategy(List<K> keys,
+                                                                      ListHostStrategy<K> listHostStrategy) {
         List<BasicAppHost> appHosts = new ArrayList<>();
         List<K> notExistKeys = null;
 
@@ -1681,6 +1688,7 @@ public class HostServiceImpl implements HostService {
                 cmdbExistHosts.forEach(syncHost -> {
                     BasicAppHost host = new BasicAppHost(syncHost.getBizId(), syncHost.getHostId(),
                         syncHost.getCloudAreaId(), syncHost.getIp(), syncHost.getAgentId());
+                    appHosts.add(host);
                 });
             }
             return Pair.of(notExistHostIds, appHosts);

@@ -205,10 +205,10 @@ public interface HostService {
     ServiceListAppHostResultDTO listAppHosts(Long appId, List<HostDTO> hosts);
 
     /**
-     * 根据主机IP批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
+     * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
      *
-     * @param hostIps 主机IP
+     * @param hosts 主机
      * @return 主机
      */
-    List<ApplicationHostDTO> listHosts(Collection<HostDTO> hostIps);
+    List<ApplicationHostDTO> listHosts(Collection<HostDTO> hosts);
 }
