@@ -24,12 +24,13 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -502,6 +503,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return stepInstance;
     }
 
+    @CompatibleImplementation(name = "ipv6", explain = "兼容IP，发布完成之后使用hostId，不再使用IP", version = "3.6.x")
     private ServersDTO convertToServersDTO(ExecuteTargetVO target) {
         if (target == null || target.getHostNodeInfo() == null) {
             return null;
@@ -509,9 +511,18 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         ExecuteServersVO hostNode = target.getHostNodeInfo();
         ServersDTO serversDTO = new ServersDTO();
         if (CollectionUtils.isNotEmpty(hostNode.getIpList())) {
-            List<IpDTO> staticIpList = new ArrayList<>();
-            hostNode.getIpList().forEach(host -> staticIpList.add(new IpDTO(host.getCloudAreaInfo().getId(),
-                host.getIp())));
+            List<HostDTO> staticIpList = new ArrayList<>();
+            hostNode.getIpList().forEach(host -> {
+                HostDTO targetHost = new HostDTO();
+                if (host.getHostId() != null) {
+                    targetHost.setHostId(host.getHostId());
+                } else {
+                    // 兼容IP，发布完成后删除
+                    targetHost.setBkCloudId(host.getCloudAreaInfo().getId());
+                    targetHost.setIp(host.getIp());
+                }
+                staticIpList.add(targetHost);
+            });
             serversDTO.setStaticIpList(staticIpList);
         }
         if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupList())) {

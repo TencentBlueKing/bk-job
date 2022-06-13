@@ -22,31 +22,51 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model.service;
+package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Data;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
 
 /**
- * 脚本日志查询请求
+ * 脚本日志内容
  */
 @Data
-public class ScriptLogQueryRequest {
+@NoArgsConstructor
+public class ScriptHostLogContent {
     /**
      * 步骤实例ID
      */
-    private Long stepInstanceId;
+    private long stepInstanceId;
     /**
      * 执行次数
      */
-    private Integer executeCount;
+    private int executeCount;
     /**
-     * 滚动执行批次，可能为null
+     * 主机ID
      */
-    private Integer batch;
+    private Long hostId;
     /**
-     * 查询的主机IP列表
+     * 目标IP
      */
-    private List<String> ips;
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续使用hostId替换", version = "3.7.x")
+    private String ip;
+    /**
+     * 日志内容
+     */
+    private String content;
+    /**
+     * 日志是否拉取完成
+     */
+    private boolean finished;
+
+    public ScriptHostLogContent(long stepInstanceId, int executeCount, Long hostId,
+                                String ip, String content, boolean finished) {
+        this.stepInstanceId = stepInstanceId;
+        this.executeCount = executeCount;
+        this.hostId = hostId;
+        this.ip = ip;
+        this.content = content;
+        this.finished = finished;
+    }
 }

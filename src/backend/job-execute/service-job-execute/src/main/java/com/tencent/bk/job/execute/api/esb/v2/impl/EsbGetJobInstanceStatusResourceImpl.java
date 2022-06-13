@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceStatusResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbIpStatusDTO;
@@ -114,12 +114,12 @@ public class EsbGetJobInstanceStatusResourceImpl
     private Map<Long, List<EsbIpStatusDTO>> getStepIpResult(List<StepInstanceBaseDTO> stepInstanceList) {
         Map<Long, List<EsbIpStatusDTO>> stepIpResult = new HashMap<>();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
-            List<AgentTaskDTO> agentTasks = null;
+            List<AgentTaskDetailDTO> agentTasks = null;
             if (stepInstance.isScriptStep()) {
-                agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
+                agentTasks = scriptAgentTaskService.listAgentTaskDetail(stepInstance,
                     stepInstance.getExecuteCount(), null);
             } else if (stepInstance.isFileStep()) {
-                agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(),
+                agentTasks = fileAgentTaskService.listAgentTaskDetail(stepInstance,
                     stepInstance.getExecuteCount(), null);
             }
             List<EsbIpStatusDTO> ipResultList = Lists.newArrayList();
@@ -127,11 +127,11 @@ public class EsbGetJobInstanceStatusResourceImpl
                 stepIpResult.put(stepInstance.getId(), ipResultList);
                 continue;
             }
-
-            for (AgentTaskDTO agentTask : agentTasks) {
+            for (AgentTaskDetailDTO agentTask : agentTasks) {
                 EsbIpStatusDTO ipStatus = new EsbIpStatusDTO();
                 ipStatus.setIp(agentTask.getIp());
-                ipStatus.setCloudAreaId(agentTask.getCloudId());
+                ipStatus.setCloudAreaId(agentTask.getBkCloudId());
+
                 ipStatus.setStatus(agentTask.getStatus());
                 ipResultList.add(ipStatus);
             }

@@ -39,7 +39,8 @@ BEGIN
       `step_instance_id` bigint(20)     NOT NULL,
       `execute_count`    int(11)        NOT NULL DEFAULT '0',
       `batch`            smallint(6)    NOT NULL DEFAULT '0',
-      `ip`               varchar(30)    NOT NULL,
+      `host_id`          bigint(20)     NOT NULL DEFAULT '0',
+      `agent_id`         varchar(64)    NOT NULL DEFAULT '',
       `gse_task_id`      bigint(20)     NOT NULL DEFAULT '0',
       `status`           int(11)        DEFAULT '1',
       `start_time`       bigint(20)     DEFAULT NULL,
@@ -49,13 +50,12 @@ BEGIN
       `exit_code`        int(11)        DEFAULT NULL,
       `tag`              varchar(256)   CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '',
       `log_offset`       int(11)        NOT NULL DEFAULT '0',
-      `display_ip`       varchar(30)    CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       `row_create_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP,
       `row_update_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`),
-      UNIQUE KEY `uk_step_id_execute_count_batch_ip` (`step_instance_id`,`execute_count`,`batch`,`ip`),
-      KEY `idx_step_id_ip` (`step_instance_id`,`ip`),
-      KEY `idx_display_ip` (`display_ip`)
+      UNIQUE KEY `uk_step_id_execute_count_batch_host_id` (`step_instance_id`,`execute_count`,`batch`,`host_id`),
+      KEY `idx_step_id_host_id` (`step_instance_id`,`host_id`),
+      KEY `idx_step_id_agent_id` (`step_instance_id`,`agent_id`)
     ) ENGINE=InnoDB
       AUTO_INCREMENT=30000000000
       DEFAULT CHARSET=utf8mb4;
@@ -66,7 +66,8 @@ BEGIN
       `step_instance_id` bigint(20)     NOT NULL,
       `execute_count`    int(11)        NOT NULL DEFAULT '0',
       `batch`            smallint(6)    NOT NULL DEFAULT '0',
-      `ip`               varchar(30)    NOT NULL,
+      `host_id`          bigint(20)     NOT NULL DEFAULT '0',
+      `agent_id`         varchar(64)    NOT NULL DEFAULT '',
       `mode`             tinyint(1)     NOT NULL,
       `gse_task_id`      bigint(20)     NOT NULL DEFAULT '0',
       `status`           int(11)        DEFAULT '1',
@@ -78,9 +79,9 @@ BEGIN
       `row_create_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP,
       `row_update_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`),
-      UNIQUE KEY `uk_step_id_execute_count_batch_mode_ip` (`step_instance_id`,`execute_count`,`batch`,`mode`,`ip`),
-      KEY `idx_step_id_ip` (`step_instance_id`,`ip`),
-      KEY `idx_display_ip` (`display_ip`)
+      UNIQUE KEY `uk_step_id_execute_count_batch_mode_host_id` (`step_instance_id`,`execute_count`,`batch`,`mode`,`host_id`),
+      KEY `idx_step_id_host_id` (`step_instance_id`,`host_id`),
+      KEY `idx_step_id_agent_id` (`step_instance_id`,`agent_id`)
     ) ENGINE=InnoDB
       AUTO_INCREMENT=30000000000
       DEFAULT CHARSET=utf8mb4;

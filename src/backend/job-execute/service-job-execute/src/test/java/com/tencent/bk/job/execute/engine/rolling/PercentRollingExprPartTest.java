@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -78,40 +78,40 @@ class PercentRollingExprPartTest {
         @Test
         @DisplayName("验证100%表达式")
         void compute() {
-            List<IpDTO> rollingServers = new ArrayList<>();
-            rollingServers.add(new IpDTO(0L, "127.0.0.1"));
-            rollingServers.add(new IpDTO(0L, "127.0.0.2"));
-            rollingServers.add(new IpDTO(0L, "127.0.0.3"));
+            List<HostDTO> rollingServers = new ArrayList<>();
+            rollingServers.add(new HostDTO(0L, "127.0.0.1"));
+            rollingServers.add(new HostDTO(0L, "127.0.0.2"));
+            rollingServers.add(new HostDTO(0L, "127.0.0.3"));
 
             PercentRollingExprPart percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("100%");
             RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
-            List<IpDTO> serversOnBatch = percentRollingExprPart.compute(context);
+            List<HostDTO> serversOnBatch = percentRollingExprPart.compute(context);
             assertThat(serversOnBatch).hasSize(3);
             assertThat(serversOnBatch).containsSequence(
-                new IpDTO(0L, "127.0.0.1"),
-                new IpDTO(0L, "127.0.0.2"),
-                new IpDTO(0L, "127.0.0.3")
+                new HostDTO(0L, "127.0.0.1"),
+                new HostDTO(0L, "127.0.0.2"),
+                new HostDTO(0L, "127.0.0.3")
             );
         }
 
         @Test
         @DisplayName("验证批次计算向上取整")
         void testCeil() {
-            List<IpDTO> rollingServers = new ArrayList<>();
-            rollingServers.add(new IpDTO(0L, "127.0.0.1"));
-            rollingServers.add(new IpDTO(0L, "127.0.0.2"));
-            rollingServers.add(new IpDTO(0L, "127.0.0.3"));
-            rollingServers.add(new IpDTO(0L, "127.0.0.4"));
-            rollingServers.add(new IpDTO(0L, "127.0.0.5"));
+            List<HostDTO> rollingServers = new ArrayList<>();
+            rollingServers.add(new HostDTO(0L, "127.0.0.1"));
+            rollingServers.add(new HostDTO(0L, "127.0.0.2"));
+            rollingServers.add(new HostDTO(0L, "127.0.0.3"));
+            rollingServers.add(new HostDTO(0L, "127.0.0.4"));
+            rollingServers.add(new HostDTO(0L, "127.0.0.5"));
             RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
 
             PercentRollingExprPart percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("10%");
-            List<IpDTO> serversOnBatch = percentRollingExprPart.compute(context);
+            List<HostDTO> serversOnBatch = percentRollingExprPart.compute(context);
             assertThat(serversOnBatch).hasSize(1);
             assertThat(serversOnBatch).containsSequence(
-                new IpDTO(0L, "127.0.0.1")
+                new HostDTO(0L, "127.0.0.1")
             );
 
             percentRollingExprPart =
@@ -119,7 +119,7 @@ class PercentRollingExprPartTest {
             serversOnBatch = percentRollingExprPart.compute(context);
             assertThat(serversOnBatch).hasSize(1);
             assertThat(serversOnBatch).containsSequence(
-                new IpDTO(0L, "127.0.0.1")
+                new HostDTO(0L, "127.0.0.1")
             );
 
             percentRollingExprPart =
@@ -127,8 +127,8 @@ class PercentRollingExprPartTest {
             serversOnBatch = percentRollingExprPart.compute(context);
             assertThat(serversOnBatch).hasSize(2);
             assertThat(serversOnBatch).containsSequence(
-                new IpDTO(0L, "127.0.0.1"),
-                new IpDTO(0L, "127.0.0.2")
+                new HostDTO(0L, "127.0.0.1"),
+                new HostDTO(0L, "127.0.0.2")
             );
         }
     }

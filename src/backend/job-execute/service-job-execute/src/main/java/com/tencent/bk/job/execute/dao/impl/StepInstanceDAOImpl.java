@@ -642,7 +642,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             .where(conditions)
             .limit(offset, limit)
             .fetch();
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(it -> it.get(T_STEP_INSTANCE.ID));

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 
@@ -50,27 +50,18 @@ public interface FileAgentTaskService extends AgentTaskService {
                                       FileTaskModeEnum fileTaskMode);
 
     /**
-     * 获取文件任务源ip
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @return 文件任务源ip
-     */
-    List<IpDTO> getFileSourceIps(Long stepInstanceId, Integer executeCount);
-
-    /**
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
      * @param fileTaskMode   文件分发任务模式
-     * @param cloudIp        云区域+IP
+     * @param host           主机
      * @return Agent任务
      */
     AgentTaskDTO getAgentTask(Long stepInstanceId,
                               Integer executeCount,
                               Integer batch,
                               FileTaskModeEnum fileTaskMode,
-                              String cloudIp);
+                              HostDTO host);
 
 
     /**
@@ -79,8 +70,8 @@ public interface FileAgentTaskService extends AgentTaskService {
      * @param stepInstanceId 步骤实例ID
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
      * @param mode           文件分发任务模式
-     * @param cloudIp        云区域+IP
+     * @param host           主机
      * @return Agent任务实际执行成功的executeCount值
      */
-    int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, FileTaskModeEnum mode, String cloudIp);
+    int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, FileTaskModeEnum mode, HostDTO host);
 }

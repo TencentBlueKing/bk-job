@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
 import org.junit.jupiter.api.Test;
 
@@ -70,21 +70,21 @@ class QuantityRollingExprPartTest {
 
     @Test
     void compute() {
-        List<IpDTO> rollingServers = new ArrayList<>();
-        rollingServers.add(new IpDTO(0L, "127.0.0.1"));
-        rollingServers.add(new IpDTO(0L, "127.0.0.2"));
-        rollingServers.add(new IpDTO(0L, "127.0.0.3"));
-        rollingServers.add(new IpDTO(0L, "127.0.0.4"));
-        rollingServers.add(new IpDTO(0L, "127.0.0.5"));
+        List<HostDTO> rollingServers = new ArrayList<>();
+        rollingServers.add(new HostDTO(0L, "127.0.0.1"));
+        rollingServers.add(new HostDTO(0L, "127.0.0.2"));
+        rollingServers.add(new HostDTO(0L, "127.0.0.3"));
+        rollingServers.add(new HostDTO(0L, "127.0.0.4"));
+        rollingServers.add(new HostDTO(0L, "127.0.0.5"));
         RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
 
         QuantityRollingExprPart quantityRollingExprPart =
             (QuantityRollingExprPart) QUANTITY_ROLLING_EXPR_PART.parseExpr("2");
-        List<IpDTO> serversOnBatch = quantityRollingExprPart.compute(context);
+        List<HostDTO> serversOnBatch = quantityRollingExprPart.compute(context);
         assertThat(serversOnBatch).hasSize(2);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "127.0.0.1"),
-            new IpDTO(0L, "127.0.0.2")
+            new HostDTO(0L, "127.0.0.1"),
+            new HostDTO(0L, "127.0.0.2")
         );
 
         quantityRollingExprPart =
@@ -92,11 +92,11 @@ class QuantityRollingExprPartTest {
         serversOnBatch = quantityRollingExprPart.compute(context);
         assertThat(serversOnBatch).hasSize(5);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "127.0.0.1"),
-            new IpDTO(0L, "127.0.0.2"),
-            new IpDTO(0L, "127.0.0.3"),
-            new IpDTO(0L, "127.0.0.4"),
-            new IpDTO(0L, "127.0.0.5")
+            new HostDTO(0L, "127.0.0.1"),
+            new HostDTO(0L, "127.0.0.2"),
+            new HostDTO(0L, "127.0.0.3"),
+            new HostDTO(0L, "127.0.0.4"),
+            new HostDTO(0L, "127.0.0.5")
         );
     }
 }

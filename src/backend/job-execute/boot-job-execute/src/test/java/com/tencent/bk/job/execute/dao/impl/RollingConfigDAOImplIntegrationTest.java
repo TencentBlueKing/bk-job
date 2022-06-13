@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.constant.RollingModeEnum;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
@@ -78,17 +78,17 @@ public class RollingConfigDAOImplIntegrationTest {
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList()).hasSize(3);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(0).getBatch()).isEqualTo(1);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(0).getServers()).hasSize(1);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(0).getServers().get(0).getCloudAreaId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(0).getServers().get(0).getBkCloudId()).isEqualTo(0L);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(0).getServers().get(0).getIp()).isEqualTo("127.0.0.1");
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(1).getBatch()).isEqualTo(2);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(1).getServers()).hasSize(1);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(1).getServers().get(0).getCloudAreaId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(1).getServers().get(0).getBkCloudId()).isEqualTo(0L);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(1).getServers().get(0).getIp()).isEqualTo("127.0.0.2");
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(2).getBatch()).isEqualTo(3);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(2).getServers()).hasSize(2);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(2).getServers().get(0).getCloudAreaId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(2).getServers().get(0).getBkCloudId()).isEqualTo(0L);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(2).getServers().get(0).getIp()).isEqualTo("127.0.0.3");
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(2).getServers().get(1).getCloudAreaId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(2).getServers().get(1).getBkCloudId()).isEqualTo(0L);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(2).getServers().get(1).getIp()).isEqualTo("127.0.0.4");
     }
 
@@ -117,8 +117,8 @@ public class RollingConfigDAOImplIntegrationTest {
         rollingAllStepInstanceIdList.add(1001L);
         rollingConfig.setAllRollingStepInstanceIdList(rollingAllStepInstanceIdList);
         List<RollingServerBatchDO> serverBatchList = new ArrayList<>();
-        List<IpDTO> servers = new ArrayList<>();
-        servers.add(new IpDTO(0L, "127.0.0.1"));
+        List<HostDTO> servers = new ArrayList<>();
+        servers.add(new HostDTO(0L, "127.0.0.1"));
         RollingServerBatchDO serverBatch1 = new RollingServerBatchDO(1, servers);
         serverBatchList.add(serverBatch1);
         rollingConfig.setServerBatchList(serverBatchList);
@@ -144,7 +144,7 @@ public class RollingConfigDAOImplIntegrationTest {
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getAllRollingStepInstanceIdList()).containsSequence(1001L);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList()).hasSize(1);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(0).getBatch()).isEqualTo(1);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(0).getServers().get(0).getCloudAreaId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(0).getServers().get(0).getBkCloudId()).isEqualTo(0L);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getServerBatchList().get(0).getServers().get(0).getIp()).isEqualTo("127.0.0.1");
     }
 }

@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.logsvr.model;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -42,9 +42,14 @@ public class ScriptLogQuery {
      */
     private Long stepInstanceId;
     /**
-     * 执行任务的主机ip
+     * 执行任务的主机ip列表
      */
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", version = "3.7.x")
     private List<String> ips;
+    /**
+     * 执行任务的主机ID列表
+     */
+    private List<Long> hostIds;
     /**
      * 执行次数
      */
@@ -58,23 +63,13 @@ public class ScriptLogQuery {
                           Long stepInstanceId,
                           Integer executeCount,
                           Integer batch,
-                          String ip) {
-        this.jobCreateDate = jobCreateDate;
-        this.stepInstanceId = stepInstanceId;
-        this.executeCount = executeCount;
-        this.batch = batch;
-        this.ips = Collections.singletonList(ip);
-    }
-
-    public ScriptLogQuery(String jobCreateDate,
-                          Long stepInstanceId,
-                          Integer executeCount,
-                          Integer batch,
+                          List<Long> hostIds,
                           List<String> ips) {
         this.jobCreateDate = jobCreateDate;
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
+        this.hostIds = hostIds;
         this.ips = ips;
     }
 }

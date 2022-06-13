@@ -121,7 +121,6 @@ public class SyncServiceImpl implements SyncService {
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
     private final HostSyncService hostSyncService;
-    private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final AgentStatusSyncService agentStatusSyncService;
     private final HostCache hostCache;
     private final BizSetEventWatcher bizSetEventWatcher;
@@ -132,7 +131,6 @@ public class SyncServiceImpl implements SyncService {
                            BizSyncService bizSyncService,
                            BizSetSyncService bizSetSyncService,
                            HostSyncService hostSyncService,
-                           AppHostsUpdateHelper appHostsUpdateHelper,
                            AgentStatusSyncService agentStatusSyncService,
                            ApplicationDAO applicationDAO,
                            ApplicationHostDAO applicationHostDAO,
@@ -160,7 +158,6 @@ public class SyncServiceImpl implements SyncService {
         this.bizSyncService = bizSyncService;
         this.bizSetSyncService = bizSetSyncService;
         this.hostSyncService = hostSyncService;
-        this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.agentStatusSyncService = agentStatusSyncService;
         this.hostCache = hostCache;
         this.bizSetEventWatcher = bizSetEventWatcher;
@@ -223,14 +220,23 @@ public class SyncServiceImpl implements SyncService {
     private void watchHostEvent() {
         // 开一个常驻线程监听主机资源变动事件
         hostWatchThread = new HostWatchThread(
-            dslContext, applicationHostDAO, queryAgentStatusClient,
-            redisTemplate, appHostsUpdateHelper, hostCache);
+            dslContext,
+            applicationHostDAO,
+            queryAgentStatusClient,
+            redisTemplate,
+            hostCache
+        );
         hostWatchThread.start();
 
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
-            dslContext, applicationHostDAO, hostTopoDAO,
-            redisTemplate, this, appHostsUpdateHelper, hostCache);
+            dslContext,
+            applicationHostDAO,
+            hostTopoDAO,
+            redisTemplate,
+            this,
+            hostCache
+        );
         hostRelationWatchThread.start();
     }
 
@@ -365,7 +371,7 @@ public class SyncServiceImpl implements SyncService {
         int count = 0;
         while (appInfoRetryCountPair != null && count < maxCount) {
             ApplicationDTO applicationDTO = appInfoRetryCountPair.getFirst();
-            Integer retryCount = appInfoRetryCountPair.getSecond();
+            int retryCount = appInfoRetryCountPair.getSecond();
             try {
                 if (retryCount > 0) {
                     arrangeSyncAppHostsTask(applicationDTO);
@@ -441,15 +447,8 @@ public class SyncServiceImpl implements SyncService {
                     List<ApplicationDTO> localNormalApps =
                         localApps.stream().filter(app ->
                             app.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
-                    //删除已移除业务的主机，部分测试主机放在业务集下，不删除
-                    if (!localNormalApps.isEmpty()) {
-                        applicationHostDAO.deleteBizHostInfoNotInBizs(dslContext,
-                            localApps.stream().map(
-                                app -> Long.parseLong(app.getScope().getId())
-                            ).collect(Collectors.toSet()));
-                    }
-                    Long cmdbInterfaceTimeConsuming = 0L;
-                    Long writeToDBTimeConsuming = 0L;
+                    long cmdbInterfaceTimeConsuming = 0L;
+                    long writeToDBTimeConsuming = 0L;
                     List<Pair<ApplicationDTO, Future<Pair<Long, Long>>>> appFutureList = new ArrayList<>();
                     for (ApplicationDTO applicationDTO : localNormalApps) {
                         Future<Pair<Long, Long>> future = arrangeSyncAppHostsTask(applicationDTO);

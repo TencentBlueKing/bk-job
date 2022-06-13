@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
@@ -142,26 +142,26 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<AgentTaskDTO> agentTaskList = null;
+                List<AgentTaskDetailDTO> agentTaskList = null;
                 if (stepInstance.isScriptStep()) {
-                    agentTaskList = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
+                    agentTaskList = scriptAgentTaskService.listAgentTaskDetail(stepInstance,
                         stepInstance.getExecuteCount(), null);
                 } else if (stepInstance.isFileStep()) {
-                    agentTaskList = fileAgentTaskService.listAgentTasks(stepInstance.getId(),
+                    agentTaskList = fileAgentTaskService.listAgentTaskDetail(stepInstance,
                         stepInstance.getExecuteCount(), null);
                 }
                 if (CollectionUtils.isNotEmpty(agentTaskList)) {
-                    for (AgentTaskDTO ipLog : agentTaskList) {
+                    for (AgentTaskDetailDTO agentTask : agentTaskList) {
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
-                        stepIpResult.setCloudAreaId(ipLog.getCloudId());
-                        stepIpResult.setIp(ipLog.getIp());
-                        stepIpResult.setExitCode(ipLog.getExitCode());
-                        stepIpResult.setErrorCode(ipLog.getErrorCode());
-                        stepIpResult.setStartTime(ipLog.getStartTime());
-                        stepIpResult.setEndTime(ipLog.getEndTime());
-                        stepIpResult.setTotalTime(ipLog.getTotalTime());
-                        stepIpResult.setTag(ipLog.getTag());
-                        stepIpResult.setStatus(ipLog.getStatus());
+                        stepIpResult.setCloudAreaId(agentTask.getBkCloudId());
+                        stepIpResult.setIp(agentTask.getIp());
+                        stepIpResult.setExitCode(agentTask.getExitCode());
+                        stepIpResult.setErrorCode(agentTask.getErrorCode());
+                        stepIpResult.setStartTime(agentTask.getStartTime());
+                        stepIpResult.setEndTime(agentTask.getEndTime());
+                        stepIpResult.setTotalTime(agentTask.getTotalTime());
+                        stepIpResult.setTag(agentTask.getTag());
+                        stepIpResult.setStatus(agentTask.getStatus());
                         stepIpResults.add(stepIpResult);
                     }
                 }

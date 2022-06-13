@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.function.LambdasUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +35,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 步骤实例
@@ -242,23 +241,42 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
      *
      * @return 不合法的主机
      */
-    public Set<String> getInvalidIps() {
-        Set<String> invalidIpSet = new HashSet<>();
+    public Set<HostDTO> getInvalidHosts() {
+        Set<HostDTO> invalidHosts = new HashSet<>();
         if (CollectionUtils.isNotEmpty(this.targetServers.getInvalidIpList())) {
-            invalidIpSet.addAll(this.targetServers.getInvalidIpList().stream().map(IpDTO::convertToStrIp)
-                .collect(Collectors.toSet()));
+            invalidHosts.addAll(this.targetServers.getInvalidIpList());
         }
         if (isFileStep() && CollectionUtils.isNotEmpty(this.fileSourceList)) {
             this.fileSourceList.stream().filter(LambdasUtil.not(FileSourceDTO::isLocalUpload))
                 .forEach(fileSource -> {
                     ServersDTO fileSourceServers = fileSource.getServers();
                     if (fileSourceServers != null && CollectionUtils.isNotEmpty(fileSourceServers.getInvalidIpList())) {
-                        invalidIpSet.addAll(fileSourceServers.getInvalidIpList().stream().map(IpDTO::convertToStrIp)
-                            .collect(Collectors.toSet()));
+                        invalidHosts.addAll(fileSourceServers.getInvalidIpList());
                     }
                 });
 
         }
-        return invalidIpSet;
+        return invalidHosts;
+    }
+
+    /**
+     * 判断步骤是否包含非法主机
+     */
+    public boolean hasInvalidHost() {
+        boolean hasInvalidHost = false;
+        if (CollectionUtils.isNotEmpty(this.targetServers.getInvalidIpList())) {
+            return true;
+        }
+        if (isFileStep() && CollectionUtils.isNotEmpty(this.fileSourceList)) {
+            hasInvalidHost = this.fileSourceList.stream()
+                .filter(LambdasUtil.not(FileSourceDTO::isLocalUpload))
+                .anyMatch(fileSource -> {
+                    ServersDTO fileSourceServers = fileSource.getServers();
+                    return fileSourceServers != null
+                        && CollectionUtils.isNotEmpty(fileSourceServers.getInvalidIpList());
+                });
+
+        }
+        return hasInvalidHost;
     }
 }

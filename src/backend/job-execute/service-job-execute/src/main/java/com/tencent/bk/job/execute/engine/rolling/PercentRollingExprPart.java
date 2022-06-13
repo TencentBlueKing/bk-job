@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
 import lombok.Getter;
 import lombok.Setter;
@@ -69,8 +69,8 @@ public class PercentRollingExprPart extends RollingExprPart {
     }
 
     @Override
-    public List<IpDTO> compute(RollingServerBatchContext context) throws RollingExprParseException {
-        List<IpDTO> candidateServers = context.getRemainedServers();
+    public List<HostDTO> compute(RollingServerBatchContext context) throws RollingExprParseException {
+        List<HostDTO> candidateServers = context.getRemainedServers();
         int total = context.getTotalServersSize();
         // 批次大小，需要向上取整
         int batchSize = (total * percent + 100 - 1) / 100;

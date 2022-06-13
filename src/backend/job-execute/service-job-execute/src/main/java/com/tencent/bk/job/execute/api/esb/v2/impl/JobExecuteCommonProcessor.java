@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
@@ -84,8 +84,8 @@ public class JobExecuteCommonProcessor {
                 serversDTO.setDynamicServerGroups(dynamicServerGroups);
             }
             if (requestTargetServers.getIps() != null) {
-                List<IpDTO> staticIpList = new ArrayList<>();
-                requestTargetServers.getIps().forEach(ip -> staticIpList.add(new IpDTO(ip.getCloudAreaId(),
+                List<HostDTO> staticIpList = new ArrayList<>();
+                requestTargetServers.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(),
                     ip.getIp())));
                 serversDTO.setStaticIpList(staticIpList);
             }
@@ -94,8 +94,8 @@ public class JobExecuteCommonProcessor {
             // 兼容历史版本API
             ServersDTO serversDTO = new ServersDTO();
             if (ipList != null) {
-                List<IpDTO> staticIpList = new ArrayList<>();
-                ipList.forEach(ip -> staticIpList.add(new IpDTO(ip.getCloudAreaId(), ip.getIp())));
+                List<HostDTO> staticIpList = new ArrayList<>();
+                ipList.forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
                 serversDTO.setStaticIpList(staticIpList);
             }
             if (dynamicGroupIdList != null) {

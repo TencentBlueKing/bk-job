@@ -40,7 +40,6 @@ import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -74,27 +73,12 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
         List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         AccountDTO targetAccount = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        Set<String> targetIps =
-            agentTasks.stream()
-                .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
-                .map(AgentTaskDTO::getCloudIp)
-                .collect(Collectors.toSet());
+        Set<String> agentIds = agentTasks.stream()
+            .map(AgentTaskDTO::getAgentId)
+            .collect(Collectors.toSet());
         //目标机器的agent
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetIps, targetAccount.getAccount(),
+        List<api_agent> agentList = GseRequestUtils.buildAgentList(agentIds, targetAccount.getAccount(),
             targetAccount.getPassword());
-
-        //源机器agent
-//        Set<String> sourceIps = new HashSet<>();
-//        this.parseSendFileList();
-//        for (JobFile file : sendFiles) {
-//            if (sourceIps.contains(file.getCloudIp())) {
-//                continue;
-//            }
-//            sourceIps.add(file.getCloudIp());
-//            api_agent src = GseRequestUtils.buildAgent(file.getCloudIp(), file.getAccount(),
-//                file.getPassword());
-//            agentList.add(src);
-//        }
 
         api_stop_task_request stopTaskRequest = new api_stop_task_request();
         stopTaskRequest.setStop_task_id(gseTask.getGseTaskId());

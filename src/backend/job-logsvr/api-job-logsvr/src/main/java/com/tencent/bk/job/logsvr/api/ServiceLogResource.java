@@ -24,16 +24,17 @@
 
 package com.tencent.bk.job.logsvr.api;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.logsvr.model.service.BatchSaveLogRequest;
-import com.tencent.bk.job.logsvr.model.service.FileLogQueryRequest;
-import com.tencent.bk.job.logsvr.model.service.SaveLogRequest;
-import com.tencent.bk.job.logsvr.model.service.ScriptLogQueryRequest;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceBatchSaveLogRequest;
+import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceIpLogsDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceSaveLogRequest;
+import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -65,7 +66,7 @@ public interface ServiceLogResource {
     @PostMapping
     InternalResponse<?> saveLog(
         @ApiParam("保存日志请求报文")
-        @RequestBody SaveLogRequest request
+        @RequestBody ServiceSaveLogRequest request
     );
 
     /**
@@ -77,29 +78,13 @@ public interface ServiceLogResource {
     @PostMapping("/batch")
     InternalResponse<?> saveLogs(
         @ApiParam("批量保存日志请求报文")
-        @RequestBody BatchSaveLogRequest request
+        @RequestBody ServiceBatchSaveLogRequest request
     );
 
-    @ApiOperation("根据服务器IP获取对应的执行日志")
-    @GetMapping(value = {"/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
-    InternalResponse<ServiceIpLogDTO> getIpLogContent(
-        @ApiParam("作业创建时间")
-        @PathVariable("jobCreateDate") String jobCreateDate,
-        @ApiParam("步骤实例ID")
-        @PathVariable("stepInstanceId") Long stepInstanceId,
-        @ApiParam("执行次数")
-        @PathVariable("executeCount") Integer executeCount,
-        @ApiParam("ip")
-        @PathVariable("ip") String ip,
-        @ApiParam("滚动执行批次，非滚动任务传入null")
-        @RequestParam(value = "batch", required = false) Integer batch,
-        @ApiParam(value = "日志类型", required = true)
-        @RequestParam(value = "logType") Integer logType
-    );
-
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", version = "3.7.x")
     @ApiOperation("根据目标服务器IP获取脚本任务对应的执行日志")
     @GetMapping(value = {"/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
-    InternalResponse<ServiceIpLogDTO> getScriptIpLogContent(
+    InternalResponse<ServiceHostLogDTO> getScriptHostLogByIp(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -111,9 +96,25 @@ public interface ServiceLogResource {
         @ApiParam("滚动执行批次，非滚动任务传入null")
         @RequestParam(value = "batch", required = false) Integer batch);
 
+    @ApiOperation("根据目标主机ID获取脚本任务对应的执行日志")
+    @GetMapping(value = {
+        "/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/hostId/{hostId}"
+    })
+    InternalResponse<ServiceHostLogDTO> getScriptHostLogByHostId(
+        @ApiParam("作业创建时间")
+        @PathVariable("jobCreateDate") String jobCreateDate,
+        @ApiParam("步骤实例ID")
+        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @ApiParam("执行次数")
+        @PathVariable("executeCount") Integer executeCount,
+        @ApiParam("hostId")
+        @PathVariable("hostId") Long hostId,
+        @ApiParam("滚动执行批次，非滚动任务传入null")
+        @RequestParam(value = "batch", required = false) Integer batch);
+
     @ApiOperation("批量获取脚本任务对应的执行日志")
     @PostMapping(value = {"/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}"})
-    InternalResponse<List<ServiceIpLogDTO>> batchGetScriptLogContent(
+    InternalResponse<List<ServiceHostLogDTO>> listScriptLogs(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -121,12 +122,13 @@ public interface ServiceLogResource {
         @ApiParam("执行次数")
         @PathVariable("executeCount") Integer executeCount,
         @ApiParam("查询请求")
-        @RequestBody ScriptLogQueryRequest query
+        @RequestBody ServiceScriptLogQueryRequest query
     );
 
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", version = "3.7.x")
     @ApiOperation("按照IP获取文件任务对应的执行日志")
     @GetMapping(value = {"/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
-    InternalResponse<ServiceIpLogDTO> getFileIpLogContent(
+    InternalResponse<ServiceHostLogDTO> getFileHostLogByIp(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -140,9 +142,27 @@ public interface ServiceLogResource {
         @ApiParam("滚动执行批次，非滚动任务传入null")
         @RequestParam(value = "batch", required = false) Integer batch);
 
+    @ApiOperation("按照hostId获取文件任务对应的执行日志")
+    @GetMapping(value = {
+        "/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/hostId/{hostId}"
+    })
+    InternalResponse<ServiceHostLogDTO> getFileHostLogByHostId(
+        @ApiParam("作业创建时间")
+        @PathVariable("jobCreateDate") String jobCreateDate,
+        @ApiParam("步骤实例ID")
+        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @ApiParam("执行次数")
+        @PathVariable("executeCount") Integer executeCount,
+        @ApiParam("hostId")
+        @PathVariable("hostId") Long hostId,
+        @ApiParam("分发模式,0:upload,1:download")
+        @RequestParam(value = "mode", required = false) Integer mode,
+        @ApiParam("滚动执行批次，非滚动任务传入null")
+        @RequestParam(value = "batch", required = false) Integer batch);
+
     @ApiOperation("获取文件任务对应的执行日志")
     @GetMapping("/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
-    InternalResponse<List<ServiceFileTaskLogDTO>> getFileLogContent(
+    InternalResponse<List<ServiceFileTaskLogDTO>> listFileHostLogs(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -154,12 +174,14 @@ public interface ServiceLogResource {
         @ApiParam("分发模式,0:upload,1:download")
         @RequestParam(value = "mode", required = false) Integer mode,
         @ApiParam("ip")
-        @RequestParam(value = "ip", required = false) String ip
+        @RequestParam(value = "ip", required = false) String ip,
+        @ApiParam("hostId")
+        @RequestParam(value = "hostId", required = false) Long hostId
     );
 
     @ApiOperation("获取文件任务agent对应的执行日志")
     @PostMapping("/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/queryByTaskIds")
-    InternalResponse<ServiceIpLogDTO> getFileLogContentListByTaskIds(
+    InternalResponse<ServiceHostLogDTO> listFileHostLogsByTaskIds(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -174,7 +196,7 @@ public interface ServiceLogResource {
 
     @ApiOperation("获取文件任务对应的执行日志")
     @PostMapping("/file")
-    InternalResponse<ServiceIpLogsDTO> getFileLogContent(@RequestBody FileLogQueryRequest request);
+    InternalResponse<ServiceHostLogsDTO> listFileHostLogs(@RequestBody ServiceFileLogQueryRequest request);
 
     /**
      * 返回日志内容包含关键字的主机ip
@@ -187,7 +209,7 @@ public interface ServiceLogResource {
      */
     @ApiOperation("根据脚本任务日志关键字获取对应的ip")
     @GetMapping("/keywordMatch/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
-    InternalResponse<List<IpDTO>> getIpsByKeyword(
+    InternalResponse<List<HostDTO>> getIpsByKeyword(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")

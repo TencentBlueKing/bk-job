@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -127,11 +126,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             return null;
         }
         ServersDTO serversDTO = new ServersDTO();
-        if (servers.getIps() != null) {
-            List<IpDTO> staticIpList = new ArrayList<>();
-            servers.getIps().forEach(ip -> staticIpList.add(new IpDTO(ip.getCloudAreaId(), ip.getIp())));
-            serversDTO.setStaticIpList(staticIpList);
-        }
+        serversDTO.setStaticIpList(servers.getIps());
         if (servers.getDynamicGroupIds() != null) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
             servers.getDynamicGroupIds()

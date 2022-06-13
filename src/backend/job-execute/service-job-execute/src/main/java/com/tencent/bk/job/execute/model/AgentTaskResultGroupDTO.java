@@ -42,7 +42,7 @@ public class AgentTaskResultGroupDTO extends AgentTaskResultGroupBaseDTO {
     /**
      * Agent任务
      */
-    private List<AgentTaskDTO> agentTasks;
+    private List<AgentTaskDetailDTO> agentTasks;
 
     public AgentTaskResultGroupDTO(Integer status, String tag) {
         super(status, tag);

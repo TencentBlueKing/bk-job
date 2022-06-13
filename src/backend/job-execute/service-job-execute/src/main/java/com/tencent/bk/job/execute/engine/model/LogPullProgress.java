@@ -31,7 +31,13 @@ import lombok.Data;
  */
 @Data
 public class LogPullProgress {
-    private String ip;
+    /**
+     * bk_agent_id
+     */
+    private String agentId;
+    /**
+     * 任务编号
+     */
     private int mid;
     /**
      * 日志偏移 - 字节

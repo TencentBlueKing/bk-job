@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.util;
 
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.consts.Consts;
 
 public class Utils {
@@ -36,7 +37,7 @@ public class Utils {
             if (gseErrorCode > 0)
                 status = -1;
             else
-                status = 9;
+                status = AgentTaskStatus.SUCCESS.getValue();
         }
         return status;
     }

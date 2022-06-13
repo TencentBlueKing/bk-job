@@ -25,13 +25,13 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * GSE Agent 任务 Service
@@ -43,14 +43,14 @@ public interface AgentTaskService {
      *
      * @param agentTasks GSE Agent 任务列表
      */
-    void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks);
+    void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks);
 
     /**
      * 批量更新Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchUpdateAgentTasks(List<AgentTaskDTO> agentTasks);
+    void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks);
 
     /**
      * 获取执行成功的Agent任务数量
@@ -61,14 +61,6 @@ public interface AgentTaskService {
      */
     int getSuccessAgentTaskCount(long stepInstanceId, int executeCount);
 
-    /**
-     * 获取Agent任务执行结果并分组
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次；如果传入null或者0，将忽略该参数
-     */
-    List<AgentTaskResultGroupDTO> listAndGroupAgentTasks(long stepInstanceId, int executeCount, Integer batch);
 
     /**
      * 根据GSE任务ID获取Agent任务
@@ -91,69 +83,63 @@ public interface AgentTaskService {
                                       Integer batch);
 
     /**
-     * 根据执行结果查询Agent任务(排序、限制返回数量)
+     * 获取Agent任务详情并分组
      *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
-     * @param status         任务状态
-     * @param tag            用户自定义分组标签
-     * @param limit          最大返回数量
-     * @param orderField     排序字段
-     * @param order          排序方式
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        滚动执行批次；如果传入null或者0，将忽略该参数
+     */
+    List<AgentTaskResultGroupDTO> listAndGroupAgentTasks(StepInstanceBaseDTO stepInstance,
+                                                         int executeCount,
+                                                         Integer batch);
+
+    /**
+     * 根据执行结果查询Agent任务详情(排序、限制返回数量) - 包含主机详情
+     *
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        滚动执行批次；如果传入null或者0，忽略该参数
+     * @param status       任务状态
+     * @param tag          用户自定义分组标签
+     * @param limit        最大返回数量
+     * @param orderField   排序字段
+     * @param order        排序方式
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer batch,
-                                                  Integer status,
-                                                  String tag,
-                                                  Integer limit,
-                                                  String orderField,
-                                                  Order order);
+    List<AgentTaskDetailDTO> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                              Integer executeCount,
+                                                              Integer batch,
+                                                              Integer status,
+                                                              String tag,
+                                                              Integer limit,
+                                                              String orderField,
+                                                              Order order);
 
     /**
-     * 根据结果分组获取Agent任务
+     * 根据结果分组获取Agent任务详情 - 包含主机详情
      *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
-     * @param status         任务状态
-     * @param tag            用户自定义分组标签
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        滚动执行批次；如果传入null或者0，忽略该参数
+     * @param status       任务状态
+     * @param tag          用户自定义分组标签
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTasksByResultGroup(Long stepInstanceId,
-                                                   Integer executeCount,
-                                                   Integer batch,
-                                                   Integer status,
-                                                   String tag);
+    List<AgentTaskDetailDTO> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                              Integer executeCount,
+                                                              Integer batch,
+                                                              Integer status,
+                                                              String tag);
 
     /**
-     * 根据GSE Agent 任务状态分组计数结果
+     * 获取Agent任务详情 - 包含主机详情
      *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @return 根据GSE Agent 任务状态分组计数结果
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        滚动执行批次；传入null或者0将忽略该参数
+     * @return Agent任务
      */
-    Map<IpStatus, Integer> countStepAgentTaskByStatus(long stepInstanceId, int executeCount);
-
-    /**
-     * 查询执行结果分组
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次；传入null或者0将忽略该参数
-     * @return 执行结果分组
-     */
-    List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
-
-    /**
-     * 获取任务目标ip - 根据ip关键字模糊匹配
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param ipKeyword      用于检索的IP关键字
-     * @return 匹配的任务目标IP列表
-     */
-    List<String> fuzzySearchTargetIpsByIpKeyword(Long stepInstanceId, Integer executeCount, String ipKeyword);
+    List<AgentTaskDetailDTO> listAgentTaskDetail(StepInstanceBaseDTO stepInstance,
+                                                 Integer executeCount,
+                                                 Integer batch);
 }

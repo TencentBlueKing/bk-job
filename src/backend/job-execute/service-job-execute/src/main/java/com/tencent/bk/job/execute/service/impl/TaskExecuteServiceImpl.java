@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import brave.Tracing;
-import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -41,7 +40,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -99,6 +98,7 @@ import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskApprovalStepDTO;
@@ -206,25 +206,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
     }
 
-    private static List<IpDTO> getHostsContainsNotAllowedAction(Map<IpDTO, Set<String>> hostBindActions,
-                                                                Map<IpDTO, List<String>> hostAllowedActions) {
-        List<IpDTO> invalidHosts = new ArrayList<>();
-        for (Map.Entry<IpDTO, Set<String>> binding : hostBindActions.entrySet()) {
-            IpDTO host = binding.getKey();
-            if (!hostAllowedActions.containsKey(host)
-                || !hostAllowedActions.get(host).containsAll(binding.getValue())) {
-                invalidHosts.add(host);
-            }
-        }
-        return invalidHosts;
-    }
-
     @Override
     public Long executeFastTask(FastTaskDTO fastTask) {
-        log.info("Begin to create task instance and step instance for fast-execution-task, task: {}", fastTask);
+        log.info("Begin to execute fast task: {}", fastTask);
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
-        StopWatch watch = new StopWatch("createTaskInstanceFast");
+
+        StopWatch watch = new StopWatch("executeFastTask");
         // 检查任务是否应当被驱逐
         checkTaskEvict(taskInstance);
         standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
@@ -240,14 +228,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkAndSetAccountInfo(stepInstance, taskInstance.getAppId());
             watch.stop();
 
-            // 获取ip列表
+            // 获取主机列表
             watch.start("setServerInfoFastJob");
             setServerInfoFastJob(stepInstance);
             watch.stop();
 
-            //检查ip
+            //检查主机
             watch.start("checkHosts");
-            checkHosts(stepInstance, shouldIgnoreInvalidHost(taskInstance));
+            checkAndSetHosts(Collections.singletonList(stepInstance));
             watch.stop();
 
             // 检查步骤约束
@@ -471,7 +459,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("Script status is {}, should not execute! ScriptId: {}, scriptVersionId={}",
                 scriptStatus, script.getId(), script.getScriptVersionId());
             throw new FailedPreconditionException(ErrorCode.SCRIPT_NOT_EXECUTABLE_STATUS,
-                new String[] {
+                new String[]{
                     "{" + scriptStatus.getStatusI18nKey() + "}"
                 });
         }
@@ -571,9 +559,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isNotEmpty(servers.getStaticIpList())) {
             servers.setStaticIpList(servers.getStaticIpList().stream()
                 .filter(host -> {
-                    boolean isWhiteIp = hostService.isMatchWhiteIpRule(appId, host, action.name());
+                    boolean isWhiteIp = hostService.isMatchWhiteIpRule(appId, host.toCloudIp(), action.name());
                     if (isWhiteIp) {
-                        log.info("Host: {} is white ip, skip auth!", host.convertToStrIp());
+                        log.info("Host: {} is white ip, skip auth!", host.toCloudIp());
                     }
                     return !isWhiteIp;
                 })
@@ -581,7 +569,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     boolean isValidIp =
                         servers.getInvalidIpList() == null || !servers.getInvalidIpList().contains(host);
                     if (!isValidIp) {
-                        log.info("Host: {} is invalid ip, skip auth!", host.convertToStrIp());
+                        log.info("Host: {} is invalid ip, skip auth!", host.toCloudIp());
                     }
                     return isValidIp;
                 })
@@ -656,48 +644,95 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private String convertToIpListStr(Collection<IpDTO> ips) {
+    private String convertToIpListStr(Collection<HostDTO> ips) {
         return StringUtils.join(ips.stream().map(ipDTO ->
-            ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()).collect(Collectors.toList()), ",");
+            ipDTO.getBkCloudId() + ":" + ipDTO.getIp()).collect(Collectors.toList()), ",");
     }
 
     /**
-     * 检查主机的合法性
+     * 设置主机信息并检查主机的合法性并
      *
-     * @param stepInstanceList  步骤列表
-     * @param ignoreInvalidHost 是否忽略不合法主机
+     * @param stepInstanceList 步骤列表
      * @throws ServiceException 如果包含不合法的主机，抛出异常
      */
-    private void checkHosts(List<StepInstanceDTO> stepInstanceList, boolean ignoreInvalidHost)
-        throws ServiceException {
+    private void checkAndSetHosts(List<StepInstanceDTO> stepInstanceList) throws ServiceException {
         long appId = stepInstanceList.get(0).getAppId();
 
-        Set<IpDTO> checkHosts = new HashSet<>();
+        Set<HostDTO> checkHosts = new HashSet<>();
         addNeedCheckHosts(stepInstanceList, checkHosts);
         if (checkHosts.isEmpty()) {
             return;
         }
 
-        // 检查是否在当前业务下
-        Collection<IpDTO> unavailableHosts = checkHostsNotInApp(appId, checkHosts);
-        if (unavailableHosts.isEmpty()) {
-            return;
+        // 检查主机是否存在
+        ServiceListAppHostResultDTO hosts = hostService.batchGetAppHosts(appId, checkHosts);
+        if (CollectionUtils.isNotEmpty(hosts.getNotExistHosts())) {
+            throwHostInvalidException(hosts.getNotExistHosts(), appId);
         }
 
+        // 设置主机信息
+        fillStepHostDetail(stepInstanceList, hosts);
+
         // 检查是否在白名单配置
-        List<IpDTO> invalidHosts = checkHostsNotAllowedInWhiteIpConfig(appId, stepInstanceList, unavailableHosts);
-        if (!invalidHosts.isEmpty()) {
-            log.warn("Contains invalid host, invalidHost: {}", JsonUtils.toJson(invalidHosts));
-            // 如果不允许忽略非法主机，或者全部主机都非法，那么直接拒绝
-            if (!ignoreInvalidHost || (invalidHosts.size() == checkHosts.size())) {
+        if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
+            List<HostDTO> invalidHosts = checkHostsNotAllowedInWhiteIpConfig(appId, stepInstanceList,
+                hosts.getNotInAppHosts());
+            if (!invalidHosts.isEmpty()) {
+                log.warn("Contains invalid host, invalidHost: {}", JsonUtils.toJson(invalidHosts));
                 throwHostInvalidException(invalidHosts, appId);
             }
-            // 包含非法IP，需要继续走完流程，但是不下发任务
-            setInvalidHostsForStepInstance(stepInstanceList, invalidHosts);
         }
     }
 
-    private void addNeedCheckHosts(List<StepInstanceDTO> stepInstanceList, Set<IpDTO> checkHosts) {
+    private void fillStepHostDetail(List<StepInstanceDTO> stepInstanceList, ServiceListAppHostResultDTO hosts) {
+        Map<String, HostDTO> hostMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
+            hosts.getValidHosts().forEach(host -> {
+                hostMap.put("hostId:" + host.getHostId(), host);
+                hostMap.put("hostIp:" + host.toCloudIp(), host);
+            });
+        }
+        if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
+            hosts.getNotInAppHosts().forEach(host -> {
+                hostMap.put("hostId:" + host.getHostId(), host);
+                hostMap.put("hostIp:" + host.toCloudIp(), host);
+            });
+        }
+
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+                continue;
+            }
+            stepInstance.getTargetServers().getIpList()
+                .forEach(host -> fillHostDetail(host, hostMap));
+            if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
+                List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+                if (fileSourceList != null) {
+                    for (FileSourceDTO fileSource : fileSourceList) {
+                        ServersDTO servers = fileSource.getServers();
+                        if (servers != null && servers.getIpList() != null) {
+                            servers.getIpList().forEach(host -> fillHostDetail(host, hostMap));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void fillHostDetail(HostDTO host, Map<String, HostDTO> hostMap) {
+        if (host.getHostId() != null) {
+            HostDTO hostDetail = hostMap.get("hostId:" + host.getHostId());
+            host.setBkCloudId(hostDetail.getBkCloudId());
+            host.setIp(hostDetail.getIp());
+            host.setAgentId(hostDetail.getAgentId());
+        } else {
+            HostDTO hostDetail = hostMap.get("hostIp:" + host.toCloudIp());
+            host.setAgentId(hostDetail.getAgentId());
+            host.setHostId(hostDetail.getHostId());
+        }
+    }
+
+    private void addNeedCheckHosts(List<StepInstanceDTO> stepInstanceList, Set<HostDTO> checkHosts) {
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
                 continue;
@@ -717,33 +752,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void setInvalidHostsForStepInstance(List<StepInstanceDTO> stepInstanceList, List<IpDTO> invalidHosts) {
-        stepInstanceList.forEach(stepInstance -> {
-            if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
-                return;
-            }
-            if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
-                List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-                if (fileSourceList != null) {
-                    for (FileSourceDTO fileSource : fileSourceList) {
-                        ServersDTO servers = fileSource.getServers();
-                        if (servers != null && servers.getIpList() != null) {
-                            servers.setInvalidIpList(servers.getIpList().stream()
-                                .filter(invalidHosts::contains).collect(Collectors.toList()));
-                        }
-                    }
-                }
-            }
-            ServersDTO targetServers = stepInstance.getTargetServers();
-            targetServers.setInvalidIpList(targetServers.getIpList().stream()
-                .filter(invalidHosts::contains).collect(Collectors.toList()));
-        });
-    }
-
-    private List<IpDTO> checkHostsNotAllowedInWhiteIpConfig(long appId, List<StepInstanceDTO> stepInstanceList,
-                                                            Collection<IpDTO> unavailableHosts) {
-        Map<IpDTO, List<String>> hostAllowActionsMap = new HashMap<>();
-        for (IpDTO host : unavailableHosts) {
+    private List<HostDTO> checkHostsNotAllowedInWhiteIpConfig(long appId, List<StepInstanceDTO> stepInstanceList,
+                                                              Collection<HostDTO> unavailableHosts) {
+        Map<HostDTO, List<String>> hostAllowActionsMap = new HashMap<>();
+        for (HostDTO host : unavailableHosts) {
             List<String> allowActions = hostService.getHostAllowedAction(appId, host);
             if (allowActions != null && !allowActions.isEmpty()) {
                 hostAllowActionsMap.put(host, allowActions);
@@ -756,16 +768,29 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         log.debug("Host allow actions:{}", hostAllowActionsMap);
         // 如果配置了白名单，那么需要对主机支持的操作进行校验
-        Map<IpDTO, Set<String>> hostBindActionsMap = getHostBindActions(stepInstanceList, unavailableHosts);
+        Map<HostDTO, Set<String>> hostBindActionsMap = getHostBindActions(stepInstanceList, unavailableHosts);
         log.debug("Host bind actions:{}", hostBindActionsMap);
 
         return getHostsContainsNotAllowedAction(hostBindActionsMap, hostAllowActionsMap);
     }
 
-    private Map<IpDTO, Set<String>> getHostBindActions(List<StepInstanceDTO> stepInstanceList,
-                                                       Collection<IpDTO> unavailableHosts) {
-        Map<IpDTO, Set<String>> hostBindActionsMap = new HashMap<>();
-        for (IpDTO host : unavailableHosts) {
+    private static List<HostDTO> getHostsContainsNotAllowedAction(Map<HostDTO, Set<String>> hostBindActions,
+                                                                  Map<HostDTO, List<String>> hostAllowedActions) {
+        List<HostDTO> invalidHosts = new ArrayList<>();
+        for (Map.Entry<HostDTO, Set<String>> binding : hostBindActions.entrySet()) {
+            HostDTO host = binding.getKey();
+            if (!hostAllowedActions.containsKey(host)
+                || !hostAllowedActions.get(host).containsAll(binding.getValue())) {
+                invalidHosts.add(host);
+            }
+        }
+        return invalidHosts;
+    }
+
+    private Map<HostDTO, Set<String>> getHostBindActions(List<StepInstanceDTO> stepInstanceList,
+                                                         Collection<HostDTO> unavailableHosts) {
+        Map<HostDTO, Set<String>> hostBindActionsMap = new HashMap<>();
+        for (HostDTO host : unavailableHosts) {
             for (StepInstanceDTO stepInstance : stepInstanceList) {
                 if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
                     continue;
@@ -795,54 +820,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return hostBindActionsMap;
     }
 
-
-    private void checkHosts(StepInstanceDTO stepInstance, boolean ignoreInvalidHost) throws ServiceException {
-        long appId = stepInstance.getAppId();
-        ServersDTO targetServers = stepInstance.getTargetServers();
-        if (targetServers == null || targetServers.getIpList() == null || targetServers.getIpList().isEmpty()) {
-            log.warn("Empty target server");
-            throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
-        }
-
-        List<IpDTO> ipList = targetServers.getIpList();
-        Collection<IpDTO> notInAppHosts = checkHostsNotInApp(appId, ipList);
-        if (notInAppHosts.isEmpty()) {
-            return;
-        }
-
-        // 检查是否在白名单配置
-        List<IpDTO> invalidHosts = checkHostsNotAllowedInWhiteIpConfig(appId, Lists.newArrayList(stepInstance),
-            notInAppHosts);
-        if (!invalidHosts.isEmpty()) {
-            log.warn("Contains invalid host, invalidHost: {}", JsonUtils.toJson(invalidHosts));
-            // 如果不允许忽略非法主机，或者全部主机都非法，那么直接拒绝
-            if (!ignoreInvalidHost || (invalidHosts.size() == ipList.size())) {
-                throwHostInvalidException(invalidHosts, appId);
-            }
-            // 包含部分非法主机，需要继续走完流程，下发任务到合法的主机
-            targetServers.setInvalidIpList(invalidHosts);
-        }
-    }
-
-    private boolean shouldIgnoreInvalidHost(TaskInstanceDTO taskInstance) {
-        // 定时任务才支持自动忽略非法主机
-        return (taskInstance.getStartupMode() != null
-            && taskInstance.getStartupMode().equals(TaskStartupModeEnum.CRON.getValue()));
-    }
-
-    private void throwHostInvalidException(Collection<IpDTO> unavailableHosts, long appId) {
-        String ipListStr = StringUtils.join(unavailableHosts.stream().map(IpDTO::getIp).collect(Collectors.toList()),
+    private void throwHostInvalidException(Collection<HostDTO> unavailableHosts, long appId) {
+        String ipListStr = StringUtils.join(unavailableHosts.stream().map(HostDTO::getIp).collect(Collectors.toList()),
             ",");
         log.warn("The following hosts are not registered, appId:{}, ips={}", appId, ipListStr);
         throw new FailedPreconditionException(ErrorCode.SERVER_UNREGISTERED, new Object[]{ipListStr});
-    }
-
-    private Collection<IpDTO> checkHostsNotInApp(Long appId, Collection<IpDTO> hosts) {
-        List<IpDTO> notInAppHosts = hostService.checkAppHosts(appId, hosts);
-        if (CollectionUtils.isNotEmpty(notInAppHosts)) {
-            log.info("Check host, appId:{}, not in current app hosts:{}", appId, notInAppHosts);
-        }
-        return notInAppHosts;
     }
 
     private void checkStepInstanceConstraint(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
@@ -941,7 +923,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 检查主机合法性
             watch.start("checkHost");
-            checkHosts(stepInstanceList, shouldIgnoreInvalidHost(taskInstance));
+            checkAndSetHosts(stepInstanceList);
             watch.stop();
 
             // 检查步骤约束
@@ -1056,9 +1038,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator, step.getId(), step.getName(),
                 executeType);
             TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
-            if (stepType == null) {
-                throw new InternalException(ErrorCode.INTERNAL_ERROR);
-            }
             switch (stepType) {
                 case SCRIPT:
                     // 解析全局变量，放到targetServers中，进一步解析节点、动态分组对应的主机统一放到ipList中
@@ -1298,7 +1277,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
 
         // 检查主机合法性
-        checkHosts(stepInstanceList, shouldIgnoreInvalidHost(taskInstance));
+        checkAndSetHosts(stepInstanceList);
 
         // 检查步骤约束
         checkStepInstanceConstraint(taskInstance, stepInstanceList);
@@ -1726,9 +1705,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServiceTaskHostNodeDTO targetServers = taskTarget.getTargetServer();
         List<ServiceHostInfoDTO> hostList = targetServers.getHostList();
         if (hostList != null && !hostList.isEmpty()) {
-            List<IpDTO> staticIpList = new ArrayList<>();
+            List<HostDTO> staticIpList = new ArrayList<>();
             for (ServiceHostInfoDTO hostInfo : hostList) {
-                staticIpList.add(new IpDTO(hostInfo.getCloudAreaId(), hostInfo.getIp()));
+                staticIpList.add(new HostDTO(hostInfo.getCloudAreaId(), hostInfo.getIp()));
             }
             servers.setStaticIpList(staticIpList);
         }
@@ -1754,15 +1733,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void acquireStaticIp(long appId, ServersDTO servers) throws ServiceException {
-        Set<IpDTO> ipSet = new HashSet<>();
-        List<IpDTO> staticIps = servers.getStaticIpList();
+        Set<HostDTO> ipSet = new HashSet<>();
+        List<HostDTO> staticIps = servers.getStaticIpList();
         if (staticIps != null) {
             ipSet.addAll(staticIps);
         }
         List<DynamicServerGroupDTO> dynamicServerGroups = servers.getDynamicServerGroups();
         if (dynamicServerGroups != null) {
             for (DynamicServerGroupDTO group : dynamicServerGroups) {
-                List<IpDTO> groupIps = hostService.getIpByDynamicGroupId(appId, group.getGroupId());
+                List<HostDTO> groupIps = hostService.getIpByDynamicGroupId(appId, group.getGroupId());
                 if (CollectionUtils.isEmpty(groupIps)) {
                     servers.addInvalidDynamicServerGroup(group);
                 } else {
@@ -1775,7 +1754,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (topoNodes != null && !topoNodes.isEmpty()) {
             if (topoNodes.size() < 10) {
                 for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
-                    List<IpDTO> topoIps = hostService.getIpByTopoNodes(appId,
+                    List<HostDTO> topoIps = hostService.getIpByTopoNodes(appId,
                         Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
                     if (CollectionUtils.isEmpty(topoIps)) {
                         servers.addInvalidTopoNodeDTO(topoNode);
@@ -1787,24 +1766,24 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 getTopoHostsConcurrent(appId, topoNodes, servers, ipSet);
             }
         }
-        List<IpDTO> ipList = new ArrayList<>(ipSet.size());
+        List<HostDTO> ipList = new ArrayList<>(ipSet.size());
         ipList.addAll(ipSet);
         servers.setIpList(ipList);
     }
 
 
     private void getTopoHostsConcurrent(long appId, List<DynamicServerTopoNodeDTO> topoNodes, ServersDTO servers,
-                                        Set<IpDTO> ipSet) {
+                                        Set<HostDTO> ipSet) {
         log.info("Get topo hosts concurrent, topoNodes: {}", topoNodes);
         CountDownLatch latch = new CountDownLatch(topoNodes.size());
-        List<Future<Pair<DynamicServerTopoNodeDTO, List<IpDTO>>>> futures = new ArrayList<>(topoNodes.size());
+        List<Future<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>>> futures = new ArrayList<>(topoNodes.size());
         for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
             futures.add(GET_HOSTS_BY_TOPO_EXECUTOR.submit(new GetTopoHostTask(appId, topoNode, latch)));
         }
 
         try {
-            for (Future<Pair<DynamicServerTopoNodeDTO, List<IpDTO>>> future : futures) {
-                Pair<DynamicServerTopoNodeDTO, List<IpDTO>> topoAndHosts = future.get();
+            for (Future<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>> future : futures) {
+                Pair<DynamicServerTopoNodeDTO, List<HostDTO>> topoAndHosts = future.get();
                 if (CollectionUtils.isEmpty(topoAndHosts.getRight())) {
                     servers.addInvalidTopoNodeDTO(topoAndHosts.getLeft());
                 } else {
@@ -1822,18 +1801,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         log.info("Get topo hosts success, servers: {}", servers);
     }
 
-    private void setAgentStatus(List<IpDTO> ips) {
+    private void setAgentStatus(List<HostDTO> ips) {
         if (ips == null || ips.isEmpty()) {
             return;
         }
         List<String> ipList = new ArrayList<>(ips.size());
-        for (IpDTO ip : ips) {
-            String fullIp = ip.convertToStrIp();
+        for (HostDTO ip : ips) {
+            String fullIp = ip.toCloudIp();
             ipList.add(fullIp);
         }
         Map<String, QueryAgentStatusClient.AgentStatus> statusMap = queryAgentStatusClient.batchGetAgentStatus(ipList);
-        for (IpDTO ip : ips) {
-            String fullIp = ip.convertToStrIp();
+        for (HostDTO ip : ips) {
+            String fullIp = ip.toCloudIp();
             ip.setAlive(statusMap.get(fullIp) == null ?
                 AgentStatusEnum.UNKNOWN.getValue() : statusMap.get(fullIp).status);
         }
@@ -2163,7 +2142,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 检查主机合法性
         watch.start("checkHost");
-        checkHosts(taskInfo.getStepInstances(), shouldIgnoreInvalidHost(taskInfo.getTaskInstance()));
+        checkAndSetHosts(taskInfo.getStepInstances());
         watch.stop();
 
         watch.start("auth-execute-job");
@@ -2176,7 +2155,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private class GetTopoHostTask implements Callable<Pair<DynamicServerTopoNodeDTO, List<IpDTO>>> {
+    private class GetTopoHostTask implements Callable<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>> {
         private final long appId;
         private final DynamicServerTopoNodeDTO topoNode;
         private final CountDownLatch latch;
@@ -2188,9 +2167,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         @Override
-        public Pair<DynamicServerTopoNodeDTO, List<IpDTO>> call() {
+        public Pair<DynamicServerTopoNodeDTO, List<HostDTO>> call() {
             try {
-                List<IpDTO> topoIps = hostService.getIpByTopoNodes(appId,
+                List<HostDTO> topoIps = hostService.getIpByTopoNodes(appId,
                     Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
                 return new ImmutablePair<>(topoNode, topoIps);
             } catch (Throwable e) {

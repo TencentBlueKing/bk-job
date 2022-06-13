@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -42,7 +42,7 @@ public interface RollingConfigService {
      * @param batch        滚动执行批次
      * @return 主机列表
      */
-    List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
+    List<HostDTO> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
 
     /**
      * 保存快速执行作业滚动配置

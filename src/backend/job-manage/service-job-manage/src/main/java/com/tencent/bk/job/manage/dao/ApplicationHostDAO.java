@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import org.jooq.DSLContext;
 
 import java.util.Collection;
@@ -39,7 +38,6 @@ import java.util.Set;
  * @since 4/11/2019 15:01
  */
 public interface ApplicationHostDAO {
-    // 查询类操作
     ApplicationHostDTO getHostById(Long hostId);
 
     List<ApplicationHostDTO> listHostInfoByIps(Long bizId, List<String> ips);
@@ -52,27 +50,17 @@ public interface ApplicationHostDAO {
 
     List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds);
 
-    List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,
-                                                          Collection<Long> moduleIds,
+    List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                                           Collection<Long> cloudAreaIds,
-                                                          List<String> searchContents,
-                                                          Integer agentStatus,
-                                                          Long start,
-                                                          Long limit);
+                                                          List<String> searchContents, Integer agentStatus,
+                                                          Long start, Long limit);
 
-    List<Long> listHostIdBySearchContents(Collection<Long> appIds,
-                                          Collection<Long> moduleIds,
-                                          Collection<Long> cloudAreaIds,
-                                          List<String> searchContents,
-                                          Integer agentStatus,
-                                          Long start,
-                                          Long limit);
+    List<Long> getHostIdListBySearchContents(Collection<Long> appIds, Collection<Long> moduleIds,
+                                             Collection<Long> cloudAreaIds, List<String> searchContents,
+                                             Integer agentStatus, Long start, Long limit);
 
-    Long countHostInfoBySearchContents(Collection<Long> bizIds,
-                                       Collection<Long> moduleIds,
-                                       Collection<Long> cloudAreaIds,
-                                       List<String> searchContents,
-                                       Integer agentStatus);
+    Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
+                                       Collection<Long> cloudAreaIds, List<String> searchContents, Integer agentStatus);
 
     /**
      * 根据ID与Agent状态查询主机数量
@@ -85,14 +73,50 @@ public interface ApplicationHostDAO {
 
     List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips);
 
+    List<ApplicationHostDTO> listHostInfoByBizAndCloudIPs(Collection<Long> bizIds, Collection<String> cloudIPs);
+
     List<ApplicationHostDTO> listHostInfoBySourceAndIps(long cloudAreaId, Set<String> ips);
 
     PageData<ApplicationHostDTO> listHostInfoByPage(ApplicationHostDTO applicationHostInfoCondition,
                                                     BaseSearchCondition baseSearchCondition);
 
+    int insertAppHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
+
+    int insertAppHostInfo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
+
+    int insertOrUpdateHost(DSLContext dslContext, ApplicationHostDTO hostDTO);
+
+    int batchInsertAppHostInfo(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
+
     boolean existAppHostInfoByHostId(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
 
     boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId);
+
+    int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId, ApplicationHostDTO applicationHostDTO);
+
+    int batchUpdateBizHostInfoByHostId(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
+
+
+    int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long hostId);
+
+    /**
+     * 根据传入的业务ID与主机ID批量删除主机
+     *
+     * @param dslContext DB操作上下文
+     * @param bizId      业务ID
+     * @param hostIdList 要删除的主机ID列表
+     * @return 删除的主机数量
+     */
+    int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> hostIdList);
+
+    /**
+     * 删除某个业务下的全部主机，用于业务被删除后清理主机
+     *
+     * @param dslContext DB操作上下文
+     * @param bizId      业务ID
+     * @return 删除的主机数量
+     */
+    int deleteBizHostInfoByBizId(DSLContext dslContext, long bizId);
 
     boolean existsHost(DSLContext dslContext, long bizId, String ip);
 
@@ -104,28 +128,12 @@ public interface ApplicationHostDAO {
 
     long countHostsByOsType(String osType);
 
-    List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps);
-
-    // 插入类操作
-    int insertAppHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
-
-    int insertAppHostInfo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
-
-    int batchInsertAppHostInfo(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
-
-    // 修改类操作
-    int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId, ApplicationHostDTO applicationHostDTO);
-
-    int batchUpdateBizHostInfoByHostId(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
-
     long syncHostTopo(DSLContext dslContext, Long hostId);
 
-    // 删除类操作
-    int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long appHostId);
-
-    int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> appHostIdList);
-
-    int deleteBizHostInfoByBizId(DSLContext dslContext, long bizId);
-
-    int deleteBizHostInfoNotInBizs(DSLContext dslContext, Set<Long> notInBizIds);
+    /**
+     * 根据ip查询主机
+     *
+     * @param cloudIps 主机ip(云区域+ip)列表
+     */
+    List<ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps);
 }

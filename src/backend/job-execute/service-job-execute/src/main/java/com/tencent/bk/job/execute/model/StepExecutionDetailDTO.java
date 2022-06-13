@@ -40,6 +40,10 @@ import java.util.List;
 @NoArgsConstructor
 public class StepExecutionDetailDTO {
     /**
+     * 步骤实例
+     */
+    private StepInstanceBaseDTO stepInstance;
+    /**
      * 任务执行分组状态
      */
     List<AgentTaskResultGroupDTO> resultGroups;
@@ -89,12 +93,10 @@ public class StepExecutionDetailDTO {
     private boolean lastStep;
     /**
      * 步骤类型
-     *
      */
     private TaskStepTypeEnum stepType;
     /**
      * 步骤执行模式
-     *
      */
     private StepRunModeEnum runMode;
     /**
@@ -103,6 +105,7 @@ public class StepExecutionDetailDTO {
     private List<StepInstanceRollingTaskDTO> rollingTasks;
 
     public StepExecutionDetailDTO(StepInstanceBaseDTO stepInstance) {
+        this.stepInstance = stepInstance;
         this.stepInstanceId = stepInstance.getId();
         this.executeCount = stepInstance.getExecuteCount();
         this.name = stepInstance.getName();

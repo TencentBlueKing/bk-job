@@ -92,7 +92,7 @@ public class BizHostServiceImpl implements BizHostService {
                                          Long limit) {
         StopWatch watch = new StopWatch("pageListHostId");
         watch.start("listHostInfoBySearchContents");
-        List<Long> hostIdList = applicationHostDAO.listHostIdBySearchContents(
+        List<Long> hostIdList = applicationHostDAO.getHostIdListBySearchContents(
             bizIds,
             moduleIds,
             cloudAreaIds,

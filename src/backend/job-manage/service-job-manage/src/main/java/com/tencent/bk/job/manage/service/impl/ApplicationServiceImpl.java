@@ -24,14 +24,12 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.AccountService;
@@ -41,9 +39,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +62,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     public ApplicationServiceImpl(DSLContext dslContext,
                                   ApplicationDAO applicationDAO,
                                   ApplicationCache applicationCache,
-                                  TopologyHelper topologyHelper,
                                   AccountService accountService) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
@@ -151,49 +150,58 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public List<Long> getBizSetAppIdsForBiz(Long appId) {
-        //1.查找包含当前业务的业务集、全业务
+    public List<Long> getRelatedAppIds(Long appId) {
+        // 查找包含当前业务的业务集、全业务
         List<Long> fullAppIds = new ArrayList<>();
         fullAppIds.add(appId);
-        //获取所有业务
+        // 获取所有业务
         List<ApplicationDTO> allAppList = applicationDAO.listAllApps();
-        if (allAppList != null && !allAppList.isEmpty()) {
-            //根据AppTypeEnum分组
-            Map<AppTypeEnum, List<ApplicationDTO>> allAppTypeGroupMap =
-                allAppList.stream().collect(Collectors.groupingBy(ApplicationDTO::getAppType));
+        if (CollectionUtils.isEmpty(allAppList)) {
+            return Collections.emptyList();
+        }
 
-            //获取普通业务
-            List<ApplicationDTO> normalAppList = allAppTypeGroupMap.get(AppTypeEnum.NORMAL) != null ?
-                allAppTypeGroupMap.get(AppTypeEnum.NORMAL) : new ArrayList<ApplicationDTO>();
+        // 普通业务
+        List<ApplicationDTO> normalAppList = new ArrayList<>();
+        // 业务集
+        List<ApplicationDTO> appSetList = new ArrayList<>();
+        // 全业务
+        List<ApplicationDTO> allAppSetList = new ArrayList<>();
 
-            //普通业务按部门分组
-            Map<Long, List<ApplicationDTO>> normalAppGroupMap =
-                normalAppList.stream().filter(normalApp -> normalApp.getOperateDeptId() != null).collect(
+        // 按类型分组
+        allAppList.forEach(appDTO -> {
+            if (appDTO.isAllBizSet()) {
+                allAppSetList.add(appDTO);
+            } else if (appDTO.isBizSet()) {
+                appSetList.add(appDTO);
+            } else {
+                normalAppList.add(appDTO);
+            }
+        });
+
+        // 普通业务按部门分组
+        Map<Long, List<ApplicationDTO>> normalAppGroupMap =
+            normalAppList.stream().filter(normalApp -> normalApp.getOperateDeptId() != null).collect(
                 Collectors.groupingBy(ApplicationDTO::getOperateDeptId));
 
-            //查找包含当前业务的业务集
-            List<ApplicationDTO> appSetList = allAppTypeGroupMap.get(AppTypeEnum.APP_SET);
-            if (appSetList != null && !appSetList.isEmpty()) {
-                appSetList.stream().forEach(appSet -> {
-                    List<Long> subAppIds = appSet.getSubBizIds() == null ? new ArrayList<Long>() :
-                        appSet.getSubBizIds();
-                    Long optDeptId = appSet.getOperateDeptId();
-                    if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
-                        List<Long> normalAppIdList =
-                            normalAppGroupMap.get(optDeptId).stream().map(normalApp -> normalApp.getId()).collect(Collectors.toList());
-                        subAppIds.addAll(normalAppIdList);
-                    }
-                    if (subAppIds.contains(appId)) {
-                        fullAppIds.add(appSet.getId());
-                    }
-                });
+        // 查找包含当前业务的业务集
+        appSetList.forEach(appSet -> {
+            List<Long> subAppIds = appSet.getSubBizIds() == null ? new ArrayList<>() :
+                appSet.getSubBizIds();
+            Long optDeptId = appSet.getOperateDeptId();
+            if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
+                List<Long> normalAppIdList =
+                    normalAppGroupMap.get(optDeptId).stream()
+                        .map(ApplicationDTO::getId)
+                        .collect(Collectors.toList());
+                subAppIds.addAll(normalAppIdList);
             }
-            //处理全业务
-            List<ApplicationDTO> allAppSetList = allAppTypeGroupMap.get(AppTypeEnum.ALL_APP);
-            if (allAppSetList != null && !allAppSetList.isEmpty()) {
-                allAppSetList.forEach(record -> fullAppIds.add(record.getId()));
+            if (subAppIds.contains(appId)) {
+                fullAppIds.add(appSet.getId());
             }
-        }
+        });
+
+        // 处理全业务
+        allAppSetList.forEach(record -> fullAppIds.add(record.getId()));
         return fullAppIds;
     }
 

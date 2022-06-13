@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+
+import java.util.Map;
 
 /**
  * 作业步骤执行实例 Service
@@ -53,6 +56,7 @@ public interface StepInstanceService {
      * @param rollingConfigId 滚动配置ID
      */
     void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId);
+
     /**
      * 获取下一个步骤实例
      *
@@ -61,6 +65,14 @@ public interface StepInstanceService {
      * @return 步骤实例；如果当前为最后一个步骤实例，那么返回null
      */
     StepInstanceBaseDTO getNextStepInstance(long taskInstanceId, int currentStepOrder);
+
+    /**
+     * 获取步骤包含的主机(源+目标)
+     *
+     * @param stepInstance 步骤实例
+     * @return Map<hostId, host>
+     */
+    Map<Long, HostDTO> computeStepHosts(StepInstanceBaseDTO stepInstance);
 
 
 }

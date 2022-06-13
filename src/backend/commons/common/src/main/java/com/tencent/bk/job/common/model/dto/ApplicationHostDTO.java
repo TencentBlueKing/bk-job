@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 主机
@@ -147,6 +148,27 @@ public class ApplicationHostDTO {
         } else {
             return cloudAreaId + ":" + ip;
         }
+    }
+
+    public String getModuleIdsStr() {
+        if (moduleId != null) {
+            return moduleId.stream().map(Object::toString).collect(Collectors.joining(","));
+        }
+        return null;
+    }
+
+    public String getSetIdsStr() {
+        if (setId != null) {
+            return setId.stream().map(Object::toString).collect(Collectors.joining(","));
+        }
+        return null;
+    }
+
+    public String getModuleTypeStr() {
+        if (moduleType != null) {
+            return moduleType.stream().map(Object::toString).collect(Collectors.joining(","));
+        }
+        return null;
     }
 
 }

@@ -98,7 +98,7 @@ public class StepExecutionResultQuery {
      */
     private Order order;
 
-    private Set<String> matchIps;
+    private Set<Long> matchHostIds;
 
     public boolean hasIpCondition() {
         return StringUtils.isNotEmpty(logKeyword) || StringUtils.isNotEmpty(searchIp);

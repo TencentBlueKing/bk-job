@@ -44,6 +44,8 @@ public class GSEFileTaskResult {
 
     /**
      * 0:upload， 1:download
+     *
+     * @see FileDistModeEnum
      */
     private Integer mode;
 
@@ -104,6 +106,12 @@ public class GSEFileTaskResult {
     private Long sourceCloudId;
 
     /**
+     * 文件源主机AgentId
+     */
+    @JsonProperty("source_agent_id")
+    private String sourceAgentId;
+
+    /**
      * 分发目标IP
      */
     @JsonProperty("dest")
@@ -114,6 +122,12 @@ public class GSEFileTaskResult {
      */
     @JsonProperty("dest_cloudid")
     private Long destCloudId;
+
+    /**
+     * 文件目标主机AgentId
+     */
+    @JsonProperty("dest_agent_id")
+    private String destAgentId;
 
     /**
      * 源文件目录
@@ -178,19 +192,26 @@ public class GSEFileTaskResult {
      */
     private TaskType taskType;
 
-
-    public String getSourceCloudIp() {
-        if (sourceCloudId == null || sourceIp == null) {
-            return null;
+    /**
+     * 文件源主机agentId
+     * 按照与GSE的约定，在没有bk_agent_id的场景下，使用{云区域:IP}作为agentId
+     */
+    public String getSourceAgentId() {
+        if (sourceAgentId == null) {
+            sourceAgentId = sourceCloudId + ":" + sourceIp;
         }
-        return sourceCloudId + ":" + sourceIp;
+        return sourceAgentId;
     }
 
-    public String getDestCloudIp() {
-        if (destCloudId == null || destIp == null) {
-            return null;
+    /**
+     * 目标主机agentId
+     * 按照与GSE的约定，在没有bk_agent_id的场景下，使用{云区域:IP}作为agentId
+     */
+    public String getDestAgentId() {
+        if (destAgentId == null) {
+            destAgentId = destCloudId + ":" + destIp;
         }
-        return destCloudId + ":" + destIp;
+        return destAgentId;
     }
 
     public boolean isDownloadMode() {
@@ -227,25 +248,26 @@ public class GSEFileTaskResult {
     }
 
     public String getTaskId() {
-        if (taskId != null) {
-            return taskId;
+        if (taskId == null) {
+            this.taskId = buildTaskId(mode, sourceAgentId, getStandardSourceFilePath(), destAgentId,
+                getStandardDestFilePath());
         }
-        if (isDownloadMode()) {
-            if (StringUtils.isNotEmpty(sourceIp)) {
-                this.taskId = concat(mode.toString(), getSourceCloudIp(), getStandardSourceFilePath(),
-                    getDestCloudIp(), getStandardDestFilePath());
-            } else {
-                // GSE BUG, 兼容处理
-                this.taskId = concat(mode.toString(), "*", getStandardSourceFilePath(),
-                    getDestCloudIp(), getStandardDestFilePath());
-            }
-        } else {
-            this.taskId = concat(mode.toString(), getSourceCloudIp(), getStandardSourceFilePath());
-        }
-        return this.taskId;
+        return taskId;
     }
 
-    private String concat(String... strArgs) {
+    public static String buildTaskId(Integer mode, String sourceAgentId, String sourceFilePath, String destAgentId,
+                                     String destFilePath) {
+        String taskId;
+        if (FileDistModeEnum.getFileDistMode(mode) == FileDistModeEnum.DOWNLOAD) {
+            taskId = concat(mode.toString(), sourceAgentId, FilePathUtils.standardizedGSEFilePath(sourceFilePath),
+                destAgentId, destFilePath);
+        } else {
+            taskId = concat(mode.toString(), sourceAgentId, FilePathUtils.standardizedGSEFilePath(sourceFilePath));
+        }
+        return taskId;
+    }
+
+    private static String concat(String... strArgs) {
         StringJoiner sj = new StringJoiner(":");
         for (String strArg : strArgs) {
             if (StringUtils.isEmpty(strArg)) {

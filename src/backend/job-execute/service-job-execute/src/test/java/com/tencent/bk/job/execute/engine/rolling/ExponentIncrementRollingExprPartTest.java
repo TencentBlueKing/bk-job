@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,33 +71,33 @@ class ExponentIncrementRollingExprPartTest {
 
     @Test
     void compute() {
-        List<IpDTO> rollingServers = new ArrayList<>();
-        rollingServers.add(new IpDTO(0L, "127.0.0.1"));
-        rollingServers.add(new IpDTO(0L, "127.0.0.2"));
-        rollingServers.add(new IpDTO(0L, "127.0.0.3"));
-        rollingServers.add(new IpDTO(0L, "127.0.0.4"));
-        rollingServers.add(new IpDTO(0L, "127.0.0.5"));
+        List<HostDTO> rollingServers = new ArrayList<>();
+        rollingServers.add(new HostDTO(0L, "127.0.0.1"));
+        rollingServers.add(new HostDTO(0L, "127.0.0.2"));
+        rollingServers.add(new HostDTO(0L, "127.0.0.3"));
+        rollingServers.add(new HostDTO(0L, "127.0.0.4"));
+        rollingServers.add(new HostDTO(0L, "127.0.0.5"));
         RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
 
-        List<IpDTO> remainingServers = new ArrayList<>();
-        remainingServers.add(new IpDTO(0L, "127.0.0.2"));
-        remainingServers.add(new IpDTO(0L, "127.0.0.3"));
-        remainingServers.add(new IpDTO(0L, "127.0.0.4"));
-        remainingServers.add(new IpDTO(0L, "127.0.0.5"));
+        List<HostDTO> remainingServers = new ArrayList<>();
+        remainingServers.add(new HostDTO(0L, "127.0.0.2"));
+        remainingServers.add(new HostDTO(0L, "127.0.0.3"));
+        remainingServers.add(new HostDTO(0L, "127.0.0.4"));
+        remainingServers.add(new HostDTO(0L, "127.0.0.5"));
         context.setRemainedServers(remainingServers);
 
         RollingServerBatch preRollingServerBatch = new RollingServerBatch();
         preRollingServerBatch.setBatch(1);
-        preRollingServerBatch.setServers(Collections.singletonList(new IpDTO(0L, "127.0.0.1")));
+        preRollingServerBatch.setServers(Collections.singletonList(new HostDTO(0L, "127.0.0.1")));
         context.addServerBatch(preRollingServerBatch);
         context.setBatchCount(1);
 
         ExponentIncrementRollingExprPart exponentIncrementRollingExprPart =
             (ExponentIncrementRollingExprPart) ROLLING_EXPR_PART.parseExpr("*2");
-        List<IpDTO> serversOnBatch = exponentIncrementRollingExprPart.compute(context);
+        List<HostDTO> serversOnBatch = exponentIncrementRollingExprPart.compute(context);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "127.0.0.2"),
-            new IpDTO(0L, "127.0.0.3")
+            new HostDTO(0L, "127.0.0.2"),
+            new HostDTO(0L, "127.0.0.3")
         );
     }
 }

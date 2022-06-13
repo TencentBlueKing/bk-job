@@ -24,7 +24,12 @@
 
 package com.tencent.bk.job.execute.gse;
 
-import com.tencent.bk.gse.taskapi.*;
+import com.tencent.bk.gse.taskapi.api_agent;
+import com.tencent.bk.gse.taskapi.api_map_rsp;
+import com.tencent.bk.gse.taskapi.api_process_base_info;
+import com.tencent.bk.gse.taskapi.api_process_extra_info;
+import com.tencent.bk.gse.taskapi.api_process_req;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.gse.model.GseProcessInfoDTO;
@@ -32,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class GseApiExecutor {
@@ -45,7 +51,8 @@ public class GseApiExecutor {
     public GseTaskResponse processOperateProcess(List<GseProcessInfoDTO> processInfoList, int reqType) {
         List<api_process_req> procReqList = new ArrayList<>();
         for (GseProcessInfoDTO processInfo : processInfoList) {
-            List<api_agent> agentList = GseRequestUtils.buildAgentList(processInfo.getIpList(),
+            List<api_agent> agentList = GseRequestUtils.buildAgentList(
+                processInfo.getIpList().stream().map(HostDTO::toCloudIp).collect(Collectors.toList()),
                 processInfo.getUserName(), null);
 
             api_process_base_info processBaseInfo = createProcessBaseInfo(processInfo);
