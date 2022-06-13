@@ -49,16 +49,4 @@ public class BkApiConfig {
      */
     @Value("${bk.api.gateway.gse.url:}")
     private String bkGseApiGatewayUrl;
-
-    /**
-     * 蓝鲸Api Gateway url
-     */
-    @Value("${bk.api.gateway.gse.app.code:}")
-    private String bkGseAppCode;
-
-    /**
-     * 蓝鲸Api Gateway url
-     */
-    @Value("${bk.api.gateway.gse.app.secret:}")
-    private String bkGseAppSecret;
 }
