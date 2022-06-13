@@ -42,8 +42,8 @@
                     <tbody v-if="renderList.length > 0" class="valid-list">
                         <tr
                             v-for="(row) in renderList"
-                            :key="row.realId"
-                            :class="diff[row.realId]">
+                            :key="row.hostId"
+                            :class="diff[row.hostId]">
                             <td class="table-cell">
                                 <span
                                     v-if="row.repeat"

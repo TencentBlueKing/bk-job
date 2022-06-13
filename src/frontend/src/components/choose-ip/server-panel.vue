@@ -85,7 +85,6 @@
     import ServerGroup from './view/group';
     import HostDetail from './view/host-detail';
     import HostSearch from './view/host-search';
-    import { generateHostRealId } from './components/utils';
 
     const addCollapsePanel = (target, name) => {
         if (target.length > 0) {
@@ -249,9 +248,9 @@
                 const hostMap = {};
                 
                 if (this.$refs.host) {
-                    this.$refs.host.getAllHost().forEach((host) => {
-                        if (filterReg.test(host.ip)) {
-                            hostMap[generateHostRealId(host)] = host;
+                    this.$refs.host.getAllHost().forEach((ipInfo) => {
+                        if (filterReg.test(ipInfo.ip)) {
+                            hostMap[ipInfo.hostId] = ipInfo;
                         }
                     });
                 }
