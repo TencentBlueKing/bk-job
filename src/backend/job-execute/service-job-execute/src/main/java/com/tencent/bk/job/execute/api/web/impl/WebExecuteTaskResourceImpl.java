@@ -63,7 +63,6 @@ import com.tencent.bk.job.execute.model.web.request.WebStepOperation;
 import com.tencent.bk.job.execute.model.web.request.WebTaskExecuteRequest;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteHostVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
@@ -278,29 +277,9 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast execute script, target server is null!");
             return false;
         }
-        if (!checkIpValid(targetServers.getHostNodeInfo().getIpList())) {
-            return false;
-        }
         if (request.getAccount() == null || request.getAccount() < 1) {
             log.warn("Fast execute script, accountId is invalid! accountId={}", request.getAccount());
             return false;
-        }
-        return true;
-    }
-
-    private boolean checkIpValid(List<ExecuteHostVO> hosts) {
-        if (CollectionUtils.isEmpty(hosts)) {
-            return true;
-        }
-        for (ExecuteHostVO host : hosts) {
-            if (host.getCloudAreaInfo() == null || host.getCloudAreaInfo().getId() == null) {
-                log.warn("Check host:{}, cloudAreaId is empty!", host);
-                return false;
-            }
-            if (StringUtils.isEmpty(host.getIp())) {
-                log.warn("Check host:{}, ip is empty!", host);
-                return false;
-            }
         }
         return true;
     }
@@ -423,9 +402,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getTopoNodeList())
             && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupList())) {
             log.warn("Fast send file, target server is null!");
-            return false;
-        }
-        if (!checkIpValid(targetServers.getHostNodeInfo().getIpList())) {
             return false;
         }
         if (fileDestination.getAccountId() == null || fileDestination.getAccountId() < 1) {
