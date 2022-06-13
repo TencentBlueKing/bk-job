@@ -73,7 +73,7 @@
                 type: Number,
                 required: true,
             },
-            ip: {
+            host: {
                 type: String,
             },
             batch: {
@@ -156,15 +156,19 @@
              * 如果文件信息里面不包含日志内容，需要异步获取文件内容
              */
             fetchData () {
-                if (!this.ip) {
+                if (!this.host.ip && !this.host.hostId) {
                     this.isLoading = false;
                     this.contentList = [];
                     return;
                 }
-                TaskExecuteService.fetchFileLogOfIp({
+                const requestHandler = this.host.hostId
+                    ? TaskExecuteService.fetchFileLogOfHostId
+                    : TaskExecuteService.fetchFileLogOfIp;
+                requestHandler({
                     stepInstanceId: this.stepInstanceId,
                     retryCount: this.retryCount,
-                    ip: this.ip,
+                    hostId: this.host.hostId,
+                    ip: this.host.ip,
                     batch: this.batch,
                     mode: this.mode,
                 }).then((data) => {
