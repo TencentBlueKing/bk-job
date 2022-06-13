@@ -70,13 +70,13 @@ public interface HostService {
     List<Long> updateHostsInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList);
 
     /**
-     * 删除业务下的主机
+     * 将主机从业务下移除但不删除
      *
-     * @param bizId      业务ID
-     * @param deleteList 主机信息
-     * @return 删除失败的主机ID
+     * @param bizId    业务ID
+     * @param hostList 主机信息
+     * @return 移除失败的主机ID
      */
-    List<Long> deleteHostsFromBiz(Long bizId, List<ApplicationHostDTO> deleteList);
+    List<Long> removeHostsFromBiz(Long bizId, List<ApplicationHostDTO> hostList);
 
     long countHostsByOsType(String osType);
 
