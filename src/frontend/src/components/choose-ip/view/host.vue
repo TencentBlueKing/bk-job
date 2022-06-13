@@ -28,13 +28,31 @@
 <template>
     <jb-collapse-item name="host">
         <span class="panel-title">
-            <span>{{ $t('已选择.result') }}<span class="strong number">{{ data.length }}</span>{{ $t('台主机.result') }}</span>
-            <span v-if="statisticsData.fail">（<span class="error number">{{ statisticsData.fail }}</span>{{ $t('台Agent异常') }}）</span>
+            <span>
+                <span>{{ $t('已选择.result') }}</span>
+                <span class="strong number">{{ data.length }}</span>
+                <span>{{ $t('台主机.result') }}</span>
+            </span>
+            <span v-if="statisticsData.fail">
+                （<span class="error number">{{ statisticsData.fail }}</span>
+                {{ $t('台Agent异常') }}）
+            </span>
         </span>
-        <action-extend :list="list" copyable :invalid-list="invalidList">
+        <action-extend
+            :list="list"
+            copyable
+            :invalid-list="invalidList">
             <template v-if="editable">
-                <div class="action-item" @click="handleRemoveAll">{{ $t('移除全部') }}</div>
-                <div class="action-item" @click="handleRemoveFail">{{ $t('移除异常') }}</div>
+                <div
+                    class="action-item"
+                    @click="handleRemoveAll">
+                    {{ $t('移除全部') }}
+                </div>
+                <div
+                    class="action-item"
+                    @click="handleRemoveFail">
+                    {{ $t('移除异常') }}
+                </div>
             </template>
         </action-extend>
         <template #content>
@@ -51,29 +69,44 @@
                         v-if="invalidList.length > 0"
                         class="invalid-list"
                         slot="appendBefore">
-                        <tr v-for="(row) in invalidList" :key="row.realId">
+                        <tr
+                            v-for="(ipInfo) in invalidList"
+                            :key="ipInfo.hostId">
                             <td class="table-cell">
                                 <span
                                     class="invalid"
                                     v-bk-tooltips="$t('指主机已不属于该业务，或已不存在')">
                                     {{ $t('无效') }}
                                 </span>
-                                <span>{{ row.ip }}</span>
+                                <span>{{ ipInfo.ip }}</span>
                             </td>
                             <td>--</td>
                             <td>--</td>
                             <td>--</td>
                             <td>--</td>
-                            <td v-if="editable" class="action-column">
-                                <bk-button text @click="handleInvalidRemove(row)">{{ $t('移除') }}</bk-button>
+                            <td
+                                v-if="editable"
+                                class="action-column">
+                                <bk-button
+                                    text
+                                    @click="handleInvalidRemove(hostId)">
+                                    {{ $t('移除') }}
+                                </bk-button>
                             </td>
                         </tr>
                     </tbody>
                 </host-table>
-                <bk-exception v-if="isRequestError" type="500" style="padding-bottom: 50px;">
+                <bk-exception
+                    v-if="isRequestError"
+                    type="500"
+                    style="padding-bottom: 50px;">
                     <div style="display: flex; font-size: 14px;">
                         <span>数据拉取失败，请</span>
-                        <bk-button text @click="handleRefresh">重试</bk-button>
+                        <bk-button
+                            text
+                            @click="handleRefresh">
+                            重试
+                        </bk-button>
                     </div>
                 </bk-exception>
             </div>
@@ -90,7 +123,6 @@
     import {
         sortHost,
         statisticsHost,
-        generateHostRealId,
     } from '../components/utils';
 
     export default {
@@ -156,32 +188,27 @@
              */
             fetchHostOfHost () {
                 this.isLoading = true;
-                const ipList = [];
-                const ipMap = {};
+                const hostIdMap = this.data.reduce((result, ipInfo) => {
+                    result[ipInfo.hostId] = ipInfo;
+                    return result;
+                }, {});
 
-                // 处理初始值
-                this.data.forEach((currentHost) => {
-                    const realId = generateHostRealId(currentHost);
-                    ipList.push(realId);
-                    ipMap[realId] = Object.assign({ realId }, currentHost);
-                });
                 AppManageService.fetchHostOfHost({
-                    ipList,
+                    hostIdList: this.data.map(({ hostId }) => hostId),
                 })
                     .then((data) => {
                         const list = [];
                         this.invalidList = [];
-                        // list用于收集有效的主机
+                        // list 用于收集有效的主机
                         data.forEach((currentHost) => {
-                            const realId = generateHostRealId(currentHost);
-                            if (ipMap[realId]) {
-                                list.push(Object.assign({ realId }, currentHost));
-                                delete ipMap[realId];
+                            if (hostIdMap[currentHost.hostId]) {
+                                list.push(currentHost);
+                                delete hostIdMap[currentHost.hostId];
                             }
                         });
                         this.list = Object.freeze(sortHost(list));
                         // 剩余没被delete的主机是无效主机
-                        this.invalidList = Object.freeze(Object.values(ipMap));
+                        this.invalidList = Object.freeze(Object.values(hostIdMap));
                         this.isRequestError = false;
                     })
                     .catch(() => {
@@ -203,7 +230,6 @@
              */
             getAllHost () {
                 return [
-                    ...this.invalidList,
                     ...this.list,
                 ];
             },
@@ -224,10 +250,13 @@
 
             triggerChange () {
                 this.isInnerChange = true;
-                this.$emit('on-change', [
-                    ...this.invalidList,
-                    ...this.list,
-                ]);
+                const result = this.invalidList.map(({ hostId }) => ({ hostId }));
+                this.list.forEach((hostInfo) => {
+                    result.push({
+                        hostId: hostInfo.hostId,
+                    });
+                });
+                this.$emit('on-change', result);
             },
             /**
              * @desc 失败重试
@@ -237,23 +266,23 @@
             },
             /**
              * @desc 移除无效主机
-             * @prams host [Object] 移除主机
+             * @prams { Number } hostId  移除主机
              */
-            handleInvalidRemove (host) {
-                const result = [];
-                this.invalidList.forEach((currentHost) => {
-                    if (host.realId !== currentHost.realId) {
-                        result.push(currentHost);
+            handleInvalidRemove (hostId) {
+                this.invalidList = Object.freeze(this.invalidList.reduce((result, item) => {
+                    if (item !== hostId) {
+                        result.push(item);
                     }
-                });
-                this.invalidList = Object.freeze(result);
+                    return result;
+                }, []));
                 this.triggerChange();
             },
             /**
              * @desc 移除所有主机
              */
             handleRemoveAll () {
-                if (this.list.length < 1 && this.invalidList.length < 1) {
+                if (this.list.length < 1
+                    && this.invalidList.length < 1) {
                     this.messageSuccess(I18n.t('没有可移除主机'));
                     return;
                 }
@@ -264,17 +293,17 @@
             },
             /**
              * @desc 移除主机
-             * @param {String} hostRealId 主机id
+             * @param { String} hostInfo
              */
-            handleRemoveOne (hostRealId) {
+            handleRemoveOne (hostInfo) {
                 // 内部显示删除
-                const result = [];
-                this.list.forEach((currentHost) => {
-                    if (currentHost.realId !== hostRealId) {
-                        result.push(currentHost);
+                const list = this.list.reduce((result, currentHostInfo) => {
+                    if (currentHostInfo.hostId !== hostInfo.hostId) {
+                        result.push(currentHostInfo);
                     }
-                });
-                this.list = Object.freeze(result);
+                    return result;
+                }, []);
+                this.list = Object.freeze(list);
                 this.triggerChange();
             },
             /**
@@ -283,11 +312,11 @@
             handleRemoveFail () {
                 const effectiveIp = [];
                 const failIp = [];
-                this.list.forEach((currentHost) => {
-                    if (currentHost.alive) {
-                        effectiveIp.push(currentHost);
+                this.list.forEach((currentHostInfo) => {
+                    if (currentHostInfo.alive) {
+                        effectiveIp.push(currentHostInfo);
                     } else {
-                        failIp.push(currentHost);
+                        failIp.push(currentHostInfo);
                     }
                 });
                 if (failIp.length < 1 && this.invalidList.length < 1) {

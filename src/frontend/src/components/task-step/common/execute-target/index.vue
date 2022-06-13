@@ -111,7 +111,9 @@
                     right-icon="bk-icon icon-search"
                     @change="handleHostSearch" />
             </div>
-            <lower-component level="custom" :custom="isShowServerPanel">
+            <lower-component
+                level="custom"
+                :custom="isShowServerPanel">
                 <server-panel
                     v-show="isShowServerPanel"
                     ref="serverPanel"
@@ -299,6 +301,7 @@
                 if (!taskHostNode.isEmpty) {
                     this.$refs.targetServerRef.clearValidator();
                 }
+                console.log('from execute target = ', taskHostNode);
                 this.$emit('on-change', Object.freeze(taskHostNode));
             },
             /**

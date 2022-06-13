@@ -39,16 +39,28 @@
                 <template v-if="isShowDialog">
                     <div class="action-tab">
                         <div class="tab-container">
-                            <div class="tab-item" :class="{ active: activeTab === 'static' }" @click="handleTabChange('static')">
+                            <div
+                                class="tab-item"
+                                :class="{ active: activeTab === 'static' }"
+                                @click="handleTabChange('static')">
                                 {{ $t('静态 - IP 选择') }}
                             </div>
-                            <div class="tab-item" :class="{ active: activeTab === 'dynamic' }" @click="handleTabChange('dynamic')">
+                            <div
+                                class="tab-item"
+                                :class="{ active: activeTab === 'dynamic' }"
+                                @click="handleTabChange('dynamic')">
                                 {{ $t('动态 - 拓扑选择') }}
                             </div>
-                            <div class="tab-item" :class="{ active: activeTab === 'group' }" @click="handleTabChange('group')">
+                            <div
+                                class="tab-item"
+                                :class="{ active: activeTab === 'group' }"
+                                @click="handleTabChange('group')">
                                 {{ $t('动态 - 分组选择') }}
                             </div>
-                            <div class="tab-item" :class="{ active: activeTab === 'input' }" @click="handleTabChange('input')">
+                            <div
+                                class="tab-item"
+                                :class="{ active: activeTab === 'input' }"
+                                @click="handleTabChange('input')">
                                 {{ $t('手动输入') }}
                             </div>
                         </div>
@@ -75,7 +87,9 @@
                 </template>
             </div>
             <template v-if="showGroupPreview">
-                <preview-group v-model="showGroupPreview" :data="previewGroup" />
+                <preview-group
+                    v-model="showGroupPreview"
+                    :data="previewGroup" />
             </template>
             <template v-if="showChoosePreview">
                 <preview
@@ -124,7 +138,7 @@
         bigTreeTransformTopologyOfTopology,
         mergeInputHost,
         mergeTopologyHost,
-        generateHostRealId,
+        // generateHostRealId,
     } from './components/utils';
     import RenderBusinessTopology from './components/render-business-topology';
     import RenderDynamicBusinessTopology from './components/render-dynamic-business-topology';
@@ -289,20 +303,17 @@
                         return;
                     }
                     const {
-                        dynamicGroupList = [],
                         ipList = [],
+                        dynamicGroupList = [],
                         topoNodeList = [],
                     } = hostNodeInfo;
-
+                    
+                    this.ipList = Object.freeze(ipList);
+                    this.ipListTopolagyLast = ipList;
+                    this.dynamicGroupList = Object.freeze(dynamicGroupList);
                     this.topoNodeList = Object.freeze([
                         ...topoNodeList,
                     ]);
-                    this.ipList = Object.freeze(ipList.map(host => Object.assign({
-                        realId: generateHostRealId(host),
-                        ...host,
-                    })));
-                    this.ipListTopolagyLast = this.ipList;
-                    this.dynamicGroupList = Object.freeze(dynamicGroupList);
                 },
                 immediate: true,
             },
@@ -355,15 +366,12 @@
              * 静态 ip 选择和手动输入的结果需要合并
              */
             handleChange (field, value) {
+                console.log(`from asda = ${field}`, value);
                 this.error = '';
                 switch (field) {
                     case 'ipList':
                         this.ipList = Object.freeze(mergeTopologyHost(this.ipList, this.ipListTopolagyLast, value));
                         this.ipListTopolagyLast = value;
-                        this.currentChangeClass = 'host';
-                        break;
-                    case 'ipInput':
-                        this.ipList = Object.freeze(mergeInputHost(this.ipList, value));
                         this.currentChangeClass = 'host';
                         break;
                     case 'topoNodeList':
@@ -373,6 +381,10 @@
                     case 'dynamicGroupList':
                         this.dynamicGroupList = Object.freeze(value);
                         this.currentChangeClass = 'group';
+                        break;
+                    case 'ipInput':
+                        this.ipList = Object.freeze(mergeInputHost(this.ipList, value));
+                        this.currentChangeClass = 'host';
                         break;
                     default:
                         return '';
@@ -456,6 +468,7 @@
                         Promise.resolve()
                             .then(() => {
                                 this.isSelfChange = true;
+                                
                                 this.$emit('on-change', {
                                     ipList: this.ipList,
                                     topoNodeList: this.topoNodeList,
@@ -477,15 +490,10 @@
                     topoNodeList = [],
                 } = this.hostNodeInfo;
 
-                this.topoNodeList = Object.freeze([
-                    ...topoNodeList,
-                ]);
-                this.ipList = Object.freeze(ipList.map(host => ({
-                    ...host,
-                    realId: generateHostRealId(host),
-                })));
-                this.dynamicGroupList = Object.freeze(dynamicGroupList);
+                this.ipList = Object.freeze([...ipList]);
                 this.ipListTopolagyLast = this.ipList;
+                this.topoNodeList = Object.freeze([...topoNodeList]);
+                this.dynamicGroupList = Object.freeze(dynamicGroupList);
                 this.isShowDialog = false;
                 this.close();
             },

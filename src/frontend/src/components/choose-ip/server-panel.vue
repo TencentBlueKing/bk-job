@@ -58,18 +58,22 @@
                     @on-change="handleGroupChange" />
             </bk-collapse>
         </div>
-        <lower-component level="custom" :custom="showDetail">
+        <lower-component
+            level="custom"
+            :custom="showDetail">
             <host-detail
                 v-model="showDetail"
                 :data="viewInfo"
                 :append="hostDetailAppend" />
         </lower-component>
-        <lower-component level="custom" :custom="searchMode">
+        <lower-component
+            level="custom"
+            :custom="searchMode">
             <host-search
                 v-show="searchMode"
                 :data="searchData"
                 :editable="editable"
-                @on-change="handleSearchChange" />
+                @on-remove="handleSearchRemove" />
         </lower-component>
     </div>
 </template>
@@ -173,7 +177,11 @@
         watch: {
             hostNodeInfo: {
                 handler (hostNodeInfo) {
-                    const { dynamicGroupList, ipList, topoNodeList } = hostNodeInfo;
+                    const {
+                        dynamicGroupList,
+                        ipList,
+                        topoNodeList,
+                    } = hostNodeInfo;
                     this.hostList = Object.freeze(ipList);
                     if (ipList.length > 0) {
                         addCollapsePanel(this.activePanel, 'host');
@@ -271,7 +279,7 @@
             /**
              * @desc 触发值的改变
              */
-            trigger () {
+            triggerChange () {
                 this.$emit('on-change', {
                     ipList: this.hostList,
                     topoNodeList: this.nodeInfo,
@@ -303,7 +311,7 @@
              */
             handleHostChange (hostList) {
                 this.hostList = Object.freeze(hostList);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 更新节点
@@ -311,7 +319,7 @@
              */
             handleNodeChange (nodeInfo) {
                 this.nodeInfo = Object.freeze(nodeInfo);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 更新分组
@@ -319,26 +327,28 @@
              */
             handleGroupChange (groupList) {
                 this.groupList = Object.freeze(groupList);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 搜索主机面板删除了主机
              * @param {Array} removeHostList 在搜索面板中被删除的主机
              */
-            handleSearchChange (removeHostList) {
+            handleSearchRemove (removeHostInfoList) {
                 const removeHostMap = {};
-                removeHostList.forEach((item) => {
-                    removeHostMap[item.realId] = true;
+                removeHostInfoList.forEach((hostInfo) => {
+                    removeHostMap[hostInfo.hostId] = true;
                 });
 
                 const result = [];
-                this.$refs.host.list.forEach((currentHost) => {
-                    if (!removeHostMap[currentHost.realId]) {
-                        result.push(currentHost);
+                this.$refs.host.getAllHost().forEach((hostInfo) => {
+                    if (!removeHostMap[hostInfo.hostId]) {
+                        result.push({
+                            hostId: hostInfo.hostId,
+                        });
                     }
                 });
                 this.hostList = Object.freeze(result);
-                this.trigger();
+                this.triggerChange();
             },
         },
     };
