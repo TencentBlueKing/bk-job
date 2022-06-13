@@ -990,10 +990,12 @@ public class HostServiceImpl implements HostService {
         Pair<Set<CloudIPDTO>, Set<String>> pair = parseInputCloudIPList(checkIpList);
         Set<CloudIPDTO> inputCloudIPSet = pair.getLeft();
         Set<String> inputIPWithoutCloudIdSet = pair.getRight();
+        log.debug("inputCloudIPSet={},inputIPWithoutCloudIdSet={}", inputIPWithoutCloudIdSet, inputIPWithoutCloudIdSet);
         // 0.通过对输入的无云区域ID的IP进行云区域补全得到的完整IP，云区域ID来源：白名单、DB、默认值
         Set<CloudIPDTO> makeupCloudIPSet = new HashSet<>();
         // 1.查出对当前业务生效的白名单IP
         List<CloudIPDTO> appWhiteIPList = whiteIPService.listWhiteIP(appId, actionScope);
+        log.debug("appWhiteIPList={}", appWhiteIPList);
         Set<String> appWhiteIPSet = new HashSet<>();
         appWhiteIPList.forEach(appWhiteIP -> {
             appWhiteIPSet.add(appWhiteIP.getCloudIP());
@@ -1016,6 +1018,7 @@ public class HostServiceImpl implements HostService {
             makeupCloudIPSet.add(new CloudIPDTO(JobConstants.DEFAULT_CLOUD_AREA_ID, pureIp))
         );
 
+        log.debug("makeupCloudIPSet={}", makeupCloudIPSet);
         inputCloudIPSet.addAll(makeupCloudIPSet);
         List<CloudIPDTO> inputCloudIPList = new ArrayList<>(inputCloudIPSet);
 
@@ -1053,6 +1056,7 @@ public class HostServiceImpl implements HostService {
         validIPList.removeIf(cloudIPDTO -> localHostCloudIPSet.contains(cloudIPDTO.getCloudIP()));
         // 查不到的再去CMDB查
         if (!validIPList.isEmpty()) {
+
             IBizCmdbClient cmdbClient = CmdbClientFactory.getCmdbClient();
             List<ApplicationHostDTO> cmdbHosts = cmdbClient.listHostsByIps(
                 validIPList.parallelStream()
@@ -1060,6 +1064,12 @@ public class HostServiceImpl implements HostService {
                     .collect(Collectors.toList())
             );
             hostDTOList.addAll(cmdbHosts);
+            Set<String> cmdbHostIpSet = cmdbHosts.parallelStream()
+                .map(ApplicationHostDTO::getCloudIp).collect(Collectors.toSet());
+            validIPList.removeIf(cloudIPDTO -> cmdbHostIpSet.contains(cloudIPDTO.getCloudIP()));
+            if (!validIPList.isEmpty()) {
+                log.warn("Cannot find hostinfo of ips:{},ignore", validIPList);
+            }
         }
 
         // 8.查询Agent状态
