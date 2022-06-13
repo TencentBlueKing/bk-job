@@ -123,6 +123,17 @@ public class HostDTO implements Cloneable {
         return new HostDTO(Long.valueOf(ipProps[0]), ipProps[1]);
     }
 
+    public static HostDTO fromHostIdOrCloudIp(Long hostId, String cloudIp) {
+        HostDTO host = new HostDTO();
+        host.setHostId(hostId);
+        if (StringUtils.isNotEmpty(cloudIp)) {
+            String[] ipProps = cloudIp.split(IpUtils.COLON);
+            host.setBkCloudId(Long.valueOf(ipProps[0]));
+            host.setIp(ipProps[1]);
+        }
+        return host;
+    }
+
     public String toCloudIp() {
         return bkCloudId + ":" + ip;
     }
