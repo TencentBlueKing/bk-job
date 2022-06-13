@@ -215,6 +215,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO != null) {
+            appResourceScope.setAppId(applicationDTO.getId());
             // 普通业务/开启了CMDB业务集特性的业务集：从权限中心接口获取权限申请URL链接
             if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ
                 || FeatureToggle.isCmdbBizSetEnabledForApp(appResourceScope.getAppId())) {
