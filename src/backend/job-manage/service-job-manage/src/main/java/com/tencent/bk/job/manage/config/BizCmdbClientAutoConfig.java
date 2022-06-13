@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.config;
 
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -39,12 +39,12 @@ public class BizCmdbClientAutoConfig {
 
     @Bean
     @Autowired
-    public BizCmdbClient bizCmdbClient(EsbConfig esbConfig,
+    public BizCmdbClient bizCmdbClient(BkApiConfig bkApiConfig,
                                        CmdbConfig cmdbConfig,
                                        QueryAgentStatusClient queryAgentStatusClient,
                                        MeterRegistry meterRegistry) {
         return new BizCmdbClient(
-            esbConfig,
+                bkApiConfig,
             cmdbConfig,
             EsbLang.EN,
             queryAgentStatusClient,

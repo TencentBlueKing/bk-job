@@ -2,8 +2,8 @@ package com.tencent.bk.job.execute.engine.gse.v2;
 
 import com.tencent.bk.job.execute.engine.gse.v2.model.Agent;
 import com.tencent.bk.job.execute.engine.gse.v2.model.ExecuteScriptRequest;
-import com.tencent.bk.job.execute.engine.gse.v2.model.ExecuteScriptResult;
 import com.tencent.bk.job.execute.engine.gse.v2.model.GetExecuteScriptResultRequest;
+import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 
 import java.util.Collection;
@@ -27,7 +27,7 @@ public interface IGseClient {
      *
      * @param request 查询请求
      */
-    ExecuteScriptResult getExecuteScriptResult(GetExecuteScriptResultRequest request);
+    ScriptTaskResult getExecuteScriptResult(GetExecuteScriptResultRequest request);
 
 
     /**

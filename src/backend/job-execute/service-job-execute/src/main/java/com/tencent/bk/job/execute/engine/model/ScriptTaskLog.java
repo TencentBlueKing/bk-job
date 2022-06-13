@@ -25,14 +25,14 @@
 package com.tencent.bk.job.execute.engine.model;
 
 
-import com.tencent.bk.job.execute.engine.gse.v2.model.ExecuteScriptResult;
+import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptTaskResult;
 
 /**
  * 脚本任务结果
  */
-public class ScriptTaskLog extends GseLog<ExecuteScriptResult> {
+public class ScriptTaskLog extends GseLog<ScriptTaskResult> {
 
-    public ScriptTaskLog(ExecuteScriptResult result) {
+    public ScriptTaskLog(ScriptTaskResult result) {
         super(result);
     }
 

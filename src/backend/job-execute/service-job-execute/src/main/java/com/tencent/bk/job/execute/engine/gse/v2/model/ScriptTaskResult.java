@@ -10,7 +10,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class ExecuteScriptResult {
+public class ScriptTaskResult {
     /**
      * 执行结果
      */

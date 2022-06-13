@@ -33,9 +33,9 @@ import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.v2.GseApiClient;
-import com.tencent.bk.job.execute.engine.gse.v2.model.ExecuteScriptResult;
 import com.tencent.bk.job.execute.engine.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptAgentTaskResult;
+import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
@@ -81,7 +81,7 @@ import java.util.stream.Collectors;
  * 脚本任务执行结果处理
  */
 @Slf4j
-public class ScriptResultHandleTask extends AbstractResultHandleTask<ExecuteScriptResult> {
+public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskResult> {
     /**
      * GSE日志查询支持的每一批次的最大Agent数目
      */
@@ -187,7 +187,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ExecuteScri
     }
 
     @Override
-    GseLogBatchPullResult<ExecuteScriptResult> pullGseTaskResultInBatches() {
+    GseLogBatchPullResult<ScriptTaskResult> pullGseTaskResultInBatches() {
         if (pullAgentIdBatches.isEmpty()) {
             Set<String> queryAgentIds = new HashSet<>();
             queryAgentIds.addAll(notStartedTargetAgentIds);
@@ -198,12 +198,12 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ExecuteScri
         return tryPullGseResultWithRetry();
     }
 
-    private GseLogBatchPullResult<ExecuteScriptResult> tryPullGseResultWithRetry() {
+    private GseLogBatchPullResult<ScriptTaskResult> tryPullGseResultWithRetry() {
         List<String> pullLogAgentIds = pullAgentIdBatches.get(pullResultBatchesIndex.get() - 1);
         try {
-            ExecuteScriptResult result = pullGseTaskResult(pullLogAgentIds);
+            ScriptTaskResult result = pullGseTaskResult(pullLogAgentIds);
             boolean isLastBatch = pullResultBatchesIndex.get() == pullAgentIdBatches.size();
-            GseLogBatchPullResult<ExecuteScriptResult> batchPullResult = new GseLogBatchPullResult<>(true,
+            GseLogBatchPullResult<ScriptTaskResult> batchPullResult = new GseLogBatchPullResult<>(true,
                 isLastBatch, new ScriptTaskLog(result), null);
             if (isLastBatch) {
                 resetBatch();
@@ -230,7 +230,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ExecuteScri
         pullAgentIdBatches.clear();
     }
 
-    private ExecuteScriptResult pullGseTaskResult(List<String> agentIds) {
+    private ScriptTaskResult pullGseTaskResult(List<String> agentIds) {
         GetExecuteScriptResultRequest request = new GetExecuteScriptResultRequest();
         request.setTaskId(gseTask.getGseTaskId());
         agentIds.forEach(agentId -> {
@@ -275,7 +275,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ExecuteScri
     }
 
     @Override
-    GseTaskExecuteResult analyseGseTaskResult(GseLog<ExecuteScriptResult> taskDetail) {
+    GseTaskExecuteResult analyseGseTaskResult(GseLog<ScriptTaskResult> taskDetail) {
 
         long currentTime = DateUtils.currentTimeMillis(); // 当前时间
         List<ServiceScriptLogDTO> scriptLogs = new ArrayList<>();

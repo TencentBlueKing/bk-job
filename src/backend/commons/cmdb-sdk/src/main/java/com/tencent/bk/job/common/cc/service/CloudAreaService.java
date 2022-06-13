@@ -28,11 +28,10 @@ import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.ThreadUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -64,10 +63,10 @@ public class CloudAreaService {
     private static IBizCmdbClient esbBizCmdbClient;
     private static List<CcCloudAreaInfoDTO> fullCloudAreaInfoList;
 
-    public CloudAreaService(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
+    public CloudAreaService(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
                             MeterRegistry meterRegistry) {
         CloudAreaNameCacheThread cloudAreaNameCacheThread = new CloudAreaNameCacheThread();
-        esbBizCmdbClient = new BizCmdbClient(esbConfig, cmdbConfig, LocaleUtils.LANG_EN_US, queryAgentStatusClient,
+        esbBizCmdbClient = new BizCmdbClient(bkApiConfig, cmdbConfig, LocaleUtils.LANG_EN_US, queryAgentStatusClient,
             meterRegistry);
         cloudAreaNameCacheThread.start();
     }

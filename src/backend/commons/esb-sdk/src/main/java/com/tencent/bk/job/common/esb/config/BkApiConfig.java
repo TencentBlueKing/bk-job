@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-public class EsbConfig {
+public class BkApiConfig {
 
     @Value("${app.code:}")
     private String appCode;
@@ -43,4 +43,10 @@ public class EsbConfig {
 
     @Value("${esb.use.test.env:false}")
     private boolean useEsbTestEnv;
+
+    /**
+     * 蓝鲸Api Gateway url
+     */
+    @Value("${bk.api.gateway.gse.url:}")
+    private String bkGseApiGatewayUrl;
 }
