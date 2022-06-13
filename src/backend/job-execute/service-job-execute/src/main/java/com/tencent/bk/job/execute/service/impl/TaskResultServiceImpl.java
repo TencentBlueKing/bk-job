@@ -452,6 +452,13 @@ public class TaskResultServiceImpl implements TaskResultService {
         resultGroup.setAgentTasks(agentTasks);
         resultGroups.add(resultGroup);
         stepExecuteDetail.setResultGroups(resultGroups);
+
+        if (stepInstance.isRollingStep()) {
+            setRollingInfoForStep(stepInstance, stepExecuteDetail);
+        } else {
+            stepExecuteDetail.setRunMode(StepRunModeEnum.RUN_ALL);
+        }
+
         return stepExecuteDetail;
     }
 
@@ -504,7 +511,6 @@ public class TaskResultServiceImpl implements TaskResultService {
             } else {
                 stepExecutionDetail.setRunMode(StepRunModeEnum.RUN_ALL);
             }
-
 
             if (stepInstance.isFileStep()) {
                 watch.start("involveFileSourceTaskLog");
