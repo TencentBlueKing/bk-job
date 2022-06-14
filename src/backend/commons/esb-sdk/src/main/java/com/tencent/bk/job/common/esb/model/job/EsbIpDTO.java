@@ -28,31 +28,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
 @Setter
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class EsbIpDTO {
 
+    @JsonProperty("host_id")
+    private Long hostId;
+
     @JsonProperty("bk_cloud_id")
-    @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
-    @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
+//    @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
+//    @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
     private Long bkCloudId;
 
     @JsonProperty("ip")
-    @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
-        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
-        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b",
-        message = "{validation.constraints.InvalidIp.message}")
+//    @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
+//        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
+//        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b",
+//        message = "{validation.constraints.InvalidIp.message}")
     private String ip;
 
     public static EsbIpDTO fromApplicationHostInfo(ApplicationHostDTO applicationHostInfo) {
@@ -80,6 +77,9 @@ public class EsbIpDTO {
             return null;
         }
         String[] ipProps = cloudIp.split(IpUtils.COLON);
-        return new EsbIpDTO(Long.valueOf(ipProps[0]), ipProps[1]);
+        EsbIpDTO host = new EsbIpDTO();
+        host.setBkCloudId(Long.valueOf(ipProps[0]));
+        host.setIp(ipProps[1]);
+        return host;
     }
 }

@@ -24,15 +24,12 @@
 
 package com.tencent.bk.job.execute.engine.gse;
 
-import com.tencent.bk.gse.taskapi.api_agent;
-import com.tencent.bk.gse.taskapi.api_auto_task;
-import com.tencent.bk.gse.taskapi.api_script_file;
-import com.tencent.bk.gse.taskapi.api_script_request;
-import com.tencent.bk.gse.taskapi.api_task_relation;
-import com.tencent.bk.gse.taskapi.api_task_request;
+import com.tencent.bk.job.execute.engine.gse.v2.model.Agent;
+import com.tencent.bk.job.execute.engine.gse.v2.model.AtomicScriptTask;
+import com.tencent.bk.job.execute.engine.gse.v2.model.AtomicScriptTaskRelation;
+import com.tencent.bk.job.execute.engine.gse.v2.model.ExecuteScriptRequest;
+import com.tencent.bk.job.execute.engine.gse.v2.model.GseScript;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,82 +38,74 @@ import java.util.List;
  * GSE脚本下发请求参数构造器
  */
 public class ScriptRequestBuilder {
-    private static final Logger LOG = LoggerFactory.getLogger(ScriptRequestBuilder.class);
-    private api_script_request scriptRqeuest;
+    private final ExecuteScriptRequest request;
 
     public ScriptRequestBuilder() {
-        scriptRqeuest = new api_script_request();
+        request = new ExecuteScriptRequest();
     }
 
     /**
      * 添加脚本文件
      *
-     * @param downloadPath
-     * @param scriptFileName
-     * @param scriptContent
-     * @return
+     * @param storeDir       脚本文件存储目录
+     * @param scriptFileName 脚本文件名称
+     * @param scriptContent  脚本内容
      */
-    public ScriptRequestBuilder addScriptFile(String downloadPath, String scriptFileName, String scriptContent) {
-        api_script_file scriptFile = new api_script_file();
-        scriptFile.setDownload_path(downloadPath);
-        scriptFile.setMd5("");
-        scriptFile.setName(scriptFileName);
-        scriptFile.setContent(scriptContent);
-        scriptRqeuest.addToScripts(scriptFile);
+    public ScriptRequestBuilder addScriptFile(String storeDir, String scriptFileName, String scriptContent) {
+        GseScript gseScript = new GseScript();
+        gseScript.setStoreDir(storeDir);
+        gseScript.setName(scriptFileName);
+        gseScript.setContent(scriptContent);
+        request.addScript(gseScript);
         return this;
     }
 
     /**
      * 新增脚本任务
      *
-     * @param agentList
-     * @param downloadPath
-     * @param scriptFileName
-     * @param scriptParam
-     * @param timeout
-     * @return
+     * @param agents         目标agent列表
+     * @param storeDir       脚本文件存储目录
+     * @param scriptFileName 脚本文件名称
+     * @param scriptParam    脚本执行参数
+     * @param timeout        超时时间
      */
-    public ScriptRequestBuilder addScriptTask(List<api_agent> agentList, String downloadPath, String scriptFileName,
+    public ScriptRequestBuilder addScriptTask(List<Agent> agents, String storeDir, String scriptFileName,
                                               String scriptParam, int timeout) {
-        api_task_request taskRequest = scriptRqeuest.getTasks();
-        if (taskRequest == null) {
-            taskRequest = new api_task_request();
-            scriptRqeuest.setTasks(taskRequest);
-        }
+        AtomicScriptTask atomicScriptTask = new AtomicScriptTask();
+        atomicScriptTask.setTimeout(timeout);
 
-        taskRequest.setAtomic_task_num(taskRequest.getAtomic_task_num() + 1);
-        taskRequest.setCrond("");
+        int atomicTaskId = request.getAtomicTasks().size();
+        atomicScriptTask.setTaskId(atomicTaskId);
 
-        api_auto_task autoTask = new api_auto_task();
-        int atomicTaskId = taskRequest.getAtomic_task_num() - 1;
-        if (atomicTaskId > 0) {
-            //为了保证任务串行执行，需要设置relation参数
-            List<Byte> dependencyTaskIdList = new ArrayList<>();
-            int dependencyTaskId = 0;
-            while (dependencyTaskId < atomicTaskId) {
-                dependencyTaskIdList.add((byte) dependencyTaskId);
-                dependencyTaskId++;
-            }
-            api_task_relation apiTaskRelation = new api_task_relation((byte) atomicTaskId, dependencyTaskIdList);
-            taskRequest.addToRel_list(apiTaskRelation);
-        } else {
-            taskRequest.setRel_list(new ArrayList<>(0));
-        }
-
-        autoTask.setAtomic_task_id((byte) (taskRequest.getAtomic_task_num() - 1));
-        String exeCmd = downloadPath + "/" + scriptFileName;
+        String exeCmd = storeDir + "/" + scriptFileName;
         if (StringUtils.isNotBlank(scriptParam)) {
             exeCmd += " " + scriptParam;
         }
-        autoTask.setCmd(exeCmd);
-        autoTask.setTimeout(timeout);
-        taskRequest.addToAtomic_tasks(autoTask);
-        taskRequest.setAgent_list(agentList);
-        taskRequest.setVersion("1.0");
+        atomicScriptTask.setCommand(exeCmd);
+
+        request.addAtomicScriptTask(atomicScriptTask);
+
+        //为了保证任务串行执行，需要设置relation参数
+        if (atomicTaskId > 0) {
+            AtomicScriptTaskRelation relation = new AtomicScriptTaskRelation();
+            relation.setTaskId(atomicTaskId);
+
+            List<Integer> dependencyTaskIdList = new ArrayList<>();
+            int dependencyTaskId = 0;
+            while (dependencyTaskId < atomicTaskId) {
+                dependencyTaskIdList.add(dependencyTaskId);
+                dependencyTaskId++;
+            }
+            relation.setIndex(dependencyTaskIdList);
+            request.addAtomicTaskRelation(relation);
+        }
+
+        request.setAgents(agents);
+
         return this;
     }
 
-    public api_script_request build() {
-        return scriptRqeuest;
+    public ExecuteScriptRequest build() {
+        return request;
     }
 }

@@ -25,8 +25,6 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
-import com.tencent.bk.gse.taskapi.api_agent;
-import com.tencent.bk.gse.taskapi.api_script_request;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -37,8 +35,10 @@ import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.gse.ScriptRequestBuilder;
+import com.tencent.bk.job.execute.engine.gse.v2.GseApiClient;
+import com.tencent.bk.job.execute.engine.gse.v2.model.Agent;
+import com.tencent.bk.job.execute.engine.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -117,6 +117,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      GseTasksExceptionCounter gseTasksExceptionCounter,
                                      JobBuildInVariableResolver jobBuildInVariableResolver,
                                      Tracing tracing,
+                                     GseApiClient gseApiClient,
                                      String requestId,
                                      TaskInstanceDTO taskInstance,
                                      StepInstanceDTO stepInstance,
@@ -138,6 +139,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             exceptionStatusManager,
             gseTasksExceptionCounter,
             tracing,
+            gseApiClient,
             requestId,
             taskInstance,
             stepInstance,
@@ -170,64 +172,29 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     @Override
     protected GseTaskResponse startGseTask() {
-        return GseRequestUtils.sendScriptTaskRequest(stepInstanceId, buildScriptRequest());
+        return gseApiClient.asyncExecuteScript(buildScriptRequest());
     }
 
-    protected api_script_request buildScriptRequest() {
-        api_script_request request;
+    protected ExecuteScriptRequest buildScriptRequest() {
+        ExecuteScriptRequest request;
         // shell 脚本需要支持全局变量传参，需要特殊的处理逻辑
-        if (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())) {
-            request = buildShellScriptRequest();
-        } else {
-            request = buildNonShellScriptRequest();
-        }
-        request.setM_caller(buildGSETraceInfo());
-
-        return request;
-    }
-
-    private api_script_request buildNonShellScriptRequest() {
-        String scriptContent = stepInstance.getScriptContent();
-        String scriptFileName = buildScriptFileName(stepInstance);
-
-        String scriptParam = MacroUtil.resolveDateWithStrfTime(stepInstance.getScriptParam());
-        String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
-        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
-
-        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
-            stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetAgentTaskMap.keySet(),
-            accountInfo.getAccount(), accountInfo.getPassword());
-        api_script_request request = GseRequestUtils.buildScriptRequest(agentList, scriptContent, scriptFileName,
-            scriptFilePath, resolvedScriptParam, timeout);
-        request.setM_caller(buildGSETraceInfo());
-
-        return request;
-    }
-
-
-    protected String buildScriptFileName(StepInstanceDTO stepInstance) {
-        return this.scriptFileNamePrefix + ScriptTypeEnum.getExtByValue(stepInstance.getScriptType());
-    }
-
-    /**
-     * 构建shell脚本下发的请求
-     */
-    private api_script_request buildShellScriptRequest() {
-        api_script_request request;
-        if (taskInstance.isPlanInstance()) {
+        if (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())
+            && taskInstance.isPlanInstance()) {
             // 执行方案脚本执行步骤，需要处理变量
             request = buildShellScriptRequestForPlan();
         } else {
-            // 快速执行脚本
             request = buildRequestWithoutAnyParam(stepInstance);
         }
 
         return request;
     }
 
-    private api_script_request buildShellScriptRequestForPlan() {
-        api_script_request request;
+    protected String buildScriptFileName(StepInstanceDTO stepInstance) {
+        return this.scriptFileNamePrefix + ScriptTypeEnum.getExtByValue(stepInstance.getScriptType());
+    }
+
+    private ExecuteScriptRequest buildShellScriptRequestForPlan() {
+        ExecuteScriptRequest request;
         boolean containsAnyImportedVariable = false;
         List<String> importVariables = null;
         if (shouldParseBuildInVariables(stepInstance)) {
@@ -283,7 +250,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     /**
      * 创建下发请求-不带任何全局参数
      */
-    private api_script_request buildRequestWithoutAnyParam(StepInstanceDTO stepInstance) {
+    private ExecuteScriptRequest buildRequestWithoutAnyParam(StepInstanceDTO stepInstance) {
         String scriptContent = stepInstance.getScriptContent();
         String scriptFileName = buildScriptFileName(stepInstance);
 
@@ -296,19 +263,19 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetAgentTaskMap.keySet(),
+        List<Agent> agents = gseApiClient.buildAgents(targetAgentTaskMap.keySet(),
             accountInfo.getAccount(), accountInfo.getPassword());
 
-        builder.addScriptTask(agentList, scriptFilePath, scriptFileName, resolvedScriptParam, timeout);
+        builder.addScriptTask(agents, scriptFilePath, scriptFileName, resolvedScriptParam, timeout);
         return builder.build();
     }
 
     /**
      * 创建下发请求-仅包含常量
      */
-    private api_script_request buildRequestWithConstParamOnly(StepInstanceDTO stepInstance,
-                                                              List<TaskVariableDTO> taskVars,
-                                                              List<String> importVariables) {
+    private ExecuteScriptRequest buildRequestWithConstParamOnly(StepInstanceDTO stepInstance,
+                                                                List<TaskVariableDTO> taskVars,
+                                                                List<String> importVariables) {
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
         //用户原始脚本
         String userScriptContent = stepInstance.getScriptContent();
@@ -331,7 +298,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetAgentTaskMap.keySet(),
+        List<Agent> agentList = gseApiClient.buildAgents(targetAgentTaskMap.keySet(),
             accountInfo.getAccount(), accountInfo.getPassword());
         builder.addScriptTask(agentList, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
         return builder.build();
@@ -442,16 +409,16 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
      * @param stepInstance               步骤实例
      * @param taskVariablesAnalyzeResult 参数
      */
-    private api_script_request buildRequestWithChangeableParam(StepInstanceDTO stepInstance,
-                                                               TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                                               List<String> importVariables) {
+    private ExecuteScriptRequest buildRequestWithChangeableParam(StepInstanceDTO stepInstance,
+                                                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
+                                                                 List<String> importVariables) {
         String scriptParam = MacroUtil.resolveDateWithStrfTime(stepInstance.getScriptParam());
         String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
         int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetAgentTaskMap.keySet(),
+        List<Agent> agentList = gseApiClient.buildAgents(targetAgentTaskMap.keySet(),
             accountInfo.getAccount(), accountInfo.getPassword());
 
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
@@ -677,6 +644,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 exceptionStatusManager,
                 taskEvictPolicyExecutor,
                 scriptAgentTaskService,
+                gseApiClient,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,

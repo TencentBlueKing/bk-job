@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
+import com.tencent.bk.job.execute.engine.gse.v2.GseApiClient;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskResultHandleTaskResumeEvent;
@@ -98,6 +99,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected ExceptionStatusManager exceptionStatusManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected AgentTaskService agentTaskService;
+    protected GseApiClient gseApiClient;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -212,6 +214,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        ExceptionStatusManager exceptionStatusManager,
                                        TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                        AgentTaskService agentTaskService,
+                                       GseApiClient gseApiClient,
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -228,6 +231,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.agentTaskService = agentTaskService;
+        this.gseApiClient = gseApiClient;
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();

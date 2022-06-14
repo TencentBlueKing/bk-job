@@ -80,7 +80,7 @@ import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
@@ -199,15 +199,15 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                   }
             );
 
-    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
+    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
                          MeterRegistry meterRegistry) {
-        this(esbConfig, cmdbConfig, null, queryAgentStatusClient, meterRegistry);
+        this(bkApiConfig, cmdbConfig, null, queryAgentStatusClient, meterRegistry);
     }
 
-    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, String lang,
+    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, String lang,
                          QueryAgentStatusClient queryAgentStatusClient, MeterRegistry meterRegistry) {
-        super(esbConfig.getEsbUrl(), esbConfig.getAppCode(), esbConfig.getAppSecret(), lang,
-            esbConfig.isUseEsbTestEnv());
+        super(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(), bkApiConfig.getAppSecret(), lang,
+            bkApiConfig.isUseEsbTestEnv());
         this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.meterRegistry = meterRegistry;

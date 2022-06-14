@@ -25,33 +25,19 @@
 package com.tencent.bk.job.execute.engine.model;
 
 
-import com.tencent.bk.gse.taskapi.api_task_detail_result;
-import com.tencent.bk.job.execute.engine.consts.GSECode;
+import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptTaskResult;
 
 /**
  * 脚本任务结果
- *
- * @version 1.0
- * @time 2017/6/5.
  */
-public class ScriptTaskLog extends GseLog<api_task_detail_result> {
+public class ScriptTaskLog extends GseLog<ScriptTaskResult> {
 
-    public ScriptTaskLog(api_task_detail_result gseLog) {
-        super(gseLog);
-    }
-
-    @Override
-    public boolean isError() {
-        return GSECode.ErrorCode.getErrorCode(getGseLog().getBk_error_code()) == GSECode.ErrorCode.ERROR;
+    public ScriptTaskLog(ScriptTaskResult result) {
+        super(result);
     }
 
     @Override
     public boolean isNullResp() {
         return getGseLog() == null || getGseLog().getResult() == null || getGseLog().getResult().isEmpty();
-    }
-
-    @Override
-    public String getErrorMsg() {
-        return getGseLog().getBk_error_msg();
     }
 }
