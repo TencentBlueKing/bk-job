@@ -36,6 +36,7 @@ import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
+import com.tencent.bk.job.execute.engine.gse.v2.GseApiClient;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -98,6 +99,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
+    private final GseApiClient gseApiClient;
 
     private final Object lifecycleMonitor = new Object();
     private final RunningTaskCounter<String> counter = new RunningTaskCounter<>("GseTask-Counter");
@@ -152,7 +154,8 @@ public class GseTaskManager implements SmartLifecycle {
                           JobExecuteConfig jobExecuteConfig,
                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                           ScriptAgentTaskService scriptAgentTaskService,
-                          FileAgentTaskService fileAgentTaskService) {
+                          FileAgentTaskService fileAgentTaskService,
+                          GseApiClient gseApiClient) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -173,6 +176,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+        this.gseApiClient = gseApiClient;
     }
 
     /**
@@ -326,6 +330,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
                 tracing,
+                gseApiClient,
                 requestId,
                 taskInstance,
                 stepInstance,
@@ -352,6 +357,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
                 tracing,
+                gseApiClient,
                 requestId,
                 taskInstance,
                 stepInstance,
@@ -377,6 +383,7 @@ public class GseTaskManager implements SmartLifecycle {
                 exceptionStatusManager,
                 gseTasksExceptionCounter,
                 tracing,
+                gseApiClient,
                 requestId,
                 taskInstance,
                 stepInstance,
@@ -455,6 +462,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTaskService,
                 scriptAgentTaskService,
                 tracing,
+                gseApiClient,
                 taskInstance,
                 stepInstance,
                 gseTask
@@ -467,6 +475,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTaskService,
                 fileAgentTaskService,
                 tracing,
+                gseApiClient,
                 taskInstance,
                 stepInstance,
                 gseTask

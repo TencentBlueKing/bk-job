@@ -30,6 +30,7 @@ import com.tencent.bk.gse.taskapi.api_stop_task_request;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
+import com.tencent.bk.job.execute.engine.gse.v2.GseApiClient;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -54,6 +55,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
                                   GseTaskService gseTaskService,
                                   AgentTaskService agentTaskService,
                                   Tracing tracing,
+                                  GseApiClient gseApiClient,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   GseTaskDTO gseTask) {
@@ -62,6 +64,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
             gseTaskService,
             agentTaskService,
             tracing,
+            gseApiClient,
             taskInstance,
             stepInstance,
             gseTask);

@@ -36,20 +36,16 @@ import com.tencent.bk.gse.taskapi.api_process_base_info;
 import com.tencent.bk.gse.taskapi.api_process_extra_info;
 import com.tencent.bk.gse.taskapi.api_process_info;
 import com.tencent.bk.gse.taskapi.api_process_req;
-import com.tencent.bk.gse.taskapi.api_query_agent_info_v2;
 import com.tencent.bk.gse.taskapi.api_query_atom_task_info;
-import com.tencent.bk.gse.taskapi.api_query_task_info_v2;
 import com.tencent.bk.gse.taskapi.api_script_file;
 import com.tencent.bk.gse.taskapi.api_script_request;
 import com.tencent.bk.gse.taskapi.api_stop_task_request;
-import com.tencent.bk.gse.taskapi.api_task_detail_result;
 import com.tencent.bk.gse.taskapi.api_task_request;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
-import com.tencent.bk.job.execute.engine.model.LogPullProgress;
 import com.tencent.bk.job.execute.engine.model.RunSQLScriptFile;
 import com.tencent.bk.job.execute.gse.model.ProcessOperateTypeEnum;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -61,7 +57,6 @@ import org.apache.thrift.transport.TTransportException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -207,91 +202,91 @@ public class GseRequestUtils {
         return scriptReq;
     }
 
-    /**
-     * 创建GSE执行脚本请求
-     *
-     * @param agentList      Agent列表
-     * @param scriptContent  脚本内容
-     * @param scriptFileName 脚本名称
-     * @param downloadPath   脚本存放路径
-     * @param scriptParam    脚本参数
-     * @param timeout        脚本任务超时时间，单位秒
-     * @return 执行脚本任务请求
-     */
-    public static api_script_request buildScriptRequest(List<api_agent> agentList, String scriptContent,
-                                                        String scriptFileName, String downloadPath, String scriptParam,
-                                                        int timeout) {
-        api_script_request scriptReq = new api_script_request();
+//    /**
+//     * 创建GSE执行脚本请求
+//     *
+//     * @param agentList      Agent列表
+//     * @param scriptContent  脚本内容
+//     * @param scriptFileName 脚本名称
+//     * @param downloadPath   脚本存放路径
+//     * @param scriptParam    脚本参数
+//     * @param timeout        脚本任务超时时间，单位秒
+//     * @return 执行脚本任务请求
+//     */
+//    public static api_script_request buildScriptRequest(List<api_agent> agentList, String scriptContent,
+//                                                        String scriptFileName, String downloadPath, String scriptParam,
+//                                                        int timeout) {
+//        api_script_request scriptReq = new api_script_request();
+//
+//        // 脚本文件
+//        api_script_file scriptFile = new api_script_file();
+//        scriptFile.setDownload_path(downloadPath);
+//        scriptFile.setMd5("");
+//        scriptFile.setName(scriptFileName);
+//        scriptFile.setContent(scriptContent);
+//        List<api_script_file> scriptFileList = new ArrayList<>();
+//        scriptFileList.add(scriptFile);
+//        scriptReq.setScripts(scriptFileList);
+//
+//        api_task_request req = new api_task_request();
+//        req.setAtomic_task_num(1);
+//        req.setCrond("");
+//
+//        List<api_auto_task> taskList = new ArrayList<>();
+//        api_auto_task autoTask = new api_auto_task();
+//        autoTask.setAtomic_task_id((byte) 0);
+//
+//        String exeCmd = downloadPath + "/" + scriptFileName;
+//        if (StringUtils.isNotBlank(scriptParam)) {
+//            exeCmd += " " + scriptParam;
+//        }
+//
+//        autoTask.setCmd(exeCmd);
+//        autoTask.setTimeout(timeout);
+//        taskList.add(autoTask);
+//
+//        req.setAtomic_tasks(taskList);
+//        req.setAgent_list(agentList);
+//        req.setRel_list(new ArrayList<>());
+//        req.setVersion("1.0");
+//        scriptReq.setTasks(req);
+//
+//        return scriptReq;
+//    }
 
-        // 脚本文件
-        api_script_file scriptFile = new api_script_file();
-        scriptFile.setDownload_path(downloadPath);
-        scriptFile.setMd5("");
-        scriptFile.setName(scriptFileName);
-        scriptFile.setContent(scriptContent);
-        List<api_script_file> scriptFileList = new ArrayList<>();
-        scriptFileList.add(scriptFile);
-        scriptReq.setScripts(scriptFileList);
-
-        api_task_request req = new api_task_request();
-        req.setAtomic_task_num(1);
-        req.setCrond("");
-
-        List<api_auto_task> taskList = new ArrayList<>();
-        api_auto_task autoTask = new api_auto_task();
-        autoTask.setAtomic_task_id((byte) 0);
-
-        String exeCmd = downloadPath + "/" + scriptFileName;
-        if (StringUtils.isNotBlank(scriptParam)) {
-            exeCmd += " " + scriptParam;
-        }
-
-        autoTask.setCmd(exeCmd);
-        autoTask.setTimeout(timeout);
-        taskList.add(autoTask);
-
-        req.setAtomic_tasks(taskList);
-        req.setAgent_list(agentList);
-        req.setRel_list(new ArrayList<>());
-        req.setVersion("1.0");
-        scriptReq.setTasks(req);
-
-        return scriptReq;
-    }
-
-    /**
-     * 下发脚本任务
-     *
-     * @param id            任务ID
-     * @param scriptRequest 请求内容
-     * @return GSE Server响应
-     */
-    public static GseTaskResponse sendScriptTaskRequest(long id, api_script_request scriptRequest) {
-        return sendCmd("" + id, new GseTaskResponseCaller() {
-            @Override
-            public GseTaskResponse callback(GseClient gseClient) throws TException {
-                GseTaskResponse gseResponse = new GseTaskResponse();
-                if (log.isDebugEnabled()) {
-                    log.debug("[{}]: runScriptTaskRequest={}", id, scriptRequest);
-                } else if (log.isInfoEnabled()) {
-                    log.info("[{}]: runScriptTaskRequest={}", id,
-                        GseRequestPrinter.simplifyScriptRequest(scriptRequest));
-                }
-                api_comm_rsp commRsp = gseClient.getGseAgentClient().run_bash(scriptRequest);
-                log.info("[{}]: runScriptTaskResponse={}", id, commRsp.toString());
-
-                gseResponse.setErrorCode(commRsp.getBk_error_code());
-                gseResponse.setErrorMessage(commRsp.getBk_error_msg());
-                gseResponse.setGseTaskId(commRsp.getTask_id());
-                return gseResponse;
-            }
-
-            @Override
-            public String getApiName() {
-                return "run_bash";
-            }
-        });
-    }
+//    /**
+//     * 下发脚本任务
+//     *
+//     * @param id            任务ID
+//     * @param scriptRequest 请求内容
+//     * @return GSE Server响应
+//     */
+//    public static GseTaskResponse sendScriptTaskRequest(long id, api_script_request scriptRequest) {
+//        return sendCmd("" + id, new GseTaskResponseCaller() {
+//            @Override
+//            public GseTaskResponse callback(GseClient gseClient) throws TException {
+//                GseTaskResponse gseResponse = new GseTaskResponse();
+//                if (log.isDebugEnabled()) {
+//                    log.debug("[{}]: runScriptTaskRequest={}", id, scriptRequest);
+//                } else if (log.isInfoEnabled()) {
+//                    log.info("[{}]: runScriptTaskRequest={}", id,
+//                        GseRequestPrinter.simplifyScriptRequest(scriptRequest));
+//                }
+//                api_comm_rsp commRsp = gseClient.getGseAgentClient().run_bash(scriptRequest);
+//                log.info("[{}]: runScriptTaskResponse={}", id, commRsp.toString());
+//
+//                gseResponse.setErrorCode(commRsp.getBk_error_code());
+//                gseResponse.setErrorMessage(commRsp.getBk_error_msg());
+//                gseResponse.setGseTaskId(commRsp.getTask_id());
+//                return gseResponse;
+//            }
+//
+//            @Override
+//            public String getApiName() {
+//                return "run_bash";
+//            }
+//        });
+//    }
 
 
     public static api_process_req buildProcessRequest(List<api_agent> agentList, api_process_base_info processBaseInfo,
@@ -374,39 +369,39 @@ public class GseRequestUtils {
         return queryAtomTaskList;
     }
 
-    /**
-     * 拉取脚本执行任务日志 V2
-     *
-     * @param gseTaskId        gse任务ID
-     * @param cloudIps         目标服务器列表
-     * @param runBushOffsetMap 日志偏移量
-     * @return 响应
-     */
-    public static api_query_task_info_v2 buildScriptLogRequestV2(String gseTaskId, Collection<String> cloudIps,
-                                                                 Map<String, LogPullProgress> runBushOffsetMap) {
-        List<api_query_agent_info_v2> queryAgentList = new ArrayList<>();
-        for (String cloudIp : cloudIps) {
-            api_query_agent_info_v2 queryAgentInfo = new api_query_agent_info_v2();
-
-            api_host apiHost = convertToApiHost(cloudIp);
-            queryAgentInfo.setHost(apiHost);
-
-            LogPullProgress process = runBushOffsetMap.get(cloudIp);
-            if (null == process) {
-                queryAgentInfo.setAtomic_tasks(buildQueryAtomTaskInfoList(0, 0));
-            } else {
-                queryAgentInfo.setAtomic_tasks(buildQueryAtomTaskInfoList(process.getByteOffset(), process.getMid()));
-            }
-
-            queryAgentList.add(queryAgentInfo);
-        }
-
-        // 请求消息
-        api_query_task_info_v2 queryTaskInfo = new api_query_task_info_v2();
-        queryTaskInfo.setAgents(queryAgentList);
-        queryTaskInfo.setTask_id(gseTaskId);
-        return queryTaskInfo;
-    }
+//    /**
+//     * 拉取脚本执行任务日志 V2
+//     *
+//     * @param gseTaskId        gse任务ID
+//     * @param cloudIps         目标服务器列表
+//     * @param runBushOffsetMap 日志偏移量
+//     * @return 响应
+//     */
+//    public static api_query_task_info_v2 buildScriptLogRequestV2(String gseTaskId, Collection<String> cloudIps,
+//                                                                 Map<String, LogPullProgress> runBushOffsetMap) {
+//        List<api_query_agent_info_v2> queryAgentList = new ArrayList<>();
+//        for (String cloudIp : cloudIps) {
+//            api_query_agent_info_v2 queryAgentInfo = new api_query_agent_info_v2();
+//
+//            api_host apiHost = convertToApiHost(cloudIp);
+//            queryAgentInfo.setHost(apiHost);
+//
+//            LogPullProgress process = runBushOffsetMap.get(cloudIp);
+//            if (null == process) {
+//                queryAgentInfo.setAtomic_tasks(buildQueryAtomTaskInfoList(0, 0));
+//            } else {
+//                queryAgentInfo.setAtomic_tasks(buildQueryAtomTaskInfoList(process.getByteOffset(), process.getMid()));
+//            }
+//
+//            queryAgentList.add(queryAgentInfo);
+//        }
+//
+//        // 请求消息
+//        api_query_task_info_v2 queryTaskInfo = new api_query_task_info_v2();
+//        queryTaskInfo.setAgents(queryAgentList);
+//        queryTaskInfo.setTask_id(gseTaskId);
+//        return queryTaskInfo;
+//    }
 
     private static api_host convertToApiHost(String cloudIp) {
         String[] ipArray = cloudIp.split(":");
@@ -477,26 +472,26 @@ public class GseRequestUtils {
         });
     }
 
-    /**
-     * 脚本任务概览信息
-     */
-    public static api_task_detail_result getScriptTaskDetailRst(long id, api_query_task_info_v2 taskQuery) {
-        return sendCmd("" + id, new GseApiCallback<api_task_detail_result>() {
-            @Override
-            public api_task_detail_result callback(GseClient gseClient) throws TException {
-                log.info("[{}]: getScriptTaskDetailRequest={}", id, taskQuery);
-                api_task_detail_result taskDetailRst = gseClient.getGseAgentClient().get_task_detail_result(taskQuery);
-                log.info("[{}]: getScriptTaskDetailResponse={}", id,
-                    GseRequestPrinter.printScriptTaskResult(taskDetailRst));
-                return taskDetailRst;
-            }
-
-            @Override
-            public String getApiName() {
-                return "get_task_detail_result";
-            }
-        });
-    }
+//    /**
+//     * 脚本任务概览信息
+//     */
+//    public static api_task_detail_result getScriptTaskDetailRst(long id, api_query_task_info_v2 taskQuery) {
+//        return sendCmd("" + id, new GseApiCallback<api_task_detail_result>() {
+//            @Override
+//            public api_task_detail_result callback(GseClient gseClient) throws TException {
+//                log.info("[{}]: getScriptTaskDetailRequest={}", id, taskQuery);
+//                api_task_detail_result taskDetailRst = gseClient.getGseAgentClient().get_task_detail_result(taskQuery);
+//                log.info("[{}]: getScriptTaskDetailResponse={}", id,
+//                    GseRequestPrinter.printScriptTaskResult(taskDetailRst));
+//                return taskDetailRst;
+//            }
+//
+//            @Override
+//            public String getApiName() {
+//                return "get_task_detail_result";
+//            }
+//        });
+//    }
 
     public static GseTaskResponse sendProcessRequest(String id, List<api_process_req> processRequestList, int reqType) {
         return sendCmd(id, new GseTaskResponseCaller() {

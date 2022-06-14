@@ -74,7 +74,8 @@ public class JobExecuteCommonV3Processor {
         }
         if (CollectionUtils.isNotEmpty(server.getIps())) {
             List<HostDTO> staticIpList = new ArrayList<>();
-            server.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
+            server.getIps().forEach(host -> staticIpList.add(HostDTO.fromHostIdOrCloudIp(host.getHostId(),
+                host.getBkCloudId(), host.getIp())));
             serversDTO.setStaticIpList(staticIpList);
         }
         return serversDTO;

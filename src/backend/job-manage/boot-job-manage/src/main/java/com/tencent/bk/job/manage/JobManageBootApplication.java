@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -55,10 +55,10 @@ public class JobManageBootApplication {
     }
 
     @Bean
-    CloudAreaService buildCloudAreaService(@Autowired EsbConfig esbConfig, @Autowired CmdbConfig cmdbConfig) {
+    CloudAreaService buildCloudAreaService(@Autowired BkApiConfig bkApiConfig, @Autowired CmdbConfig cmdbConfig) {
         QueryAgentStatusClient queryAgentStatusClient =
             ApplicationContextRegister.getBean(QueryAgentStatusClient.class);
         MeterRegistry meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
-        return new CloudAreaService(esbConfig, cmdbConfig, queryAgentStatusClient, meterRegistry);
+        return new CloudAreaService(bkApiConfig, cmdbConfig, queryAgentStatusClient, meterRegistry);
     }
 }

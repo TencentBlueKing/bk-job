@@ -23,6 +23,9 @@ data:
     esb:
       service:
         url: {{ .Values.bkComponentApiUrl }}
+    bkApiGateway:
+      gse:
+        url: {{ .Values.bkGseApiGatewayUrl }}
     gse:
       cache:
         apiserver:

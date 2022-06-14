@@ -50,18 +50,4 @@ public abstract class GseLog<T> {
     public boolean isNullResp() {
         return false;
     }
-
-    /**
-     * 是否出错
-     *
-     * @return 是否出错
-     */
-    public abstract boolean isError();
-
-    /**
-     * 错误信息
-     *
-     * @return 错误信息
-     */
-    public abstract String getErrorMsg();
 }

@@ -26,26 +26,14 @@ package com.tencent.bk.job.execute.engine.model;
 
 
 import com.tencent.bk.gse.taskapi.api_map_rsp;
-import com.tencent.bk.job.execute.engine.consts.GSECode;
 
 /**
- * @version 1.0
- * @time 2017/6/5.
+ * 文件任务查询结果
  */
 public class FileTaskLog extends GseLog<api_map_rsp> {
 
     public FileTaskLog(api_map_rsp gseLog) {
         super(gseLog);
-    }
-
-    @Override
-    public boolean isError() {
-        return GSECode.ErrorCode.getErrorCode(getGseLog().getBk_error_code()) == GSECode.ErrorCode.ERROR;
-    }
-
-    @Override
-    public String getErrorMsg() {
-        return getGseLog().getBk_error_msg();
     }
 
     @Override

@@ -134,6 +134,15 @@ public class HostDTO implements Cloneable {
         return host;
     }
 
+
+    public static HostDTO fromHostIdOrCloudIp(Long hostId, Long bkCloudId, String ip) {
+        HostDTO host = new HostDTO();
+        host.setHostId(hostId);
+        host.setBkCloudId(bkCloudId);
+        host.setIp(ip);
+        return host;
+    }
+
     public String toCloudIp() {
         return bkCloudId + ":" + ip;
     }

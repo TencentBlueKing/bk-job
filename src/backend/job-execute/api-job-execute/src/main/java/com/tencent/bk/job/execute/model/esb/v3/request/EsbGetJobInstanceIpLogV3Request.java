@@ -52,4 +52,7 @@ public class EsbGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
     private Long cloudAreaId;
 
     private String ip;
+
+    @JsonProperty("host_id")
+    private Long hostId;
 }

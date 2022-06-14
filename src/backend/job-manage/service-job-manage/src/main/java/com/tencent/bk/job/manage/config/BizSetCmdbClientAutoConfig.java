@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.config;
 
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +36,7 @@ public class BizSetCmdbClientAutoConfig {
 
     @Bean
     @Autowired
-    public BizSetCmdbClient bizSetCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig) {
-        return new BizSetCmdbClient(esbConfig, cmdbConfig);
+    public BizSetCmdbClient bizSetCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig) {
+        return new BizSetCmdbClient(bkApiConfig, cmdbConfig);
     }
 }
