@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -67,11 +66,6 @@ public class BasicScriptVO {
      */
     @ApiModelProperty(value = "是否公共脚本")
     private Boolean publicScript;
-    /**
-     * 业务id
-     */
-    @CompatibleImplementation(explain = "为了无损发布保留的历史字段，发布完成需要删除", version = "3.5.1")
-    private Long appId;
 
     /**
      * 资源范围类型
@@ -118,7 +112,6 @@ public class BasicScriptVO {
             .add("name='" + name + "'")
             .add("type=" + type)
             .add("publicScript=" + publicScript)
-            .add("appId=" + appId)
             .add("category=" + category)
             .add("version='" + version + "'")
             .add("status=" + status)

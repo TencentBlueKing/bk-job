@@ -28,9 +28,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
+import com.tencent.bk.job.analysis.model.inner.PerAppStatisticDTO;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
 import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
-import com.tencent.bk.job.analysis.model.web.PerAppStatisticVO;
 import com.tencent.bk.job.analysis.util.calc.AppMomYoyCalculator;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
@@ -105,7 +105,7 @@ public class AppStatisticService extends CommonStatisticService {
     private List<SimpleAppInfoDTO> getFilteredAppDTOList(List<Long> appIdList, StatisticsDTO statisticsDTO) {
         List<SimpleAppInfoDTO> applicationDTOList = JsonUtils.fromJson(statisticsDTO.getValue(),
             new TypeReference<List<SimpleAppInfoDTO>>() {
-        });
+            });
         if (appIdList != null) {
             Set<Long> appIdSet = new HashSet<>(appIdList);
             applicationDTOList =
@@ -116,19 +116,19 @@ public class AppStatisticService extends CommonStatisticService {
         return applicationDTOList;
     }
 
-    private List<PerAppStatisticVO> extractAppFromStatistics(List<Long> appIdList, StatisticsDTO statisticsDTO) {
+    private List<PerAppStatisticDTO> extractAppFromStatistics(List<Long> appIdList, StatisticsDTO statisticsDTO) {
         if (statisticsDTO == null) return null;
         List<SimpleAppInfoDTO> applicationDTOList = getFilteredAppDTOList(appIdList, statisticsDTO);
-        List<PerAppStatisticVO> perAppStatisticVOList = new ArrayList<>();
+        List<PerAppStatisticDTO> perAppStatisticDTOList = new ArrayList<>();
         for (SimpleAppInfoDTO applicationDTO : applicationDTOList) {
-            PerAppStatisticVO perAppStatisticVO = new PerAppStatisticVO();
-            perAppStatisticVO.setAppId(applicationDTO.getId());
-            perAppStatisticVO.setAppName(applicationDTO.getName());
-            perAppStatisticVO.setValue(1L);
-            perAppStatisticVO.setRatio(1.0f / applicationDTOList.size());
-            perAppStatisticVOList.add(perAppStatisticVO);
+            PerAppStatisticDTO perAppStatisticDTO = new PerAppStatisticDTO();
+            perAppStatisticDTO.setAppId(applicationDTO.getId());
+            perAppStatisticDTO.setScopeName(applicationDTO.getName());
+            perAppStatisticDTO.setValue(1L);
+            perAppStatisticDTO.setRatio(1.0f / applicationDTOList.size());
+            perAppStatisticDTOList.add(perAppStatisticDTO);
         }
-        return perAppStatisticVOList;
+        return perAppStatisticDTOList;
     }
 
     /**
@@ -138,7 +138,7 @@ public class AppStatisticService extends CommonStatisticService {
      * @param date
      * @return
      */
-    public List<PerAppStatisticVO> listJoinedApp(List<Long> appIdList, String date) {
+    public List<PerAppStatisticDTO> listJoinedApp(List<Long> appIdList, String date) {
         StatisticsDTO statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
             StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST, date);
@@ -152,7 +152,7 @@ public class AppStatisticService extends CommonStatisticService {
      * @param date
      * @return
      */
-    public List<PerAppStatisticVO> listActiveApp(List<Long> appIdList, String date) {
+    public List<PerAppStatisticDTO> listActiveApp(List<Long> appIdList, String date) {
         StatisticsDTO statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
             StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_ACTIVE_APP_LIST, date);

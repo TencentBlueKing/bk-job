@@ -72,8 +72,7 @@ import java.util.List;
 public interface WebScriptResource {
 
     @ApiOperation(value = "根据脚本版本ID获取脚本版本详情", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/scriptVersion/{scriptVersionId}",
-        "/scope/{scopeType}/{scopeId}/scriptVersion/{scriptVersionId}"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/scriptVersion/{scriptVersionId}"})
     Response<ScriptVO> getScriptVersionDetail(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -81,11 +80,11 @@ public interface WebScriptResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "脚本版本ID", required = true, example = "1")
         @PathVariable("scriptVersionId")
@@ -93,8 +92,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "根据脚本ID获取脚本详情", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/script/{scriptId}",
-        "/scope/{scopeType}/{scopeId}/script/{scriptId}"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/{scriptId}"})
     Response<ScriptVO> getScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -102,19 +100,18 @@ public interface WebScriptResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "脚本ID", required = true, example = "1")
         @PathVariable("scriptId")
             String scriptId);
 
     @ApiOperation(value = "根据脚本ID获取脚本基本信息", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/script/basic/{scriptId}",
-        "/scope/{scopeType}/{scopeId}/script/basic/{scriptId}"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/basic/{scriptId}"})
     Response<ScriptVO> getScriptBasicInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -122,11 +119,11 @@ public interface WebScriptResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "脚本ID", required = true, example = "1")
         @PathVariable("scriptId")
@@ -134,8 +131,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "根据脚本ID获取已上线脚本", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/scriptVersion/online/{scriptId}",
-        "/scope/{scopeType}/{scopeId}/scriptVersion/online/{scriptId}"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/scriptVersion/online/{scriptId}"})
     Response<ScriptVO> getOnlineScriptVersionByScriptId(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -143,11 +139,11 @@ public interface WebScriptResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "脚本ID", required = true, example = "1")
         @PathVariable("scriptId") String scriptId,
@@ -157,19 +153,18 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "获取脚本列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/script/list",
-        "/scope/{scopeType}/{scopeId}/script/list"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/list"})
     Response<PageData<ScriptVO>> listPageScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "是否公共脚本")
         @RequestParam(value = "publicScript", required = false, defaultValue = "false")
@@ -213,8 +208,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "获取脚本列表(仅包含基础信息)", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/script/basic/list",
-        "/scope/{scopeType}/{scopeId}/script/basic/list"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/basic/list"})
     Response<List<ScriptVO>> listScriptBasicInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -222,11 +216,11 @@ public interface WebScriptResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "脚本ID列表，多个ID之间用,分隔", required = true)
         @RequestParam("ids")
@@ -234,8 +228,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "获取脚本的所有版本", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/script/{scriptId}/scriptVersion/list",
-        "/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/list"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/list"})
     Response<List<ScriptVO>> listScriptVersion(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -243,11 +236,11 @@ public interface WebScriptResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam("脚本ID")
         @PathVariable("scriptId")
@@ -385,8 +378,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "根据条件查询业务下的脚本名称列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/scriptNames",
-        "/scope/{scopeType}/{scopeId}/scriptNames"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/scriptNames"})
     Response listAppScriptNames(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -394,11 +386,11 @@ public interface WebScriptResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam("脚本名称")
         @RequestParam("scriptName")
@@ -406,8 +398,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "获取业务下面的已在线业务脚本列表", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/scripts/online",
-        "/scope/{scopeType}/{scopeId}/scripts/online"})
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/scripts/online"})
     Response<List<BasicScriptVO>> listScriptOnline(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -415,11 +406,11 @@ public interface WebScriptResource {
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = false)
-        @PathVariable(value = "scopeType", required = false)
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = false)
-        @PathVariable(value = "scopeId", required = false)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
             String scopeId
     );
 
@@ -509,10 +500,10 @@ public interface WebScriptResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "脚本ID", required = false, example = "1")
+        @ApiParam(value = "脚本ID", example = "1")
         @RequestParam(value = "scriptId")
             String scriptId,
-        @ApiParam(value = "脚本版本ID", required = false, example = "1")
+        @ApiParam(value = "脚本版本ID", example = "1")
         @RequestParam(value = "scriptVersionId", required = false)
             Long scriptVersionId
     );
@@ -533,7 +524,7 @@ public interface WebScriptResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @RequestParam("scriptId") String scriptId,
-        @ApiParam(value = "脚本版本ID", required = false, example = "1")
+        @ApiParam(value = "脚本版本ID", example = "1")
         @RequestParam(value = "scriptVersionId", required = false)
             Long scriptVersionId
     );

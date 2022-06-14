@@ -48,12 +48,10 @@ public class ScriptConverter {
             return null;
         }
         ScriptVO scriptVO = new ScriptVO();
-
-        scriptVO.setAppId(script.getAppId());
         if (script.getAppId() != null && !script.getAppId().equals(PUBLIC_APP_ID)) {
             AppScopeMappingService appScopeMappingService =
                 ApplicationContextRegister.getBean(AppScopeMappingService.class);
-            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(scriptVO.getAppId());
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(script.getAppId());
             scriptVO.setScopeType(resourceScope.getType().getValue());
             scriptVO.setScopeId(resourceScope.getId());
         }
@@ -95,11 +93,10 @@ public class ScriptConverter {
             return null;
         }
         BasicScriptVO scriptVO = new BasicScriptVO();
-        scriptVO.setAppId(script.getAppId());
         if (script.getAppId() != null && !script.getAppId().equals(PUBLIC_APP_ID)) {
             AppScopeMappingService appScopeMappingService =
                 ApplicationContextRegister.getBean(AppScopeMappingService.class);
-            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(scriptVO.getAppId());
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(script.getAppId());
             scriptVO.setScopeType(resourceScope.getType().getValue());
             scriptVO.setScopeId(resourceScope.getId());
         }

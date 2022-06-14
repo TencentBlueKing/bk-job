@@ -110,10 +110,9 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
     @Override
     public Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(String username,
                                                                                  String scriptLanguages,
-                                                                                 Long appId,
                                                                                  String scopeType,
                                                                                  String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         List<ScriptTemplateDTO> scriptTemplates = getUserCustomScriptTemplate(username, scriptLanguages);
         scriptTemplates.forEach(
             scriptTemplate -> customScriptTemplateService.renderScriptTemplate(

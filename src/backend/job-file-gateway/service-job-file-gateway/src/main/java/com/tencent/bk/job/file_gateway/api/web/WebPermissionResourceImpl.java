@@ -58,20 +58,18 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     @Override
     public Response<AuthResultVO> checkOperationPermission(
         String username, OperationPermissionReq req) {
-        return checkOperationPermission(
-            username, req.getAppId(), req.getScopeType(), req.getScopeId(),
+        return checkOperationPermission(username, req.getScopeType(), req.getScopeId(),
             req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
     }
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
-                                                           Long appId,
                                                            String scopeType,
                                                            String scopeId,
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, appId);
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         if (StringUtils.isEmpty(operation)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }

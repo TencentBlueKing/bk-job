@@ -41,6 +41,8 @@ public interface HostTopoDAO {
 
     int batchDeleteHostTopo(DSLContext dslContext, List<Long> hostIdList);
 
+    int batchDeleteHostTopo(DSLContext dslContext, Long bizId, List<Long> hostIdList);
+
     int countHostTopo(DSLContext dslContext, Long bizId, Long hostId);
 
     List<HostTopoDTO> listHostTopoByHostId(DSLContext dslContext, Long hostId);

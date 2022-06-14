@@ -32,7 +32,6 @@ import BaseModel from './base';
 export default class Script extends BaseModel {
     constructor (payload) {
         super();
-        this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
         this.id = payload.id || 0;

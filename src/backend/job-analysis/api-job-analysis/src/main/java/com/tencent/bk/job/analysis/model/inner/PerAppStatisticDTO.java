@@ -22,51 +22,59 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.analysis.model.inner;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import com.tencent.bk.job.analysis.model.web.PerAppStatisticVO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.json.PercentageFormatJsonSerializer;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * 业务VO
- */
 @NoArgsConstructor
-@ApiModel("业务")
+@AllArgsConstructor
+@ApiModel("单个业务的统计信息")
 @Data
-public class AppVO {
-    @ApiModelProperty(value = "Job业务ID", hidden = true)
-    private Long id;
-    @ApiModelProperty("资源范围类型")
-    private String scopeType;
-    @ApiModelProperty("资源范围ID")
-    private String scopeId;
-    @ApiModelProperty("业务名称")
-    private String name;
-    @ApiModelProperty("是否有权限")
-    private Boolean hasPermission;
-    @ApiModelProperty("是否收藏")
-    private Boolean favor;
-    @ApiModelProperty("收藏时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    private Long favorTime;
+public class PerAppStatisticDTO {
 
-    public AppVO(Long id,
-                 String scopeType,
-                 String scopeId,
-                 String name,
-                 Boolean hasPermission,
-                 Boolean favor,
-                 Long favorTime) {
-        this.id = id;
-        this.scopeType = scopeType;
-        this.scopeId = scopeId;
-        this.name = name;
-        this.hasPermission = hasPermission;
-        this.favor = favor;
-        this.favorTime = favorTime;
+    /**
+     * 业务ID
+     */
+    private Long appId;
+
+    /**
+     * 资源范围名称
+     */
+    private String scopeName;
+
+    /**
+     * 统计量数值
+     */
+    private Long value;
+
+    /**
+     * 占比
+     */
+    @JsonSerialize(using = PercentageFormatJsonSerializer.class)
+    private Float ratio;
+
+    public PerAppStatisticVO toPerAppStatisticVO() {
+        PerAppStatisticVO perAppStatisticVO = new PerAppStatisticVO();
+        // TODO:发布后去除
+        perAppStatisticVO.setAppId(appId);
+        perAppStatisticVO.setAppName(scopeName);
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        perAppStatisticVO.setScopeType(resourceScope.getType().getValue());
+        perAppStatisticVO.setScopeId(resourceScope.getId());
+        perAppStatisticVO.setScopeName(scopeName);
+        perAppStatisticVO.setValue(value);
+        perAppStatisticVO.setRatio(ratio);
+        return perAppStatisticVO;
     }
 }

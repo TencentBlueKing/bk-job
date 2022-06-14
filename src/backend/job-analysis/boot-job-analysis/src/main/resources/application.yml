@@ -16,7 +16,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,refresh
       base-path: /actuator
     enabled-by-default: false
   endpoint:
@@ -42,6 +42,8 @@ management:
     prometheus:
       enabled: true
     scheduledtasks:
+      enabled: true
+    refresh:
       enabled: true
 server:
   port: 19807

@@ -26,8 +26,13 @@ package com.tencent.bk.job.common.cc.model.result;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-public class FindHostBizRelationsResult {
+/**
+ * 主机业务关系信息
+ */
+@Data
+public class HostBizRelationDTO {
 
     @JsonProperty("bk_biz_id")
     private Long bizId;

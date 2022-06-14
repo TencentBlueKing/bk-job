@@ -25,10 +25,9 @@
 
 export default class DynamicGroupInfo {
     constructor (payload) {
-        this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
-        this.appName = payload.appName;
+        this.scopeName = payload.scopeName;
         this.id = payload.id;
         this.owner = payload.owner;
         this.ownerName = payload.ownerName;

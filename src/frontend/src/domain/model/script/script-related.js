@@ -28,7 +28,6 @@ import BaseModel from './base';
 export default class ScriptRelated extends BaseModel {
     constructor (payload) {
         super();
-        this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
         this.scriptStatus = payload.scriptStatus;
