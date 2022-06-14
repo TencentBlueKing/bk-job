@@ -857,8 +857,9 @@ public class HostServiceImpl implements HostService {
             finalHostInfoVOList);
     }
 
-    private List<CloudIPDTO> parseInputCloudIPList(List<String> checkIpList) {
-        List<CloudIPDTO> inputCloudIPList = new ArrayList<>();
+    private Pair<Set<CloudIPDTO>, Set<String>> parseInputCloudIPList(List<String> checkIpList) {
+        Set<CloudIPDTO> inputCloudIPSet = new HashSet<>();
+        Set<String> inputIPWithoutCloudIdSet = new HashSet<>();
         Pattern pattern = Pattern.compile("[:：]");
         for (String ip : checkIpList) {
             if (StringUtils.isBlank(ip)) {
@@ -867,12 +868,12 @@ public class HostServiceImpl implements HostService {
             if (ip.contains(":") || ip.contains("：")) {
                 //有云区域Id
                 String[] arr = pattern.split(ip);
-                inputCloudIPList.add(new CloudIPDTO(Long.parseLong(arr[0].trim()), arr[1].trim()));
+                inputCloudIPSet.add(new CloudIPDTO(Long.parseLong(arr[0].trim()), arr[1].trim()));
             } else {
-                inputCloudIPList.add(new CloudIPDTO(JobConstants.DEFAULT_CLOUD_AREA_ID, ip.trim()));
+                inputIPWithoutCloudIdSet.add(ip.trim());
             }
         }
-        return inputCloudIPList;
+        return Pair.of(inputCloudIPSet, inputIPWithoutCloudIdSet);
     }
 
     private List<String> buildCloudIPList(List<CloudIPDTO> cloudIPDTOList) {
@@ -986,13 +987,42 @@ public class HostServiceImpl implements HostService {
         if (checkIpList == null || checkIpList.isEmpty()) {
             return Collections.emptyList();
         }
-        List<CloudIPDTO> inputCloudIPList = parseInputCloudIPList(checkIpList);
-        //1.查出对当前业务生效的白名单IP
+        Pair<Set<CloudIPDTO>, Set<String>> pair = parseInputCloudIPList(checkIpList);
+        Set<CloudIPDTO> inputCloudIPSet = pair.getLeft();
+        Set<String> inputIPWithoutCloudIdSet = pair.getRight();
+        log.debug("inputCloudIPSet={},inputIPWithoutCloudIdSet={}", inputIPWithoutCloudIdSet, inputIPWithoutCloudIdSet);
+        // 0.通过对输入的无云区域ID的IP进行云区域补全得到的完整IP，云区域ID来源：白名单、DB、默认值
+        Set<CloudIPDTO> makeupCloudIPSet = new HashSet<>();
+        // 1.查出对当前业务生效的白名单IP
         List<CloudIPDTO> appWhiteIPList = whiteIPService.listWhiteIP(appId, actionScope);
+        log.debug("appWhiteIPList={}", appWhiteIPList);
         Set<String> appWhiteIPSet = new HashSet<>();
-        appWhiteIPList.forEach(appWhiteIP -> appWhiteIPSet.add(appWhiteIP.getCloudIP()));
+        appWhiteIPList.forEach(appWhiteIP -> {
+            appWhiteIPSet.add(appWhiteIP.getCloudIP());
+            // 若输入的纯IP与某个白名单IP匹配，则记录下其云区域ID用于后续查找
+            if (inputIPWithoutCloudIdSet.contains(appWhiteIP.getIp().trim())) {
+                makeupCloudIPSet.add(appWhiteIP);
+            }
+        });
+        // 2.根据纯IP从DB查出所有可能的含云区域ID的完整IP
+        List<ApplicationHostDTO> hostByPureIpList = applicationHostDAO.listHostInfo(null,
+            inputIPWithoutCloudIdSet);
+        Set<CloudIPDTO> hostByPureIpInDB = hostByPureIpList.parallelStream()
+            .map(host -> new CloudIPDTO(host.getCloudAreaId(), host.getIp())).collect(Collectors.toSet());
+        makeupCloudIPSet.addAll(hostByPureIpInDB);
+        inputIPWithoutCloudIdSet.removeAll(
+            hostByPureIpInDB.parallelStream().map(CloudIPDTO::getIp).collect(Collectors.toSet())
+        );
+        // 3.DB中找不到的纯IP视为使用默认云区域ID
+        inputIPWithoutCloudIdSet.forEach(pureIp ->
+            makeupCloudIPSet.add(new CloudIPDTO(JobConstants.DEFAULT_CLOUD_AREA_ID, pureIp))
+        );
 
-        //2.找出输入IP中的白名单IP
+        log.debug("makeupCloudIPSet={}", makeupCloudIPSet);
+        inputCloudIPSet.addAll(makeupCloudIPSet);
+        List<CloudIPDTO> inputCloudIPList = new ArrayList<>(inputCloudIPSet);
+
+        // 4.找出输入IP中的白名单IP
         List<CloudIPDTO> inputWhiteIPList = new ArrayList<>();
         List<CloudIPDTO> inputNotWhiteIPList = new ArrayList<>();
         inputCloudIPList.forEach(inputCloudIP -> {
@@ -1002,11 +1032,11 @@ public class HostServiceImpl implements HostService {
                 inputNotWhiteIPList.add(inputCloudIP);
             }
         });
-        // 3.非白名单IP校验是否在业务下
+        // 5.非白名单IP校验是否在业务下
         List<CloudIPDTO> inAppIPList = new ArrayList<>();
         List<CloudIPDTO> notInAppIPList = new ArrayList<>();
         separateNotInAppIP(appId, inputNotWhiteIPList, inAppIPList, notInAppIPList);
-        // 4.不在业务下的IP打印出来
+        // 6.不在业务下的IP打印出来
         if (!notInAppIPList.isEmpty()) {
             log.warn(
                 "ips not in app {}:{}",
@@ -1014,7 +1044,7 @@ public class HostServiceImpl implements HostService {
                 StringUtil.concatCollection(notInAppIPList)
             );
         }
-        // 5.查询主机详情
+        // 7.查询主机详情
         List<CloudIPDTO> validIPList = new ArrayList<>(inputWhiteIPList);
         validIPList.addAll(inAppIPList);
         // 根据IP从本地查主机
@@ -1026,6 +1056,7 @@ public class HostServiceImpl implements HostService {
         validIPList.removeIf(cloudIPDTO -> localHostCloudIPSet.contains(cloudIPDTO.getCloudIP()));
         // 查不到的再去CMDB查
         if (!validIPList.isEmpty()) {
+
             IBizCmdbClient cmdbClient = CmdbClientFactory.getCmdbClient();
             List<ApplicationHostDTO> cmdbHosts = cmdbClient.listHostsByIps(
                 validIPList.parallelStream()
@@ -1033,11 +1064,17 @@ public class HostServiceImpl implements HostService {
                     .collect(Collectors.toList())
             );
             hostDTOList.addAll(cmdbHosts);
+            Set<String> cmdbHostIpSet = cmdbHosts.parallelStream()
+                .map(ApplicationHostDTO::getCloudIp).collect(Collectors.toSet());
+            validIPList.removeIf(cloudIPDTO -> cmdbHostIpSet.contains(cloudIPDTO.getCloudIP()));
+            if (!validIPList.isEmpty()) {
+                log.warn("Cannot find hostinfo of ips:{},ignore", validIPList);
+            }
         }
 
-        // 6.查询Agent状态
+        // 8.查询Agent状态
         fillAgentStatus(hostDTOList);
-        // 7.类型转换，返回
+        // 9.类型转换，返回
         List<HostInfoVO> hostInfoList = new ArrayList<>();
         hostDTOList.forEach(hostInfo -> hostInfoList.add(TopologyHelper.convertToHostInfoVO(hostInfo)));
         return hostInfoList;
