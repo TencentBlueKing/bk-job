@@ -127,7 +127,7 @@ public class LogServiceImpl implements LogService {
             long stepInstanceId = taskHostLog.getStepInstanceId();
             String ip = taskHostLog.getIp();
             int executeCount = taskHostLog.getExecuteCount();
-            int batch = taskHostLog.getBatch();
+            Integer batch = taskHostLog.getBatch();
             List<FileTaskLogDoc> fileTaskLogs = taskHostLog.getFileTaskLogs();
 
             if (CollectionUtils.isNotEmpty(taskHostLog.getFileTaskLogs())) {
