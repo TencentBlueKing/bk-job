@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BkApiConfig {
 
+
     @Value("${app.code:}")
     private String appCode;
 
@@ -47,6 +48,6 @@ public class BkApiConfig {
     /**
      * 蓝鲸Api Gateway url
      */
-    @Value("${bk.api.gateway.gse.url:}")
+    @Value("${bkApiGateway.gse.url:}")
     private String bkGseApiGatewayUrl;
 }
