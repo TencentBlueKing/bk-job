@@ -29,9 +29,9 @@ import com.tencent.bk.gse.taskapi.api_map_rsp;
 import com.tencent.bk.gse.taskapi.api_process_base_info;
 import com.tencent.bk.gse.taskapi.api_process_extra_info;
 import com.tencent.bk.gse.taskapi.api_process_req;
+import com.tencent.bk.job.common.gse.model.GseTaskResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
-import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.gse.model.GseProcessInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 

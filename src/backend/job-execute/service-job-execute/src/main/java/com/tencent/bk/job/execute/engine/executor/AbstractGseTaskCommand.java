@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
-import com.tencent.bk.job.execute.engine.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;

@@ -1,10 +1,10 @@
-package com.tencent.bk.job.execute.engine.gse.v2;
+package com.tencent.bk.job.common.gse.v2;
 
-import com.tencent.bk.job.execute.engine.gse.v2.model.Agent;
-import com.tencent.bk.job.execute.engine.gse.v2.model.ExecuteScriptRequest;
-import com.tencent.bk.job.execute.engine.gse.v2.model.GetExecuteScriptResultRequest;
-import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptTaskResult;
-import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
+import com.tencent.bk.job.common.gse.model.GseTaskResponse;
+import com.tencent.bk.job.common.gse.v2.model.Agent;
+import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
+import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
+import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 
 import java.util.Collection;
 import java.util.List;

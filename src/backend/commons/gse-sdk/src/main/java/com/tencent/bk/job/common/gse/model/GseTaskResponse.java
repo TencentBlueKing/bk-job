@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.model;
+package com.tencent.bk.job.common.gse.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

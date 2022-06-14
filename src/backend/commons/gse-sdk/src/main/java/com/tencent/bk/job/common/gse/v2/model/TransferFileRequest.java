@@ -1,4 +1,4 @@
-package com.tencent.bk.job.execute.engine.gse.v2.model;
+package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * GSE - 下发脚本任务请求
+ * GSE - 下发文件任务请求
  */
 @Data
-public class ExecuteScriptRequest {
+public class TransferFileRequest {
     /**
      * 目标Agent
      */

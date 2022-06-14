@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.result;
 
 import com.google.common.collect.Sets;
 import com.tencent.bk.gse.taskapi.api_map_rsp;
+import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -40,7 +41,6 @@ import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.gse.model.CopyFileRsp;
 import com.tencent.bk.job.execute.engine.gse.model.GSEFileTaskResult;
-import com.tencent.bk.job.execute.engine.gse.v2.GseApiClient;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileTaskLog;
 import com.tencent.bk.job.execute.engine.model.GseLog;

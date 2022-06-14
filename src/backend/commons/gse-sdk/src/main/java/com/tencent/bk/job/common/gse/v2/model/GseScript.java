@@ -1,4 +1,4 @@
-package com.tencent.bk.job.execute.engine.gse.v2.model;
+package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
