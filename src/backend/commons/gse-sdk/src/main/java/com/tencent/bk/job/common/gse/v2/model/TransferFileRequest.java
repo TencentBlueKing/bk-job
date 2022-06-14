@@ -11,42 +11,37 @@ import java.util.List;
  */
 @Data
 public class TransferFileRequest {
-    /**
-     * 目标Agent
-     */
-    private List<Agent> agents = new ArrayList<>();
 
     /**
-     * 任务脚本
+     * 文件任务
      */
-    private List<GseScript> scripts = new ArrayList<>();
+    private List<FileTransferTask> tasks = new ArrayList<>();
 
     /**
-     * atomic_tasks 包含的元素的个数
+     * 任务超时秒数
      */
-    private int atomicTaskNum;
+    @JsonProperty("timeout_seconds")
+    private int timeout;
 
     /**
-     * 脚本命令定义
+     * 目录创建策略，true：自动创建，false：即使目录不存在也不自动创建
      */
-    @JsonProperty("atomic_tasks")
-    private List<AtomicScriptTask> atomicTasks = new ArrayList<>();
+    @JsonProperty("auto_mkdir")
+    private boolean autoMkdir;
 
     /**
-     * 任务之间的依赖关系
+     * 文件上传速度限制(MB)
      */
-    @JsonProperty("atomic_tasks_relations")
-    private List<AtomicScriptTaskRelation> atomicScriptTaskRelations = new ArrayList<>();
+    @JsonProperty("upload_speed")
+    private int uploadSpeed;
 
-    public void addScript(GseScript script) {
-        scripts.add(script);
-    }
+    /**
+     * 文件下载速度限制(MB)，0：无限制
+     */
+    @JsonProperty("download_speed")
+    private int downloadSpeed;
 
-    public void addAtomicScriptTask(AtomicScriptTask atomicScriptTask) {
-        atomicTasks.add(atomicScriptTask);
-    }
-
-    public void addAtomicTaskRelation(AtomicScriptTaskRelation relation) {
-        atomicScriptTaskRelations.add(relation);
+    public void addFileTask(FileTransferTask task) {
+        tasks.add(task);
     }
 }

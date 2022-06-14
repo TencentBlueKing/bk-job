@@ -6,10 +6,13 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.gse.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
-import com.tencent.bk.job.common.gse.v2.model.AsyncExecuteScriptResult;
+import com.tencent.bk.job.common.gse.v2.model.AysncGseTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
+import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
+import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,15 +34,15 @@ public class GseApiClient extends AbstractBkApiClient implements IGseClient {
     @Override
     public GseTaskResponse asyncExecuteScript(ExecuteScriptRequest request) {
         log.info("AsyncExecuteScript, request: {}", request);
-        EsbResp<AsyncExecuteScriptResult> resp =
+        EsbResp<AysncGseTaskResult> resp =
             doHttpPost("/api/v2/task/async_execute_script",
-                request, new TypeReference<EsbResp<AsyncExecuteScriptResult>>() {
+                request, new TypeReference<EsbResp<AysncGseTaskResult>>() {
                 }, null);
-        AsyncExecuteScriptResult asyncExecuteScriptResult = resp.getData();
+        AysncGseTaskResult aysncGseTaskResult = resp.getData();
         GseTaskResponse gseTaskResponse = new GseTaskResponse();
         gseTaskResponse.setErrorCode(resp.getCode());
         gseTaskResponse.setErrorMessage(resp.getMessage());
-        gseTaskResponse.setGseTaskId(asyncExecuteScriptResult.getResult().getTaskId());
+        gseTaskResponse.setGseTaskId(aysncGseTaskResult.getResult().getTaskId());
 
         log.info("AsyncExecuteScript, resp: {}", gseTaskResponse);
 
@@ -70,5 +73,32 @@ public class GseApiClient extends AbstractBkApiClient implements IGseClient {
             }).collect(Collectors.toList());
     }
 
+    @Override
+    public GseTaskResponse asyncTransferFile(TransferFileRequest request) {
+        log.info("AsyncTransferFile, request: {}", request);
+        EsbResp<AysncGseTaskResult> resp =
+            doHttpPost("/api/v2/task/async_transfer_file",
+                request, new TypeReference<EsbResp<AysncGseTaskResult>>() {
+                }, null);
+        AysncGseTaskResult aysncGseTaskResult = resp.getData();
+        GseTaskResponse gseTaskResponse = new GseTaskResponse();
+        gseTaskResponse.setErrorCode(resp.getCode());
+        gseTaskResponse.setErrorMessage(resp.getMessage());
+        gseTaskResponse.setGseTaskId(aysncGseTaskResult.getResult().getTaskId());
 
+        log.info("AsyncTransferFile, resp: {}", gseTaskResponse);
+
+        return gseTaskResponse;
+    }
+
+    @Override
+    public FileTaskResult getTransferFileResult(GetTransferFileResultRequest request) {
+        log.info("GetTransferFileResult, request: {}", request);
+        EsbResp<FileTaskResult> resp =
+            doHttpPost("/api/v2/task/async/get_transfer_file_result",
+                request, new TypeReference<EsbResp<FileTaskResult>>() {
+                }, null);
+        log.info("GetTransferFileResult, resp: {}", resp);
+        return resp.getData();
+    }
 }

@@ -23,13 +23,13 @@ public class TargetFile {
     private String storeDir;
 
     /**
-     * 文件所有者
+     * 目标文件所有者
      */
     @JsonProperty("owner")
     private String owner;
 
     /**
-     * 源文件的权限配置
+     * 目标文件的权限配置
      */
     @JsonProperty("permission")
     private Integer permission;
