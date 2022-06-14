@@ -253,7 +253,7 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
         List<EsbIpDTO> ipList = new ArrayList<>();
         if (hostList != null && !hostList.isEmpty()) {
             hostList.forEach(host -> {
-                EsbIpDTO ipDTO = new EsbIpDTO(host.getCloudAreaId(), host.getIp());
+                EsbIpDTO ipDTO = new EsbIpDTO(host.getHostId(), host.getCloudAreaId(), host.getIp());
                 ipList.add(ipDTO);
             });
         }

@@ -52,6 +52,12 @@ public class EsbIpDTO {
 //        message = "{validation.constraints.InvalidIp.message}")
     private String ip;
 
+    public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {
+        this.hostId = hostId;
+        this.bkCloudId = bkCloudId;
+        this.ip = ip;
+    }
+
     public static EsbIpDTO fromApplicationHostInfo(ApplicationHostDTO applicationHostInfo) {
         if (applicationHostInfo == null) {
             return null;
