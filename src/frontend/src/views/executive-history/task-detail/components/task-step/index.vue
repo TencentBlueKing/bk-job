@@ -344,7 +344,7 @@
                     border: 1px solid #c4c6cc;
 
                     &:hover {
-                        border-color: currentColor;
+                        border-color: currentcolor;
                     }
                 }
             }

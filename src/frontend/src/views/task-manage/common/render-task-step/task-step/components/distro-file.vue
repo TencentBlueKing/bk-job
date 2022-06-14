@@ -27,7 +27,11 @@
 
 <template>
     <div class="step-distro-file">
-        <jb-form ref="form" :model="formData" fixed :label-width="formMarginLeftWidth">
+        <jb-form
+            ref="form"
+            :model="formData"
+            fixed
+            :label-width="formMarginLeftWidth">
             <card-layout :title="$t('template.基本信息')" class="block">
                 <item-factory
                     name="stepName"
@@ -66,7 +70,10 @@
                     :form-data="formData"
                     @on-change="handleChange" />
             </card-layout>
-            <card-layout :title="$t('template.传输目标')" class="block">
+            <card-layout
+                :title="$t('template.传输目标')"
+                class="block"
+                style="margin-bottom: 20px;">
                 <item-factory
                     ref="targetPath"
                     name="targetPath"
@@ -386,11 +393,11 @@
 </script>
 <style lang='postcss'>
     .step-distro-file {
-        .card-box {
+        .card-layout {
             padding-left: 0;
             margin-bottom: 6px;
 
-            .card-title {
+            .card-layout-title {
                 padding-left: 30px;
             }
         }

@@ -32,7 +32,7 @@
             <Icon class="statistics" :type="type" svg />
         </div>
         <div class="work-total">
-            <slot v-bind:jobNum="jobNum" v-bind:scriptNum="scriptNum" />
+            <slot v-bind:job-num="jobNum" v-bind:script-num="scriptNum" />
         </div>
         <div class="work-name">
             <slot name="name" />

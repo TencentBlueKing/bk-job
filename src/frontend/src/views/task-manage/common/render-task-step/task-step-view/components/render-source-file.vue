@@ -347,7 +347,7 @@
                 display: inline-block;
                 width: 6px;
                 height: 6px;
-                background: currentColor;
+                background: currentcolor;
                 border-radius: 50%;
             }
         }

@@ -94,7 +94,7 @@
                 min-width="150"
                 align="left">
                 <template slot-scope="{ row }">
-                    <span>{{ row.description }}</span>
+                    <span>{{ row.description || '--' }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column

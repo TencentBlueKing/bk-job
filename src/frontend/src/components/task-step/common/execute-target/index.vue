@@ -37,10 +37,14 @@
             ref="targetServerRef"
             :property="property"
             :rules="rules">
-            <div style="display: flex;">
+            <div
+                ref="actionBox"
+                style="display: flex;">
                 <template v-if="mode === 'onlyHost'">
                     <!-- 快速执行场景只能操作主机列表 -->
-                    <bk-button class="mr10" @click="handleShowChooseIp">
+                    <bk-button
+                        class="mr10"
+                        @click="handleShowChooseIp">
                         <Icon type="plus" />
                         {{ $t('添加服务器') }}
                     </bk-button>
@@ -80,7 +84,10 @@
                 </template>
                 <template v-if="isShowServerAction">
                     <bk-dropdown-menu>
-                        <bk-button class="mr10" type="primary" slot="dropdown-trigger">
+                        <bk-button
+                            class="mr10"
+                            type="primary"
+                            slot="dropdown-trigger">
                             <span>{{ $t('复制IP') }}</span>
                             <Icon type="down-small" class="action-flag" />
                         </bk-button>
@@ -104,7 +111,9 @@
                     right-icon="bk-icon icon-search"
                     @change="handleHostSearch" />
             </div>
-            <lower-component level="custom" :custom="isShowServerPanel">
+            <lower-component
+                level="custom"
+                :custom="isShowServerPanel">
                 <server-panel
                     v-show="isShowServerPanel"
                     ref="serverPanel"
@@ -274,7 +283,7 @@
                         return !TaskHostNodeModel.isHostNodeInfoEmpty(this.localHost);
                     },
                     message: I18n.t('目标服务器必填'),
-                    trigger: 'change',
+                    trigger: 'blur',
                 },
             ];
         },
@@ -292,6 +301,7 @@
                 if (!taskHostNode.isEmpty) {
                     this.$refs.targetServerRef.clearValidator();
                 }
+                console.log('from execute target = ', taskHostNode);
                 this.$emit('on-change', Object.freeze(taskHostNode));
             },
             /**
@@ -323,6 +333,9 @@
             handleHostChange (hostNodeInfo) {
                 this.localHost = Object.freeze(hostNodeInfo);
                 this.triggerChange();
+                setTimeout(() => {
+                    this.$refs.actionBox.scrollIntoView();
+                }, 500);
             },
             /**
              * @desc 复制所有主机
