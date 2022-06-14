@@ -31,15 +31,16 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.LogServiceResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
-import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceBatchSaveLogRequest;
@@ -66,17 +67,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LogServiceImpl implements LogService {
     private final LogServiceResourceClient logServiceResourceClient;
-    private final StepInstanceDAO stepInstanceDAO;
+    private final TaskInstanceService taskInstanceService;
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
 
     @Autowired
     public LogServiceImpl(LogServiceResourceClient logServiceResourceClient,
-                          StepInstanceDAO stepInstanceDAO,
+                          TaskInstanceService taskInstanceService,
                           ScriptAgentTaskService scriptAgentTaskService,
                           FileAgentTaskService fileAgentTaskService) {
         this.logServiceResourceClient = logServiceResourceClient;
-        this.stepInstanceDAO = stepInstanceDAO;
+        this.taskInstanceService = taskInstanceService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
     }
@@ -135,7 +136,7 @@ public class LogServiceImpl implements LogService {
     @Override
     public ScriptHostLogContent getScriptHostLogContent(long stepInstanceId, int executeCount, Integer batch,
                                                         HostDTO host) {
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
         AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch, host);
@@ -212,10 +213,10 @@ public class LogServiceImpl implements LogService {
     @Override
     public FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, Integer batch, HostDTO host,
                                                 Integer mode) {
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        AgentTaskDTO agentTask = fileAgentTaskService.getAgentTask(stepInstanceId, executeCount, batch,
+        AgentTaskDTO agentTask = fileAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch,
             FileTaskModeEnum.getFileTaskMode(mode), host);
         if (agentTask == null) {
             return null;
@@ -268,7 +269,7 @@ public class LogServiceImpl implements LogService {
     @Override
     public List<ServiceFileTaskLogDTO> getFileLogContentByTaskIds(long stepInstanceId, int executeCount, Integer batch,
                                                                   List<String> taskIds) {
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         InternalResponse<ServiceHostLogDTO> resp = logServiceResourceClient.listFileHostLogsByTaskIds(
@@ -288,7 +289,7 @@ public class LogServiceImpl implements LogService {
     public List<ServiceFileTaskLogDTO> batchGetFileSourceIpLogContent(long stepInstanceId,
                                                                       int executeCount,
                                                                       Integer batch) {
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         InternalResponse<List<ServiceFileTaskLogDTO>> resp = logServiceResourceClient.listFileHostLogs(
@@ -304,7 +305,7 @@ public class LogServiceImpl implements LogService {
     @Override
     public ServiceHostLogsDTO batchGetFileIpLogContent(long stepInstanceId, int executeCount, Integer batch,
                                                        List<HostDTO> hosts) {
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         ServiceFileLogQueryRequest request = new ServiceFileLogQueryRequest();
@@ -325,7 +326,7 @@ public class LogServiceImpl implements LogService {
     @Override
     public List<HostDTO> getIpsByContentKeyword(long stepInstanceId, int executeCount, Integer batch,
                                                 String keyword) {
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         InternalResponse<List<HostDTO>> resp = logServiceResourceClient.getIpsByKeyword(taskCreateDateStr,

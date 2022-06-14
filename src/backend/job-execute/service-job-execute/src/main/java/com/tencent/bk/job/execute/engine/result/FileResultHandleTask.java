@@ -1027,7 +1027,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void writeFileTaskLogContent(Map<Long, ServiceHostLogDTO> executionLogs) {
-        logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
+        if (!executionLogs.isEmpty()) {
+            logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
+        }
     }
 
     /**

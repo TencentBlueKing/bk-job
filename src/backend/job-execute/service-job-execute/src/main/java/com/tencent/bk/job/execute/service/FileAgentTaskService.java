@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 
 import java.util.List;
@@ -50,18 +51,18 @@ public interface FileAgentTaskService extends AgentTaskService {
                                       FileTaskModeEnum fileTaskMode);
 
     /**
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次；传入null或者0将忽略该参数
-     * @param fileTaskMode   文件分发任务模式
-     * @param host           主机
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        滚动执行批次；传入null或者0将忽略该参数
+     * @param fileTaskMode 文件分发任务模式
+     * @param host         主机
      * @return Agent任务
      */
-    AgentTaskDTO getAgentTask(Long stepInstanceId,
-                              Integer executeCount,
-                              Integer batch,
-                              FileTaskModeEnum fileTaskMode,
-                              HostDTO host);
+    AgentTaskDTO getAgentTaskByHost(StepInstanceDTO stepInstance,
+                                    Integer executeCount,
+                                    Integer batch,
+                                    FileTaskModeEnum fileTaskMode,
+                                    HostDTO host);
 
 
     /**

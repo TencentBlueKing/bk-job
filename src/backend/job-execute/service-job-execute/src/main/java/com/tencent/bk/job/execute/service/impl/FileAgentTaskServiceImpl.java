@@ -6,7 +6,9 @@ import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -108,10 +110,46 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public AgentTaskDTO getAgentTask(Long stepInstanceId, Integer executeCount, Integer batch,
-                                     FileTaskModeEnum fileTaskMode, HostDTO host) {
-        return fileAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount, batch, fileTaskMode,
-            host.getHostId());
+    public AgentTaskDTO getAgentTaskByHost(StepInstanceDTO stepInstance, Integer executeCount, Integer batch,
+                                           FileTaskModeEnum fileTaskMode, HostDTO host) {
+        Long hostId = host.getHostId();
+        if (hostId == null) {
+            // 根据ip反查hostId
+            HostDTO queryHost = getStepHostByIp(stepInstance, host.toCloudIp());
+            if (queryHost != null) {
+                hostId = queryHost.getHostId();
+            }
+        }
+        if (hostId == null) {
+            return null;
+        }
+        return fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch,
+            fileTaskMode, hostId);
+    }
+
+    private HostDTO getStepHostByIp(StepInstanceDTO stepInstance, String cloudIp) {
+        HostDTO queryHost = stepInstance.getTargetServers().getIpList().stream()
+            .filter(targetHost -> cloudIp.equals(targetHost.toCloudIp()))
+            .findFirst()
+            .orElse(null);
+        if (queryHost == null) {
+            if (CollectionUtils.isNotEmpty(stepInstance.getResolvedFileSourceList())) {
+                for (FileSourceDTO fileSource : stepInstance.getResolvedFileSourceList()) {
+                    if (fileSource.getServers() != null
+                        && CollectionUtils.isNotEmpty(fileSource.getServers().getIpList())) {
+                        queryHost = fileSource.getServers().getIpList().stream()
+                            .filter(sourceHost -> cloudIp.equals(sourceHost.toCloudIp()))
+                            .findFirst()
+                            .orElse(null);
+                        if (queryHost != null) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return queryHost;
     }
 
     @Override

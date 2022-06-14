@@ -106,6 +106,10 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
 
     @Override
     public InternalResponse<?> saveLogs(ServiceBatchSaveLogRequest request) {
+        if (CollectionUtils.isEmpty(request.getLogs())) {
+            return InternalResponse.buildSuccessResp(null);
+        }
+
         List<TaskHostLog> taskHostLogs =
             request.getLogs().stream()
                 .map(log -> convertToTaskLog(request.getLogType(), request.getJobCreateDate(), log.getStepInstanceId(),
