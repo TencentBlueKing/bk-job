@@ -91,7 +91,6 @@
     import _ from 'lodash';
     import AppManageService from '@service/app-manage';
     import { encodeRegexp } from '@utils/assist';
-    import { generateHostRealId } from './utils';
 
     export default {
         name: '',
@@ -251,28 +250,23 @@
                 AppManageService.fetchHostOfHost(params)
                     .then((data) => {
                         // 输入的有效 IP
-                        const hostList = [];
+                        const ipList = [];
                         const hostIPMap = {};
                         
                         data.forEach((host) => {
                             const {
+                                hostId,
                                 ip,
                                 cloudAreaInfo,
                             } = host;
-                            hostList.push({
-                                realId: generateHostRealId(host),
-                                ip,
-                                cloudAreaInfo: {
-                                    id: cloudAreaInfo.id,
-                                },
-                            });
+                            ipList.push({ hostId });
                             // 记录 IP 和 云区域 ID + IP 组成的检索
                             hostIPMap[ip] = true;
                             hostIPMap[`${cloudAreaInfo.id}:${ip}`] = true;
                         });
                         // 提交输入内容
-                        if (hostList.length > 0) {
-                            this.$emit('on-change', 'ipInput', hostList);
+                        if (ipList.length > 0) {
+                            this.$emit('on-change', 'ipInput', ipList);
                         }
                         // 正确的 IP 输入，但是 IP 不存于当前业务下
                         this.invalidIPList = ipList.reduce((result, IPItem) => {

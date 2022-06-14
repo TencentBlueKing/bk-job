@@ -534,7 +534,6 @@
                 }
 
                 this.steps = Object.freeze(steps);
-                console.log('from print stpes = ', this.steps);
                 this.$emit('on-change', steps);
             },
             /**

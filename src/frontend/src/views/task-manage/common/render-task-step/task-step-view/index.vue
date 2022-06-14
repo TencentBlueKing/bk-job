@@ -33,7 +33,9 @@
             ref="stepCom"
             :is="stepCom"
             :variable="variable"
-            :data="data" />
+            :data="data">
+            <slot />
+        </component>
     </detail-layout>
 </template>
 <script>

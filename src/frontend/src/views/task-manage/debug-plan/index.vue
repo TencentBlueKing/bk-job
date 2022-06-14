@@ -27,9 +27,17 @@
 
 <template>
     <div>
-        <smart-action class="edit-execute-plan" offset-target="detail-content">
+        <smart-action
+            class="dubug-exex-plan-page"
+            offset-target="detail-content">
             <detail-layout mode="see">
-                <detail-item :label="$t('template.全局变量：')" class="gloval-var-item">
+                <detail-item label="">
+                    <div
+                        class="detail-item-title"
+                        style="margin-bottom: 8px;">
+                        <span>{{ $t('template.全局变量.label') }}</span>
+                        <span>（ {{ variableList.length }} / {{ selectedVariable.length }} ）</span>
+                    </div>
                     <render-global-var
                         :list="variableList"
                         :select-value="selectedVariable"
@@ -37,8 +45,12 @@
                 </detail-item>
                 <detail-item label="" class="task-step-item">
                     <div class="task-step-selection">
-                        <!-- eslint-disable-next-line max-len -->
-                        <div>{{ $t('template.选择要调试的步骤') }}（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</div>
+                        <div
+                            class="detail-item-title"
+                            style="margin-bottom: 14px;">
+                            <span>{{ $t('template.选择要调试的步骤') }}</span>
+                            <span>（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</span>
+                        </div>
                         <div class="step-check">
                             <bk-button
                                 v-if="hasSelectAll"
@@ -70,10 +82,14 @@
                         @click="handleSubmitExec">
                         {{ $t('template.去执行') }}
                     </bk-button>
-                    <bk-button @click="handleCancle">{{ $t('template.取消') }}</bk-button>
+                    <bk-button
+                        class="mr10"
+                        @click="handleCancle">
+                        {{ $t('template.取消') }}
+                    </bk-button>
                     <bk-button
                         :disabled="!enableStepsNotEmpty"
-                        class="plan-save"
+                        class="mr10"
                         @click="handleSavePlan">
                         {{ $t('template.另存为') }}
                     </bk-button>
@@ -90,8 +106,15 @@
             :mask-close="false"
             :esc-close="false"
             :width="480">
-            <jb-form ref="editPlanForm" :model="planFormData" form-type="vertical" :rules="rules">
-                <jb-form-item :label="$t('template.执行方案名称')" required property="name">
+            <jb-form
+                ref="editPlanForm"
+                :model="planFormData"
+                form-type="vertical"
+                :rules="rules">
+                <jb-form-item
+                    :label="$t('template.执行方案名称')"
+                    required
+                    property="name">
                     <bk-input
                         v-model="planFormData.name"
                         :native-attributes="{ autofocus: 'autofocus' }"
@@ -99,7 +122,9 @@
                         @keydown="handleEnter" />
                 </jb-form-item>
             </jb-form>
-            <div slot="footer" class="setting-password-footer">
+            <div
+                slot="footer"
+                class="setting-password-footer">
                 <bk-button
                     theme="primary"
                     class="mr10"
@@ -107,7 +132,10 @@
                     @click="handleSubmitCreatePlan">
                     {{ $t('template.确定') }}
                 </bk-button>
-                <bk-button @click="handleCloseSave">{{ $t('template.取消') }}</bk-button>
+                <bk-button
+                    @click="handleCloseSave">
+                    {{ $t('template.取消') }}
+                </bk-button>
             </div>
         </jb-dialog>
     </div>
@@ -455,25 +483,23 @@
 <style lang='postcss'>
     @import "@/css/mixins/media";
 
-    .edit-execute-plan {
+    .dubug-exex-plan-page {
         padding-bottom: 20px;
 
-        .gloval-var-item {
-            margin-top: 20px;
+        .detail-item-title {
+            font-size: 16px;
+            line-height: 21px;
+            color: #313238;
         }
 
         .task-step-item {
-            margin-top: 20px;
+            margin-top: 40px;
             margin-bottom: 20px;
         }
 
         .task-step-selection {
             display: flex;
             width: 500px;
-            margin-bottom: 14px;
-            font-size: 16px;
-            line-height: 21px;
-            color: #313238;
 
             .step-check {
                 margin-left: auto;

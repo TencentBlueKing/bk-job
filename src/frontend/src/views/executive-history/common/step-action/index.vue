@@ -182,7 +182,7 @@
 
         &:hover {
             i {
-                color: currentColor;
+                color: currentcolor;
             }
         }
 

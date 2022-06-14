@@ -108,6 +108,8 @@
                 :name="`${stepInstanceId}_${host.ip}_${retryCount}`"
                 :step-instance-id="stepInstanceId"
                 :ip="host.ip"
+                :host="host"
+                :batch="host.batch"
                 :retry-count="retryCount"
                 :font-size="fontSize"
                 :mode="activePanel"
@@ -259,7 +261,7 @@
             handleDownload () {
                 TaskExecuteService.fetchStepExecutionLogFile({
                     id: this.stepInstanceId,
-                    ip: this.host.ip,
+                    ip: this.host.hostId,
                 }).then(() => {
                     this.$bkMessage({
                         theme: 'success',

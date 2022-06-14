@@ -34,7 +34,7 @@
         <div class="log-wraper">
             <div v-once id="executeScriptLog" style="height: 100%;" />
         </div>
-        <div class="log-status" v-if="ip && isRunning">
+        <div class="log-status" v-if="host && isRunning">
             <div class="log-loading">{{ $t('history.执行中') }}</div>
         </div>
         <div class="log-action-box">
@@ -67,8 +67,11 @@
                 type: Number,
                 required: true,
             },
-            ip: {
-                type: String,
+            host: {
+                type: Object,
+            },
+            batch: {
+                type: [Number, String],
             },
             retryCount: {
                 type: Number,
@@ -155,7 +158,7 @@
              * @desc 获取脚本日志
              */
             fetchLogContent () {
-                if (!this.ip) {
+                if (!this.host.ip && !this.host.hostId) {
                     this.isLoading = false;
                     if (this.editor) {
                         this.editor.setValue('');
@@ -163,10 +166,15 @@
                     }
                     return;
                 }
-                TaskExecuteService.fetchLogContentOfIp({
+                const requestHandler = this.host.hostId
+                    ? TaskExecuteService.fetchLogContentOfHostId
+                    : TaskExecuteService.fetchLogContentOfIp;
+                requestHandler({
                     stepInstanceId: this.stepInstanceId,
                     retryCount: this.retryCount,
-                    ip: this.ip,
+                    hostId: this.host.hostId,
+                    ip: this.host.ip,
+                    batch: this.batch,
                 })
                     .then(({
                         finished,

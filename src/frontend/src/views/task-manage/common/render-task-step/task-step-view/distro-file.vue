@@ -52,6 +52,7 @@
                 detail-fullscreen
                 :host-node-info="stepInfo.fileDestination.server.hostNodeInfo" />
         </detail-item>
+        <slot />
     </div>
 </template>
 <script>

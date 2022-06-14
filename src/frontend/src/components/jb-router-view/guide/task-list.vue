@@ -57,7 +57,9 @@
                         <div class="feature-title">{{ $t('编排作业相关的执行步骤') }}</div>
                         <div>
                             <span>{{ $t('点击') }}</span>
-                            <a @click="handleGoTemplateCreate">{{ $t('新建') }}</a>
+                            <router-link :to="{ name: 'templateCreate' }">
+                                {{ $t('新建') }}
+                            </router-link>
                             <span>{{ $t('将操作流程所需的步骤，以及一些需要在步骤间传递、或执行时可能需要根据不同需求传入不同值的参数抽离设置为“全局变量”, 编辑保存为一个全新的作业模板。') }}</span>
                         </div>
                     </div>

@@ -142,15 +142,14 @@ export const findAllChildNodeId = (node) => {
  * @returns { Boolean }
  */
 export const mergeInputHost = (first, second) => {
-    const result = [];
-    const firstHostReadIdMap = {};
-    first.forEach((item) => {
-        result.push(item);
-        firstHostReadIdMap[item.realId] = true;
-    });
-    second.forEach((item) => {
-        if (!firstHostReadIdMap[item.realId]) {
-            result.push(item);
+    const result = [...first];
+    const firstHostIdMap = first.reduce((result, ipInfo) => {
+        result[ipInfo.hostId] = true;
+        return result;
+    }, {});
+    second.forEach((ipInfo) => {
+        if (!firstHostIdMap[ipInfo.hostId]) {
+            result.push(ipInfo);
         }
     });
     
@@ -158,33 +157,28 @@ export const mergeInputHost = (first, second) => {
 };
 
 export const mergeTopologyHost = (target, preList, lastList) => {
-    const lastListMap = {};
-    lastList.forEach((item) => {
-        lastListMap[item.realId] = true;
+    const preHostIdMap = preList.reduce((result, ipInfo) => {
+        result[ipInfo.hostId] = true;
+        return result;
+    }, {});
+
+    const result = [];
+    const resultMemo = {};
+    // 删除 target 中 preList 相关的数据
+    target.forEach((ipInfo) => {
+        if (!preHostIdMap[ipInfo.hostId]) {
+            result.push(ipInfo);
+            resultMemo[ipInfo.hostId] = true;
+        }
+    });
+    // 追加 lastList 数据
+    lastList.forEach((ipInfo) => {
+        if (!resultMemo[ipInfo.hostId]) {
+            result.push(ipInfo);
+        }
     });
     
-    // 如果是删除操作
-    if (preList.length > lastList.length) {
-    // 找到删除的主机
-        const deleteHostRealIdMap = {};
-        preList.forEach((item) => {
-            const currentHostRealId = item.realId;
-            if (!lastListMap[currentHostRealId]) {
-                deleteHostRealIdMap[currentHostRealId] = true;
-            }
-        });
-        const result = [];
-        // 删除操作
-        target.forEach((item) => {
-            if (!deleteHostRealIdMap[item.realId]) {
-                result.push(item);
-            }
-        });
-        return result;
-    }
-    
-    // 添加主机——和IP输入逻辑相同
-    return mergeInputHost(target, lastList);
+    return result;
 };
 
 /**
@@ -223,14 +217,13 @@ export const sortHost = (hostList) => {
     const repeatMap = {};
     const uniqueFailMap = {};
     const uniqueNormalMap = {};
-    hostList.forEach((currentHost) => {
-        const repeat = hostMap[currentHost.ip] > 1;
+    hostList.forEach((currentHostInfo) => {
+        const repeat = hostMap[currentHostInfo.ip] > 1;
         const realHost = Object.assign({
-            realId: generateHostRealId(currentHost),
             repeat,
-        }, currentHost);
+        }, currentHostInfo);
         // 对主机进行分组
-        const currentIp = currentHost.ip;
+        const currentIp = currentHostInfo.ip;
         if (repeat) {
             // 重复ip为一组，对应值为数组（多个主机有相同的ip）
             if (!repeatMap[currentIp]) {

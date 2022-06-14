@@ -41,7 +41,10 @@
                     :show-columns="allShowColumn"
                     :data="list"
                     @on-row-select="handleSelect" />
-                <div v-if="hasMore" ref="loading" class="list-loading">
+                <div
+                    v-if="hasMore"
+                    ref="loading"
+                    class="list-loading">
                     <div class="loading-flag">
                         <Icon type="loading-circle" />
                     </div>
@@ -50,19 +53,19 @@
                 <template v-if="list.length < 1 && !listLoading">
                     <Empty v-if="!searchValue" style="height: 100%;" />
                     <Empty v-else type="search" style="height: 100%;">
-                        <div>
-                            <div style="font-size: 14px; color: #63656e;">{{ $t('搜索结果为空') }}</div>
-                            <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
-                                <span>{{ $t('可以尝试调整关键词') }}</span>
-                                <template>
-                                    <span>{{ $t('或') }}</span>
-                                    <bk-button
-                                        text
-                                        @click="handleClearSearch">
-                                        {{ $t('清空搜索条件') }}
-                                    </bk-button>
-                                </template>
-                            </div>
+                        <div style="font-size: 14px; color: #63656e;">
+                            {{ $t('搜索结果为空') }}
+                        </div>
+                        <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
+                            <span>{{ $t('可以尝试调整关键词') }}</span>
+                            <template>
+                                <span>{{ $t('或') }}</span>
+                                <bk-button
+                                    text
+                                    @click="handleClearSearch">
+                                    {{ $t('清空搜索条件') }}
+                                </bk-button>
+                            </template>
                         </div>
                     </Empty>
                 </template>
@@ -245,6 +248,11 @@
             },
             data: {
                 handler (data) {
+                    // 切换分组时最新的分组数据一定来自API返回数据
+                    // listLoading为false说明是本地切换不更新列表
+                    if (!this.listLoading) {
+                        return;
+                    }
                     this.list = Object.freeze(data);
                 },
                 immediate: true,

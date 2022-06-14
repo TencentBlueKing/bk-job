@@ -221,7 +221,9 @@
                                     @click="handleGoExce(row)">
                                     {{ $t('script.去执行') }}
                                 </auth-button>
-                                <span :tippy-tips="!row.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
+                                <span
+                                    v-if="!isPublicScript"
+                                    :tippy-tips="!row.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
                                     <auth-button
                                         v-if="row.isOnline"
                                         :permission="row.canManage"
@@ -505,8 +507,8 @@
             // 缓存脚本版本的完整数据列表——用于脚本搜索
             this.dataMemo = [];
 
-            this.publicScript = checkPublicScript(this.$route);
-            this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
+            this.isPublicScript = checkPublicScript(this.$route);
+            this.serviceHandler = this.isPublicScript ? PublicScriptService : ScriptService;
             this.scriptId = this.$route.params.id;
 
             this.fetchData(true);
@@ -820,7 +822,7 @@
              * @param {Object} row 脚本数据
              */
             handleSync (row) {
-                const routerName = this.publicScript ? 'scriptPublicSync' : 'scriptSync';
+                const routerName = this.isPublicScript ? 'scriptPublicSync' : 'scriptSync';
                 
                 this.$router.push({
                     name: routerName,
@@ -1003,7 +1005,7 @@
              * @desc 路由回退
              */
             routerBack () {
-                if (this.publicScript) {
+                if (this.isPublicScript) {
                     this.$router.push({
                         name: 'publicScriptList',
                     });
