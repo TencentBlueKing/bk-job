@@ -24,6 +24,7 @@
 
 dependencies {
     api project(':commons:common')
+    api project(':commons:esb-sdk')
     api files('libs/ee-gse-task-3.1.jar')
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'

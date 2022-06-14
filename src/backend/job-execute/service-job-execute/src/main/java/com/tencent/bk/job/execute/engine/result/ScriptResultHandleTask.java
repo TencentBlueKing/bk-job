@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
+import com.tencent.bk.job.common.gse.v2.model.ScriptAgentTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
@@ -32,10 +36,6 @@ import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.gse.v2.GseApiClient;
-import com.tencent.bk.job.execute.engine.gse.v2.model.GetExecuteScriptResultRequest;
-import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptAgentTaskResult;
-import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.model;
 
 
-import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 
 /**
  * 脚本任务结果

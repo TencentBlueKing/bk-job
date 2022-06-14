@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.execute.engine.gse;
 
-import com.tencent.bk.job.execute.engine.gse.v2.model.Agent;
-import com.tencent.bk.job.execute.engine.gse.v2.model.AtomicScriptTask;
-import com.tencent.bk.job.execute.engine.gse.v2.model.AtomicScriptTaskRelation;
-import com.tencent.bk.job.execute.engine.gse.v2.model.ExecuteScriptRequest;
-import com.tencent.bk.job.execute.engine.gse.v2.model.GseScript;
+import com.tencent.bk.job.common.gse.v2.model.Agent;
+import com.tencent.bk.job.common.gse.v2.model.AtomicScriptTask;
+import com.tencent.bk.job.common.gse.v2.model.AtomicScriptTaskRelation;
+import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
+import com.tencent.bk.job.common.gse.v2.model.GseScript;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

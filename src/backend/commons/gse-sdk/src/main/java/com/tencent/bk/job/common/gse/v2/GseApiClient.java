@@ -1,15 +1,15 @@
-package com.tencent.bk.job.execute.engine.gse.v2;
+package com.tencent.bk.job.common.gse.v2;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
-import com.tencent.bk.job.execute.engine.gse.v2.model.Agent;
-import com.tencent.bk.job.execute.engine.gse.v2.model.AsyncExecuteScriptResult;
-import com.tencent.bk.job.execute.engine.gse.v2.model.ExecuteScriptRequest;
-import com.tencent.bk.job.execute.engine.gse.v2.model.GetExecuteScriptResultRequest;
-import com.tencent.bk.job.execute.engine.gse.v2.model.ScriptTaskResult;
-import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
+import com.tencent.bk.job.common.gse.model.GseTaskResponse;
+import com.tencent.bk.job.common.gse.v2.model.Agent;
+import com.tencent.bk.job.common.gse.v2.model.AsyncExecuteScriptResult;
+import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
+import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
+import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
