@@ -7,6 +7,7 @@ import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 
 import java.util.Collection;
@@ -46,7 +47,7 @@ public interface IGseClient {
     /**
      * 构建目标Agent
      *
-     * @param agentIds agent列表
+     * @param agentId  agentId
      * @param user     用户
      * @param password 密码
      * @return Agent
@@ -67,6 +68,20 @@ public interface IGseClient {
      * @param request 文件任务结果查询请求
      */
     FileTaskResult getTransferFileResult(GetTransferFileResultRequest request);
+
+    /**
+     * 终止GSE文件任务
+     *
+     * @param request 终止GSE文件任务请求
+     */
+    GseTaskResponse terminateGseFileTask(TerminateGseTaskRequest request);
+
+    /**
+     * 终止GSE脚本任务
+     *
+     * @param request 终止GSE脚本任务请求
+     */
+    GseTaskResponse terminateGseScriptTask(TerminateGseTaskRequest request);
 
 
 }
