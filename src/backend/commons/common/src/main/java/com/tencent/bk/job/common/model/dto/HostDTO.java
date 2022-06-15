@@ -108,10 +108,23 @@ public class HostDTO implements Cloneable {
         hostDTO.setHostId(hostId);
         return hostDTO;
     }
+
     public static HostDTO fromHostIdAndAgentId(Long hostId, String agentId) {
         HostDTO hostDTO = new HostDTO();
         hostDTO.setHostId(hostId);
         hostDTO.setAgentId(agentId);
+        return hostDTO;
+    }
+
+    public static HostDTO fromHostIdAndCloudIp(Long hostId, String cloudIp) {
+        HostDTO hostDTO = new HostDTO();
+        hostDTO.setHostId(hostId);
+        if (StringUtils.isNotEmpty(cloudIp)) {
+            String[] ipProps = cloudIp.split(IpUtils.COLON);
+            hostDTO.setBkCloudId(Long.valueOf(ipProps[0]));
+            hostDTO.setIp(ipProps[1]);
+        }
+
         return hostDTO;
     }
 
