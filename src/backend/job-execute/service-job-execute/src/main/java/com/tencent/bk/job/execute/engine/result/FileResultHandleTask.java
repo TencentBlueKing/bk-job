@@ -351,7 +351,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     private void analyseFileResult(String agentId, CopyFileRsp copyFileRsp,
                                    Map<Long, ServiceHostLogDTO> executionLogs,
                                    boolean isDownloadLog) {
-        AgentTaskDTO agentTask = this.targetAgentTasks.get(agentId);
+        AgentTaskDTO agentTask = getAgentTask(isDownloadLog, agentId);
         if (agentTask.getStartTime() == null) {
             agentTask.setStartTime(System.currentTimeMillis());
         }
@@ -400,6 +400,14 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             default:
                 dealIpTaskFail(copyFileRsp, executionLogs, isDownloadLog);
                 break;
+        }
+    }
+
+    private AgentTaskDTO getAgentTask(boolean isDownloadLog, String agentId) {
+        if (isDownloadLog) {
+            return targetAgentTasks.get(agentId);
+        } else {
+            return sourceAgentTaskMap.get(agentId);
         }
     }
 
@@ -635,10 +643,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                                                   Set<String> affectIps) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String destAgentId = taskResult.getDestAgentId();
-        AgentTaskDTO agentTask = targetAgentTasks.get(destAgentId);
+        AgentTaskDTO targetAgentTask = targetAgentTasks.get(destAgentId);
         log.info("Target agent down, sourceIp is null");
         for (String sourceAgentId : this.sourceAgentIds) {
-            AgentTaskDTO sourceAgentTask = targetAgentTasks.get(destAgentId);
+            AgentTaskDTO sourceAgentTask = sourceAgentTaskMap.get(sourceAgentId);
             boolean isAddSuccess = addFinishedFile(false, true, destAgentId,
                 GSEFileTaskResult.buildTaskId(taskResult.getMode(), sourceAgentId,
                     taskResult.getStandardSourceFilePath(),
@@ -647,7 +655,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                 addFileTaskLog(executionLogs,
                     new ServiceFileTaskLogDTO(
                         FileDistModeEnum.DOWNLOAD.getValue(),
-                        agentTask.getHostId(),
+                        targetAgentTask.getHostId(),
                         taskResult.getStandardDestFilePath(),
                         sourceAgentTask.getHostId(),
                         taskResult.getStandardSourceFilePath(),
@@ -672,7 +680,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         String destAgentId = taskResult.getDestAgentId();
         String sourceAgentId = taskResult.getSourceAgentId();
         AgentTaskDTO destAgentTask = targetAgentTasks.get(destAgentId);
-        AgentTaskDTO sourceAgentTask = targetAgentTasks.get(sourceAgentId);
+        AgentTaskDTO sourceAgentTask = sourceAgentTaskMap.get(sourceAgentId);
         boolean isAddSuccess = addFinishedFile(false, true, destAgentId,
             GSEFileTaskResult.buildTaskId(taskResult.getMode(), sourceAgentId, taskResult.getStandardSourceFilePath(),
                 destAgentId, taskResult.getStandardDestFilePath()));
@@ -868,7 +876,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             return;
         }
 
-        AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
+        AgentTaskDTO agentTask = getAgentTask(isDownload, agentId);
         if (finishedNum >= fileNum) {
             log.info("[{}] Ip analyse finished! ip: {}, finishedTaskNum: {}, expectedTaskNum: {}",
                 stepInstanceId, agentId, finishedNum, fileNum);
