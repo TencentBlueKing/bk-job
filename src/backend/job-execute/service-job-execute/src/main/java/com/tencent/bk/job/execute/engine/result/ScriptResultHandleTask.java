@@ -37,11 +37,11 @@ import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
+import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.LogPullProgress;
-import com.tencent.bk.job.execute.engine.model.ScriptTaskLog;
+import com.tencent.bk.job.execute.engine.model.ScriptGseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -204,7 +204,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             ScriptTaskResult result = pullGseTaskResult(pullLogAgentIds);
             boolean isLastBatch = pullResultBatchesIndex.get() == pullAgentIdBatches.size();
             GseLogBatchPullResult<ScriptTaskResult> batchPullResult = new GseLogBatchPullResult<>(true,
-                isLastBatch, new ScriptTaskLog(result), null);
+                isLastBatch, new ScriptGseTaskResult(result), null);
             if (isLastBatch) {
                 resetBatch();
             } else {
@@ -275,13 +275,13 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     }
 
     @Override
-    GseTaskExecuteResult analyseGseTaskResult(GseLog<ScriptTaskResult> taskDetail) {
+    GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<ScriptTaskResult> taskDetail) {
 
         long currentTime = DateUtils.currentTimeMillis(); // 当前时间
         List<ServiceScriptLogDTO> scriptLogs = new ArrayList<>();
         StopWatch watch = new StopWatch("analyse-gse-script-task");
         watch.start("analyse");
-        for (ScriptAgentTaskResult agentTaskResult : taskDetail.getGseLog().getResult()) {
+        for (ScriptAgentTaskResult agentTaskResult : taskDetail.getResult().getResult()) {
             log.info("[{}]: agentTaskResult={}", stepInstanceId, agentTaskResult);
 
             /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本

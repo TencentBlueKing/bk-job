@@ -33,13 +33,13 @@ public class TransferFileRequest {
      * 文件上传速度限制(MB)
      */
     @JsonProperty("upload_speed")
-    private int uploadSpeed;
+    private Integer uploadSpeed;
 
     /**
      * 文件下载速度限制(MB)，0：无限制
      */
     @JsonProperty("download_speed")
-    private int downloadSpeed;
+    private Integer downloadSpeed;
 
     public void addFileTask(FileTransferTask task) {
         tasks.add(task);

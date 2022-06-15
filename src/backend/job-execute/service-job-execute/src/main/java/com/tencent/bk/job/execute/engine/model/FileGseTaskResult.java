@@ -22,39 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.constants;
+package com.tencent.bk.job.execute.engine.model;
+
+
+import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
+import org.springframework.util.CollectionUtils;
 
 /**
- * 文件分发模式
+ * 文件任务查询结果
  */
-public enum FileDistModeEnum {
-    UPLOAD(0, "upload"), DOWNLOAD(1, "download");
+public class FileGseTaskResult extends GseTaskResult<FileTaskResult> {
 
-    private final Integer value;
-    private final String name;
-
-    FileDistModeEnum(Integer val, String name) {
-        this.value = val;
-        this.name = name;
+    public FileGseTaskResult(FileTaskResult result) {
+        super(result);
     }
 
-    public static FileDistModeEnum getFileDistMode(Integer mode) {
-        if (mode == null) {
-            return null;
-        }
-        for (FileDistModeEnum fileDistMode : values()) {
-            if (fileDistMode.getValue().equals(mode)) {
-                return fileDistMode;
-            }
-        }
-        return null;
-    }
-
-    public Integer getValue() {
-        return value;
-    }
-
-    public String getName() {
-        return name;
+    @Override
+    public boolean isNullResult() {
+        return getResult() == null || CollectionUtils.isEmpty(getResult().getAtomicFileTaskResults());
     }
 }

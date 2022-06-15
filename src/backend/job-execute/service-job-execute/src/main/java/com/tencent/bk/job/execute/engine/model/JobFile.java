@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.engine.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.engine.util.FilePathUtils;
 import lombok.Data;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;

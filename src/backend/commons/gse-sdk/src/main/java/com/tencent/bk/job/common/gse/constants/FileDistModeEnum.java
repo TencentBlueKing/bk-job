@@ -22,22 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.model;
-
-
-import com.tencent.bk.gse.taskapi.api_map_rsp;
+package com.tencent.bk.job.common.gse.constants;
 
 /**
- * 文件任务查询结果
+ * 文件分发模式
  */
-public class FileTaskLog extends GseLog<api_map_rsp> {
+public enum FileDistModeEnum {
+    UPLOAD(0, "upload"), DOWNLOAD(1, "download");
 
-    public FileTaskLog(api_map_rsp gseLog) {
-        super(gseLog);
+    private final Integer value;
+    private final String name;
+
+    FileDistModeEnum(Integer val, String name) {
+        this.value = val;
+        this.name = name;
     }
 
-    @Override
-    public boolean isNullResp() {
-        return getGseLog().getResult() == null || getGseLog().getResult().isEmpty();
+    public static FileDistModeEnum getFileDistMode(Integer mode) {
+        if (mode == null) {
+            return null;
+        }
+        for (FileDistModeEnum fileDistMode : values()) {
+            if (fileDistMode.getValue().equals(mode)) {
+                return fileDistMode;
+            }
+        }
+        return null;
+    }
+
+    public Integer getValue() {
+        return value;
+    }
+
+    public String getName() {
+        return name;
     }
 }

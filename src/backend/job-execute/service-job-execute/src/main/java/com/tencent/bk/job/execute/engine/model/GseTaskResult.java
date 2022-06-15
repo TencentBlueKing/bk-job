@@ -24,31 +24,30 @@
 
 package com.tencent.bk.job.execute.engine.model;
 
-import lombok.Data;
-
-import java.util.List;
-import java.util.Map;
-
 /**
- * GSE任务下单响应信息
+ * GSE 任务执行结果
+ *
+ * @param <T>
  */
-@Data
-public class GseTaskResult {
+public abstract class GseTaskResult<T> {
 
     /**
-     * 错误码
+     * GSE 任务执行结果
      */
-    private int errorCode;
+    private final T result;
+
+    GseTaskResult(T result) {
+        this.result = result;
+    }
+
+    public T getResult() {
+        return result;
+    }
 
     /**
-     * 错误信息
+     * 任务执行结果是否为空
      */
-    private String errorMessage;
-
-    /**
-     * 数据
-     */
-    private List<Map<String, Object>> data;
-
-
+    public boolean isNullResult() {
+        return false;
+    }
 }

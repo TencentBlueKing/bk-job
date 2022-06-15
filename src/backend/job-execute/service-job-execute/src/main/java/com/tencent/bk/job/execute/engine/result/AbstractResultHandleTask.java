@@ -38,9 +38,9 @@ import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
+import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -302,14 +302,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
 
             // 检查任务异常并处理
-            GseLog<T> gseLog = gseLogBatchPullResult.getGseLog();
-            if (determineTaskAbnormal(gseLog)) return false;
+            GseTaskResult<T> gseTaskResult = gseLogBatchPullResult.getGseTaskResult();
+            if (determineTaskAbnormal(gseTaskResult)) return false;
 
             watch.stop();
 
             try {
                 watch.start("analyse-task-result-batch-" + batch);
-                this.executeResult = analyseGseTaskResult(gseLog);
+                this.executeResult = analyseGseTaskResult(gseTaskResult);
                 watch.stop();
             } catch (Throwable e) {
                 log.error("[" + stepInstanceId + "]: analyse gse task result error.", e);
@@ -422,8 +422,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /*
      * 检查任务是否异常，执行结果持续为空、超时未结束等
      */
-    private boolean determineTaskAbnormal(GseLog<?> gseLog) {
-        return checkTaskTimeout() || checkEmptyGseResult(gseLog);
+    private boolean determineTaskAbnormal(GseTaskResult<?> gseTaskResult) {
+        return checkTaskTimeout() || checkEmptyGseResult(gseTaskResult);
     }
 
     private boolean checkTaskTimeout() {
@@ -448,12 +448,12 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /*
      * 检查从GSE 拉取的任务执行结果是否持续为空
      */
-    private boolean checkEmptyGseResult(GseLog<?> gseLog) {
+    private boolean checkEmptyGseResult(GseTaskResult<?> gseTaskResult) {
         if (latestPullGseLogSuccessTimeMillis == 0) {
             latestPullGseLogSuccessTimeMillis = System.currentTimeMillis();
         }
         boolean isAbnormal = false;
-        if (null == gseLog || gseLog.isNullResp()) {
+        if (null == gseTaskResult || gseTaskResult.isNullResult()) {
             long currentTimeMillis = System.currentTimeMillis();
             // 执行结果持续为空
             if (currentTimeMillis - latestPullGseLogSuccessTimeMillis >= GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS) {
@@ -639,8 +639,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * 解析GSE日志并获取结果
      *
-     * @param gseLog GSE日志
+     * @param gseTaskResult GSE日志
      * @return 任务执行结果
      */
-    abstract GseTaskExecuteResult analyseGseTaskResult(GseLog<T> gseLog);
+    abstract GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<T> gseTaskResult);
 }

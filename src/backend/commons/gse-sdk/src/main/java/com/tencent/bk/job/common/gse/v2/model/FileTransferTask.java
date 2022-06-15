@@ -2,11 +2,13 @@ package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * GSE 源文件
  */
 @Data
+@NoArgsConstructor
 public class FileTransferTask {
     /**
      * 源文件
@@ -20,4 +22,8 @@ public class FileTransferTask {
     @JsonProperty("target")
     private TargetFile target;
 
+    public FileTransferTask(SourceFile source, TargetFile target) {
+        this.source = source;
+        this.target = target;
+    }
 }

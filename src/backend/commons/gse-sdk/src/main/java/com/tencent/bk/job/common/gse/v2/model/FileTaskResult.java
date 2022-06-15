@@ -14,5 +14,5 @@ public class FileTaskResult {
     /**
      * 执行结果
      */
-    private List<AtomicFileTaskResult> result;
+    private List<AtomicFileTaskResult> atomicFileTaskResults;
 }

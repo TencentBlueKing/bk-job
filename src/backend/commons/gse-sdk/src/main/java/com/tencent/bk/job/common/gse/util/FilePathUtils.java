@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.util;
+package com.tencent.bk.job.common.gse.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -77,7 +77,6 @@ public class FilePathUtils {
         if (StringUtils.isEmpty(filePath)) {
             return "";
         }
-        // GSE BUG
         // GSE对于Windows的路径，不管下发参数dir中是否包含路径分隔符，都会默认加上/,比如C:\Users\/；这里需要对路径进行标准化
         Pair<String, String> dirAndFileName = FilePathUtils.parseDirAndFileName(filePath);
         String dir = dirAndFileName.getLeft();

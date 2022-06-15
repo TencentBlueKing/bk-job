@@ -34,7 +34,7 @@ public interface IGseClient {
 
 
     /**
-     * 构建目标Agent
+     * 批量构建目标Agent
      *
      * @param agentIds agentId列表
      * @param user     用户
@@ -42,6 +42,16 @@ public interface IGseClient {
      * @return Agent
      */
     List<Agent> buildAgents(Collection<String> agentIds, String user, String password);
+
+    /**
+     * 构建目标Agent
+     *
+     * @param agentIds agent列表
+     * @param user     用户
+     * @param password 密码
+     * @return Agent
+     */
+    Agent buildAgent(String agentId, String user, String password);
 
     /**
      * 分发文件

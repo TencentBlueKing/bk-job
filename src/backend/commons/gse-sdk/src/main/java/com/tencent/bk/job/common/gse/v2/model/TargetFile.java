@@ -2,6 +2,7 @@ package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -9,6 +10,7 @@ import java.util.List;
  * GSE 目标文件
  */
 @Data
+@NoArgsConstructor
 public class TargetFile {
     /**
      * 目标文件名
@@ -41,4 +43,11 @@ public class TargetFile {
     @JsonProperty("agents")
     private List<Agent> agents;
 
+    public TargetFile(String fileName,
+                      String storeDir,
+                      List<Agent> agents) {
+        this.fileName = fileName;
+        this.storeDir = storeDir;
+        this.agents = agents;
+    }
 }

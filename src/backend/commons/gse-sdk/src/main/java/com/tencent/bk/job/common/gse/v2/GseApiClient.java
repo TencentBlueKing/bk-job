@@ -64,13 +64,17 @@ public class GseApiClient extends AbstractBkApiClient implements IGseClient {
     @Override
     public List<Agent> buildAgents(Collection<String> agentIds, String user, String password) {
         return agentIds.stream()
-            .map(agentId -> {
-                Agent agent = new Agent();
-                agent.setAgentId(agentId);
-                agent.setUser(user);
-                agent.setPwd(password);
-                return agent;
-            }).collect(Collectors.toList());
+            .map(agentId -> buildAgent(agentId, user, password))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public Agent buildAgent(String agentId, String user, String password) {
+        Agent agent = new Agent();
+        agent.setAgentId(agentId);
+        agent.setUser(user);
+        agent.setPwd(password);
+        return agent;
     }
 
     @Override
