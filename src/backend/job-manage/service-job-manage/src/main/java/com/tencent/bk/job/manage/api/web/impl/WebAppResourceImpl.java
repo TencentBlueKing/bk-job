@@ -380,7 +380,7 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                  String scopeId,
                                                                  List<TargetNodeVO> targetNodeVOList) {
         ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
-        if (appDTO.isAllBizSet() || appDTO.isBizSet()) {
+        if (appDTO.isBizSet()) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
         List<List<InstanceTopologyDTO>> pathList = hostService.queryBizNodePaths(
