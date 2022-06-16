@@ -59,6 +59,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -176,6 +177,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                                 ExceptionStatusManager exceptionStatusManager,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 FileAgentTaskService fileAgentTaskService,
+                                StepInstanceService stepInstanceService,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -197,6 +199,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             exceptionStatusManager,
             taskEvictPolicyExecutor,
             fileAgentTaskService,
+            stepInstanceService,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -242,7 +245,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         sourceAgentTaskMap.values().forEach(agentTask -> {
             this.notStartedFileSourceAgentIds.add(agentTask.getAgentId());
             this.sourceAgentIds.add(agentTask.getAgentId());
-            this.agentHostIdMap.put(agentTask.getAgentId(), agentTask.getHostId());
         });
     }
 
@@ -656,8 +658,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     new ServiceFileTaskLogDTO(
                         FileDistModeEnum.DOWNLOAD.getValue(),
                         targetAgentTask.getHostId(),
+                        agentIdHostMap.get(targetAgentTask.getAgentId()).getIp(),
                         taskResult.getStandardDestFilePath(),
                         sourceAgentTask.getHostId(),
+                        agentIdHostMap.get(sourceAgentTask.getAgentId()).getIp(),
+                        agentIdHostMap.get(sourceAgentTask.getAgentId()).getDisplayIp(),
                         taskResult.getStandardSourceFilePath(),
                         taskResult.getStandardSourceFilePath() == null ? null :
                             sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()),
@@ -689,8 +694,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                 new ServiceFileTaskLogDTO(
                     FileDistModeEnum.DOWNLOAD.getValue(),
                     destAgentTask.getHostId(),
+                    agentIdHostMap.get(destAgentTask.getAgentId()).getIp(),
                     taskResult.getStandardDestFilePath(),
                     sourceAgentTask.getHostId(),
+                    agentIdHostMap.get(sourceAgentTask.getAgentId()).getIp(),
+                    agentIdHostMap.get(sourceAgentTask.getAgentId()).getIp(),
                     taskResult.getStandardSourceFilePath(),
                     taskResult.getStandardSourceFilePath() == null ? null :
                         sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()), null,
@@ -768,7 +776,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                                 Set<String> affectedTargetAgentIds) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String sourceAgentId = taskResult.getSourceAgentId();
-        Long sourceHostId = agentHostIdMap.get(sourceAgentId);
+        HostDTO sourceHost = agentIdHostMap.get(sourceAgentId);
         // 记录源IP单个文件上传任务的结束状态
         addFinishedFile(false, false, taskResult.getSourceAgentId(), taskResult.getTaskId());
 
@@ -779,14 +787,29 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             sourceFilePath, this.localUploadDir, isLocalUploadFile, displayFilePath);
 
         // 增加一条上传源失败的上传日志
-        addFileTaskLog(executionLogs, new ServiceFileTaskLogDTO(
-            FileDistModeEnum.UPLOAD.getValue(), null,
-            null, sourceHostId, sourceFilePath, displayFilePath, null,
-            FileDistStatusEnum.FAILED.getValue(), FileDistStatusEnum.FAILED.getName(), null, null,
-            copyFileRsp.getFinalErrorMsg()));
+        addFileTaskLog(executionLogs,
+            new ServiceFileTaskLogDTO(
+                FileDistModeEnum.UPLOAD.getValue(),
+                null,
+                null,
+                null,
+                sourceHost.getHostId(),
+                sourceHost.getIp(),
+                sourceHost.getDisplayIp(),
+                sourceFilePath,
+                displayFilePath,
+                null,
+                FileDistStatusEnum.FAILED.getValue(),
+                FileDistStatusEnum.FAILED.getName(),
+                null,
+                null,
+                copyFileRsp.getFinalErrorMsg())
+        );
+
         // 源失败了，会影响所有目标IP对应的agent上的download任务
         for (String targetAgentId : this.targetAgentIds) {
             String destFilePath;
+            HostDTO targetHost = agentIdHostMap.get(targetAgentId);
             if (isLocalUploadFile) {
                 destFilePath = this.sourceDestPathMap.get(displayFilePath);
             } else {
@@ -800,11 +823,24 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     taskResult.getStandardSourceFilePath(), targetAgentId, destFilePath));
             // 每个目标IP增加一条下载失败的日志到日志总Map中
             addFileTaskLog(executionLogs,
-                new ServiceFileTaskLogDTO(FileDistModeEnum.DOWNLOAD.getValue(),
-                    agentHostIdMap.get(targetAgentId), destFilePath,
-                    sourceHostId, sourceFilePath, displayFilePath, null,
-                    FileDistStatusEnum.FAILED.getValue(), FileDistStatusEnum.FAILED.getName(),
-                    null, null, copyFileRsp.getFinalErrorMsg()));
+                new ServiceFileTaskLogDTO(
+                    FileDistModeEnum.DOWNLOAD.getValue(),
+                    targetHost.getHostId(),
+                    targetHost.getIp(),
+                    taskResult.getStandardDestFilePath(),
+                    sourceHost.getHostId(),
+                    sourceHost.getIp(),
+                    sourceHost.getDisplayIp(),
+                    taskResult.getStandardSourceFilePath(),
+                    taskResult.getStandardSourceFilePath() == null ? null :
+                        sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()),
+                    null,
+                    FileDistStatusEnum.FAILED.getValue(),
+                    FileDistStatusEnum.FAILED.getName(),
+                    null,
+                    null,
+                    copyFileRsp.getFinalErrorMsg())
+            );
             affectedTargetAgentIds.add(targetAgentId);
         }
     }
@@ -962,15 +998,47 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             FileDistStatusEnum status = parseFileTaskStatus(copyFileRsp, isDownloadLog);
 
             if (isDownloadLog) {
-                addFileTaskLog(executionLogs, new ServiceFileTaskLogDTO(taskResult.getMode(),
-                    agentHostIdMap.get(agentId),
-                    taskResult.getStandardDestFilePath(), agentHostIdMap.get(taskResult.getSourceAgentId()),
-                    filePath, displayFilePath, fileSize, status.getValue(), status.getName(), speed, processText,
-                    logContentStr));
+                HostDTO sourceHost = agentIdHostMap.get(taskResult.getSourceAgentId());
+                HostDTO targetHost = agentIdHostMap.get(taskResult.getDestAgentId());
+                addFileTaskLog(executionLogs,
+                    new ServiceFileTaskLogDTO(
+                        FileDistModeEnum.DOWNLOAD.getValue(),
+                        targetHost.getHostId(),
+                        targetHost.getIp(),
+                        taskResult.getStandardDestFilePath(),
+                        sourceHost.getHostId(),
+                        sourceHost.getIp(),
+                        sourceHost.getDisplayIp(),
+                        taskResult.getStandardSourceFilePath(),
+                        taskResult.getStandardSourceFilePath() == null ? null :
+                            sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()),
+                        fileSize,
+                        status.getValue(),
+                        status.getName(),
+                        speed,
+                        processText,
+                        logContentStr)
+                );
             } else {
-                addFileTaskLog(executionLogs, new ServiceFileTaskLogDTO(taskResult.getMode(), null,
-                    null, agentHostIdMap.get(agentId), filePath,
-                    displayFilePath, fileSize, status.getValue(), status.getName(), speed, processText, logContentStr));
+                HostDTO sourceHost = agentIdHostMap.get(taskResult.getSourceAgentId());
+                addFileTaskLog(executionLogs,
+                    new ServiceFileTaskLogDTO(
+                        FileDistModeEnum.DOWNLOAD.getValue(),
+                        null,
+                        null,
+                        null,
+                        sourceHost.getHostId(),
+                        sourceHost.getIp(),
+                        sourceHost.getDisplayIp(),
+                        filePath,
+                        displayFilePath,
+                        fileSize,
+                        status.getValue(),
+                        status.getName(),
+                        speed,
+                        processText,
+                        logContentStr)
+                );
             }
         }
     }

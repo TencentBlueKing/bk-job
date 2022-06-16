@@ -319,8 +319,6 @@ public class LogServiceImpl implements LogService {
 
             List<ScriptTaskLogDoc> scriptLogs = mongoTemplate.find(query, ScriptTaskLogDoc.class, collectionName);
 
-            log.info("scriptLogs: {}", scriptLogs);
-
             if (CollectionUtils.isEmpty(scriptLogs)) {
                 return Collections.emptyList();
             }

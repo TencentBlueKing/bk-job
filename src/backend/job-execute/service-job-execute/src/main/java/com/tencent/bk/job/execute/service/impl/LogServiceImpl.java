@@ -54,6 +54,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -432,8 +433,9 @@ public class LogServiceImpl implements LogService {
             "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault()) + "]";
         fileLogs.forEach(fileLog -> {
             if (CollectionUtils.isNotEmpty(fileLog.getFileTaskLogs())) {
-                fileLog.getFileTaskLogs().forEach(
-                    fileTaskLog -> fileTaskLog.setContent(logDateTime + fileTaskLog.getContent() + "\n"));
+                fileLog.getFileTaskLogs().stream()
+                    .filter(fileTaskLog -> StringUtils.isNotEmpty(fileTaskLog.getContent()))
+                    .forEach(fileTaskLog -> fileTaskLog.setContent(logDateTime + fileTaskLog.getContent() + "\n"));
             }
         });
 

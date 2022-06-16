@@ -66,6 +66,7 @@ import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -101,6 +102,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     public ScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                      TaskInstanceService taskInstanceService,
+                                     StepInstanceService stepInstanceService,
                                      GseTaskService gseTaskService,
                                      ScriptAgentTaskService scriptAgentTaskService,
                                      AccountService accountService,
@@ -141,7 +143,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             requestId,
             taskInstance,
             stepInstance,
-            gseTask);
+            gseTask, stepInstanceService);
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
@@ -677,6 +679,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 exceptionStatusManager,
                 taskEvictPolicyExecutor,
                 scriptAgentTaskService,
+                stepInstanceService,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,

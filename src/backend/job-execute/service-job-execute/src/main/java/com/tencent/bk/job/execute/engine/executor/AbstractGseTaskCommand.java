@@ -88,7 +88,8 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
     public AbstractGseTaskCommand(AgentService agentService,
                                   AccountService accountService,
                                   GseTaskService gseTaskService,
-                                  AgentTaskService agentTaskService, Tracing tracing,
+                                  AgentTaskService agentTaskService,
+                                  Tracing tracing,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   GseTaskDTO gseTask) {

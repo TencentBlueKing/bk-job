@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
@@ -50,6 +51,7 @@ import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -77,6 +79,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected final ExceptionStatusManager exceptionStatusManager;
     protected final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected final JobExecuteConfig jobExecuteConfig;
+    protected final StepInstanceService stepInstanceService;
 
     /**
      * 任务下发请求ID,防止重复下发任务
@@ -102,6 +105,11 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      */
     protected Map<String, TaskVariableDTO> globalVariables = new HashMap<>();
 
+    /**
+     * Agent ID 与 host 映射关系
+     */
+    protected Map<String, HostDTO> agentIdHostMap;
+
 
     AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                 TaskInstanceService taskInstanceService,
@@ -123,7 +131,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
-                                GseTaskDTO gseTask) {
+                                GseTaskDTO gseTask,
+                                StepInstanceService stepInstanceService) {
         super(agentService,
             accountService,
             gseTaskService,
@@ -145,6 +154,10 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.exceptionStatusManager = exceptionStatusManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.requestId = requestId;
+        this.stepInstanceService = stepInstanceService;
+
+        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance,
+            host -> host.getAgentId() != null ? host.getAgentId() : host.toCloudIp());
     }
 
 

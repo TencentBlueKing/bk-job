@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -51,6 +52,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -98,6 +100,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected ExceptionStatusManager exceptionStatusManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected AgentTaskService agentTaskService;
+    protected StepInstanceService stepInstanceService;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -161,9 +164,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected Set<String> successTargetAgentIds = new HashSet<>();
     /**
-     * Agent ID 与 hostID 映射关系
+     * Agent ID 与 host 映射关系
      */
-    protected Map<String, Long> agentHostIdMap = new HashMap<>();
+    protected Map<String, HostDTO> agentIdHostMap;
     /**
      * 任务成功被终止
      */
@@ -212,6 +215,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        ExceptionStatusManager exceptionStatusManager,
                                        TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                        AgentTaskService agentTaskService,
+                                       StepInstanceService stepInstanceService,
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -228,6 +232,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.agentTaskService = agentTaskService;
+        this.stepInstanceService = stepInstanceService;
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
@@ -240,9 +245,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
         targetAgentTasks.values().forEach(agentTask -> {
             this.targetAgentIds.add(agentTask.getAgentId());
-            this.agentHostIdMap.put(agentTask.getAgentId(), agentTask.getHostId());
         });
         this.notStartedTargetAgentIds.addAll(targetAgentIds);
+
+        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance,
+            host -> host.getAgentId() != null ? host.getAgentId() : host.toCloudIp());
 
         // 如果是执行方案，需要初始化全局变量
         if (taskInstance.isPlanInstance()) {

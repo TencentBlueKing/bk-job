@@ -52,6 +52,7 @@ import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -104,6 +105,8 @@ public class ResultHandleResumeListener {
 
     private final FileAgentTaskService fileAgentTaskService;
 
+    private final StepInstanceService stepInstanceService;
+
     @Autowired
     public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
                                       ResultHandleManager resultHandleManager,
@@ -118,7 +121,8 @@ public class ResultHandleResumeListener {
                                       ExceptionStatusManager exceptionStatusManager,
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                       ScriptAgentTaskService scriptAgentTaskService,
-                                      FileAgentTaskService fileAgentTaskService) {
+                                      FileAgentTaskService fileAgentTaskService,
+                                      StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -133,6 +137,7 @@ public class ResultHandleResumeListener {
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
+        this.stepInstanceService = stepInstanceService;
     }
 
 
@@ -204,7 +209,9 @@ public class ResultHandleResumeListener {
             exceptionStatusManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
-            taskInstance, stepInstance,
+            stepInstanceService,
+            taskInstance,
+            stepInstance,
             taskVariablesAnalyzeResult,
             agentTaskMap,
             gseTask,
@@ -250,6 +257,7 @@ public class ResultHandleResumeListener {
             exceptionStatusManager,
             taskEvictPolicyExecutor,
             fileAgentTaskService,
+            stepInstanceService,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

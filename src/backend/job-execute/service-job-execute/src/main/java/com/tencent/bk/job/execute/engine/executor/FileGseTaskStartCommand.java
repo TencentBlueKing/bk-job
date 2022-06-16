@@ -63,6 +63,7 @@ import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -132,6 +133,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                    ExceptionStatusManager exceptionStatusManager,
                                    GseTasksExceptionCounter gseTasksExceptionCounter,
+                                   StepInstanceService stepInstanceService,
                                    Tracing tracing,
                                    String requestId,
                                    TaskInstanceDTO taskInstance,
@@ -158,7 +160,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             requestId,
             taskInstance,
             stepInstance,
-            gseTask);
+            gseTask,
+            stepInstanceService);
 
         this.fileAgentTaskService = fileAgentTaskService;
         this.fileStorageRootPath = fileStorageRootPath;
@@ -331,7 +334,10 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                         FileDistModeEnum.UPLOAD.getValue(),
                         null,
                         null,
+                        null,
                         sourceHostId,
+                        file.getCloudIp(),
+                        file.getCloudIp(),
                         file.getStandardFilePath(),
                         file.getDisplayFilePath(),
                         "--",
@@ -352,8 +358,11 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                         new ServiceFileTaskLogDTO(
                             FileDistModeEnum.DOWNLOAD.getValue(),
                             targetAgentTask.getHostId(),
+                            agentIdHostMap.get(targetAgentTask.getAgentId()).getIp(),
                             getDestPath(file),
                             sourceHostId,
+                            file.getIp(),
+                            file.getIp(),
                             file.getStandardFilePath(),
                             file.getDisplayFilePath(),
                             "--",
@@ -416,6 +425,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 exceptionStatusManager,
                 taskEvictPolicyExecutor,
                 fileAgentTaskService,
+                stepInstanceService,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,

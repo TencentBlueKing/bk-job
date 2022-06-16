@@ -57,6 +57,7 @@ import com.tencent.bk.job.execute.model.VariableValueDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -150,6 +151,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                                   ExceptionStatusManager exceptionStatusManager,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   ScriptAgentTaskService scriptAgentTaskService,
+                                  StepInstanceService stepInstanceService,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -166,6 +168,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             exceptionStatusManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
+            stepInstanceService,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
