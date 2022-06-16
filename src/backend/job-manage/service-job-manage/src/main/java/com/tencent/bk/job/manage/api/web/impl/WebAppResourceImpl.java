@@ -27,8 +27,10 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -377,7 +379,13 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                  String scopeType,
                                                                  String scopeId,
                                                                  List<TargetNodeVO> targetNodeVOList) {
-        List<List<InstanceTopologyDTO>> pathList = hostService.queryBizNodePaths(username, appResourceScope.getAppId(),
+        ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
+        if (appDTO.isBizSet()) {
+            return Response.buildSuccessResp(Collections.emptyList());
+        }
+        List<List<InstanceTopologyDTO>> pathList = hostService.queryBizNodePaths(
+            username,
+            appDTO.getBizIdIfBizApp(),
             targetNodeVOList.stream().map(it -> {
                 InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
                 instanceTopologyDTO.setObjectId(it.getType());
@@ -408,14 +416,22 @@ public class WebAppResourceImpl implements WebAppResource {
                                                      String scopeType,
                                                      String scopeId,
                                                      List<TargetNodeVO> targetNodeVOList) {
-        List<NodeInfoVO> moduleHostInfoList = hostService.getBizHostsByNode(username, appResourceScope.getAppId(),
+        ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
+        if (appDTO.isBizSet()) {
+            String msg = "topo node of bizset not supported yet";
+            throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
+        }
+        List<NodeInfoVO> moduleHostInfoList = hostService.getBizHostsByNode(
+            username,
+            appDTO.getBizIdIfBizApp(),
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                 it.getType(),
                 "",
                 it.getId(),
                 "",
                 null
-            )).collect(Collectors.toList()));
+            )).collect(Collectors.toList())
+        );
         return Response.buildSuccessResp(moduleHostInfoList);
     }
 
