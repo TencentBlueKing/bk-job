@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.engine.result;
 import com.tencent.bk.gse.taskapi.api_agent_task_rst;
 import com.tencent.bk.gse.taskapi.api_query_task_info_v2;
 import com.tencent.bk.gse.taskapi.api_task_detail_result;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
@@ -324,8 +325,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
 
     private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs, api_agent_task_rst agentTaskResult,
                                                      String agentId, AgentTaskDTO agentTask, long currentTime) {
+        HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
         if (GSECode.AtomicErrorCode.getErrorCode(agentTaskResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(agentTask.getHost(), agentTaskResult.getBk_error_msg(),
+            logs.add(logService.buildSystemScriptLog(host, agentTaskResult.getBk_error_msg(),
                 agentTask.getScriptLogOffset(),
                 currentTime));
         } else {
@@ -339,7 +341,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                 offset += bytes;
                 agentTask.setScriptLogOffset(offset);
             }
-            logs.add(new ServiceScriptLogDTO(agentTask.getHost(), offset, agentTaskResult.getScreen()));
+            logs.add(new ServiceScriptLogDTO(host, offset, agentTaskResult.getScreen()));
         }
         // 刷新日志拉取偏移量
         refreshPullLogProgress(agentTaskResult.getScreen(), agentId, agentTaskResult.getAtomic_task_id());
@@ -636,19 +638,6 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), scriptLogs);
         }
-    }
-
-    private Map<String, Integer> buildAgentIdAndLogOffsetMap(Collection<String> agentIds) {
-        Map<String, Integer> agentIdAndLogOffsetMap = new HashMap<>();
-        agentIds.forEach(agentId -> {
-            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
-            if (agentTask != null) {
-                agentIdAndLogOffsetMap.put(agentId, agentTask.getScriptLogOffset());
-            } else {
-                agentIdAndLogOffsetMap.put(agentId, 0);
-            }
-        });
-        return agentIdAndLogOffsetMap;
     }
 
     @Override
