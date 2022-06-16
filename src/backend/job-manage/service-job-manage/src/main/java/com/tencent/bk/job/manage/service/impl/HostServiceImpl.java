@@ -1259,10 +1259,13 @@ public class HostServiceImpl implements HostService {
         log.debug("hostsByNodes={}", hostsByNodes);
         allHostsSet.addAll(hostsByNodes);
         // 只有普通业务才查动态分组
-        if (applicationDTO.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+        if (applicationDTO.isBiz()) {
             List<ApplicationHostDTO> hostDTOsByDynamicGroupIds = new ArrayList<>();
-            List<DynamicGroupInfoDTO> dynamicGroupList =
-                getBizDynamicGroupHostList(username, appId, agentStatisticsReq.getDynamicGroupIds());
+            List<DynamicGroupInfoDTO> dynamicGroupList = getBizDynamicGroupHostList(
+                username,
+                applicationDTO.getBizIdIfBizApp(),
+                agentStatisticsReq.getDynamicGroupIds()
+            );
             dynamicGroupList.forEach(dynamicGroupInfoDTO -> {
                 List<ApplicationHostDTO> applicationHostDTOList = dynamicGroupInfoDTO.getIpListStatus();
                 if (applicationHostDTOList != null && !applicationHostDTOList.isEmpty()) {
