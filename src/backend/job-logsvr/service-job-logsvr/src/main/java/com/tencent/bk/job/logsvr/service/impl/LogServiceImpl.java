@@ -374,6 +374,7 @@ public class LogServiceImpl implements LogService {
             Query query = buildFileLogMongoQuery(getLogRequest);
 
             List<FileTaskLogDoc> fileTaskLogs = mongoTemplate.find(query, FileTaskLogDoc.class, collectionName);
+            log.info("listFileLogs, query: {}, result: {}", fileTaskLogs, fileTaskLogs);
             if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
                 fileTaskLogs.forEach(fileTaskLog ->
                     fileTaskLog.setContent(StringUtils.join(fileTaskLog.getContentList(), null)));

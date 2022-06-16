@@ -262,8 +262,8 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
             .executeCount(executeCount)
             .batch(batch)
             .mode(mode)
-            .ips(Collections.singletonList(ip))
-            .hostIds(Collections.singletonList(hostId))
+            .ips(StringUtils.isEmpty(ip) ? null : Collections.singletonList(ip))
+            .hostIds(hostId == null ? null : Collections.singletonList(hostId))
             .build();
 
         List<FileTaskLogDoc> fileTaskLogs = logService.listFileLogs(query);
