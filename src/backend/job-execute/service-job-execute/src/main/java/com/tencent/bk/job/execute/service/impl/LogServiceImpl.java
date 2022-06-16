@@ -40,6 +40,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
@@ -61,6 +62,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,16 +72,19 @@ public class LogServiceImpl implements LogService {
     private final TaskInstanceService taskInstanceService;
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public LogServiceImpl(LogServiceResourceClient logServiceResourceClient,
                           TaskInstanceService taskInstanceService,
                           ScriptAgentTaskService scriptAgentTaskService,
-                          FileAgentTaskService fileAgentTaskService) {
+                          FileAgentTaskService fileAgentTaskService,
+                          StepInstanceService stepInstanceService) {
         this.logServiceResourceClient = logServiceResourceClient;
         this.taskInstanceService = taskInstanceService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -156,6 +161,7 @@ public class LogServiceImpl implements LogService {
                 stepInstanceId, actualExecuteCount, agentTask.getHostId(), batch);
             log.info("Get log by hostId, resp: {}", resp);
         } else {
+            // 兼容ip查询
             resp = logServiceResourceClient.getScriptHostLogByIp(taskCreateDateStr,
                 stepInstanceId, actualExecuteCount, agentTask.getCloudIp(), batch);
             log.info("Get log by ip, resp: {}", resp);
@@ -189,8 +195,15 @@ public class LogServiceImpl implements LogService {
                                                                    List<HostDTO> hosts) {
 
         ServiceScriptLogQueryRequest query = new ServiceScriptLogQueryRequest();
-        query.setIps(hosts.stream().map(HostDTO::toCloudIp).collect(Collectors.toList()));
         query.setBatch(batch);
+
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        if (isQueryByHostIdCondition(stepInstance)) {
+            query.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
+        } else {
+            query.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
+        }
+
         InternalResponse<List<ServiceHostLogDTO>> resp =
             logServiceResourceClient.listScriptLogs(jobCreateDateStr, stepInstanceId, executeCount, query);
         if (!resp.isSuccess()) {
@@ -208,6 +221,31 @@ public class LogServiceImpl implements LogService {
                 logDTO.getIp(), scriptContent, true);
         }).collect(Collectors.toList());
 
+    }
+
+    private boolean isQueryByHostIdCondition(StepInstanceBaseDTO stepInstance) {
+        return stepInstance.getTargetServers().getIpList().stream()
+            .anyMatch(host -> host.getHostId() != null);
+    }
+
+    private List<Long> buildHostIdQueryCondition(StepInstanceBaseDTO stepInstance, List<HostDTO> hosts) {
+        boolean hostIdParamNull = hosts.get(0).getHostId() == null;
+        List<Long> hostIds;
+        if (hostIdParamNull) {
+            // 需要把ip查询参数转换为基于hostId的查询参数
+            Map<String, HostDTO> ip2Hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::toCloudIp);
+            hostIds = hosts.stream()
+                .map(host -> ip2Hosts.get(host.toCloudIp()).getHostId())
+                .distinct()
+                .collect(Collectors.toList());
+        } else {
+            hostIds = hosts.stream()
+                .map(HostDTO::getHostId)
+                .distinct()
+                .collect(Collectors.toList());
+        }
+
+        return hostIds;
     }
 
     @Override
@@ -229,12 +267,13 @@ public class LogServiceImpl implements LogService {
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         InternalResponse<ServiceHostLogDTO> resp;
-        if (host.getHostId() != null) {
+        if (agentTask.getHostId() != null) {
             resp = logServiceResourceClient.getFileHostLogByHostId(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, host.getHostId(), mode, batch);
+                stepInstanceId, actualExecuteCount, agentTask.getHostId(), mode, batch);
         } else {
+            // 兼容ip查询
             resp = logServiceResourceClient.getFileHostLogByIp(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, host.getIp(), mode, batch);
+                stepInstanceId, actualExecuteCount, agentTask.getCloudIp(), mode, batch);
         }
 
         if (!resp.isSuccess()) {
@@ -313,7 +352,12 @@ public class LogServiceImpl implements LogService {
         request.setExecuteCount(executeCount);
         request.setBatch(batch);
         request.setJobCreateDate(taskCreateDateStr);
-        request.setIps(hosts.stream().map(HostDTO::toCloudIp).collect(Collectors.toList()));
+
+        if (isQueryByHostIdCondition(stepInstance)) {
+            request.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
+        } else {
+            request.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
+        }
 
         InternalResponse<ServiceHostLogsDTO> resp = logServiceResourceClient.listFileHostLogs(request);
         if (!resp.isSuccess()) {
@@ -349,6 +393,10 @@ public class LogServiceImpl implements LogService {
                                           ServiceHostLogDTO executionLog,
                                           Long logTimeInMillSeconds) {
 
+        if (executionLog == null || CollectionUtils.isEmpty(executionLog.getFileTaskLogs())) {
+            return;
+        }
+
         String logDateTime = "[";
         if (logTimeInMillSeconds != null) {
             logDateTime += DateUtils.formatUnixTimestamp(logTimeInMillSeconds, ChronoUnit.MILLIS, "yyyy-MM-dd " +
@@ -376,6 +424,10 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> fileLogs) {
+        if (CollectionUtils.isEmpty(fileLogs)) {
+            return;
+        }
+
         String logDateTime = "[" + DateUtils.formatUnixTimestamp(System.currentTimeMillis(), ChronoUnit.MILLIS,
             "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault()) + "]";
         fileLogs.forEach(fileLog -> {
