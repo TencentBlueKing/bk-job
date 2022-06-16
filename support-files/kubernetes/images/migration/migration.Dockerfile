@@ -9,7 +9,7 @@ COPY ./ /data/job/exec/
 RUN yum -y install mysql
 RUN yum install -y epel-release
 RUN yum install -y python-pip
-RUN pip install requests==2.27.1
+RUN pip install requests==2.6.0
 
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
