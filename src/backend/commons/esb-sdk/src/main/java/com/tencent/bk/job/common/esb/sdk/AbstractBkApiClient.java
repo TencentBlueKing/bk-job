@@ -56,11 +56,11 @@ public abstract class AbstractBkApiClient {
         this.appSecret = appSecret;
     }
 
-    protected <T> String doHttpPost(String uri, T body) {
-        return doHttpPost(uri, body, null);
+    protected <T> String doPostAndGetRespStr(String uri, T body) {
+        return doPostAndGetRespStr(uri, body, null);
     }
 
-    protected <T> String doHttpPost(String uri, T body, ExtHttpHelper httpHelper) {
+    protected <T> String doPostAndGetRespStr(String uri, T body, ExtHttpHelper httpHelper) {
 
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
@@ -110,11 +110,17 @@ public abstract class AbstractBkApiClient {
 
     public <T, R> EsbResp<R> doHttpPost(String uri,
                                         T reqBody,
+                                        TypeReference<EsbResp<R>> typeReference) {
+        return doHttpPost(uri, reqBody, typeReference, null);
+    }
+
+    public <T, R> EsbResp<R> doHttpPost(String uri,
+                                        T reqBody,
                                         TypeReference<EsbResp<R>> typeReference,
                                         ExtHttpHelper httpHelper) {
         String respStr = null;
         try {
-            respStr = doHttpPost(uri, reqBody, httpHelper);
+            respStr = doPostAndGetRespStr(uri, reqBody, httpHelper);
             if (StringUtils.isBlank(respStr)) {
                 String errorMsg = "Post " + uri + ", error: " + "Response is blank";
                 log.error(errorMsg);

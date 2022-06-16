@@ -14,6 +14,8 @@ import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
+import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GseApiClient extends AbstractBkApiClient implements IGseClient {
 
+    private static final String URI_ASYNC_EXECUTE_SCRIPT = "/api/v2/task/async_execute_script";
+    private static final String URI_GET_EXECUTE_SCRIPT_RESULT = "/api/v2/task/get_execute_script_result";
+    private static final String URI_LIST_AGENT_STATE = "/api/v2/cluster/list_agent_state";
 
     @Autowired
     public GseApiClient(BkApiConfig bkApiConfig) {
@@ -36,9 +41,9 @@ public class GseApiClient extends AbstractBkApiClient implements IGseClient {
     public GseTaskResponse asyncExecuteScript(ExecuteScriptRequest request) {
         log.info("AsyncExecuteScript, request: {}", request);
         EsbResp<AysncGseTaskResult> resp =
-            doHttpPost("/api/v2/task/async_execute_script",
+            doHttpPost(URI_ASYNC_EXECUTE_SCRIPT,
                 request, new TypeReference<EsbResp<AysncGseTaskResult>>() {
-                }, null);
+                });
         GseTaskResponse gseTaskResponse = buildGseTaskResponse(resp);
         log.info("AsyncExecuteScript, resp: {}", gseTaskResponse);
 
@@ -58,14 +63,23 @@ public class GseApiClient extends AbstractBkApiClient implements IGseClient {
     public ScriptTaskResult getExecuteScriptResult(GetExecuteScriptResultRequest request) {
         log.info("GetExecuteScriptResult, request: {}", request);
         EsbResp<ScriptTaskResult> resp =
-            doHttpPost("/api/v2/task/get_execute_script_result",
+            doHttpPost(URI_GET_EXECUTE_SCRIPT_RESULT,
                 request, new TypeReference<EsbResp<ScriptTaskResult>>() {
-                }, null);
+                });
         log.info("GetExecuteScriptResult, resp: {}", resp);
         return resp.getData();
     }
 
     @Override
+    public List<AgentState> listAgentState(ListAgentStateReq req) {
+        log.info("listAgentState, req: {}", req);
+        EsbResp<List<AgentState>> resp = doHttpPost(URI_LIST_AGENT_STATE,
+            req, new TypeReference<EsbResp<List<AgentState>>>() {
+            });
+        log.info("listAgentState, resp: {}", resp);
+        return resp.getData();
+    }
+
     public List<Agent> buildAgents(Collection<String> agentIds, String user, String password) {
         return agentIds.stream()
             .map(agentId -> buildAgent(agentId, user, password))

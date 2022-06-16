@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.esb.config.BkApiConfig;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +55,7 @@ public class JobManageBootApplication {
 
     @Bean
     CloudAreaService buildCloudAreaService(@Autowired BkApiConfig bkApiConfig, @Autowired CmdbConfig cmdbConfig) {
-        QueryAgentStatusClient queryAgentStatusClient =
-            ApplicationContextRegister.getBean(QueryAgentStatusClient.class);
         MeterRegistry meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
-        return new CloudAreaService(bkApiConfig, cmdbConfig, queryAgentStatusClient, meterRegistry);
+        return new CloudAreaService(bkApiConfig, cmdbConfig, meterRegistry);
     }
 }

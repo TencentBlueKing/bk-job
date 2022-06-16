@@ -7,6 +7,8 @@ import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 
@@ -33,6 +35,13 @@ public interface IGseClient {
      */
     ScriptTaskResult getExecuteScriptResult(GetExecuteScriptResultRequest request);
 
+    /**
+     * 批量获取Agent状态
+     *
+     * @param req 请求体
+     * @return Agent状态列表
+     */
+    List<AgentState> listAgentState(ListAgentStateReq req);
 
     /**
      * 批量构建目标Agent

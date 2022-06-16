@@ -22,30 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.common.gse.v2.model.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 /**
- * @since 19/12/2019 21:53
+ * GSE - Agent状态
  */
-@Getter
-@Setter
-public class CcHostInfoDTO {
-    @JsonProperty("bk_host_id")
-    private Long hostId;
-    @JsonProperty("bk_host_innerip")
-    private String ip;
-    @JsonProperty("bk_host_innerip_v6")
-    private String ipv6;
+@Data
+public class AgentState {
+    /**
+     * 目标Agent ，数据格式分为两种。1. cloudId:ip（兼容老版本Agent没有agentId的情况) 2. agentId
+     */
     @JsonProperty("bk_agent_id")
     private String agentId;
-    @JsonProperty("bk_host_name")
-    private String hostName;
-    @JsonProperty("bk_os_name")
-    private String os;
+
+    /**
+     * 云区域ID
+     */
     @JsonProperty("bk_cloud_id")
-    private Long cloudId;
+    private Integer cloudId;
+
+    /**
+     * Agent版本
+     */
+    private String version;
+
+    /**
+     * Agent运行模式
+     */
+    @JsonProperty("run_mode")
+    private Integer runMode;
+
+    /**
+     * Agent状态
+     */
+    @JsonProperty("status_code")
+    private Integer statusCode;
 }

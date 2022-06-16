@@ -28,7 +28,6 @@ import com.google.common.collect.Maps;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -44,30 +43,28 @@ public class CmdbClientFactory {
     private static final Map<String, IBizCmdbClient> CMDB_CLIENT_MAPS = Maps.newHashMap();
 
     static {
-        BkApiConfig bkApiConfig = null;
-        CmdbConfig cmdbConfig = null;
-        QueryAgentStatusClient queryAgentStatusClient = null;
-        MeterRegistry meterRegistry = null;
+        BkApiConfig bkApiConfig;
+        CmdbConfig cmdbConfig;
+        MeterRegistry meterRegistry;
         try {
             bkApiConfig = ApplicationContextRegister.getBean(BkApiConfig.class);
             cmdbConfig = ApplicationContextRegister.getBean(CmdbConfig.class);
-            queryAgentStatusClient = ApplicationContextRegister.getBean(QueryAgentStatusClient.class);
             meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
         } catch (Throwable e) {
             log.error("Error while initialize bk config!", e);
             throw e;
         }
         CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_ZH_CN,
-            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.CN, queryAgentStatusClient, meterRegistry)
+            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.CN, meterRegistry)
         );
         CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_EN,
-            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.EN, queryAgentStatusClient, meterRegistry)
+            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.EN, meterRegistry)
         );
         CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_ZH,
-            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.CN, queryAgentStatusClient, meterRegistry)
+            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.CN, meterRegistry)
         );
         CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_EN_US,
-            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.EN, queryAgentStatusClient, meterRegistry)
+            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.EN, meterRegistry)
         );
     }
 

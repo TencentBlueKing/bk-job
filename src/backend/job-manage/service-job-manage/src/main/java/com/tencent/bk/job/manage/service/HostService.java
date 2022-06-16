@@ -174,15 +174,12 @@ public interface HostService {
                                   List<String> checkIpList);
 
     List<HostInfoVO> listHostByAppTopologyNodes(String username,
-                                                Long bizId,
+                                                Long appId,
                                                 List<AppTopologyTreeNode> appTopoNodeList);
 
     AgentStatistics getAgentStatistics(String username,
                                        Long appId,
                                        AgentStatisticsReq agentStatisticsReq);
-
-    void fillAgentStatus(List<ApplicationHostDTO> hosts);
-
 
     Boolean existsHost(Long bizId, String ip);
 

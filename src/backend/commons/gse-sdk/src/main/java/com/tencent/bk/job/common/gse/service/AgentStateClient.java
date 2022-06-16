@@ -24,59 +24,55 @@
 
 package com.tencent.bk.job.common.gse.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.tuple.Pair;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
 import java.util.List;
 import java.util.Map;
 
-public interface QueryAgentStatusClient {
+/**
+ * 封装Agent状态查询的常用操作：单个查询、批量查询
+ */
+public interface AgentStateClient {
 
     /**
-     * 批量获取agent状态
+     * 根据agentId获取agent状态
      *
-     * @param ips
-     * @return Map:key为cloudId:ip，value为AgentStatus，AgentStatus.ip不含云区域Id
+     * @param agentId AgentId
+     * @return Agent状态对象
      */
-    Map<String, AgentStatus> batchGetAgentStatus(List<String> ips);
+    AgentState getAgentState(String agentId);
 
     /**
-     * 获取agent状态
+     * 根据agentId获取agent存活状态
      *
-     * @param ip
-     * @return
+     * @param agentId AgentId
+     * @return Agent是否存活
      */
-    AgentStatus getAgentStatus(String ip);
+    boolean getAgentAliveStatus(String agentId);
 
     /**
-     * 获取agent绑定的ip
+     * 从多个agentId中选择一个，优先选择agent状态正常的，都不正常选第一个
      *
-     * @param multiIp
-     * @param cloudAreaId
-     * @return
+     * @param agentIdList agentId列表
+     * @return 选择的agentId
+     * @throws InternalException agentIdList为空时抛出异常
      */
-    String getHostIpByAgentStatus(String multiIp, long cloudAreaId);
-
+    String chooseOneAgentIdPreferAlive(List<String> agentIdList);
 
     /**
-     * 获取agent绑定的ip及Agent状态
+     * 根据agentId批量获取agent状态
      *
-     * @param multiIp
-     * @param cloudAreaId
-     * @return
+     * @param agentIdList agentId列表
+     * @return agentId与Agent状态的Map
      */
-    Pair<String, Boolean> getHostIpWithAgentStatus(String multiIp, long cloudAreaId);
+    Map<String, AgentState> batchGetAgentState(List<String> agentIdList);
 
     /**
-     * Agent状态返回结果
+     * 根据agentId批量获取agent存活状态
+     *
+     * @param agentIdList agentId列表
+     * @return agentId与Agent存活状态的Map
      */
-    class AgentStatus {
-        // 不含云区域Id
-        @JsonProperty("ip")
-        public String ip;
-        @JsonProperty("plat_id")
-        public int cloudAreaId;
-        @JsonProperty("status")
-        public int status;
-    }
+    Map<String, Boolean> batchGetAgentAliveStatus(List<String> agentIdList);
 }

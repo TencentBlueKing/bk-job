@@ -22,30 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.common.gse.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @since 19/12/2019 21:53
+ * GSE Agent状态查询配置
  */
+@Configuration
 @Getter
 @Setter
-public class CcHostInfoDTO {
-    @JsonProperty("bk_host_id")
-    private Long hostId;
-    @JsonProperty("bk_host_innerip")
-    private String ip;
-    @JsonProperty("bk_host_innerip_v6")
-    private String ipv6;
-    @JsonProperty("bk_agent_id")
-    private String agentId;
-    @JsonProperty("bk_host_name")
-    private String hostName;
-    @JsonProperty("bk_os_name")
-    private String os;
-    @JsonProperty("bk_cloud_id")
-    private Long cloudId;
+public class AgentStateQueryConfig {
+
+    @Value("${gse.query.threads.num:5}")
+    private int gseQueryThreadsNum;
+
+    @Value("${gse.query.batchSize:5000}")
+    private int gseQueryBatchSize;
+
 }

@@ -38,7 +38,6 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -48,7 +47,6 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -57,6 +55,7 @@ import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
+import com.tencent.bk.job.manage.common.convert.HostConverter;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.app.BizOperateDeptLocalCache;
@@ -74,6 +73,7 @@ import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.WhiteIPService;
+import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -106,11 +106,12 @@ public class HostServiceImpl implements HostService {
     private final HostTopoDAO hostTopoDAO;
     private final TopologyHelper topologyHelper;
     private final CloudAreaService cloudAreaService;
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStatusService agentStatusService;
     private final WhiteIPService whiteIPService;
     private final HostCache hostCache;
     private final BizOperateDeptLocalCache bizOperateDeptLocalCache;
     private final MessageI18nService i18nService;
+    private final HostConverter hostConverter;
 
     @Autowired
     public HostServiceImpl(DSLContext dslContext,
@@ -119,22 +120,24 @@ public class HostServiceImpl implements HostService {
                            HostTopoDAO hostTopoDAO,
                            TopologyHelper topologyHelper,
                            CloudAreaService cloudAreaService,
-                           QueryAgentStatusClient queryAgentStatusClient,
+                           AgentStatusService agentStatusService,
                            WhiteIPService whiteIPService,
                            HostCache hostCache,
                            BizOperateDeptLocalCache bizOperateDeptLocalCache,
-                           MessageI18nService i18nService) {
+                           MessageI18nService i18nService,
+                           HostConverter hostConverter) {
         this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
         this.hostTopoDAO = hostTopoDAO;
         this.topologyHelper = topologyHelper;
         this.cloudAreaService = cloudAreaService;
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.agentStatusService = agentStatusService;
         this.whiteIPService = whiteIPService;
         this.hostCache = hostCache;
         this.bizOperateDeptLocalCache = bizOperateDeptLocalCache;
         this.i18nService = i18nService;
+        this.hostConverter = hostConverter;
     }
 
     @Override
@@ -299,23 +302,6 @@ public class HostServiceImpl implements HostService {
         return ipList;
     }
 
-    public static void fillAgentStatus(Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap,
-                                       List<HostInfoVO> ipListStatus) {
-        if (CollectionUtils.isNotEmpty(ipListStatus)) {
-            for (HostInfoVO hostInfo : ipListStatus) {
-                if (hostInfo != null) {
-                    String ip = hostInfo.getCloudAreaInfo().getId() + ":" + hostInfo.getIp();
-                    QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(ip);
-                    if (agentStatus != null && agentStatus.status == 1) {
-                        hostInfo.setAlive(1);
-                    } else {
-                        hostInfo.setAlive(0);
-                    }
-                }
-            }
-        }
-    }
-
     @Override
     public PageData<ApplicationHostDTO> listAppHost(ApplicationHostDTO applicationHostInfoCondition,
                                                     BaseSearchCondition baseSearchCondition) {
@@ -450,17 +436,10 @@ public class HostServiceImpl implements HostService {
             List<CcInstanceDTO> conditions = new ArrayList<>();
             conditions.add(ccInstanceDTO);
             List<ApplicationHostDTO> hosts = bizCmdbClient.getHosts(bizId, conditions);
-            List<HostInfoVO> hostInfoVOList = hosts.stream().map(it -> {
-                HostInfoVO hostInfoVO = new HostInfoVO();
-                hostInfoVO.setHostId(it.getHostId());
-                hostInfoVO.setOs(it.getOs());
-                hostInfoVO.setIp(it.getIp());
-                hostInfoVO.setIpDesc(it.getIpDesc());
-                hostInfoVO.setDisplayIp(it.getDisplayIp());
-                hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(it.getCloudAreaId(),
-                    CloudAreaService.getCloudAreaNameFromCache(it.getCloudAreaId())));
-                return hostInfoVO;
-            }).collect(Collectors.toList());
+            // 填充agent状态
+            agentStatusService.fillRealTimeAgentStatus(hosts);
+            List<HostInfoVO> hostInfoVOList = hosts.stream()
+                .map(hostConverter::convertToHostInfoVO).collect(Collectors.toList());
             // 收集涉及的IP列表
             List<String> ipWithCloudIdList = buildIpList(hosts);
             allIpWithCloudIdList.addAll(ipWithCloudIdList);
@@ -472,13 +451,6 @@ public class HostServiceImpl implements HostService {
             nodeInfoVO.setIpListStatus(hostInfoVOList);
             return Collections.singletonList(nodeInfoVO);
         });
-        // 查出节点下主机与Agent状态
-        Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-            queryAgentStatusClient.batchGetAgentStatus(allIpWithCloudIdList);
-        // 批量设置agent状态
-        for (NodeInfoVO nodeInfoVO : nodeHostInfoList) {
-            fillAgentStatus(agentStatusMap, nodeInfoVO.getIpListStatus());
-        }
         return nodeHostInfoList;
     }
 
@@ -509,11 +481,6 @@ public class HostServiceImpl implements HostService {
     @Override
     public List<DynamicGroupInfoDTO> getBizDynamicGroupHostList(String username, Long bizId,
                                                                 List<String> dynamicGroupIdList) {
-        ApplicationDTO applicationInfo = applicationService.getAppByScope(
-            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
-        );
-        String maintainer = applicationInfo.getMaintainers().split("[,;]")[0];
-
         Map<String, DynamicGroupInfoDTO> ccGroupInfoMap = new HashMap<>();
         Map<Long, List<String>> bizId2GroupIdMap = new HashMap<>();
         getCustomGroupListByBizId(bizId, ccGroupInfoMap, bizId2GroupIdMap);
@@ -528,16 +495,16 @@ public class HostServiceImpl implements HostService {
                 List<CcGroupHostPropDTO> ccGroupHostProps =
                     CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
                         .getCustomGroupIp(groupBizId, customerGroupId);
-                List<String> ipList = new ArrayList<>();
+                List<String> cloudIpList = new ArrayList<>();
                 for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
                     if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
-                        ipList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
+                        cloudIpList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
                     } else {
                         log.warn("Wrong host info! No cloud area!|{}", groupHost);
                     }
                 }
 
-                ccGroupInfoMap.get(customerGroupId).setIpList(ipList);
+                ccGroupInfoMap.get(customerGroupId).setIpList(cloudIpList);
             }
         }
 
@@ -570,7 +537,7 @@ public class HostServiceImpl implements HostService {
         watch.stop();
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
             watch.start("fillHostInfo");
-            fillHostInfo(username, Long.valueOf(appResourceScope.getId()), topologyTree, true);
+            fillHostInfo(Long.valueOf(appResourceScope.getId()), topologyTree, true);
             watch.stop();
         } else {
             topologyTree.setIpListStatus(
@@ -643,7 +610,7 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    public void fillHostInfo(String username, Long bizId, CcTopologyNodeVO topologyTree, boolean updateAgentStatus) {
+    public void fillHostInfo(Long bizId, CcTopologyNodeVO topologyTree, boolean updateAgentStatus) {
         if (topologyTree == null) {
             return;
         }
@@ -663,25 +630,14 @@ public class HostServiceImpl implements HostService {
         List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByBizId(bizId);
         log.info("find {} hosts from DB", dbHosts.size());
         watch.stop();
-        List<HostInfoVO> hostInfoVOList = dbHosts.stream().map(it -> {
-            HostInfoVO hostInfoVO = new HostInfoVO();
-            hostInfoVO.setHostId(it.getHostId());
-            hostInfoVO.setOs(it.getOs());
-            hostInfoVO.setIp(it.getIp());
-            hostInfoVO.setIpDesc(it.getIpDesc());
-            hostInfoVO.setDisplayIp(it.getDisplayIp());
-            hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(it.getCloudAreaId(),
-                CloudAreaService.getCloudAreaNameFromCache(it.getCloudAreaId())));
-            return hostInfoVO;
-        }).collect(Collectors.toList());
         //批量设置agent状态
         if (updateAgentStatus) {
-            watch.start("batchGetAgentStatus");
-            Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-                queryAgentStatusClient.batchGetAgentStatus(buildIpList(dbHosts));
-            fillAgentStatus(agentStatusMap, hostInfoVOList);
+            watch.start("fillRealTimeAgentStatus");
+            agentStatusService.fillRealTimeAgentStatus(dbHosts);
             watch.stop();
         }
+        List<HostInfoVO> hostInfoVOList = dbHosts.stream()
+            .map(hostConverter::convertToHostInfoVO).collect(Collectors.toList());
         //将主机挂载到topo树
         watch.start("setToTopoTree");
         for (int i = 0; i < hostInfoVOList.size(); i++) {
@@ -703,23 +659,6 @@ public class HostServiceImpl implements HostService {
         log.debug(watch.toString());
     }
 
-    public void fillAgentStatus(List<ApplicationHostDTO> hosts) {
-        // 查出节点下主机与Agent状态
-        List<String> ipWithCloudIdList = buildIpList(hosts);
-        // 批量设置agent状态
-        Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-            queryAgentStatusClient.batchGetAgentStatus(ipWithCloudIdList);
-        if (CollectionUtils.isNotEmpty(hosts)) {
-            for (ApplicationHostDTO hostInfoDTO : hosts) {
-                if (hostInfoDTO != null) {
-                    String ip = hostInfoDTO.getCloudAreaId() + ":" + hostInfoDTO.getIp();
-                    QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(ip);
-                    hostInfoDTO.setGseAgentAlive(agentStatus != null && agentStatus.status == 1);
-                }
-            }
-        }
-    }
-
     @Override
     public Boolean existsHost(Long bizId, String ip) {
         return applicationHostDAO.existsHost(dslContext, bizId, ip);
@@ -734,7 +673,7 @@ public class HostServiceImpl implements HostService {
         watch.stop();
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
             watch.start("fillHostInfo");
-            fillHostInfo(username, Long.valueOf(appResourceScope.getId()), topologyTree, false);
+            fillHostInfo(Long.valueOf(appResourceScope.getId()), topologyTree, false);
             watch.stop();
             watch.start("clearHosts");
             clearHosts(topologyTree);
@@ -778,23 +717,7 @@ public class HostServiceImpl implements HostService {
     }
 
     public List<HostInfoVO> getHostInfoVOsByHostInfoDTOs(List<ApplicationHostDTO> hosts) {
-        return hosts.stream().map(it -> {
-            String ip = it.getIp();
-            HostInfoVO hostInfoVO = new HostInfoVO();
-            hostInfoVO.setHostId(it.getHostId());
-            hostInfoVO.setOs(it.getOs());
-            hostInfoVO.setIp(ip);
-            hostInfoVO.setIpDesc(it.getIpDesc());
-            hostInfoVO.setDisplayIp(it.getDisplayIp());
-            hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(it.getCloudAreaId(),
-                CloudAreaService.getCloudAreaNameFromCache(it.getCloudAreaId())));
-            if (it.getGseAgentAlive()) {
-                hostInfoVO.setAlive(1);
-            } else {
-                hostInfoVO.setAlive(0);
-            }
-            return hostInfoVO;
-        }).collect(Collectors.toList());
+        return hosts.stream().map(hostConverter::convertToHostInfoVO).collect(Collectors.toList());
     }
 
     // DB分页
@@ -1075,7 +998,7 @@ public class HostServiceImpl implements HostService {
         }
 
         // 8.查询Agent状态
-        fillAgentStatus(hostDTOList);
+        agentStatusService.fillRealTimeAgentStatus(hostDTOList);
         // 9.类型转换，返回
         List<HostInfoVO> hostInfoList = new ArrayList<>();
         hostDTOList.forEach(hostInfo -> hostInfoList.add(TopologyHelper.convertToHostInfoVO(hostInfo)));
@@ -1211,10 +1134,8 @@ public class HostServiceImpl implements HostService {
         // 查出节点下主机与Agent状态
         List<String> ipWithCloudIdList = buildIpList(hosts);
         // 批量设置agent状态
-        Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-            queryAgentStatusClient.batchGetAgentStatus(ipWithCloudIdList);
+        agentStatusService.fillRealTimeAgentStatus(hosts);
         List<HostInfoVO> hostInfoVOList = getHostInfoVOsByHostInfoDTOs(hosts);
-        fillAgentStatus(agentStatusMap, hostInfoVOList);
         // 排序
         //异常排序
         List<HostInfoVO> orderedHostInfoVOList =
@@ -1264,17 +1185,20 @@ public class HostServiceImpl implements HostService {
         log.debug("hostsByNodes={}", hostsByNodes);
         allHostsSet.addAll(hostsByNodes);
         // 只有普通业务才查动态分组
-        if (applicationDTO.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+        if (applicationDTO.isBiz()) {
             List<ApplicationHostDTO> hostDTOsByDynamicGroupIds = new ArrayList<>();
-            List<DynamicGroupInfoDTO> dynamicGroupList =
-                getBizDynamicGroupHostList(username, appId, agentStatisticsReq.getDynamicGroupIds());
+            List<DynamicGroupInfoDTO> dynamicGroupList = getBizDynamicGroupHostList(
+                username,
+                applicationDTO.getBizIdIfBizApp(),
+                agentStatisticsReq.getDynamicGroupIds()
+            );
             dynamicGroupList.forEach(dynamicGroupInfoDTO -> {
                 List<ApplicationHostDTO> applicationHostDTOList = dynamicGroupInfoDTO.getIpListStatus();
                 if (applicationHostDTOList != null && !applicationHostDTOList.isEmpty()) {
                     hostDTOsByDynamicGroupIds.addAll(applicationHostDTOList);
                 }
             });
-            fillAgentStatus(hostDTOsByDynamicGroupIds);
+            agentStatusService.fillRealTimeAgentStatus(hostDTOsByDynamicGroupIds);
             List<HostInfoVO> hostsByDynamicGroupIds = getHostInfoVOsByHostInfoDTOs(hostDTOsByDynamicGroupIds);
             log.debug("hostsByDynamicGroupIds={}", hostsByDynamicGroupIds);
             allHostsSet.addAll(hostsByDynamicGroupIds);
@@ -1531,18 +1455,14 @@ public class HostServiceImpl implements HostService {
             Pair<List<Long>, List<BasicAppHost>> result = listHostsByStrategy(hostIds, new ListHostByHostIdsStrategy());
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
-                result.getLeft().forEach(notExistHostId -> {
-                    notExistHosts.add(HostDTO.fromHostId(notExistHostId));
-                });
+                result.getLeft().forEach(notExistHostId -> notExistHosts.add(HostDTO.fromHostId(notExistHostId)));
             }
         }
         if (CollectionUtils.isNotEmpty(cloudIps)) {
             Pair<List<String>, List<BasicAppHost>> result = listHostsByStrategy(cloudIps, new ListHostByIpsStrategy());
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
-                result.getLeft().forEach(notExistCloudIp -> {
-                    notExistHosts.add(HostDTO.fromCloudIp(notExistCloudIp));
-                });
+                result.getLeft().forEach(notExistCloudIp -> notExistHosts.add(HostDTO.fromCloudIp(notExistCloudIp)));
             }
         }
         return Pair.of(notExistHosts, appHosts);

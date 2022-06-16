@@ -85,7 +85,6 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -187,7 +186,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     protected String defaultSupplierAccount;
     protected String defaultUin = "admin";
-    private QueryAgentStatusClient queryAgentStatusClient;
     private final MeterRegistry meterRegistry;
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
@@ -199,17 +197,14 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                   }
             );
 
-    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
-                         MeterRegistry meterRegistry) {
-        this(bkApiConfig, cmdbConfig, null, queryAgentStatusClient, meterRegistry);
+    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, MeterRegistry meterRegistry) {
+        this(bkApiConfig, cmdbConfig, null, meterRegistry);
     }
 
-    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, String lang,
-                         QueryAgentStatusClient queryAgentStatusClient, MeterRegistry meterRegistry) {
+    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, String lang, MeterRegistry meterRegistry) {
         super(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(), bkApiConfig.getAppSecret(), lang,
             bkApiConfig.isUseEsbTestEnv());
         this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
-        this.queryAgentStatusClient = queryAgentStatusClient;
         this.meterRegistry = meterRegistry;
     }
 
@@ -241,10 +236,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     public static void setCcConfig(CmdbConfig cmdbConfig) {
         BizCmdbClient.cmdbConfig = cmdbConfig;
-    }
-
-    public void setQueryAgentStatusClient(QueryAgentStatusClient queryAgentStatusClient) {
-        this.queryAgentStatusClient = queryAgentStatusClient;
     }
 
     @Override
@@ -594,37 +585,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     ) {
         String multiIp = host.getIp();
         multiIp = multiIp.trim();
-        if (queryAgentStatusClient != null) {
-            if (multiIp.contains(",")) {
-                Pair<String, Boolean> pair = queryAgentStatusClient.getHostIpWithAgentStatus(multiIp,
-                    host.getCloudAreaId());
-                if (pair != null) {
-                    log.debug("query agent status:{}:{}", pair.getLeft(), pair.getRight());
-                    String ipWithCloudId = pair.getLeft();
-                    applicationHostDTO.setGseAgentAlive(pair.getRight());
-                    if (ipWithCloudId.contains(":")) {
-                        String[] arr = ipWithCloudId.split(":");
-                        applicationHostDTO.setCloudAreaId(Long.parseLong(arr[0]));
-                        applicationHostDTO.setIp(arr[1]);
-                    } else {
-                        applicationHostDTO.setIp(ipWithCloudId);
-                    }
-                } else {
-                    log.warn("Fail to get agentStatus, host={}", JsonUtils.toJson(host));
-                }
-            } else {
-                applicationHostDTO.setGseAgentAlive(false);
-                applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
-                applicationHostDTO.setIp(multiIp);
-            }
+        applicationHostDTO.setGseAgentAlive(false);
+        applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
+        List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
+        if (ipList.size() > 0) {
+            applicationHostDTO.setIp(ipList.get(0));
         } else {
-            log.warn("queryAgentStatusClient==null, please check!");
-            List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
-            if (ipList.size() > 0) {
-                applicationHostDTO.setIp(ipList.get(0));
-            } else {
-                log.warn("no available ip after queryAgentStatusClient");
-            }
+            log.warn("no available ip, raw multiIp={}", multiIp);
         }
     }
 
@@ -726,12 +693,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             log.warn("Host does not have cloud area id!|{}", hostInfo);
             return null;
         }
-
-        if (queryAgentStatusClient != null) {
-            ipInfo.setIp(queryAgentStatusClient.getHostIpByAgentStatus(hostInfo.getIp(), hostInfo.getCloudId()));
-        } else {
-            ipInfo.setIp(hostInfo.getIp());
-        }
+        ipInfo.setIp(hostInfo.getIp());
         ipInfo.setBizId(bizId);
         ipInfo.setIpDesc(hostInfo.getHostName());
 
@@ -889,13 +851,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 }
             }
         }
-        if (queryAgentStatusClient != null) {
-            for (CcGroupHostPropDTO ccHost : ccGroupHostList) {
-                // 多IP,需要设置agent绑定的IP
-                ccHost.setIp(queryAgentStatusClient.getHostIpByAgentStatus(ccHost.getIp(),
-                    ccHost.getCloudIdList().get(0).getInstanceId()));
-            }
-        }
         return ccGroupHostList;
     }
 
@@ -904,6 +859,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ccGroupHostPropDTO.setId(ccHostInfo.getHostId());
         ccGroupHostPropDTO.setName(ccHostInfo.getHostName());
         ccGroupHostPropDTO.setIp(ccHostInfo.getIp());
+        ccGroupHostPropDTO.setIpv6(ccHostInfo.getIpv6());
+        ccGroupHostPropDTO.setAgentId(ccHostInfo.getAgentId());
         CcCloudIdDTO ccCloudIdDTO = new CcCloudIdDTO();
         // 仅使用CloudId其余属性未用到，暂不设置
         ccCloudIdDTO.setInstanceId(ccHostInfo.getCloudId());

@@ -22,30 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.manage.common.convert;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import com.tencent.bk.job.common.cc.service.CloudAreaService;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
+import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import org.springframework.stereotype.Service;
 
-/**
- * @since 19/12/2019 21:53
- */
-@Getter
-@Setter
-public class CcHostInfoDTO {
-    @JsonProperty("bk_host_id")
-    private Long hostId;
-    @JsonProperty("bk_host_innerip")
-    private String ip;
-    @JsonProperty("bk_host_innerip_v6")
-    private String ipv6;
-    @JsonProperty("bk_agent_id")
-    private String agentId;
-    @JsonProperty("bk_host_name")
-    private String hostName;
-    @JsonProperty("bk_os_name")
-    private String os;
-    @JsonProperty("bk_cloud_id")
-    private Long cloudId;
+@Service
+public class HostConverter {
+
+    /**
+     * 将服务层主机对象转换为展示层对象
+     *
+     * @param hostDTO 服务层主机对象
+     * @return 展示层主机对象
+     */
+    public HostInfoVO convertToHostInfoVO(ApplicationHostDTO hostDTO) {
+        HostInfoVO hostInfoVO = new HostInfoVO();
+        hostInfoVO.setHostId(hostDTO.getHostId());
+        hostInfoVO.setOs(hostDTO.getOs());
+        hostInfoVO.setIp(hostDTO.getIp());
+        hostInfoVO.setIpDesc(hostDTO.getIpDesc());
+        hostInfoVO.setDisplayIp(hostDTO.getDisplayIp());
+        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(hostDTO.getCloudAreaId(),
+            CloudAreaService.getCloudAreaNameFromCache(hostDTO.getCloudAreaId())));
+        hostInfoVO.setAlive(hostDTO.getAgentStatusValue());
+        return hostInfoVO;
+    }
 }

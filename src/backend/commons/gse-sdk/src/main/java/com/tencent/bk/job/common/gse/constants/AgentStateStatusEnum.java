@@ -22,30 +22,73 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.common.gse.constants;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * @since 19/12/2019 21:53
+ * Agent 状态枚举，-2:未找到 -1:查询失败 0:初始安装 1:启动中 2:运行中 3:有损状态 4:繁忙状态 5:升级中 6:停止中 7:解除安装
  */
-@Getter
-@Setter
-public class CcHostInfoDTO {
-    @JsonProperty("bk_host_id")
-    private Long hostId;
-    @JsonProperty("bk_host_innerip")
-    private String ip;
-    @JsonProperty("bk_host_innerip_v6")
-    private String ipv6;
-    @JsonProperty("bk_agent_id")
-    private String agentId;
-    @JsonProperty("bk_host_name")
-    private String hostName;
-    @JsonProperty("bk_os_name")
-    private String os;
-    @JsonProperty("bk_cloud_id")
-    private Long cloudId;
+public enum AgentStateStatusEnum {
+    /**
+     * 未找到
+     */
+    NOT_FIND(-2),
+    /**
+     * 查询失败
+     */
+    QUERY_FAIL(-1),
+    /**
+     * 初始安装
+     */
+    INIT_INSTALL(0),
+    /**
+     * 启动中
+     */
+    BOOTING(1),
+    /**
+     * 运行中
+     */
+    RUNNING(2),
+    /**
+     * 有损状态
+     */
+    IN_TROUBLE(3),
+    /**
+     * 繁忙状态
+     */
+    BUSY(4),
+    /**
+     * 升级中
+     */
+    UPGRADING(5),
+    /**
+     * 停止中
+     */
+    STOPPING(6),
+    /**
+     * 解除安装
+     */
+    REMOVING(7);
+    @JsonValue
+    private final int status;
+
+    AgentStateStatusEnum(int status) {
+        this.status = status;
+    }
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static AgentStateStatusEnum valOf(int status) {
+        for (AgentStateStatusEnum agentStatus : values()) {
+            if (agentStatus.status == status) {
+                return agentStatus;
+            }
+        }
+        return null;
+    }
+
+    public int getValue() {
+        return status;
+    }
 }

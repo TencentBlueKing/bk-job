@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.agent;
 
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,11 +41,11 @@ import java.util.Map;
 @Service
 public class AgentStatusService {
 
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStateClient agentStateClient;
 
     @Autowired
-    public AgentStatusService(QueryAgentStatusClient queryAgentStatusClient) {
-        this.queryAgentStatusClient = queryAgentStatusClient;
+    public AgentStatusService(AgentStateClient agentStateClient) {
+        this.agentStateClient = agentStateClient;
     }
 
     /**
@@ -55,10 +55,10 @@ public class AgentStatusService {
      */
     public void fillRealTimeAgentStatus(List<ApplicationHostDTO> hosts) {
         // 查出节点下主机与Agent状态
-        List<String> ipWithCloudIdList = ApplicationHostDTO.buildIpList(hosts);
+        List<String> agentIdList = ApplicationHostDTO.buildAgentIdList(hosts);
         // 批量设置agent状态
-        Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-            queryAgentStatusClient.batchGetAgentStatus(ipWithCloudIdList);
+        Map<String, Boolean> agentAliveStatusMap = agentStateClient.batchGetAgentAliveStatus(agentIdList);
+
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
@@ -66,9 +66,8 @@ public class AgentStatusService {
             if (hostInfoDTO == null) {
                 continue;
             }
-            String ip = hostInfoDTO.getCloudAreaId() + ":" + hostInfoDTO.getIp();
-            QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(ip);
-            hostInfoDTO.setGseAgentAlive(agentStatus != null && agentStatus.status == 1);
+            String agentId = hostInfoDTO.getFinalAgentId();
+            hostInfoDTO.setGseAgentAlive(agentAliveStatusMap.get(agentId));
         }
     }
 }
