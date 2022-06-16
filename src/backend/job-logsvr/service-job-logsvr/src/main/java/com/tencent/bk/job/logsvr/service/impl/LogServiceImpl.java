@@ -430,7 +430,7 @@ public class LogServiceImpl implements LogService {
             scriptLogsGroups.forEach(
                 (hostId, scriptLogGroup) ->
                     taskHostLogs.add(
-                        buildTaskHostLog(stepInstanceId, executeCount, batch, hostId, null, scriptLogGroup)));
+                        buildTaskHostLog(stepInstanceId, executeCount, batch, scriptLogGroup)));
         } else {
             Map<String, List<ScriptTaskLogDoc>> scriptLogsGroups = new HashMap<>();
             scriptTaskLogs.forEach(scriptTaskLog -> {
@@ -441,21 +441,21 @@ public class LogServiceImpl implements LogService {
             scriptLogsGroups.forEach(
                 (ip, scriptLogGroup) ->
                     taskHostLogs.add(
-                        buildTaskHostLog(stepInstanceId, executeCount, batch, null, ip, scriptLogGroup)));
+                        buildTaskHostLog(stepInstanceId, executeCount, batch,scriptLogGroup)));
         }
 
         log.info("taskHostLogs: {}", taskHostLogs);
         return taskHostLogs;
     }
 
-    private TaskHostLog buildTaskHostLog(long stepInstanceId, int executeCount, Integer batch, Long hostId, String ip,
+    private TaskHostLog buildTaskHostLog(long stepInstanceId, int executeCount, Integer batch,
                                          List<ScriptTaskLogDoc> scriptLogs) {
         TaskHostLog taskHostLog = new TaskHostLog();
         taskHostLog.setStepInstanceId(stepInstanceId);
         taskHostLog.setExecuteCount(executeCount);
         taskHostLog.setBatch(batch);
-        taskHostLog.setHostId(hostId);
-        taskHostLog.setIp(ip);
+        taskHostLog.setHostId(scriptLogs.get(0).getHostId());
+        taskHostLog.setIp(scriptLogs.get(0).getIp());
 
         scriptLogs.sort(ScriptTaskLogDoc.LOG_OFFSET_COMPARATOR);
         taskHostLog.setScriptContent(scriptLogs.stream().map(ScriptTaskLogDoc::getContent).collect(Collectors.joining("")));
