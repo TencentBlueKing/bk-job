@@ -181,9 +181,6 @@ public interface HostService {
                                        Long appId,
                                        AgentStatisticsReq agentStatisticsReq);
 
-    void fillAgentStatus(List<ApplicationHostDTO> hosts);
-
-
     Boolean existsHost(Long bizId, String ip);
 
     /**

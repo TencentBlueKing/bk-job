@@ -25,8 +25,10 @@
 package com.tencent.bk.job.common.gse.service;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
@@ -81,6 +83,28 @@ public class AgentStateClientImpl implements AgentStateClient {
     }
 
     @Override
+    public boolean getAgentAliveStatus(String agentId) {
+        AgentState agentState = getAgentState(agentId);
+        return AgentStatusEnum.fromAgentState(agentState) == AgentStatusEnum.ALIVE;
+    }
+
+    @Override
+    public String chooseOneAgentIdPreferAlive(List<String> agentIdList) {
+        if (CollectionUtils.isEmpty(agentIdList)) {
+            throw new InternalException("agentIdList cannot be empty", ErrorCode.INTERNAL_ERROR);
+        }
+        Map<String, Boolean> map = batchGetAgentAliveStatus(agentIdList);
+        for (Map.Entry<String, Boolean> entry : map.entrySet()) {
+            String agentId = entry.getKey();
+            Boolean alive = entry.getValue();
+            if (alive) {
+                return agentId;
+            }
+        }
+        return agentIdList.get(0);
+    }
+
+    @Override
     public Map<String, AgentState> batchGetAgentState(List<String> agentIdList) {
         long startTime = System.currentTimeMillis();
         Map<String, AgentState> resultMap = new HashMap<>();
@@ -114,6 +138,18 @@ public class AgentStateClientImpl implements AgentStateClient {
             log.debug(msg.getMessage());
         }
         return resultMap;
+    }
+
+    @Override
+    public Map<String, Boolean> batchGetAgentAliveStatus(List<String> agentIdList) {
+        Map<String, AgentState> agentStateMap = batchGetAgentState(agentIdList);
+        Map<String, Boolean> agentAliveStatusMap = new HashMap<>();
+        for (Map.Entry<String, AgentState> entry : agentStateMap.entrySet()) {
+            String agentId = entry.getKey();
+            AgentState agentState = entry.getValue();
+            agentAliveStatusMap.put(agentId, AgentStatusEnum.fromAgentState(agentState) == AgentStatusEnum.ALIVE);
+        }
+        return agentAliveStatusMap;
     }
 
     public Map<String, AgentState> batchGetAgentStatusWithoutLimit(List<String> agentIdList) {

@@ -89,7 +89,7 @@ public interface HostService {
      * @param groupId 动态分组ID
      * @return 主机列表
      */
-    List<HostDTO> getIpByDynamicGroupId(long appId, String groupId);
+    List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId);
 
     /**
      * 根据topo节点获取主机
