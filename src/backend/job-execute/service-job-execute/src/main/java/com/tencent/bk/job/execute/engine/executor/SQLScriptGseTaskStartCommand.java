@@ -53,6 +53,7 @@ import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -119,6 +120,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
 
     public SQLScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                         TaskInstanceService taskInstanceService,
+                                        StepInstanceService stepInstanceService,
                                         GseTaskService gseTaskService,
                                         ScriptAgentTaskService scriptAgentTaskService,
                                         AccountService accountService,
@@ -142,6 +144,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         GseTaskDTO gseTask) {
         super(resultHandleManager,
             taskInstanceService,
+            stepInstanceService,
             gseTaskService,
             scriptAgentTaskService,
             accountService,
@@ -152,8 +155,10 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
             executeMonitor,
-            jobExecuteConfig, taskEvictPolicyExecutor,
-            exceptionStatusManager, gseTasksExceptionCounter,
+            jobExecuteConfig,
+            taskEvictPolicyExecutor,
+            exceptionStatusManager,
+            gseTasksExceptionCounter,
             jobBuildInVariableResolver,
             tracing,
             gseApiClient,

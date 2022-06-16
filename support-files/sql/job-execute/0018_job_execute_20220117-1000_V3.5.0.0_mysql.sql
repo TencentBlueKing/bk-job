@@ -75,7 +75,6 @@ BEGIN
       `end_time`         bigint(20)     DEFAULT NULL,
       `total_time`       bigint(20)     DEFAULT NULL,
       `error_code`       int(11)        DEFAULT '0',
-      `display_ip`       varchar(30)    CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       `row_create_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP,
       `row_update_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`),

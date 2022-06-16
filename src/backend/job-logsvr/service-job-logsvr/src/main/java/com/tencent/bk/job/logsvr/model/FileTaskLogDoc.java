@@ -225,7 +225,7 @@ public class FileTaskLogDoc {
         StringBuilder sb = new StringBuilder();
         sb.append(mode).append("_");
         if (FileTaskModeEnum.UPLOAD.getValue().equals(mode)) {
-            if (srcHostId != null) {
+            if (hostId != null) {
                 sb.append(hostId).append("_");
             } else {
                 sb.append(displaySrcIp).append("_");

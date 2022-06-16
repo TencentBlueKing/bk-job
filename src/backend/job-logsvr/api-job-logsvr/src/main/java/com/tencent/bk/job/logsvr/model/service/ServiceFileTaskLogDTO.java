@@ -26,7 +26,6 @@ package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,10 +34,10 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * 文件分发执行日志
  */
+@ApiModel("文件分发执行日志")
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@ApiModel("文件分发执行日志")
 public class ServiceFileTaskLogDTO {
     /**
      * 文件任务ID
@@ -55,9 +54,14 @@ public class ServiceFileTaskLogDTO {
     /**
      * 目标IP
      */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用destHostId替换", version = "3.7.x")
     @JsonProperty("destIp")
     private String destIp;
+
+    /**
+     * 用于展示的目标IP
+     */
+    @JsonProperty("displayDestIp")
+    private String displayDestIp;
 
     /**
      * 目标主机ID
@@ -74,7 +78,6 @@ public class ServiceFileTaskLogDTO {
     /**
      * 文件源IP
      */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用srcHostId替换", version = "3.7.x")
     @JsonProperty("srcIp")
     private String srcIp;
 
@@ -170,32 +173,6 @@ public class ServiceFileTaskLogDTO {
         this.content = content;
     }
 
-    public ServiceFileTaskLogDTO(Integer mode,
-                                 Long destHostId,
-                                 String destFile,
-                                 Long srcHostId,
-                                 String srcFile,
-                                 String displaySrcFile,
-                                 String size,
-                                 Integer status,
-                                 String statusDesc,
-                                 String speed,
-                                 String process,
-                                 String content) {
-        this.mode = mode;
-        this.destHostId = destHostId;
-        this.destFile = destFile;
-        this.srcHostId = srcHostId;
-        this.srcFile = srcFile;
-        this.displaySrcFile = displaySrcFile;
-        this.size = size;
-        this.status = status;
-        this.statusDesc = statusDesc;
-        this.speed = speed;
-        this.process = process;
-        this.content = content;
-    }
-
     public String getDisplaySrcIp() {
         if (StringUtils.isNotEmpty(this.displaySrcIp)) {
             return this.displaySrcIp;
@@ -204,3 +181,5 @@ public class ServiceFileTaskLogDTO {
         }
     }
 }
+
+

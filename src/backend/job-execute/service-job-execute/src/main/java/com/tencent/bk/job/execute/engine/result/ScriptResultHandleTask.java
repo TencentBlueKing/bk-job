@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptAgentTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
@@ -56,6 +57,7 @@ import com.tencent.bk.job.execute.model.VariableValueDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -149,6 +151,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   ExceptionStatusManager exceptionStatusManager,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   ScriptAgentTaskService scriptAgentTaskService,
+                                  StepInstanceService stepInstanceService,
                                   GseApiClient gseApiClient,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
@@ -166,6 +169,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             exceptionStatusManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
+            stepInstanceService,
             gseApiClient,
             taskInstance,
             stepInstance,
@@ -333,6 +337,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                                      String agentId,
                                                      AgentTaskDTO agentTask,
                                                      long currentTime) {
+        HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
         if (GSECode.AtomicErrorCode.getErrorCode(agentTaskResult.getErrorCode()) == GSECode.AtomicErrorCode.ERROR) {
             logs.add(logService.buildSystemScriptLog(agentTask.getHost(), agentTaskResult.getErrorMsg(),
                 agentTask.getScriptLogOffset(),
@@ -348,7 +353,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                 offset += bytes;
                 agentTask.setScriptLogOffset(offset);
             }
-            logs.add(new ServiceScriptLogDTO(agentTask.getHost(), offset, agentTaskResult.getScreen()));
+            logs.add(new ServiceScriptLogDTO(host, offset, agentTaskResult.getScreen()));
         }
         // 刷新日志拉取偏移量
         refreshPullLogProgress(agentTaskResult.getScreen(), agentId, agentTaskResult.getAtomicTaskId());
@@ -637,19 +642,6 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), scriptLogs);
         }
-    }
-
-    private Map<String, Integer> buildAgentIdAndLogOffsetMap(Collection<String> agentIds) {
-        Map<String, Integer> agentIdAndLogOffsetMap = new HashMap<>();
-        agentIds.forEach(agentId -> {
-            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
-            if (agentTask != null) {
-                agentIdAndLogOffsetMap.put(agentId, agentTask.getScriptLogOffset());
-            } else {
-                agentIdAndLogOffsetMap.put(agentId, 0);
-            }
-        });
-        return agentIdAndLogOffsetMap;
     }
 
     @Override

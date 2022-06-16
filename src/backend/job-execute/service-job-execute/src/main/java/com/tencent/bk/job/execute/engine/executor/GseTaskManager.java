@@ -56,6 +56,7 @@ import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -99,6 +100,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
+    private final StepInstanceService stepInstanceServcice;
     private final GseApiClient gseApiClient;
 
     private final Object lifecycleMonitor = new Object();
@@ -155,6 +157,7 @@ public class GseTaskManager implements SmartLifecycle {
                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                           ScriptAgentTaskService scriptAgentTaskService,
                           FileAgentTaskService fileAgentTaskService,
+                          StepInstanceService stepInstanceServcice,
                           GseApiClient gseApiClient) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
@@ -176,6 +179,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+        this.stepInstanceServcice = stepInstanceServcice;
         this.gseApiClient = gseApiClient;
     }
 
@@ -314,6 +318,7 @@ public class GseTaskManager implements SmartLifecycle {
             gseTaskStartCommand = new ScriptGseTaskStartCommand(
                 resultHandleManager,
                 taskInstanceService,
+                stepInstanceServcice,
                 gseTaskService,
                 scriptAgentTaskService,
                 accountService,
@@ -341,6 +346,7 @@ public class GseTaskManager implements SmartLifecycle {
             gseTaskStartCommand = new SQLScriptGseTaskStartCommand(
                 resultHandleManager,
                 taskInstanceService,
+                stepInstanceServcice,
                 gseTaskService,
                 scriptAgentTaskService,
                 accountService,
@@ -382,6 +388,7 @@ public class GseTaskManager implements SmartLifecycle {
                 taskEvictPolicyExecutor,
                 exceptionStatusManager,
                 gseTasksExceptionCounter,
+                stepInstanceServcice,
                 tracing,
                 gseApiClient,
                 requestId,

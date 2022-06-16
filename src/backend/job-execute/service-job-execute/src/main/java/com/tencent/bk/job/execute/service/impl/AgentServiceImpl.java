@@ -105,8 +105,9 @@ public class AgentServiceImpl implements AgentService {
 
             String agentBindIp = agentStateClient.chooseOneAgentIdPreferAlive(cloudIpList);
             log.info("Local agent bind ip is {}", agentBindIp);
-            ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindIp));
-            agentHost = HostDTO.fromHostIdAndAgentId(host.getHostId(), agentBindIp);
+            String agentBindCloudIp = Consts.DEFAULT_CLOUD_ID + ":" + agentBindIp;
+            ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindCloudIp));
+            agentHost = HostDTO.fromHostIdAndCloudIp(host.getHostId(), agentBindCloudIp);
             return agentHost;
         }
     }
