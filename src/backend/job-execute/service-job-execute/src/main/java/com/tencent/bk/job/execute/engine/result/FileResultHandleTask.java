@@ -1023,7 +1023,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                 HostDTO sourceHost = agentIdHostMap.get(taskResult.getSourceAgentId());
                 addFileTaskLog(executionLogs,
                     new ServiceFileTaskLogDTO(
-                        FileDistModeEnum.DOWNLOAD.getValue(),
+                        FileDistModeEnum.UPLOAD.getValue(),
                         null,
                         null,
                         null,
