@@ -254,7 +254,8 @@ public class LogServiceImpl implements LogService {
         }
         if (fileTaskLog.getSrcHostId() != null) {
             setDBObject.append("srcHostId", fileTaskLog.getSrcHostId());
-        } else if (StringUtils.isNotEmpty(fileTaskLog.getSrcIp())) {
+        }
+        if (StringUtils.isNotEmpty(fileTaskLog.getSrcIp())) {
             setDBObject.append("srcIp", fileTaskLog.getSrcIp());
         }
         if (StringUtils.isNotEmpty(fileTaskLog.getDisplaySrcIp())) {

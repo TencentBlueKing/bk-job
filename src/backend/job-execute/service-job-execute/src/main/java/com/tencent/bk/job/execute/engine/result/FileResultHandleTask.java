@@ -1088,13 +1088,14 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
 
     private void addFileTaskLog(Map<Long, ServiceHostLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
-        Long hostId = isDownloadLog(fileTaskLog.getMode()) ? fileTaskLog.getDestHostId() :
-            fileTaskLog.getSrcHostId();
+        boolean isDownloadLog = isDownloadLog(fileTaskLog.getMode());
+        long hostId = isDownloadLog ? fileTaskLog.getDestHostId() : fileTaskLog.getSrcHostId();
         ServiceHostLogDTO hostLog = hostLogs.get(hostId);
         if (hostLog == null) {
             hostLog = new ServiceHostLogDTO();
             hostLog.setStepInstanceId(stepInstanceId);
             hostLog.setHostId(hostId);
+            hostLog.setIp(isDownloadLog ? fileTaskLog.getDestIp() : fileTaskLog.getSrcIp());
             hostLog.setBatch(stepInstance.getBatch());
             hostLog.setExecuteCount(stepInstance.getExecuteCount());
             hostLogs.put(hostId, hostLog);
