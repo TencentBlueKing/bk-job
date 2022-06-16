@@ -509,11 +509,6 @@ public class HostServiceImpl implements HostService {
     @Override
     public List<DynamicGroupInfoDTO> getBizDynamicGroupHostList(String username, Long bizId,
                                                                 List<String> dynamicGroupIdList) {
-        ApplicationDTO applicationInfo = applicationService.getAppByScope(
-            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
-        );
-        String maintainer = applicationInfo.getMaintainers().split("[,;]")[0];
-
         Map<String, DynamicGroupInfoDTO> ccGroupInfoMap = new HashMap<>();
         Map<Long, List<String>> bizId2GroupIdMap = new HashMap<>();
         getCustomGroupListByBizId(bizId, ccGroupInfoMap, bizId2GroupIdMap);
@@ -528,16 +523,16 @@ public class HostServiceImpl implements HostService {
                 List<CcGroupHostPropDTO> ccGroupHostProps =
                     CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
                         .getCustomGroupIp(groupBizId, customerGroupId);
-                List<String> ipList = new ArrayList<>();
+                List<String> cloudIpList = new ArrayList<>();
                 for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
                     if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
-                        ipList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
+                        cloudIpList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
                     } else {
                         log.warn("Wrong host info! No cloud area!|{}", groupHost);
                     }
                 }
 
-                ccGroupInfoMap.get(customerGroupId).setIpList(ipList);
+                ccGroupInfoMap.get(customerGroupId).setIpList(cloudIpList);
             }
         }
 
@@ -1531,18 +1526,14 @@ public class HostServiceImpl implements HostService {
             Pair<List<Long>, List<BasicAppHost>> result = listHostsByStrategy(hostIds, new ListHostByHostIdsStrategy());
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
-                result.getLeft().forEach(notExistHostId -> {
-                    notExistHosts.add(HostDTO.fromHostId(notExistHostId));
-                });
+                result.getLeft().forEach(notExistHostId -> notExistHosts.add(HostDTO.fromHostId(notExistHostId)));
             }
         }
         if (CollectionUtils.isNotEmpty(cloudIps)) {
             Pair<List<String>, List<BasicAppHost>> result = listHostsByStrategy(cloudIps, new ListHostByIpsStrategy());
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
-                result.getLeft().forEach(notExistCloudIp -> {
-                    notExistHosts.add(HostDTO.fromCloudIp(notExistCloudIp));
-                });
+                result.getLeft().forEach(notExistCloudIp -> notExistHosts.add(HostDTO.fromCloudIp(notExistCloudIp)));
             }
         }
         return Pair.of(notExistHosts, appHosts);

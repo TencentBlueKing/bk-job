@@ -35,7 +35,8 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
@@ -153,7 +154,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStateClient agentStateClient;
     private final TaskOperationLogService taskOperationLogService;
     private final TaskInstanceService taskInstanceService;
     private final StepInstanceService stepInstanceService;
@@ -174,7 +175,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
-                                  QueryAgentStatusClient queryAgentStatusClient,
+                                  AgentStateClient agentStateClient,
                                   TaskOperationLogService taskOperationLogService,
                                   ScriptService scriptService,
                                   StepInstanceService stepInstanceService,
@@ -191,7 +192,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.taskPlanService = taskPlanService;
         this.taskInstanceVariableService = taskInstanceVariableService;
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.agentStateClient = agentStateClient;
         this.taskOperationLogService = taskOperationLogService;
         this.scriptService = scriptService;
         this.stepInstanceService = stepInstanceService;
@@ -1801,20 +1802,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         log.info("Get topo hosts success, servers: {}", servers);
     }
 
-    private void setAgentStatus(List<HostDTO> ips) {
-        if (ips == null || ips.isEmpty()) {
+    private void setAgentStatus(List<HostDTO> hostDTOList) {
+        if (hostDTOList == null || hostDTOList.isEmpty()) {
             return;
         }
-        List<String> ipList = new ArrayList<>(ips.size());
-        for (HostDTO ip : ips) {
-            String fullIp = ip.toCloudIp();
-            ipList.add(fullIp);
+        List<String> agentIdList = new ArrayList<>(hostDTOList.size());
+        for (HostDTO host : hostDTOList) {
+            agentIdList.add(host.getFinalAgentId());
         }
-        Map<String, QueryAgentStatusClient.AgentStatus> statusMap = queryAgentStatusClient.batchGetAgentStatus(ipList);
-        for (HostDTO ip : ips) {
-            String fullIp = ip.toCloudIp();
-            ip.setAlive(statusMap.get(fullIp) == null ?
-                AgentStatusEnum.UNKNOWN.getValue() : statusMap.get(fullIp).status);
+        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+        for (HostDTO host : hostDTOList) {
+            AgentState agentState = agentStateMap.get(host.getFinalAgentId());
+            host.setAlive(AgentStatusEnum.fromAgentState(agentState).getValue());
         }
     }
 

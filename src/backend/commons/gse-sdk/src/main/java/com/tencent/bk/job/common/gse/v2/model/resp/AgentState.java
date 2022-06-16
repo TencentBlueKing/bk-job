@@ -22,30 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.gse.v2.model.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-import java.util.Arrays;
-import java.util.List;
+/**
+ * GSE - Agent状态
+ */
+@Data
+public class AgentState {
+    /**
+     * 目标Agent ，数据格式分为两种。1. cloudId:ip（兼容老版本Agent没有agentId的情况) 2. agentId
+     */
+    @JsonProperty("bk_agent_id")
+    private String agentId;
 
-@Getter
-@Setter
-@ToString
-public class ExecuteDynamicGroupReq extends EsbReq {
+    /**
+     * 云区域ID
+     */
+    @JsonProperty("bk_cloud_id")
+    private Integer cloudId;
 
-    @JsonProperty("bk_biz_id")
-    private Long bizId;
+    /**
+     * Agent版本
+     */
+    private String version;
 
-    @JsonProperty("id")
-    private String groupId;
+    /**
+     * Agent运行模式
+     */
+    @JsonProperty("run_mode")
+    private Integer runMode;
 
-    private List<String> fields = Arrays.asList("bk_host_id", "bk_agent_id", "bk_host_name", "bk_host_innerip",
-        "bk_cloud_id", "bk_os_name");
-
-    private Page page = new Page();
+    /**
+     * Agent状态
+     */
+    @JsonProperty("status_code")
+    private Integer statusCode;
 }

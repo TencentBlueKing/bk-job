@@ -5,6 +5,8 @@ import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,6 +31,13 @@ public interface IGseClient {
      */
     ScriptTaskResult getExecuteScriptResult(GetExecuteScriptResultRequest request);
 
+    /**
+     * 批量获取Agent状态
+     *
+     * @param req 请求体
+     * @return Agent状态列表
+     */
+    List<AgentState> listAgentState(ListAgentStateReq req);
 
     /**
      * 构建目标Agent

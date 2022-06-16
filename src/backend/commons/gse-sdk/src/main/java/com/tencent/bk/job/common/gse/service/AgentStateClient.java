@@ -22,30 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.gse.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-@Getter
-@Setter
-@ToString
-public class ExecuteDynamicGroupReq extends EsbReq {
+/**
+ * 封装Agent状态查询的常用操作：单个查询、批量查询
+ */
+public interface AgentStateClient {
 
-    @JsonProperty("bk_biz_id")
-    private Long bizId;
+    /**
+     * 根据agentId获取agent状态
+     *
+     * @param agentId AgentId
+     * @return Agent状态对象
+     */
+    AgentState getAgentState(String agentId);
 
-    @JsonProperty("id")
-    private String groupId;
-
-    private List<String> fields = Arrays.asList("bk_host_id", "bk_agent_id", "bk_host_name", "bk_host_innerip",
-        "bk_cloud_id", "bk_os_name");
-
-    private Page page = new Page();
+    /**
+     * 根据agentId批量获取agent状态
+     *
+     * @param agentIdList agentId列表
+     * @return agentId与Agent状态的Map
+     */
+    Map<String, AgentState> batchGetAgentState(List<String> agentIdList);
 }
