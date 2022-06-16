@@ -48,6 +48,9 @@ public class EsbServerV3DTO {
     @Valid
     private List<EsbIpDTO> ips;
 
+    @JsonProperty("host_id_list")
+    private List<Long> hostIds;
+
     /**
      * 动态分组ID列表
      */

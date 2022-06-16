@@ -100,6 +100,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
         EsbIpLogV3DTO ipLog = new EsbIpLogV3DTO();
         ipLog.setCloudAreaId(request.getCloudAreaId());
         ipLog.setIp(request.getIp());
+        ipLog.setHostId(request.getHostId());
         if (stepInstance.isScriptStep()) {
             buildScriptLog(ipLog, request.getStepInstanceId(), stepInstance.getExecuteCount(),
                 request.getHostId(), request.getCloudAreaId(), request.getIp());
