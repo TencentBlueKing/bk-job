@@ -108,6 +108,7 @@ public class HostDTO implements Cloneable {
         hostDTO.setHostId(hostId);
         return hostDTO;
     }
+
     public static HostDTO fromHostIdAndAgentId(Long hostId, String agentId) {
         HostDTO hostDTO = new HostDTO();
         hostDTO.setHostId(hostId);
@@ -215,5 +216,18 @@ public class HostDTO implements Cloneable {
         clone.setIpv6(ipv6);
         clone.setAlive(alive);
         return clone;
+    }
+
+    /**
+     * 获取最终的agentId，若agentId不存在，则使用cloudIp作为agentId
+     *
+     * @return 最终的agentId
+     */
+    public String getFinalAgentId() {
+        if (StringUtils.isNotBlank(agentId)) {
+            return agentId;
+        } else {
+            return toCloudIp();
+        }
     }
 }

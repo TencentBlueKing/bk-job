@@ -22,30 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.gse.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
-import java.util.List;
-
+/**
+ * GSE Agent状态查询配置
+ */
+@Configuration
 @Getter
 @Setter
-@ToString
-public class ExecuteDynamicGroupReq extends EsbReq {
+public class AgentStateQueryConfig {
 
-    @JsonProperty("bk_biz_id")
-    private Long bizId;
+    @Value("${gse.query.threads.num:5}")
+    private int gseQueryThreadsNum;
 
-    @JsonProperty("id")
-    private String groupId;
+    @Value("${gse.query.batchSize:5000}")
+    private int gseQueryBatchSize;
 
-    private List<String> fields = Arrays.asList("bk_host_id", "bk_agent_id", "bk_host_name", "bk_host_innerip",
-        "bk_cloud_id", "bk_os_name");
-
-    private Page page = new Page();
 }

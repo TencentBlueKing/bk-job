@@ -22,30 +22,74 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.gse.constants;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
-import java.util.Arrays;
-import java.util.List;
+/**
+ * Agent 状态枚举，-2:未找到 -1:查询失败 0:初始安装 1:启动中 2:运行中 3:有损状态 4:繁忙状态 5:升级中 6:停止中 7:解除安装
+ */
+public enum AgentStateStatusEnum {
+    /**
+     * 未找到
+     */
+    NOT_FIND(-2),
+    /**
+     * 查询失败
+     */
+    QUERY_FAIL(-1),
+    /**
+     * 初始安装
+     */
+    INIT_INSTALL(0),
+    /**
+     * 启动中
+     */
+    BOOTING(1),
+    /**
+     * 运行中
+     */
+    RUNNING(2),
+    /**
+     * 有损状态
+     */
+    IN_TROUBLE(3),
+    /**
+     * 繁忙状态
+     */
+    BUSY(4),
+    /**
+     * 升级中
+     */
+    UPGRADING(5),
+    /**
+     * 停止中
+     */
+    STOPPING(6),
+    /**
+     * 解除安装
+     */
+    REMOVING(7);
+    @JsonValue
+    private final int status;
 
-@Getter
-@Setter
-@ToString
-public class ExecuteDynamicGroupReq extends EsbReq {
+    AgentStateStatusEnum(int status) {
+        this.status = status;
+    }
 
-    @JsonProperty("bk_biz_id")
-    private Long bizId;
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static AgentStateStatusEnum valOf(int status) {
+        for (AgentStateStatusEnum agentStatus : values()) {
+            if (agentStatus.status == status) {
+                return agentStatus;
+            }
+        }
+        return null;
+    }
 
-    @JsonProperty("id")
-    private String groupId;
-
-    private List<String> fields = Arrays.asList("bk_host_id", "bk_agent_id", "bk_host_name", "bk_host_innerip",
-        "bk_cloud_id", "bk_os_name");
-
-    private Page page = new Page();
+    public int getValue() {
+        return status;
+    }
 }

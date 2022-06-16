@@ -380,6 +380,8 @@ public class ErrorCode {
     public static final int LICENSE_ERROR = 1210101;
     // GSE 不可用
     public static final int GSE_ERROR = 1210001;
+    // GSE数据异常：{0}
+    public static final int GSE_API_DATA_ERROR = 1210002;
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
     public static final int CMDB_UNREACHABLE_SERVER = 1211001;
     // CMDB接口返回数据结构异常- 一般是被网关防火墙重定向返回统一登录页面
