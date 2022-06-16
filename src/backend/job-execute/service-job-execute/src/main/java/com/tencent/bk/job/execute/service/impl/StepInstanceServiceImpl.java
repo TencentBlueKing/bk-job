@@ -26,14 +26,17 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -77,9 +80,16 @@ public class StepInstanceServiceImpl implements StepInstanceService {
             stepInstance.getTargetServers().getIpList().stream()
                 .collect(Collectors.toMap(keyMapper, host -> host));
         if (stepInstance.isFileStep()) {
-            FileStepInstanceDTO fileStepInstance = stepInstanceDAO.getFileStepInstance(stepInstance.getId());
-            if (CollectionUtils.isNotEmpty(fileStepInstance.getResolvedFileSourceList())) {
-                fileStepInstance.getResolvedFileSourceList().forEach(
+            List<FileSourceDTO> fileSourceList;
+            if (stepInstance instanceof StepInstanceDTO) {
+                fileSourceList = ((StepInstanceDTO) stepInstance).getFileSourceList();
+            } else {
+                FileStepInstanceDTO fileStepInstance = stepInstanceDAO.getFileStepInstance(stepInstance.getId());
+                fileSourceList = fileStepInstance.getFileSourceList();
+            }
+
+            if (CollectionUtils.isNotEmpty(fileSourceList)) {
+                fileSourceList.forEach(
                     fileSource -> {
                         if (fileSource.getServers() != null
                             && CollectionUtils.isNotEmpty(fileSource.getServers().getIpList())) {
