@@ -48,12 +48,12 @@ public class GseLogBatchPullResult<T> {
     /**
      * GSE 任务执行日志
      */
-    private GseLog<T> gseLog;
+    private GseTaskResult<T> gseTaskResult;
 
-    public GseLogBatchPullResult(boolean success, boolean isLastBatch, GseLog<T> gseLog, String errorMsg) {
+    public GseLogBatchPullResult(boolean success, boolean isLastBatch, GseTaskResult<T> gseTaskResult, String errorMsg) {
         this.success = success;
         this.lastBatch = isLastBatch;
-        this.gseLog = gseLog;
+        this.gseTaskResult = gseTaskResult;
         this.errorMsg = errorMsg;
     }
 }

@@ -2,13 +2,13 @@ package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
 
 /**
  * GSE 源文件
  */
 @Data
+@NoArgsConstructor
 public class SourceFile {
     /**
      * 文件名
@@ -23,9 +23,14 @@ public class SourceFile {
     private String storeDir;
 
     /**
-     * 源agent列表
+     * 源agent
      */
-    @JsonProperty("agents")
-    private List<Agent> agents;
+    @JsonProperty("agent")
+    private Agent agent;
 
+    public SourceFile(String fileName, String storeDir, Agent agent) {
+        this.fileName = fileName;
+        this.storeDir = storeDir;
+        this.agent = agent;
+    }
 }

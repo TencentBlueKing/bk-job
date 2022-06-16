@@ -5,11 +5,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * GSE 脚本任务下发返回
+ * GSE 任务下发返回
  */
 @Data
 @NoArgsConstructor
-public class AsyncExecuteScriptResult {
+public class AysncGseTaskResult {
     /**
      * 执行结果
      */

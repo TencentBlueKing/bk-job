@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.gse.constants;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
 /**
  * Agent 状态枚举，-2:未找到 -1:查询失败 0:初始安装 1:启动中 2:运行中 3:有损状态 4:繁忙状态 5:升级中 6:停止中 7:解除安装

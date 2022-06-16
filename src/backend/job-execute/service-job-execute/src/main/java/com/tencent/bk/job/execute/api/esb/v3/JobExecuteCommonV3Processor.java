@@ -36,6 +36,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 作业执行公用
@@ -60,24 +61,34 @@ public class JobExecuteCommonV3Processor {
             return null;
         }
         ServersDTO serversDTO = new ServersDTO();
+
+        // 拓扑节点
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
             List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
             server.getTopoNodes().forEach(topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(),
                 topoNode.getNodeType())));
             serversDTO.setTopoNodes(topoNodes);
         }
+
+        // 动态分组
         if (CollectionUtils.isNotEmpty(server.getDynamicGroups())) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
             server.getDynamicGroups().forEach(
                 group -> dynamicServerGroups.add(new DynamicServerGroupDTO(group.getId())));
             serversDTO.setDynamicServerGroups(dynamicServerGroups);
         }
-        if (CollectionUtils.isNotEmpty(server.getIps())) {
-            List<HostDTO> staticIpList = new ArrayList<>();
-            server.getIps().forEach(host -> staticIpList.add(HostDTO.fromHostIdOrCloudIp(host.getHostId(),
-                host.getBkCloudId(), host.getIp())));
-            serversDTO.setStaticIpList(staticIpList);
+
+        // 主机列表，优先使用hostId
+        if (CollectionUtils.isNotEmpty(server.getHostIds())) {
+            serversDTO.setStaticIpList(
+                server.getHostIds().stream().map(HostDTO::fromHostId).collect(Collectors.toList()));
+        } else if (CollectionUtils.isNotEmpty(server.getIps())) {
+            serversDTO.setStaticIpList(
+                server.getIps().stream()
+                    .map(host -> new HostDTO(host.getBkCloudId(), host.getIp()))
+                    .collect(Collectors.toList()));
         }
+
         return serversDTO;
     }
 }

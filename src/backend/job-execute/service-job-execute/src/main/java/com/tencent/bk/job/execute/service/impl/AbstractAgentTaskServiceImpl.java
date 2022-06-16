@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
     private final StepInstanceService stepInstanceService;
+
     private final HostService hostService;
 
     public AbstractAgentTaskServiceImpl(StepInstanceService stepInstanceService,
@@ -34,7 +35,7 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
         // 历史版本AgentTask会包含ip信息,从当前版本开始AgentTask不会包含ip信息，需要从StepInstance反查
         boolean hasIpInfo = StringUtils.isNotEmpty(agentTasks.get(0).getCloudIp());
         if (!hasIpInfo) {
-            Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance);
+            Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
             agentTaskDetailList = agentTasks.stream()
                 .map(agentTask -> {
                     AgentTaskDetailDTO agentTaskDetail = new AgentTaskDetailDTO(agentTask);

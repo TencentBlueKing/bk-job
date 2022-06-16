@@ -25,19 +25,20 @@
 package com.tencent.bk.job.execute.engine.model;
 
 
-import com.tencent.bk.gse.taskapi.api_map_rsp;
+import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
+import org.springframework.util.CollectionUtils;
 
 /**
- * 文件任务查询结果
+ * 脚本任务结果
  */
-public class FileTaskLog extends GseLog<api_map_rsp> {
+public class ScriptGseTaskResult extends GseTaskResult<ScriptTaskResult> {
 
-    public FileTaskLog(api_map_rsp gseLog) {
-        super(gseLog);
+    public ScriptGseTaskResult(ScriptTaskResult result) {
+        super(result);
     }
 
     @Override
-    public boolean isNullResp() {
-        return getGseLog().getResult() == null || getGseLog().getResult().isEmpty();
+    public boolean isNullResult() {
+        return getResult() == null || CollectionUtils.isEmpty(getResult().getResult());
     }
 }

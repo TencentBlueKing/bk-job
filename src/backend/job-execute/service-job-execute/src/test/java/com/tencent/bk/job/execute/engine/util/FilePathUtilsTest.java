@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.util;
 
+import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 

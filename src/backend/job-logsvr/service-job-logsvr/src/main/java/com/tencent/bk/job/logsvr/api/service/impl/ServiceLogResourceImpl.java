@@ -106,6 +106,10 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
 
     @Override
     public InternalResponse<?> saveLogs(ServiceBatchSaveLogRequest request) {
+        if (CollectionUtils.isEmpty(request.getLogs())) {
+            return InternalResponse.buildSuccessResp(null);
+        }
+
         List<TaskHostLog> taskHostLogs =
             request.getLogs().stream()
                 .map(log -> convertToTaskLog(request.getLogType(), request.getJobCreateDate(), log.getStepInstanceId(),
@@ -223,7 +227,26 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
     public InternalResponse<ServiceHostLogDTO> getFileHostLogByHostId(String jobCreateDate, Long stepInstanceId,
                                                                       Integer executeCount, Long hostId, Integer mode,
                                                                       Integer batch) {
-        return null;
+        FileLogQuery query = FileLogQuery.builder()
+            .jobCreateDate(jobCreateDate)
+            .stepInstanceId(stepInstanceId)
+            .executeCount(executeCount)
+            .mode(mode)
+            .batch(batch)
+            .hostIds(Collections.singletonList(hostId))
+            .build();
+        List<FileTaskLogDoc> fileTaskLogs = logService.listFileLogs(query);
+        ServiceHostLogDTO result = new ServiceHostLogDTO();
+        result.setStepInstanceId(stepInstanceId);
+        result.setExecuteCount(executeCount);
+        result.setBatch(batch);
+        result.setHostId(hostId);
+        if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
+            result.setFileTaskLogs(fileTaskLogs.stream()
+                .map(FileTaskLogDoc::toServiceFileTaskLogDTO)
+                .collect(Collectors.toList()));
+        }
+        return InternalResponse.buildSuccessResp(result);
     }
 
     public InternalResponse<List<ServiceFileTaskLogDTO>> listFileHostLogs(String jobCreateDate,
@@ -239,8 +262,8 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
             .executeCount(executeCount)
             .batch(batch)
             .mode(mode)
-            .ips(Collections.singletonList(ip))
-            .hostIds(Collections.singletonList(hostId))
+            .ips(StringUtils.isEmpty(ip) ? null : Collections.singletonList(ip))
+            .hostIds(hostId == null ? null : Collections.singletonList(hostId))
             .build();
 
         List<FileTaskLogDoc> fileTaskLogs = logService.listFileLogs(query);

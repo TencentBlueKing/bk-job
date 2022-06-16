@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptAgentTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
@@ -37,11 +38,11 @@ import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
+import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.LogPullProgress;
-import com.tencent.bk.job.execute.engine.model.ScriptTaskLog;
+import com.tencent.bk.job.execute.engine.model.ScriptGseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -56,6 +57,7 @@ import com.tencent.bk.job.execute.model.VariableValueDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -149,6 +151,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   ExceptionStatusManager exceptionStatusManager,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   ScriptAgentTaskService scriptAgentTaskService,
+                                  StepInstanceService stepInstanceService,
                                   GseApiClient gseApiClient,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
@@ -166,6 +169,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             exceptionStatusManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
+            stepInstanceService,
             gseApiClient,
             taskInstance,
             stepInstance,
@@ -204,7 +208,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             ScriptTaskResult result = pullGseTaskResult(pullLogAgentIds);
             boolean isLastBatch = pullResultBatchesIndex.get() == pullAgentIdBatches.size();
             GseLogBatchPullResult<ScriptTaskResult> batchPullResult = new GseLogBatchPullResult<>(true,
-                isLastBatch, new ScriptTaskLog(result), null);
+                isLastBatch, new ScriptGseTaskResult(result), null);
             if (isLastBatch) {
                 resetBatch();
             } else {
@@ -275,13 +279,13 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     }
 
     @Override
-    GseTaskExecuteResult analyseGseTaskResult(GseLog<ScriptTaskResult> taskDetail) {
+    GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<ScriptTaskResult> taskDetail) {
 
         long currentTime = DateUtils.currentTimeMillis(); // 当前时间
         List<ServiceScriptLogDTO> scriptLogs = new ArrayList<>();
         StopWatch watch = new StopWatch("analyse-gse-script-task");
         watch.start("analyse");
-        for (ScriptAgentTaskResult agentTaskResult : taskDetail.getGseLog().getResult()) {
+        for (ScriptAgentTaskResult agentTaskResult : taskDetail.getResult().getResult()) {
             log.info("[{}]: agentTaskResult={}", stepInstanceId, agentTaskResult);
 
             /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本
@@ -333,6 +337,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                                      String agentId,
                                                      AgentTaskDTO agentTask,
                                                      long currentTime) {
+        HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
         if (GSECode.AtomicErrorCode.getErrorCode(agentTaskResult.getErrorCode()) == GSECode.AtomicErrorCode.ERROR) {
             logs.add(logService.buildSystemScriptLog(agentTask.getHost(), agentTaskResult.getErrorMsg(),
                 agentTask.getScriptLogOffset(),
@@ -348,7 +353,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                 offset += bytes;
                 agentTask.setScriptLogOffset(offset);
             }
-            logs.add(new ServiceScriptLogDTO(agentTask.getHost(), offset, agentTaskResult.getScreen()));
+            logs.add(new ServiceScriptLogDTO(host, offset, agentTaskResult.getScreen()));
         }
         // 刷新日志拉取偏移量
         refreshPullLogProgress(agentTaskResult.getScreen(), agentId, agentTaskResult.getAtomicTaskId());
@@ -637,19 +642,6 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), scriptLogs);
         }
-    }
-
-    private Map<String, Integer> buildAgentIdAndLogOffsetMap(Collection<String> agentIds) {
-        Map<String, Integer> agentIdAndLogOffsetMap = new HashMap<>();
-        agentIds.forEach(agentId -> {
-            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
-            if (agentTask != null) {
-                agentIdAndLogOffsetMap.put(agentId, agentTask.getScriptLogOffset());
-            } else {
-                agentIdAndLogOffsetMap.put(agentId, 0);
-            }
-        });
-        return agentIdAndLogOffsetMap;
     }
 
     @Override

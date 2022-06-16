@@ -127,7 +127,7 @@ public class LogServiceImpl implements LogService {
             long stepInstanceId = taskHostLog.getStepInstanceId();
             String ip = taskHostLog.getIp();
             int executeCount = taskHostLog.getExecuteCount();
-            int batch = taskHostLog.getBatch();
+            Integer batch = taskHostLog.getBatch();
             List<FileTaskLogDoc> fileTaskLogs = taskHostLog.getFileTaskLogs();
 
             if (CollectionUtils.isNotEmpty(taskHostLog.getFileTaskLogs())) {
@@ -254,7 +254,8 @@ public class LogServiceImpl implements LogService {
         }
         if (fileTaskLog.getSrcHostId() != null) {
             setDBObject.append("srcHostId", fileTaskLog.getSrcHostId());
-        } else if (StringUtils.isNotEmpty(fileTaskLog.getSrcIp())) {
+        }
+        if (StringUtils.isNotEmpty(fileTaskLog.getSrcIp())) {
             setDBObject.append("srcIp", fileTaskLog.getSrcIp());
         }
         if (StringUtils.isNotEmpty(fileTaskLog.getDisplaySrcIp())) {
@@ -319,8 +320,6 @@ public class LogServiceImpl implements LogService {
 
             List<ScriptTaskLogDoc> scriptLogs = mongoTemplate.find(query, ScriptTaskLogDoc.class, collectionName);
 
-            log.info("scriptLogs: {}", scriptLogs);
-
             if (CollectionUtils.isEmpty(scriptLogs)) {
                 return Collections.emptyList();
             }
@@ -374,6 +373,7 @@ public class LogServiceImpl implements LogService {
             Query query = buildFileLogMongoQuery(getLogRequest);
 
             List<FileTaskLogDoc> fileTaskLogs = mongoTemplate.find(query, FileTaskLogDoc.class, collectionName);
+            log.info("listFileLogs, query: {}, result: {}", fileTaskLogs, fileTaskLogs);
             if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
                 fileTaskLogs.forEach(fileTaskLog ->
                     fileTaskLog.setContent(StringUtils.join(fileTaskLog.getContentList(), null)));
@@ -430,7 +430,7 @@ public class LogServiceImpl implements LogService {
             scriptLogsGroups.forEach(
                 (hostId, scriptLogGroup) ->
                     taskHostLogs.add(
-                        buildTaskHostLog(stepInstanceId, executeCount, batch, hostId, null, scriptLogGroup)));
+                        buildTaskHostLog(stepInstanceId, executeCount, batch, scriptLogGroup)));
         } else {
             Map<String, List<ScriptTaskLogDoc>> scriptLogsGroups = new HashMap<>();
             scriptTaskLogs.forEach(scriptTaskLog -> {
@@ -441,21 +441,21 @@ public class LogServiceImpl implements LogService {
             scriptLogsGroups.forEach(
                 (ip, scriptLogGroup) ->
                     taskHostLogs.add(
-                        buildTaskHostLog(stepInstanceId, executeCount, batch, null, ip, scriptLogGroup)));
+                        buildTaskHostLog(stepInstanceId, executeCount, batch,scriptLogGroup)));
         }
 
         log.info("taskHostLogs: {}", taskHostLogs);
         return taskHostLogs;
     }
 
-    private TaskHostLog buildTaskHostLog(long stepInstanceId, int executeCount, Integer batch, Long hostId, String ip,
+    private TaskHostLog buildTaskHostLog(long stepInstanceId, int executeCount, Integer batch,
                                          List<ScriptTaskLogDoc> scriptLogs) {
         TaskHostLog taskHostLog = new TaskHostLog();
         taskHostLog.setStepInstanceId(stepInstanceId);
         taskHostLog.setExecuteCount(executeCount);
         taskHostLog.setBatch(batch);
-        taskHostLog.setHostId(hostId);
-        taskHostLog.setIp(ip);
+        taskHostLog.setHostId(scriptLogs.get(0).getHostId());
+        taskHostLog.setIp(scriptLogs.get(0).getIp());
 
         scriptLogs.sort(ScriptTaskLogDoc.LOG_OFFSET_COMPARATOR);
         taskHostLog.setScriptContent(scriptLogs.stream().map(ScriptTaskLogDoc::getContent).collect(Collectors.joining("")));

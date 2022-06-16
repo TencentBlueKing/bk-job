@@ -141,7 +141,7 @@ public class EsbJobInstanceStatusV3DTO {
     @Setter
     @Getter
     public static class IpResult {
-        @JsonProperty("host_id")
+        @JsonProperty("bk_host_id")
         private Long hostId;
 
         private String ip;

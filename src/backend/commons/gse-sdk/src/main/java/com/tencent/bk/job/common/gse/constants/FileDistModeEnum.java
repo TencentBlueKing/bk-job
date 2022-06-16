@@ -22,27 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.api.esb.gse;
-
-import com.tencent.bk.job.common.annotation.EsbAPI;
-import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.execute.model.esb.gse.EsbGseTaskResultDTO;
-import com.tencent.bk.job.execute.model.esb.gse.req.EsbGseOperateProcessRequest;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+package com.tencent.bk.job.common.gse.constants;
 
 /**
- * GSE接口-GSE进程操作-V2版本
+ * 文件分发模式
  */
-@RequestMapping(value = {"/esb/api/v2", "/esb/api/v3"})
-@RestController
-@EsbAPI
-public interface GseOperateProcessV2Resource {
+public enum FileDistModeEnum {
+    UPLOAD(0, "upload"), DOWNLOAD(1, "download");
 
-    @PostMapping("/operate_process")
-    EsbResp<EsbGseTaskResultDTO> gseOperateProcessV2(@RequestBody EsbGseOperateProcessRequest request);
+    private final Integer value;
+    private final String name;
 
+    FileDistModeEnum(Integer val, String name) {
+        this.value = val;
+        this.name = name;
+    }
 
+    public static FileDistModeEnum getFileDistMode(Integer mode) {
+        if (mode == null) {
+            return null;
+        }
+        for (FileDistModeEnum fileDistMode : values()) {
+            if (fileDistMode.getValue().equals(mode)) {
+                return fileDistMode;
+            }
+        }
+        return null;
+    }
+
+    public Integer getValue() {
+        return value;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

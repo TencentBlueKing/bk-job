@@ -32,24 +32,28 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
 @Setter
 @Getter
 @NoArgsConstructor
 public class EsbIpDTO {
 
-    @JsonProperty("host_id")
+    @JsonProperty("bk_host_id")
     private Long hostId;
 
     @JsonProperty("bk_cloud_id")
-//    @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
-//    @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
+    @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
+    @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
     private Long bkCloudId;
 
     @JsonProperty("ip")
-//    @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
-//        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
-//        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b",
-//        message = "{validation.constraints.InvalidIp.message}")
+    @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
+        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
+        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b",
+        message = "{validation.constraints.InvalidIp.message}")
     private String ip;
 
     public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {
@@ -65,6 +69,7 @@ public class EsbIpDTO {
         EsbIpDTO esbIp = new EsbIpDTO();
         esbIp.setBkCloudId(applicationHostInfo.getCloudAreaId());
         esbIp.setIp(applicationHostInfo.getIp());
+        esbIp.setHostId(applicationHostInfo.getHostId());
         return esbIp;
     }
 
@@ -75,6 +80,7 @@ public class EsbIpDTO {
         EsbIpDTO esbIp = new EsbIpDTO();
         esbIp.setBkCloudId(host.getBkCloudId());
         esbIp.setIp(host.getIp());
+        esbIp.setHostId(host.getHostId());
         return esbIp;
     }
 

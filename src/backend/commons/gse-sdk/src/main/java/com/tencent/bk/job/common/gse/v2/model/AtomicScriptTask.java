@@ -22,5 +22,6 @@ public class AtomicScriptTask {
     /**
      * 当前任务执行的超时时间,单位秒
      */
+    @JsonProperty("timeout_seconds")
     private int timeout;
 }

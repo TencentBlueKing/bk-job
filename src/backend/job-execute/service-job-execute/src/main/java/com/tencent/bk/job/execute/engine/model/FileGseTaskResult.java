@@ -24,30 +24,21 @@
 
 package com.tencent.bk.job.execute.engine.model;
 
+
+import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
+import org.springframework.util.CollectionUtils;
+
 /**
- * GSE 任务执行结果
- *
- * @param <T>
+ * 文件任务查询结果
  */
-public abstract class GseLog<T> {
+public class FileGseTaskResult extends GseTaskResult<FileTaskResult> {
 
-    /**
-     * GSE 任务执行结果
-     */
-    private final T gseLog;
-
-    GseLog(T gseLog) {
-        this.gseLog = gseLog;
+    public FileGseTaskResult(FileTaskResult result) {
+        super(result);
     }
 
-    public T getGseLog() {
-        return gseLog;
-    }
-
-    /**
-     * 是否协议结构中有空结果
-     */
-    public boolean isNullResp() {
-        return false;
+    @Override
+    public boolean isNullResult() {
+        return getResult() == null || CollectionUtils.isEmpty(getResult().getAtomicFileTaskResults());
     }
 }

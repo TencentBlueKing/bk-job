@@ -330,7 +330,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             .from(T_GSE_FILE_AGENT_TASK)
             .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq(executeCount))
-            .and(T_GSE_FILE_AGENT_TASK.BATCH.eq(batch.shortValue()))
+            .and(T_GSE_FILE_AGENT_TASK.BATCH.eq(batch == null ? 0 : batch.shortValue()))
             .and(T_GSE_FILE_AGENT_TASK.MODE.eq(mode.getValue().byteValue()))
             .and(T_GSE_FILE_AGENT_TASK.HOST_ID.eq(hostId))
             .fetchOne();

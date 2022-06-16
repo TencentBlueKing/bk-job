@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
@@ -41,7 +42,6 @@ import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.engine.util.FilePathUtils;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -53,6 +53,7 @@ import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -105,6 +106,7 @@ public class ResultHandleResumeListener {
 
     private final FileAgentTaskService fileAgentTaskService;
 
+    private final StepInstanceService stepInstanceService;
     private final GseApiClient gseApiClient;
 
     @Autowired
@@ -122,6 +124,7 @@ public class ResultHandleResumeListener {
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                       ScriptAgentTaskService scriptAgentTaskService,
                                       FileAgentTaskService fileAgentTaskService,
+                                      StepInstanceService stepInstanceService,
                                       GseApiClient gseApiClient) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
@@ -137,6 +140,7 @@ public class ResultHandleResumeListener {
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
+        this.stepInstanceService = stepInstanceService;
         this.gseApiClient = gseApiClient;
     }
 
@@ -209,6 +213,7 @@ public class ResultHandleResumeListener {
             exceptionStatusManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
+            stepInstanceService,
             gseApiClient,
             taskInstance,
             stepInstance,
@@ -257,6 +262,7 @@ public class ResultHandleResumeListener {
             exceptionStatusManager,
             taskEvictPolicyExecutor,
             fileAgentTaskService,
+            stepInstanceService,
             gseApiClient,
             taskInstance,
             stepInstance,
