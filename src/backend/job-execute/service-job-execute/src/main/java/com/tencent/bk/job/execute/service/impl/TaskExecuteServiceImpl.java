@@ -1742,12 +1742,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         List<DynamicServerGroupDTO> dynamicServerGroups = servers.getDynamicServerGroups();
         if (dynamicServerGroups != null) {
             for (DynamicServerGroupDTO group : dynamicServerGroups) {
-                List<HostDTO> groupIps = hostService.getIpByDynamicGroupId(appId, group.getGroupId());
-                if (CollectionUtils.isEmpty(groupIps)) {
+                List<HostDTO> groupHosts = hostService.getHostsByDynamicGroupId(appId, group.getGroupId());
+                if (CollectionUtils.isEmpty(groupHosts)) {
                     servers.addInvalidDynamicServerGroup(group);
                 } else {
-                    ipSet.addAll(groupIps);
-                    group.setIpList(groupIps);
+                    ipSet.addAll(groupHosts);
+                    group.setIpList(groupHosts);
                 }
             }
         }

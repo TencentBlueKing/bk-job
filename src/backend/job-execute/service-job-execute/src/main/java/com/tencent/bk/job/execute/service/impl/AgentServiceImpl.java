@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.engine.consts.Consts;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
@@ -49,14 +50,14 @@ import java.util.StringJoiner;
 @Service
 @Slf4j
 public class AgentServiceImpl implements AgentService {
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStateClient agentStateClient;
     private final HostService hostService;
     private volatile HostDTO agentHost;
 
     @Autowired
-    public AgentServiceImpl(QueryAgentStatusClient queryAgentStatusClient,
+    public AgentServiceImpl(AgentStateClient agentStateClient,
                             HostService hostService) {
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.agentStateClient = agentStateClient;
         this.hostService = hostService;
     }
 
@@ -97,8 +98,12 @@ public class AgentServiceImpl implements AgentService {
                 }
                 physicalMachineMultiIp = sj.toString();
             }
-            String agentBindIp = queryAgentStatusClient.getHostIpByAgentStatus(physicalMachineMultiIp,
-                Consts.DEFAULT_CLOUD_ID);
+            List<String> cloudIpList = IpUtils.buildCloudIpListByMultiIp(
+                (long) Consts.DEFAULT_CLOUD_ID,
+                physicalMachineMultiIp
+            );
+
+            String agentBindIp = agentStateClient.chooseOneAgentIdPreferAlive(cloudIpList);
             log.info("Local agent bind ip is {}", agentBindIp);
             ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindIp));
             agentHost = HostDTO.fromHostIdAndAgentId(host.getHostId(), agentBindIp);

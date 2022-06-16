@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -100,7 +100,7 @@ public class SyncServiceImpl implements SyncService {
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
     private final ApplicationService applicationService;
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStateClient agentStateClient;
     private final ThreadPoolExecutor syncAppExecutor;
     private final ThreadPoolExecutor syncHostExecutor;
     private final ThreadPoolExecutor syncAgentStatusExecutor;
@@ -136,7 +136,7 @@ public class SyncServiceImpl implements SyncService {
                            ApplicationHostDAO applicationHostDAO,
                            HostTopoDAO hostTopoDAO,
                            ApplicationService applicationService,
-                           QueryAgentStatusClient queryAgentStatusClient,
+                           AgentStateClient agentStateClient,
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
@@ -148,7 +148,7 @@ public class SyncServiceImpl implements SyncService {
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.applicationService = applicationService;
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.agentStateClient = agentStateClient;
         this.jobManageConfig = jobManageConfig;
         this.redisTemplate = redisTemplate;
         this.enableSyncApp = jobManageConfig.isEnableSyncApp();
@@ -222,7 +222,7 @@ public class SyncServiceImpl implements SyncService {
         hostWatchThread = new HostWatchThread(
             dslContext,
             applicationHostDAO,
-            queryAgentStatusClient,
+            agentStateClient,
             redisTemplate,
             hostCache
         );

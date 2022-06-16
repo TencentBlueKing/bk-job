@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.esb.config.BkApiConfig;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.StringUtil;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -63,11 +62,9 @@ public class CloudAreaService {
     private static IBizCmdbClient esbBizCmdbClient;
     private static List<CcCloudAreaInfoDTO> fullCloudAreaInfoList;
 
-    public CloudAreaService(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
-                            MeterRegistry meterRegistry) {
+    public CloudAreaService(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, MeterRegistry meterRegistry) {
         CloudAreaNameCacheThread cloudAreaNameCacheThread = new CloudAreaNameCacheThread();
-        esbBizCmdbClient = new BizCmdbClient(bkApiConfig, cmdbConfig, LocaleUtils.LANG_EN_US, queryAgentStatusClient,
-            meterRegistry);
+        esbBizCmdbClient = new BizCmdbClient(bkApiConfig, cmdbConfig, LocaleUtils.LANG_EN_US, meterRegistry);
         cloudAreaNameCacheThread.start();
     }
 

@@ -22,61 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.service;
+package com.tencent.bk.job.manage.common.convert;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.tuple.Pair;
+import com.tencent.bk.job.common.cc.service.CloudAreaService;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
+import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-
-public interface QueryAgentStatusClient {
+@Service
+public class HostConverter {
 
     /**
-     * 批量获取agent状态
+     * 将服务层主机对象转换为展示层对象
      *
-     * @param ips
-     * @return Map:key为cloudId:ip，value为AgentStatus，AgentStatus.ip不含云区域Id
+     * @param hostDTO 服务层主机对象
+     * @return 展示层主机对象
      */
-    Map<String, AgentStatus> batchGetAgentStatus(List<String> ips);
-
-    /**
-     * 获取agent状态
-     *
-     * @param ip
-     * @return
-     */
-    AgentStatus getAgentStatus(String ip);
-
-    /**
-     * 获取agent绑定的ip
-     *
-     * @param multiIp
-     * @param cloudAreaId
-     * @return
-     */
-    String getHostIpByAgentStatus(String multiIp, long cloudAreaId);
-
-
-    /**
-     * 获取agent绑定的ip及Agent状态
-     *
-     * @param multiIp
-     * @param cloudAreaId
-     * @return
-     */
-    Pair<String, Boolean> getHostIpWithAgentStatus(String multiIp, long cloudAreaId);
-
-    /**
-     * Agent状态返回结果
-     */
-    class AgentStatus {
-        // 不含云区域Id
-        @JsonProperty("ip")
-        public String ip;
-        @JsonProperty("plat_id")
-        public int cloudAreaId;
-        @JsonProperty("status")
-        public int status;
+    public HostInfoVO convertToHostInfoVO(ApplicationHostDTO hostDTO) {
+        HostInfoVO hostInfoVO = new HostInfoVO();
+        hostInfoVO.setHostId(hostDTO.getHostId());
+        hostInfoVO.setOs(hostDTO.getOs());
+        hostInfoVO.setIp(hostDTO.getIp());
+        hostInfoVO.setIpDesc(hostDTO.getIpDesc());
+        hostInfoVO.setDisplayIp(hostDTO.getDisplayIp());
+        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(hostDTO.getCloudAreaId(),
+            CloudAreaService.getCloudAreaNameFromCache(hostDTO.getCloudAreaId())));
+        hostInfoVO.setAlive(hostDTO.getAgentStatusValue());
+        return hostInfoVO;
     }
 }

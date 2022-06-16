@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.esb.config.BkApiConfig;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.service.TopoService;
@@ -50,12 +49,11 @@ public class TopoServiceImpl implements TopoService {
 
     @Autowired
     public TopoServiceImpl(
-            BkApiConfig bkApiConfig,
-            CmdbConfig cmdbConfig,
-            QueryAgentStatusClient queryAgentStatusClient,
-            MeterRegistry meterRegistry
+        BkApiConfig bkApiConfig,
+        CmdbConfig cmdbConfig,
+        MeterRegistry meterRegistry
     ) {
-        ccClient = new BizCmdbClient(bkApiConfig, cmdbConfig, queryAgentStatusClient, meterRegistry);
+        ccClient = new BizCmdbClient(bkApiConfig, cmdbConfig, meterRegistry);
     }
 
     @Override

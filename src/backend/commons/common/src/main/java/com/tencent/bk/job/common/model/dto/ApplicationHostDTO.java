@@ -134,6 +134,21 @@ public class ApplicationHostDTO {
         return hostInfoVO;
     }
 
+    public String getFinalAgentId() {
+        if (StringUtils.isNotBlank(agentId)) {
+            return agentId;
+        }
+        return getCloudIp();
+    }
+
+    public static List<String> buildAgentIdList(List<ApplicationHostDTO> hosts) {
+        List<String> agentIdList = new ArrayList<>();
+        for (ApplicationHostDTO host : hosts) {
+            agentIdList.add(host.getFinalAgentId());
+        }
+        return agentIdList;
+    }
+
     public static List<String> buildIpList(List<ApplicationHostDTO> hosts) {
         List<String> ipList = new ArrayList<>();
         for (ApplicationHostDTO host : hosts) {
@@ -169,6 +184,13 @@ public class ApplicationHostDTO {
             return moduleType.stream().map(Object::toString).collect(Collectors.joining(","));
         }
         return null;
+    }
+
+    public Integer getAgentStatusValue() {
+        if (gseAgentAlive == null || !gseAgentAlive) {
+            return 0;
+        }
+        return 1;
     }
 
 }

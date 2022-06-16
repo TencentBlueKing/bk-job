@@ -32,9 +32,7 @@ import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
-import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
@@ -392,14 +390,13 @@ public class TopologyHelper {
             return ipInfoList;
         }
 
-        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(cloudIpList);
+        Map<String, Boolean> agentAliveStatusMap = agentStateClient.batchGetAgentAliveStatus(cloudIpList);
         for (String cloudIp : cloudIpList) {
             ApplicationHostDTO ipInfo = new ApplicationHostDTO();
             ipInfo.setCloudAreaId(Long.valueOf(cloudIp.split(":")[0]));
             ipInfo.setBizId(bizId);
             ipInfo.setIp(cloudIp.split(":")[1]);
-            AgentStatusEnum agentStatus = AgentStatusEnum.fromAgentState(agentStateMap.get(cloudIp));
-            ipInfo.setGseAgentAlive(agentStatus == AgentStatusEnum.ALIVE);
+            ipInfo.setGseAgentAlive(agentAliveStatusMap.get(cloudIp));
             ipInfoList.add(ipInfo);
         }
         return ipInfoList;
