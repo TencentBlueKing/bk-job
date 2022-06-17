@@ -157,7 +157,9 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 null,
                 recordId,
                 ip.getCloudAreaId(),
+                ip.getHostId(),
                 ip.getIp(),
+                ip.getIpv6(),
                 whiteIPRecordDTO.getCreator(),
                 System.currentTimeMillis(),
                 whiteIPRecordDTO.getLastModifier(),
@@ -336,19 +338,19 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
         val query = dslContext.select(
-                tWhiteIPRecord.ID.as(KEY_ID),
-                DSL.max(tApplication.APP_NAME).as(KEY_APP_NAME),
-                DSL.max(tApplication.APP_TYPE).as(KEY_APP_TYPE),
-                DSL.max(tWhiteIPRecord.REMARK).as(KEY_REMARK),
-                DSL.max(tWhiteIPRecord.CREATOR).as(KEY_CREATOR),
-                DSL.max(tWhiteIPRecord.CREATE_TIME).as(KEY_CREATE_TIME),
-                DSL.max(tWhiteIPRecord.LAST_MODIFY_USER).as(KEY_LAST_MODIFY_USER),
-                DSL.max(tWhiteIPRecord.LAST_MODIFY_TIME).as(KEY_LAST_MODIFY_TIME),
-                DSL.max(tWhiteIPIP.CLOUD_AREA_ID).as(KEY_CLOUD_AREA_ID),
-                DSL.groupConcat(tWhiteIPAppRel.APP_ID).as(KEY_APP_ID_LIST),
-                DSL.groupConcat(tWhiteIPIP.IP).as(KEY_IP_LIST),
-                DSL.groupConcat(tActionScope.ID).as(KEY_ACTION_SCOPE_ID_LIST)
-            ).from(tWhiteIPRecord)
+            tWhiteIPRecord.ID.as(KEY_ID),
+            DSL.max(tApplication.APP_NAME).as(KEY_APP_NAME),
+            DSL.max(tApplication.APP_TYPE).as(KEY_APP_TYPE),
+            DSL.max(tWhiteIPRecord.REMARK).as(KEY_REMARK),
+            DSL.max(tWhiteIPRecord.CREATOR).as(KEY_CREATOR),
+            DSL.max(tWhiteIPRecord.CREATE_TIME).as(KEY_CREATE_TIME),
+            DSL.max(tWhiteIPRecord.LAST_MODIFY_USER).as(KEY_LAST_MODIFY_USER),
+            DSL.max(tWhiteIPRecord.LAST_MODIFY_TIME).as(KEY_LAST_MODIFY_TIME),
+            DSL.max(tWhiteIPIP.CLOUD_AREA_ID).as(KEY_CLOUD_AREA_ID),
+            DSL.groupConcat(tWhiteIPAppRel.APP_ID).as(KEY_APP_ID_LIST),
+            DSL.groupConcat(tWhiteIPIP.IP).as(KEY_IP_LIST),
+            DSL.groupConcat(tActionScope.ID).as(KEY_ACTION_SCOPE_ID_LIST)
+        ).from(tWhiteIPRecord)
             .join(tWhiteIPIP).on(tWhiteIPRecord.ID.eq(tWhiteIPIP.RECORD_ID))
             .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
             .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
@@ -435,8 +437,8 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         val tActionScope = ActionScope.ACTION_SCOPE.as("tActionScope");
         val tWhiteIPActionScope = WhiteIpActionScope.WHITE_IP_ACTION_SCOPE.as("tWhiteIPActionScope");
         val query = dslContext.select(
-                DSL.countDistinct(tWhiteIPRecord.ID)
-            ).from(tWhiteIPRecord)
+            DSL.countDistinct(tWhiteIPRecord.ID)
+        ).from(tWhiteIPRecord)
             .join(tWhiteIPIP).on(tWhiteIPRecord.ID.eq(tWhiteIPIP.RECORD_ID))
             .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
             .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
@@ -451,7 +453,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     public int updateWhiteIPRecordById(DSLContext dslContext, WhiteIPRecordDTO whiteIPRecordDTO) {
         //更新Record表
         int affectedRowNum = dslContext.update(
-                T_WHITE_IP_RECORD)
+            T_WHITE_IP_RECORD)
             .set(T_WHITE_IP_RECORD.REMARK, whiteIPRecordDTO.getRemark())
             .set(T_WHITE_IP_RECORD.LAST_MODIFY_USER, whiteIPRecordDTO.getLastModifier())
             .set(T_WHITE_IP_RECORD.LAST_MODIFY_TIME, ULong.valueOf(System.currentTimeMillis()))
@@ -535,9 +537,9 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             conditions.add(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(actionScopeId));
         }
         val query = dslContext.select(
-                tWhiteIPIP.CLOUD_AREA_ID.as(KEY_CLOUD_AREA_ID),
-                tWhiteIPIP.IP.as(KEY_IP)
-            ).from(tWhiteIPAppRel)
+            tWhiteIPIP.CLOUD_AREA_ID.as(KEY_CLOUD_AREA_ID),
+            tWhiteIPIP.IP.as(KEY_IP)
+        ).from(tWhiteIPAppRel)
             .join(tWhiteIPIP).on(tWhiteIPAppRel.RECORD_ID.eq(tWhiteIPIP.RECORD_ID))
             .join(tWhiteIPActionScope).on(tWhiteIPAppRel.RECORD_ID.eq(tWhiteIPActionScope.RECORD_ID))
             .where(conditions);
@@ -563,7 +565,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         //查Record
         val tWhiteIPRecord = T_WHITE_IP_RECORD.as("tWhiteIPRecord");
         val whiteIPRecords = dslContext.select(
-                T_WHITE_IP_RECORD.ID)
+            T_WHITE_IP_RECORD.ID)
             .from(T_WHITE_IP_RECORD).fetch();
         List<WhiteIPAppRelDTO> whiteIPAppRelList = new ArrayList<>();
         List<WhiteIPIPDTO> whiteIPIPList = new ArrayList<>();

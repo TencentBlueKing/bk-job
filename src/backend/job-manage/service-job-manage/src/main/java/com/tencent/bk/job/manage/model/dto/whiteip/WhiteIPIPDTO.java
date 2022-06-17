@@ -49,9 +49,17 @@ public class WhiteIPIPDTO {
      */
     private Long cloudAreaId;
     /**
-     * IP列表
+     * 主机hostId
+     */
+    private Long hostId;
+    /**
+     * IP
      */
     private String ip;
+    /**
+     * IPv6
+     */
+    private String ipv6;
     /**
      * 创建人
      */
