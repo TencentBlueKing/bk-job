@@ -74,7 +74,7 @@
                 required: true,
             },
             host: {
-                type: String,
+                type: Object,
             },
             batch: {
                 type: [Number, String],

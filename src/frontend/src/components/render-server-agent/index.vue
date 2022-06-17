@@ -129,7 +129,7 @@
                         instanceId: topo.id,
                     })),
                     dynamicGroupIds: dynamicGroupList,
-                    ipList: ipList.map(host => `${host.cloudAreaInfo.id}:${host.ip}`),
+                    hostIdList: ipList.map(hostInfo => hostInfo.hostId),
                 }).then((data) => {
                     this.data = data;
                 })
