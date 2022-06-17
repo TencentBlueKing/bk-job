@@ -130,7 +130,7 @@ public class ApplicationHostDTO {
         hostInfoVO.setDisplayIp(displayIp);
         hostInfoVO.setIpDesc(ipDesc);
         hostInfoVO.setOs(os);
-        hostInfoVO.setAlive(gseAgentAlive ? 1 : 0);
+        hostInfoVO.setAlive(gseAgentAlive == null ? 0 : (gseAgentAlive ? 1 : 0));
         return hostInfoVO;
     }
 

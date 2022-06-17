@@ -1177,9 +1177,21 @@ public class HostServiceImpl implements HostService {
     public AgentStatistics getAgentStatistics(String username, Long appId, AgentStatisticsReq agentStatisticsReq) {
         log.info("Input=({},{},{})", username, appId, JsonUtils.toJson(agentStatisticsReq));
         ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
-        List<HostInfoVO> hostsByIp = getHostsByIp(username, appId, null, agentStatisticsReq.getIpList());
-        log.debug("hostsByIp={}", hostsByIp);
-        Set<HostInfoVO> allHostsSet = new HashSet<>(hostsByIp);
+        Set<HostInfoVO> allHostsSet = new HashSet<>();
+        List<Long> hostIdList = agentStatisticsReq.getHostIdList();
+        if (CollectionUtils.isNotEmpty(hostIdList)) {
+            List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostInfoByHostIds(hostIdList);
+            Set<HostInfoVO> hostsByHostId = hostDTOList.parallelStream()
+                .map(ApplicationHostDTO::toVO).collect(Collectors.toSet());
+            log.debug("hostsByHostId={}", hostsByHostId);
+            allHostsSet.addAll(hostsByHostId);
+        }
+        List<String> ipList = agentStatisticsReq.getIpList();
+        if (CollectionUtils.isNotEmpty(ipList)) {
+            List<HostInfoVO> hostsByIp = getHostsByIp(username, appId, null, ipList);
+            log.debug("hostsByIp={}", hostsByIp);
+            allHostsSet.addAll(hostsByIp);
+        }
         List<HostInfoVO> hostsByNodes = listHostByAppTopologyNodes(username, appId,
             agentStatisticsReq.getAppTopoNodeList());
         log.debug("hostsByNodes={}", hostsByNodes);
