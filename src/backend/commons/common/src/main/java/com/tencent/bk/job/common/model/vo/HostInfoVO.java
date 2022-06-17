@@ -87,7 +87,10 @@ public class HostInfoVO {
         } else {
             hostInfoDTO.setGseAgentAlive(false);
         }
-        hostInfoDTO.setCloudAreaId(hostInfo.getCloudAreaInfo().getId());
+
+        if (hostInfo.getCloudAreaInfo() != null) {
+            hostInfoDTO.setCloudAreaId(hostInfo.getCloudAreaInfo().getId());
+        }
         hostInfoDTO.setOs(hostInfo.getOs());
         return hostInfoDTO;
     }
