@@ -81,6 +81,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.HOST_ID,
         TABLE.APP_ID,
         TABLE.IP,
+        TABLE.IP_V6,
+        TABLE.AGENT_ID,
         TABLE.IP_DESC,
         TABLE.SET_IDS,
         TABLE.MODULE_IDS,
@@ -453,6 +455,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             DSLContext context = DSL.using(configuration);
             ULong bizId = ULong.valueOf(applicationHostDTO.getBizId());
             String ip = applicationHostDTO.getIp();
+            String ipv6 = applicationHostDTO.getIpv6();
+            String agentId = applicationHostDTO.getAgentId();
             String ipDesc = applicationHostDTO.getIpDesc();
             ULong cloudAreaId = ULong.valueOf(applicationHostDTO.getCloudAreaId());
             String displayIp = applicationHostDTO.getDisplayIp();
@@ -464,6 +468,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.HOST_ID,
                 TABLE.APP_ID,
                 TABLE.IP,
+                TABLE.IP_V6,
+                TABLE.AGENT_ID,
                 TABLE.IP_DESC,
                 TABLE.SET_IDS,
                 TABLE.MODULE_IDS,
@@ -478,6 +484,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 ULong.valueOf(applicationHostDTO.getHostId()),
                 bizId,
                 ip,
+                ipv6,
+                agentId,
                 ipDesc,
                 finalSetIdsStr,
                 finalModuleIdsStr,
@@ -494,6 +502,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     result[0] = query.onDuplicateKeyUpdate()
                         .set(TABLE.APP_ID, bizId)
                         .set(TABLE.IP, ip)
+                        .set(TABLE.IP_V6, ipv6)
+                        .set(TABLE.AGENT_ID, agentId)
                         .set(TABLE.IP_DESC, ipDesc)
                         .set(TABLE.SET_IDS, finalSetIdsStr)
                         .set(TABLE.MODULE_IDS, finalModuleIdsStr)
@@ -539,6 +549,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     TABLE.HOST_ID,
                     TABLE.APP_ID,
                     TABLE.IP,
+                    TABLE.IP_V6,
+                    TABLE.AGENT_ID,
                     TABLE.IP_DESC,
                     TABLE.SET_IDS,
                     TABLE.MODULE_IDS,
@@ -562,6 +574,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     null,
                     null,
                     null,
+                    null,
+                    null,
                     null
                 );
                 BatchBindStep batchQuery = context.batch(insertQuery);
@@ -572,6 +586,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         ULong.valueOf(applicationHostDTO.getHostId()),
                         ULong.valueOf(applicationHostDTO.getBizId()),
                         applicationHostDTO.getIp(),
+                        applicationHostDTO.getIpv6(),
+                        applicationHostDTO.getAgentId(),
                         applicationHostDTO.getIpDesc(),
                         applicationHostDTO.getSetIdsStr(),
                         applicationHostDTO.getModuleIdsStr(),
@@ -607,6 +623,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .where(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getBizId())))
             .and(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())))
             .and(TABLE.IP.eq(applicationHostDTO.getIp()))
+            .and(TABLE.IP_V6.eq(applicationHostDTO.getIpv6()))
+            .and(TABLE.AGENT_ID.eq(applicationHostDTO.getAgentId()))
             .and(TABLE.IP_DESC.eq(applicationHostDTO.getIpDesc()))
             .and(TABLE.SET_IDS.eq(applicationHostDTO.getSetIdsStr()))
             .and(TABLE.MODULE_IDS.eq(applicationHostDTO.getModuleIdsStr()))
@@ -657,6 +675,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             val query = context.update(TABLE)
                 .set(TABLE.APP_ID, ULong.valueOf(applicationHostDTO.getBizId()))
                 .set(TABLE.IP, applicationHostDTO.getIp())
+                .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+                .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
                 .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
                 .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
                 .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
@@ -706,6 +726,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     queryList.add(dslContext.update(TABLE)
                         .set(TABLE.APP_ID, ULong.valueOf(applicationHostDTO.getBizId()))
                         .set(TABLE.IP, applicationHostDTO.getIp())
+                        .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+                        .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
                         .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
                         .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
                         .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
@@ -959,6 +981,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
         applicationHostDTO.setBizId(record.get(TABLE.APP_ID).longValue());
         applicationHostDTO.setIp(record.get(TABLE.IP));
+        applicationHostDTO.setIpv6(record.get(TABLE.IP_V6));
+        applicationHostDTO.setAgentId(record.get(TABLE.AGENT_ID));
         applicationHostDTO.setIpDesc(record.get(TABLE.IP_DESC));
         applicationHostDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue() == 1);
         List<Long> setIdList = new ArrayList<>();
