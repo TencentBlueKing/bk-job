@@ -347,7 +347,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 break;
             case FINISHED:
                 parseExecutionLog(result, executionLogs);
-                if (content.getProcess() == 100) {
+                if (content.getProgress() == 100) {
                     if (isDownloadLog) {
                         addFinishedFile(true, true,
                             content.getDestAgentId(), content.getTaskId());
@@ -779,10 +779,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         GSECode.AtomicErrorCode errorCode = GSECode.AtomicErrorCode.getErrorCode(result.getErrorCode());
         String key = content.getTaskId();
         Integer process = processMap.computeIfAbsent(key, k -> -1);
-        if (errorCode == GSECode.AtomicErrorCode.RUNNING && process.equals(content.getProcess())) {
+        if (errorCode == GSECode.AtomicErrorCode.RUNNING && process.equals(content.getProgress())) {
             return;
         }
-        processMap.put(key, content.getProcess());
+        processMap.put(key, content.getProgress());
 
         StringBuilder logContent = new StringBuilder();
 
@@ -816,8 +816,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             speed = formatSpeed(content.getSpeed()) + " KB/s";
             logContent.append(" Speed: ").append(speed);
         }
-        if (content.getProcess() != null) {
-            processText = content.getProcess() + "%";
+        if (content.getProgress() != null) {
+            processText = content.getProgress() + "%";
             logContent.append(" Progress: ").append(processText);
         }
         if (StringUtils.isNotBlank(result.getErrorMsg())) {
@@ -890,7 +890,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             }
         } else if (result.getErrorCode().equals(GSECode.AtomicErrorCode.FINISHED.getValue())) {
             AtomicFileTaskResultContent content = result.getContent();
-            if (content.getProcess() < 100) {
+            if (content.getProgress() != null && content.getProgress() < 100) {
                 if (isDownloadLog) {
                     status = FileDistStatusEnum.DOWNLOADING;
                 } else {

@@ -61,8 +61,8 @@ public class AtomicFileTaskResultContent {
     /**
      * 任务执行进度, 取值0～100，代表当前传输任务进度的百分比
      */
-    @JsonProperty("process")
-    private Integer process;
+    @JsonProperty("progress")
+    private Integer progress;
 
     /**
      * 文件传输速度，单位KB/S
