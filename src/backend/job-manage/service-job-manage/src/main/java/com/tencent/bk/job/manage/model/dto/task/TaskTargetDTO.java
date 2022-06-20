@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTargetDTO;
-import com.tencent.bk.job.manage.service.HostService;
+import com.tencent.bk.job.manage.service.host.HostService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
