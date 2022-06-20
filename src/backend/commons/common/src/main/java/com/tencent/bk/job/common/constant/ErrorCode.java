@@ -188,8 +188,8 @@ public class ErrorCode {
     // 作业执行 start
     // 主机为空
     public static final int SERVER_EMPTY = 1244001;
-    // 主机未注册:{}
-    public static final int SERVER_UNREGISTERED = 1244002;
+    // 主机不存在:{}
+    public static final int HOST_NOT_EXIST = 1244002;
     // 账号不存在
     public static final int ACCOUNT_NOT_EXIST = 1244003;
     // 没有该账号的权限
