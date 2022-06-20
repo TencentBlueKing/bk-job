@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.RequestIdLogger;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -35,6 +36,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -47,6 +49,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
+import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPRecordDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.ActionScopeDTO;
@@ -95,6 +98,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     private final ApplicationDAO applicationDAO;
     private final ApplicationService applicationService;
     private final AppScopeMappingService appScopeMappingService;
+    private final ApplicationHostDAO applicationHostDAO;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
     public WhiteIPServiceImpl(
@@ -104,7 +109,9 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         ApplicationDAO applicationDAO,
         ApplicationService applicationService,
         MessageI18nService i18nService,
-        AppScopeMappingService appScopeMappingService) {
+        AppScopeMappingService appScopeMappingService,
+        ApplicationHostDAO applicationHostDAO,
+        IBizCmdbClient bizCmdbClient) {
         this.dslContext = dslContext;
         this.actionScopeDAO = actionScopeDAO;
         this.whiteIPRecordDAO = whiteIPRecordDAO;
@@ -112,6 +119,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         this.i18nService = i18nService;
         this.applicationService = applicationService;
         this.appScopeMappingService = appScopeMappingService;
+        this.applicationHostDAO = applicationHostDAO;
+        this.bizCmdbClient = bizCmdbClient;
     }
 
     @Override
@@ -248,13 +257,49 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                 }
             });
         }
-        List<String> uniqueIpList = new ArrayList<>();
-        for (String ip : ipList) {
-            if (!uniqueIpList.contains(ip)) {
-                uniqueIpList.add(ip);
-            }
+        // 去重
+        return new ArrayList<>(new HashSet<>(ipList));
+    }
+
+    private List<WhiteIPIPDTO> buildIpDtoList(Long cloudAreaId, List<String> ipList, String username) {
+        List<String> cloudIpList = new ArrayList<>();
+        ipList.forEach(ip -> cloudIpList.add(new CloudIPDTO(cloudAreaId, ip).getCloudIP()));
+        // 根据IP查询hostId、IPv6信息
+        // 从本地DB查询
+        List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostsByCloudIps(cloudIpList);
+        Map<String, ApplicationHostDTO> hostMap = new HashMap<>();
+        hostDTOList.forEach(hostDTO -> hostMap.put(hostDTO.getCloudIp(), hostDTO));
+
+        // 本地DB不存在的IP从CMDB查询hostId
+        List<String> notInDbCloudIpList = cloudIpList.stream()
+            .filter(cloudIp -> !hostMap.containsKey(cloudIp))
+            .collect(Collectors.toList());
+        List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByCloudIps(notInDbCloudIpList);
+        if (CollectionUtils.isNotEmpty(cmdbHostList)) {
+            cmdbHostList.forEach(hostDTO -> hostMap.put(hostDTO.getCloudIp(), hostDTO));
         }
-        return uniqueIpList;
+
+        // CMDB中也查不到的IP需要记录
+        notInDbCloudIpList.removeIf(hostMap::containsKey);
+        if (!notInDbCloudIpList.isEmpty()) {
+            log.warn("Cannot find ips in db/cmdb:{}", notInDbCloudIpList);
+        }
+
+        return ipList.stream().map(ip -> {
+            ApplicationHostDTO hostDTO = hostMap.get(new CloudIPDTO(cloudAreaId, ip).getCloudIP());
+            return new WhiteIPIPDTO(
+                null,
+                null,
+                cloudAreaId,
+                hostDTO == null ? null : hostDTO.getHostId(),
+                ip,
+                hostDTO == null ? null : hostDTO.getIpv6(),
+                username,
+                System.currentTimeMillis(),
+                username,
+                System.currentTimeMillis()
+            );
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -276,18 +321,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             }).collect(Collectors.toList());
 
         List<Long> actionScopeIdList = createUpdateReq.getActionScopeIdList();
-        val ipDtoList = ipList.stream().map(ip -> new WhiteIPIPDTO(
-            null,
-            null,
-            createUpdateReq.getCloudAreaId(),
-            null,
-            ip,
-            null,
-            username,
-            System.currentTimeMillis(),
-            username,
-            System.currentTimeMillis()
-        )).collect(Collectors.toList());
+        val ipDtoList = buildIpDtoList(createUpdateReq.getCloudAreaId(), ipList, username);
         val actionScopeDtoList = actionScopeIdList.stream().map(actionScopeId -> new WhiteIPActionScopeDTO(
             null,
             null,

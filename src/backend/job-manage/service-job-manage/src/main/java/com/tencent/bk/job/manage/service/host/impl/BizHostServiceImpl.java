@@ -22,14 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl.host;
+package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
-import com.tencent.bk.job.manage.service.BizHostService;
+import com.tencent.bk.job.manage.service.host.BizHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;

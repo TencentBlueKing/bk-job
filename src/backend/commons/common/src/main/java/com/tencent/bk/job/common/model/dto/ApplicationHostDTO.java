@@ -104,22 +104,22 @@ public class ApplicationHostDTO {
     /**
      * 集群ID
      */
-    private List<Long> setId;
+    private List<Long> setId = new ArrayList<>();
 
     /**
      * 模块id,一个主机可以属于多个模块
      */
-    private List<Long> moduleId;
+    private List<Long> moduleId = new ArrayList<>();
 
     /**
      * cc的模块类型集合， 选填0,1,2，0所有模块 1普通模块，2DB模块， 支持多个模块
      **/
-    private List<Long> moduleType;
+    private List<Long> moduleType = new ArrayList<>();
 
     /**
      * IP 列表，搜索用参数
      */
-    private List<String> ipList;
+    private List<String> ipList = new ArrayList<>();
 
     public HostInfoVO toVO() {
         HostInfoVO hostInfoVO = new HostInfoVO();

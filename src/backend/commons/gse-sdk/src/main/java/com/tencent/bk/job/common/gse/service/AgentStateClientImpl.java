@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
+import com.tencent.bk.job.common.util.LogUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.FormattingTuple;
@@ -93,13 +94,21 @@ public class AgentStateClientImpl implements AgentStateClient {
         if (CollectionUtils.isEmpty(agentIdList)) {
             throw new InternalException("agentIdList cannot be empty", ErrorCode.INTERNAL_ERROR);
         }
-        Map<String, Boolean> map = batchGetAgentAliveStatus(agentIdList);
-        for (Map.Entry<String, Boolean> entry : map.entrySet()) {
-            String agentId = entry.getKey();
-            Boolean alive = entry.getValue();
-            if (alive) {
-                return agentId;
+        try {
+            Map<String, Boolean> map = batchGetAgentAliveStatus(agentIdList);
+            for (Map.Entry<String, Boolean> entry : map.entrySet()) {
+                String agentId = entry.getKey();
+                Boolean alive = entry.getValue();
+                if (alive) {
+                    return agentId;
+                }
             }
+        } catch (Exception e) {
+            FormattingTuple msg = MessageFormatter.format(
+                "Fail to get agentState by agentIdList:{}",
+                LogUtil.buildListLog(agentIdList, 20)
+            );
+            log.warn(msg.getMessage(), e);
         }
         return agentIdList.get(0);
     }

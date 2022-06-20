@@ -40,6 +40,8 @@ import java.util.Set;
 public interface ApplicationHostDAO {
     ApplicationHostDTO getHostById(Long hostId);
 
+    List<ApplicationHostDTO> listHostInfoByIps(List<String> ips);
+
     List<ApplicationHostDTO> listHostInfoByIps(Long bizId, List<String> ips);
 
     List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
@@ -88,14 +90,11 @@ public interface ApplicationHostDAO {
 
     int batchInsertAppHostInfo(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
 
-    boolean existAppHostInfoByHostId(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
-
     boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId);
 
     int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId, ApplicationHostDTO applicationHostDTO);
 
     int batchUpdateBizHostInfoByHostId(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
-
 
     int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long hostId);
 
@@ -131,9 +130,9 @@ public interface ApplicationHostDAO {
     long syncHostTopo(DSLContext dslContext, Long hostId);
 
     /**
-     * 根据ip查询主机
+     * 根据cloudIp查询主机
      *
      * @param cloudIps 主机ip(云区域+ip)列表
      */
-    List<ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps);
+    List<ApplicationHostDTO> listHostsByCloudIps(Collection<String> cloudIps);
 }

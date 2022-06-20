@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl;
+package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupDTO;
@@ -71,7 +71,7 @@ import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.HostService;
+import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.WhiteIPService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
@@ -221,7 +221,6 @@ public class HostServiceImpl implements HostService {
         List<Long> updateHostIds = new ArrayList<>();
         long errorCount = 0L;
         List<Long> errorHostIds = new ArrayList<>();
-        long notChangeCount = 0L;
         boolean batchUpdated = false;
         try {
             // 尝试批量更新
@@ -244,14 +243,10 @@ public class HostServiceImpl implements HostService {
             // 批量更新失败，尝试逐条更新
             for (ApplicationHostDTO hostInfoDTO : hostInfoList) {
                 try {
-                    if (!applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO)) {
-                        applicationHostDAO.updateBizHostInfoByHostId(dslContext, hostInfoDTO.getBizId(), hostInfoDTO);
-                        hostCache.addOrUpdateHost(hostInfoDTO);
-                        updateCount += 1;
-                        updateHostIds.add(hostInfoDTO.getHostId());
-                    } else {
-                        notChangeCount += 1;
-                    }
+                    applicationHostDAO.updateBizHostInfoByHostId(dslContext, hostInfoDTO.getBizId(), hostInfoDTO);
+                    hostCache.addOrUpdateHost(hostInfoDTO);
+                    updateCount += 1;
+                    updateHostIds.add(hostInfoDTO.getHostId());
                 } catch (Throwable t) {
                     log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", bizId, hostInfoDTO), t);
                     errorCount += 1;
@@ -263,8 +258,8 @@ public class HostServiceImpl implements HostService {
         if (!batchUpdated) {
             watch.start("log updateAppHostInfo");
             log.info("Update host of appId={},errorCount={}," +
-                    "updateCount={},notChangeCount={},errorHostIds={},updateHostIds={}",
-                bizId, errorCount, updateCount, notChangeCount, errorHostIds, updateHostIds);
+                    "updateCount={},errorHostIds={},updateHostIds={}",
+                bizId, errorCount, updateCount, errorHostIds, updateHostIds);
             watch.stop();
         }
         log.debug("Performance:updateHostsInApp:appId={},{}", bizId, watch.prettyPrint());
@@ -872,7 +867,7 @@ public class HostServiceImpl implements HostService {
         List<HostDTO> ipDTOList = notInAppIPListByLocal.parallelStream()
             .map(CloudIPDTO::toHostDTO)
             .collect(Collectors.toList());
-        List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByIps(
+        List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByCloudIps(
             ipDTOList.stream().map(HostDTO::toCloudIp).collect(Collectors.toList()));
         Map<String, ApplicationHostDTO> cmdbHostsMap = new HashMap<>();
         Set<String> cmdbExistCloudIPSet = new HashSet<>();
@@ -982,7 +977,7 @@ public class HostServiceImpl implements HostService {
         if (!validIPList.isEmpty()) {
 
             IBizCmdbClient cmdbClient = CmdbClientFactory.getCmdbClient();
-            List<ApplicationHostDTO> cmdbHosts = cmdbClient.listHostsByIps(
+            List<ApplicationHostDTO> cmdbHosts = cmdbClient.listHostsByCloudIps(
                 validIPList.parallelStream()
                     .map(CloudIPDTO::getCloudIP)
                     .collect(Collectors.toList())
@@ -1309,7 +1304,7 @@ public class HostServiceImpl implements HostService {
     private void checkSyncHosts(List<Long> includeBizIds,
                                 List<ApplicationHostDTO> hostsInOtherApp,
                                 List<String> notExistHosts) {
-        List<ApplicationHostDTO> appHosts = applicationHostDAO.listHostsByIps(notExistHosts);
+        List<ApplicationHostDTO> appHosts = applicationHostDAO.listHostsByCloudIps(notExistHosts);
         if (CollectionUtils.isNotEmpty(appHosts)) {
             for (ApplicationHostDTO appHost : appHosts) {
                 if (appHost.getBizId() == null || appHost.getBizId() <= 0) {
@@ -1333,7 +1328,7 @@ public class HostServiceImpl implements HostService {
 
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         try {
-            List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByIps(notExistHosts);
+            List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByCloudIps(notExistHosts);
             if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
                 List<String> cmdbExistHostIps = cmdbExistHosts.stream()
                     .map(ApplicationHostDTO::getCloudIp)
@@ -1513,7 +1508,7 @@ public class HostServiceImpl implements HostService {
         public Pair<List<String>, List<ApplicationHostDTO>> listHostsFromDb(List<String> cloudIps) {
             List<ApplicationHostDTO> appHosts = new ArrayList<>();
             List<String> notExistCloudIps = new ArrayList<>(cloudIps);
-            List<ApplicationHostDTO> hostsInDb = applicationHostDAO.listHostsByIps(cloudIps);
+            List<ApplicationHostDTO> hostsInDb = applicationHostDAO.listHostsByCloudIps(cloudIps);
             if (CollectionUtils.isNotEmpty(hostsInDb)) {
                 for (ApplicationHostDTO appHost : hostsInDb) {
                     if (appHost.getBizId() == null || appHost.getBizId() <= 0) {
@@ -1534,7 +1529,7 @@ public class HostServiceImpl implements HostService {
             List<String> notExistCloudIps = new ArrayList<>(cloudIps);
 
             IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-            List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByIps(cloudIps);
+            List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByCloudIps(cloudIps);
             if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
                 List<String> cmdbExistHostIds = cmdbExistHosts.stream()
                     .map(ApplicationHostDTO::getCloudIp)

@@ -26,8 +26,11 @@ package com.tencent.bk.job.manage.service.impl.agent;
 
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.util.LogUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,7 +60,17 @@ public class AgentStatusService {
         // 查出节点下主机与Agent状态
         List<String> agentIdList = ApplicationHostDTO.buildAgentIdList(hosts);
         // 批量设置agent状态
-        Map<String, Boolean> agentAliveStatusMap = agentStateClient.batchGetAgentAliveStatus(agentIdList);
+        Map<String, Boolean> agentAliveStatusMap;
+        try {
+            agentAliveStatusMap = agentStateClient.batchGetAgentAliveStatus(agentIdList);
+        } catch (Exception e) {
+            FormattingTuple msg = MessageFormatter.format(
+                "Fail to get agentState by agentIdList:{}",
+                LogUtil.buildListLog(agentIdList, 20)
+            );
+            log.warn(msg.getMessage(), e);
+            return;
+        }
 
         if (CollectionUtils.isEmpty(hosts)) {
             return;
