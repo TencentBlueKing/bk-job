@@ -331,7 +331,7 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
         variableDTO.setCategory(variable.getType().getType());
         if (variable.getType() == TaskVariableTypeEnum.HOST_LIST
             && StringUtils.isNotBlank(variable.getDefaultValue())) {
-            TaskTargetDTO target = TaskTargetDTO.fromString(variable.getDefaultValue());
+            TaskTargetDTO target = TaskTargetDTO.fromJsonString(variable.getDefaultValue());
             if (target == null) {
                 log.error("Variable target is empty! variableId:{}", variable.getId());
                 return variableDTO;

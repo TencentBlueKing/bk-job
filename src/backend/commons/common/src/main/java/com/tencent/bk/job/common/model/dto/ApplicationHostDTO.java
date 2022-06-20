@@ -193,4 +193,13 @@ public class ApplicationHostDTO {
         return 1;
     }
 
+    public HostDTO toHostDTO() {
+        HostDTO host = new HostDTO();
+        host.setHostId(hostId);
+        host.setBkCloudId(cloudAreaId);
+        host.setIp(ip);
+        host.setAgentId(agentId);
+        return host;
+    }
+
 }
