@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import io.swagger.annotations.ApiModel;
@@ -47,8 +48,8 @@ public class WhiteIPRecordVO {
     private Long id;
     @ApiModelProperty("云区域ID")
     private Long cloudAreaId;
-    @ApiModelProperty("IP列表")
-    private List<String> ipList;
+    @ApiModelProperty("主机列表")
+    private List<WhiteIPHostVO> hostList;
     @ApiModelProperty("生效范围")
     private List<ActionScopeVO> actionScopeList;
     @ApiModelProperty("业务")
