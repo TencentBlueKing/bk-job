@@ -41,6 +41,9 @@ public class WhiteIPHostVO {
     @ApiModelProperty(value = "服务器 ID", required = true)
     private Long hostId;
 
+    @ApiModelProperty("云区域ID")
+    private Long cloudAreaId;
+
     @ApiModelProperty("主机 IP")
     private String ip;
 

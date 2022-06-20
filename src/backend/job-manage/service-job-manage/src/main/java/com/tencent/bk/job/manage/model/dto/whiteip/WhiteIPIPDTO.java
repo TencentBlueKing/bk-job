@@ -88,6 +88,7 @@ public class WhiteIPIPDTO {
     public WhiteIPHostVO extractWhiteIPHostVO() {
         WhiteIPHostVO hostInfoVO = new WhiteIPHostVO();
         hostInfoVO.setHostId(hostId);
+        hostInfoVO.setCloudAreaId(cloudAreaId);
         hostInfoVO.setIp(ip);
         hostInfoVO.setIpv6(ipv6);
         return hostInfoVO;
