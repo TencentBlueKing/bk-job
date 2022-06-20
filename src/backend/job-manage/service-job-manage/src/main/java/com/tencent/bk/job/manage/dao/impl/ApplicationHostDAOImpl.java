@@ -121,6 +121,11 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<ApplicationHostDTO> listHostInfoByIps(List<String> ips) {
+        return listHostInfoByIps(null, ips);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoByIps(Long bizId, List<String> ips) {
         List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
         // 分批，防止SQL超长
@@ -897,7 +902,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps) {
+    public List<ApplicationHostDTO> listHostsByCloudIps(Collection<String> cloudIps) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.CLOUD_IP.in(cloudIps));
         return queryHostsByCondition(conditions);
