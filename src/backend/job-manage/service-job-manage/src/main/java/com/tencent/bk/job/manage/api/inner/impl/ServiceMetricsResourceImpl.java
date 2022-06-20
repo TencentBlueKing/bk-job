@@ -35,7 +35,7 @@ import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.HostService;
+import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
@@ -132,6 +132,6 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     @Override
     public InternalResponse<Long> tagCitedCount(Long appId, Long tagId) {
         List<ResourceTagDTO> scriptResourceTags = tagService.listResourceTagsByTagId(appId, tagId);
-        return InternalResponse.buildSuccessResp(Long.valueOf(scriptResourceTags.size()));
+        return InternalResponse.buildSuccessResp((long) scriptResourceTags.size());
     }
 }
