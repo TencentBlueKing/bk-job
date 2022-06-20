@@ -24,15 +24,19 @@
 
 package com.tencent.bk.job.common.util;
 
+import com.tencent.bk.job.common.exception.SubThreadException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @Description
@@ -51,9 +55,13 @@ public class ConcurrencyUtil {
      * @param <Input>         输入泛型
      * @param <Output>        单个输出元素泛型
      * @return 输出列表
+     * @throws SubThreadException 子线程异常
      */
-    public static <Input, Output> List<Output> getResultWithThreads(Collection<Input> inputCollection, int threadNum,
-                                                                    Handler<Input, Output> handler) {
+    public static <Input, Output> List<Output> getResultWithThreads(
+        Collection<Input> inputCollection,
+        int threadNum,
+        Handler<Input, Output> handler
+    ) throws SubThreadException {
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadNum);
         return getResultWithThreads(inputCollection, threadPoolExecutor, handler);
     }
@@ -67,26 +75,39 @@ public class ConcurrencyUtil {
      * @param <Input>            输入泛型
      * @param <Output>           单个输出元素泛型
      * @return 输出列表
+     * @throws SubThreadException 子线程异常
      */
-    public static <Input, Output> List<Output> getResultWithThreads(Collection<Input> inputCollection,
-                                                                    ExecutorService threadPoolExecutor, Handler<Input
-        , Output> handler) {
+    public static <Input, Output> List<Output> getResultWithThreads(
+        Collection<Input> inputCollection,
+        ExecutorService threadPoolExecutor,
+        Handler<Input, Output> handler
+    ) throws SubThreadException {
         LinkedBlockingQueue<Output> resultQueue = new LinkedBlockingQueue<>();
-        List<Future> futures = new ArrayList<>();
+        List<Future<?>> futures = new ArrayList<>();
         for (Input input : inputCollection) {
-            Future future = threadPoolExecutor.submit(new InnerTask<>(resultQueue, input,
+            Future<?> future = threadPoolExecutor.submit(new InnerTask<>(resultQueue, input,
                 JobContextUtil.getRequestId(), handler));
             futures.add(future);
         }
-        futures.forEach(it -> {
+        for (Future<?> future : futures) {
             try {
-                while (!it.isDone()) {
-                    Thread.sleep(10);
-                }
+                future.get(5, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
-                log.warn("sleep interrupted", e);
+                throw new SubThreadException("sub thread interrupted", e);
+            } catch (ExecutionException e) {
+                String msg = "sub thread throws an exception";
+                if (e.getCause() == null) {
+                    throw new SubThreadException(msg, e);
+                }
+                throw new SubThreadException(msg, e.getCause());
+            } catch (TimeoutException e) {
+                String msg = "sub thread timed out 5 minutes";
+                if (e.getCause() == null) {
+                    throw new SubThreadException(msg, e);
+                }
+                throw new SubThreadException(msg, e.getCause());
             }
-        });
+        }
         threadPoolExecutor.shutdown();
         return new ArrayList<>(resultQueue);
     }
