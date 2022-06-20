@@ -309,7 +309,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             throw new PermissionDeniedException(authResult);
         }
         cronJobInfo.setId(request.getId());
-        cronJobInfo.setAppId(request.getAppId());
+        cronJobInfo.setAppId(appId);
         cronJobInfo.setName(request.getName());
         cronJobInfo.setTaskPlanId(request.getPlanId());
         cronJobInfo.setCronExpression(CronExpressionUtil.fixExpressionForQuartz(request.getCronExpression()));
