@@ -384,7 +384,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         return new WhiteIPRecordVO(
             id,
             cloudAreaId,
-            record.getIpList().stream().map(WhiteIPIPDTO::getIp).collect(Collectors.toList()),
+            record.getIpList().stream().map(WhiteIPIPDTO::extractWhiteIPHostVO).collect(Collectors.toList()),
             record.getActionScopeList().stream().map(actionScopeDTO -> {
                 val actionScopeId = actionScopeDTO.getActionScopeId();
                 return actionScopeDAO.getActionScopeVOById(actionScopeId);
