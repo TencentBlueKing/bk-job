@@ -222,7 +222,6 @@ public class HostServiceImpl implements HostService {
         List<Long> updateHostIds = new ArrayList<>();
         long errorCount = 0L;
         List<Long> errorHostIds = new ArrayList<>();
-        long notChangeCount = 0L;
         boolean batchUpdated = false;
         try {
             // 尝试批量更新
@@ -245,14 +244,10 @@ public class HostServiceImpl implements HostService {
             // 批量更新失败，尝试逐条更新
             for (ApplicationHostDTO hostInfoDTO : hostInfoList) {
                 try {
-                    if (!applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO)) {
-                        applicationHostDAO.updateBizHostInfoByHostId(dslContext, hostInfoDTO.getBizId(), hostInfoDTO);
-                        hostCache.addOrUpdateHost(hostInfoDTO);
-                        updateCount += 1;
-                        updateHostIds.add(hostInfoDTO.getHostId());
-                    } else {
-                        notChangeCount += 1;
-                    }
+                    applicationHostDAO.updateBizHostInfoByHostId(dslContext, hostInfoDTO.getBizId(), hostInfoDTO);
+                    hostCache.addOrUpdateHost(hostInfoDTO);
+                    updateCount += 1;
+                    updateHostIds.add(hostInfoDTO.getHostId());
                 } catch (Throwable t) {
                     log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", bizId, hostInfoDTO), t);
                     errorCount += 1;
@@ -264,8 +259,8 @@ public class HostServiceImpl implements HostService {
         if (!batchUpdated) {
             watch.start("log updateAppHostInfo");
             log.info("Update host of appId={},errorCount={}," +
-                    "updateCount={},notChangeCount={},errorHostIds={},updateHostIds={}",
-                bizId, errorCount, updateCount, notChangeCount, errorHostIds, updateHostIds);
+                    "updateCount={},errorHostIds={},updateHostIds={}",
+                bizId, errorCount, updateCount, errorHostIds, updateHostIds);
             watch.stop();
         }
         log.debug("Performance:updateHostsInApp:appId={},{}", bizId, watch.prettyPrint());

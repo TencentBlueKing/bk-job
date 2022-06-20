@@ -88,14 +88,11 @@ public interface ApplicationHostDAO {
 
     int batchInsertAppHostInfo(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
 
-    boolean existAppHostInfoByHostId(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
-
     boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId);
 
     int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId, ApplicationHostDTO applicationHostDTO);
 
     int batchUpdateBizHostInfoByHostId(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
-
 
     int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long hostId);
 
