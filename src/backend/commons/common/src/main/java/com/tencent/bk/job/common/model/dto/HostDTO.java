@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
@@ -160,6 +161,7 @@ public class HostDTO implements Cloneable {
         return bkCloudId + ":" + ip;
     }
 
+    @JsonIgnore
     public String getDisplayIp() {
         if (StringUtils.isNotEmpty(displayIp)) {
             return displayIp;
@@ -240,6 +242,7 @@ public class HostDTO implements Cloneable {
      *
      * @return 最终的agentId
      */
+    @JsonIgnore
     public String getFinalAgentId() {
         if (StringUtils.isNotBlank(agentId)) {
             return agentId;
