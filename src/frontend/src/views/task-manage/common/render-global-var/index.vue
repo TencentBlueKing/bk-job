@@ -441,6 +441,7 @@
              * @param {Object} payload 全局变量数据
              */
             handleOperationSubmit (payload) {
+                console.log('from handleOperationSubmit = ', payload);
                 const payloadModel = new VariableModel(payload);
                 if (this.currentOperation === 'create') {
                     // 新建变量——追加

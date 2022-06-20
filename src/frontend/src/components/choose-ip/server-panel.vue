@@ -279,6 +279,11 @@
              * @desc 触发值的改变
              */
             triggerChange () {
+                console.log('from server panel = ', {
+                    ipList: this.hostList,
+                    topoNodeList: this.nodeInfo,
+                    dynamicGroupList: this.groupList,
+                });
                 this.$emit('on-change', {
                     ipList: this.hostList,
                     topoNodeList: this.nodeInfo,
