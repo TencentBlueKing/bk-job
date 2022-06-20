@@ -168,30 +168,34 @@ public class HostDTO implements Cloneable {
         }
     }
 
-    public static HostInfoVO toVO(HostDTO host) {
-        if (host == null) {
+    public static HostInfoVO toVO(HostDTO hostDTO) {
+        if (hostDTO == null) {
             return null;
         }
-        HostInfoVO hostInfo = new HostInfoVO();
-        hostInfo.setIp(host.getIp());
-        hostInfo.setAlive(host.getAlive());
+        HostInfoVO hostInfoVO = new HostInfoVO();
+        hostInfoVO.setHostId(hostDTO.getHostId());
+        hostInfoVO.setIp(hostDTO.getIp());
+        hostInfoVO.setIpv6(hostDTO.getIpv6());
+        hostInfoVO.setAlive(hostDTO.getAlive());
         CloudAreaInfoVO cloudAreaInfo = new CloudAreaInfoVO();
-        cloudAreaInfo.setId(host.getBkCloudId());
-        cloudAreaInfo.setName(host.getBkCloudName());
-        hostInfo.setCloudAreaInfo(cloudAreaInfo);
-        return hostInfo;
+        cloudAreaInfo.setId(hostDTO.getBkCloudId());
+        cloudAreaInfo.setName(hostDTO.getBkCloudName());
+        hostInfoVO.setCloudAreaInfo(cloudAreaInfo);
+        return hostInfoVO;
     }
 
-    public static HostDTO fromVO(HostInfoVO hostInfo) {
-        if (hostInfo == null) {
+    public static HostDTO fromVO(HostInfoVO hostInfoVO) {
+        if (hostInfoVO == null) {
             return null;
         }
-        HostDTO host = new HostDTO();
-        host.setIp(hostInfo.getIp());
-        host.setBkCloudId(hostInfo.getCloudAreaInfo().getId());
-        host.setBkCloudName(hostInfo.getCloudAreaInfo().getName());
-        host.setAlive(hostInfo.getAlive());
-        return host;
+        HostDTO hostDTO = new HostDTO();
+        hostDTO.setHostId(hostInfoVO.getHostId());
+        hostDTO.setIp(hostInfoVO.getIp());
+        hostDTO.setIpv6(hostInfoVO.getIpv6());
+        hostDTO.setBkCloudId(hostInfoVO.getCloudAreaInfo().getId());
+        hostDTO.setBkCloudName(hostInfoVO.getCloudAreaInfo().getName());
+        hostDTO.setAlive(hostInfoVO.getAlive());
+        return hostDTO;
     }
 
     @Override
@@ -218,6 +222,7 @@ public class HostDTO implements Cloneable {
         }
     }
 
+    @SuppressWarnings("all")
     public HostDTO clone() {
         HostDTO clone = new HostDTO();
         clone.setHostId(hostId);
