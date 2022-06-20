@@ -44,6 +44,7 @@ import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 主机、topo相关服务
@@ -208,4 +209,12 @@ public interface HostService {
      * @return 主机
      */
     List<ApplicationHostDTO> listHosts(Collection<HostDTO> hosts);
+
+    /**
+     * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
+     *
+     * @param hostIds 主机ID列表
+     * @return 主机
+     */
+    Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds);
 }

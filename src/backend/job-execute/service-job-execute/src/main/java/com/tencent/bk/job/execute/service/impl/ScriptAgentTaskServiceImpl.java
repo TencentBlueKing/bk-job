@@ -2,7 +2,7 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -76,7 +76,7 @@ public class ScriptAgentTaskServiceImpl
             hostId = stepInstance.getTargetServers().getIpList().stream()
                 .filter(targetHost -> cloudIp.equals(targetHost.toCloudIp()))
                 .findFirst()
-                .orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR))
+                .orElseThrow(() -> new NotFoundException(ErrorCode.HOST_NOT_EXIST, new String[]{cloudIp}))
                 .getHostId();
         }
         agentTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch,
