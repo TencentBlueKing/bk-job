@@ -71,8 +71,8 @@ import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.WhiteIPService;
+import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -1602,6 +1602,8 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds) {
-        return null;
+        Pair<List<Long>, List<ApplicationHostDTO>> result = listHostsByStrategy(new ArrayList<>(hostIds),
+            new ListHostByHostIdsStrategy());
+        return result.getRight().stream().collect(Collectors.toMap(ApplicationHostDTO::getHostId, host -> host));
     }
 }
