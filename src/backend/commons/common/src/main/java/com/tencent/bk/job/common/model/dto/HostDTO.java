@@ -194,8 +194,11 @@ public class HostDTO implements Cloneable {
         hostDTO.setHostId(hostInfoVO.getHostId());
         hostDTO.setIp(hostInfoVO.getIp());
         hostDTO.setIpv6(hostInfoVO.getIpv6());
-        hostDTO.setBkCloudId(hostInfoVO.getCloudAreaInfo().getId());
-        hostDTO.setBkCloudName(hostInfoVO.getCloudAreaInfo().getName());
+        CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudAreaInfo();
+        if (cloudAreaInfo != null) {
+            hostDTO.setBkCloudId(cloudAreaInfo.getId());
+            hostDTO.setBkCloudName(cloudAreaInfo.getName());
+        }
         hostDTO.setAlive(hostInfoVO.getAlive());
         return hostDTO;
     }
