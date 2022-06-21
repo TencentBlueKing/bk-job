@@ -22,74 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto.whiteip;
+package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPHostVO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * IP白名单DTO
- */
+@NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class WhiteIPIPDTO {
-    private Long id;
-    /**
-     * 白名单记录id
-     */
-    private Long recordId;
-    /**
-     * 云区域id
-     */
-    private Long cloudAreaId;
-    /**
-     * 主机hostId
-     */
-    private Long hostId;
-    /**
-     * IP
-     */
-    private String ip;
-    /**
-     * IPv6
-     */
-    private String ipv6;
-    /**
-     * 创建人
-     */
-    private String creator;
-    /**
-     * 创建时间
-     */
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    private Long createTime;
-    /**
-     * 更新人
-     */
-    private String lastModifier;
-    /**
-     * 更新时间
-     */
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    private Long lastModifyTime;
+@ApiModel("IP白名单中的主机信息")
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class WhiteIPHostVO {
 
-    /**
-     * 提取白名单记录中包含的主机信息
-     *
-     * @return 主机信息
-     */
-    public WhiteIPHostVO extractWhiteIPHostVO() {
-        WhiteIPHostVO hostInfoVO = new WhiteIPHostVO();
-        hostInfoVO.setHostId(hostId);
-        hostInfoVO.setIp(ip);
-        hostInfoVO.setIpv6(ipv6);
-        return hostInfoVO;
-    }
+    @ApiModelProperty(value = "服务器 ID", required = true)
+    private Long hostId;
+
+    @ApiModelProperty("主机 IP")
+    private String ip;
+
+    @ApiModelProperty("主机 IPv6")
+    private String ipv6;
+
 }
