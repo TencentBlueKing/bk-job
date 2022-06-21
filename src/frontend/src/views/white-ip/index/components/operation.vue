@@ -154,7 +154,7 @@
                         cloudAreaId,
                         appList,
                         remark,
-                        ipList,
+                        hostList,
                     } = data;
                     this.formData = {
                         ...this.formData,
@@ -166,7 +166,7 @@
                             id: item.scopeId,
                         })),
                         remark,
-                        ipStr: ipList.join('\n'),
+                        ipStr: hostList.map(({ ip }) => ip).join('\n'),
                     };
                 },
                 immediate: true,

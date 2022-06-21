@@ -57,11 +57,15 @@
                 key="IP"
                 align="left">
                 <template slot-scope="{ row }">
-                    <template v-if="row.ipList.length > 1">
+                    <template v-if="row.hostList.length > 1">
                         <bk-popover placement="right" theme="light">
                             <span>{{ row.ip }}</span>
                             <div slot="content">
-                                <p v-for="(item, index) in row.ipList" :key="index">{{ item }}</p>
+                                <p
+                                    v-for="(item, index) in row.hostList"
+                                    :key="index">
+                                    {{ item.ip }}
+                                </p>
                             </div>
                         </bk-popover>
                     </template>
