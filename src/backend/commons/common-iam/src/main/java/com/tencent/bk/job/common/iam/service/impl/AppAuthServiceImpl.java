@@ -296,7 +296,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                     }
                 } else if (ExpressionOperationEnum.EQUAL == expression.getOperator()) {
                     result.getAppResourceScopeList().add(
-                        new AppResourceScope(Long.parseLong(String.valueOf(expression.getValue()))));
+                        new AppResourceScope(ResourceScopeTypeEnum.BIZ, String.valueOf(expression.getValue()), null));
                 } else {
                     result.getAppResourceScopeList().addAll(
                         businessAuthHelper.getAuthedAppResourceScopeList(expression, allAppResourceScopeList));
