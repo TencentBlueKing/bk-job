@@ -35,7 +35,7 @@ export default class WhiteIp extends Model {
         this.createTime = payload.createTime;
         this.creator = payload.creator;
         this.id = payload.id;
-        this.ipList = payload.ipList || [];
+        this.hostList = payload.hostList || [];
         this.lastModifier = payload.lastModifier;
         this.lastModifyTime = payload.lastModifyTime;
         this.remark = payload.remark;
@@ -43,10 +43,10 @@ export default class WhiteIp extends Model {
     }
 
     get ip () {
-        if (this.ipList.length < 2) {
-            return this.ipList[0];
+        if (this.hostList.length < 2) {
+            return this.hostList[0].ip;
         }
-        return `${I18n.t('共')}${this.ipList.length}${I18n.t('个')}`;
+        return `${I18n.t('共')}${this.hostList.length}${I18n.t('个')}`;
     }
 
     get scopeText () {
