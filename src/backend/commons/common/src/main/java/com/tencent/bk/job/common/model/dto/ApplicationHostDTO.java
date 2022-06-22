@@ -124,7 +124,7 @@ public class ApplicationHostDTO {
     public HostInfoVO toVO() {
         HostInfoVO hostInfoVO = new HostInfoVO();
         hostInfoVO.setHostId(hostId);
-        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(cloudAreaId, cloudIp));
+        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(cloudAreaId, null));
         hostInfoVO.setIp(ip);
         hostInfoVO.setIpv6(ipv6);
         hostInfoVO.setDisplayIp(displayIp);

@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -40,6 +41,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -67,6 +69,7 @@ import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -553,6 +556,15 @@ public class WebAppResourceImpl implements WebAppResource {
                 .collect(Collectors.toList())
             );
         }
+        // 填充云区域名称
+        hostList.forEach(hostInfoVO -> {
+            CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudAreaInfo();
+            if (cloudAreaInfo != null
+                && cloudAreaInfo.getId() != null
+                && StringUtils.isBlank(cloudAreaInfo.getName())) {
+                cloudAreaInfo.setName(CloudAreaService.getCloudAreaNameFromCache(cloudAreaInfo.getId()));
+            }
+        });
         return Response.buildSuccessResp(hostList);
     }
 
