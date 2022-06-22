@@ -44,6 +44,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -208,6 +209,8 @@ public class TaskTargetDTO {
     @Override
     public String toString() {
         log.info("TaskTargetDTOtoString");
+        String stackTrace = Arrays.toString(Thread.currentThread().getStackTrace());
+        log.info("Stack: {}", stackTrace);
         return toJsonString();
     }
 }
