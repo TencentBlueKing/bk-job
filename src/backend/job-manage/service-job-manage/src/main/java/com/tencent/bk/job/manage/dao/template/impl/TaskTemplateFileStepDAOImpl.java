@@ -120,7 +120,7 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
                 TABLE.DUPLICATE_HANDLER, TABLE.NOT_EXIST_PATH_HANDLER)
             .values(ULong.valueOf(fileStep.getStepId()), fileStep.getDestinationFileLocation(),
                 ULong.valueOf(fileStep.getExecuteAccount()),
-                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toString(),
+                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toJsonString(),
                 fileStep.getTimeout() == null ? ULong.valueOf(0) : ULong.valueOf(fileStep.getTimeout()),
                 fileStep.getOriginSpeedLimit() == null ? null : ULong.valueOf(fileStep.getOriginSpeedLimit()),
                 fileStep.getTargetSpeedLimit() == null ? null : ULong.valueOf(fileStep.getTargetSpeedLimit()),
