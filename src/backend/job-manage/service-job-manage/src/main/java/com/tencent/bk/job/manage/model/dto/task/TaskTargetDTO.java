@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
@@ -44,7 +46,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -209,8 +210,6 @@ public class TaskTargetDTO {
     @Override
     public String toString() {
         log.info("TaskTargetDTOtoString");
-        String stackTrace = Arrays.toString(Thread.currentThread().getStackTrace());
-        log.info("Stack: {}", stackTrace);
-        return toJsonString();
+        throw new InternalException("TaskTargetDTOtoString", ErrorCode.INTERNAL_ERROR);
     }
 }
