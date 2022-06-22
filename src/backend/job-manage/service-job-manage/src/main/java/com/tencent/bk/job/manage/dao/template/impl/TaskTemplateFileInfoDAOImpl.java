@@ -133,7 +133,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
                 JsonUtils.toJson(fileInfo.getFileLocation()),
                 DbRecordMapper.getJooqLongValue(fileInfo.getFileSize()),
                 fileInfo.getFileHash(),
-                fileInfo.getHost() == null ? null : fileInfo.getHost().toString(),
+                fileInfo.getHost() == null ? null : fileInfo.getHost().toJsonString(),
                 DbRecordMapper.getJooqLongValue(fileInfo.getHostAccount()),
                 fileInfo.getFileSourceId()
             )
@@ -158,7 +158,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
             JsonUtils.toJson(fileInfo.getFileLocation()),
             DbRecordMapper.getJooqLongValue(fileInfo.getFileSize()),
             fileInfo.getFileHash(),
-            fileInfo.getHost() == null ? null : fileInfo.getHost().toString(),
+            fileInfo.getHost() == null ? null : fileInfo.getHost().toJsonString(),
             DbRecordMapper.getJooqLongValue(fileInfo.getHostAccount()),
             fileInfo.getFileSourceId()
         ));
@@ -190,7 +190,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
             .set(TABLE.FILE_LOCATION, JsonUtils.toJson(fileInfo.getFileLocation()))
             .set(TABLE.FILE_SIZE, DbRecordMapper.getJooqLongValue(fileInfo.getFileSize()))
             .set(TABLE.FILE_HASH, fileInfo.getFileHash())
-            .set(TABLE.HOST, fileInfo.getHost() == null ? null : fileInfo.getHost().toString())
+            .set(TABLE.HOST, fileInfo.getHost() == null ? null : fileInfo.getHost().toJsonString())
             .set(TABLE.HOST_ACCOUNT, DbRecordMapper.getJooqLongValue(fileInfo.getHostAccount()))
             .set(TABLE.FILE_SOURCE_ID, fileInfo.getFileSourceId())
             .where(conditions)
