@@ -27,10 +27,17 @@ package com.tencent.bk.job.manage.dao.template.impl;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
+import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.*;
+import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record15;
+import org.jooq.Record3;
+import org.jooq.Result;
 import org.jooq.generated.tables.TaskTemplate;
 import org.jooq.generated.tables.TaskTemplateStep;
 import org.jooq.generated.tables.TaskTemplateStepScript;
@@ -42,7 +49,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -262,6 +273,32 @@ public class TaskTemplateScriptStepDAOImpl implements TaskScriptStepDAO {
             .join(tableTTStep).on(tableTTStep.ID.eq(tableTTStepScript.STEP_ID))
             .join(tableTaskTemplate).on(tableTTStep.TEMPLATE_ID.eq(tableTaskTemplate.ID))
             .where(conditions).fetchOne().value1();
+    }
+
+    @Override
+    public Map<Long, TaskTargetDTO> listStepTargets() {
+        Result<?> result = context.select(TABLE.ID, TABLE.DESTINATION_HOST_LIST).fetch();
+        Map<Long, TaskTargetDTO> stepTargets = new HashMap<>();
+        if (result.isNotEmpty()) {
+            result.forEach(record -> {
+                Long recordId = record.get(TABLE.ID).longValue();
+                TaskTargetDTO target = TaskTargetDTO.fromJsonString(record.get(TABLE.DESTINATION_HOST_LIST));
+                stepTargets.put(recordId, target);
+            });
+        }
+        return stepTargets;
+    }
+
+    @Override
+    public boolean updateStepTargets(Long recordId, String value) {
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        int result = context.update(TABLE)
+            .set(TABLE.DESTINATION_HOST_LIST, value)
+            .where(TABLE.ID.eq(JooqDataTypeUtil.buildULong(recordId)))
+            .execute();
+        return result == 1;
     }
 
 }

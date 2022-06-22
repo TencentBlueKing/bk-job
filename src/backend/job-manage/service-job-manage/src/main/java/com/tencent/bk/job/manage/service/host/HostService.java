@@ -217,4 +217,12 @@ public interface HostService {
      * @return 主机
      */
     Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds);
+
+    /**
+     * 根据ip获取主机
+     *
+     * @param cloudIp 云区域+IP
+     * @return 主机
+     */
+    ApplicationHostDTO getHostByIp(String cloudIp);
 }

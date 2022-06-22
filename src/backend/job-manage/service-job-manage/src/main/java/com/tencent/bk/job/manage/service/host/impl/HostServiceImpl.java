@@ -1606,4 +1606,11 @@ public class HostServiceImpl implements HostService {
             new ListHostByHostIdsStrategy());
         return result.getRight().stream().collect(Collectors.toMap(ApplicationHostDTO::getHostId, host -> host));
     }
+
+    @Override
+    public ApplicationHostDTO getHostByIp(String cloudIp) {
+        Pair<List<String>, List<ApplicationHostDTO>> result = listHostsByStrategy(Collections.singletonList(cloudIp),
+            new ListHostByIpsStrategy());
+        return CollectionUtils.isNotEmpty(result.getRight()) ? result.getRight().get(0) : null;
+    }
 }
