@@ -22,32 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.whiteip;
+package com.tencent.bk.job.crontab.client;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
+import org.springframework.cloud.openfeign.FeignClient;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("IP白名单中的主机信息")
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class WhiteIPHostVO {
-
-    @ApiModelProperty(value = "服务器 ID", required = true)
-    private Long hostId;
-
-    @ApiModelProperty("云区域ID")
-    private Long cloudAreaId;
-
-    @ApiModelProperty("主机 IP")
-    private String ip;
-
-    @ApiModelProperty("主机 IPv6")
-    private String ipv6;
-
+/**
+ * 主机服务远程调用客户端
+ */
+@FeignClient(value = "job-manage", contextId = "job-manage-host")
+public interface ServiceHostResourceClient extends ServiceHostResource {
 }
