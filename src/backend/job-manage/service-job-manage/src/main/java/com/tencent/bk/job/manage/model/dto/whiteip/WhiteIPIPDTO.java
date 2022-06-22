@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.model.dto.whiteip;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPHostVO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -78,4 +79,18 @@ public class WhiteIPIPDTO {
      */
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
+
+    /**
+     * 提取白名单记录中包含的主机信息
+     *
+     * @return 主机信息
+     */
+    public WhiteIPHostVO extractWhiteIPHostVO() {
+        WhiteIPHostVO hostInfoVO = new WhiteIPHostVO();
+        hostInfoVO.setHostId(hostId);
+        hostInfoVO.setCloudAreaId(cloudAreaId);
+        hostInfoVO.setIp(ip);
+        hostInfoVO.setIpv6(ipv6);
+        return hostInfoVO;
+    }
 }

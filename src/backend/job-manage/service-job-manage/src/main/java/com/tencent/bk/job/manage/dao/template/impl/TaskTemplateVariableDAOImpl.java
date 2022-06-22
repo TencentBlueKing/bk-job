@@ -36,8 +36,10 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.InsertValuesStep7;
 import org.jooq.InsertValuesStep8;
+import org.jooq.Record;
 import org.jooq.Record8;
 import org.jooq.Result;
+import org.jooq.TableField;
 import org.jooq.generated.tables.TaskTemplateVariable;
 import org.jooq.generated.tables.records.TaskTemplateVariableRecord;
 import org.jooq.types.UByte;
@@ -50,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @since 3/10/2019 21:54
@@ -59,6 +62,9 @@ import java.util.List;
 public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
 
     private static final TaskTemplateVariable TABLE = TaskTemplateVariable.TASK_TEMPLATE_VARIABLE;
+
+    private static final TableField<?, ?>[] ALL_FIELDS = {TABLE.ID, TABLE.TEMPLATE_ID, TABLE.NAME, TABLE.TYPE,
+        TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION, TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED};
 
     private DSLContext context;
 
@@ -85,7 +91,7 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
 
         if (records.size() >= 1) {
             records.forEach(record -> taskVariableList
-                .add(convertRecordToTaskVariable(record)));
+                .add(extract(record)));
         }
         return taskVariableList;
     }
@@ -99,26 +105,25 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
             context.select(TABLE.ID, TABLE.TEMPLATE_ID, TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION,
                 TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED).from(TABLE).where(conditions).fetchOne();
         if (record != null) {
-            return convertRecordToTaskVariable(record);
+            return extract(record);
         } else {
             return null;
         }
     }
 
-    private TaskVariableDTO convertRecordToTaskVariable(
-        Record8<ULong, ULong, String, UByte, String, String, UByte, UByte> record) {
+    private TaskVariableDTO extract(Record record) {
         if (record == null) {
             return null;
         }
         TaskVariableDTO taskVariable = new TaskVariableDTO();
-        taskVariable.setId(((ULong) record.get(0)).longValue());
-        taskVariable.setTemplateId(((ULong) record.get(1)).longValue());
-        taskVariable.setName((String) record.get(2));
-        taskVariable.setType(TaskVariableTypeEnum.valOf(((UByte) record.get(3)).intValue()));
-        taskVariable.setDefaultValue((String) record.get(4));
-        taskVariable.setDescription((String) record.get(5));
-        taskVariable.setChangeable(((UByte) record.get(6)).intValue() == 1);
-        taskVariable.setRequired(((UByte) record.get(7)).intValue() == 1);
+        taskVariable.setId(Objects.requireNonNull(record.get(TABLE.ID)).longValue());
+        taskVariable.setTemplateId(Objects.requireNonNull(record.get(TABLE.TEMPLATE_ID)).longValue());
+        taskVariable.setName(record.get(TABLE.NAME));
+        taskVariable.setType(TaskVariableTypeEnum.valOf(Objects.requireNonNull(record.get(TABLE.TYPE)).intValue()));
+        taskVariable.setDefaultValue(record.get(TABLE.DEFAULT_VALUE));
+        taskVariable.setDescription(record.get(TABLE.DESCRIPTION));
+        taskVariable.setChangeable(Objects.requireNonNull(record.get(TABLE.IS_CHANGEABLE)).intValue() == 1);
+        taskVariable.setRequired(Objects.requireNonNull(record.get(TABLE.IS_REQUIRED)).intValue() == 1);
         return taskVariable;
     }
 
@@ -131,7 +136,7 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
             context.select(TABLE.ID, TABLE.TEMPLATE_ID, TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION,
                 TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED).from(TABLE).where(conditions).fetch();
         if (records.size() > 0) {
-            return convertRecordToTaskVariable(records.get(0));
+            return extract(records.get(0));
         } else {
             return null;
         }
@@ -252,5 +257,25 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
             isRequired = UByte.valueOf(1);
         }
         return isRequired;
+    }
+
+    @Override
+    public List<TaskVariableDTO> listHostVariables() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.TYPE.eq(JooqDataTypeUtil.buildUByte(TaskVariableTypeEnum.HOST_LIST.getType())));
+
+        Result<Record> result = context.select(ALL_FIELDS).from(TABLE).where(conditions).fetch();
+        return result.map(this::extract);
+    }
+
+    @Override
+    public boolean updateVariableValue(Long id, String value) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.ID.eq(JooqDataTypeUtil.buildULong(id)));
+        int result = context.update(TABLE)
+            .set(TABLE.DEFAULT_VALUE, value)
+            .where(conditions)
+            .execute();
+        return result == 1;
     }
 }

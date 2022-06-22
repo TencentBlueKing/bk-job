@@ -6,8 +6,7 @@
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
  * License for BK-JOB蓝鲸智云作业平台:
- *
- * ---------------------------------------------------
+ * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
@@ -21,39 +20,16 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
-import I18n from '@/i18n';
-import Model from '@model/model';
+package com.tencent.bk.job.crontab.client;
 
-export default class WhiteIp extends Model {
-    constructor (payload) {
-        super();
-        this.actionScopeList = payload.actionScopeList;
-        this.appList = payload.appList || [];
-        this.cloudAreaId = payload.cloudAreaId;
-        this.createTime = payload.createTime;
-        this.creator = payload.creator;
-        this.id = payload.id;
-        this.hostList = payload.hostList || [];
-        this.lastModifier = payload.lastModifier;
-        this.lastModifyTime = payload.lastModifyTime;
-        this.remark = payload.remark;
-        this.canManage = payload.canManage;
-    }
+import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
+import org.springframework.cloud.openfeign.FeignClient;
 
-    get ip () {
-        if (this.hostList.length < 2) {
-            return this.hostList[0].ip;
-        }
-        return `${I18n.t('共')}${this.hostList.length}${I18n.t('个')}`;
-    }
-
-    get scopeText () {
-        return this.actionScopeList.map(item => item.name).join('，');
-    }
-
-    get appText () {
-        return this.appList.map(_ => _.name).join('，');
-    }
+/**
+ * 主机服务远程调用客户端
+ */
+@FeignClient(value = "job-manage", contextId = "job-manage-host")
+public interface ServiceHostResourceClient extends ServiceHostResource {
 }

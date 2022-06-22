@@ -6,8 +6,7 @@
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
  * License for BK-JOB蓝鲸智云作业平台:
- *
- * ---------------------------------------------------
+ * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
@@ -21,39 +20,34 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
-import I18n from '@/i18n';
-import Model from '@model/model';
+package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
-export default class WhiteIp extends Model {
-    constructor (payload) {
-        super();
-        this.actionScopeList = payload.actionScopeList;
-        this.appList = payload.appList || [];
-        this.cloudAreaId = payload.cloudAreaId;
-        this.createTime = payload.createTime;
-        this.creator = payload.creator;
-        this.id = payload.id;
-        this.hostList = payload.hostList || [];
-        this.lastModifier = payload.lastModifier;
-        this.lastModifyTime = payload.lastModifyTime;
-        this.remark = payload.remark;
-        this.canManage = payload.canManage;
-    }
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    get ip () {
-        if (this.hostList.length < 2) {
-            return this.hostList[0].ip;
-        }
-        return `${I18n.t('共')}${this.hostList.length}${I18n.t('个')}`;
-    }
+@NoArgsConstructor
+@AllArgsConstructor
+@ApiModel("IP白名单中的主机信息")
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class WhiteIPHostVO {
 
-    get scopeText () {
-        return this.actionScopeList.map(item => item.name).join('，');
-    }
+    @ApiModelProperty(value = "服务器 ID", required = true)
+    private Long hostId;
 
-    get appText () {
-        return this.appList.map(_ => _.name).join('，');
-    }
+    @ApiModelProperty("云区域ID")
+    private Long cloudAreaId;
+
+    @ApiModelProperty("主机 IP")
+    private String ip;
+
+    @ApiModelProperty("主机 IPv6")
+    private String ipv6;
+
 }
