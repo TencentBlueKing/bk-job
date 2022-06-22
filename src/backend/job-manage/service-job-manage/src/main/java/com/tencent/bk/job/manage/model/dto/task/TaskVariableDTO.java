@@ -104,7 +104,7 @@ public class TaskVariableDTO {
             throw new InvalidParamException(ErrorCode.WRONG_VARIABLE_TYPE);
         }
         if (TaskVariableTypeEnum.HOST_LIST == variableInfo.getType()) {
-            variableInfo.setDefaultValue(TaskTargetDTO.fromVO(variableVO.getDefaultTargetValue()).toString());
+            variableInfo.setDefaultValue(TaskTargetDTO.fromVO(variableVO.getDefaultTargetValue()).toJsonString());
         } else {
             variableInfo.setDefaultValue(variableVO.getDefaultValue());
         }
