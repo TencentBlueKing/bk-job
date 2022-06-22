@@ -120,7 +120,7 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
                 TABLE.DUPLICATE_HANDLER, TABLE.NOT_EXIST_PATH_HANDLER)
             .values(ULong.valueOf(fileStep.getStepId()), fileStep.getDestinationFileLocation(),
                 ULong.valueOf(fileStep.getExecuteAccount()),
-                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toString(),
+                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toJsonString(),
                 fileStep.getTimeout() == null ? ULong.valueOf(0) : ULong.valueOf(fileStep.getTimeout()),
                 fileStep.getOriginSpeedLimit() == null ? null : ULong.valueOf(fileStep.getOriginSpeedLimit()),
                 fileStep.getTargetSpeedLimit() == null ? null : ULong.valueOf(fileStep.getTargetSpeedLimit()),
@@ -148,7 +148,7 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
         return 1 == context.update(TABLE).set(TABLE.DESTINATION_FILE_LOCATION, fileStep.getDestinationFileLocation())
             .set(TABLE.EXECUTE_ACCOUNT, ULong.valueOf(fileStep.getExecuteAccount()))
             .set(TABLE.DESTINATION_HOST_LIST,
-                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toString())
+                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toJsonString())
             .set(TABLE.TIMEOUT, fileStep.getTimeout() == null ? ULong.valueOf(0) : ULong.valueOf(fileStep.getTimeout()))
             .set(TABLE.ORIGIN_SPEED_LIMIT,
                 fileStep.getOriginSpeedLimit() == null ? null : ULong.valueOf(fileStep.getOriginSpeedLimit()))

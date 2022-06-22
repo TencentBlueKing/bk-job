@@ -157,7 +157,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                 scriptStep.getScriptVersionId() == null ? null : ULong.valueOf(scriptStep.getScriptVersionId()),
                 scriptStep.getContent(), UByte.valueOf(scriptStep.getLanguage().getValue()),
                 scriptStep.getScriptParam(), ULong.valueOf(scriptStep.getTimeout()),
-                ULong.valueOf(scriptStep.getAccount()), scriptStep.getExecuteTarget().toString(), isSecureParam,
+                ULong.valueOf(scriptStep.getAccount()), scriptStep.getExecuteTarget().toJsonString(), isSecureParam,
                 status, ignoreError)
             .returning(TABLE.ID).fetchOne();
         return record.getId().longValue();
