@@ -24,11 +24,9 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
@@ -209,7 +207,7 @@ public class TaskTargetDTO {
 
     @Override
     public String toString() {
-        log.info("TaskTargetDTOtoString");
-        throw new InternalException("TaskTargetDTOtoString", ErrorCode.INTERNAL_ERROR);
+        log.info("TaskTargetDTO_toString");
+        return toJsonString();
     }
 }
