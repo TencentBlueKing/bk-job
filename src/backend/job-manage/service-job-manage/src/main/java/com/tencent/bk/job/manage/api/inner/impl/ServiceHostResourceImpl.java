@@ -168,8 +168,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
 
         return InternalResponse.buildSuccessResp(
             hosts.stream()
-                .map(host -> new ServiceHostDTO(host.getHostId(), host.getCloudAreaId(), host.getIp(),
-                    host.getAppId(), host.getBizId()))
+                .map(ServiceHostDTO::fromApplicationHostDTO)
                 .collect(Collectors.toList()));
     }
 }
