@@ -191,8 +191,7 @@ public class TaskTargetDTO {
         return targetDTO;
     }
 
-    @Override
-    public String toString() {
+    public String toJsonString() {
         if (StringUtils.isNotBlank(variable)) {
             this.hostNodeList = null;
         } else {

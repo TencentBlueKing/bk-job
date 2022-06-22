@@ -54,7 +54,7 @@ public interface TaskVariableDAO {
      * 根据执行方案 ID 和 变量名称查询变量信息
      *
      * @param parentId 父资源ID
-     * @param varName 变量名称
+     * @param varName  变量名称
      * @return 变量信息
      */
     TaskVariableDTO getVariableByName(long parentId, String varName);
@@ -101,4 +101,18 @@ public interface TaskVariableDAO {
     boolean batchInsertVariableWithId(List<TaskVariableDTO> variableList);
 
     boolean updateVariableByName(TaskVariableDTO variable);
+
+    /**
+     * 查询所有的主机变量
+     */
+    List<TaskVariableDTO> listHostVariables();
+
+    /**
+     * 更新变量的值
+     *
+     * @param id    主机变量ID
+     * @param value 变量值
+     * @return 更新结果
+     */
+    boolean updateVariableValue(Long id, String value);
 }
