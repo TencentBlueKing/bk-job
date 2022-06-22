@@ -39,10 +39,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 public class TaskTargetDTO {
 
     private String variable;
@@ -191,8 +194,7 @@ public class TaskTargetDTO {
         return targetDTO;
     }
 
-    @Override
-    public String toString() {
+    public String toJsonString() {
         if (StringUtils.isNotBlank(variable)) {
             this.hostNodeList = null;
         } else {
@@ -202,5 +204,13 @@ public class TaskTargetDTO {
             }
         }
         return JsonMapper.nonEmptyMapper().toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        log.info("TaskTargetDTOtoString");
+        String stackTrace = Arrays.toString(Thread.currentThread().getStackTrace());
+        log.info("Stack: {}", stackTrace);
+        return toJsonString();
     }
 }
