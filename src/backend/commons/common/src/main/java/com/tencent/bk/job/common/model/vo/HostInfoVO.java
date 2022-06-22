@@ -32,7 +32,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -96,15 +95,11 @@ public class HostInfoVO {
     }
 
     public boolean validate(boolean isCreate) {
-        if (cloudAreaInfo == null) {
-            JobContextUtil.addDebugMessage("Missing host info cloud area info!");
+        if (hostId == null || hostId <= 0) {
+            JobContextUtil.addDebugMessage("Missing host_id!");
             return false;
         }
-        if (StringUtils.isNotBlank(ip) && cloudAreaInfo.validate(isCreate)) {
-            return true;
-        }
-        JobContextUtil.addDebugMessage("Invalid ip or cloud area info!");
-        return false;
+        return true;
     }
 
     @Override

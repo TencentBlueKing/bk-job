@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.dao;
 
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -130,4 +131,18 @@ public interface TaskScriptStepDAO {
      * @return
      */
     int countScriptStepsByScriptIds(Long appId, List<String> scriptIdList);
+
+    /**
+     * 查询所有的步骤的目标主机
+     */
+    Map<Long, TaskTargetDTO> listStepTargets();
+
+    /**
+     * 更新步骤的目标主机的值
+     *
+     * @param recordId 记录id
+     * @param value    值
+     * @return 更新结果
+     */
+    boolean updateStepTargets(Long recordId, String value);
 }

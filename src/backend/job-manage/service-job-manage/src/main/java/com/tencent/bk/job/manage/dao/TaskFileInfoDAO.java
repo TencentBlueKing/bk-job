@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao;
 
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -101,4 +102,18 @@ public interface TaskFileInfoDAO {
     boolean deleteFileInfosByStepId(long stepId);
 
     List<String> listLocalFileByStepId(List<Long> stepIdList);
+
+    /**
+     * 查询所有的步骤的源文件的主机
+     */
+    Map<Long, TaskTargetDTO> listStepFileHosts();
+
+    /**
+     * 更新步骤文件源的主机的值
+     *
+     * @param recordId 记录id
+     * @param value    值
+     * @return 更新结果
+     */
+    boolean updateStepFileHosts(Long recordId, String value);
 }
