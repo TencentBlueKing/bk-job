@@ -443,7 +443,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             String displayIp = applicationHostDTO.getDisplayIp();
             String os = applicationHostDTO.getOs();
             String osType = applicationHostDTO.getOsType();
-            UByte gseAgentAlive = JooqDataTypeUtil.buildUByte(applicationHostDTO.getGseAgentAlive() ? 1 : 0);
+            UByte gseAgentAlive = JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue());
             String cloudIp = applicationHostDTO.getCloudIp();
             var query = context.insertInto(TABLE,
                 TABLE.HOST_ID,
@@ -576,7 +576,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         applicationHostDTO.getOs(),
                         applicationHostDTO.getOsType(),
                         applicationHostDTO.getModuleTypeStr(),
-                        JooqDataTypeUtil.buildUByte(applicationHostDTO.getGseAgentAlive() ? 1 : 0),
+                        JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()),
                         applicationHostDTO.getCloudIp()
                     );
                     hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
@@ -636,7 +636,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .set(TABLE.OS, applicationHostDTO.getOs())
                 .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                 .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
-                .set(TABLE.IS_AGENT_ALIVE, JooqDataTypeUtil.buildUByte(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
+                .set(TABLE.IS_AGENT_ALIVE, JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()))
                 .where(conditions);
             try {
                 affectedNum[0] = query.execute();
@@ -686,8 +686,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         .set(TABLE.OS, applicationHostDTO.getOs())
                         .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                         .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
-                        .set(TABLE.IS_AGENT_ALIVE, JooqDataTypeUtil.buildUByte(applicationHostDTO.getGseAgentAlive()
-                            ? 1 : 0))
+                        .set(TABLE.IS_AGENT_ALIVE,
+                            JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()))
                         .where(TABLE.HOST_ID.eq(JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId())))
                         .and(TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId())))
                     );

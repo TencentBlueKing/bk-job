@@ -45,6 +45,7 @@ import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
+import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
@@ -52,6 +53,7 @@ import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
@@ -84,6 +86,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private FileSourceTaskResourceClient fileSourceTaskResource;
     private TaskInstanceService taskInstanceService;
     private AccountService accountService;
+    private HostService hostService;
     private LogService logService;
     private TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private FileSourceTaskLogDAO fileSourceTaskLogDAO;
@@ -114,6 +117,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         FileSourceTaskResourceClient fileSourceTaskResource,
         TaskInstanceService taskInstanceService,
         AccountService accountService,
+        HostService hostService,
         LogService logService,
         TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
         FileSourceTaskLogDAO fileSourceTaskLogDAO
@@ -121,6 +125,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.taskInstanceService = taskInstanceService;
         this.accountService = accountService;
+        this.hostService = hostService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
@@ -215,6 +220,16 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         return batchTaskStatusDTO;
     }
 
+    private void fillHostInfo(HostDTO hostDTO, ServiceHostDTO serviceHostDTO) {
+        if (hostDTO == null || serviceHostDTO == null) {
+            return;
+        }
+        hostDTO.setHostId(serviceHostDTO.getHostId());
+        hostDTO.setBkCloudId(serviceHostDTO.getCloudAreaId());
+        hostDTO.setIp(serviceHostDTO.getIp());
+        hostDTO.setAgentId(serviceHostDTO.getAgentId());
+    }
+
     private void handleFileSourceTaskResult(
         StepInstanceDTO stepInstance,
         List<FileSourceDTO> fileSourceList,
@@ -281,7 +296,17 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                         fileSourceDTO.setAccountId(accountDTO.getId());
                         fileSourceDTO.setLocalUpload(false);
                         ServersDTO servers = new ServersDTO();
-                        HostDTO hostDTO = new HostDTO(fileSourceTaskStatusDTO.getCloudId(), fileSourceTaskStatusDTO.getIp());
+                        HostDTO hostDTO = new HostDTO(fileSourceTaskStatusDTO.getCloudId(),
+                            fileSourceTaskStatusDTO.getIp());
+                        ServiceHostDTO serviceHostDTO = hostService.getHost(hostDTO);
+                        if (serviceHostDTO == null) {
+                            log.warn(
+                                "cannot find file-worker host info by {}, " +
+                                    "plz check whether file-worker gse agent is installed",
+                                hostDTO
+                            );
+                        }
+                        fillHostInfo(hostDTO, serviceHostDTO);
                         List<HostDTO> hostDTOList = Collections.singletonList(hostDTO);
                         servers.addStaticIps(hostDTOList);
                         if (servers.getIpList() == null) {
