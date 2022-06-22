@@ -157,7 +157,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskScriptStepDAO {
                 scriptStep.getContent(), UByte.valueOf(scriptStep.getLanguage().getValue()),
                 scriptStep.getScriptParam(), ULong.valueOf(scriptStep.getTimeout()),
                 ULong.valueOf(scriptStep.getAccount()),
-                scriptStep.getExecuteTarget() == null ? null : scriptStep.getExecuteTarget().toString(), isSecureParam,
+                scriptStep.getExecuteTarget() == null ? null : scriptStep.getExecuteTarget().toJsonString(), isSecureParam,
                 UByte.valueOf(scriptStep.getStatus()), ignoreError)
             .returning(TABLE.ID).fetchOne();
         return record.getId().longValue();
@@ -185,7 +185,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskScriptStepDAO {
             .set(TABLE.SCRIPT_TIMEOUT, ULong.valueOf(scriptStep.getTimeout()))
             .set(TABLE.EXECUTE_ACCOUNT, ULong.valueOf(scriptStep.getAccount()))
             .set(TABLE.DESTINATION_HOST_LIST,
-                scriptStep.getExecuteTarget() == null ? null : scriptStep.getExecuteTarget().toString())
+                scriptStep.getExecuteTarget() == null ? null : scriptStep.getExecuteTarget().toJsonString())
             .set(TABLE.IS_SECURE_PARAM, isSecureParam).set(TABLE.STATUS, UByte.valueOf(scriptStep.getStatus()))
             .set(TABLE.IGNORE_ERROR, ignoreError).where(conditions).limit(1).execute();
     }

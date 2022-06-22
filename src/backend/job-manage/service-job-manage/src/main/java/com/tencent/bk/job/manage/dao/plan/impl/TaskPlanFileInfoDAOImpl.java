@@ -133,7 +133,7 @@ public class TaskPlanFileInfoDAOImpl implements TaskFileInfoDAO {
                 JsonUtils.toJson(fileInfo.getFileLocation()),
                 DbRecordMapper.getJooqLongValue(fileInfo.getFileSize()),
                 fileInfo.getFileHash(),
-                fileInfo.getHost() == null ? null : fileInfo.getHost().toString(),
+                fileInfo.getHost() == null ? null : fileInfo.getHost().toJsonString(),
                 DbRecordMapper.getJooqLongValue(fileInfo.getHostAccount()),
                 fileInfo.getFileSourceId()
             )
@@ -157,7 +157,7 @@ public class TaskPlanFileInfoDAOImpl implements TaskFileInfoDAO {
             JsonUtils.toJson(fileInfo.getFileLocation()),
             DbRecordMapper.getJooqLongValue(fileInfo.getFileSize()),
             fileInfo.getFileHash(),
-            fileInfo.getHost() == null ? null : fileInfo.getHost().toString(),
+            fileInfo.getHost() == null ? null : fileInfo.getHost().toJsonString(),
             DbRecordMapper.getJooqLongValue(fileInfo.getHostAccount()),
             fileInfo.getFileSourceId()
         ));
