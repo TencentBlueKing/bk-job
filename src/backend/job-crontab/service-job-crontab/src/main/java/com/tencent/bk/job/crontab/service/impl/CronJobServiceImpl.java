@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -33,6 +34,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -45,10 +47,12 @@ import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.model.dto.InnerCronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.QuartzJobInfoDTO;
+import com.tencent.bk.job.crontab.model.inner.ServerDTO;
 import com.tencent.bk.job.crontab.model.inner.ServiceInnerCronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequestDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
+import com.tencent.bk.job.crontab.service.HostService;
 import com.tencent.bk.job.crontab.service.TaskExecuteResultService;
 import com.tencent.bk.job.crontab.service.TaskPlanService;
 import com.tencent.bk.job.crontab.timer.AbstractQuartzTaskHandler;
@@ -95,21 +99,25 @@ public class CronJobServiceImpl implements CronJobService {
 
     private final AbstractQuartzTaskHandler quartzTaskHandler;
     private final TaskPlanService taskPlanService;
-
     private final CronAuthService cronAuthService;
-
     private final ExecuteTaskService executeTaskService;
+    private final HostService hostService;
 
     @Autowired
-    public CronJobServiceImpl(CronJobDAO cronJobDAO, TaskExecuteResultService taskExecuteResultService,
-                              AbstractQuartzTaskHandler quartzTaskHandler, TaskPlanService taskPlanService,
-                              CronAuthService cronAuthService, ExecuteTaskService executeTaskService) {
+    public CronJobServiceImpl(CronJobDAO cronJobDAO,
+                              TaskExecuteResultService taskExecuteResultService,
+                              AbstractQuartzTaskHandler quartzTaskHandler,
+                              TaskPlanService taskPlanService,
+                              CronAuthService cronAuthService,
+                              ExecuteTaskService executeTaskService,
+                              HostService hostService) {
         this.cronJobDAO = cronJobDAO;
         this.taskExecuteResultService = taskExecuteResultService;
         this.quartzTaskHandler = quartzTaskHandler;
         this.taskPlanService = taskPlanService;
         this.cronAuthService = cronAuthService;
         this.executeTaskService = executeTaskService;
+        this.hostService = hostService;
     }
 
     private static String getJobName(long appId, long cronJobId) {
@@ -177,6 +185,7 @@ public class CronJobServiceImpl implements CronJobService {
     @Transactional(rollbackFor = {Exception.class, Error.class})
     public Long saveCronJobInfo(CronJobInfoDTO cronJobInfo) {
         checkCronJobPlanOrScript(cronJobInfo);
+        saveSnapShotForHostVaiableValue(cronJobInfo);
         if (cronJobInfo.getId() == null || cronJobInfo.getId() == 0) {
             cronJobInfo.setCreateTime(DateUtils.currentTimeSeconds());
             cronJobInfo.setEnable(false);
@@ -184,7 +193,7 @@ public class CronJobServiceImpl implements CronJobService {
             cronAuthService.registerCron(id, cronJobInfo.getName(), cronJobInfo.getCreator());
             return id;
         } else {
-            checkCronJobVariableValue(cronJobInfo);
+            processCronJobVariableValueMask(cronJobInfo);
             if (cronJobInfo.getEnable()) {
                 try {
                     List<ServiceTaskVariable> taskVariables = null;
@@ -215,35 +224,72 @@ public class CronJobServiceImpl implements CronJobService {
         }
     }
 
-    private void checkCronJobVariableValue(CronJobInfoDTO cronJobInfo) {
-        if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
-            List<CronJobVariableDTO> hasMaskVariableList = new ArrayList<>();
-            for (CronJobVariableDTO cronJobVariable : cronJobInfo.getVariableValue()) {
-                if (cronJobVariable.getType().needMask()) {
-                    if (cronJobVariable.getValue().equals(cronJobVariable.getType().getMask())) {
-                        hasMaskVariableList.add(cronJobVariable);
-                    }
+    /**
+     * 保存定时任务主机变量中的IP等快照信息
+     *
+     * @param cronJobInfo 定时任务信息
+     */
+    private void saveSnapShotForHostVaiableValue(CronJobInfoDTO cronJobInfo) {
+        List<CronJobVariableDTO> variableValue = cronJobInfo.getVariableValue();
+        if (CollectionUtils.isEmpty(variableValue)) {
+            return;
+        }
+        for (CronJobVariableDTO variable : variableValue) {
+            if (variable.getType() != TaskVariableTypeEnum.HOST_LIST) {
+                continue;
+            }
+            ServerDTO serverDTO = variable.getServer();
+            if (serverDTO == null) {
+                continue;
+            }
+            List<HostDTO> hostByHostIdList = serverDTO.getHosts();
+            if (CollectionUtils.isNotEmpty(hostByHostIdList)) {
+                hostService.fillHosts(hostByHostIdList);
+            }
+            List<HostDTO> hostByIpList = serverDTO.getIps();
+            if (CollectionUtils.isNotEmpty(hostByIpList)) {
+                hostService.fillHosts(hostByIpList);
+            }
+        }
+    }
+
+    /**
+     * 更新定时任务时将使用mask指代的密文值设置为其真实值
+     *
+     * @param cronJobInfo 定时任务信息
+     */
+    private void processCronJobVariableValueMask(CronJobInfoDTO cronJobInfo) {
+        if (CollectionUtils.isEmpty(cronJobInfo.getVariableValue())) {
+            return;
+        }
+        List<CronJobVariableDTO> hasMaskVariableList = new ArrayList<>();
+        for (CronJobVariableDTO cronJobVariable : cronJobInfo.getVariableValue()) {
+            if (cronJobVariable.getType().needMask()) {
+                if (cronJobVariable.getValue().equals(cronJobVariable.getType().getMask())) {
+                    hasMaskVariableList.add(cronJobVariable);
                 }
             }
-            if (CollectionUtils.isNotEmpty(hasMaskVariableList)) {
-                CronJobInfoDTO originCronJob =
-                    cronJobDAO.getCronJobById(cronJobInfo.getAppId(), cronJobInfo.getId());
-                if (CollectionUtils.isNotEmpty(originCronJob.getVariableValue())) {
-                    for (CronJobVariableDTO cronJobVariable : originCronJob.getVariableValue()) {
-                        Iterator<CronJobVariableDTO> newCronJobVariableIterator = hasMaskVariableList.iterator();
-                        while (newCronJobVariableIterator.hasNext()) {
-                            CronJobVariableDTO newCronJobVariable = newCronJobVariableIterator.next();
-                            if (newCronJobVariable.getId().equals(cronJobVariable.getId())) {
-                                newCronJobVariable.setValue(cronJobVariable.getValue());
-                                newCronJobVariableIterator.remove();
-                                break;
-                            }
-                        }
-                        if (CollectionUtils.isEmpty(hasMaskVariableList)) {
-                            break;
-                        }
-                    }
+        }
+        if (CollectionUtils.isEmpty(hasMaskVariableList)) {
+            return;
+        }
+        CronJobInfoDTO originCronJob =
+            cronJobDAO.getCronJobById(cronJobInfo.getAppId(), cronJobInfo.getId());
+        if (CollectionUtils.isEmpty(originCronJob.getVariableValue())) {
+            return;
+        }
+        for (CronJobVariableDTO cronJobVariable : originCronJob.getVariableValue()) {
+            Iterator<CronJobVariableDTO> newCronJobVariableIterator = hasMaskVariableList.iterator();
+            while (newCronJobVariableIterator.hasNext()) {
+                CronJobVariableDTO newCronJobVariable = newCronJobVariableIterator.next();
+                if (newCronJobVariable.getId().equals(cronJobVariable.getId())) {
+                    newCronJobVariable.setValue(cronJobVariable.getValue());
+                    newCronJobVariableIterator.remove();
+                    break;
                 }
+            }
+            if (CollectionUtils.isEmpty(hasMaskVariableList)) {
+                break;
             }
         }
     }

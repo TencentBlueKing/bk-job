@@ -22,32 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.whiteip;
+package com.tencent.bk.job.crontab.service;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("IP白名单中的主机信息")
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class WhiteIPHostVO {
+import java.util.List;
 
-    @ApiModelProperty(value = "服务器 ID", required = true)
-    private Long hostId;
+public interface HostService {
 
-    @ApiModelProperty("云区域ID")
-    private Long cloudAreaId;
-
-    @ApiModelProperty("主机 IP")
-    private String ip;
-
-    @ApiModelProperty("主机 IPv6")
-    private String ipv6;
+    /**
+     * 通过hostId/IP查询主机信息并填充
+     *
+     * @param hostList 主机列表
+     */
+    void fillHosts(List<HostDTO> hostList);
 
 }
