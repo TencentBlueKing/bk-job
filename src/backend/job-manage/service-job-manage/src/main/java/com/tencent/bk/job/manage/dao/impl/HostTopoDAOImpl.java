@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -291,10 +292,18 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     public List<Long> listHostIdByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds) {
         List<Condition> conditions = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(bizIds)) {
-            conditions.add(defaultTable.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
+            conditions.add(defaultTable.APP_ID.in(bizIds.stream()
+                .filter(Objects::nonNull)
+                .map(ULong::valueOf)
+                .collect(Collectors.toList()))
+            );
         }
         if (CollectionUtils.isNotEmpty(hostIds)) {
-            conditions.add(defaultTable.HOST_ID.in(hostIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
+            conditions.add(defaultTable.HOST_ID.in(hostIds.stream()
+                .filter(Objects::nonNull)
+                .map(ULong::valueOf)
+                .collect(Collectors.toList()))
+            );
         }
         return listHostIdByConditions(conditions);
     }
