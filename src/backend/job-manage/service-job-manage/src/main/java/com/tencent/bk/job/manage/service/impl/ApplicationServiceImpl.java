@@ -70,6 +70,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public boolean existBiz(long bizId) {
+        return applicationDAO.existBiz(bizId);
+    }
+
+    @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
         ApplicationDTO applicationDTO = getAppByScope(resourceScope);
         if (applicationDTO == null) {

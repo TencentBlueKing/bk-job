@@ -219,6 +219,7 @@ public class SyncServiceImpl implements SyncService {
         // 开一个常驻线程监听主机资源变动事件
         hostWatchThread = new HostWatchThread(
             dslContext,
+            applicationService,
             applicationHostDAO,
             queryAgentStatusClient,
             redisTemplate,

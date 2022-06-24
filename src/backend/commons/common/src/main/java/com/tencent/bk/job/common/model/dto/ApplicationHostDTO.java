@@ -139,4 +139,11 @@ public class ApplicationHostDTO {
         return null;
     }
 
+    public int getAgentStatusValue() {
+        if (gseAgentAlive == null || !gseAgentAlive) {
+            return 0;
+        }
+        return 1;
+    }
+
 }
