@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner.request;
 
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,6 +34,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ServiceGetHostStatusByIpReq {
-    List<String> ipList;
+public class ServiceGetHostStatusByHostReq {
+    List<HostDTO> hostList;
 }

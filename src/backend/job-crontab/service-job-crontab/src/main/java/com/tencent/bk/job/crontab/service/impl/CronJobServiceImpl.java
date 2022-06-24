@@ -242,10 +242,6 @@ public class CronJobServiceImpl implements CronJobService {
             if (serverDTO == null) {
                 continue;
             }
-            List<HostDTO> hostByHostIdList = serverDTO.getHosts();
-            if (CollectionUtils.isNotEmpty(hostByHostIdList)) {
-                hostService.fillHosts(hostByHostIdList);
-            }
             List<HostDTO> hostByIpList = serverDTO.getIps();
             if (CollectionUtils.isNotEmpty(hostByIpList)) {
                 hostService.fillHosts(hostByIpList);
