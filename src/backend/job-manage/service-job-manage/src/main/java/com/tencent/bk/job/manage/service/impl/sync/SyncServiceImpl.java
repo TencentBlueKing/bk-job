@@ -230,10 +230,10 @@ public class SyncServiceImpl implements SyncService {
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
             dslContext,
+            applicationService,
             applicationHostDAO,
             hostTopoDAO,
             redisTemplate,
-            this,
             hostCache
         );
         hostRelationWatchThread.start();
