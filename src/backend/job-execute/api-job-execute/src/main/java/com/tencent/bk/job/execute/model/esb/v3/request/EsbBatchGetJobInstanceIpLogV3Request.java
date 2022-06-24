@@ -31,6 +31,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Getter
@@ -42,17 +45,28 @@ public class EsbBatchGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
      * 作业执行实例 ID
      */
     @JsonProperty("job_instance_id")
+    @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+    @Min(value = 1L, message = "{validation.constraints.InvalidJobInstanceId.message}")
     private Long taskInstanceId;
 
     /**
      * 作业步骤实例ID
      */
     @JsonProperty("step_instance_id")
+    @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
+    @Min(value = 1L, message = "{validation.constraints.InvalidStepInstanceId.message}")
     private Long stepInstanceId;
 
     /**
      * 目标服务器IP列表
      */
     @JsonProperty("ip_list")
+    @Valid
     private List<EsbIpDTO> ipList;
+
+    /**
+     * 目标主机ID列表
+     */
+    @JsonProperty("host_id_list")
+    private List<Long> hostIdList;
 }

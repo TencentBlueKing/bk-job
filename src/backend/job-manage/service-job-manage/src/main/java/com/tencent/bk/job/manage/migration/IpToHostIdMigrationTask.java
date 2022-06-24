@@ -117,7 +117,7 @@ public class IpToHostIdMigrationTask {
     private void migrateTemplateHostVariable() {
         log.info("Begin to migrate template host variable ...");
 
-        StopWatch watch = new StopWatch("migrateTemplateHostVariable");
+        StopWatch watch = new StopWatch("migrateHostVariable");
         watch.start("listHostVariables");
         List<TaskVariableDTO> taskVariables = taskTemplateVariableDAO.listHostVariables();
         if (CollectionUtils.isEmpty(taskVariables)) {
