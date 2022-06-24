@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.service;
 
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 
@@ -39,7 +40,7 @@ public interface HostService {
                                                            Long appId,
                                                            List<String> dynamicGroupIdList);
 
-    List<ServiceHostStatusDTO> getHostStatusByIp(String username,
-                                                 Long appId,
-                                                 List<String> ipList);
+    List<ServiceHostStatusDTO> getHostStatusByHost(String username,
+                                                   Long appId,
+                                                   List<HostDTO> hostList);
 }
