@@ -541,6 +541,7 @@ public class WebAppResourceImpl implements WebAppResource {
         }
         List<HostInfoVO> hostList = new ArrayList<>(hostListByIp);
         Set<Long> hostIdSet = new HashSet<>(req.getHostIdList());
+        hostIdSet.removeIf(Objects::isNull);
         hostListByIp.forEach(host -> hostIdSet.remove(host.getHostId()));
         if (!hostIdSet.isEmpty()) {
             // 根据hostId查资源范围内的主机详情

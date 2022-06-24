@@ -34,7 +34,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -70,12 +70,12 @@ public interface ServiceHostResource {
         @RequestBody ServiceGetHostStatusByDynamicGroupReq req
     );
 
-    @ApiOperation(value = "查询IP对应的主机状态", produces = "application/json")
-    @PostMapping("/app/{appId}/host/status/ips")
-    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(
+    @ApiOperation(value = "查询主机对应的主机状态", produces = "application/json")
+    @PostMapping("/app/{appId}/host/status/hosts")
+    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByHost(
         @PathVariable("appId") Long appId,
         @RequestHeader("username") String username,
-        @RequestBody ServiceGetHostStatusByIpReq req
+        @RequestBody ServiceGetHostStatusByHostReq req
     );
 
     /**

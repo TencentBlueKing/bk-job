@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
@@ -39,7 +38,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
@@ -129,18 +128,18 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     }
 
     @Override
-    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId, String username,
-                                                                          ServiceGetHostStatusByIpReq req) {
-        List<String> ipList = req.getIpList();
-        List<HostInfoVO> hostInfoVOList = hostService.getHostsByIp(username, appId, null, ipList);
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByHost(Long appId, String username,
+                                                                            ServiceGetHostStatusByHostReq req) {
+        List<ApplicationHostDTO> hostDTOList = hostService.listHosts(req.getHostList());
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
-        hostInfoVOList.forEach(hostInfoVO -> {
-            ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
-            serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
-            serviceHostStatusDTO.setIp(hostInfoVO.getCloudAreaInfo().getId() + ":" + hostInfoVO.getIp());
-            serviceHostStatusDTO.setAlive(hostInfoVO.getAlive());
-            if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
-                hostStatusDTOList.add(serviceHostStatusDTO);
+        hostDTOList.forEach(host -> {
+            ServiceHostStatusDTO hostStatusDTO = new ServiceHostStatusDTO();
+            hostStatusDTO.setHostId(host.getHostId());
+            hostStatusDTO.setCloudId(host.getCloudAreaId());
+            hostStatusDTO.setIp(host.getIp());
+            hostStatusDTO.setAlive(host.getAgentStatusValue());
+            if (!hostStatusDTOList.contains(hostStatusDTO)) {
+                hostStatusDTOList.add(hostStatusDTO);
             }
         });
         return InternalResponse.buildSuccessResp(hostStatusDTOList);
