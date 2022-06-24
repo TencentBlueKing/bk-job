@@ -61,9 +61,6 @@ public class ServerDTO {
     @ApiModelProperty(value = "服务器ip列表（静态）")
     private List<HostDTO> ips;
 
-    @ApiModelProperty(value = "服务器hostId列表（静态）")
-    private List<HostDTO> hosts;
-
     /**
      * 动态分组 ID 列表
      */
@@ -85,9 +82,6 @@ public class ServerDTO {
         TaskHostNodeVO taskHostNode = new TaskHostNodeVO();
         // 聚合通过hostId与IP指定的主机信息
         List<HostInfoVO> hostInfoVOList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(server.getHosts())) {
-            hostInfoVOList.addAll(server.getHosts().parallelStream().map(HostDTO::toVO).collect(Collectors.toList()));
-        }
         if (CollectionUtils.isNotEmpty(server.getIps())) {
             hostInfoVOList.addAll(server.getIps().parallelStream().map(HostDTO::toVO).collect(Collectors.toList()));
         }
@@ -114,7 +108,7 @@ public class ServerDTO {
         if (taskTarget.getHostNodeInfo() != null) {
             TaskHostNodeVO hostNodeInfo = taskTarget.getHostNodeInfo();
             if (CollectionUtils.isNotEmpty(hostNodeInfo.getIpList())) {
-                server.setHosts(hostNodeInfo.getIpList().parallelStream()
+                server.setIps(hostNodeInfo.getIpList().parallelStream()
                     .map(HostDTO::fromVO).collect(Collectors.toList()));
             }
             if (CollectionUtils.isNotEmpty(hostNodeInfo.getDynamicGroupList())) {
@@ -144,16 +138,18 @@ public class ServerDTO {
             server.getDynamicGroups().forEach(group -> dynamicGroupIds.add(group.getId()));
             serverDTO.setDynamicGroupIds(dynamicGroupIds);
         }
+        List<HostDTO> hosts = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(server.getIps())) {
             List<HostDTO> staticIpList = new ArrayList<>();
             server.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
-            serverDTO.setIps(staticIpList);
+            hosts.addAll(staticIpList);
         }
         if (CollectionUtils.isNotEmpty(server.getHostIds())) {
             List<HostDTO> hostIdHostList = new ArrayList<>();
             server.getHostIds().forEach(hostId -> hostIdHostList.add(HostDTO.fromHostId(hostId)));
-            serverDTO.setHosts(hostIdHostList);
+            hosts.addAll(hostIdHostList);
         }
+        serverDTO.setIps(hosts);
         return serverDTO;
     }
 
@@ -163,12 +159,6 @@ public class ServerDTO {
         }
         EsbServerV3DTO esbServer = new EsbServerV3DTO();
         esbServer.setVariable(server.getVariable());
-        if (CollectionUtils.isNotEmpty(server.getHosts())) {
-            esbServer.setHostIds(server.getHosts().parallelStream()
-                .map(HostDTO::getHostId)
-                .collect(Collectors.toList())
-            );
-        }
         if (CollectionUtils.isNotEmpty(server.getIps())) {
             esbServer.setIps(server.getIps().parallelStream().map(EsbIpDTO::fromHost).collect(Collectors.toList()));
         }
@@ -195,9 +185,6 @@ public class ServerDTO {
         List<HostDTO> hosts = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(server.getIps())) {
             hosts.addAll(server.getIps());
-        }
-        if (CollectionUtils.isNotEmpty(server.getHosts())) {
-            hosts.addAll(server.getHosts());
         }
         serviceServer.setIps(hosts);
         serviceServer.setDynamicGroupIds(server.getDynamicGroupIds());
