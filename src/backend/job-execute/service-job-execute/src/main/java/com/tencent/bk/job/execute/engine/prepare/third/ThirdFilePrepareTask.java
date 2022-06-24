@@ -227,7 +227,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         hostDTO.setHostId(serviceHostDTO.getHostId());
         hostDTO.setBkCloudId(serviceHostDTO.getCloudAreaId());
         hostDTO.setIp(serviceHostDTO.getIp());
-        hostDTO.setAgentId(serviceHostDTO.getAgentId());
+        hostDTO.setAgentId(serviceHostDTO.getFinalAgentId());
     }
 
     private void handleFileSourceTaskResult(
