@@ -33,9 +33,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
@@ -71,8 +69,6 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     private final PolicyService policyService;
     private final EsbIamClient iamClient;
     private ResourceNameQueryService resourceNameQueryService;
-    private ResourceAppInfoQueryService resourceAppInfoQueryService;
-
 
     public AppAuthServiceImpl(@Autowired AuthHelper authHelper,
                               @Autowired BusinessAuthHelper businessAuthHelper,
@@ -87,21 +83,9 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     }
 
     @Override
-    public void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService) {
-        this.resourceAppInfoQueryService = resourceAppInfoQueryService;
-    }
-
-    @Override
     public void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService) {
         this.resourceNameQueryService = resourceNameQueryService;
         super.setResourceNameQueryService(resourceNameQueryService);
-    }
-
-    private ResourceAppInfo getResourceApp(AppResourceScope appResourceScope) {
-        return resourceAppInfoQueryService.getResourceAppInfo(
-            IamUtil.getIamResourceTypeForResourceScope(appResourceScope),
-            appResourceScope.getId()
-        );
     }
 
     @Override

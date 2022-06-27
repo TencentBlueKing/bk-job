@@ -31,15 +31,9 @@ import java.util.List;
 
 public interface HostService {
 
-    List<ServiceHostStatusDTO> getHostStatusByNode(String username,
-                                                   Long appId,
-                                                   List<AppTopologyTreeNode> treeNodeList);
+    List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<AppTopologyTreeNode> treeNodeList);
 
-    List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(String username,
-                                                           Long appId,
-                                                           List<String> dynamicGroupIdList);
+    List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(Long appId, List<String> dynamicGroupIdList);
 
-    List<ServiceHostStatusDTO> getHostStatusByIp(String username,
-                                                 Long appId,
-                                                 List<String> ipList);
+    List<ServiceHostStatusDTO> getHostStatusByIp(Long appId, List<String> ipList);
 }

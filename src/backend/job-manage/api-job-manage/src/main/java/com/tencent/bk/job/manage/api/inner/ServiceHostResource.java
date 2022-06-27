@@ -39,7 +39,6 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -55,7 +54,6 @@ public interface ServiceHostResource {
     @PostMapping("/app/{appId}/host/status/nodes")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
         @PathVariable("appId") Long appId,
-        @RequestHeader("username") String username,
         @RequestBody ServiceGetHostStatusByNodeReq req
     );
 
@@ -63,7 +61,6 @@ public interface ServiceHostResource {
     @PostMapping("/app/{appId}/host/status/dynamicGroups")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
         @PathVariable("appId") Long appId,
-        @RequestHeader("username") String username,
         @RequestBody ServiceGetHostStatusByDynamicGroupReq req
     );
 
@@ -71,7 +68,6 @@ public interface ServiceHostResource {
     @PostMapping("/app/{appId}/host/status/ips")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(
         @PathVariable("appId") Long appId,
-        @RequestHeader("username") String username,
         @RequestBody ServiceGetHostStatusByIpReq req
     );
 
