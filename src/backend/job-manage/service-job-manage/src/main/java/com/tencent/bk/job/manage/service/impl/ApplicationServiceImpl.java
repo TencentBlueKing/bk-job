@@ -160,8 +160,6 @@ public class ApplicationServiceImpl implements ApplicationService {
             return Collections.emptyList();
         }
 
-        // 普通业务
-        List<ApplicationDTO> normalAppList = new ArrayList<>();
         // 业务集
         List<ApplicationDTO> appSetList = new ArrayList<>();
         // 全业务
@@ -173,29 +171,13 @@ public class ApplicationServiceImpl implements ApplicationService {
                 allAppSetList.add(appDTO);
             } else if (appDTO.isBizSet()) {
                 appSetList.add(appDTO);
-            } else {
-                normalAppList.add(appDTO);
             }
         });
 
-        // 普通业务按部门分组
-        Map<Long, List<ApplicationDTO>> normalAppGroupMap =
-            normalAppList.stream().filter(normalApp -> normalApp.getOperateDeptId() != null).collect(
-                Collectors.groupingBy(ApplicationDTO::getOperateDeptId));
-
         // 查找包含当前业务的业务集
         appSetList.forEach(appSet -> {
-            List<Long> subAppIds = appSet.getSubBizIds() == null ? new ArrayList<>() :
-                appSet.getSubBizIds();
-            Long optDeptId = appSet.getOperateDeptId();
-            if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
-                List<Long> normalAppIdList =
-                    normalAppGroupMap.get(optDeptId).stream()
-                        .map(ApplicationDTO::getId)
-                        .collect(Collectors.toList());
-                subAppIds.addAll(normalAppIdList);
-            }
-            if (subAppIds.contains(appId)) {
+            List<Long> subAppIds = appSet.getSubBizIds();
+            if (subAppIds != null && subAppIds.contains(appId)) {
                 fullAppIds.add(appSet.getId());
             }
         });
