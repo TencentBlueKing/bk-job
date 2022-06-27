@@ -117,11 +117,8 @@ public class ServiceApplicationDTO {
         ApplicationDTO applicationInfo = new ApplicationDTO();
         applicationInfo.setId(serviceAppDTO.getId());
         applicationInfo.setName(serviceAppDTO.getName());
-        applicationInfo.setAppType(AppTypeEnum.valueOf(serviceAppDTO.getAppType()));
         applicationInfo.setScope(new ResourceScope(serviceAppDTO.getScopeType(), serviceAppDTO.getScopeId()));
         applicationInfo.setSubBizIds(serviceAppDTO.getSubBizIds());
-        applicationInfo.setMaintainers(serviceAppDTO.getMaintainers());
-        applicationInfo.setOperateDeptId(serviceAppDTO.getOperateDeptId());
         applicationInfo.setLanguage(serviceAppDTO.getLanguage());
         return applicationInfo;
     }
@@ -140,13 +137,14 @@ public class ServiceApplicationDTO {
         app.setId(appDTO.getId());
         app.setSubBizIds(appDTO.getSubBizIds());
         app.setName(appDTO.getName());
-        app.setAppType(appDTO.getAppType().getValue());
         app.setScopeType(appDTO.getScope().getType().getValue());
         app.setScopeId(appDTO.getScope().getId());
         app.setOwner(appDTO.getBkSupplierAccount());
+        app.setTimeZone(appDTO.getTimeZone());
+        // 暂时保留appType/maintainers/operateDeptId三个参数
+        app.setAppType(appDTO.getAppType().getValue());
         app.setMaintainers(appDTO.getMaintainers());
         app.setOperateDeptId(appDTO.getOperateDeptId());
-        app.setTimeZone(appDTO.getTimeZone());
         return app;
     }
 

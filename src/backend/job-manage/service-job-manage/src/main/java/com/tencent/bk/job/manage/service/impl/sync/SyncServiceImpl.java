@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -331,11 +330,7 @@ public class SyncServiceImpl implements SyncService {
                     // 从CMDB同步业务信息
                     bizSyncService.syncBizFromCMDB();
                     // 从CMDB同步业务集信息
-                    if (FeatureToggle.isCmdbBizSetEnabled()) {
-                        bizSetSyncService.syncBizSetFromCMDB();
-                    } else {
-                        log.info("Cmdb biz set is disabled, skip sync apps!");
-                    }
+                    bizSetSyncService.syncBizSetFromCMDB();
                     log.info(Thread.currentThread().getName() + ":Finished:sync app from cmdb");
                     // 将最后同步时间写入Redis
                     redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,

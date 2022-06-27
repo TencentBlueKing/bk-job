@@ -158,15 +158,6 @@ public interface ApplicationService {
     Long createApp(ApplicationDTO application);
 
     /**
-     * 创建业务-指定业务ID
-     *
-     * @param application 业务
-     * @return 业务ID
-     */
-    @CompatibleImplementation(explain = "兼容方法，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    Long createAppWithSpecifiedAppId(ApplicationDTO application);
-
-    /**
      * 获取Job业务数量
      *
      * @return 业务数量

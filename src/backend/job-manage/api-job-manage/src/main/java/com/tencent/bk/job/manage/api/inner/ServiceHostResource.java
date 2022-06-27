@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -45,7 +44,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@CompatibleImplementation(explain = "部分host相关的API需要修改Path，后续版本需移除service/app这个路径", version = "3.5.1")
 @RequestMapping("/service")
 @Api(tags = {"job-manage:service:Host_Management"})
 @RestController

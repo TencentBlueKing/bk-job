@@ -45,27 +45,6 @@ public class FeatureToggle {
     }
 
     /**
-     * 业务是否对接cmdb业务集
-     *
-     * @param appId Job业务ID
-     */
-    public static boolean isCmdbBizSetEnabledForApp(Long appId) {
-        FeatureToggleConfig featureToggleConfig = get();
-        FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
-        return cmdbBizSetConfig.isOpen(String.valueOf(appId));
-    }
-
-
-    /**
-     * 是否对接cmdb业务集
-     */
-    public static boolean isCmdbBizSetEnabled() {
-        FeatureToggleConfig featureToggleConfig = get();
-        FeatureToggleConfig.ToggleConfig cmdbBizSetConfig = featureToggleConfig.getCmdbBizSet();
-        return cmdbBizSetConfig.isOpen();
-    }
-
-    /**
      * 是否兼容ESB bk_biz_id 参数
      */
     public static boolean isBkBizIdEnabled() {

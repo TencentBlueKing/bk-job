@@ -214,20 +214,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public Long createAppWithSpecifiedAppId(ApplicationDTO application) {
-        Long appId = applicationDAO.insertAppWithSpecifiedAppId(dslContext, application);
-        application.setId(appId);
-        applicationCache.addOrUpdateApp(application);
-        try {
-            // 创建默认账号
-            accountService.createDefaultAccounts(appId);
-        } catch (Exception e) {
-            log.warn("Fail to create default accounts for appId={}", appId);
-        }
-        return appId;
-    }
-
-    @Override
     public Integer countApps() {
         return applicationDAO.countApps();
     }
