@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -50,6 +49,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationTriggerDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -310,7 +310,7 @@ public class NotifyServiceImpl implements NotifyService {
         }
         // 国际化处理
         Long appId = taskNotifyDTO.getAppId();
-        ApplicationDTO applicationDTO = applicationService.getAppById(appId);
+        ServiceApplicationDTO applicationDTO = applicationService.getAppById(appId);
         String userLang = JobContextUtil.getUserLang();
         if (userLang == null) {
             String appLang = applicationDTO.getLanguage();

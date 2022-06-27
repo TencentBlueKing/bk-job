@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.execute.client.ScriptCheckResourceClient;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.model.DangerousRecordDTO;
@@ -42,6 +41,7 @@ import com.tencent.bk.job.manage.common.consts.script.ScriptCheckErrorLevelEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckScriptRequest;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,7 +134,7 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
         record.setRuleExpression(checkResultItem.getRuleExpression());
         record.setAction(checkResultItem.getAction());
         record.setAppId(taskInstance.getAppId());
-        ApplicationDTO app = applicationService.getAppById(taskInstance.getAppId());
+        ServiceApplicationDTO app = applicationService.getAppById(taskInstance.getAppId());
         if (app != null) {
             record.setAppName(app.getName());
         }
