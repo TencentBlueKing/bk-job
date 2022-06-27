@@ -105,16 +105,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
 
-    protected boolean isMaintainerOfResource(String username, ResourceTypeEnum resourceType, String resourceId) {
-        // 业务集、全业务特殊鉴权
-        return authService.isMaintainerOfResource(username, resourceType, resourceId);
-    }
-
     public AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         Map<String, String> ip2HostIdMap = new HashMap<>();
         Map<DynamicServerTopoNodeDTO, InstanceTopologyDTO> dynamicServerTopoNodeHierarchyMap = new HashMap<>();
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers, ip2HostIdMap,
@@ -139,10 +130,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     public AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         Map<String, String> ip2HostIdMap = new HashMap<>();
         Map<DynamicServerTopoNodeDTO, InstanceTopologyDTO> dynamicServerTopoNodeHierarchyMap = new HashMap<>();
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers, ip2HostIdMap,
@@ -169,10 +156,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     public AuthResult authExecuteAppScript(String username, AppResourceScope appResourceScope,
                                            String scriptId, String scriptName, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         Map<String, String> ip2HostIdMap = new HashMap<>();
         Map<DynamicServerTopoNodeDTO, InstanceTopologyDTO> dynamicServerTopoNodeHierarchyMap = new HashMap<>();
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers, ip2HostIdMap,
@@ -227,10 +210,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     public AuthResult authExecutePublicScript(String username, AppResourceScope appResourceScope,
                                               String scriptId, String scriptName, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         Map<String, String> ip2HostIdMap = new HashMap<>();
         Map<DynamicServerTopoNodeDTO, InstanceTopologyDTO> dynamicServerTopoNodeHierarchyMap = new HashMap<>();
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers, ip2HostIdMap,
@@ -272,10 +251,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     public AuthResult authExecutePlan(String username, AppResourceScope appResourceScope, Long templateId,
                                       Long planId, String planName, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         Map<String, String> ip2HostIdMap = new HashMap<>();
         Map<DynamicServerTopoNodeDTO, InstanceTopologyDTO> dynamicServerTopoNodeHierarchyMap = new HashMap<>();
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers, ip2HostIdMap,
@@ -318,10 +293,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     @Override
     public AuthResult authDebugTemplate(String username, AppResourceScope appResourceScope, Long templateId,
                                         ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         Map<String, String> ip2HostIdMap = new HashMap<>();
         Map<DynamicServerTopoNodeDTO, InstanceTopologyDTO> dynamicServerTopoNodeHierarchyMap = new HashMap<>();
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers, ip2HostIdMap,
