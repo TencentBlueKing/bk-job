@@ -273,6 +273,9 @@ export default {
         基本信息: 'Information',
         克隆: 'Clone',
         克隆步骤: 'Clone Step',
+        新建步骤: 'New Step',
+        编辑步骤: 'Edit Step',
+        删除步骤: 'Delete Step',
         '确定删除该步骤？': 'Are  you sure to delete it?',
         '删除之后不可恢复，请谨慎操作！': 'Caution! It cannot be restored after deletion.',
         执行方案: {

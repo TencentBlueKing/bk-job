@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo.script;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -39,12 +38,6 @@ import lombok.Setter;
 public class ScriptSyncResultVO {
     public static final int SYNC_SUCCESS = 1;
     public static final int SYNC_FAIL = 2;
-
-    /**
-     * 业务id
-     */
-    @CompatibleImplementation(explain = "为了无损发布保留的历史字段，发布完成需要删除", version = "3.5.1")
-    private Long appId;
 
     /**
      * 资源范围类型

@@ -30,6 +30,7 @@ import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.conf.ParamType;
@@ -38,6 +39,7 @@ import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -153,13 +155,21 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
     }
 
     @Override
-    public List<DangerousRuleDTO> listDangerousRulesByScriptType(DSLContext dslContext, Integer scriptType) {
+    public List<DangerousRuleDTO> listDangerousRules(DSLContext dslContext, DangerousRuleDTO dangerousRuleQuery) {
+        Integer scriptType = dangerousRuleQuery.getScriptType();
+        List<Condition> conditions = new ArrayList<>();
+        if (dangerousRuleQuery.getStatus() != null) {
+            conditions.add(T.STATUS.eq(JooqDataTypeUtil.getByteFromInteger(dangerousRuleQuery.getStatus())));
+        }
         val records =
-            dslContext.selectFrom(T).orderBy(T.PRIORITY).fetch();
+            dslContext.selectFrom(T).where(conditions).orderBy(T.PRIORITY).fetch();
         if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             List<DangerousRuleDTO> dangerousRuleList = records.map(this::convertRecordToDto);
+            if (scriptType == null) {
+                return dangerousRuleList;
+            }
             int typeFlag = 1 << scriptType - 1;
             return dangerousRuleList.stream().filter(rule -> (rule.getScriptType() & (typeFlag)) == typeFlag).collect(Collectors.toList());
         }

@@ -29,22 +29,22 @@
     <div class="bussiness-app-empty-page">
         <div class="page-header">
             <div class="header-wraper">
-                <div class="page-title">暂无业务权限，请先申请或创建</div>
+                <div class="page-title">{{ $t('暂无业务权限，请先申请或创建') }}</div>
                 <div class="page-desc">
-                    作业平台的核心功能包括面向服务器操作系统的命令执行、文件分发，以及将多个操作组合成作业流程，并支持设置定时执行。
+                    {{ $t('作业平台的核心功能包括面向服务器操作系统的命令执行、文件分发，以及将多个操作组合成作业流程，并支持设置定时执行。') }}
                 </div>
                 <div class="page-action">
                     <bk-button
                         theme="primary"
                         class="mr10"
                         @click="handleGoCreateApp">
-                        新建业务
+                        {{ $t('新建业务') }}
                     </bk-button>
                     <bk-button
                         theme="primary"
                         :loading="isApplyLoading"
                         @click="handleGoApplyPermission">
-                        申请业务权限
+                        {{ $t('申请业务权限') }}
                     </bk-button>
                 </div>
             </div>
@@ -58,8 +58,8 @@
                             src="/static/images/guide/permission-apply.svg">
                     </div>
                     <div class="feature-box">
-                        <div class="feature-title">申请已有业务权限 / 创建新的业务</div>
-                        <div>不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择 申请已有业务的权限，亦或是 新建 一个全新的业务。</div>
+                        <div class="feature-title">{{ $t('申请已有业务权限 / 创建新的业务') }}</div>
+                        <div>{{ $t('不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择 申请已有业务的权限，亦或是 新建 一个全新的业务。') }}</div>
                     </div>
                 </div>
                 <div class="divide-line" />
@@ -70,29 +70,43 @@
                             src="/static/images/guide/permission-use.svg">
                     </div>
                     <div class="feature-box">
-                        <div class="feature-title">开始使用作业平台</div>
+                        <div class="feature-title">{{ $t('开始使用作业平台') }}</div>
                         <div>
-                            <span>作业平台的目标服务器信息同样来自 </span>
-                            <a :href="relatedSystemUrls.BK_CMDB_ROOT_URL" target="_blank">配置平台</a>
-                            <span>，你需将服务器信息预先录入；并且，服务器上需要</span>
-                            <a :href="relatedSystemUrls.BK_NODEMAN_ROOT_URL" target="_blank"> 安装好蓝鲸 GSE Agent </a>
-                            <span>才能够正常接收来自作业平台的操作指令。</span>
+                            <span>{{ $t('作业平台的目标服务器信息同样来自') }} </span>
+                            <a
+                                :href="relatedSystemUrls.BK_CMDB_ROOT_URL"
+                                target="_blank">
+                                {{ $t('配置平台') }}
+                            </a>
+                            <span>{{ $t('，你需将服务器信息预先录入；并且，服务器上需要') }}</span>
+                            <a
+                                :href="relatedSystemUrls.BK_NODEMAN_ROOT_URL"
+                                target="_blank">
+                                {{ $t('安装好蓝鲸 GSE Agent') }}
+                            </a>
+                            <span>{{ $t('才能够正常接收来自作业平台的操作指令。') }}</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="page-link">
                 <div>
-                    <span>第一次使用作业平台？点击查阅  </span>
+                    <span>{{ $t('第一次使用作业平台？点击查阅') }}  </span>
                     <!-- eslint-disable-next-line  max-len -->
-                    <a :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/作业平台/产品白皮书/Quick-Starts/1.Create-system-account.md`" target="_blank">
-                        快速入门技巧<Icon type="link" />
+                    <a
+                        :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/作业平台/产品白皮书/Quick-Starts/1.Create-system-account.md`"
+                        target="_blank">
+                        <span>{{ $t('快速入门技巧') }}</span>
+                        <Icon type="link" />
                     </a>
                 </div>
                 <div style="margin-top: 10px;">
-                    <span>了解更多关于作业平台产品的功能介绍，点击前往</span>
-                    <a :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}`" target="_blank">
-                        产品文档<Icon type="link" />
+                    <span>{{ $t('了解更多关于作业平台产品的功能介绍，点击前往') }}</span>
+                    <a
+                        :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}`"
+                        target="_blank">
+                        <span>{{ $t('产品文档') }}</span>
+                        <Icon type="link" />
                     </a>
                 </div>
             </div>

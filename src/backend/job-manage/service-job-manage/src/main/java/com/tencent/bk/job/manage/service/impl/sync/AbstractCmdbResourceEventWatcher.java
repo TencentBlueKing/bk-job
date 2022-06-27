@@ -57,11 +57,6 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
         try {
             while (true) {
                 try {
-                    if (!isWatchingEnabled()) {
-                        ThreadUtils.sleep(60_000);
-                        continue;
-                    }
-
                     boolean lockGotten = tryGetTaskLockPeriodically();
                     if (!lockGotten) {
                         // 30s之后重试
@@ -128,31 +123,37 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
             System.currentTimeMillis());
         String cursor = null;
         while (true) {
-            Span span = null;
-            try {
-                ResourceWatchResult<E> watchResult;
-                span = this.tracing.tracer().newTrace();
-                if (cursor == null) {
-                    // 从10分钟前开始watch
-                    long startTime = System.currentTimeMillis() / 1000 - 10 * 60;
-                    log.info("Start watch {} from startTime:{}", this.watcherResourceName,
-                        TimeUtil.formatTime(startTime * 1000));
-                    watchResult = fetchEventsByStartTime(startTime);
-                } else {
-                    watchResult = fetchEventsByCursor(cursor);
+            while (isWatchingEnabled()) {
+                Span span = null;
+                try {
+                    ResourceWatchResult<E> watchResult;
+                    span = this.tracing.tracer().newTrace();
+                    if (cursor == null) {
+                        // 从10分钟前开始watch
+                        long startTime = System.currentTimeMillis() / 1000 - 10 * 60;
+                        log.info("Start watch {} from startTime:{}", this.watcherResourceName,
+                            TimeUtil.formatTime(startTime * 1000));
+                        watchResult = fetchEventsByStartTime(startTime);
+                    } else {
+                        watchResult = fetchEventsByCursor(cursor);
+                    }
+                    log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
+                    cursor = handleWatchResult(watchResult, cursor);
+                    // 1s/watch一次
+                    ThreadUtils.sleep(1_000);
+                } catch (Throwable t) {
+                    if (span != null) {
+                        span.error(t);
+                    }
+                    log.error("EventWatch thread fail", t);
+                    // 如果处理事件过程中碰到异常，等待30s重试
+                    ThreadUtils.sleep(30_000);
                 }
-                log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
-                cursor = handleWatchResult(watchResult, cursor);
-                // 10s/watch一次
-                ThreadUtils.sleep(10_000);
-            } catch (Throwable t) {
-                if (span != null) {
-                    span.error(t);
-                }
-                log.error("EventWatch thread fail", t);
-                cursor = null;
             }
+            // 如果事件开关为disabled，间隔30s重新判断是否开启
+            ThreadUtils.sleep(30_000L);
         }
+
     }
 
     private String handleWatchResult(ResourceWatchResult<E> watchResult,

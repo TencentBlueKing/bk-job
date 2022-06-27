@@ -27,17 +27,15 @@ package com.tencent.bk.job.common.web.interceptor;
 import brave.Tracer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +55,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MAX;
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MIN;
+
 /**
  * Job通用拦截器
  */
@@ -64,8 +65,6 @@ import java.util.regex.Pattern;
 @Component
 public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     private static final Pattern SCOPE_PATTERN = Pattern.compile("/scope/(\\w+)/(\\d+)");
-    @DeprecatedAppLogic
-    private static final Pattern APP_ID_PATTERN = Pattern.compile("/app/(\\d+)");
 
     private final Tracer tracer;
 
@@ -195,12 +194,6 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             return buildAppResourceScope(resourceScope);
         }
 
-        // 兼容当前业务ID路径模式
-        Long appId = parseAppIdFromURI(requestURI);
-        if (appId != null) {
-            return buildAppResourceScope(appId);
-        }
-
         return null;
     }
 
@@ -213,22 +206,8 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return resourceScope;
     }
 
-    private Long parseAppIdFromURI(String requestURI) {
-        Matcher appIdMatcher = APP_ID_PATTERN.matcher(requestURI);
-        Long appId = null;
-        if (appIdMatcher.find()) {
-            appId = Long.valueOf(appIdMatcher.group(1));
-        }
-        return appId;
-    }
-
     private AppResourceScope buildAppResourceScope(ResourceScope resourceScope) {
         Long appId = appScopeMappingService.getAppIdByScope(resourceScope);
-        return new AppResourceScope(appId, resourceScope);
-    }
-
-    private AppResourceScope buildAppResourceScope(Long appId) {
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         return new AppResourceScope(appId, resourceScope);
     }
 
@@ -247,15 +226,14 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             return new AppResourceScope(scopeType, scopeId, null);
         }
 
-        EsbConfig esbConfig = ApplicationContextRegister.getBean(EsbConfig.class);
         // 如果兼容bk_biz_id参数
-        if (esbConfig.isBkBizIdEnabled()) {
+        if (FeatureToggle.isBkBizIdEnabled()) {
             // 兼容当前业务ID参数
             if (StringUtils.isNotBlank(bizIdStr)) {
                 long bizId = Long.parseLong(bizIdStr);
                 // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
                 scopeId = bizIdStr;
-                if (bizId >= 8000000L && bizId <= 9999999L) {
+                if (bizId >= JOB_BUILD_IN_BIZ_SET_ID_MIN && bizId <= JOB_BUILD_IN_BIZ_SET_ID_MAX) {
                     Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(),
                         scopeId);
                     return new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, scopeId, appId);

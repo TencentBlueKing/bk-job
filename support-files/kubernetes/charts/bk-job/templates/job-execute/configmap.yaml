@@ -1,4 +1,4 @@
-{{- if .Values.executeConfig }}
+{{- if .Values.executeConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -130,8 +130,6 @@ data:
               taskStatisticsOutput:
                 consumer:
                   maxConcurrency: 10
-        refresh:
-          extra-refreshable: javax.sql.DataSource
       datasource:
         job-execute:
           driver-class-name: com.mysql.cj.jdbc.Driver
@@ -186,4 +184,4 @@ data:
       storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
       artifactory:
         repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
-  {{- end}}
+{{- end }}

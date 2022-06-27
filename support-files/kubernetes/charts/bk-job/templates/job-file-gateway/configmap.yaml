@@ -1,4 +1,4 @@
-{{- if .Values.fileGatewayConfig }}
+{{- if .Values.fileGatewayConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -13,9 +13,6 @@ metadata:
 data:
   application.yaml: |-
     spring:
-      cloud:
-        refresh:
-          extra-refreshable: javax.sql.DataSource
       datasource:
         job-file-gateway:
           driver-class-name: com.mysql.cj.jdbc.Driver
@@ -48,4 +45,4 @@ data:
           max-request-size: 5GB
     server:
       port: {{ .Values.fileGatewayConfig.containerPort }}
-  {{- end}}
+{{- end }}

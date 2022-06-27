@@ -111,6 +111,10 @@ public class DateUtilTest {
         actual = DateUtils.convertFromStringDate("2020-01-01+11:11:11", "yyyy-MM-dd+HH:mm:ss");
         expected = LocalDateTime.of(2020, 1, 1, 11, 11, 11);
         assertThat(actual).isEqualTo(expected);
+
+        actual = DateUtils.convertFromStringDate("2020-01-01T11:11:11", "yyyy-MM-dd'T'HH:mm:ss");
+        expected = LocalDateTime.of(2020, 1, 1, 11, 11, 11);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test

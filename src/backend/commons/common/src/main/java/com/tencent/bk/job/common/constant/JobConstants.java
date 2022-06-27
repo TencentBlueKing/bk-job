@@ -29,6 +29,10 @@ package com.tencent.bk.job.common.constant;
  */
 public class JobConstants {
     /**
+     * 默认云区域ID
+     */
+    public static final long DEFAULT_CLOUD_AREA_ID = 0L;
+    /**
      * 公共资源对应的业务ID(比如公共脚本)
      */
     public static final long PUBLIC_APP_ID = 0L;
@@ -64,4 +68,16 @@ public class JobConstants {
      * 作业最大超时时间，单位秒
      */
     public static final int MAX_JOB_TIMEOUT_SECONDS = 86400;
+    /**
+     * 请求来源：备份服务
+     */
+    public static final int REQUEST_SOURCE_JOB_BACKUP = 1;
+    /**
+     * Job内置业务集的ID范围的最小值
+     */
+    public static final long JOB_BUILD_IN_BIZ_SET_ID_MIN = 8000000L;
+    /**
+     * Job内置业务集的ID范围的最大值
+     */
+    public static final long JOB_BUILD_IN_BIZ_SET_ID_MAX = 9999999L;
 }

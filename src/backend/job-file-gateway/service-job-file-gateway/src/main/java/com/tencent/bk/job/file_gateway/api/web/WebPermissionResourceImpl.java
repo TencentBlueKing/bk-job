@@ -58,20 +58,18 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     @Override
     public Response<AuthResultVO> checkOperationPermission(
         String username, OperationPermissionReq req) {
-        return checkOperationPermission(
-            username, req.getAppId(), req.getScopeType(), req.getScopeId(),
+        return checkOperationPermission(username, req.getScopeType(), req.getScopeId(),
             req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
     }
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
-                                                           Long appId,
                                                            String scopeType,
                                                            String scopeId,
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, appId);
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         if (StringUtils.isEmpty(operation)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -88,19 +86,35 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "view":
                         return Response.buildSuccessResp(
-                            webAuthService.toAuthResultVO(fileSourceAuthService.authViewFileSource(
-                                username, appResourceScope, Integer.valueOf(resourceId), null))
+                            webAuthService.toAuthResultVO(
+                                isReturnApplyUrl,
+                                fileSourceAuthService.authViewFileSource(
+                                    username,
+                                    appResourceScope,
+                                    Integer.valueOf(resourceId),
+                                    null
+                                )
+                            )
                         );
                     case "create":
                         return Response.buildSuccessResp(
-                            webAuthService.toAuthResultVO(fileSourceAuthService.authCreateFileSource(
-                                username, appResourceScope))
+                            webAuthService.toAuthResultVO(
+                                isReturnApplyUrl,
+                                fileSourceAuthService.authCreateFileSource(username, appResourceScope)
+                            )
                         );
                     case "edit":
                     case "delete":
                         return Response.buildSuccessResp(
-                            webAuthService.toAuthResultVO(fileSourceAuthService.authManageFileSource(
-                                username, appResourceScope, Integer.valueOf(resourceId), null))
+                            webAuthService.toAuthResultVO(
+                                isReturnApplyUrl,
+                                fileSourceAuthService.authManageFileSource(
+                                    username,
+                                    appResourceScope,
+                                    Integer.valueOf(resourceId),
+                                    null
+                                )
+                            )
                         );
                     default:
                         log.error("Unknown operator|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,

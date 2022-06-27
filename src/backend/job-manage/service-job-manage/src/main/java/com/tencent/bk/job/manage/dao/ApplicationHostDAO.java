@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao;
 
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -59,7 +60,18 @@ public interface ApplicationHostDAO {
     Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                        Collection<Long> cloudAreaIds, List<String> searchContents, Integer agentStatus);
 
+    /**
+     * 根据ID与Agent状态查询主机数量
+     *
+     * @param hostIds     主机Id集合
+     * @param agentStatus Agent状态
+     * @return 主机数量
+     */
+    Long countHostByIdAndStatus(Collection<Long> hostIds, AgentStatusEnum agentStatus);
+
     List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips);
+
+    List<ApplicationHostDTO> listHostInfoByBizAndCloudIPs(Collection<Long> bizIds, Collection<String> cloudIPs);
 
     List<ApplicationHostDTO> listHostInfoBySourceAndIps(long cloudAreaId, Set<String> ips);
 
@@ -69,6 +81,8 @@ public interface ApplicationHostDAO {
     int insertAppHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
 
     int insertAppHostInfo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
+
+    int insertOrUpdateHost(DSLContext dslContext, ApplicationHostDTO hostDTO);
 
     int batchInsertAppHostInfo(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
 
@@ -80,13 +94,27 @@ public interface ApplicationHostDAO {
 
     int batchUpdateBizHostInfoByHostId(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
 
-    int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long appHostId);
 
-    int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> appHostIdList);
+    int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long hostId);
 
+    /**
+     * 根据传入的业务ID与主机ID批量删除主机
+     *
+     * @param dslContext DB操作上下文
+     * @param bizId      业务ID
+     * @param hostIdList 要删除的主机ID列表
+     * @return 删除的主机数量
+     */
+    int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> hostIdList);
+
+    /**
+     * 删除某个业务下的全部主机，用于业务被删除后清理主机
+     *
+     * @param dslContext DB操作上下文
+     * @param bizId      业务ID
+     * @return 删除的主机数量
+     */
     int deleteBizHostInfoByBizId(DSLContext dslContext, long bizId);
-
-    int deleteBizHostInfoNotInBizs(DSLContext dslContext, Set<Long> notInBizIds);
 
     boolean existsHost(DSLContext dslContext, long bizId, String ip);
 

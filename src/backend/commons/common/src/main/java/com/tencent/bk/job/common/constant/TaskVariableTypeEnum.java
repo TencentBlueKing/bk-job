@@ -75,7 +75,7 @@ public enum TaskVariableTypeEnum {
 
     private String mask;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static TaskVariableTypeEnum valOf(int type) {
         for (TaskVariableTypeEnum value : values()) {
             if (value.type == type) {

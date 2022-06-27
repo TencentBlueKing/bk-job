@@ -1,4 +1,4 @@
-{{- if .Values.backupConfig }}
+{{- if .Values.backupConfig.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -13,9 +13,6 @@ metadata:
 data:
   application.yaml: |-
     spring:
-      cloud:
-        refresh:
-          extra-refreshable: javax.sql.DataSource
       datasource:
         job-backup:
           driver-class-name: com.mysql.cj.jdbc.Driver
@@ -109,4 +106,4 @@ data:
             keep_days: 30
           delete:
             enabled: true
-  {{- end}}
+{{- end }}

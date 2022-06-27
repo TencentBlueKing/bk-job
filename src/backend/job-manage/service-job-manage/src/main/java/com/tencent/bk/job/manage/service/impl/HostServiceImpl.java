@@ -34,10 +34,12 @@ import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -51,6 +53,7 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
@@ -106,6 +109,7 @@ public class HostServiceImpl implements HostService {
     private final WhiteIPService whiteIPService;
     private final HostCache hostCache;
     private final BizOperateDeptLocalCache bizOperateDeptLocalCache;
+    private final MessageI18nService i18nService;
 
     @Autowired
     public HostServiceImpl(DSLContext dslContext,
@@ -117,7 +121,8 @@ public class HostServiceImpl implements HostService {
                            QueryAgentStatusClient queryAgentStatusClient,
                            WhiteIPService whiteIPService,
                            HostCache hostCache,
-                           BizOperateDeptLocalCache bizOperateDeptLocalCache) {
+                           BizOperateDeptLocalCache bizOperateDeptLocalCache,
+                           MessageI18nService i18nService) {
         this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
@@ -128,6 +133,7 @@ public class HostServiceImpl implements HostService {
         this.whiteIPService = whiteIPService;
         this.hostCache = hostCache;
         this.bizOperateDeptLocalCache = bizOperateDeptLocalCache;
+        this.i18nService = i18nService;
     }
 
     @Override
@@ -148,27 +154,8 @@ public class HostServiceImpl implements HostService {
 
     private boolean insertOrUpdateOneAppHost(Long bizId, ApplicationHostDTO infoDTO) {
         try {
-            applicationHostDAO.insertAppHostInfo(dslContext, infoDTO);
+            applicationHostDAO.insertOrUpdateHost(dslContext, infoDTO);
             hostCache.addOrUpdateHost(infoDTO);
-        } catch (DataAccessException e) {
-            String errorMessage = e.getMessage();
-            if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
-                log.warn(String.format(
-                    "insertHost fail, try to update:Duplicate entry:bizId=%d," +
-                        "insert hostInfo=%s, old " +
-                        "hostInfo=%s", bizId, infoDTO,
-                    applicationHostDAO.getHostById(infoDTO.getHostId())), e);
-                try {
-                    // 插入失败了就应当更新，以后来的数据为准
-                    applicationHostDAO.updateBizHostInfoByHostId(dslContext, bizId, infoDTO);
-                } catch (Throwable t) {
-                    log.error(String.format("update after insert fail:bizId=%d,hostInfo=%s", bizId, infoDTO), t);
-                    return false;
-                }
-            } else {
-                log.error(String.format("insertHost fail:bizId=%d,hostInfo=%s", bizId, infoDTO), e);
-                return false;
-            }
         } catch (Throwable t) {
             log.error(String.format("insertHost fail:bizId=%d,hostInfo=%s", bizId, infoDTO), t);
             return false;
@@ -282,43 +269,19 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<Long> deleteHostsFromBiz(Long bizId, List<ApplicationHostDTO> deleteList) {
+    public List<Long> removeHostsFromBiz(Long bizId, List<ApplicationHostDTO> hostList) {
+        List<Long> hostIdList = hostList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
         StopWatch watch = new StopWatch();
-        // 删除主机
-        watch.start("deleteAppHostInfo");
+        watch.start("deleteHostTopoOfBiz");
         List<Long> deleteFailHostIds = new ArrayList<>();
-        boolean batchDeleted = false;
-        try {
-            // 尝试批量删除
-            if (!deleteList.isEmpty()) {
-                applicationHostDAO.batchDeleteBizHostInfoById(dslContext, bizId,
-                    deleteList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList()));
-            }
-            batchDeleted = true;
-        } catch (Throwable throwable) {
-            log.warn("Fail to batchDeleteAppHostInfoById, try to delete one by one", throwable);
-            // 批量删除失败，尝试逐条删除
-            for (ApplicationHostDTO ApplicationHostDTO : deleteList) {
-                try {
-                    applicationHostDAO.deleteBizHostInfoById(dslContext, bizId, ApplicationHostDTO.getHostId());
-                } catch (Throwable t) {
-                    log.error("deleteHost fail:appId={},hostInfo={}", bizId,
-                        ApplicationHostDTO, t);
-                    deleteFailHostIds.add(ApplicationHostDTO.getHostId());
-                }
-            }
-        }
+        // 删除业务与主机的关系
+        hostTopoDAO.batchDeleteHostTopo(dslContext, bizId, hostIdList);
         watch.stop();
-        if (!batchDeleted) {
-            watch.start("log deleteAppHostInfo");
-            if (!deleteFailHostIds.isEmpty()) {
-                log.warn(String.format("appId=%s,deleteFailHostIds.size=%d,deleteFailHostIds=%s",
-                    bizId, deleteFailHostIds.size(), String.join(",",
-                        deleteFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-            }
-            watch.stop();
-        }
-        log.debug("Performance:deleteHostsFromApp:appId={},{}", bizId, watch.prettyPrint());
+        watch.start("syncHostTopo");
+        // 同步主机关系到host表
+        hostIdList.forEach(hostId -> applicationHostDAO.syncHostTopo(dslContext, hostId));
+        watch.stop();
+        log.debug("Performance:removeHostsFromBiz:bizId={},{}", bizId, watch.prettyPrint());
         return deleteFailHostIds;
     }
 
@@ -364,13 +327,17 @@ public class HostServiceImpl implements HostService {
         if (appInfo == null) {
             throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
+        ccTopologyNodeVO.setObjectId("biz");
+        ccTopologyNodeVO.setObjectName(i18nService.getI18n("cmdb.object.name.biz"));
+        ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
+        ccTopologyNodeVO.setInstanceName(appInfo.getName());
+        if (appInfo.isAllBizSet()) {
+            // 全业务
+            ccTopologyNodeVO.setCount((int) applicationHostDAO.countAllHosts());
+            return ccTopologyNodeVO;
+        } else if (appInfo.isBizSet()) {
             // 业务集
-            CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
-            ccTopologyNodeVO.setObjectId("biz");
-            ccTopologyNodeVO.setObjectId("业务");
-            ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
-            ccTopologyNodeVO.setInstanceName(appInfo.getName());
             ccTopologyNodeVO.setCount((int) applicationHostDAO.countHostsByBizIds(dslContext,
                 topologyHelper.getBizSetSubBizIds(appInfo)));
             return ccTopologyNodeVO;
@@ -566,7 +533,6 @@ public class HostServiceImpl implements HostService {
                         ipList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
                     } else {
                         log.warn("Wrong host info! No cloud area!|{}", groupHost);
-                        continue;
                     }
                 }
 
@@ -695,9 +661,8 @@ public class HostServiceImpl implements HostService {
         // 从DB拿主机
         List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByBizId(bizId);
         log.info("find {} hosts from DB", dbHosts.size());
-        List<ApplicationHostDTO> hosts = dbHosts;
         watch.stop();
-        List<HostInfoVO> hostInfoVOList = hosts.stream().map(it -> {
+        List<HostInfoVO> hostInfoVOList = dbHosts.stream().map(it -> {
             HostInfoVO hostInfoVO = new HostInfoVO();
             hostInfoVO.setHostId(it.getHostId());
             hostInfoVO.setOs(it.getOs());
@@ -712,14 +677,14 @@ public class HostServiceImpl implements HostService {
         if (updateAgentStatus) {
             watch.start("batchGetAgentStatus");
             Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-                queryAgentStatusClient.batchGetAgentStatus(buildIpList(hosts));
+                queryAgentStatusClient.batchGetAgentStatus(buildIpList(dbHosts));
             fillAgentStatus(agentStatusMap, hostInfoVOList);
             watch.stop();
         }
         //将主机挂载到topo树
         watch.start("setToTopoTree");
         for (int i = 0; i < hostInfoVOList.size(); i++) {
-            ApplicationHostDTO host = hosts.get(i);
+            ApplicationHostDTO host = dbHosts.get(i);
             HostInfoVO hostInfoVO = hostInfoVOList.get(i);
             host.getModuleId().forEach(moduleId -> {
                 CcTopologyNodeVO moduleNode = map.get(moduleId);
@@ -748,11 +713,7 @@ public class HostServiceImpl implements HostService {
                 if (hostInfoDTO != null) {
                     String ip = hostInfoDTO.getCloudAreaId() + ":" + hostInfoDTO.getIp();
                     QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(ip);
-                    if (agentStatus != null && agentStatus.status == 1) {
-                        hostInfoDTO.setGseAgentAlive(true);
-                    } else {
-                        hostInfoDTO.setGseAgentAlive(false);
-                    }
+                    hostInfoDTO.setGseAgentAlive(agentStatus != null && agentStatus.status == 1);
                 }
             }
         }
@@ -853,7 +814,7 @@ public class HostServiceImpl implements HostService {
             moduleIds = getBizModuleIdsByTopoNodes(
                 username, Long.valueOf(appInfo.getScope().getId()), req.getAppTopoNodeList()
             );
-        } else if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        } else if (!appInfo.isAllBizSet() && appInfo.isBizSet()) {
             // 业务集：仅根据业务查主机
             // 查出对应的所有普通业务
             bizIds = topologyHelper.getBizSetSubBizIds(appInfo);
@@ -896,118 +857,123 @@ public class HostServiceImpl implements HostService {
             finalHostInfoVOList);
     }
 
-    private List<ApplicationHostDTO> filterBySpecifiedCloudId(
-        List<CloudIPDTO> cloudIPDTOList,
-        List<ApplicationHostDTO> applicationHostDTOList
-    ) {
-        //生成指定的云区域Map
-        Map<String, Set<Long>> map = new HashMap<>();
-        cloudIPDTOList.forEach(cloudIPDTO -> {
-            String ip = cloudIPDTO.getIp();
-            if (cloudIPDTO.getCloudAreaId() != null) {
-                if (map.keySet().contains(ip)) {
-                    Set<Long> set = map.get(ip);
-                    set.add(cloudIPDTO.getCloudAreaId());
-                    map.put(ip, set);
-                } else {
-                    Set<Long> set = new HashSet<>();
-                    set.add(cloudIPDTO.getCloudAreaId());
-                    map.put(ip, set);
-                }
+    private Pair<Set<CloudIPDTO>, Set<String>> parseInputCloudIPList(List<String> checkIpList) {
+        Set<CloudIPDTO> inputCloudIPSet = new HashSet<>();
+        Set<String> inputIPWithoutCloudIdSet = new HashSet<>();
+        Pattern pattern = Pattern.compile("[:：]");
+        for (String ip : checkIpList) {
+            if (StringUtils.isBlank(ip)) {
+                continue;
+            }
+            if (ip.contains(":") || ip.contains("：")) {
+                //有云区域Id
+                String[] arr = pattern.split(ip);
+                inputCloudIPSet.add(new CloudIPDTO(Long.parseLong(arr[0].trim()), arr[1].trim()));
             } else {
-                //未指定云区域的IP不作为过滤条件
+                inputIPWithoutCloudIdSet.add(ip.trim());
             }
-        });
-        return applicationHostDTOList.stream().filter(ApplicationHostDTO -> {
-            Set<String> keySet = map.keySet();
-            String ip = ApplicationHostDTO.getIp();
-            Long cloudId = ApplicationHostDTO.getCloudAreaId();
-            if (keySet.contains(ip)) {
-                return map.get(ip).contains(cloudId);
-            }
+        }
+        return Pair.of(inputCloudIPSet, inputIPWithoutCloudIdSet);
+    }
+
+    private List<String> buildCloudIPList(List<CloudIPDTO> cloudIPDTOList) {
+        if (CollectionUtils.isEmpty(cloudIPDTOList)) {
+            return Collections.emptyList();
+        }
+        return cloudIPDTOList.parallelStream().map(CloudIPDTO::getCloudIP).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据主机所属CMDB业务ID判断主机是否归属于某个Job业务
+     *
+     * @param appDTO    Job业务信息
+     * @param hostBizId 主机CMDB业务ID
+     * @return 是否归属于Job业务
+     */
+    private boolean hostBelongToApp(ApplicationDTO appDTO, Long hostBizId) {
+        if (appDTO.isAllBizSet()) {
             return true;
-        }).collect(Collectors.toList());
-    }
-
-    public List<ApplicationHostDTO> getHostInfoById(String username, Long appId, List<String> ipList) {
-        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
-        if (CollectionUtils.isEmpty(ipList)) {
-            return hostInfoList;
-        }
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
-        if (appInfo == null) {
-            return hostInfoList;
-        }
-        ResourceScopeTypeEnum scopeType = appInfo.getScope().getType();
-        if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
-            hostInfoList.addAll(applicationHostDAO.listHostInfoByIps(
-                Long.valueOf(appInfo.getScope().getId()), ipList));
-        } else if (scopeType == ResourceScopeTypeEnum.BIZ_SET) {
-            List<Long> subBizIds = topologyHelper.getBizSetSubBizIds(appInfo);
-            // 直接使用本地缓存数据
-            log.debug("subBizIdsSize={}, get host from local db", subBizIds.size());
-            hostInfoList.addAll(applicationHostDAO.listHostInfo(subBizIds, ipList));
+        } else if (appDTO.isBizSet()) {
+            return appDTO.getSubBizIds().contains(hostBizId);
         } else {
-            log.warn("Not supported scopeType:{}", scopeType);
+            return hostBizId.equals(appDTO.getBizIdIfBizApp());
         }
-        return hostInfoList;
     }
 
-    private List<CloudIPDTO> parseInputCloudIPList(List<String> checkIpList) {
-        List<CloudIPDTO> inputCloudIPList = new ArrayList<>();
-        checkIpList = checkIpList.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
-        for (int i = 0; i < checkIpList.size(); i++) {
-            String ip = checkIpList.get(i);
-            if (!StringUtils.isBlank(ip)) {
-                if (ip.contains(":") || ip.contains("：")) {
-                    //有云区域Id
-                    try {
-                        Pattern pattern = Pattern.compile("[:：]");
-                        String[] arr = pattern.split(ip);
-                        inputCloudIPList.add(new CloudIPDTO(Long.parseLong(arr[0].trim()), arr[1].trim()));
-                    } catch (Exception e) {
-                        log.warn("Invalid Ip:" + ip, e);
-                        throw new InternalException("every ip in checkIpList must contain cloudAreaId",
-                            ErrorCode.INTERNAL_ERROR);
-                    }
-                } else {
-                    inputCloudIPList.add(new CloudIPDTO(null, ip.trim()));
-                }
-            }
+    /**
+     * 分离存在于业务下与不存在于业务下的主机
+     *
+     * @param appId            Job业务ID
+     * @param mixedCloudIPList 未分离的所有IP列表
+     * @param inAppIPList      归属于Job业务的IP列表
+     * @param notInAppIPList   不属于Job业务的IP列表
+     */
+    private void separateNotInAppIP(Long appId,
+                                    List<CloudIPDTO> mixedCloudIPList,
+                                    List<CloudIPDTO> inAppIPList,
+                                    List<CloudIPDTO> notInAppIPList) {
+        ApplicationDTO appDTO = applicationService.getAppByAppId(appId);
+        if (appDTO.isAllBizSet()) {
+            // 全业务
+            inAppIPList.addAll(mixedCloudIPList);
+            return;
         }
-        return inputCloudIPList;
-    }
-
-    private void separateWhiteIP(
-        List<CloudIPDTO> inputCloudIPList,
-        List<CloudIPDTO> inputWhiteIPList,
-        List<CloudIPDTO> inputNotWhiteIPList,
-        Map<String, List<CloudIPDTO>> whiteIPMap
-    ) {
-        Set<String> whiteIPSet = whiteIPMap.keySet();
-        inputCloudIPList.forEach(cloudIPDTO -> {
-            String ip = cloudIPDTO.getIp();
-            Long cloudId = cloudIPDTO.getCloudAreaId();
-            if (whiteIPSet.contains(ip)) {
-                Set<Long> whiteCloudIdSet =
-                    whiteIPMap.get(ip).stream().map(CloudIPDTO::getCloudAreaId).collect(Collectors.toSet());
-                if (cloudId == null) {
-                    //输入IP时未指定云区域，白名单中的所有云区域都可以用
-                    for (Long cloudAreaId : whiteCloudIdSet) {
-                        inputWhiteIPList.add(new CloudIPDTO(cloudAreaId, ip));
-                    }
-                } else {
-                    //输入IP时指定了云区域
-                    if (whiteCloudIdSet.contains(cloudId)) {
-                        inputWhiteIPList.add(cloudIPDTO);
-                    } else {
-                        inputNotWhiteIPList.add(cloudIPDTO);
-                    }
-                }
+        List<String> cloudIPList = buildCloudIPList(mixedCloudIPList);
+        List<Long> subBizIds;
+        if (appDTO.isBizSet()) {
+            // 业务集
+            subBizIds = appDTO.getSubBizIds();
+            log.info("check hosts of appId:{}, subBizIds:{}", appId, StringUtil.concatCollection(subBizIds));
+        } else {
+            // 普通业务
+            subBizIds = Collections.singletonList(appDTO.getBizIdIfBizApp());
+        }
+        // 首先根据本地DB缓存的主机数据进行分离
+        List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostInfoByBizAndCloudIPs(
+            subBizIds,
+            cloudIPList
+        );
+        Set<String> inAppCloudIPSet = hostDTOList.parallelStream()
+            .map(ApplicationHostDTO::getCloudIp)
+            .collect(Collectors.toSet());
+        List<CloudIPDTO> notInAppIPListByLocal = new ArrayList<>();
+        mixedCloudIPList.forEach(cloudIPDTO -> {
+            if (inAppCloudIPSet.contains(cloudIPDTO.getCloudIP())) {
+                inAppIPList.add(cloudIPDTO);
             } else {
-                inputNotWhiteIPList.add(cloudIPDTO);
+                notInAppIPListByLocal.add(cloudIPDTO);
             }
         });
+        // 对于本地不在目标业务下的主机再到CMDB查询
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
+        List<IpDTO> ipDTOList = notInAppIPListByLocal.parallelStream()
+            .map(CloudIPDTO::toIpDTO)
+            .collect(Collectors.toList());
+        List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByIps(ipDTOList);
+        Map<String, ApplicationHostDTO> cmdbHostsMap = new HashMap<>();
+        Set<String> cmdbExistCloudIPSet = new HashSet<>();
+        cmdbExistHosts.forEach(host -> {
+            cmdbExistCloudIPSet.add(host.getCloudIp());
+            cmdbHostsMap.put(host.getCloudIp(), host);
+        });
+        List<CloudIPDTO> notInCmdbIpList = new ArrayList<>();
+        for (CloudIPDTO cloudIPDTO : notInAppIPListByLocal) {
+            if (!cmdbExistCloudIPSet.contains(cloudIPDTO.getCloudIP())) {
+                // 主机在CMDB中不存在
+                notInCmdbIpList.add(cloudIPDTO);
+                continue;
+            }
+            ApplicationHostDTO host = cmdbHostsMap.get(cloudIPDTO.getCloudIP());
+            if (hostBelongToApp(appDTO, host.getBizId())) {
+                inAppIPList.add(cloudIPDTO);
+            } else {
+                notInAppIPList.add(cloudIPDTO);
+            }
+        }
+        if (!notInCmdbIpList.isEmpty()) {
+            log.warn("ips not in cmdb:{}", StringUtil.concatCollection(notInCmdbIpList));
+        }
+        notInAppIPList.addAll(notInCmdbIpList);
     }
 
     @Override
@@ -1021,57 +987,96 @@ public class HostServiceImpl implements HostService {
         if (checkIpList == null || checkIpList.isEmpty()) {
             return Collections.emptyList();
         }
-        List<CloudIPDTO> inputCloudIPList = parseInputCloudIPList(checkIpList);
-        //1.先查IP白名单中是否存在该IP
+        Pair<Set<CloudIPDTO>, Set<String>> pair = parseInputCloudIPList(checkIpList);
+        Set<CloudIPDTO> inputCloudIPSet = pair.getLeft();
+        Set<String> inputIPWithoutCloudIdSet = pair.getRight();
+        log.debug("inputCloudIPSet={},inputIPWithoutCloudIdSet={}", inputIPWithoutCloudIdSet, inputIPWithoutCloudIdSet);
+        // 0.通过对输入的无云区域ID的IP进行云区域补全得到的完整IP，云区域ID来源：白名单、DB、默认值
+        Set<CloudIPDTO> makeupCloudIPSet = new HashSet<>();
+        // 1.查出对当前业务生效的白名单IP
         List<CloudIPDTO> appWhiteIPList = whiteIPService.listWhiteIP(appId, actionScope);
-        //生成IP为索引的Map
-        Map<String, List<CloudIPDTO>> whiteIPMap = new HashMap<>();
-        appWhiteIPList.forEach(cloudIPDTO -> {
-            String ip = cloudIPDTO.getIp();
-            if (whiteIPMap.containsKey(ip)) {
-                List<CloudIPDTO> list = whiteIPMap.get(ip);
-                list.add(cloudIPDTO);
-                whiteIPMap.put(ip, list);
-            } else {
-                List<CloudIPDTO> list = new ArrayList<>();
-                list.add(cloudIPDTO);
-                whiteIPMap.put(ip, list);
+        log.debug("appWhiteIPList={}", appWhiteIPList);
+        Set<String> appWhiteIPSet = new HashSet<>();
+        appWhiteIPList.forEach(appWhiteIP -> {
+            appWhiteIPSet.add(appWhiteIP.getCloudIP());
+            // 若输入的纯IP与某个白名单IP匹配，则记录下其云区域ID用于后续查找
+            if (inputIPWithoutCloudIdSet.contains(appWhiteIP.getIp().trim())) {
+                makeupCloudIPSet.add(appWhiteIP);
             }
         });
+        // 2.根据纯IP从DB查出所有可能的含云区域ID的完整IP
+        List<ApplicationHostDTO> hostByPureIpList = applicationHostDAO.listHostInfo(null,
+            inputIPWithoutCloudIdSet);
+        Set<CloudIPDTO> hostByPureIpInDB = hostByPureIpList.parallelStream()
+            .map(host -> new CloudIPDTO(host.getCloudAreaId(), host.getIp())).collect(Collectors.toSet());
+        makeupCloudIPSet.addAll(hostByPureIpInDB);
+        inputIPWithoutCloudIdSet.removeAll(
+            hostByPureIpInDB.parallelStream().map(CloudIPDTO::getIp).collect(Collectors.toSet())
+        );
+        // 3.DB中找不到的纯IP视为使用默认云区域ID
+        inputIPWithoutCloudIdSet.forEach(pureIp ->
+            makeupCloudIPSet.add(new CloudIPDTO(JobConstants.DEFAULT_CLOUD_AREA_ID, pureIp))
+        );
 
-        //找出输入IP中的白名单IP
+        log.debug("makeupCloudIPSet={}", makeupCloudIPSet);
+        inputCloudIPSet.addAll(makeupCloudIPSet);
+        List<CloudIPDTO> inputCloudIPList = new ArrayList<>(inputCloudIPSet);
+
+        // 4.找出输入IP中的白名单IP
         List<CloudIPDTO> inputWhiteIPList = new ArrayList<>();
         List<CloudIPDTO> inputNotWhiteIPList = new ArrayList<>();
-        separateWhiteIP(inputCloudIPList, inputWhiteIPList, inputNotWhiteIPList, whiteIPMap);
-        //使用不带业务信息接口查询白名单IP对应的主机详情
-        //仅根据IP查询，查出后再根据指定云区域过滤
-        //根据IP查主机（缺少业务信息）本地
-        List<ApplicationHostDTO> applicationHostDTOList = applicationHostDAO.listHostInfoByIps(null,
-            inputWhiteIPList.stream().map(CloudIPDTO::getIp).collect(Collectors.toList()));
-
-        //根据指定的云区域过滤
-        applicationHostDTOList = filterBySpecifiedCloudId(inputWhiteIPList, applicationHostDTOList);
-
-        //2.在当前业务下查IP对应的主机详情
-        List<ApplicationHostDTO> hostInfoById = getHostInfoById(username, appId,
-            inputNotWhiteIPList.stream().map(CloudIPDTO::getIp).collect(Collectors.toList()));
-        //根据指定的云区域过滤
-        hostInfoById = filterBySpecifiedCloudId(inputNotWhiteIPList, hostInfoById);
-        hostInfoById.addAll(applicationHostDTOList);
-        //3.查主机状态
-        List<ApplicationHostDTO> hostIpList =
-            topologyHelper.getIpStatusListByIps(appId, hostInfoById.parallelStream()
-                .map(hostInfo -> hostInfo.getCloudAreaId() + ":" + hostInfo.getIp()).collect(Collectors.toList()));
-        for (int i = 0; i < hostInfoById.size(); i++) {
-            hostIpList.get(i).setHostId(hostInfoById.get(i).getHostId());
-            hostIpList.get(i).setDisplayIp(hostInfoById.get(i).getDisplayIp());
-            hostIpList.get(i).setOs(hostInfoById.get(i).getOs());
-            hostIpList.get(i).setIpDesc(hostInfoById.get(i).getIpDesc());
+        inputCloudIPList.forEach(inputCloudIP -> {
+            if (appWhiteIPSet.contains(inputCloudIP.getCloudIP())) {
+                inputWhiteIPList.add(inputCloudIP);
+            } else {
+                inputNotWhiteIPList.add(inputCloudIP);
+            }
+        });
+        // 5.非白名单IP校验是否在业务下
+        List<CloudIPDTO> inAppIPList = new ArrayList<>();
+        List<CloudIPDTO> notInAppIPList = new ArrayList<>();
+        separateNotInAppIP(appId, inputNotWhiteIPList, inAppIPList, notInAppIPList);
+        // 6.不在业务下的IP打印出来
+        if (!notInAppIPList.isEmpty()) {
+            log.warn(
+                "ips not in app {}:{}",
+                appId,
+                StringUtil.concatCollection(notInAppIPList)
+            );
         }
+        // 7.查询主机详情
+        List<CloudIPDTO> validIPList = new ArrayList<>(inputWhiteIPList);
+        validIPList.addAll(inAppIPList);
+        // 根据IP从本地查主机
+        List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostInfoByBizAndCloudIPs(null,
+            validIPList.stream().map(CloudIPDTO::getCloudIP).collect(Collectors.toList()));
+        Set<String> localHostCloudIPSet = hostDTOList.parallelStream()
+            .map(ApplicationHostDTO::getCloudIp)
+            .collect(Collectors.toSet());
+        validIPList.removeIf(cloudIPDTO -> localHostCloudIPSet.contains(cloudIPDTO.getCloudIP()));
+        // 查不到的再去CMDB查
+        if (!validIPList.isEmpty()) {
+
+            IBizCmdbClient cmdbClient = CmdbClientFactory.getCmdbClient();
+            List<ApplicationHostDTO> cmdbHosts = cmdbClient.listHostsByIps(
+                validIPList.parallelStream()
+                    .map(CloudIPDTO::toIpDTO)
+                    .collect(Collectors.toList())
+            );
+            hostDTOList.addAll(cmdbHosts);
+            Set<String> cmdbHostIpSet = cmdbHosts.parallelStream()
+                .map(ApplicationHostDTO::getCloudIp).collect(Collectors.toSet());
+            validIPList.removeIf(cloudIPDTO -> cmdbHostIpSet.contains(cloudIPDTO.getCloudIP()));
+            if (!validIPList.isEmpty()) {
+                log.warn("Cannot find hostinfo of ips:{},ignore", validIPList);
+            }
+        }
+
+        // 8.查询Agent状态
+        fillAgentStatus(hostDTOList);
+        // 9.类型转换，返回
         List<HostInfoVO> hostInfoList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(hostIpList)) {
-            hostIpList.forEach(hostInfo -> hostInfoList.add(TopologyHelper.convertToHostInfoVO(hostInfo)));
-        }
+        hostDTOList.forEach(hostInfo -> hostInfoList.add(TopologyHelper.convertToHostInfoVO(hostInfo)));
         return hostInfoList;
     }
 
@@ -1168,7 +1173,7 @@ public class HostServiceImpl implements HostService {
         ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         Set<Long> moduleIds = new HashSet<>();
         List<ApplicationHostDTO> hosts = new ArrayList<>();
-        if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+        if (appInfo.isBiz()) {
             // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
             // 查业务拓扑树
             InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
@@ -1191,7 +1196,10 @@ public class HostServiceImpl implements HostService {
             List<Long> hostIdList =
                 hostTopoDTOList.parallelStream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
             hosts = applicationHostDAO.listHostInfoByHostIds(hostIdList);
-        } else if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        } else if (appInfo.isAllBizSet()) {
+            // 全业务
+            hosts = applicationHostDAO.listAllHostInfo(start, limit);
+        } else if (appInfo.isBizSet()) {
             // 业务集：仅根据业务查主机
             // 查出对应的所有普通业务
             List<Long> allBizIds = topologyHelper.getBizSetSubBizIds(appInfo);
@@ -1254,10 +1262,13 @@ public class HostServiceImpl implements HostService {
         log.debug("hostsByNodes={}", hostsByNodes);
         allHostsSet.addAll(hostsByNodes);
         // 只有普通业务才查动态分组
-        if (applicationDTO.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
+        if (applicationDTO.isBiz()) {
             List<ApplicationHostDTO> hostDTOsByDynamicGroupIds = new ArrayList<>();
-            List<DynamicGroupInfoDTO> dynamicGroupList =
-                getBizDynamicGroupHostList(username, appId, agentStatisticsReq.getDynamicGroupIds());
+            List<DynamicGroupInfoDTO> dynamicGroupList = getBizDynamicGroupHostList(
+                username,
+                applicationDTO.getBizIdIfBizApp(),
+                agentStatisticsReq.getDynamicGroupIds()
+            );
             dynamicGroupList.forEach(dynamicGroupInfoDTO -> {
                 List<ApplicationHostDTO> applicationHostDTOList = dynamicGroupInfoDTO.getIpListStatus();
                 if (applicationHostDTOList != null && !applicationHostDTOList.isEmpty()) {
@@ -1304,9 +1315,16 @@ public class HostServiceImpl implements HostService {
         // 从缓存中查询主机信息，并判断主机是否在业务下
         checkCachedHosts(hostIps, includeBizIds, hostsInOtherApp, notExistHosts);
 
-        // 如果主机不在缓存中，那么进一步从DB查询主，并判断主机是否在业务下
+        // 如果主机不在缓存中，那么从已同步到Job的主机中查询
         if (CollectionUtils.isNotEmpty(notExistHosts)) {
-            checkNotCachedHosts(includeBizIds, hostsInOtherApp, notExistHosts);
+            log.info("Hosts not in cached, check hosts by synced hosts. notCacheHosts: {}", notExistHosts);
+            checkSyncHosts(includeBizIds, hostsInOtherApp, notExistHosts);
+        }
+
+        // 如果主机不在已同步到Job的主机中, 那么从cmdb直接查询
+        if (CollectionUtils.isNotEmpty(notExistHosts)) {
+            log.info("Hosts not synced, check hosts by cmdb. notSyncedHosts: {}", notExistHosts);
+            checkHostsFromCmdb(includeBizIds, hostsInOtherApp, notExistHosts);
         }
 
         List<IpDTO> invalidHosts = new ArrayList<>();
@@ -1345,7 +1363,7 @@ public class HostServiceImpl implements HostService {
             CacheHostDO cacheHost = cacheHosts.get(i);
             if (cacheHost != null) {
                 if (!includeBizIds.contains(cacheHost.getBizId())) {
-                    hostsInOtherApp.add(new BasicAppHost(cacheHost.getAppId(), cacheHost.getBizId(),
+                    hostsInOtherApp.add(new BasicAppHost(cacheHost.getBizId(),
                         cacheHost.getCloudAreaId(), cacheHost.getIp()));
                 }
             } else {
@@ -1354,36 +1372,96 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    private void checkNotCachedHosts(List<Long> includeBizIds,
-                                     List<BasicAppHost> hostsInOtherApp,
-                                     List<IpDTO> notExistHosts) {
+    private void checkSyncHosts(List<Long> includeBizIds,
+                                List<BasicAppHost> hostsInOtherApp,
+                                List<IpDTO> notExistHosts) {
         List<ApplicationHostDTO> appHosts = applicationHostDAO.listHosts(notExistHosts);
         if (CollectionUtils.isNotEmpty(appHosts)) {
             for (ApplicationHostDTO appHost : appHosts) {
+                if (appHost.getBizId() == null || appHost.getBizId() <= 0) {
+                    log.info("Host: {} missing bizId, skip!", appHost.getCloudIp());
+                    // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
+                    continue;
+                }
                 IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
+                if (appHost.getBizId() == JobConstants.PUBLIC_APP_ID) {
+                    continue;
+                }
                 notExistHosts.remove(hostIp);
                 hostCache.addOrUpdateHost(appHost);
                 if (!includeBizIds.contains(appHost.getBizId())) {
-                    hostsInOtherApp.add(new BasicAppHost(appHost.getAppId(), appHost.getBizId(),
+                    hostsInOtherApp.add(new BasicAppHost(appHost.getBizId(),
                         appHost.getCloudAreaId(), appHost.getIp()));
                 }
             }
         }
     }
 
+    private void checkHostsFromCmdb(List<Long> includeBizIds,
+                                    List<BasicAppHost> hostsInOtherApp,
+                                    List<IpDTO> notExistHosts) {
+
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
+        try {
+            List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByIps(notExistHosts);
+            if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
+                List<IpDTO> cmdbExistHostIps = cmdbExistHosts.stream()
+                    .map(host -> new IpDTO(host.getCloudAreaId(), host.getIp()))
+                    .collect(Collectors.toList());
+                notExistHosts.removeAll(cmdbExistHostIps);
+                log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
+
+                hostCache.addOrUpdateHosts(cmdbExistHosts);
+
+                cmdbExistHosts.forEach(syncHost -> {
+                    if (!includeBizIds.contains(syncHost.getBizId())) {
+                        hostsInOtherApp.add(new BasicAppHost(syncHost.getBizId(),
+                            syncHost.getCloudAreaId(), syncHost.getIp()));
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.warn("Handle hosts that may not be synchronized from cmdb fail!", e);
+        }
+    }
+
     public List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps) {
-        return applicationHostDAO.listHosts(hostIps);
+        // 从Job已同步的主机中查询
+        List<ApplicationHostDTO> syncedHosts = applicationHostDAO.listHosts(hostIps);
+        Map<String, ApplicationHostDTO> hostsMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(syncedHosts)) {
+            syncedHosts.forEach(syncedHost -> hostsMap.put(syncedHost.getCloudIp(), syncedHost));
+        }
+
+        List<ApplicationHostDTO> resultHosts = new ArrayList<>();
+        List<IpDTO> notSyncedHostIps = new ArrayList<>();
+        hostIps.forEach(hostIp -> {
+            ApplicationHostDTO host = hostsMap.get(hostIp.convertToStrIp());
+            if (host == null || host.getBizId() == null || host.getBizId() <= 0) {
+                notSyncedHostIps.add(hostIp);
+            } else {
+                resultHosts.add(host);
+            }
+        });
+        // 如果从已同步的主机中没有查询到的主机或者主机信息不完整，那么从cmdb实时查询
+        if (CollectionUtils.isNotEmpty(notSyncedHostIps)) {
+            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
+            List<ApplicationHostDTO> hostsFromCmdb = bizCmdbClient.listHostsByIps(notSyncedHostIps);
+            if (CollectionUtils.isNotEmpty(hostsFromCmdb)) {
+                resultHosts.addAll(hostsFromCmdb);
+            }
+        }
+
+        return resultHosts;
     }
 
     @Data
     private static class BasicAppHost {
-        private Long appId;
         private Long bizId;
         private Long cloudAreaId;
         private String ip;
 
-        private BasicAppHost(Long appId, Long bizId, Long cloudAreaId, String ip) {
-            this.appId = appId;
+        private BasicAppHost(Long bizId, Long cloudAreaId, String ip) {
             this.bizId = bizId;
             this.cloudAreaId = cloudAreaId;
             this.ip = ip;

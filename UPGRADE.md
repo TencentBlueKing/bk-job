@@ -39,11 +39,13 @@ cd /data/install
 source load_env.sh  
 echo $BK_CMDB_MONGODB_<tab>补全。  
 该操作将修改CMDB的MongoDB数据库中的相关数据，存在一定风险，在获取参数后务必先确认连接的是CMDB的MongoDB实例。  
-（4）完成CMDB中的业务集ID更改后，继续到执行upgrader的机器再次执行upgrader对迁移后的业务集进行授权（权限有效期为一年，过期后需要重新申请）：  
+（4）完成CMDB中的业务集ID更改后，人工确认需要迁移的业务集均已在CMDB存在且ID与原Job中ID一致（若业务集未迁移成功则不执行后续步骤防止产生脏数据），确认成功后继续到执行upgrader的机器再次执行upgrader对迁移后的业务集进行授权（权限有效期为一年，过期后需要重新申请）：  
 示例：  
 ```shell
 /opt/java/bin/java -Dfile.encoding=utf8 -Djob.log.dir=/data/bkee/logs/job -Dconfig.file=/data/bkee/etc/job/upgrader/upgrader.properties -Dtarget.tasks=BizSetAuthMigrationTask -jar upgrader-3.5.0.0.jar 3.4.5.0 3.5.0.0 MAKE_UP
 ```  
+（5）完成业务集授权后，再次执行upgrader进行业务集迁移状态更新（用于触发业务集同步）：
+```shell
+/opt/java/bin/java -Dfile.encoding=utf8 -Djob.log.dir=/data/bkee/logs/job -Dconfig.file=/data/bkee/etc/job/upgrader/upgrader.properties -Dtarget.tasks=BizSetMigrationStatusUpdateTask -jar upgrader-3.5.0.0.jar 3.4.5.0 3.5.0.0 MAKE_UP true
+```  
 注：命令中涉及到的版本号请使用真实值，示例代码中仅为参考。  
-
-

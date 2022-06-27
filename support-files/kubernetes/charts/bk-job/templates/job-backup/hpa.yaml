@@ -1,4 +1,4 @@
-{{- if .Values.backupConfig.autoscaling.enabled }}
+{{- if and (.Values.backupConfig.enabled) (.Values.backupConfig.autoscaling.enabled) }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:

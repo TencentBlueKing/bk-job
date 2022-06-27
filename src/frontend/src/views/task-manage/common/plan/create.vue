@@ -331,7 +331,7 @@
                     this.$refs.createPlanForm.validate(),
                 ]).then(() => ExecPlanService.planUpdate(this.formData)
                     .then((data) => {
-                        window.changeAlert = false;
+                        window.changeConfirm = false;
                         this.$bkMessage({
                             theme: 'success',
                             message: I18n.t('template.操作成功'),

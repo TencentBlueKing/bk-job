@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -63,13 +62,6 @@ public class TaskPlanVO {
      */
     @ApiModelProperty(value = "执行方案 ID")
     private Long id;
-
-    /**
-     * 业务id
-     */
-    @ApiModelProperty("业务ID")
-    @CompatibleImplementation(explain = "为了无损发布保留的历史字段，发布完成需要删除", version = "3.5.1")
-    private Long appId;
 
     /**
      * 资源范围类型

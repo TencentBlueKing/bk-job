@@ -183,6 +183,8 @@ public class ErrorCode {
     public static final int APP_NOT_EXIST = 1243049;
     // 文件后缀不允许
     public static final int UPLOAD_FILE_SUFFIX_NOT_ALLOW = 1243050;
+    // 资源范围不存在:{0}
+    public static final int SCOPE_NOT_EXIST = 1243051;
     // 作业管理 end
 
     // 作业执行 start
@@ -220,8 +222,8 @@ public class ErrorCode {
     public static final int NOT_IN_CONFIRM_USER_LIST = 1244016;
     // 获取主机失败
     public static final int OBTAIN_HOST_FAIL = 1244017;
-    // 脚本未上线，无法执行
-    public static final int SCRIPT_NOT_ONLINE_SHOULD_NOT_EXECUTE = 1244018;
+    // 脚本状态[]，不支持执行
+    public static final int SCRIPT_NOT_EXECUTABLE_STATUS = 1244018;
     // 高危脚本
     public static final int DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION = 1244019;
     // 作业执行历史查询时间范围必须小于30天

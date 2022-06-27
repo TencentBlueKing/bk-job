@@ -34,13 +34,9 @@ import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
 import com.tencent.bk.job.common.cc.model.bizset.CreateBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.util.jwt.BasicJwtManager;
-import com.tencent.bk.job.common.util.jwt.JwtManager;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
@@ -58,10 +54,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -101,22 +95,9 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
         String appCode = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE);
         String appSecret = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET);
         String esbBaseUrl = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL);
-        String securityPublicKeyBase64 =
-            (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
-        String securityPrivateKeyBase64 =
-            (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
         String cmdbSupplierAccount =
             (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_CMDB_DEFAULT_SUPPLIER_ACCOUNT);
-        JwtManager jwtManager;
-        try {
-            jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
-        } catch (IOException | GeneralSecurityException e) {
-            String msg = "Fail to generate jwt auth token";
-            log.error(msg, e);
-            throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
-        }
-        // 迁移过程最大预估时间：3h
-        String jobAuthToken = jwtManager.generateToken(3 * 60 * 60 * 1000);
+        String jobAuthToken = getJobAuthToken();
         jobManageClient = new JobClient(
             getJobHostUrlByAddress((String) properties.get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
             jobAuthToken
@@ -173,8 +154,8 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
         if (operateDeptId != null) {
             Rule operateDeptIdRule = new Rule();
             operateDeptIdRule.setField("bk_operate_dept_id");
-            operateDeptIdRule.setOperator(Rule.OPERATOR_EQUAL);
-            operateDeptIdRule.setValue(operateDeptId);
+            operateDeptIdRule.setOperator(Rule.OPERATOR_IN);
+            operateDeptIdRule.setValue(Collections.singletonList(operateDeptId));
             rules.add(operateDeptIdRule);
         }
 
@@ -302,7 +283,6 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
         }
         if (successCount == bizSetAppInfoList.size()) {
             log.info("all {} bizSets migrated to CMDB", successCount);
-            log.info("BizSet migration status:{}", jobManageClient.setBizSetMigrationStatus(true));
         } else {
             log.warn(
                 "{}/{} bizSets migrated to CMDB, please check log to confirm failed bizSets",
@@ -310,7 +290,6 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
                 bizSetAppInfoList.size()
             );
             log.warn("Failed bizSets:{}", JsonUtils.toJson(failedBizSetList));
-            log.info("BizSet migration status:{}", jobManageClient.setBizSetMigrationStatus(false));
         }
         // 2.生成更新CMDB数据库的业务集信息Json文件
         String content = JsonUtils.toJson(successfulBizSetList);

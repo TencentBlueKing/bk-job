@@ -6,8 +6,7 @@
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
  * License for BK-JOB蓝鲸智云作业平台:
- *
- * ---------------------------------------------------
+ * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
@@ -21,38 +20,21 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
-import Vue from 'vue';
-import I18n from '@/i18n';
+package com.tencent.bk.job.manage.model.web.request.app;
 
-export const scriptErrorAlert = () => {
-    let confirmInfo = null;
-    const handleClose = () => {
-        confirmInfo.close();
-    };
-    const vm = new Vue();
-    const h = vm.$createElement;
-    confirmInfo = vm.$bkInfo({
-        title: I18n.t('脚本中出现高危语句'),
-        showFooter: false,
-        width: 450,
-        subHeader: (h => (
-            <div>
-                <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
-                    <span>{ I18n.t('请按脚本编辑框左侧') } </span>
-                    <img src="/static/images/ace-editor/error-tips.png" style="width: 14px; vertical-align: middle;" />
-                    <span> { I18n.t('图标的提示处理后重试') }</span>
-                </div>
-                <div style="padding: 24px 0 21px; text-align: center">
-                    <bk-button
-                        onClick={handleClose}
-                        style="width: 96px"
-                        theme="primary">
-                        { I18n.t('好的') }
-                    </bk-button>
-                </div>
-            </div>
-        ))(h),
-    });
-};
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+@Data
+@ApiModel("收藏业务")
+public class FavorAppReq {
+
+    @ApiModelProperty(value = "要收藏的资源范围类型", required = true)
+    private String scopeType;
+
+    @ApiModelProperty(value = "要收藏的资源范围ID", required = true)
+    private String scopeId;
+}

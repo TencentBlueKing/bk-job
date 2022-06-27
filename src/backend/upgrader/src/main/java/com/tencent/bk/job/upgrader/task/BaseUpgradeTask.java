@@ -24,10 +24,19 @@
 
 package com.tencent.bk.job.upgrader.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.util.jwt.BasicJwtManager;
+import com.tencent.bk.job.common.util.jwt.JwtManager;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
+import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Properties;
 
+@Slf4j
 public abstract class BaseUpgradeTask implements IUpgradeTask {
 
     public Properties properties;
@@ -45,6 +54,23 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
 
     @Override
     public void init() {
+    }
+
+    public String getJobAuthToken() {
+        String securityPublicKeyBase64 =
+            (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
+        String securityPrivateKeyBase64 =
+            (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
+        JwtManager jwtManager;
+        try {
+            jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
+            // 迁移过程最大预估时间：3h
+            return jwtManager.generateToken(3 * 60 * 60 * 1000);
+        } catch (IOException | GeneralSecurityException e) {
+            String msg = "Fail to generate jwt auth token";
+            log.error(msg, e);
+            throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
+        }
     }
 
     @Override

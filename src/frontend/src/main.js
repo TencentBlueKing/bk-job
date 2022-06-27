@@ -24,8 +24,6 @@
 */
 
 import Vue from 'vue';
-import '@icon-cool/bk-icon-job';
-import '@icon-cool/bk-icon-job/src/index.js';
 import createRouter from '@/router';
 import store from '@/store';
 import AppService from '@service/app-manage';
@@ -40,6 +38,8 @@ import '@/css/app.css';
 import App from '@/App';
 import IframeApp from '@/iframe-app';
 import i18n from '@/i18n';
+import '@icon/style.css';
+import '@icon/iconcool.js';
 
 /**
  * @desc 启动打印当前系统信息
@@ -49,7 +49,7 @@ console.log(process.env.JOB_WELCOME);
 /**
  * @desc 页面数据的编辑状态
  */
-window.changeAlert = false;
+window.changeConfirm = false;
 
 /**
  * @desc 因为 IP 有白名单功能，生效范围需要更新场景区分
@@ -68,7 +68,7 @@ window.routerFlashBack = false;
  */
 window.addEventListener('beforeunload', (event) => {
     // 需要做 Boolean 类型的值判断
-    if (window.changeAlert !== true) {
+    if (window.changeConfirm !== true) {
         return null;
     }
     const e = event || window.event;

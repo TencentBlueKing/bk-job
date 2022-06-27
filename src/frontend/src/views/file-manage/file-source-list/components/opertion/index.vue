@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div class="file-source-create-form" v-bkloading="{ isLoading }">
+    <div
+        class="file-source-create-form"
+        v-bkloading="{ isLoading }">
         <jb-form
             v-if="!isLoading"
             ref="fileSourceform"
@@ -54,7 +56,9 @@
                 required
                 :label="$t('file.类型.label')">
                 <bk-radio-group v-model="formData.storageType">
-                    <bk-radio-button value="OSS">{{ $t('file.对象存储') }}</bk-radio-button>
+                    <bk-radio-button value="OSS">
+                        {{ $t('file.对象存储') }}
+                    </bk-radio-button>
                 </bk-radio-group>
             </jb-form-item>
             <jb-form-item
@@ -87,7 +91,7 @@
                 v-if="formData.publicFlag"
                 :label="$t('file.共享对象')"
                 required
-                property="sharedAppIdList">
+                property="sharedScopeList">
                 <div class="share-object-box">
                     <bk-select
                         class="share-app-select"
@@ -95,21 +99,25 @@
                         searchable
                         multiple
                         :disabled="formData.shareToAllApp"
-                        v-model="formData.sharedAppIdList">
+                        v-model="formData.sharedScopeList">
                         <bk-option
-                            v-for="option in appList"
-                            :key="option.id"
-                            :id="option.id"
-                            :name="option.name" />
+                            v-for="scopeItem in scopeList"
+                            :key="`#${scopeItem.scopeType}#${scopeItem.scopeId}`"
+                            :id="`#${scopeItem.scopeType}#${scopeItem.scopeId}`"
+                            :name="scopeItem.name" />
                     </bk-select>
-                    <bk-checkbox v-model="formData.shareToAllApp">{{ $t('file.全业务') }}</bk-checkbox>
+                    <bk-checkbox v-model="formData.shareToAllApp">
+                        {{ $t('file.全业务') }}
+                    </bk-checkbox>
                 </div>
             </jb-form-item>
             <jb-form-item
                 required
                 :label="$t('file.身份凭证')"
                 property="credentialId">
-                <bk-select v-model="formData.credentialId" :clearable="false">
+                <bk-select
+                    v-model="formData.credentialId"
+                    :clearable="false">
                     <auth-option
                         v-for="option in fileFourceTicketList"
                         :key="option.id"
@@ -124,8 +132,12 @@
                 <bk-select
                     v-model="filePrefixType"
                     :clearable="false">
-                    <bk-option id="${UUID}" name="UUID" />
-                    <bk-option id="custom" :name="$t('file.自定义字符串')" />
+                    <bk-option
+                        id="${UUID}"
+                        name="UUID" />
+                    <bk-option
+                        id="custom"
+                        :name="$t('file.自定义字符串')" />
                 </bk-select>
                 <bk-input
                     v-if="isCustomFilePrefix"
@@ -146,7 +158,9 @@
                             :id="option.id"
                             :name="option.name" />
                     </bk-select>
-                    <bk-checkbox v-model="isWorkerSelectScopeAuto" :disabled="workersList.length < 1">
+                    <bk-checkbox
+                        v-model="isWorkerSelectScopeAuto"
+                        :disabled="workersList.length < 1">
                         {{ $t('file.自动选择接入点') }}
                     </bk-checkbox>
                 </div>
@@ -202,13 +216,13 @@
         // 是否共享到全业务
         shareToAllApp: false,
         // 共享的业务Id列表
-        sharedAppIdList: [],
+        sharedScopeList: [],
         // 存储类型
         storageType: 'OSS',
         // 接入点Id，手动选择时传入，自动选择不传
         workerId: '',
         // 接入点选择范围:APP/PUBLIC/ALL，分别为业务私有接入点/公共接入点/全部
-        workerSelectScope: 'APP',
+        workerSelectScope: 'PUBLIC',
         // 接入点选择模式：AUTO/MANUAL，分别为自动/手动
         workerSelectMode: 'AUTO',
     });
@@ -234,7 +248,7 @@
                 // 文件源参数
                 fileSourceParamList: [],
                 // 业务列表
-                appList: [],
+                scopeList: [],
                 // 文件源凭证列表
                 fileFourceTicketList: [],
                 // 自动选择接入点
@@ -254,11 +268,11 @@
         },
         watch: {
             /**
-             * @desc 共享对象为全业务，清空 sharedAppIdList
+             * @desc 共享对象为全业务，清空 sharedScopeList
              */
             'formData.shareToAllApp' (newVal) {
                 if (newVal) {
-                    this.formData.sharedAppIdList = [];
+                    this.formData.sharedScopeList = [];
                 }
             },
             /**
@@ -281,7 +295,7 @@
         created () {
             const taskQueue = [
                 this.fetchSourceTypeList(),
-                this.fetchAppList(),
+                this.fetchScopeList(),
                 this.fetchTicketList(),
                 this.fetchWorkersList(),
             ];
@@ -330,13 +344,13 @@
                         trigger: 'blur',
                     },
                 ],
-                sharedAppIdList: [
+                sharedScopeList: [
                     {
-                        validator: (sharedAppIdList) => {
+                        validator: (sharedScopeList) => {
                             if (this.formData.shareToAllApp) {
                                 return true;
                             }
-                            return sharedAppIdList.length > 0;
+                            return sharedScopeList.length > 0;
                         },
                         message: I18n.t('file.共享对象必填'),
                         trigger: 'blur',
@@ -366,11 +380,23 @@
             },
             /**
              * @desc 获取业务列表数据
+             *
+             * 需过滤掉当前业务
              */
-            fetchAppList () {
+            fetchScopeList () {
                 return AppManageService.fetchAppList()
                     .then((data) => {
-                        this.appList = Object.freeze(data);
+                        const {
+                            SCOPE_TYPE,
+                            SCOPE_ID,
+                        } = window.PROJECT_CONFIG;
+                        this.scopeList = Object.freeze(data.reduce((result, item) => {
+                            if (item.scopeType === SCOPE_TYPE && item.scopeId === SCOPE_ID) {
+                                return result;
+                            }
+                            result.push(item);
+                            return result;
+                        }, []));
                     });
             },
             /**
@@ -409,7 +435,7 @@
                         publicFlag,
                         storageType,
                         shareToAllApp,
-                        sharedAppIdList,
+                        sharedScopeList,
                         workerId,
                         workerSelectMode,
                         workerSelectScope,
@@ -426,7 +452,7 @@
                         publicFlag,
                         storageType,
                         shareToAllApp,
-                        sharedAppIdList,
+                        sharedScopeList: sharedScopeList.map(({ type, id }) => `#${type}#${id}`),
                         workerId,
                         workerSelectMode,
                         workerSelectScope,
@@ -463,12 +489,17 @@
                         // workerId 不为空手动选择接入点
                         // workerId 为空自动选择接入点
                         params.workerSelectMode = params.workerId ? 'MANUAL' : 'AUTO';
-                        
-                        // 没有设置自定义文件前缀——使用默认值
-                        if (!params.filePrefix) {
+                        if (this.filePrefixType === FileSourceModel.FILE_PERFIX_UUID) {
                             params.filePrefix = FileSourceModel.FILE_PERFIX_UUID;
                         }
-
+                        params.sharedScopeList = params.sharedScopeList.map((item) => {
+                            const [, type, id] = item.match(/^#([^#]+)#(.*)/);
+                            return {
+                                type,
+                                id,
+                            };
+                        });
+                        
                         if (params.id < 0) {
                             return FileSourceManageService.addSource(params)
                                 .then(() => {

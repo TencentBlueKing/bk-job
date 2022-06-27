@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import brave.Tracing;
-import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
@@ -44,7 +42,6 @@ import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.SyncService;
-import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
@@ -124,7 +121,6 @@ public class SyncServiceImpl implements SyncService {
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
     private final HostSyncService hostSyncService;
-    private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final AgentStatusSyncService agentStatusSyncService;
     private final HostCache hostCache;
     private final BizSetEventWatcher bizSetEventWatcher;
@@ -135,7 +131,6 @@ public class SyncServiceImpl implements SyncService {
                            BizSyncService bizSyncService,
                            BizSetSyncService bizSetSyncService,
                            HostSyncService hostSyncService,
-                           AppHostsUpdateHelper appHostsUpdateHelper,
                            AgentStatusSyncService agentStatusSyncService,
                            ApplicationDAO applicationDAO,
                            ApplicationHostDAO applicationHostDAO,
@@ -145,8 +140,7 @@ public class SyncServiceImpl implements SyncService {
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient,
-                           BizSetService bizSetService, Tracing tracing,
+                           HostCache hostCache,
                            BizSetEventWatcher bizSetEventWatcher,
                            BizSetRelationEventWatcher bizSetRelationEventWatcher) {
         this.dslContext = dslContext;
@@ -164,7 +158,6 @@ public class SyncServiceImpl implements SyncService {
         this.bizSyncService = bizSyncService;
         this.bizSetSyncService = bizSetSyncService;
         this.hostSyncService = hostSyncService;
-        this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.agentStatusSyncService = agentStatusSyncService;
         this.hostCache = hostCache;
         this.bizSetEventWatcher = bizSetEventWatcher;
@@ -227,14 +220,23 @@ public class SyncServiceImpl implements SyncService {
     private void watchHostEvent() {
         // 开一个常驻线程监听主机资源变动事件
         hostWatchThread = new HostWatchThread(
-            dslContext, applicationHostDAO, queryAgentStatusClient,
-            redisTemplate, appHostsUpdateHelper, hostCache);
+            dslContext,
+            applicationHostDAO,
+            queryAgentStatusClient,
+            redisTemplate,
+            hostCache
+        );
         hostWatchThread.start();
 
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
-            dslContext, applicationHostDAO, hostTopoDAO,
-            redisTemplate, this, appHostsUpdateHelper, hostCache);
+            dslContext,
+            applicationHostDAO,
+            hostTopoDAO,
+            redisTemplate,
+            this,
+            hostCache
+        );
         hostRelationWatchThread.start();
     }
 
@@ -242,14 +244,9 @@ public class SyncServiceImpl implements SyncService {
      * 监听业务集相关的事件
      */
     private void watchBizSetEvent() {
-        if (FeatureToggle.isCmdbBizSetEnabled()) {
-            log.info("Cmdb biz set is enabled, watch biz_set and biz_set_relation resource event");
-            // 开一个常驻线程监听业务集变动事件
-            bizSetEventWatcher.start();
-            bizSetRelationEventWatcher.start();
-        } else {
-            log.info("Cmdb biz set is disabled, ignore related event");
-        }
+        // 开一个常驻线程监听业务集变动事件
+        bizSetEventWatcher.start();
+        bizSetRelationEventWatcher.start();
     }
 
     public boolean addExtraSyncBizHostsTask(Long bizId) {
@@ -335,8 +332,12 @@ public class SyncServiceImpl implements SyncService {
                     // 从CMDB同步业务信息
                     bizSyncService.syncBizFromCMDB();
                     // 从CMDB同步业务集信息
-                    bizSetSyncService.syncBizSetFromCMDB();
-                    log.info(Thread.currentThread().getName() + ":Finished:sync app from cc");
+                    if (FeatureToggle.isCmdbBizSetEnabled()) {
+                        bizSetSyncService.syncBizSetFromCMDB();
+                    } else {
+                        log.info("Cmdb biz set is disabled, skip sync apps!");
+                    }
+                    log.info(Thread.currentThread().getName() + ":Finished:sync app from cmdb");
                     // 将最后同步时间写入Redis
                     redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,
                         "" + System.currentTimeMillis());
@@ -370,7 +371,7 @@ public class SyncServiceImpl implements SyncService {
         int count = 0;
         while (appInfoRetryCountPair != null && count < maxCount) {
             ApplicationDTO applicationDTO = appInfoRetryCountPair.getFirst();
-            Integer retryCount = appInfoRetryCountPair.getSecond();
+            int retryCount = appInfoRetryCountPair.getSecond();
             try {
                 if (retryCount > 0) {
                     arrangeSyncAppHostsTask(applicationDTO);
@@ -446,15 +447,8 @@ public class SyncServiceImpl implements SyncService {
                     List<ApplicationDTO> localNormalApps =
                         localApps.stream().filter(app ->
                             app.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
-                    //删除已移除业务的主机，部分测试主机放在业务集下，不删除
-                    if (!localNormalApps.isEmpty()) {
-                        applicationHostDAO.deleteBizHostInfoNotInBizs(dslContext,
-                            localApps.stream().map(
-                                app -> Long.parseLong(app.getScope().getId())
-                            ).collect(Collectors.toSet()));
-                    }
-                    Long cmdbInterfaceTimeConsuming = 0L;
-                    Long writeToDBTimeConsuming = 0L;
+                    long cmdbInterfaceTimeConsuming = 0L;
+                    long writeToDBTimeConsuming = 0L;
                     List<Pair<ApplicationDTO, Future<Pair<Long, Long>>>> appFutureList = new ArrayList<>();
                     for (ApplicationDTO applicationDTO : localNormalApps) {
                         Future<Pair<Long, Long>> future = arrangeSyncAppHostsTask(applicationDTO);

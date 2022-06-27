@@ -236,50 +236,46 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
             if (CollectionUtils.isNotEmpty(lastExecuteRecords)) {
                 int total = 0;
-                int success = 0;
                 int fail = 0;
                 for (CronTaskExecuteResult executeRecord : lastExecuteRecords) {
                     RunStatusEnum taskStatus = RunStatusEnum.valueOf(executeRecord.getStatus());
-                    if (taskStatus != null) {
-                        switch (taskStatus) {
-                            // 跳过
-                            case SKIPPED:
-                                // 忽略错误
-                            case IGNORE_ERROR:
-                                // 手动结束
-                            case TERMINATED:
-                                // 强制终止成功
-                            case STOP_SUCCESS:
-                                // 执行成功
-                            case SUCCESS:
-                                total += 1;
-                                success += 1;
-                                if (resultCronJob.getLastExecuteStatus() == 0) {
-                                    resultCronJob.setLastExecuteStatus(1);
-                                }
-                                break;
-                            // 执行失败
-                            case FAIL:
-                                total += 1;
-                                fail += 1;
-                                lastFailTimeList.add(executeRecord.getExecuteTime());
-                                if (resultCronJob.getLastExecuteStatus() == 0) {
-                                    resultCronJob.setLastExecuteStatus(2);
-                                }
-                                break;
-                            // 状态异常
-                            case ABNORMAL_STATE:
-                                // 强制终止中
-                            case STOPPING:
-                                // 等待执行
-                            case BLANK:
-                                // 正在执行
-                            case RUNNING:
-                                // 等待用户
-                            case WAITING:
-                            default:
-                                break;
-                        }
+                    switch (taskStatus) {
+                        // 跳过
+                        case SKIPPED:
+                            // 忽略错误
+                        case IGNORE_ERROR:
+                            // 手动结束
+                        case TERMINATED:
+                            // 强制终止成功
+                        case STOP_SUCCESS:
+                            // 执行成功
+                        case SUCCESS:
+                            total += 1;
+                            if (resultCronJob.getLastExecuteStatus() == 0) {
+                                resultCronJob.setLastExecuteStatus(1);
+                            }
+                            break;
+                        // 执行失败
+                        case FAIL:
+                            total += 1;
+                            fail += 1;
+                            lastFailTimeList.add(executeRecord.getExecuteTime());
+                            if (resultCronJob.getLastExecuteStatus() == 0) {
+                                resultCronJob.setLastExecuteStatus(2);
+                            }
+                            break;
+                        // 状态异常
+                        case ABNORMAL_STATE:
+                            // 强制终止中
+                        case STOPPING:
+                            // 等待执行
+                        case BLANK:
+                            // 正在执行
+                        case RUNNING:
+                            // 等待用户
+                        case WAITING:
+                        default:
+                            break;
                     }
                 }
                 resultCronJob.setTotalCount(total);

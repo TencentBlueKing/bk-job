@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -55,9 +55,12 @@ import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MAX;
+import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MIN;
+
 @Slf4j
 @RestController
-@DeprecatedAppLogic
+@CompatibleImplementation(explain = "兼容接口，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
 public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
 
     private final ApplicationDAO applicationDAO;
@@ -120,7 +123,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
 
     private void checkAppSetId(Long appId) {
         // appSet id should between 8000000 and 9999999
-        if (appId == null || appId < 8000000 || appId > 9999999) {
+        if (appId == null || appId < JOB_BUILD_IN_BIZ_SET_ID_MIN || appId > JOB_BUILD_IN_BIZ_SET_ID_MAX) {
             throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
     }
@@ -177,7 +180,8 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     }
 
     private void checkAddAppSetRequest(TmpAddAppSetRequest request) {
-        if (request.getId() == null || request.getId() > 9999999 || request.getId() < 8000000) {
+        if (request.getId() == null || request.getId() > JOB_BUILD_IN_BIZ_SET_ID_MAX
+            || request.getId() < JOB_BUILD_IN_BIZ_SET_ID_MIN) {
             log.warn("Add app-set, appId is invalid");
             throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }

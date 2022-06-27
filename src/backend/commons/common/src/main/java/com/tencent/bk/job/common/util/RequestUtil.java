@@ -24,14 +24,19 @@
 
 package com.tencent.bk.job.common.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class RequestUtil {
     public static String getHeaderValue(ServerHttpRequest request, String header) {
         HttpHeaders httpHeaders = request.getHeaders();
@@ -59,5 +64,43 @@ public class RequestUtil {
             return null;
         }
         return cookie.getValue();
+    }
+
+    /**
+     * 从Header中解析同一个Key对应的多个Cookie值
+     *
+     * @param request    请求对象
+     * @param cookieName 目标Cookie的Key
+     * @return 多个Cookie值列表
+     */
+    public static List<String> getCookieValuesFromHeader(ServerHttpRequest request, String cookieName) {
+        HttpHeaders headers = request.getHeaders();
+        List<String> cookieList = headers.get("cookie");
+        return getCookieValuesFromCookies(cookieList, cookieName);
+    }
+
+    /**
+     * 从Cookie中解析同一个Key对应的多个Cookie值
+     *
+     * @param cookieList cookie列表
+     * @param cookieName 目标Cookie的Key
+     * @return 多个Cookie值列表
+     */
+    public static List<String> getCookieValuesFromCookies(List<String> cookieList, String cookieName) {
+        if (CollectionUtils.isEmpty(cookieList)) {
+            return Collections.emptyList();
+        }
+        String cookieStr = cookieList.get(0);
+        log.debug("cookie from headers: {}", cookieStr);
+        String[] cookies = cookieStr.split(";");
+        List<String> cookieValueList = new ArrayList<>();
+        for (String cookie : cookies) {
+            cookie = cookie.trim();
+            String targetPrefix = cookieName + "=";
+            if (cookie.startsWith(targetPrefix)) {
+                cookieValueList.add(cookie.replaceFirst(targetPrefix, ""));
+            }
+        }
+        return cookieValueList;
     }
 }

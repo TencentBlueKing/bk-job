@@ -116,7 +116,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     }
 
     @Override
-    public AuthResult auth(boolean returnApplyUrl, String username, String actionId,
+    public AuthResult auth(String username,
+                           String actionId,
                            AppResourceScope appResourceScope) {
         // 兼容旧的业务集鉴权逻辑
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
@@ -128,7 +129,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         if (isAllowed) {
             return AuthResult.pass();
         } else {
-            return buildFailAuthResult(returnApplyUrl, actionId, appResourceScope);
+            return buildFailAuthResult(actionId, appResourceScope);
         }
     }
 
@@ -164,14 +165,11 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         return iamClient.getApplyUrl(Collections.singletonList(action));
     }
 
-    private AuthResult buildFailAuthResult(boolean returnApplyUrl, String actionId, AppResourceScope appResourceScope) {
+    private AuthResult buildFailAuthResult(String actionId, AppResourceScope appResourceScope) {
         AuthResult authResult = AuthResult.fail();
         ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
         String resourceId = appResourceScope.getId();
         String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
-        if (returnApplyUrl) {
-            authResult.setApplyUrl(getApplyUrl(actionId, appResourceScope));
-        }
         PermissionResource permissionResource = new PermissionResource(
             ResourceTypeEnum.BUSINESS, resourceId, resourceName
         );
@@ -298,7 +296,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                     }
                 } else if (ExpressionOperationEnum.EQUAL == expression.getOperator()) {
                     result.getAppResourceScopeList().add(
-                        new AppResourceScope(Long.parseLong(String.valueOf(expression.getValue()))));
+                        new AppResourceScope(ResourceScopeTypeEnum.BIZ, String.valueOf(expression.getValue()), null));
                 } else {
                     result.getAppResourceScopeList().addAll(
                         businessAuthHelper.getAuthedAppResourceScopeList(expression, allAppResourceScopeList));

@@ -273,6 +273,7 @@ module.exports = function (env) {
                 '@': resolve('src'),
                 ace: 'ace-builds/src-noconflict',
                 lib: resolve('lib'),
+                '@icon': resolve('lib/icon-cool'),
                 '@common': resolve('src/common'),
                 '@components': resolve('src/components'),
                 '@domain': resolve('src/domain'),

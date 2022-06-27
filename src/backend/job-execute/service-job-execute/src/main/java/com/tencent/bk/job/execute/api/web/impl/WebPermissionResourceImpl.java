@@ -58,19 +58,18 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username, OperationPermissionReq req) {
         return checkOperationPermission(
-            username, req.getAppId(), req.getScopeType(), req.getScopeId(),
+            username, req.getScopeType(), req.getScopeId(),
             req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
     }
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
-                                                           Long appId,
                                                            String scopeType,
                                                            String scopeId,
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, appId);
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         if (StringUtils.isEmpty(operation)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -95,10 +94,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     case "redo":
                         AuthResult authResult = executeAuthService.authViewTaskInstance(username, appResourceScope,
                             taskInstanceId);
-                        if (!authResult.isPass() && isReturnApplyUrl) {
-                            authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
-                        }
-                        return Response.buildSuccessResp(webAuthService.toAuthResultVO(authResult));
+                        return Response.buildSuccessResp(webAuthService.toAuthResultVO(isReturnApplyUrl, authResult));
                 }
                 break;
         }

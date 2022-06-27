@@ -31,9 +31,9 @@ public enum ScriptTemplateVariableEnum {
     BIZ_ID("biz_id", "10000"),
     BIZ_NAME("biz_name", "Demo Business");
 
-    private String name;
-    private String descI18nKey;
-    private String demo;
+    private final String name;
+    private final String descI18nKey;
+    private final String demo;
 
     ScriptTemplateVariableEnum(String name, String demo) {
         this.name = name;

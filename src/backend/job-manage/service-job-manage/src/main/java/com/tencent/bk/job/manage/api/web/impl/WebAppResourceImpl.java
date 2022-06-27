@@ -27,7 +27,10 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -48,6 +51,7 @@ import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.IpCheckReq;
+import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
@@ -69,6 +73,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -156,16 +161,21 @@ public class WebAppResourceImpl implements WebAppResource {
                 if (appResourceScope.getAppId() != null) {
                     return appResourceScope.getAppId();
                 }
-                return appScopeMappingService.getAppIdByScope(
-                    appResourceScope.getType().getValue(), appResourceScope.getId());
-            }).collect(Collectors.toList());
+                try {
+                    return appScopeMappingService.getAppIdByScope(
+                        appResourceScope.getType().getValue(), appResourceScope.getId());
+                } catch (NotFoundException e) {
+                    log.warn("Invalid scope", e);
+                    // 如果业务不存在，那么忽略
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toList());
         // 所有可用的AppId
         List<Long> availableAppIds = new ArrayList<>();
         if (appResourceScopeResult.getAny()) {
             for (ApplicationDTO app : appList) {
                 AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), app.getAppType().getValue(),
-                    true, null, null);
+                    app.getScope().getId(), app.getName(), true, null, null);
                 finalAppList.add(appVO);
                 availableAppIds.add(app.getId());
             }
@@ -173,8 +183,7 @@ public class WebAppResourceImpl implements WebAppResource {
             // 根据权限中心结果鉴权
             for (ApplicationDTO app : appList) {
                 AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), app.getAppType().getValue(),
-                    true, null, null);
+                    app.getScope().getId(), app.getName(), true, null, null);
                 appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
                 finalAppList.add(appVO);
             }
@@ -229,9 +238,14 @@ public class WebAppResourceImpl implements WebAppResource {
     public Response<Integer> favorApp(String username,
                                       AppResourceScope appResourceScope,
                                       String scopeType,
-                                      String scopeId) {
+                                      String scopeId,
+                                      FavorAppReq favorAppReq) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(
+            favorAppReq.getScopeType(),
+            favorAppReq.getScopeId()
+        );
         return Response.buildSuccessResp(
-            applicationFavorService.favorApp(username, appResourceScope.getAppId())
+            applicationFavorService.favorApp(username, applicationDTO.getId())
         );
     }
 
@@ -239,9 +253,14 @@ public class WebAppResourceImpl implements WebAppResource {
     public Response<Integer> cancelFavorApp(String username,
                                             AppResourceScope appResourceScope,
                                             String scopeType,
-                                            String scopeId) {
+                                            String scopeId,
+                                            FavorAppReq favorAppReq) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(
+            favorAppReq.getScopeType(),
+            favorAppReq.getScopeId()
+        );
         return Response.buildSuccessResp(
-            applicationFavorService.cancelFavorApp(username, appResourceScope.getAppId())
+            applicationFavorService.cancelFavorApp(username, applicationDTO.getId())
         );
     }
 
@@ -360,7 +379,13 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                  String scopeType,
                                                                  String scopeId,
                                                                  List<TargetNodeVO> targetNodeVOList) {
-        List<List<InstanceTopologyDTO>> pathList = hostService.queryBizNodePaths(username, appResourceScope.getAppId(),
+        ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
+        if (appDTO.isBizSet()) {
+            return Response.buildSuccessResp(Collections.emptyList());
+        }
+        List<List<InstanceTopologyDTO>> pathList = hostService.queryBizNodePaths(
+            username,
+            appDTO.getBizIdIfBizApp(),
             targetNodeVOList.stream().map(it -> {
                 InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
                 instanceTopologyDTO.setObjectId(it.getType());
@@ -391,14 +416,22 @@ public class WebAppResourceImpl implements WebAppResource {
                                                      String scopeType,
                                                      String scopeId,
                                                      List<TargetNodeVO> targetNodeVOList) {
-        List<NodeInfoVO> moduleHostInfoList = hostService.getBizHostsByNode(username, appResourceScope.getAppId(),
+        ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
+        if (appDTO.isBizSet()) {
+            String msg = "topo node of bizset not supported yet";
+            throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
+        }
+        List<NodeInfoVO> moduleHostInfoList = hostService.getBizHostsByNode(
+            username,
+            appDTO.getBizIdIfBizApp(),
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                 it.getType(),
                 "",
                 it.getId(),
                 "",
                 null
-            )).collect(Collectors.toList()));
+            )).collect(Collectors.toList())
+        );
         return Response.buildSuccessResp(moduleHostInfoList);
     }
 

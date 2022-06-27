@@ -33,7 +33,7 @@
                 <input
                     class="app-name"
                     readonly
-                    :value="appName"
+                    :value="scopeName"
                     @keydown.down.prevent="handleStep('next')"
                     @keydown.up.prevent="handleStep('prev')"
                     @keydown.enter.prevent="handleSelect">
@@ -184,7 +184,7 @@
                 renderList: [],
                 scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
                 scopeId: window.PROJECT_CONFIG.SCOPE_ID,
-                appName: '',
+                scopeName: '',
                 activeIndex: -1,
                 query: '',
                 relatedSystemUrls: {
@@ -194,7 +194,7 @@
         },
         computed: {
             icon () {
-                return this.appName.slice(0, 1);
+                return this.scopeName.slice(0, 1);
             },
         },
         created () {
@@ -237,7 +237,7 @@
                             } = this.list[i];
                             if (scopeType === this.scopeType && scopeId === this.scopeId) {
                                 this.activeIndex = i;
-                                this.appName = name;
+                                this.scopeName = name;
                                 break;
                             }
                         }

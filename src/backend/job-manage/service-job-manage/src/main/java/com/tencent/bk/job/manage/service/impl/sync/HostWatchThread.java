@@ -30,10 +30,12 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -73,7 +75,6 @@ public class HostWatchThread extends Thread {
     private final ApplicationHostDAO applicationHostDAO;
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final RedisTemplate<String, String> redisTemplate;
-    private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final HostCache hostCache;
     private final String REDIS_KEY_RESOURCE_WATCH_HOST_JOB_RUNNING_MACHINE = "resource-watch-host-job-running-machine";
     private final List<AppHostEventsHandler> eventsHandlerList;
@@ -85,13 +86,11 @@ public class HostWatchThread extends Thread {
                            ApplicationHostDAO applicationHostDAO,
                            QueryAgentStatusClient queryAgentStatusClient,
                            RedisTemplate<String, String> redisTemplate,
-                           AppHostsUpdateHelper appHostsUpdateHelper,
                            HostCache hostCache) {
         this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.redisTemplate = redisTemplate;
-        this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostWatchThread-" + instanceNum.getAndIncrement());
         this.eventsHandlerList = new ArrayList<>();
@@ -143,17 +142,10 @@ public class HostWatchThread extends Thread {
     }
 
     private void handleOneEventRelatedToApp(ResourceEvent<HostEventDetail> event) {
-        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
-        Long hostId = hostInfoDTO.getHostId();
-        ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
-        Long appId = oldHostInfoDTO.getBizId();
         try {
-            appHostsUpdateHelper.waitAndStartBizHostsUpdating(appId);
             handleOneEventIndeed(event);
         } catch (Throwable t) {
-            log.error(String.format("Fail to handle hostEvent of appId %d, event:%s", appId, event), t);
-        } finally {
-            appHostsUpdateHelper.endToUpdateBizHosts(appId);
+            log.error(String.format("Fail to handle hostEvent:%s", event), t);
         }
     }
 
@@ -176,7 +168,17 @@ public class HostWatchThread extends Thread {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 //去除没有IP的主机信息
                 if (StringUtils.isBlank(hostInfoDTO.getDisplayIp())) {
-                    applicationHostDAO.deleteBizHostInfoById(dslContext, null, hostInfoDTO.getHostId());
+                    int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(
+                        dslContext,
+                        null,
+                        hostInfoDTO.getHostId()
+                    );
+                    log.info(
+                        "{} host deleted, id={} ,ip={}",
+                        affectedRowNum,
+                        hostInfoDTO.getHostId(),
+                        hostInfoDTO.getIp()
+                    );
                     break;
                 }
                 //找出Agent有效的IP，并设置Agent状态
@@ -200,7 +202,7 @@ public class HostWatchThread extends Thread {
                         applicationHostDAO.updateBizHostInfoByHostId(dslContext, oldHostInfoDTO.getBizId(),
                             hostInfoDTO);
                     } else {
-                        hostInfoDTO.setBizId(-1L);
+                        hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
                         try {
                             applicationHostDAO.insertAppHostWithoutTopo(dslContext, hostInfoDTO);
                         } catch (DataAccessException e) {
@@ -218,10 +220,22 @@ public class HostWatchThread extends Thread {
                     // 从拓扑表向主机表同步拓扑数据
                     applicationHostDAO.syncHostTopo(dslContext, hostInfoDTO.getHostId());
                 }
-                hostCache.addOrUpdateHost(hostInfoDTO);
+                if (hostInfoDTO.getBizId() != null && hostInfoDTO.getBizId() > 0) {
+                    hostCache.addOrUpdateHost(hostInfoDTO);
+                }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationHostDAO.deleteBizHostInfoById(dslContext, null, hostInfoDTO.getHostId());
+                int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(
+                    dslContext,
+                    null,
+                    hostInfoDTO.getHostId()
+                );
+                log.info(
+                    "{} host deleted, id={} ,ip={}",
+                    affectedRowNum,
+                    hostInfoDTO.getHostId(),
+                    hostInfoDTO.getIp()
+                );
                 hostCache.deleteHost(hostInfoDTO);
                 break;
             default:
@@ -273,11 +287,7 @@ public class HostWatchThread extends Thread {
                     machineIp, 50);
                 if (!lockGotten) {
                     log.info("hostWatch lock not gotten, wait 100ms and retry");
-                    try {
-                        sleep(100);
-                    } catch (InterruptedException e) {
-                        log.warn("Sleep interrupted", e);
-                    }
+                    ThreadUtils.sleep(100);
                     continue;
                 }
                 String runningMachine =
@@ -285,11 +295,7 @@ public class HostWatchThread extends Thread {
                 if (StringUtils.isNotBlank(runningMachine)) {
                     //已有hostWatch线程在跑，不再重复Watch
                     log.info("hostWatch thread already running on {}", runningMachine);
-                    try {
-                        sleep(30000);
-                    } catch (InterruptedException e) {
-                        log.warn("Sleep interrupted", e);
-                    }
+                    ThreadUtils.sleep(30000);
                     continue;
                 }
                 // 开一个心跳子线程，维护当前机器正在WatchResource的状态
@@ -320,13 +326,10 @@ public class HostWatchThread extends Thread {
                         log.info("hostWatchResult={}", JsonUtils.toJson(hostWatchResult));
                         cursor = handleHostWatchResult(hostWatchResult);
                         // 1s/watch一次
-                        sleep(1000);
+                        ThreadUtils.sleep(1000);
                     }
                 } catch (Throwable t) {
                     log.error("hostWatch thread fail", t);
-                    // 重置Watch起始位置为10分钟前
-                    startTime = System.currentTimeMillis() / 1000 - 10 * 60;
-                    cursor = null;
                 } finally {
                     hostWatchRedisKeyHeartBeatThread.setRunFlag(false);
                     watch.stop();
@@ -334,17 +337,11 @@ public class HostWatchThread extends Thread {
                 }
             } catch (Throwable t) {
                 log.error("HostWatchThread quit unexpectedly", t);
-                startTime = System.currentTimeMillis() / 1000 - 10 * 60;
-                cursor = null;
             } finally {
-                try {
-                    do {
-                        // 5s/重试一次
-                        sleep(5000);
-                    } while (!hostWatchFlag.get());
-                } catch (InterruptedException e) {
-                    log.error("sleep interrupted", e);
-                }
+                do {
+                    // 5s/重试一次
+                    ThreadUtils.sleep(5000);
+                } while (!hostWatchFlag.get());
             }
         }
     }
@@ -354,7 +351,7 @@ public class HostWatchThread extends Thread {
      */
     class AppHostEventsHandler extends EventsHandler<HostEventDetail> {
 
-        public AppHostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> queue) {
+        AppHostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> queue) {
             super(queue);
         }
 

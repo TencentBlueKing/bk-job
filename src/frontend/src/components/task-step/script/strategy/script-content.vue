@@ -26,7 +26,12 @@
 -->
 
 <template>
-    <jb-form-item ref="item" :label="$t('脚本内容')" required :property="contentField" :rules="rules">
+    <jb-form-item
+        ref="item"
+        :label="$t('脚本内容')"
+        required
+        :property="contentField"
+        :rules="rules">
         <ace-editor
             ref="aceEditor"
             v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
@@ -40,8 +45,9 @@
     </jb-form-item>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
-    import ScriptService from '@service/script-manage';
+    import ScriptManageService from '@service/script-manage';
     import TaskStepModel from '@model/task/task-step';
     import AceEditor from '@components/ace-editor';
     import {
@@ -100,12 +106,13 @@
                                 trigger: 'change',
                             },
                             {
-                                validator: value => ScriptService.getScriptValidation({
+                                validator: value => ScriptManageService.getScriptValidation({
                                     content: value,
                                     scriptType: newData[this.languageField],
                                 }).then((data) => {
                                     // 高危语句报错状态需要全局保存
-                                    this.$store.commit('setScriptCheckError', data.some(_ => _.isDangerous));
+                                    const dangerousContent = _.find(data, _ => _.isDangerous);
+                                    this.$store.commit('setScriptCheckError', dangerousContent);
                                     return true;
                                 }),
                                 message: I18n.t('脚本内容检测失败'),

@@ -301,7 +301,7 @@
              * @param {Array} variables
              */
             handleVariableChange (variables) {
-                window.changeAlert = true;
+                window.changeConfirm = true;
                 this.formData.variables = variables;
             },
             /**
@@ -344,7 +344,7 @@
                     this.$refs.editPlanForm.validate(),
                 ]).then(() => TaskPlanService.planUpdate(this.formData)
                     .then(() => {
-                        window.changeAlert = false;
+                        window.changeConfirm = false;
                         this.$emit('on-edit-success');
                         this.$bkMessage({
                             theme: 'success',
