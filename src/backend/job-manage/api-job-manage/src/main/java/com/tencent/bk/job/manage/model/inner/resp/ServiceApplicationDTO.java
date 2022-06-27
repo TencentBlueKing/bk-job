@@ -28,17 +28,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -152,42 +148,6 @@ public class ServiceApplicationDTO {
         app.setOperateDeptId(appDTO.getOperateDeptId());
         app.setTimeZone(appDTO.getTimeZone());
         return app;
-    }
-
-    /**
-     * 将Job业务对象转换为鉴权需要的业务资源对象
-     *
-     * @param serviceAppDTO 业务对象
-     * @return 鉴权需要的业务资源对象
-     */
-    public static ResourceAppInfo toResourceApp(ServiceApplicationDTO serviceAppDTO) {
-        if (serviceAppDTO == null) {
-            return null;
-        } else {
-            ResourceAppInfo resourceAppInfo = new ResourceAppInfo();
-            resourceAppInfo.setAppId(serviceAppDTO.getId());
-            resourceAppInfo.setAppType(AppTypeEnum.valueOf(serviceAppDTO.getAppType()));
-            resourceAppInfo.setScopeType(serviceAppDTO.getScopeType());
-            resourceAppInfo.setScopeId(serviceAppDTO.getScopeId());
-            String maintainerStr = serviceAppDTO.getMaintainers();
-            List<String> maintainerList = new ArrayList<>();
-            if (StringUtils.isNotBlank(maintainerStr)) {
-                String[] maintainers = maintainerStr.split("[,;]");
-                maintainerList.addAll(Arrays.asList(maintainers));
-            }
-            resourceAppInfo.setMaintainerList(maintainerList);
-            return resourceAppInfo;
-        }
-    }
-
-    /**
-     * 将Job通用业务对象转换为鉴权需要的业务资源对象
-     *
-     * @param appDTO Job通用业务对象
-     * @return 鉴权需要的业务资源对象
-     */
-    public static ResourceAppInfo toResourceApp(ApplicationDTO appDTO) {
-        return toResourceApp(fromApplicationDTO(appDTO));
     }
 
     public boolean isBiz() {

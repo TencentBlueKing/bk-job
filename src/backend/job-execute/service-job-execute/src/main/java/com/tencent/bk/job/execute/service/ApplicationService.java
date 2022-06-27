@@ -49,12 +49,5 @@ public interface ApplicationService {
      */
     ApplicationDTO getAppByScope(String scopeType, String scopeId);
 
-    /**
-     * 获取所有的业务
-     *
-     * @return 所有的业务列表
-     */
-    List<ApplicationDTO> listAllApps();
-
     List<Long> listAllAppIds();
 }

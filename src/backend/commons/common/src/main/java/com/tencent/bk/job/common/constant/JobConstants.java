@@ -29,6 +29,10 @@ package com.tencent.bk.job.common.constant;
  */
 public class JobConstants {
     /**
+     * 默认系统用户
+     */
+    public static final String DEFAULT_SYSTEM_USER_ADMIN = "admin";
+    /**
      * 默认云区域ID
      */
     public static final long DEFAULT_CLOUD_AREA_ID = 0L;
