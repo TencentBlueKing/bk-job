@@ -59,7 +59,6 @@ import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
-import com.tencent.bk.job.manage.manager.app.BizOperateDeptLocalCache;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.model.db.CacheHostDO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
@@ -108,7 +107,6 @@ public class HostServiceImpl implements HostService {
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final WhiteIPService whiteIPService;
     private final HostCache hostCache;
-    private final BizOperateDeptLocalCache bizOperateDeptLocalCache;
     private final MessageI18nService i18nService;
 
     @Autowired
@@ -121,7 +119,6 @@ public class HostServiceImpl implements HostService {
                            QueryAgentStatusClient queryAgentStatusClient,
                            WhiteIPService whiteIPService,
                            HostCache hostCache,
-                           BizOperateDeptLocalCache bizOperateDeptLocalCache,
                            MessageI18nService i18nService) {
         this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
@@ -132,7 +129,6 @@ public class HostServiceImpl implements HostService {
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.whiteIPService = whiteIPService;
         this.hostCache = hostCache;
-        this.bizOperateDeptLocalCache = bizOperateDeptLocalCache;
         this.i18nService = i18nService;
     }
 
@@ -1345,9 +1341,6 @@ public class HostServiceImpl implements HostService {
         } else if (application.isBizSet()) {
             if (application.getSubBizIds() != null) {
                 bizIdList.addAll(application.getSubBizIds());
-            } else if (application.getOperateDeptId() != null) {
-                // 兼容老的业务集设计，等业务集全部迁移到cmdb之后需要删除对于OperateDeptId的逻辑
-                bizIdList.addAll(bizOperateDeptLocalCache.getBizIdsWithDeptId(application.getOperateDeptId()));
             }
         }
         return bizIdList;

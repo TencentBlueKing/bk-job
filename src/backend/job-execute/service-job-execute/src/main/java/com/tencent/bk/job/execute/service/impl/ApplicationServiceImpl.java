@@ -65,15 +65,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public List<ApplicationDTO> listAllApps() {
-        List<ServiceApplicationDTO> apps = syncResourceClient.listAllApps();
-        if (apps == null) {
-            return Collections.emptyList();
-        }
-        return apps.stream().map(ServiceApplicationDTO::toApplicationInfoDTO).collect(Collectors.toList());
-    }
-
-    @Override
     public List<Long> listAllAppIds() {
         List<ServiceApplicationDTO> apps = syncResourceClient.listAllApps();
         if (apps == null) {

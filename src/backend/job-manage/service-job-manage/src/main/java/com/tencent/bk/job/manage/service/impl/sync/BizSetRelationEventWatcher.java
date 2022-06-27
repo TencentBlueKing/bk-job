@@ -10,7 +10,6 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
@@ -69,11 +68,6 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
                     if (cacheApplication == null || cacheApplication.isDeleted()) {
                         return;
                     }
-                    if (!FeatureToggle.isCmdbBizSetEnabledForApp(cacheApplication.getId())) {
-                        log.info("Ignore cmdb biz set relation event, app[{}] cmdb biz set feature toggle is disabled",
-                            cacheApplication.getId());
-                        return;
-                    }
                     cacheApplication.setSubBizIds(latestSubBizIds);
                     ApplicationAttrsDO attrs = cacheApplication.getAttrs();
                     if (attrs != null) {
@@ -93,12 +87,10 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
     @Override
     protected boolean isWatchingEnabled() {
         boolean isBizSetMigratedToCMDB = bizSetService.isBizSetMigratedToCMDB();
-        boolean isCmdbBizSetEnabled = FeatureToggle.isCmdbBizSetEnabled();
-        boolean isWatchingEnabled = isBizSetMigratedToCMDB && isCmdbBizSetEnabled;
-        if (!isWatchingEnabled) {
-            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}, isCmdbBizSetEnabled: {}",
-                isBizSetMigratedToCMDB, isCmdbBizSetEnabled);
+        if (!isBizSetMigratedToCMDB) {
+            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}",
+                isBizSetMigratedToCMDB);
         }
-        return isWatchingEnabled;
+        return isBizSetMigratedToCMDB;
     }
 }
