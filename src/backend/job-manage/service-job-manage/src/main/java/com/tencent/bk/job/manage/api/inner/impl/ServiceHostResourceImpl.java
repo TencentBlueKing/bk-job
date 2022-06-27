@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -67,11 +68,8 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     }
 
     @Override
-    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
-        Long appId,
-        String username,
-        ServiceGetHostStatusByNodeReq req
-    ) {
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(Long appId,
+                                                                            ServiceGetHostStatusByNodeReq req) {
         ApplicationDTO appDTO = applicationService.getAppByAppId(appId);
         if (appDTO.isBizSet()) {
             String msg = "topo node of bizset not supported yet";
@@ -79,7 +77,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         }
         List<AppTopologyTreeNode> treeNodeList = req.getTreeNodeList();
         List<NodeInfoVO> nodeInfoVOList = hostService.getBizHostsByNode(
-            username,
+            JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
             appDTO.getBizIdIfBizApp(),
             treeNodeList
         );
@@ -99,7 +97,6 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     @Override
     public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
         Long appId,
-        String username,
         ServiceGetHostStatusByDynamicGroupReq req
     ) {
         ApplicationDTO appDTO = applicationService.getAppByAppId(appId);
@@ -109,7 +106,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         }
         List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
         List<DynamicGroupInfoDTO> dynamicGroupInfoDTOList = hostService.getBizDynamicGroupHostList(
-            username,
+            JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
             appDTO.getBizIdIfBizApp(),
             dynamicGroupIdList
         );
@@ -128,10 +125,15 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     }
 
     @Override
-    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId, String username,
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId,
                                                                           ServiceGetHostStatusByIpReq req) {
         List<String> ipList = req.getIpList();
-        List<HostInfoVO> hostInfoVOList = hostService.getHostsByIp(username, appId, null, ipList);
+        List<HostInfoVO> hostInfoVOList = hostService.getHostsByIp(
+            JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
+            appId,
+            null,
+            ipList
+        );
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
         hostInfoVOList.forEach(hostInfoVO -> {
             ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();

@@ -138,11 +138,6 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                     log.info("taskId:" + id);
                     analysisTaskInstanceDTO.setId(id);
                     List<AbnormalTargetPlanInfo> abnormalTargetPlanInfoList = new ArrayList<>();
-                    //业务运维身份信息
-                    String username = applicationInfoDTO.getMaintainers();
-                    if (username.contains(";")) {
-                        username = username.split(";")[0];
-                    }
                     //1.拿到所有作业模板
                     ServiceTaskTemplateDTO taskTemplateCondition = new ServiceTaskTemplateDTO();
                     taskTemplateCondition.setAppId(appId);
@@ -153,7 +148,6 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                         templateService.listPageTaskTemplates(appId, baseSearchCondition);
                     List<ServiceTaskTemplateDTO> taskTemplateInfoDTOList = taskTemplateInfoDTOPageData.getData();
                     //2.遍历所有作业模板
-                    String finalUsername = username;
                     Counter templateCounter = new Counter();
                     for (ServiceTaskTemplateDTO taskTemplateBasicInfoDTO : taskTemplateInfoDTOList) {
                         try {
@@ -197,7 +191,6 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                                             findAgentAbnormalInTaskHostNodeVO(
                                                 abnormalTargetPlanInfoList,
                                                 taskHostNodeDTO,
-                                                finalUsername,
                                                 appId,
                                                 "" + taskPlanInfoDTO.getTaskTemplateId()
                                                     + "," + taskPlanInfoDTO.getId(),
@@ -268,14 +261,14 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
     }
 
     private void findAgentAbnormalInTaskHostNodeVO(List<AbnormalTargetPlanInfo> abnormalTargetPlanInfoList,
-                                                   ServiceTaskHostNodeDTO serviceTaskHostNodeDTO, String username,
+                                                   ServiceTaskHostNodeDTO serviceTaskHostNodeDTO,
                                                    Long appId, String locationContent, String instanceName,
                                                    String scope, String scopeName, String description) {
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
         //（1）目标节点
         List<ServiceTaskNodeInfoDTO> targetNodeVOList = serviceTaskHostNodeDTO.getNodeInfoList();
         if (targetNodeVOList != null && !targetNodeVOList.isEmpty()) {
-            hostStatusDTOList.addAll(hostService.getHostStatusByNode(username, appId,
+            hostStatusDTOList.addAll(hostService.getHostStatusByNode(appId,
                 targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                     it.getType(),
                     "",
@@ -296,8 +289,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         //找到动态分组对应的所有主机
         List<String> dynamicGroupIdList = serviceTaskHostNodeDTO.getDynamicGroupId();
         if (dynamicGroupIdList != null && !dynamicGroupIdList.isEmpty()) {
-            hostStatusDTOList.addAll(hostService.getHostStatusByDynamicGroup(username, appId,
-                dynamicGroupIdList));
+            hostStatusDTOList.addAll(hostService.getHostStatusByDynamicGroup(appId, dynamicGroupIdList));
         }
         //找到目标节点对应的所有主机//主机异常
         for (ServiceHostStatusDTO hostStatusDTO : hostStatusDTOList) {
@@ -314,7 +306,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
             serviceHostInfoDTO.getCloudAreaId() + ":" + serviceHostInfoDTO.getIp()
         ).collect(Collectors.toList());
         List<ServiceHostStatusDTO> hostStatusDTOListByIp =
-            hostService.getHostStatusByIp(username, appId, ipList);
+            hostService.getHostStatusByIp(appId, ipList);
         Map<String, ServiceHostStatusDTO> map = new HashMap<>();
         hostStatusDTOListByIp.forEach(serviceHostStatusDTO -> {
             map.put(serviceHostStatusDTO.getIp(), serviceHostStatusDTO);
