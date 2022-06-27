@@ -165,22 +165,29 @@ public class ApplicationServiceImpl implements ApplicationService {
         // 全业务
         List<ApplicationDTO> allAppSetList = new ArrayList<>();
 
+        ApplicationDTO currentApp = null;
         // 按类型分组
-        allAppList.forEach(appDTO -> {
+        for (ApplicationDTO appDTO : allAppList) {
+            if (appDTO.getId().equals(appId)) {
+                currentApp = appDTO;
+            }
             if (appDTO.isAllBizSet()) {
                 allAppSetList.add(appDTO);
             } else if (appDTO.isBizSet()) {
                 appSetList.add(appDTO);
             }
-        });
+        }
 
         // 查找包含当前业务的业务集
-        appSetList.forEach(appSet -> {
-            List<Long> subAppIds = appSet.getSubBizIds();
-            if (subAppIds != null && subAppIds.contains(appId)) {
-                fullAppIds.add(appSet.getId());
-            }
-        });
+        if (currentApp != null && currentApp.isBiz()) {
+            Long bizId = Long.parseLong(currentApp.getScope().getId());
+            appSetList.forEach(appSet -> {
+                List<Long> subBizIds = appSet.getSubBizIds();
+                if (subBizIds != null && subBizIds.contains(bizId)) {
+                    fullAppIds.add(appSet.getId());
+                }
+            });
+        }
 
         // 处理全业务
         allAppSetList.forEach(record -> fullAppIds.add(record.getId()));
