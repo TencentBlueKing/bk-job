@@ -109,6 +109,7 @@ ext {
     set('flapdoodleEmbeddedMongdbDBVersion', "2.2.0")
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.64")
+    set('mysqlConnectorVersion', "8.0.29")
     set('reflectionsVersion', "0.9.12")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
@@ -235,6 +236,7 @@ subprojects {
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "joda-time:joda-time:$jodaTimeVersion"
             dependency "org.bouncycastle:bcprov-jdk15on:$bcprovVersion"
+            dependency "mysql:mysql-connector-java:$mysqlConnectorVersion"
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
             dependencySet(group: "org.jooq", version: "$jooqVersion") {
