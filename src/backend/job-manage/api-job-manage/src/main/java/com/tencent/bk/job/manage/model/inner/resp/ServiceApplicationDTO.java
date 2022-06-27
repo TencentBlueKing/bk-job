@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.model.inner.resp;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -187,5 +188,9 @@ public class ServiceApplicationDTO {
      */
     public static ResourceAppInfo toResourceApp(ApplicationDTO appDTO) {
         return toResourceApp(fromApplicationDTO(appDTO));
+    }
+
+    public boolean isBiz() {
+        return ResourceScopeTypeEnum.BIZ.getValue().equals(scopeType);
     }
 }
