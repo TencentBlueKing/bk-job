@@ -43,7 +43,6 @@ import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
@@ -75,8 +74,6 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     private final EsbIamClient iamClient;
     private final MessageI18nService i18nService;
     private ResourceNameQueryService resourceNameQueryService;
-    private ResourceAppInfoQueryService resourceAppInfoQueryService;
-
 
     public AuthServiceImpl(@Autowired AuthHelper authHelper,
                            @Autowired IamConfiguration iamConfiguration,
@@ -85,11 +82,6 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
         this.i18nService = i18nService;
         this.iamClient = new EsbIamClient(esbConfiguration.getEsbUrl(), iamConfiguration.getAppCode(),
             iamConfiguration.getAppSecret(), esbConfiguration.isUseEsbTestEnv());
-    }
-
-    @Override
-    public void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService) {
-        this.resourceAppInfoQueryService = resourceAppInfoQueryService;
     }
 
     @Override

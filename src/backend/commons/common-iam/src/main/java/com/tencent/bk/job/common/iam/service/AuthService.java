@@ -41,8 +41,6 @@ import java.util.List;
  */
 public interface AuthService {
 
-    void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService);
-
     void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService);
 
     /**
