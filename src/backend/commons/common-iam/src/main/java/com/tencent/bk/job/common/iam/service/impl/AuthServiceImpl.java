@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
@@ -43,7 +42,6 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
-import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
@@ -110,35 +108,12 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
         }
     }
 
-    /**
-     * 判断用户是否对Job业务下的所有资源有权限
-     *
-     * @param username     用户名
-     * @param resourceType 资源类型
-     * @param resourceId   资源ID
-     * @return 是否有权限
-     */
-    public boolean isMaintainerOfResource(String username, ResourceTypeEnum resourceType, String resourceId) {
-        // 非业务/业务集资源
-        if (!resourceType.isScopeResource()) {
-            return false;
-        }
-        // 业务集、全业务特殊鉴权
-        ResourceAppInfo resourceAppInfo = resourceAppInfoQueryService.getResourceAppInfo(resourceType, resourceId);
-        return resourceAppInfo != null
-            && ResourceScopeTypeEnum.BIZ_SET.getValue().equals(resourceAppInfo.getScopeType())
-            && hasBizSetAppMaintainerPermission(username, resourceAppInfo);
-    }
-
     @Override
     public AuthResult auth(String username,
                            String actionId,
                            ResourceTypeEnum resourceType,
                            String resourceId,
                            PathInfoDTO pathInfo) {
-        if (isMaintainerOfResource(username, resourceType, resourceId)) {
-            return AuthResult.pass();
-        }
         boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstance(resourceType, resourceId, pathInfo));
         if (isAllowed) {
             return AuthResult.pass();
@@ -146,7 +121,6 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
             return buildFailAuthResult(actionId, resourceType, resourceId);
         }
     }
-
 
     private AuthResult buildFailAuthResult(String actionId,
                                            ResourceTypeEnum resourceType,
@@ -183,30 +157,26 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                 ResourceTypeEnum resourceType = relatedResourceGroups.get(0).getResourceType();
                 List<PermissionResource> resources = relatedResourceGroups.get(0).getPermissionResources();
                 // All resources are under one application, so choose any one for authentication
-                if (isMaintainerOfResource(username, resourceType, resources.get(0).getResourceId())) {
-                    authResult.setPass(true);
-                } else {
-                    List<String> allowedResourceIds =
-                        authHelper.isAllowed(username, actionId, buildInstanceList(resources));
-                    List<String> notAllowResourceIds =
-                        resources.stream().filter(resource -> !allowedResourceIds.contains(resource.getResourceId()))
-                            .map(PermissionResource::getResourceId).collect(Collectors.toList());
-                    if (CollectionUtils.isNotEmpty(notAllowResourceIds)) {
-                        authResult.setPass(false);
-                        resources.forEach(resource -> {
-                            if (notAllowResourceIds.contains(resource.getResourceId())) {
-                                if (isReturnApplyUrl) {
-                                    resource.setResourceName(resourceNameQueryService.getResourceName(resourceType,
-                                        resource.getResourceId()));
-                                }
-                                PermissionActionResource requiredActionResource = new PermissionActionResource();
-                                requiredActionResource.setActionId(actionId);
-                                requiredActionResource.addResource(resource);
-                                requiredActionResources.add(requiredActionResource);
-                                authResult.addRequiredPermission(actionId, resource);
+                List<String> allowedResourceIds =
+                    authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+                List<String> notAllowResourceIds =
+                    resources.stream().filter(resource -> !allowedResourceIds.contains(resource.getResourceId()))
+                        .map(PermissionResource::getResourceId).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(notAllowResourceIds)) {
+                    authResult.setPass(false);
+                    resources.forEach(resource -> {
+                        if (notAllowResourceIds.contains(resource.getResourceId())) {
+                            if (isReturnApplyUrl) {
+                                resource.setResourceName(resourceNameQueryService.getResourceName(resourceType,
+                                    resource.getResourceId()));
                             }
-                        });
-                    }
+                            PermissionActionResource requiredActionResource = new PermissionActionResource();
+                            requiredActionResource.setActionId(actionId);
+                            requiredActionResource.addResource(resource);
+                            requiredActionResources.add(requiredActionResource);
+                            authResult.addRequiredPermission(actionId, resource);
+                        }
+                    });
                 }
             }
         }

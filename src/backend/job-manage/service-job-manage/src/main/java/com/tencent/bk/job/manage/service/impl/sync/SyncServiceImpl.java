@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -439,14 +438,12 @@ public class SyncServiceImpl implements SyncService {
                     log.info(Thread.currentThread().getName() + ":begin to sync host from cc");
                     List<ApplicationDTO> localApps = applicationDAO.listAllBizApps();
                     Set<Long> localAppIds =
-                        localApps.stream().filter(app ->
-                            app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)
+                        localApps.stream().filter(ApplicationDTO::isBiz).map(ApplicationDTO::getId)
                             .collect(Collectors.toSet());
                     log.info(String.format("localAppIds:%s", String.join(",",
                         localAppIds.stream().map(Object::toString).collect(Collectors.toSet()))));
                     List<ApplicationDTO> localNormalApps =
-                        localApps.stream().filter(app ->
-                            app.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
+                        localApps.stream().filter(ApplicationDTO::isBiz).collect(Collectors.toList());
                     long cmdbInterfaceTimeConsuming = 0L;
                     long writeToDBTimeConsuming = 0L;
                     List<Pair<ApplicationDTO, Future<Pair<Long, Long>>>> appFutureList = new ArrayList<>();

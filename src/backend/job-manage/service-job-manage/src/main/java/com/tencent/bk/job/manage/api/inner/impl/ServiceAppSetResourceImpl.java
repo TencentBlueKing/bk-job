@@ -256,7 +256,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
                 ArrayUtil.toArray("App-set is not exist"));
         }
-        if (!(app.getAppType() == AppTypeEnum.APP_SET || app.getAppType() == AppTypeEnum.ALL_APP)) {
+        if (!app.isBizSet()) {
             log.warn("App is not app-set or all-app, appId:{}", appId);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
                 ArrayUtil.toArray("Not app-set or app-all type"));

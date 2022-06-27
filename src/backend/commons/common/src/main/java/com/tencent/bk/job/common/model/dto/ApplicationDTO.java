@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 
@@ -126,9 +125,10 @@ public class ApplicationDTO {
      */
     @JsonIgnore
     public boolean isAllBizSet() {
-        return (appType != null && appType == AppTypeEnum.ALL_APP) ||
-            (scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ_SET
-                && attrs != null && attrs.getMatchAllBiz() != null && attrs.getMatchAllBiz());
+        return isBizSet()
+            && attrs != null
+            && attrs.getMatchAllBiz() != null
+            && attrs.getMatchAllBiz();
     }
 
     /**
@@ -153,7 +153,7 @@ public class ApplicationDTO {
 
     public List<Long> getSubBizIds() {
         // 业务集已迁移到cmdb
-        if (attrs != null && CollectionUtils.isNotEmpty(attrs.getSubBizIds())) {
+        if (attrs != null) {
             return attrs.getSubBizIds();
         }
         // 业务集还未迁移到cmdb，继续使用原来Job业务集配置的子业务

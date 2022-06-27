@@ -41,7 +41,6 @@ import com.tencent.bk.job.analysis.task.analysis.enums.AnalysisResourceEnum;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultData;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultItem;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.Counter;
@@ -109,7 +108,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
             Counter appCounter = new Counter();
             AnalysisTaskDTO analysisTask = getAnalysisTask();
             for (ServiceApplicationDTO applicationInfoDTO : appInfoList) {
-                if (applicationInfoDTO.getAppType() != AppTypeEnum.NORMAL.getValue()) {
+                if (!applicationInfoDTO.isBiz()) {
                     continue;
                 }
                 Long appId = applicationInfoDTO.getId();

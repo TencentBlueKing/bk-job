@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -442,7 +441,7 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                   String scopeId) {
         ApplicationDTO applicationDTO = applicationService.getAppByAppId(appResourceScope.getAppId());
         // 业务集动态分组暂不支持
-        if (applicationDTO.getAppType() != AppTypeEnum.NORMAL) {
+        if (!applicationDTO.isBiz()) {
             return Response.buildSuccessResp(new ArrayList<>());
         }
         List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(

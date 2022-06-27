@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -781,7 +780,7 @@ public class NotifyServiceImpl implements NotifyService {
                 // CMDB中的业务角色，获取角色对应人员
                 try {
                     ApplicationDTO appInfo = applicationDAO.getAppById(appId);
-                    if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
+                    if (appInfo.isBiz()) {
                         userSet.addAll(roleService.listAppUsersByRole(appId, role));
                     } else {
                         log.info("Ignore role {} of not normal appId {}", role, appId);
