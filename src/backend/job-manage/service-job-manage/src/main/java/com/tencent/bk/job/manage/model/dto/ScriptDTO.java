@@ -148,6 +148,7 @@ public class ScriptDTO {
         }
 
         esbScriptVersion.setScriptId(id);
+        esbScriptVersion.setName(name);
         esbScriptVersion.setVersion(version);
         esbScriptVersion.setContent(content);
         esbScriptVersion.setStatus(status);

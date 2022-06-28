@@ -168,8 +168,8 @@ public class HostSyncService {
         watch.stop();
         watch.start("deleteHostsFromBiz");
         // 记录一次业务主机同步过程中所有更新失败的主机ID
-        // 需要删除的主机
-        List<Long> deleteFailHostIds = hostService.deleteHostsFromBiz(bizId, deleteList);
+        // 需要从业务下移除的主机
+        List<Long> removeFailHostIds = hostService.removeHostsFromBiz(bizId, deleteList);
         watch.stop();
         watch.start("insertHostsToApp");
         // 需要新增的主机
@@ -187,11 +187,11 @@ public class HostSyncService {
         log.info(
             Thread.currentThread().getName() +
                 ":Finished:Statistics:bizId={}:insertFailHostIds={}," +
-                "updateFailHostIds={},deleteFailHostIds={}",
+                "updateFailHostIds={},removeFailHostIds={}",
             bizId,
             insertFailHostIds,
             updateFailHostIds,
-            deleteFailHostIds
+            removeFailHostIds
         );
     }
 
