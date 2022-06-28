@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -60,7 +59,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     public InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps() {
         List<ApplicationDTO> appList = applicationService.listAllApps();
         List<ServiceAppBaseInfoDTO> resultList =
-            appList.parallelStream().filter(app -> app.getAppType() == AppTypeEnum.NORMAL)
+            appList.parallelStream().filter(ApplicationDTO::isBiz)
                 .map(this::convertToServiceAppBaseInfo).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
     }

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.config.EsbConfiguration;
@@ -34,9 +33,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
@@ -72,8 +69,6 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     private final PolicyService policyService;
     private final EsbIamClient iamClient;
     private ResourceNameQueryService resourceNameQueryService;
-    private ResourceAppInfoQueryService resourceAppInfoQueryService;
-
 
     public AppAuthServiceImpl(@Autowired AuthHelper authHelper,
                               @Autowired BusinessAuthHelper businessAuthHelper,
@@ -88,43 +83,15 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     }
 
     @Override
-    public void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService) {
-        this.resourceAppInfoQueryService = resourceAppInfoQueryService;
-    }
-
-    @Override
     public void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService) {
         this.resourceNameQueryService = resourceNameQueryService;
         super.setResourceNameQueryService(resourceNameQueryService);
-    }
-
-    private ResourceAppInfo getResourceApp(AppResourceScope appResourceScope) {
-        return resourceAppInfoQueryService.getResourceAppInfo(
-            IamUtil.getIamResourceTypeForResourceScope(appResourceScope),
-            appResourceScope.getId()
-        );
-    }
-
-    public boolean hasBizSetAppMaintainerPermission(String username, AppResourceScope bizSetAppResourceScope) {
-        // 过滤掉公共脚本等资源使用的默认业务ID
-        if (bizSetAppResourceScope == null || bizSetAppResourceScope.getAppId() == JobConstants.PUBLIC_APP_ID) {
-            return false;
-        }
-        // 业务集、全业务特殊鉴权
-        ResourceAppInfo resourceAppInfo = getResourceApp(bizSetAppResourceScope);
-        return hasBizSetAppMaintainerPermission(username, resourceAppInfo);
     }
 
     @Override
     public AuthResult auth(String username,
                            String actionId,
                            AppResourceScope appResourceScope) {
-        // 兼容旧的业务集鉴权逻辑
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && hasBizSetAppMaintainerPermission(username, appResourceScope)) {
-            log.debug("{} is maintainer of job biz_set {}", username, appResourceScope.getAppId());
-            return AuthResult.pass();
-        }
         boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstanceWithPath(appResourceScope));
         if (isAllowed) {
             return AuthResult.pass();
@@ -222,11 +189,6 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   AppResourceScope appResourceScope,
                                   ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
-        // 业务集、全业务特殊鉴权
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && hasBizSetAppMaintainerPermission(username, appResourceScope)) {
-            return resourceIdList;
-        }
         return authHelper.isAllowed(
             username, actionId,
             buildAppResourceScopeInstanceList(appResourceScope, resourceType, resourceIdList));
@@ -237,11 +199,6 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                          String actionId,
                                          AppResourceScope appResourceScope,
                                          List<PermissionResource> resources) {
-        // 业务集、全业务特殊鉴权
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && hasBizSetAppMaintainerPermission(username, appResourceScope)) {
-            return AuthResult.pass();
-        }
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
         List<String> allowResourceIds = authHelper.isAllowed(username, actionId, buildInstanceList(resources));
         List<String> notAllowResourceIds =
@@ -261,12 +218,6 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   String actionId,
                                   AppResourceScope appResourceScope,
                                   List<PermissionResource> resourceList) {
-        // 业务集、全业务特殊鉴权
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && hasBizSetAppMaintainerPermission(username, appResourceScope)) {
-            return resourceList.parallelStream()
-                .map(PermissionResource::getResourceId).collect(Collectors.toList());
-        }
         return authHelper.isAllowed(username, actionId, buildInstanceList(resourceList));
     }
 

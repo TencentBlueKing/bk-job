@@ -70,6 +70,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public boolean existBiz(long bizId) {
+        return applicationDAO.existBiz(bizId);
+    }
+
+    @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
         ApplicationDTO applicationDTO = getAppByScope(resourceScope);
         if (applicationDTO == null) {
@@ -160,45 +165,34 @@ public class ApplicationServiceImpl implements ApplicationService {
             return Collections.emptyList();
         }
 
-        // 普通业务
-        List<ApplicationDTO> normalAppList = new ArrayList<>();
         // 业务集
         List<ApplicationDTO> appSetList = new ArrayList<>();
         // 全业务
         List<ApplicationDTO> allAppSetList = new ArrayList<>();
 
+        ApplicationDTO currentApp = null;
         // 按类型分组
-        allAppList.forEach(appDTO -> {
+        for (ApplicationDTO appDTO : allAppList) {
+            if (appDTO.getId().equals(appId)) {
+                currentApp = appDTO;
+            }
             if (appDTO.isAllBizSet()) {
                 allAppSetList.add(appDTO);
             } else if (appDTO.isBizSet()) {
                 appSetList.add(appDTO);
-            } else {
-                normalAppList.add(appDTO);
             }
-        });
-
-        // 普通业务按部门分组
-        Map<Long, List<ApplicationDTO>> normalAppGroupMap =
-            normalAppList.stream().filter(normalApp -> normalApp.getOperateDeptId() != null).collect(
-                Collectors.groupingBy(ApplicationDTO::getOperateDeptId));
+        }
 
         // 查找包含当前业务的业务集
-        appSetList.forEach(appSet -> {
-            List<Long> subAppIds = appSet.getSubBizIds() == null ? new ArrayList<>() :
-                appSet.getSubBizIds();
-            Long optDeptId = appSet.getOperateDeptId();
-            if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
-                List<Long> normalAppIdList =
-                    normalAppGroupMap.get(optDeptId).stream()
-                        .map(ApplicationDTO::getId)
-                        .collect(Collectors.toList());
-                subAppIds.addAll(normalAppIdList);
-            }
-            if (subAppIds.contains(appId)) {
-                fullAppIds.add(appSet.getId());
-            }
-        });
+        if (currentApp != null && currentApp.isBiz()) {
+            Long bizId = Long.parseLong(currentApp.getScope().getId());
+            appSetList.forEach(appSet -> {
+                List<Long> subBizIds = appSet.getSubBizIds();
+                if (subBizIds != null && subBizIds.contains(bizId)) {
+                    fullAppIds.add(appSet.getId());
+                }
+            });
+        }
 
         // 处理全业务
         allAppSetList.forEach(record -> fullAppIds.add(record.getId()));
@@ -213,20 +207,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public Long createApp(ApplicationDTO application) {
         Long appId = applicationDAO.insertApp(dslContext, application);
-        application.setId(appId);
-        applicationCache.addOrUpdateApp(application);
-        try {
-            // 创建默认账号
-            accountService.createDefaultAccounts(appId);
-        } catch (Exception e) {
-            log.warn("Fail to create default accounts for appId={}", appId);
-        }
-        return appId;
-    }
-
-    @Override
-    public Long createAppWithSpecifiedAppId(ApplicationDTO application) {
-        Long appId = applicationDAO.insertAppWithSpecifiedAppId(dslContext, application);
         application.setId(appId);
         applicationCache.addOrUpdateApp(application);
         try {
