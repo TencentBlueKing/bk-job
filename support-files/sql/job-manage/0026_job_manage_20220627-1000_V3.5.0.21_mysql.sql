@@ -19,7 +19,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'host_topo'
                     AND COLUMN_NAME = 'create_time') THEN
-    ALTER TABLE host_topo ADD COLUMN create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);
+    ALTER TABLE host_topo ADD COLUMN create_time BIGINT(20) UNSIGNED NOT NULL DEFAULT '0';
   END IF;
 
 END <JOB_UBF>

@@ -205,7 +205,7 @@ public class HostRelationWatchThread extends Thread {
      *
      * @param hostTopoDTO 主机拓扑信息
      */
-    private void updateHostCacheWhenRelDeleted(HostTopoDTO hostTopoDTO) {
+    private void updateHostCacheWhenRelationDeleted(HostTopoDTO hostTopoDTO) {
         ApplicationHostDTO host = applicationHostDAO.getHostById(hostTopoDTO.getHostId());
         if (host == null) {
             return;
@@ -257,7 +257,7 @@ public class HostRelationWatchThread extends Thread {
                 // 同步拓扑数据至主机表冗余字段
                 updateTopoToHost(hostTopoDTO);
                 // 更新主机缓存
-                updateHostCacheWhenRelDeleted(hostTopoDTO);
+                updateHostCacheWhenRelationDeleted(hostTopoDTO);
                 break;
             default:
                 break;
