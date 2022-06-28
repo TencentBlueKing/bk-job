@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.execute.client.ApplicationResourceClient;
 import com.tencent.bk.job.execute.client.SyncResourceClient;
 import com.tencent.bk.job.execute.service.ApplicationService;
@@ -53,24 +52,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public ApplicationDTO getAppById(long appId) {
-        ServiceApplicationDTO returnApp = applicationResourceClient.queryAppById(appId);
-        return ServiceApplicationDTO.toApplicationInfoDTO(returnApp);
+    public ServiceApplicationDTO getAppById(long appId) {
+        return applicationResourceClient.queryAppById(appId);
     }
 
     @Override
-    public ApplicationDTO getAppByScope(String scopeType, String scopeId) {
-        ServiceApplicationDTO returnApp = applicationResourceClient.queryAppByScope(scopeType, scopeId);
-        return ServiceApplicationDTO.toApplicationInfoDTO(returnApp);
-    }
-
-    @Override
-    public List<ApplicationDTO> listAllApps() {
-        List<ServiceApplicationDTO> apps = syncResourceClient.listAllApps();
-        if (apps == null) {
-            return Collections.emptyList();
-        }
-        return apps.stream().map(ServiceApplicationDTO::toApplicationInfoDTO).collect(Collectors.toList());
+    public ServiceApplicationDTO getAppByScope(String scopeType, String scopeId) {
+        return applicationResourceClient.queryAppByScope(scopeType, scopeId);
     }
 
     @Override

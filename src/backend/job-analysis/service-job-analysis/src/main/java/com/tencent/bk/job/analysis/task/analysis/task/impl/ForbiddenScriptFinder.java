@@ -41,7 +41,6 @@ import com.tencent.bk.job.analysis.task.analysis.enums.AnalysisResourceEnum;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultData;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultItem;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -266,7 +265,7 @@ public class ForbiddenScriptFinder extends BaseAnalysisTask {
             List<ServiceApplicationDTO> appInfoList = getAppInfoList();
             AnalysisTaskDTO analysisTask = getAnalysisTask();
             for (ServiceApplicationDTO applicationInfoDTO : appInfoList) {
-                if (applicationInfoDTO.getAppType() != AppTypeEnum.NORMAL.getValue()) {
+                if (!applicationInfoDTO.isBiz()) {
                     continue;
                 }
                 Long appId = applicationInfoDTO.getId();

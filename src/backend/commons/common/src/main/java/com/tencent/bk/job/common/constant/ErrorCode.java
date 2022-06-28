@@ -71,8 +71,6 @@ public class ErrorCode {
     public static final int MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME = 1241007;
     // 错误的业务 ID
     public static final int WRONG_APP_ID = 1241008;
-    // 业务集/全业务需要联系管理员配置
-    public static final int NEED_APP_SET_CONFIG = 1241009;
     // 请求参数[0]不合法，原因：[1]
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON = 1241010;
     // 尚未支持的功能

@@ -26,18 +26,14 @@ package com.tencent.bk.job.manage.model.inner.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -120,11 +116,8 @@ public class ServiceApplicationDTO {
         ApplicationDTO applicationInfo = new ApplicationDTO();
         applicationInfo.setId(serviceAppDTO.getId());
         applicationInfo.setName(serviceAppDTO.getName());
-        applicationInfo.setAppType(AppTypeEnum.valueOf(serviceAppDTO.getAppType()));
         applicationInfo.setScope(new ResourceScope(serviceAppDTO.getScopeType(), serviceAppDTO.getScopeId()));
         applicationInfo.setSubBizIds(serviceAppDTO.getSubBizIds());
-        applicationInfo.setMaintainers(serviceAppDTO.getMaintainers());
-        applicationInfo.setOperateDeptId(serviceAppDTO.getOperateDeptId());
         applicationInfo.setLanguage(serviceAppDTO.getLanguage());
         return applicationInfo;
     }
@@ -143,49 +136,18 @@ public class ServiceApplicationDTO {
         app.setId(appDTO.getId());
         app.setSubBizIds(appDTO.getSubBizIds());
         app.setName(appDTO.getName());
-        app.setAppType(appDTO.getAppType().getValue());
         app.setScopeType(appDTO.getScope().getType().getValue());
         app.setScopeId(appDTO.getScope().getId());
         app.setOwner(appDTO.getBkSupplierAccount());
+        app.setTimeZone(appDTO.getTimeZone());
+        // 暂时保留appType/maintainers/operateDeptId三个参数
+        app.setAppType(appDTO.getAppType().getValue());
         app.setMaintainers(appDTO.getMaintainers());
         app.setOperateDeptId(appDTO.getOperateDeptId());
-        app.setTimeZone(appDTO.getTimeZone());
         return app;
     }
 
-    /**
-     * 将Job业务对象转换为鉴权需要的业务资源对象
-     *
-     * @param serviceAppDTO 业务对象
-     * @return 鉴权需要的业务资源对象
-     */
-    public static ResourceAppInfo toResourceApp(ServiceApplicationDTO serviceAppDTO) {
-        if (serviceAppDTO == null) {
-            return null;
-        } else {
-            ResourceAppInfo resourceAppInfo = new ResourceAppInfo();
-            resourceAppInfo.setAppId(serviceAppDTO.getId());
-            resourceAppInfo.setAppType(AppTypeEnum.valueOf(serviceAppDTO.getAppType()));
-            resourceAppInfo.setScopeType(serviceAppDTO.getScopeType());
-            resourceAppInfo.setScopeId(serviceAppDTO.getScopeId());
-            String maintainerStr = serviceAppDTO.getMaintainers();
-            List<String> maintainerList = new ArrayList<>();
-            if (StringUtils.isNotBlank(maintainerStr)) {
-                String[] maintainers = maintainerStr.split("[,;]");
-                maintainerList.addAll(Arrays.asList(maintainers));
-            }
-            resourceAppInfo.setMaintainerList(maintainerList);
-            return resourceAppInfo;
-        }
-    }
-
-    /**
-     * 将Job通用业务对象转换为鉴权需要的业务资源对象
-     *
-     * @param appDTO Job通用业务对象
-     * @return 鉴权需要的业务资源对象
-     */
-    public static ResourceAppInfo toResourceApp(ApplicationDTO appDTO) {
-        return toResourceApp(fromApplicationDTO(appDTO));
+    public boolean isBiz() {
+        return ResourceScopeTypeEnum.BIZ.getValue().equals(scopeType);
     }
 }

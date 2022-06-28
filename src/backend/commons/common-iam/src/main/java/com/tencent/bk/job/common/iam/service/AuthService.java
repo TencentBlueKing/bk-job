@@ -41,8 +41,6 @@ import java.util.List;
  */
 public interface AuthService {
 
-    void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService);
-
     void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService);
 
     /**
@@ -69,16 +67,6 @@ public interface AuthService {
                     ResourceTypeEnum resourceType,
                     String resourceId,
                     PathInfoDTO pathInfo);
-
-    /**
-     * 业务集/全业务鉴权
-     *
-     * @param username     用户名
-     * @param resourceType 资源类型
-     * @param resourceId   资源ID
-     * @return 鉴权结果
-     */
-    boolean isMaintainerOfResource(String username, ResourceTypeEnum resourceType, String resourceId);
 
     /**
      * 多个操作鉴权

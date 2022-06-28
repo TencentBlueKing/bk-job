@@ -39,6 +39,8 @@ import java.util.List;
  */
 public interface ApplicationDAO {
 
+    boolean existBiz(long bizId);
+
     ApplicationDTO getAppById(long appId);
 
     List<Long> getBizIdsByOptDeptId(Long optDeptId);

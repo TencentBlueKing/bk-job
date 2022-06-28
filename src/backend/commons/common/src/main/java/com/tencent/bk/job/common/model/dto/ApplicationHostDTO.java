@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -142,6 +143,13 @@ public class ApplicationHostDTO {
             return moduleType.stream().map(Object::toString).collect(Collectors.joining(","));
         }
         return null;
+    }
+
+    public int getAgentStatusValue() {
+        if (gseAgentAlive == null || !gseAgentAlive) {
+            return JobConstants.GSE_AGENT_STATUS_VALUE_NOT_ALIVE;
+        }
+        return JobConstants.GSE_AGENT_STATUS_VALUE_ALIVE;
     }
 
 }

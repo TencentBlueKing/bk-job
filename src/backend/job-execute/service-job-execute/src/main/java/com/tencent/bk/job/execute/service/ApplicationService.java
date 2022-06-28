@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ public interface ApplicationService {
      * @param appId Job业务ID
      * @return Job业务对象
      */
-    ApplicationDTO getAppById(long appId);
+    ServiceApplicationDTO getAppById(long appId);
 
     /**
      * 根据业务范围获取业务信息
@@ -47,14 +47,7 @@ public interface ApplicationService {
      * @param scopeId   资源范围Id
      * @return Job业务对象
      */
-    ApplicationDTO getAppByScope(String scopeType, String scopeId);
-
-    /**
-     * 获取所有的业务
-     *
-     * @return 所有的业务列表
-     */
-    List<ApplicationDTO> listAllApps();
+    ServiceApplicationDTO getAppByScope(String scopeType, String scopeId);
 
     List<Long> listAllAppIds();
 }

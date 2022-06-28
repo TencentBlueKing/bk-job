@@ -174,7 +174,7 @@ public interface HostService {
                                   List<String> checkIpList);
 
     List<HostInfoVO> listHostByAppTopologyNodes(String username,
-                                                Long bizId,
+                                                Long appId,
                                                 List<AppTopologyTreeNode> appTopoNodeList);
 
     AgentStatistics getAgentStatistics(String username,
