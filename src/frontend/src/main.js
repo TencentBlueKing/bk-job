@@ -69,7 +69,7 @@ window.routerFlashBack = false;
  * 老版 URL 格式： /${APP_ID}/execute/step/${TASK_ID}，
  * 解析 TASK_ID 拼接 api_execute/TASK_ID 跳转
  */
-const oldExecute = window.location.pathname.match(/\/\d+\/execute\/step\/(\d+)/);
+const oldExecute = window.location.pathname.match(/^\/\d+\/execute\/step\/(\d+)/);
 if (oldExecute) {
     window.location.href = `/api_execute/${oldExecute[1]}`;
 }
