@@ -40,6 +40,14 @@ import java.util.Map;
 public interface ApplicationService {
 
     /**
+     * 判断业务是否存在
+     *
+     * @param bizId 业务ID
+     * @return 是否存在
+     */
+    boolean existBiz(long bizId);
+
+    /**
      * 根据资源范围获取Job业务ID
      *
      * @param resourceScope 资源范围

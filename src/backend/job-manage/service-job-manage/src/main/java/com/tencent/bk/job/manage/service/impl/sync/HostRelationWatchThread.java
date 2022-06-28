@@ -41,11 +41,12 @@ import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
-import com.tencent.bk.job.manage.service.SyncService;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
-import org.jooq.exception.DataAccessException;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
@@ -76,10 +77,10 @@ public class HostRelationWatchThread extends Thread {
     }
 
     private final DSLContext dslContext;
+    private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
     private final RedisTemplate<String, String> redisTemplate;
-    private final SyncService syncService;
     private final List<AppHostRelationEventsHandler> eventsHandlerList;
     private final HostCache hostCache;
 
@@ -91,16 +92,16 @@ public class HostRelationWatchThread extends Thread {
         "-job-running-machine";
 
     public HostRelationWatchThread(DSLContext dslContext,
+                                   ApplicationService applicationService,
                                    ApplicationHostDAO applicationHostDAO,
                                    HostTopoDAO hostTopoDAO,
                                    RedisTemplate<String, String> redisTemplate,
-                                   SyncService syncService,
                                    HostCache hostCache) {
         this.dslContext = dslContext;
+        this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.redisTemplate = redisTemplate;
-        this.syncService = syncService;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostRelationWatchThread-" + instanceNum.getAndIncrement());
         this.eventsHandlerList = new ArrayList<>();
@@ -168,67 +169,95 @@ public class HostRelationWatchThread extends Thread {
         }
     }
 
+    /**
+     * 将主机拓扑表中的拓扑数据同步至主机表
+     *
+     * @param hostTopoDTO 主机拓扑信息
+     */
+    private void updateTopoToHost(HostTopoDTO hostTopoDTO) {
+        // 若主机存在需将拓扑信息同步至主机信息冗余字段
+        long affectedNum = applicationHostDAO.syncHostTopo(dslContext, hostTopoDTO.getHostId());
+        if (affectedNum == 0) {
+            log.info("no host topo synced");
+        } else if (affectedNum < 0) {
+            FormattingTuple msg = MessageFormatter.format(
+                "cannot find hostInfo by hostId:{}, wait for host event or sync",
+                hostTopoDTO.getHostId()
+            );
+            log.warn(msg.getMessage());
+        }
+    }
+
+    /**
+     * 当主机关系被创建时，更新缓存中的主机信息
+     *
+     * @param hostTopoDTO 主机拓扑信息
+     */
+    private void updateHostCacheWhenRelCreated(HostTopoDTO hostTopoDTO) {
+        ApplicationHostDTO host = applicationHostDAO.getHostById(hostTopoDTO.getHostId());
+        if (host != null && applicationService.existBiz(host.getBizId())) {
+            hostCache.addOrUpdateHost(host);
+        }
+    }
+
+    /**
+     * 当主机关系被删除时，更新缓存中的主机信息
+     *
+     * @param hostTopoDTO 主机拓扑信息
+     */
+    private void updateHostCacheWhenRelationDeleted(HostTopoDTO hostTopoDTO) {
+        ApplicationHostDTO host = applicationHostDAO.getHostById(hostTopoDTO.getHostId());
+        if (host == null) {
+            return;
+        }
+        int curAppRelationCount = hostTopoDAO.countHostTopo(
+            dslContext, hostTopoDTO.getBizId(), hostTopoDTO.getHostId()
+        );
+        int hostRelationCount = hostTopoDAO.countHostTopo(
+            dslContext, null, hostTopoDTO.getHostId()
+        );
+        if (curAppRelationCount != 0) {
+            return;
+        }
+        if (hostRelationCount == 0) {
+            // 主机被移除
+            hostCache.deleteHost(host);
+        } else {
+            // 主机被转移到其他业务下
+            if (applicationService.existBiz(host.getBizId())) {
+                hostCache.addOrUpdateHost(host);
+            }
+        }
+    }
+
     private void handleOneEventIndeed(ResourceEvent<HostRelationEventDetail> event) {
         String eventType = event.getEventType();
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
-        ApplicationHostDTO host;
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
-                // 尝试插入
-                try {
-                    hostTopoDAO.insertHostTopo(dslContext, hostTopoDTO);
-                } catch (DataAccessException e) {
-                    String errorMessage = e.getMessage();
-                    if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
-                        // 若已存在则忽略
-                    } else {
-                        log.error("insertHostTopo fail:hostTopoInfo=" + hostTopoDTO, e);
-                    }
-                }
-                // 若主机存在需将拓扑信息同步至主机信息冗余字段
-                long affectedNum = applicationHostDAO.syncHostTopo(dslContext, hostTopoDTO.getHostId());
-                if (affectedNum == 0) {
-                    log.info("no hosts synced topo");
-                } else if (affectedNum < 0) {
-                    log.warn("cannot find hostInfo by hostId:{}, trigger extra sync of appId:{}",
-                        hostTopoDTO.getHostId(), hostTopoDTO.getBizId());
-                    // 转出业务的主机删除先被同步到了导致主机信息缺失，立即触发转入业务主机同步，避免一个同步周期的等待
-                    boolean result = syncService.addExtraSyncBizHostsTask(hostTopoDTO.getBizId());
-                    if (!result) {
-                        log.warn("Fail to trigger extra sync of appId:{}", hostTopoDTO.getBizId());
-                    }
-                }
-                host = applicationHostDAO.getHostById(hostTopoDTO.getHostId());
-                if (host != null) {
-                    hostCache.addOrUpdateHost(host);
-                }
+                // 插入拓扑数据
+                hostTopoDAO.insertHostTopo(dslContext, hostTopoDTO);
+                // 同步拓扑数据至主机表冗余字段
+                updateTopoToHost(hostTopoDTO);
+                // 更新主机缓存
+                updateHostCacheWhenRelCreated(hostTopoDTO);
                 break;
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 log.warn("Unexpected event:hostRelation Update");
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                // 删除
-                hostTopoDAO.deleteHostTopo(dslContext, hostTopoDTO.getHostId(), hostTopoDTO.getBizId(),
-                    hostTopoDTO.getSetId(), hostTopoDTO.getModuleId());
-                host = applicationHostDAO.getHostById(hostTopoDTO.getHostId());
-                if (host == null) {
-                    return;
-                }
-                int curAppRelationCount = hostTopoDAO.countHostTopo(
-                    dslContext, hostTopoDTO.getBizId(), hostTopoDTO.getHostId()
+                // 删除拓扑数据
+                hostTopoDAO.deleteHostTopo(
+                    dslContext,
+                    hostTopoDTO.getHostId(),
+                    hostTopoDTO.getBizId(),
+                    hostTopoDTO.getSetId(),
+                    hostTopoDTO.getModuleId()
                 );
-                int hostRelationCount = hostTopoDAO.countHostTopo(
-                    dslContext, null, hostTopoDTO.getHostId()
-                );
-                if (curAppRelationCount == 0) {
-                    if (hostRelationCount == 0) {
-                        // 主机被移除
-                        hostCache.deleteHost(host);
-                    } else {
-                        // 主机被转移到其他业务下
-                        hostCache.addOrUpdateHost(host);
-                    }
-                }
+                // 同步拓扑数据至主机表冗余字段
+                updateTopoToHost(hostTopoDTO);
+                // 更新主机缓存
+                updateHostCacheWhenRelationDeleted(hostTopoDTO);
                 break;
             default:
                 break;
