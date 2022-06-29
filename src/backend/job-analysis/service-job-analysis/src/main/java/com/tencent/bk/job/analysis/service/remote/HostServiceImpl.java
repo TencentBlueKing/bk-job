@@ -49,26 +49,20 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<ServiceHostStatusDTO> getHostStatusByNode(String username,
-                                                          Long appId,
-                                                          List<AppTopologyTreeNode> treeNodeList) {
-        return hostResourceClient.getHostStatusByNode(appId, username,
-            new ServiceGetHostStatusByNodeReq(treeNodeList)).getData();
+    public List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<AppTopologyTreeNode> treeNodeList) {
+        return hostResourceClient.getHostStatusByNode(appId, new ServiceGetHostStatusByNodeReq(treeNodeList)).getData();
     }
 
     @Override
-    public List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(String username,
-                                                                  Long appId,
-                                                                  List<String> dynamicGroupIdList) {
-        return hostResourceClient.getHostStatusByDynamicGroup(appId, username,
+    public List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(Long appId, List<String> dynamicGroupIdList) {
+        return hostResourceClient.getHostStatusByDynamicGroup(appId,
             new ServiceGetHostStatusByDynamicGroupReq(dynamicGroupIdList)).getData();
     }
 
     @Override
-    public List<ServiceHostStatusDTO> getHostStatusByHost(String username,
-                                                        Long appId,
-                                                        List<HostDTO> hostList) {
-        return hostResourceClient.getHostStatusByHost(appId, username,
+    public List<ServiceHostStatusDTO> getHostStatusByHost(Long appId,
+                                                          List<HostDTO> hostList) {
+        return hostResourceClient.getHostStatusByHost(appId,
             new ServiceGetHostStatusByHostReq(hostList)).getData();
     }
 }

@@ -104,7 +104,6 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
     }
 
     private void analysisOnePlan(Long appId,
-                                 String finalUsername,
                                  Long templateId,
                                  Long taskPlanId,
                                  List<AbnormalTargetPlanInfo> abnormalPlanList) {
@@ -132,7 +131,6 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                     findAgentAbnormalInTaskHostNodeVO(
                         abnormalPlanList,
                         taskHostNodeDTO,
-                        finalUsername,
                         appId,
                         "" + taskPlanInfoDTO.getTaskTemplateId()
                             + "," + taskPlanInfoDTO.getId(),
@@ -157,7 +155,6 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
     }
 
     private void analysisOneTemplate(Long appId,
-                                     String finalUsername,
                                      ServiceTaskTemplateDTO templateBasicInfo,
                                      List<AbnormalTargetPlanInfo> abnormalPlanList,
                                      Counter templateCounter,
@@ -177,7 +174,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
             }
             //遍历作业模板中的执行方案
             for (Long taskPlanId : taskPlanIdList) {
-                analysisOnePlan(appId, finalUsername, templateBasicInfo.getId(), taskPlanId, abnormalPlanList);
+                analysisOnePlan(appId, templateBasicInfo.getId(), taskPlanId, abnormalPlanList);
             }
         } catch (Throwable t) {
             log.warn(String.format(
@@ -218,11 +215,6 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
             log.info("taskId:" + id);
             analysisTaskInstanceDTO.setId(id);
             List<AbnormalTargetPlanInfo> abnormalPlanList = new ArrayList<>();
-            //业务运维身份信息
-            String username = applicationInfoDTO.getMaintainers();
-            if (username.contains(";")) {
-                username = username.split(";")[0];
-            }
             //1.拿到所有作业模板
             ServiceTaskTemplateDTO taskTemplateCondition = new ServiceTaskTemplateDTO();
             taskTemplateCondition.setAppId(appId);
@@ -233,12 +225,10 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                 templateService.listPageTaskTemplates(appId, baseSearchCondition);
             List<ServiceTaskTemplateDTO> templateList = taskTemplateInfoDTOPageData.getData();
             //2.遍历所有作业模板
-            String finalUsername = username;
             Counter templateCounter = new Counter();
             for (ServiceTaskTemplateDTO templateBasicInfo : templateList) {
                 analysisOneTemplate(
                     appId,
-                    finalUsername,
                     templateBasicInfo,
                     abnormalPlanList,
                     templateCounter,
@@ -300,14 +290,14 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
     }
 
     private void findAgentAbnormalInTaskHostNodeVO(List<AbnormalTargetPlanInfo> abnormalTargetPlanInfoList,
-                                                   ServiceTaskHostNodeDTO serviceTaskHostNodeDTO, String username,
+                                                   ServiceTaskHostNodeDTO serviceTaskHostNodeDTO,
                                                    Long appId, String locationContent, String instanceName,
                                                    String scope, String scopeName, String description) {
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
         //（1）目标节点
         List<ServiceTaskNodeInfoDTO> targetNodeVOList = serviceTaskHostNodeDTO.getNodeInfoList();
         if (targetNodeVOList != null && !targetNodeVOList.isEmpty()) {
-            hostStatusDTOList.addAll(hostService.getHostStatusByNode(username, appId,
+            hostStatusDTOList.addAll(hostService.getHostStatusByNode(appId,
                 targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                     it.getType(),
                     "",
@@ -328,8 +318,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         //找到动态分组对应的所有主机
         List<String> dynamicGroupIdList = serviceTaskHostNodeDTO.getDynamicGroupId();
         if (dynamicGroupIdList != null && !dynamicGroupIdList.isEmpty()) {
-            hostStatusDTOList.addAll(hostService.getHostStatusByDynamicGroup(username, appId,
-                dynamicGroupIdList));
+            hostStatusDTOList.addAll(hostService.getHostStatusByDynamicGroup(appId, dynamicGroupIdList));
         }
         //找到目标节点对应的所有主机//主机异常
         for (ServiceHostStatusDTO hostStatusDTO : hostStatusDTOList) {
@@ -350,7 +339,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
             )
         ).collect(Collectors.toList());
         List<ServiceHostStatusDTO> hostStatusDTOListByHost =
-            hostService.getHostStatusByHost(username, appId, hostList);
+            hostService.getHostStatusByHost(appId, hostList);
         Map<Long, ServiceHostStatusDTO> hostIdMap = new HashMap<>();
         Map<String, ServiceHostStatusDTO> cloudIpMap = new HashMap<>();
         hostStatusDTOListByHost.forEach(hostStatusDTO -> {

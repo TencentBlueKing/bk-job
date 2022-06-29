@@ -412,7 +412,7 @@ bkNodemanUrl: "http://nodeman.example.com"
 bkGseApiGatewayUrl: "http://bkapi.example.com"
 
 domain:
-  bkDomain: 
+  bkDomain:
 
 ## 蓝鲸GSE参数配置
 gse:

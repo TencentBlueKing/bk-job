@@ -45,6 +45,8 @@ import org.jooq.SortField;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.Account;
+import org.jooq.generated.tables.TaskTemplate;
+import org.jooq.generated.tables.TaskTemplateStep;
 import org.jooq.generated.tables.TaskTemplateStepFile;
 import org.jooq.generated.tables.TaskTemplateStepFileList;
 import org.jooq.generated.tables.TaskTemplateStepScript;
@@ -487,10 +489,17 @@ public class AccountDAOImpl implements AccountDAO {
 
     @Override
     public boolean isAccountRefByAnyScriptStep(Long accountId) {
-        TaskTemplateStepScript tb = TaskTemplateStepScript.TASK_TEMPLATE_STEP_SCRIPT;
-        Record record = ctx.select(tb.STEP_ID)
-            .from(tb)
-            .where(tb.EXECUTE_ACCOUNT.eq(ULong.valueOf(accountId)))
+        TaskTemplateStepScript tbStepScript = TaskTemplateStepScript.TASK_TEMPLATE_STEP_SCRIPT;
+        TaskTemplateStep tbStep = TaskTemplateStep.TASK_TEMPLATE_STEP;
+        TaskTemplate tbTemplate = TaskTemplate.TASK_TEMPLATE;
+        Record record = ctx.select(tbStepScript.STEP_ID)
+            .from(tbStepScript)
+            .join(tbStep)
+            .on(tbStepScript.STEP_ID.eq(tbStep.ID))
+            .join(tbTemplate)
+            .on(tbStep.TEMPLATE_ID.eq(tbTemplate.ID))
+            .where(tbStepScript.EXECUTE_ACCOUNT.eq(ULong.valueOf(accountId)))
+            .and(tbTemplate.IS_DELETED.eq(UByte.valueOf(0)))
             .limit(1)
             .fetchOne();
         return record != null;
@@ -498,10 +507,17 @@ public class AccountDAOImpl implements AccountDAO {
 
     @Override
     public boolean isAccountRefByAnyFileStep(Long accountId) {
-        TaskTemplateStepFile tb = TaskTemplateStepFile.TASK_TEMPLATE_STEP_FILE;
-        Record record = ctx.select(tb.STEP_ID)
-            .from(tb)
-            .where(tb.EXECUTE_ACCOUNT.eq(ULong.valueOf(accountId)))
+        TaskTemplateStepFile tbStepFile = TaskTemplateStepFile.TASK_TEMPLATE_STEP_FILE;
+        TaskTemplateStep tbStep = TaskTemplateStep.TASK_TEMPLATE_STEP;
+        TaskTemplate tbTemplate = TaskTemplate.TASK_TEMPLATE;
+        Record record = ctx.select(tbStepFile.STEP_ID)
+            .from(tbStepFile)
+            .join(tbStep)
+            .on(tbStepFile.STEP_ID.eq(tbStep.ID))
+            .join(tbTemplate)
+            .on(tbStep.TEMPLATE_ID.eq(tbTemplate.ID))
+            .where(tbStepFile.EXECUTE_ACCOUNT.eq(ULong.valueOf(accountId)))
+            .and(tbTemplate.IS_DELETED.eq(UByte.valueOf(0)))
             .limit(1)
             .fetchOne();
         return record != null;
@@ -509,10 +525,17 @@ public class AccountDAOImpl implements AccountDAO {
 
     @Override
     public boolean isAccountRefByAnySourceFile(Long accountId) {
-        TaskTemplateStepFileList tb = TaskTemplateStepFileList.TASK_TEMPLATE_STEP_FILE_LIST;
-        Record record = ctx.select(tb.STEP_ID)
-            .from(tb)
-            .where(tb.HOST_ACCOUNT.eq(ULong.valueOf(accountId)))
+        TaskTemplateStepFileList tbStepFileList = TaskTemplateStepFileList.TASK_TEMPLATE_STEP_FILE_LIST;
+        TaskTemplateStep tbStep = TaskTemplateStep.TASK_TEMPLATE_STEP;
+        TaskTemplate tbTemplate = TaskTemplate.TASK_TEMPLATE;
+        Record record = ctx.select(tbStepFileList.STEP_ID)
+            .from(tbStepFileList)
+            .join(tbStep)
+            .on(tbStepFileList.STEP_ID.eq(tbStep.ID))
+            .join(tbTemplate)
+            .on(tbStep.TEMPLATE_ID.eq(tbTemplate.ID))
+            .where(tbStepFileList.HOST_ACCOUNT.eq(ULong.valueOf(accountId)))
+            .and(tbTemplate.IS_DELETED.eq(UByte.valueOf(0)))
             .limit(1)
             .fetchOne();
         return record != null;

@@ -30,9 +30,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
-import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.model.permission.PermissionResourceVO;
@@ -51,20 +49,11 @@ import java.util.StringJoiner;
 public class WebAuthServiceImpl implements WebAuthService {
     private final MessageI18nService i18nService;
     private final AuthService authService;
-    private final AppAuthService appAuthService;
 
     @Autowired
-    public WebAuthServiceImpl(MessageI18nService i18nService, AuthService authService,
-                              AppAuthService appAuthService) {
+    public WebAuthServiceImpl(MessageI18nService i18nService, AuthService authService) {
         this.i18nService = i18nService;
         this.authService = authService;
-        this.appAuthService = appAuthService;
-    }
-
-    @Override
-    public void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService) {
-        this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
-        this.appAuthService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
     }
 
     @Override

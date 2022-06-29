@@ -79,7 +79,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             ULong.valueOf(hostTopoDTO.getBizId()),
             hostTopoDTO.getSetId(),
             hostTopoDTO.getModuleId()
-        );
+        ).onDuplicateKeyIgnore();
         return query.execute();
     }
 

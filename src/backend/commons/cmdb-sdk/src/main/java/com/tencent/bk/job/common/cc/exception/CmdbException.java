@@ -22,36 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.iam.model;
+package com.tencent.bk.job.common.cc.exception;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import lombok.Data;
+import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.model.error.ErrorType;
 
-import java.util.List;
+public class CmdbException extends ServiceException {
 
-/**
- * 资源所在业务信息
- */
-@Data
-public class ResourceAppInfo {
-    /**
-     * 业务Id
-     */
-    private Long appId;
-    /**
-     * 业务类型
-     */
-    private AppTypeEnum appType;
-    /**
-     * 资源范围类型
-     */
-    private String scopeType;
-    /**
-     * 资源范围ID
-     */
-    private String scopeId;
-    /**
-     * 运维人员
-     */
-    private List<String> maintainerList;
+    public CmdbException(ErrorType errorType, Integer errorCode, Object[] errorParams) {
+        super(errorType, errorCode, errorParams);
+    }
+
 }
