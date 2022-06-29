@@ -49,10 +49,7 @@ public class JobExecuteCommonV3Processor {
             return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "target_server");
         }
 
-        if (CollectionUtils.isEmpty(server.getHostIds())
-            && CollectionUtils.isEmpty(server.getIps())
-            && CollectionUtils.isEmpty(server.getTopoNodes())
-            && CollectionUtils.isEmpty(server.getDynamicGroups())) {
+        if (server.isHostParamsEmpty()) {
             return ValidateResult.fail(ErrorCode.SERVER_EMPTY);
         }
         return ValidateResult.pass();
