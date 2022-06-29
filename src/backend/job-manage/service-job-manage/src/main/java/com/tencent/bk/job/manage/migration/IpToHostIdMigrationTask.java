@@ -66,14 +66,22 @@ public class IpToHostIdMigrationTask {
     private final HostService hostService;
     private final Map<String, Long> ipAndHostIpMap = new HashMap<>();
 
-    public IpToHostIdMigrationTask(@Qualifier("TaskTemplateVariableDAOImpl") TaskVariableDAO taskTemplateVariableDAO,
-                                   @Qualifier("TaskPlanVariableDAOImpl") TaskVariableDAO taskPlanVariableDAO,
-                                   @Qualifier("TaskTemplateScriptStepDAOImpl") TaskScriptStepDAO taskTemplateScriptStepDAO,
-                                   @Qualifier("TaskPlanScriptStepDAOImpl") TaskScriptStepDAO taskPlanScriptStepDAO,
-                                   @Qualifier("TaskTemplateFileStepDAOImpl") TaskFileStepDAO taskTemplateFileStepDAO,
-                                   @Qualifier("TaskPlanFileStepDAOImpl") TaskFileStepDAO taskPlanFileStepDAO,
-                                   @Qualifier("TaskTemplateFileInfoDAOImpl") TaskFileInfoDAO taskTemplateFileInfoDAO,
-                                   @Qualifier("TaskPlanFileInfoDAOImpl") TaskFileInfoDAO taskPlanFileInfoDAO,
+    public IpToHostIdMigrationTask(@Qualifier("TaskTemplateVariableDAOImpl")
+                                       TaskVariableDAO taskTemplateVariableDAO,
+                                   @Qualifier("TaskPlanVariableDAOImpl")
+                                       TaskVariableDAO taskPlanVariableDAO,
+                                   @Qualifier("TaskTemplateScriptStepDAOImpl")
+                                       TaskScriptStepDAO taskTemplateScriptStepDAO,
+                                   @Qualifier("TaskPlanScriptStepDAOImpl")
+                                       TaskScriptStepDAO taskPlanScriptStepDAO,
+                                   @Qualifier("TaskTemplateFileStepDAOImpl")
+                                       TaskFileStepDAO taskTemplateFileStepDAO,
+                                   @Qualifier("TaskPlanFileStepDAOImpl")
+                                       TaskFileStepDAO taskPlanFileStepDAO,
+                                   @Qualifier("TaskTemplateFileInfoDAOImpl")
+                                       TaskFileInfoDAO taskTemplateFileInfoDAO,
+                                   @Qualifier("TaskPlanFileInfoDAOImpl")
+                                       TaskFileInfoDAO taskPlanFileInfoDAO,
                                    @Autowired HostService hostService) {
         this.taskTemplateVariableDAO = taskTemplateVariableDAO;
         this.taskPlanVariableDAO = taskPlanVariableDAO;
@@ -109,7 +117,7 @@ public class IpToHostIdMigrationTask {
     private void migrateTemplateHostVariable() {
         log.info("Begin to migrate template host variable ...");
 
-        StopWatch watch = new StopWatch("migrateTemplateHostVariable");
+        StopWatch watch = new StopWatch("migrateHostVariable");
         watch.start("listHostVariables");
         List<TaskVariableDTO> taskVariables = taskTemplateVariableDAO.listHostVariables();
         if (CollectionUtils.isEmpty(taskVariables)) {
