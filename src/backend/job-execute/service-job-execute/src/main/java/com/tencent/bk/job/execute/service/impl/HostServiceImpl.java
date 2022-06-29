@@ -194,7 +194,7 @@ public class HostServiceImpl implements HostService {
         try {
             ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
             List<CcGroupHostPropDTO> cmdbGroupHostList =
-                bizCmdbClient.getCustomGroupIp(Long.parseLong(resourceScope.getId()), groupId);
+                bizCmdbClient.getDynamicGroupIp(Long.parseLong(resourceScope.getId()), groupId);
             List<IpDTO> ips = new ArrayList<>();
             if (cmdbGroupHostList == null || cmdbGroupHostList.isEmpty()) {
                 return ips;
