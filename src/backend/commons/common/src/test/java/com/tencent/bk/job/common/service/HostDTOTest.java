@@ -22,33 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.auth;
+package com.tencent.bk.job.common.service;
 
-import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import org.junit.jupiter.api.Test;
 
-@Slf4j
-@Component
-@Lazy(false)
-public class ResourceServiceRegister implements InitializingBean {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private ResourceAppInfoQueryService resourceAppInfoQueryService;
-    private WebAuthService authService;
+public class HostDTOTest {
 
-    @Autowired
-    public ResourceServiceRegister(ResourceAppInfoQueryService resourceAppInfoQueryService,
-                                   WebAuthService authService) {
-        this.resourceAppInfoQueryService = resourceAppInfoQueryService;
-        this.authService = authService;
-    }
-
-    @Override
-    public void afterPropertiesSet() {
-        this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
+    @Test
+    void testGetDescription() {
+        HostDTO host = new HostDTO();
+        assertThat(host.getHostIdAndIpDescription()).isEqualTo(
+            "(hostId=null,cloudIp=null:null)"
+        );
+        host.setHostId(1L);
+        assertThat(host.getHostIdAndIpDescription()).isEqualTo(
+            "(hostId=1,cloudIp=null:null)"
+        );
+        host.setBkCloudId(0L);
+        host.setIp("192.168.1.1");
+        assertThat(host.getHostIdAndIpDescription()).isEqualTo(
+            "(hostId=1,cloudIp=0:192.168.1.1)"
+        );
+        host.setHostId(null);
+        assertThat(host.getHostIdAndIpDescription()).isEqualTo(
+            "(hostId=null,cloudIp=0:192.168.1.1)"
+        );
     }
 }

@@ -35,8 +35,6 @@ import java.util.List;
  */
 public interface WebAuthService {
 
-    void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService);
-
     /**
      * 多个操作鉴权
      *

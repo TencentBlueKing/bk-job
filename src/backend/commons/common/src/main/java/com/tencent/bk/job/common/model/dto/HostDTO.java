@@ -253,4 +253,8 @@ public class HostDTO implements Cloneable {
             return toCloudIp();
         }
     }
+
+    public String getHostIdAndIpDescription() {
+        return "(hostId=" + hostId + ",cloudIp=" + toCloudIp() + ")";
+    }
 }
