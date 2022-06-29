@@ -58,7 +58,6 @@ import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.common.convert.HostConverter;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
-import com.tencent.bk.job.manage.manager.app.BizOperateDeptLocalCache;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.model.db.CacheHostDO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
@@ -108,7 +107,6 @@ public class HostServiceImpl implements HostService {
     private final AgentStatusService agentStatusService;
     private final WhiteIPService whiteIPService;
     private final HostCache hostCache;
-    private final BizOperateDeptLocalCache bizOperateDeptLocalCache;
     private final MessageI18nService i18nService;
     private final HostConverter hostConverter;
 
@@ -122,7 +120,6 @@ public class HostServiceImpl implements HostService {
                            AgentStatusService agentStatusService,
                            WhiteIPService whiteIPService,
                            HostCache hostCache,
-                           BizOperateDeptLocalCache bizOperateDeptLocalCache,
                            MessageI18nService i18nService,
                            HostConverter hostConverter) {
         this.dslContext = dslContext;
@@ -134,7 +131,6 @@ public class HostServiceImpl implements HostService {
         this.agentStatusService = agentStatusService;
         this.whiteIPService = whiteIPService;
         this.hostCache = hostCache;
-        this.bizOperateDeptLocalCache = bizOperateDeptLocalCache;
         this.i18nService = i18nService;
         this.hostConverter = hostConverter;
     }
@@ -488,7 +484,7 @@ public class HostServiceImpl implements HostService {
                 }
                 List<CcGroupHostPropDTO> ccGroupHostProps =
                     CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-                        .getCustomGroupIp(groupBizId, customerGroupId);
+                        .getDynamicGroupIp(groupBizId, customerGroupId);
                 List<String> cloudIpList = new ArrayList<>();
                 for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
                     if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
@@ -1004,7 +1000,7 @@ public class HostServiceImpl implements HostService {
                                            Map<Long, List<String>> bizId2GroupIdMap) {
         List<String> groupIdList = new ArrayList<>();
         List<CcGroupDTO> ccGroupList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-            .getCustomGroupList(bizId);
+            .getDynamicGroupList(bizId);
         ccGroupList.forEach(ccGroupDTO -> {
             ccGroupInfoList.put(ccGroupDTO.getId(), ccGroupDTO.toDynamicGroupInfo());
             groupIdList.add(ccGroupDTO.getId());
@@ -1274,9 +1270,6 @@ public class HostServiceImpl implements HostService {
         } else if (application.isBizSet()) {
             if (application.getSubBizIds() != null) {
                 bizIdList.addAll(application.getSubBizIds());
-            } else if (application.getOperateDeptId() != null) {
-                // 兼容老的业务集设计，等业务集全部迁移到cmdb之后需要删除对于OperateDeptId的逻辑
-                bizIdList.addAll(bizOperateDeptLocalCache.getBizIdsWithDeptId(application.getOperateDeptId()));
             }
         }
         return bizIdList;

@@ -40,6 +40,14 @@ import java.util.Map;
 public interface ApplicationService {
 
     /**
+     * 判断业务是否存在
+     *
+     * @param bizId 业务ID
+     * @return 是否存在
+     */
+    boolean existBiz(long bizId);
+
+    /**
      * 根据资源范围获取Job业务ID
      *
      * @param resourceScope 资源范围
@@ -156,15 +164,6 @@ public interface ApplicationService {
      * @return 业务ID
      */
     Long createApp(ApplicationDTO application);
-
-    /**
-     * 创建业务-指定业务ID
-     *
-     * @param application 业务
-     * @return 业务ID
-     */
-    @CompatibleImplementation(explain = "兼容方法，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    Long createAppWithSpecifiedAppId(ApplicationDTO application);
 
     /**
      * 获取Job业务数量

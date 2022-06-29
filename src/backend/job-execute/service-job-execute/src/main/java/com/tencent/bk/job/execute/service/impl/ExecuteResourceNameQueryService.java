@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.client.TaskTemplateResourceClient;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -37,6 +36,7 @@ import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +112,7 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
     }
 
     private String getAppName(Long appId) {
-        ApplicationDTO applicationInfo = applicationService.getAppById(appId);
+        ServiceApplicationDTO applicationInfo = applicationService.getAppById(appId);
         if (applicationInfo != null) {
             if (StringUtils.isNotBlank(applicationInfo.getName())) {
                 return applicationInfo.getName();

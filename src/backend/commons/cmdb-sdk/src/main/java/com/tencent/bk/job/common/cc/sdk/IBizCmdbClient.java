@@ -120,16 +120,16 @@ public interface IBizCmdbClient {
      * @param bizId cmdb业务ID
      * @return 动态分组
      */
-    List<CcGroupDTO> getCustomGroupList(long bizId);
+    List<CcGroupDTO> getDynamicGroupList(long bizId);
 
     /**
-     * 获取自定义分组下面的主机
+     * 获取动态分组下面的主机
      *
      * @param bizId   cmdb业务ID
      * @param groupId 动态分组ID
-     * @return 自定义分组下的主机
+     * @return 动态分组下的主机
      */
-    List<CcGroupHostPropDTO> getCustomGroupIp(long bizId, String groupId);
+    List<CcGroupHostPropDTO> getDynamicGroupIp(long bizId, String groupId);
 
     /**
      * 获取云区域

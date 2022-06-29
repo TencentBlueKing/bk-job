@@ -74,9 +74,6 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
         app.setName(appInfo.getName());
         app.setId(appInfo.getId());
         app.setOwner(appInfo.getBkSupplierAccount());
-        app.setAppType(appInfo.getAppType().getValue());
-        app.setSubBizIds(appInfo.getSubBizIds());
-        app.setOperateDeptId(appInfo.getOperateDeptId());
         app.setTimeZone(appInfo.getTimeZone());
         return app;
     }

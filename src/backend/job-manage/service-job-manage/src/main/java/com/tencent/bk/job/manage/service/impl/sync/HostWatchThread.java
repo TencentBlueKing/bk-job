@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
@@ -72,6 +73,7 @@ public class HostWatchThread extends Thread {
     }
 
     private final DSLContext dslContext;
+    private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final AgentStateClient agentStateClient;
     private final RedisTemplate<String, String> redisTemplate;
@@ -83,11 +85,13 @@ public class HostWatchThread extends Thread {
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
 
     public HostWatchThread(DSLContext dslContext,
+                           ApplicationService applicationService,
                            ApplicationHostDAO applicationHostDAO,
                            AgentStateClient agentStateClient,
                            RedisTemplate<String, String> redisTemplate,
                            HostCache hostCache) {
         this.dslContext = dslContext;
+        this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.agentStateClient = agentStateClient;
         this.redisTemplate = redisTemplate;
@@ -193,14 +197,8 @@ public class HostWatchThread extends Thread {
                 hostInfoDTO.setGseAgentAlive(agentStateClient.getAgentAliveStatus(hostInfoDTO.getFinalAgentId()));
                 try {
                     if (applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO.getHostId())) {
-                        ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostInfoDTO.getHostId());
-                        // 不变化的字段需要原样保留
-                        hostInfoDTO.setBizId(oldHostInfoDTO.getBizId());
-                        hostInfoDTO.setSetId(oldHostInfoDTO.getSetId());
-                        hostInfoDTO.setModuleId(oldHostInfoDTO.getModuleId());
-                        hostInfoDTO.setModuleType(oldHostInfoDTO.getModuleType());
-                        applicationHostDAO.updateBizHostInfoByHostId(dslContext, oldHostInfoDTO.getBizId(),
-                            hostInfoDTO);
+                        // 只更新事件中的主机属性与agent状态
+                        applicationHostDAO.updateHostAttrsById(dslContext, hostInfoDTO);
                     } else {
                         hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
                         try {
@@ -221,7 +219,10 @@ public class HostWatchThread extends Thread {
                     applicationHostDAO.syncHostTopo(dslContext, hostInfoDTO.getHostId());
                 }
                 if (hostInfoDTO.getBizId() != null && hostInfoDTO.getBizId() > 0) {
-                    hostCache.addOrUpdateHost(hostInfoDTO);
+                    // 只更新常规业务的主机到缓存
+                    if (applicationService.existBiz(hostInfoDTO.getBizId())) {
+                        hostCache.addOrUpdateHost(hostInfoDTO);
+                    }
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
@@ -241,8 +242,6 @@ public class HostWatchThread extends Thread {
             default:
                 break;
         }
-        HostEventDetail detail = event.getDetail();
-        log.debug(JsonUtils.toJson(detail));
     }
 
     public String handleHostWatchResult(ResourceWatchResult<HostEventDetail> hostWatchResult) {

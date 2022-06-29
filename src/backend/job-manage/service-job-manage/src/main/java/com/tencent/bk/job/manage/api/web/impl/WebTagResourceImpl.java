@@ -290,7 +290,7 @@ public class WebTagResourceImpl implements WebTagResource {
             return AuthResult.pass();
         }
 
-        AuthResult authResult = new AuthResult();
+        AuthResult authResult = AuthResult.pass();
         for (Map.Entry<JobResourceTypeEnum, Set<String>> entry : resourceGroup.entrySet()) {
             JobResourceTypeEnum resourceType = entry.getKey();
             Set<String> resources = entry.getValue();

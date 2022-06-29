@@ -24,13 +24,10 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -47,37 +44,6 @@ public class BasicAuthService {
 
     public void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService) {
         this.resourceNameQueryService = resourceNameQueryService;
-    }
-
-    /**
-     * 判断业务集是否需要使用运维人员字段鉴权
-     *
-     * @param bizSetResourceAppInfo 业务信息
-     * @return 是否需要使用运维人员字段鉴权
-     */
-    private boolean needToAuthBizSetAppByMaintainer(ResourceAppInfo bizSetResourceAppInfo) {
-        if (bizSetResourceAppInfo == null) {
-            return false;
-        }
-        ResourceScopeTypeEnum resourceScopeType = ResourceScopeTypeEnum.from(bizSetResourceAppInfo.getScopeType());
-        // CMDB业务集特性开启了的业务集：使用IAM鉴权
-        return !FeatureToggle.isCmdbBizSetEnabledForApp(bizSetResourceAppInfo.getAppId());
-    }
-
-    /**
-     * 判断用户对业务集是否有运维权限
-     *
-     * @param username              用户名
-     * @param bizSetResourceAppInfo 业务集资源
-     * @return 是否有运维权限
-     */
-    protected boolean hasBizSetAppMaintainerPermission(String username, ResourceAppInfo bizSetResourceAppInfo) {
-        if (needToAuthBizSetAppByMaintainer(bizSetResourceAppInfo)) {
-            // 未开启CMDB业务集特性的业务集：使用Job的运维人员鉴权
-            log.debug("use maintainers to auth app {}", username);
-            return bizSetResourceAppInfo.getMaintainerList().contains(username);
-        }
-        return false;
     }
 
     protected AuthResult buildFailAuthResult(String actionId, ResourceTypeEnum resourceType,

@@ -36,7 +36,6 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -80,7 +79,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                   AuthService authService,
                                   AppAuthService appAuthService,
                                   TaskInstanceService taskInstanceService,
-                                  ResourceAppInfoQueryService resourceAppInfoQueryService,
                                   JobExecuteConfig jobExecuteConfig) {
         this.authHelper = authHelper;
         this.resourceNameQueryService = resourceNameQueryService;
@@ -88,22 +86,12 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         this.appAuthService = appAuthService;
         this.taskInstanceService = taskInstanceService;
         this.jobExecuteConfig = jobExecuteConfig;
-        this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
         this.authService.setResourceNameQueryService(resourceNameQueryService);
-        this.appAuthService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
 
-    protected boolean isMaintainerOfResource(String username, ResourceTypeEnum resourceType, String resourceId) {
-        // 业务集、全业务特殊鉴权
-        return authService.isMaintainerOfResource(username, resourceType, resourceId);
-    }
-
     public AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
+
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         log.debug("Auth fast execute script, username:{}, appResourceScope:{}, hostInstances:{}", username,
@@ -125,10 +113,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     public AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         log.debug("Auth Fast transfer file, username:{}, appResourceScope:{}, hostInstances:{}", username,
@@ -150,10 +134,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     public AuthResult authExecuteAppScript(String username, AppResourceScope appResourceScope,
                                            String scriptId, String scriptName, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         InstanceDTO scriptInstance = buildExecutableInstance(appResourceScope, ResourceTypeEnum.SCRIPT, scriptId, null);
@@ -205,10 +185,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     public AuthResult authExecutePublicScript(String username, AppResourceScope appResourceScope,
                                               String scriptId, String scriptName, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         InstanceDTO scriptInstance = buildExecutableInstance(
@@ -247,10 +223,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     public AuthResult authExecutePlan(String username, AppResourceScope appResourceScope, Long templateId,
                                       Long planId, String planName, ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         InstanceDTO planInstance = buildExecutableInstance(
@@ -290,10 +262,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     @Override
     public AuthResult authDebugTemplate(String username, AppResourceScope appResourceScope, Long templateId,
                                         ServersDTO servers) {
-        if (isMaintainerOfResource(
-            username, IamUtil.getIamResourceTypeForResourceScope(appResourceScope), appResourceScope.getId())) {
-            return AuthResult.pass();
-        }
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         InstanceDTO jobTemplateInstance = buildExecutableInstance(appResourceScope, ResourceTypeEnum.TEMPLATE,

@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -41,6 +41,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Slf4j
 public class ApplicationDTO {
 
     /**
@@ -126,9 +127,10 @@ public class ApplicationDTO {
      */
     @JsonIgnore
     public boolean isAllBizSet() {
-        return (appType != null && appType == AppTypeEnum.ALL_APP) ||
-            (scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ_SET
-                && attrs != null && attrs.getMatchAllBiz() != null && attrs.getMatchAllBiz());
+        return isBizSet()
+            && attrs != null
+            && attrs.getMatchAllBiz() != null
+            && attrs.getMatchAllBiz();
     }
 
     /**
@@ -141,23 +143,15 @@ public class ApplicationDTO {
         return Long.valueOf(this.scope.getId());
     }
 
-    /**
-     * 返回对应的cmdb业务集ID
-     *
-     * @return cmdb业务集ID
-     */
-    @JsonIgnore
-    public Long getBizSetIdIfBizSetApp() {
-        return Long.valueOf(this.scope.getId());
-    }
-
     public List<Long> getSubBizIds() {
         // 业务集已迁移到cmdb
-        if (attrs != null && CollectionUtils.isNotEmpty(attrs.getSubBizIds())) {
+        if (attrs != null) {
             return attrs.getSubBizIds();
+        } else {
+            // 业务集还未迁移到cmdb，继续使用原来Job业务集配置的子业务;兼容方法，理论上不应该发生调用，此处日志仅用于排查，后续删除
+            log.info("Get sub biz ids using field subBizIds");
+            return subBizIds;
         }
-        // 业务集还未迁移到cmdb，继续使用原来Job业务集配置的子业务
-        return subBizIds;
     }
 
 }

@@ -24,10 +24,8 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -47,7 +45,6 @@ import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.PageUtil;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
@@ -113,58 +110,19 @@ public class WebAppResourceImpl implements WebAppResource {
         this.agentStatusService = agentStatusService;
     }
 
-    /**
-     * 将使用Job自身运维人员字段鉴权通过的业务与无权限的Job业务分离开
-     *
-     * @param username 用户名
-     * @param appList  全量Job业务
-     * @return 分离后的无权限Job业务与有权限的Job业务
-     */
-    private Pair<List<AppResourceScope>, List<AppResourceScope>> separateNoPermissionApps(
-        String username,
-        List<ApplicationDTO> appList
-    ) {
-        // 通过权限中心鉴权的业务/业务集
-        List<AppResourceScope> appResourceScopeList = new ArrayList<>();
-        // 由Job本身运维人员字段鉴权通过的业务集
-        List<AppResourceScope> allowedByMaintainerBizSetScopeList = new ArrayList<>();
-        appList.forEach(app -> {
-            AppResourceScope appResourceScope = new AppResourceScope(app.getId(), app.getScope());
-            if (app.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
-                appResourceScopeList.add(appResourceScope);
-            } else if (app.getScope().getType() == ResourceScopeTypeEnum.BIZ_SET) {
-                if (!FeatureToggle.isCmdbBizSetEnabledForApp(app.getId())) {
-                    String maintainerStr = app.getMaintainers();
-                    Set<String> maintainerSet = Sets.newHashSet(maintainerStr.split("[,;]"));
-                    if (maintainerSet.contains(username)) {
-                        allowedByMaintainerBizSetScopeList.add(appResourceScope);
-                    } else {
-                        appResourceScopeList.add(appResourceScope);
-                    }
-                } else {
-                    appResourceScopeList.add(appResourceScope);
-                }
-            }
-        });
-        return Pair.of(appResourceScopeList, allowedByMaintainerBizSetScopeList);
-    }
-
     @Override
     public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
                                                                                Integer start,
                                                                                Integer pageSize) {
         List<ApplicationDTO> appList = applicationService.listAllApps();
-        Pair<List<AppResourceScope>, List<AppResourceScope>> pair = separateNoPermissionApps(username, appList);
-        // 需要由IAM进行鉴权的业务/业务集
-        List<AppResourceScope> appResourceScopeList = pair.getLeft();
-        // 由Job本身运维人员字段鉴权通过的业务集
-        List<AppResourceScope> allowedByMaintainerBizSetScopeList = pair.getRight();
+        List<AppResourceScope> appResourceScopeList =
+            appList.stream()
+                .map(app -> new AppResourceScope(app.getId(), app.getScope()))
+                .collect(Collectors.toList());
 
         // IAM鉴权
         AppResourceScopeResult appResourceScopeResult =
             appAuthService.getAppResourceScopeList(username, appResourceScopeList);
-        // 合并由Job本身运维人员字段鉴权通过的业务集
-        appResourceScopeResult.getAppResourceScopeList().addAll(allowedByMaintainerBizSetScopeList);
 
         List<AppVO> finalAppList = new ArrayList<>();
         // 可用的普通业务
@@ -476,7 +434,7 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                   String scopeId) {
         ApplicationDTO applicationDTO = applicationService.getAppByAppId(appResourceScope.getAppId());
         // 业务集动态分组暂不支持
-        if (applicationDTO.getAppType() != AppTypeEnum.NORMAL) {
+        if (!applicationDTO.isBiz()) {
             return Response.buildSuccessResp(new ArrayList<>());
         }
         List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
