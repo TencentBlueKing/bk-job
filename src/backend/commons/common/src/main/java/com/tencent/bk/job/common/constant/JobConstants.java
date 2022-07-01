@@ -29,6 +29,10 @@ package com.tencent.bk.job.common.constant;
  */
 public class JobConstants {
     /**
+     * 不可能取值的action scope id值，用于数据查询时排除
+     */
+    public static final long UNAVAILABLE_ACTION_SCOPE_ID = -1L;
+    /**
      * GSE Agent状态：正常
      */
     public static final int GSE_AGENT_STATUS_VALUE_ALIVE = 1;

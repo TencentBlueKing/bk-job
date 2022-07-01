@@ -60,6 +60,7 @@ public class AgentServiceImpl implements AgentService {
     private final LoadingCache<String, HostDTO> agentHostCache = CacheBuilder.newBuilder()
         .maximumSize(1).expireAfterWrite(60, TimeUnit.SECONDS).
             build(new CacheLoader<String, HostDTO>() {
+                      @SuppressWarnings("all")
                       @Override
                       public HostDTO load(String key) {
                           HostDTO agentHost = getAgentBindHost();
@@ -121,7 +122,9 @@ public class AgentServiceImpl implements AgentService {
             String agentBindIp = agentStateClient.chooseOneAgentIdPreferAlive(cloudIpList);
             log.info("Local agent bind ip is {}", agentBindIp);
             ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindIp));
-            return HostDTO.fromHostIdAndCloudIp(host.getHostId(), agentBindIp);
+            HostDTO hostDTO = HostDTO.fromHostIdAndCloudIp(host.getHostId(), agentBindIp);
+            hostDTO.setAgentId(hostDTO.getFinalAgentId());
+            return hostDTO;
         }
     }
 

@@ -40,7 +40,9 @@ public class Keys {
     public static final String KEY_LAST_MODIFY_USER = "lastModifyUser";
     public static final String KEY_LAST_MODIFY_TIME = "lastModifyTime";
     public static final String KEY_CLOUD_AREA_ID = "cloudAreaId";
+    public static final String KEY_HOST_ID = "hostId";
     public static final String KEY_IP = "ip";
+    public static final String KEY_IPV6 = "ipv6";
     public static final String KEY_IP_LIST = "ipList";
     public static final String KEY_ACTION_SCOPE = "actionScope";
     public static final String KEY_ACTION_SCOPE_LIST = "actionScopeList";
