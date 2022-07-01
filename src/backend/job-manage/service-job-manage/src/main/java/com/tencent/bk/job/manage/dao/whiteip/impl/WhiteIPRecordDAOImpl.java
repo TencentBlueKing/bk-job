@@ -286,28 +286,6 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     @Override
-    public List<Long> listAllWhiteIPRecordId(DSLContext dslContext) {
-        List<Long> recordIdList = new ArrayList<>();
-        val tWhiteIPRecord = T_WHITE_IP_RECORD.as("tWhiteIPRecord");
-        val query = dslContext.select(
-            tWhiteIPRecord.ID
-        ).from(tWhiteIPRecord);
-        val records = query.fetch();
-        if (CollectionUtils.isNotEmpty(records)) {
-            recordIdList = records.map(it -> it.get(tWhiteIPRecord.ID)).parallelStream().collect(Collectors.toList());
-        }
-        return recordIdList;
-    }
-
-    @Override
-    public List<WhiteIPRecordVO> listWhiteIPRecord(DSLContext dslContext, String partIP, List<Long> inAppIdList,
-                                                   List<Long> inActionScopeIdList,
-                                                   BaseSearchCondition baseSearchCondition) {
-        List<Condition> conditions = buildConditions(partIP, inAppIdList, inActionScopeIdList);
-        return listWhiteIPRecordByConditions(dslContext, conditions, baseSearchCondition);
-    }
-
-    @Override
     public List<WhiteIPRecordVO> listWhiteIPRecord(DSLContext dslContext, List<String> ipList, List<Long> appIdList,
                                                    List<String> appNameList, List<Long> actionScopeIdList,
                                                    String creator, String lastModifyUser,
@@ -410,13 +388,6 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     @Override
-    public Long countWhiteIPRecord(DSLContext dslContext, String partIP, List<Long> inAppIdList,
-                                   List<Long> inActionScopeIdList, BaseSearchCondition baseSearchCondition) {
-        List<Condition> conditions = buildConditions(partIP, inAppIdList, inActionScopeIdList);
-        return countWhiteIPRecordByConditions(dslContext, conditions);
-    }
-
-    @Override
     public Long countWhiteIPIP() {
         val tWhiteIPIP = WhiteIpIp.WHITE_IP_IP.as("tWhiteIPIP");
         val query = defaultContext.selectCount().from(tWhiteIPIP);
@@ -490,17 +461,6 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                                                Long cloudAreaId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_WHITE_IP_APP_REL.APP_ID.in(appIds));
-        if (ip != null && !ip.isEmpty()) {
-            conditions.add(T_WHITE_IP_IP.IP.eq(ip.trim()));
-        }
-        conditions.add(T_WHITE_IP_IP.CLOUD_AREA_ID.eq(cloudAreaId));
-        return getWhiteIPActionScopesByConditions(dslContext, conditions);
-    }
-
-    @Override
-    public List<String> getWhiteIPActionScopes(DSLContext dslContext, Long appId, String ip, Long cloudAreaId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(T_WHITE_IP_APP_REL.APP_ID.eq(appId));
         if (ip != null && !ip.isEmpty()) {
             conditions.add(T_WHITE_IP_IP.IP.eq(ip.trim()));
         }

@@ -349,7 +349,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             whiteIPRecordDTO.setLastModifier(username);
             whiteIPRecordDTO.setLastModifyTime(System.currentTimeMillis());
             //修改
-            whiteIPRecordDAO.updateWhiteIPRecordById(dslContext, whiteIPRecordDTO);
+            int affectedRows = whiteIPRecordDAO.updateWhiteIPRecordById(dslContext, whiteIPRecordDTO);
+            log.info("{} white ip records updated", affectedRows);
         } else {
             //新增
             recordId = whiteIPRecordDAO.insertWhiteIPRecord(dslContext, new WhiteIPRecordDTO(

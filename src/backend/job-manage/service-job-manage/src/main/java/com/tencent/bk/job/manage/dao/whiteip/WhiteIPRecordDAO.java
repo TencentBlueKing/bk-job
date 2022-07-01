@@ -44,23 +44,13 @@ public interface WhiteIPRecordDAO {
                                             List<String> appNameList, List<Long> actionScopeIdList, String creator,
                                             String lastModifyUser, BaseSearchCondition baseSearchCondition);
 
-    List<Long> listAllWhiteIPRecordId(DSLContext dslContext);
-
-    List<WhiteIPRecordVO> listWhiteIPRecord(DSLContext dslContext, String partIP, List<Long> appIdList,
-                                            List<Long> actionScopeIdList, BaseSearchCondition baseSearchCondition);
-
     Long countWhiteIPRecord(DSLContext dslContext, List<String> ipList, List<Long> appIdList,
                             List<String> appNameList, List<Long> actionScopeIdList, String creator,
                             String lastModifyUser, BaseSearchCondition baseSearchCondition);
 
-    Long countWhiteIPRecord(DSLContext dslContext, String partIP, List<Long> appIdList, List<Long> actionScopeIdList,
-                            BaseSearchCondition baseSearchCondition);
-
     Long countWhiteIPIP();
 
     int updateWhiteIPRecordById(DSLContext dslContext, WhiteIPRecordDTO whiteIPRecordDTO);
-
-    List<String> getWhiteIPActionScopes(DSLContext dslContext, Long appId, String ip, Long cloudAreaId);
 
     List<String> getWhiteIPActionScopes(DSLContext dslContext, Collection<Long> appIds, String ip, Long cloudAreaId);
 
