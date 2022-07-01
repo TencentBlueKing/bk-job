@@ -68,8 +68,7 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     }
 
     @Override
-    public List<ApplicationHostDTO> getScopeHostsByIds(String username,
-                                                       AppResourceScope appResourceScope,
+    public List<ApplicationHostDTO> getScopeHostsByIds(AppResourceScope appResourceScope,
                                                        Collection<Long> hostIds) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO.isAllBizSet()) {
@@ -87,8 +86,7 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     }
 
     @Override
-    public PageData<Long> listHostIdByBizTopologyNodes(String username,
-                                                       AppResourceScope appResourceScope,
+    public PageData<Long> listHostIdByBizTopologyNodes(AppResourceScope appResourceScope,
                                                        List<AppTopologyTreeNode> appTopoNodeList,
                                                        String searchContent,
                                                        Integer agentStatus,

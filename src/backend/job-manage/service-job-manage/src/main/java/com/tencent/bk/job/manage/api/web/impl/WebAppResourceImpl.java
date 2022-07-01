@@ -62,6 +62,7 @@ import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
@@ -90,6 +91,7 @@ public class WebAppResourceImpl implements WebAppResource {
     private final AppAuthService appAuthService;
     private final HostService hostService;
     private final ScopeHostService scopeHostService;
+    private final WhiteIpAwareScopeHostService whiteIpAwareScopeHostService;
     private final AppScopeMappingService appScopeMappingService;
     private final AgentStatusService agentStatusService;
 
@@ -99,6 +101,7 @@ public class WebAppResourceImpl implements WebAppResource {
                               AppAuthService appAuthService,
                               HostService hostService,
                               ScopeHostService scopeHostService,
+                              WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
                               AppScopeMappingService appScopeMappingService,
                               AgentStatusService agentStatusService) {
         this.applicationService = applicationService;
@@ -106,6 +109,7 @@ public class WebAppResourceImpl implements WebAppResource {
         this.hostService = hostService;
         this.appAuthService = appAuthService;
         this.scopeHostService = scopeHostService;
+        this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.appScopeMappingService = appScopeMappingService;
         this.agentStatusService = agentStatusService;
     }
@@ -336,7 +340,6 @@ public class WebAppResourceImpl implements WebAppResource {
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
         return Response.buildSuccessResp(
             scopeHostService.listHostIdByBizTopologyNodes(
-                username,
                 appResourceScope,
                 req.getAppTopoNodeList(),
                 req.getSearchContent(),
@@ -502,12 +505,13 @@ public class WebAppResourceImpl implements WebAppResource {
         hostIdSet.removeIf(Objects::isNull);
         hostListByIp.forEach(host -> hostIdSet.remove(host.getHostId()));
         if (!hostIdSet.isEmpty()) {
-            // 根据hostId查资源范围内的主机详情
-            List<ApplicationHostDTO> hostDTOList = scopeHostService.getScopeHostsByIds(
-                username,
+            // 根据hostId查资源范围及白名单内的主机详情
+            List<ApplicationHostDTO> hostDTOList = whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIP(
                 appResourceScope,
+                req.getActionScope(),
                 hostIdSet
             );
+
             // 填充实时agent状态
             agentStatusService.fillRealTimeAgentStatus(hostDTOList);
             hostList.addAll(hostDTOList.parallelStream()
