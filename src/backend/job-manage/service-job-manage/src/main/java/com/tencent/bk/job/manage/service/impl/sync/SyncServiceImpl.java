@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -32,7 +31,6 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -221,6 +219,7 @@ public class SyncServiceImpl implements SyncService {
         // 开一个常驻线程监听主机资源变动事件
         hostWatchThread = new HostWatchThread(
             dslContext,
+            applicationService,
             applicationHostDAO,
             queryAgentStatusClient,
             redisTemplate,
@@ -231,10 +230,10 @@ public class SyncServiceImpl implements SyncService {
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
             dslContext,
+            applicationService,
             applicationHostDAO,
             hostTopoDAO,
             redisTemplate,
-            this,
             hostCache
         );
         hostRelationWatchThread.start();
@@ -332,11 +331,7 @@ public class SyncServiceImpl implements SyncService {
                     // 从CMDB同步业务信息
                     bizSyncService.syncBizFromCMDB();
                     // 从CMDB同步业务集信息
-                    if (FeatureToggle.isCmdbBizSetEnabled()) {
-                        bizSetSyncService.syncBizSetFromCMDB();
-                    } else {
-                        log.info("Cmdb biz set is disabled, skip sync apps!");
-                    }
+                    bizSetSyncService.syncBizSetFromCMDB();
                     log.info(Thread.currentThread().getName() + ":Finished:sync app from cmdb");
                     // 将最后同步时间写入Redis
                     redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,
@@ -439,14 +434,12 @@ public class SyncServiceImpl implements SyncService {
                     log.info(Thread.currentThread().getName() + ":begin to sync host from cc");
                     List<ApplicationDTO> localApps = applicationDAO.listAllBizApps();
                     Set<Long> localAppIds =
-                        localApps.stream().filter(app ->
-                            app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)
+                        localApps.stream().filter(ApplicationDTO::isBiz).map(ApplicationDTO::getId)
                             .collect(Collectors.toSet());
                     log.info(String.format("localAppIds:%s", String.join(",",
                         localAppIds.stream().map(Object::toString).collect(Collectors.toSet()))));
                     List<ApplicationDTO> localNormalApps =
-                        localApps.stream().filter(app ->
-                            app.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
+                        localApps.stream().filter(ApplicationDTO::isBiz).collect(Collectors.toList());
                     long cmdbInterfaceTimeConsuming = 0L;
                     long writeToDBTimeConsuming = 0L;
                     List<Pair<ApplicationDTO, Future<Pair<Long, Long>>>> appFutureList = new ArrayList<>();

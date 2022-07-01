@@ -69,6 +69,17 @@ window.IPInputScope = '';
 window.routerFlashBack = false;
 
 /**
+ * fix: 兼容业务集功能上线前的任务执行详情 URL
+ *
+ * 老版 URL 格式： /${APP_ID}/execute/step/${TASK_ID}，
+ * 解析 TASK_ID 拼接 api_execute/TASK_ID 跳转
+ */
+const oldExecute = window.location.pathname.match(/^\/\d+\/execute\/step\/(\d+)/);
+if (oldExecute) {
+    window.location.href = `/api_execute/${oldExecute[1]}`;
+}
+
+/**
  * @desc 浏览器框口关闭提醒
  */
 window.addEventListener('beforeunload', (event) => {

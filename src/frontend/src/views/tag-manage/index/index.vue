@@ -162,7 +162,7 @@
                 :resizable="false"
                 key="action"
                 fixed="right"
-                width="200">
+                width="100">
                 <template slot-scope="{ row }">
                     <auth-button
                         theme="primary"
@@ -174,7 +174,7 @@
                         v-test="{ type: 'button', value: 'editTag' }">
                         {{ $t('tag.编辑') }}
                     </auth-button>
-                    <bk-button
+                    <!-- <bk-button
                         class="mr10"
                         theme="primary"
                         :disabled="row.isEditRelateDisabled"
@@ -182,8 +182,9 @@
                         @click="handleEditRelate(row)"
                         v-test="{ type: 'button', value: 'editTagRelate' }">
                         {{ $t('tag.批量流转关联项') }}
-                    </bk-button>
+                    </bk-button> -->
                     <jb-popover-confirm
+                        class="ml10"
                         :title="$t('tag.确认删除该标签？')"
                         :content="$t('tag.关联的作业、脚本，将同时移除本标签')"
                         :confirm-handler="() => handleDelete(row.id)">
