@@ -95,6 +95,41 @@ public class WebAppResourceImpl implements WebAppResource {
         this.appScopeMappingService = appScopeMappingService;
     }
 
+    private List<Long> extractAuthorizedAppIdList(AppResourceScopeResult appResourceScopeResult) {
+        List<AppResourceScope> authorizedAppResourceScopes = appResourceScopeResult.getAppResourceScopeList();
+        return authorizedAppResourceScopes.stream()
+            .map(appResourceScope -> {
+                if (appResourceScope.getAppId() != null) {
+                    return appResourceScope.getAppId();
+                }
+                try {
+                    return appScopeMappingService.getAppIdByScope(
+                        appResourceScope.getType().getValue(), appResourceScope.getId());
+                } catch (NotFoundException e) {
+                    log.warn("Invalid scope", e);
+                    // 如果业务不存在，那么忽略
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    private void setFavorState(String username, List<AppVO> finalAppList) {
+        List<ApplicationFavorDTO> applicationFavorDTOList = applicationFavorService.getAppFavorListByUsername(username);
+        Map<Long, Long> appIdFavorTimeMap = new HashMap<>();
+        for (ApplicationFavorDTO applicationFavorDTO : applicationFavorDTOList) {
+            appIdFavorTimeMap.put(applicationFavorDTO.getAppId(), applicationFavorDTO.getFavorTime());
+        }
+        for (AppVO appVO : finalAppList) {
+            if (appIdFavorTimeMap.containsKey(appVO.getId())) {
+                appVO.setFavor(true);
+                appVO.setFavorTime(appIdFavorTimeMap.get(appVO.getId()));
+            } else {
+                appVO.setFavor(false);
+                appVO.setFavorTime(null);
+            }
+        }
+    }
+
     @Override
     public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
                                                                                Integer start,
@@ -109,23 +144,10 @@ public class WebAppResourceImpl implements WebAppResource {
         AppResourceScopeResult appResourceScopeResult =
             appAuthService.getAppResourceScopeList(username, appResourceScopeList);
 
-        List<AppVO> finalAppList = new ArrayList<>();
         // 可用的普通业务
-        List<AppResourceScope> authorizedAppResourceScopes = appResourceScopeResult.getAppResourceScopeList();
-        List<Long> authorizedAppIdList = authorizedAppResourceScopes.stream()
-            .map(appResourceScope -> {
-                if (appResourceScope.getAppId() != null) {
-                    return appResourceScope.getAppId();
-                }
-                try {
-                    return appScopeMappingService.getAppIdByScope(
-                        appResourceScope.getType().getValue(), appResourceScope.getId());
-                } catch (NotFoundException e) {
-                    log.warn("Invalid scope", e);
-                    // 如果业务不存在，那么忽略
-                    return null;
-                }
-            }).filter(Objects::nonNull).collect(Collectors.toList());
+        List<Long> authorizedAppIdList = extractAuthorizedAppIdList(appResourceScopeResult);
+
+        List<AppVO> finalAppList = new ArrayList<>();
         // 所有可用的AppId
         List<Long> availableAppIds = new ArrayList<>();
         if (appResourceScopeResult.getAny()) {
@@ -144,21 +166,8 @@ public class WebAppResourceImpl implements WebAppResource {
                 finalAppList.add(appVO);
             }
         }
-        // 收藏标识刷新
-        List<ApplicationFavorDTO> applicationFavorDTOList = applicationFavorService.getAppFavorListByUsername(username);
-        Map<Long, Long> appIdFavorTimeMap = new HashMap<>();
-        for (ApplicationFavorDTO applicationFavorDTO : applicationFavorDTOList) {
-            appIdFavorTimeMap.put(applicationFavorDTO.getAppId(), applicationFavorDTO.getFavorTime());
-        }
-        for (AppVO appVO : finalAppList) {
-            if (appIdFavorTimeMap.containsKey(appVO.getId())) {
-                appVO.setFavor(true);
-                appVO.setFavorTime(appIdFavorTimeMap.get(appVO.getId()));
-            } else {
-                appVO.setFavor(false);
-                appVO.setFavorTime(null);
-            }
-        }
+        // 设置收藏状态
+        setFavorState(username, finalAppList);
         // 排序
         sortApps(finalAppList);
         // 分页
