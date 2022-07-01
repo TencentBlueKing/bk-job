@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -203,15 +204,19 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public List<CloudIPDTO> listWhiteIP(Long appId, ActionScopeEnum actionScope) {
-        List<Long> fullAppIds = applicationService.getRelatedAppIds(appId);
-        log.info("appId={}, contains by fullAppIds={}", appId, fullAppIds);
+        // 指定为对所有业务生效或对当前业务生效的白名单IP最终对当前业务生效
+        List<Long> effectiveAppIds = new ArrayList<>();
+        effectiveAppIds.add(JobConstants.DEFAULT_ALL_BIZ_SET_ID);
+        if (appId != null && !appId.equals(JobConstants.DEFAULT_ALL_BIZ_SET_ID)) {
+            effectiveAppIds.add(appId);
+        }
         ActionScopeDTO actionScopeDTO = null;
         if (actionScope != null) {
             actionScopeDTO = actionScopeDAO.getActionScopeByCode(actionScope.name());
         }
         return whiteIPRecordDAO.listWhiteIPByAppIds(
             dslContext,
-            fullAppIds,
+            effectiveAppIds,
             actionScopeDTO == null ? null : actionScopeDTO.getId()
         );
     }
