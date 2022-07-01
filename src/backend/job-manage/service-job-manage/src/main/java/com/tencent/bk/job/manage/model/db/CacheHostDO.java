@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -51,6 +52,11 @@ public class CacheHostDO {
     private Long hostId;
 
     /**
+     * 主机Agent ID
+     */
+    private String agentId;
+
+    /**
      * 业务ID
      */
     private Long appId;
@@ -59,4 +65,55 @@ public class CacheHostDO {
      * CMDB业务ID
      */
     private Long bizId;
+
+    /**
+     * 主机描述
+     */
+    private String hostDesc;
+
+    /**
+     * 主机Agent状态
+     */
+    private Boolean gseAgentAlive;
+
+    /**
+     * 操作系统
+     */
+    private String os;
+
+    /**
+     * 操作系统类型
+     */
+    private String osType;
+
+    public ApplicationHostDTO toApplicationHostDTO() {
+        ApplicationHostDTO host = new ApplicationHostDTO();
+        host.setBizId(this.bizId);
+        host.setAppId(this.appId);
+        host.setCloudAreaId(this.cloudAreaId);
+        host.setIp(this.ip);
+        host.setHostId(this.hostId);
+        host.setAgentId(this.agentId);
+        host.setIpDesc(this.hostDesc);
+        host.setOs(this.os);
+        host.setOsType(this.osType);
+        host.setGseAgentAlive(this.gseAgentAlive);
+
+        return host;
+    }
+
+    public static CacheHostDO fromApplicationHostDTO(ApplicationHostDTO host) {
+        CacheHostDO cacheHost = new CacheHostDO();
+        cacheHost.setBizId(host.getBizId());
+        cacheHost.setAppId(host.getAppId());
+        cacheHost.setCloudAreaId(host.getCloudAreaId());
+        cacheHost.setIp(host.getIp());
+        cacheHost.setHostId(host.getHostId());
+        cacheHost.setAgentId(host.getAgentId());
+        cacheHost.setHostDesc(host.getIpDesc());
+        cacheHost.setOs(host.getOs());
+        cacheHost.setOsType(host.getOsType());
+        cacheHost.setGseAgentAlive(host.getGseAgentAlive());
+        return cacheHost;
+    }
 }

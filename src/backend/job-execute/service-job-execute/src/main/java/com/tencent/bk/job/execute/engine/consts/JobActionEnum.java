@@ -59,6 +59,15 @@ public enum JobActionEnum {
         this.value = val;
     }
 
+    public static JobActionEnum valueOf(int value) {
+        for (JobActionEnum jobAction : values()) {
+            if (jobAction.getValue() == value) {
+                return jobAction;
+            }
+        }
+        return null;
+    }
+
     public int getValue() {
         return value;
     }

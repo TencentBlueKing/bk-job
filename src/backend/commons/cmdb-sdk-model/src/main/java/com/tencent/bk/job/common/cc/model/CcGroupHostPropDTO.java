@@ -25,15 +25,15 @@
 package com.tencent.bk.job.common.cc.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
 /**
- * CC HOST
- *
- * @description
- * @date 2019/3/7
+ * 接口实体类，CMDB动态分组中的主机属性
  */
 @Data
 public class CcGroupHostPropDTO {
@@ -44,9 +44,28 @@ public class CcGroupHostPropDTO {
     @JsonProperty("bk_host_name")
     private String name;
 
+    // 可能为多个ip
     @JsonProperty("bk_host_innerip")
     private String ip;
 
+    // 可能为多个ip
+    @JsonProperty("bk_host_innerip_v6")
+    private String ipv6;
+
+    // 可能为多个ip
+    @JsonProperty("bk_agent_id")
+    private String agentId;
+
     @JsonProperty("bk_cloud_id")
     private List<CcCloudIdDTO> cloudIdList;
+
+    public String getFinalAgentId() {
+        if (StringUtils.isNotBlank(agentId)) {
+            return agentId;
+        }
+        if (CollectionUtils.isNotEmpty(cloudIdList) && StringUtils.isNotBlank(ip)) {
+            return IpUtils.buildCloudIpListByMultiIp(cloudIdList.get(0).getInstanceId(), ip).get(0);
+        }
+        return null;
+    }
 }

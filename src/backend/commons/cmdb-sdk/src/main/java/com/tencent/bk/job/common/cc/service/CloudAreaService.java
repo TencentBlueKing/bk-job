@@ -28,9 +28,9 @@ import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.util.StringUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,11 +39,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.DependsOn;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 云区域信息服务
@@ -60,11 +62,9 @@ public class CloudAreaService {
     private static IBizCmdbClient esbBizCmdbClient;
     private static List<CcCloudAreaInfoDTO> fullCloudAreaInfoList;
 
-    public CloudAreaService(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
-                            MeterRegistry meterRegistry) {
+    public CloudAreaService(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, MeterRegistry meterRegistry) {
         CloudAreaNameCacheThread cloudAreaNameCacheThread = new CloudAreaNameCacheThread();
-        esbBizCmdbClient = new BizCmdbClient(esbConfig, cmdbConfig, LocaleUtils.LANG_EN_US, queryAgentStatusClient,
-            meterRegistry);
+        esbBizCmdbClient = new BizCmdbClient(bkApiConfig, cmdbConfig, LocaleUtils.LANG_EN_US, meterRegistry);
         cloudAreaNameCacheThread.start();
     }
 
@@ -113,6 +113,34 @@ public class CloudAreaService {
 
     public List<CcCloudAreaInfoDTO> getCloudAreaList() {
         return fullCloudAreaInfoList;
+    }
+
+    private List<Long> getAllCloudAreaIds() {
+        return getCloudAreaList().stream()
+            .map(CcCloudAreaInfoDTO::getId)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * 查找名称符合搜索关键字（与任意一个关键字匹配即可）的云区域，并返回其ID
+     *
+     * @param searchContents 搜索关键字集合
+     * @return 符合条件的云区域ID列表
+     */
+    public List<Long> getAnyNameMatchedCloudAreaIds(Collection<String> searchContents) {
+        if (searchContents == null) {
+            return getAllCloudAreaIds();
+        }
+        List<Long> cloudAreaIds;
+        cloudAreaIds = new ArrayList<>();
+        List<CcCloudAreaInfoDTO> allCloudAreaInfos = getCloudAreaList();
+        for (CcCloudAreaInfoDTO it : allCloudAreaInfos) {
+            if (StringUtil.matchAnySearchContent(it.getName(), searchContents)) {
+                cloudAreaIds.add(it.getId());
+            }
+        }
+        log.debug("filter by cloudAreaIds={}", cloudAreaIds);
+        return cloudAreaIds;
     }
 
     static class CloudAreaNameCacheThread extends Thread {

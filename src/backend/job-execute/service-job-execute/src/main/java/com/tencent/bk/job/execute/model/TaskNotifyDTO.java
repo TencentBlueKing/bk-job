@@ -29,6 +29,9 @@ import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * 作业执行结果消息通知
+ */
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_EMPTY)

@@ -16,6 +16,7 @@ job-file-worker-{version}.jar | 文件源接入点Springboot.jar
 job-gateway-{version}.jar | 后台网关微服务Springboot.jar  
 job-logsvr-{version}.jar | 日志管理微服务Springboot.jar  
 job-manage-{version}.jar | 作业管理微服务Springboot.jar  
+job-ticket-{version}.jar | 凭据管理微服务Springboot.jar  
 
 **部署流程**  
 1.周边系统依赖确认
@@ -48,6 +49,7 @@ job-config(配置中心被其他微服务依赖，需要最先完成启动)
 job-manage  
 job-backup  
 job-logsvr  
+job-ticket  
 job-file-gateway  
 job-execute  
 job-crontab  

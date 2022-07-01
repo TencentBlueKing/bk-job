@@ -181,15 +181,13 @@ public class ErrorCode {
     public static final int APP_NOT_EXIST = 1243049;
     // 文件后缀不允许
     public static final int UPLOAD_FILE_SUFFIX_NOT_ALLOW = 1243050;
-    // 资源范围不存在:{0}
-    public static final int SCOPE_NOT_EXIST = 1243051;
     // 作业管理 end
 
     // 作业执行 start
     // 主机为空
     public static final int SERVER_EMPTY = 1244001;
-    // 主机未注册:{}
-    public static final int SERVER_UNREGISTERED = 1244002;
+    // 主机不存在:{}
+    public static final int HOST_NOT_EXIST = 1244002;
     // 账号不存在
     public static final int ACCOUNT_NOT_EXIST = 1244003;
     // 没有该账号的权限
@@ -234,6 +232,10 @@ public class ErrorCode {
     public static final int FAIL_TO_SAVE_FILE_TO_LOCAL = 1244024;
     // 任务被丢弃
     public static final int TASK_ABANDONED = 1244025;
+    // 非法的滚动策略
+    public static final int INVALID_ROLLING_EXPR = 1244026;
+    // 滚动批次不能大于{}
+    public static final int EXCEED_MAX_ALLOWED_BATCH_SIZE = 1244027;
     // 作业执行 end
 
     // 定时作业 start
@@ -376,6 +378,8 @@ public class ErrorCode {
     public static final int LICENSE_ERROR = 1210101;
     // GSE 不可用
     public static final int GSE_ERROR = 1210001;
+    // GSE数据异常：{0}
+    public static final int GSE_API_DATA_ERROR = 1210002;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析

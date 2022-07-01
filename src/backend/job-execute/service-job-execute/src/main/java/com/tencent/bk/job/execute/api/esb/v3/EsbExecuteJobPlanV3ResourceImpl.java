@@ -43,7 +43,6 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbExecuteJobV3Request;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -87,10 +86,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 taskVariableDTO.setId(globalVar.getId());
                 taskVariableDTO.setName(globalVar.getName());
                 EsbServerV3DTO server = globalVar.getServer();
-                if (StringUtils.isEmpty(globalVar.getValue()) && server != null &&
-                    (CollectionUtils.isNotEmpty(server.getIps())
-                        || CollectionUtils.isNotEmpty(server.getTopoNodes())
-                        || CollectionUtils.isNotEmpty(server.getDynamicGroups()))) {
+                if (StringUtils.isEmpty(globalVar.getValue()) && server != null && !server.isHostParamsEmpty()) {
                     ServersDTO serversDTO = convertToServersDTO(globalVar.getServer());
                     taskVariableDTO.setTargetServers(serversDTO);
                 } else {
@@ -99,7 +95,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 executeVariableValues.add(taskVariableDTO);
             }
         }
-        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
             TaskExecuteParam
                 .builder()
                 .appId(request.getAppId())
@@ -110,7 +106,6 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 .callbackUrl(request.getCallbackUrl())
                 .appCode(request.getAppCode())
                 .build());
-        taskExecuteService.startTask(taskInstanceDTO.getId());
 
         EsbJobExecuteV3DTO result = new EsbJobExecuteV3DTO();
         result.setTaskInstanceId(taskInstanceDTO.getId());

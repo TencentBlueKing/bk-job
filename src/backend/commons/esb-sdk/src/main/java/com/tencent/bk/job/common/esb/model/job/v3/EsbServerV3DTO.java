@@ -29,12 +29,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.validation.Valid;
 import java.util.List;
 
 /**
- * 服务器定义-ESB
+ * 主机定义-ESB
  */
 @Data
 public class EsbServerV3DTO {
@@ -48,6 +49,10 @@ public class EsbServerV3DTO {
     @Valid
     private List<EsbIpDTO> ips;
 
+    @JsonProperty("host_id_list")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<Long> hostIds;
+
     /**
      * 动态分组ID列表
      */
@@ -59,4 +64,14 @@ public class EsbServerV3DTO {
      */
     @JsonProperty("topo_node_list")
     private List<EsbCmdbTopoNodeDTO> topoNodes;
+
+    /**
+     * 是否包含执行主机的参数
+     */
+    public boolean isHostParamsEmpty() {
+        return CollectionUtils.isEmpty(hostIds)
+            && CollectionUtils.isEmpty(ips)
+            && CollectionUtils.isEmpty(topoNodes)
+            && CollectionUtils.isEmpty(dynamicGroups);
+    }
 }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -38,6 +39,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -47,7 +49,7 @@ import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
-import com.tencent.bk.job.manage.model.web.request.IpCheckReq;
+import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
@@ -58,18 +60,26 @@ import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.HostService;
+import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
+import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -80,19 +90,28 @@ public class WebAppResourceImpl implements WebAppResource {
     private final ApplicationFavorService applicationFavorService;
     private final AppAuthService appAuthService;
     private final HostService hostService;
+    private final ScopeHostService scopeHostService;
+    private final WhiteIpAwareScopeHostService whiteIpAwareScopeHostService;
     private final AppScopeMappingService appScopeMappingService;
+    private final AgentStatusService agentStatusService;
 
     @Autowired
     public WebAppResourceImpl(ApplicationService applicationService,
                               ApplicationFavorService applicationFavorService,
                               AppAuthService appAuthService,
                               HostService hostService,
-                              AppScopeMappingService appScopeMappingService) {
+                              ScopeHostService scopeHostService,
+                              WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
+                              AppScopeMappingService appScopeMappingService,
+                              AgentStatusService agentStatusService) {
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
         this.hostService = hostService;
         this.appAuthService = appAuthService;
+        this.scopeHostService = scopeHostService;
+        this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.appScopeMappingService = appScopeMappingService;
+        this.agentStatusService = agentStatusService;
     }
 
     private List<Long> extractAuthorizedAppIdList(AppResourceScopeResult appResourceScopeResult) {
@@ -321,6 +340,26 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
+    public Response<PageData<Long>> listHostIdByBizTopologyNodes(String username,
+                                                                 AppResourceScope appResourceScope,
+                                                                 String scopeType,
+                                                                 String scopeId,
+                                                                 ListHostByBizTopologyNodesReq req) {
+        // 参数标准化
+        Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
+        return Response.buildSuccessResp(
+            scopeHostService.listHostIdByBizTopologyNodes(
+                appResourceScope,
+                req.getAppTopoNodeList(),
+                req.getSearchContent(),
+                req.getAgentStatus(),
+                pagePair.getLeft(),
+                pagePair.getRight()
+            )
+        );
+    }
+
+    @Override
     public Response<List<AppTopologyTreeNode>> getNodeDetail(String username,
                                                              AppResourceScope appResourceScope,
                                                              String scopeType,
@@ -455,17 +494,50 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<HostInfoVO>> listHostByIp(String username,
-                                                   AppResourceScope appResourceScope,
-                                                   String scopeType,
-                                                   String scopeId,
-                                                   IpCheckReq req) {
-        return Response.buildSuccessResp(hostService.getHostsByIp(
+    public Response<List<HostInfoVO>> checkHosts(String username,
+                                                 AppResourceScope appResourceScope,
+                                                 String scopeType,
+                                                 String scopeId,
+                                                 HostCheckReq req) {
+        // 根据IP查资源范围内的主机详情
+        List<HostInfoVO> hostListByIp = hostService.getHostsByIp(
             username,
             appResourceScope.getAppId(),
             req.getActionScope(),
-            req.getIpList())
+            req.getIpList()
         );
+        if (CollectionUtils.isEmpty(req.getHostIdList())) {
+            return Response.buildSuccessResp(hostListByIp);
+        }
+        List<HostInfoVO> hostList = new ArrayList<>(hostListByIp);
+        Set<Long> hostIdSet = new HashSet<>(req.getHostIdList());
+        hostIdSet.removeIf(Objects::isNull);
+        hostListByIp.forEach(host -> hostIdSet.remove(host.getHostId()));
+        if (!hostIdSet.isEmpty()) {
+            // 根据hostId查资源范围及白名单内的主机详情
+            List<ApplicationHostDTO> hostDTOList = whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIP(
+                appResourceScope,
+                req.getActionScope(),
+                hostIdSet
+            );
+
+            // 填充实时agent状态
+            agentStatusService.fillRealTimeAgentStatus(hostDTOList);
+            hostList.addAll(hostDTOList.parallelStream()
+                .map(ApplicationHostDTO::toVO)
+                .collect(Collectors.toList())
+            );
+        }
+        // 填充云区域名称
+        hostList.forEach(hostInfoVO -> {
+            CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudAreaInfo();
+            if (cloudAreaInfo != null
+                && cloudAreaInfo.getId() != null
+                && StringUtils.isBlank(cloudAreaInfo.getName())) {
+                cloudAreaInfo.setName(CloudAreaService.getCloudAreaNameFromCache(cloudAreaInfo.getId()));
+            }
+        });
+        return Response.buildSuccessResp(hostList);
     }
 
     @Override

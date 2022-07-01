@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
@@ -77,24 +77,25 @@ public class TopologyHelper {
 
     private static final Map<Long, Map<String, Map<Long, String>>> BIZ_NODE_TYPE_NAME_MAP = new ConcurrentHashMap<>();
 
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStateClient agentStateClient;
     private final ApplicationDAO applicationDAO;
     private final CloudAreaService cloudAreaService;
 
     @Autowired
-    public TopologyHelper(ApplicationDAO applicationDAO, QueryAgentStatusClient queryAgentStatusClient,
+    public TopologyHelper(ApplicationDAO applicationDAO,
+                          AgentStateClient agentStateClient,
                           CloudAreaService cloudAreaService) {
         this.applicationDAO = applicationDAO;
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.agentStateClient = agentStateClient;
         this.cloudAreaService = cloudAreaService;
     }
 
     /**
      * 递归遍历查找节点路径
      *
-     * @param treeNode
-     * @param targetNode
-     * @return
+     * @param treeNode   节点树
+     * @param targetNode 目标节点
+     * @return 节点路径
      */
     public static List<InstanceTopologyDTO> findTopoPath(
         InstanceTopologyDTO treeNode,
@@ -119,9 +120,9 @@ public class TopologyHelper {
     /**
      * 递归遍历查找多个节点路径
      *
-     * @param treeNode
-     * @param targetNodes
-     * @return
+     * @param treeNode    节点树
+     * @param targetNodes 要查找的目标节点
+     * @return 节点路径列表
      */
     public static List<List<InstanceTopologyDTO>> findTopoPaths(InstanceTopologyDTO treeNode,
                                                                 List<InstanceTopologyDTO> targetNodes) {
@@ -254,9 +255,7 @@ public class TopologyHelper {
         DynamicGroupInfoVO dynamicGroupInfoVO = new DynamicGroupInfoVO();
         dynamicGroupInfoVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
         dynamicGroupInfoVO.setScopeId(dynamicGroupInfoDTO.getBizId().toString());
-        // TODO:发布后去除
         dynamicGroupInfoVO.setAppName(dynamicGroupInfoDTO.getBizName());
-        dynamicGroupInfoVO.setScopeName(dynamicGroupInfoDTO.getBizName());
         dynamicGroupInfoVO.setId(dynamicGroupInfoDTO.getId());
         dynamicGroupInfoVO.setOwner(dynamicGroupInfoDTO.getOwner());
         dynamicGroupInfoVO.setOwnerName(dynamicGroupInfoDTO.getOwnerName());
@@ -381,23 +380,23 @@ public class TopologyHelper {
     /**
      * 根据 IP 地址列表批量获取机器 Agent 状态
      *
-     * @param appId  业务 ID
-     * @param ipList IP 地址列表
+     * @param bizId       业务 ID
+     * @param cloudIpList IP 地址列表
      * @return 机器 Agent 状态信息列表
      */
-    public List<ApplicationHostDTO> getIpStatusListByIps(long appId, List<String> ipList) {
+    public List<ApplicationHostDTO> getIpStatusListByIps(long bizId, List<String> cloudIpList) {
         List<ApplicationHostDTO> ipInfoList = new ArrayList<>();
-        if (CollectionUtils.isEmpty(ipList)) {
+        if (CollectionUtils.isEmpty(cloudIpList)) {
             return ipInfoList;
         }
-        Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-            queryAgentStatusClient.batchGetAgentStatus(ipList);
-        for (String ip : ipList) {
+
+        Map<String, Boolean> agentAliveStatusMap = agentStateClient.batchGetAgentAliveStatus(cloudIpList);
+        for (String cloudIp : cloudIpList) {
             ApplicationHostDTO ipInfo = new ApplicationHostDTO();
-            ipInfo.setCloudAreaId(Long.valueOf(ip.split(":")[0]));
-            ipInfo.setBizId(appId);
-            ipInfo.setIp(ip.split(":")[1]);
-            ipInfo.setGseAgentAlive(agentStatusMap.get(ip) != null && (agentStatusMap.get(ip).status == 1));
+            ipInfo.setCloudAreaId(Long.valueOf(cloudIp.split(":")[0]));
+            ipInfo.setBizId(bizId);
+            ipInfo.setIp(cloudIp.split(":")[1]);
+            ipInfo.setGseAgentAlive(agentAliveStatusMap.get(cloudIp));
             ipInfoList.add(ipInfo);
         }
         return ipInfoList;

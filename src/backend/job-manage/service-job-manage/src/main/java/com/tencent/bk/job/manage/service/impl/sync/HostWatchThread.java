@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
@@ -75,7 +75,7 @@ public class HostWatchThread extends Thread {
     private final DSLContext dslContext;
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStateClient agentStateClient;
     private final RedisTemplate<String, String> redisTemplate;
     private final HostCache hostCache;
     private final String REDIS_KEY_RESOURCE_WATCH_HOST_JOB_RUNNING_MACHINE = "resource-watch-host-job-running-machine";
@@ -87,13 +87,13 @@ public class HostWatchThread extends Thread {
     public HostWatchThread(DSLContext dslContext,
                            ApplicationService applicationService,
                            ApplicationHostDAO applicationHostDAO,
-                           QueryAgentStatusClient queryAgentStatusClient,
+                           AgentStateClient agentStateClient,
                            RedisTemplate<String, String> redisTemplate,
                            HostCache hostCache) {
         this.dslContext = dslContext;
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.agentStateClient = agentStateClient;
         this.redisTemplate = redisTemplate;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostWatchThread-" + instanceNum.getAndIncrement());
@@ -187,14 +187,14 @@ public class HostWatchThread extends Thread {
                 }
                 //找出Agent有效的IP，并设置Agent状态
                 Long cloudAreaId = hostInfoDTO.getCloudAreaId();
-                String ip = queryAgentStatusClient.getHostIpByAgentStatus(hostInfoDTO.getDisplayIp(), cloudAreaId);
-                hostInfoDTO.setIp(ip);
-                if (!ip.contains(":")) {
-                    String cloudIp = cloudAreaId + ":" + ip;
-                    hostInfoDTO.setGseAgentAlive(queryAgentStatusClient.getAgentStatus(cloudIp).status == 1);
-                } else {
-                    hostInfoDTO.setGseAgentAlive(queryAgentStatusClient.getAgentStatus(ip).status == 1);
+
+                String multiIp = hostInfoDTO.getDisplayIp();
+                if (StringUtils.isNotBlank(multiIp)) {
+                    List<String> agentIdList = IpUtils.buildCloudIpListByMultiIp(cloudAreaId, multiIp);
+                    String choosedCloudIp = agentStateClient.chooseOneAgentIdPreferAlive(agentIdList);
+                    hostInfoDTO.setIp(choosedCloudIp.split(":")[1]);
                 }
+                hostInfoDTO.setGseAgentAlive(agentStateClient.getAgentAliveStatus(hostInfoDTO.getFinalAgentId()));
                 try {
                     if (applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO.getHostId())) {
                         // 只更新事件中的主机属性与agent状态

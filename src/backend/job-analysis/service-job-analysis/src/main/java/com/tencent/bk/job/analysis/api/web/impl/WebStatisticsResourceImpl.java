@@ -30,7 +30,6 @@ import com.tencent.bk.job.analysis.consts.DimensionEnum;
 import com.tencent.bk.job.analysis.consts.DistributionMetricEnum;
 import com.tencent.bk.job.analysis.consts.ResourceEnum;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
-import com.tencent.bk.job.analysis.model.inner.PerAppStatisticDTO;
 import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
 import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
@@ -180,27 +179,23 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         if (StringUtils.isBlank(date)) {
             date = DateUtils.getCurrentDateStr();
         }
-        List<PerAppStatisticDTO> perAppStatisticDTOList;
+        List<PerAppStatisticVO> perAppStatisticVOList;
         List<Long> appIdList = getAppIdList(scopes);
         if (TotalMetricEnum.APP_COUNT == metric) {
-            perAppStatisticDTOList = appStatisticService.listJoinedApp(appIdList, date);
+            perAppStatisticVOList = appStatisticService.listJoinedApp(appIdList, date);
         } else if (TotalMetricEnum.ACTIVE_APP_COUNT == metric) {
-            perAppStatisticDTOList = appStatisticService.listActiveApp(appIdList, date);
+            perAppStatisticVOList = appStatisticService.listActiveApp(appIdList, date);
         } else if (TotalMetricEnum.EXECUTED_TASK_COUNT == metric) {
-            perAppStatisticDTOList = commonStatisticService.listByPerApp(StatisticsConstants.RESOURCE_EXECUTED_TASK,
+            perAppStatisticVOList = commonStatisticService.listByPerApp(StatisticsConstants.RESOURCE_EXECUTED_TASK,
                 metric, appIdList, date);
         } else if (TotalMetricEnum.FAILED_TASK_COUNT == metric) {
-            perAppStatisticDTOList = commonStatisticService.listByPerApp(StatisticsConstants.RESOURCE_FAILED_TASK,
+            perAppStatisticVOList = commonStatisticService.listByPerApp(StatisticsConstants.RESOURCE_FAILED_TASK,
                 metric, appIdList, date);
         } else {
-            perAppStatisticDTOList = commonStatisticService.listByPerApp(StatisticsConstants.RESOURCE_GLOBAL, metric,
+            perAppStatisticVOList = commonStatisticService.listByPerApp(StatisticsConstants.RESOURCE_GLOBAL, metric,
                 appIdList, date);
         }
-        return Response.buildSuccessResp(
-            perAppStatisticDTOList.parallelStream()
-                .map(PerAppStatisticDTO::toPerAppStatisticVO)
-                .collect(Collectors.toList())
-        );
+        return Response.buildSuccessResp(perAppStatisticVOList);
     }
 
     @Override

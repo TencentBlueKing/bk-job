@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.gse.constants;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
 /**
  * Agent 状态
@@ -58,6 +59,16 @@ public enum AgentStatusEnum {
             }
         }
         return null;
+    }
+
+    public static AgentStatusEnum fromAgentState(AgentState agentState) {
+        if (agentState == null || agentState.getStatusCode() == null) {
+            return UNKNOWN;
+        } else if (agentState.getStatusCode().equals(AgentStateStatusEnum.RUNNING.getValue())) {
+            return ALIVE;
+        } else {
+            return NOT_ALIVE;
+        }
     }
 
     public int getValue() {

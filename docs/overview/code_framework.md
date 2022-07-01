@@ -103,6 +103,7 @@
     |- job-gateway  # 微服务网关
     |- job-logsvr   # 日志管理微服务
     |- job-manage   # 作业管理微服务
+    |- job-ticket   # 凭据管理微服务
     |- upgrader     # 版本间升级辅助工具
 ```
 

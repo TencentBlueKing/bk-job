@@ -82,4 +82,13 @@ public class CommonMetricNames {
      * 被调用ESB API
      */
     public static final String ESB_API = "job.server.esb.api";
+
+    /**
+     * 仅统计调用ESB GSE API的HTTP请求过程
+     */
+    public static final String ESB_GSE_API_HTTP = "job.client.gse.api.http";
+    /**
+     * 统计调用 GSE API整个过程，含反序列化
+     */
+    public static final String ESB_GSE_API = "job.client.gse.api";
 }

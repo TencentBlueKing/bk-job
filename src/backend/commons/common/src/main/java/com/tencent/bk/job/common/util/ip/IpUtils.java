@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.util.ip;
 
 import com.google.common.collect.Lists;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -35,7 +35,14 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,9 +58,11 @@ public class IpUtils {
      */
     public static final long DEFAULT_CLOUD_ID = 0;
     private static final Pattern IP_PATTERN = Pattern.compile(
-        "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b");
+        "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.(" +
+            "(?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b");
     private static final Pattern pattern = Pattern.compile(
-        "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b");
+        "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.(" +
+            "(?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b");
 
     /**
      * 校验云区域:服务器IP
@@ -61,7 +70,7 @@ public class IpUtils {
      * @param cloudAreaIdAndIp 云区域ID:服务器IP
      * @return
      */
-    public static boolean checkCloudAreaIdAndIpStr(String cloudAreaIdAndIp) {
+    public static boolean checkCloudIp(String cloudAreaIdAndIp) {
         if (StringUtils.isEmpty(cloudAreaIdAndIp)) {
             return false;
         }
@@ -84,15 +93,15 @@ public class IpUtils {
     /**
      * 校验ip
      *
-     * @param ipDTO IP
+     * @param hostDTO IP
      * @return
      */
-    public static boolean checkIpDTO(IpDTO ipDTO) {
-        if (ipDTO == null || ipDTO.getCloudAreaId() == null || StringUtils.isEmpty(ipDTO.getIp().trim())) {
-            log.warn("Both cloudAreaId and ip is required, ip={}", ipDTO);
+    public static boolean checkIpDTO(HostDTO hostDTO) {
+        if (hostDTO == null || hostDTO.getBkCloudId() == null || StringUtils.isEmpty(hostDTO.getIp().trim())) {
+            log.warn("Both cloudAreaId and ip is required, ip={}", hostDTO);
             return false;
         }
-        Matcher matcher = IP_PATTERN.matcher(ipDTO.getIp().trim());
+        Matcher matcher = IP_PATTERN.matcher(hostDTO.getIp().trim());
         return matcher.matches();
     }
 
@@ -116,7 +125,7 @@ public class IpUtils {
      * @param ipListStr
      * @return
      */
-    public static Collection<IpDTO> convertCloudAndIpListStrToIpDTOList(String ipListStr) {
+    public static Collection<HostDTO> convertCloudAndIpListStrToIpDTOList(String ipListStr) {
         if (StringUtils.isEmpty(ipListStr)) {
             return Lists.newArrayList();
         }
@@ -129,17 +138,17 @@ public class IpUtils {
      * @param cloudAreaAndIpStrList ip列表
      * @return IpDTO列表
      */
-    public static Collection<IpDTO> convertCloudAndIpStrListToIpDTOList(Collection<String> cloudAreaAndIpStrList) {
-        List<IpDTO> ipDTOList = new ArrayList<>();
+    public static Collection<HostDTO> convertCloudAndIpStrListToIpDTOList(Collection<String> cloudAreaAndIpStrList) {
+        List<HostDTO> hostDTOList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(cloudAreaAndIpStrList)) {
             for (String cloudAreaAndIp : cloudAreaAndIpStrList) {
-                IpDTO ipDto = transform(cloudAreaAndIp);
-                if (ipDto != null) {
-                    ipDTOList.add(ipDto);
+                HostDTO hostDto = transform(cloudAreaAndIp);
+                if (hostDto != null) {
+                    hostDTOList.add(hostDto);
                 }
             }
         }
-        return ipDTOList;
+        return hostDTOList;
     }
 
     /**
@@ -148,20 +157,20 @@ public class IpUtils {
      * @param cloudAreaAndIp
      * @return
      */
-    public static IpDTO transform(String cloudAreaAndIp) {
-        IpDTO ipDTO = null;
+    public static HostDTO transform(String cloudAreaAndIp) {
+        HostDTO hostDTO = null;
         if (cloudAreaAndIp != null) {
             String[] split = cloudAreaAndIp.split(COLON);
             if (split.length == 2) {
                 long cloudAreaId = optLong(split[0].trim(), DEFAULT_CLOUD_ID);
                 if (cloudAreaId == 1)
                     cloudAreaId = DEFAULT_CLOUD_ID;
-                ipDTO = new IpDTO(cloudAreaId, split[1].trim());
+                hostDTO = new HostDTO(cloudAreaId, split[1].trim());
             } else {
-                ipDTO = new IpDTO(DEFAULT_CLOUD_ID, cloudAreaAndIp.trim());
+                hostDTO = new HostDTO(DEFAULT_CLOUD_ID, cloudAreaAndIp.trim());
             }
         }
-        return ipDTO;
+        return hostDTO;
     }
 
     private static long optLong(String str, long defaultValue) {
@@ -274,5 +283,27 @@ public class IpUtils {
             ip = "no available ip";
         }
         return ip;
+    }
+
+    /**
+     * 通过含多个IP的字符串与云区域ID构造多个cloudIp
+     *
+     * @param cloudId    云区域ID
+     * @param multiIpStr 含多个IP的字符串
+     * @return cloudIp列表
+     */
+    public static List<String> buildCloudIpListByMultiIp(Long cloudId, String multiIpStr) {
+        if (StringUtils.isBlank(multiIpStr)) {
+            return Collections.emptyList();
+        }
+        if (!multiIpStr.contains(",") && !multiIpStr.contains(":")) {
+            return Collections.singletonList(cloudId + ":" + multiIpStr.trim());
+        }
+        String[] ipArr = multiIpStr.split("[,;]");
+        List<String> cloudIpList = new ArrayList<>(ipArr.length);
+        for (String ip : ipArr) {
+            cloudIpList.add(cloudId + ":" + ip.trim());
+        }
+        return cloudIpList;
     }
 }

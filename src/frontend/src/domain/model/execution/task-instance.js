@@ -110,6 +110,7 @@ export default class TaskInstance {
         this.cronTaskId = payload.cronTaskId;
         this.templateId = payload.templateId;
         this.debugTask = payload.debugTask;
+        this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
         this.name = payload.name;

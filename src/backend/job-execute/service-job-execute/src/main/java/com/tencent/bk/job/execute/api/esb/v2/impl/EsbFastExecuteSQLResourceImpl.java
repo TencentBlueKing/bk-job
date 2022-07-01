@@ -44,6 +44,7 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
@@ -105,8 +106,9 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
             scriptService);
         TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(request);
         StepInstanceDTO stepInstance = buildFastSQLStepInstance(request, script);
-        long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
-        taskExecuteService.startTask(taskInstanceId);
+        long taskInstanceId = taskExecuteService.executeFastTask(
+            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+        );
 
         EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
         jobExecuteInfo.setTaskInstanceId(taskInstanceId);
@@ -162,7 +164,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         taskInstance.setDebugTask(false);
         taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
         taskInstance.setAppCode(request.getAppCode());

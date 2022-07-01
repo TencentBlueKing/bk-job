@@ -27,21 +27,27 @@ package com.tencent.bk.job.manage.model.dto.task;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTargetDTO;
+import com.tencent.bk.job.manage.service.host.HostService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +57,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 public class TaskTargetDTO {
 
     private String variable;
@@ -76,10 +83,31 @@ public class TaskTargetDTO {
             taskTargetDTO.setVariable(taskTargetVO.getVariable());
         }
         taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getHostNodeInfo()));
+        fillHostDetail(taskTargetDTO);
         return taskTargetDTO;
     }
 
-    public static TaskTargetDTO fromString(String targetString) {
+    private static void fillHostDetail(TaskTargetDTO target) {
+        HostService hostService =
+            ApplicationContextRegister.getBean(HostService.class);
+        if (target.getHostNodeList() != null && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())) {
+            Set<Long> hostIds = target.getHostNodeList().getHostList().stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
+            Map<Long, ApplicationHostDTO> hosts = hostService.listHostsByHostIds(hostIds);
+            target.getHostNodeList().getHostList().forEach(hostNode -> {
+                ApplicationHostDTO host = hosts.get(hostNode.getHostId());
+                hostNode.setAgentId(host.getAgentId());
+                hostNode.setCloudAreaId(host.getCloudAreaId());
+                hostNode.setIp(host.getIp());
+                hostNode.setIpv6(host.getIpv6());
+                hostNode.setDisplayIp(host.getDisplayIp());
+                hostNode.setOs(host.getOs());
+                hostNode.setOsType(host.getOsType());
+                hostNode.setGseAgentAlive(host.getGseAgentAlive());
+            });
+        }
+    }
+
+    public static TaskTargetDTO fromJsonString(String targetString) {
         if (StringUtils.isBlank(targetString)) {
             return null;
         }
@@ -165,8 +193,7 @@ public class TaskTargetDTO {
         return targetDTO;
     }
 
-    @Override
-    public String toString() {
+    public String toJsonString() {
         if (StringUtils.isNotBlank(variable)) {
             this.hostNodeList = null;
         } else {
@@ -176,5 +203,11 @@ public class TaskTargetDTO {
             }
         }
         return JsonMapper.nonEmptyMapper().toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        log.info("TaskTargetDTO_toString");
+        return toJsonString();
     }
 }

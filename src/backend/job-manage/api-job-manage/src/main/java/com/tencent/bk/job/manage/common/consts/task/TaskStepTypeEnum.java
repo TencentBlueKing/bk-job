@@ -24,14 +24,9 @@
 
 package com.tencent.bk.job.manage.common.consts.task;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
- * @since 2/10/2019 20:55
+ * 作业步骤类型
  */
-@Getter
-@AllArgsConstructor
 public enum TaskStepTypeEnum {
 
     /**
@@ -49,7 +44,11 @@ public enum TaskStepTypeEnum {
      */
     APPROVAL(3);
 
-    private int type;
+    private final int type;
+
+    TaskStepTypeEnum(int type) {
+        this.type = type;
+    }
 
     public static TaskStepTypeEnum valueOf(int type) {
         for (TaskStepTypeEnum stepType : values()) {
@@ -57,7 +56,7 @@ public enum TaskStepTypeEnum {
                 return stepType;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No TaskStepTypeEnum constant: " + type);
     }
 
     public int getValue() {

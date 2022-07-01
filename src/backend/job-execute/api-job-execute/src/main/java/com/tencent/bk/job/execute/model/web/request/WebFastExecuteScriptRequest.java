@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.model.web.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
+import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -107,5 +108,11 @@ public class WebFastExecuteScriptRequest {
 
     @ApiModelProperty(value = "任务实例ID,重做的时候需要传入")
     private Long taskInstanceId;
+
+    @ApiModelProperty(value = "滚动配置, 滚动执行需要传入")
+    private RollingConfigVO rollingConfig;
+
+    @ApiModelProperty(value = "是否启用滚动执行")
+    private boolean rollingEnabled;
 
 }

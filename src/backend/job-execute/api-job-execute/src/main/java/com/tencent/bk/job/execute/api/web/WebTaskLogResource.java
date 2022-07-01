@@ -71,6 +71,9 @@ public interface WebTaskLogResource {
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
+        @ApiParam(value = "hostId", name = "hostId")
+        @RequestParam(value = "hostId", required = false)
+            Long hostId,
         @ApiParam(value = "ip", name = "ip")
         @RequestParam(value = "ip", required = false)
             String ip,
@@ -98,6 +101,9 @@ public interface WebTaskLogResource {
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
+        @ApiParam(value = "hostId", name = "hostId")
+        @RequestParam(value = "hostId", required = false)
+            Long hostId,
         @ApiParam(value = "ip", name = "ip")
         @RequestParam(value = "ip", required = false)
             String ip

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -34,26 +35,21 @@ import java.util.List;
 /**
  * 主机状态批量查询请求
  */
-
 @Data
 @ApiModel("主机状态批量查询请求报文")
 public class AgentStatisticsReq {
-    /**
-     * IP列表
-     */
-    @ApiModelProperty(value = "IP列表", required = false)
+
+    @ApiModelProperty(value = "hostId列表")
+    List<Long> hostIdList;
+
+    @CompatibleImplementation(explain = "兼容IPv6版本发布过程接口调用", version = "3.7.0")
+    @ApiModelProperty(value = "IP列表")
     List<String> ipList;
 
-    /**
-     * 业务拓扑节点列表
-     */
-    @ApiModelProperty(value = "业务拓扑节点列表(传 objectId 与 instanceId ，其余字段置空即可)", required = false)
+    @ApiModelProperty(value = "业务拓扑节点列表(传 objectId 与 instanceId ，其余字段置空即可)")
     List<AppTopologyTreeNode> appTopoNodeList;
 
-    /**
-     * 动态分组Id列表
-     */
-    @ApiModelProperty(value = "动态分组Id列表", required = false)
+    @ApiModelProperty(value = "动态分组Id列表")
     List<String> dynamicGroupIds;
 
 }
