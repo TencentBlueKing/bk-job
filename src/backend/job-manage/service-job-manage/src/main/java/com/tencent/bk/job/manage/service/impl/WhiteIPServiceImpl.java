@@ -436,9 +436,13 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     public List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId) {
         log.info("Input=({},{},{})", appId, ip, cloudAreaId);
         // 1.找出与当前业务关联的所有appId
-        List<Long> fullAppIds = applicationService.getRelatedAppIds(appId);
+        List<Long> effectiveAppIds = new ArrayList<>();
+        effectiveAppIds.add(JobConstants.DEFAULT_ALL_BIZ_SET_ID);
+        if (appId != null && !appId.equals(JobConstants.DEFAULT_ALL_BIZ_SET_ID)) {
+            effectiveAppIds.add(appId);
+        }
         // 2.再查对应的白名单
-        return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, fullAppIds, ip, cloudAreaId);
+        return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, ip, cloudAreaId);
     }
 
     @Override
