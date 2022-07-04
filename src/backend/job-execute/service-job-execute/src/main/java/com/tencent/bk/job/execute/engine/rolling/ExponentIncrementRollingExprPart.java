@@ -84,7 +84,7 @@ public class ExponentIncrementRollingExprPart extends RollingExprPart {
             throw new RollingExprParseException();
         }
 
-        int currentBatchSize = preServerBatch.getBatch() * exponent;
+        int currentBatchSize = preServerBatch.getServers().size() * exponent;
         return new ArrayList<>(candidateServers.subList(0, Math.min(currentBatchSize, candidateServers.size())));
     }
 }
