@@ -523,7 +523,7 @@ public class HostServiceImpl implements HostService {
                 }
                 List<CcGroupHostPropDTO> ccGroupHostProps =
                     CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-                        .getCustomGroupIp(groupBizId, customerGroupId);
+                        .getDynamicGroupIp(groupBizId, customerGroupId);
                 List<String> ipList = new ArrayList<>();
                 for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
                     if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
@@ -1083,7 +1083,7 @@ public class HostServiceImpl implements HostService {
                                            Map<Long, List<String>> bizId2GroupIdMap) {
         List<String> groupIdList = new ArrayList<>();
         List<CcGroupDTO> ccGroupList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-            .getCustomGroupList(bizId);
+            .getDynamicGroupList(bizId);
         ccGroupList.forEach(ccGroupDTO -> {
             ccGroupInfoList.put(ccGroupDTO.getId(), ccGroupDTO.toDynamicGroupInfo());
             groupIdList.add(ccGroupDTO.getId());

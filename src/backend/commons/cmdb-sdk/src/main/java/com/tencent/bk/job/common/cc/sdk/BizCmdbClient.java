@@ -29,6 +29,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.model.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
@@ -92,9 +93,11 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.PageDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
@@ -281,7 +284,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopoWithLock(long bizId) {
-        ReentrantLock lock = null;
+        ReentrantLock lock;
         if (bizInstTopoMap.containsKey(bizId)
             && bizInstTopoMap.get(bizId).getRight() > System.currentTimeMillis() - 30 * 1000) {
             return bizInstTopoMap.get(bizId).getLeft();
@@ -389,7 +392,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
      * 防止参数完全相同的请求在并发时多次请求CMDB，降低对CMDB的请求量
      */
     public InstanceTopologyDTO getBizInternalModuleWithLock(long bizId) {
-        ReentrantLock lock = null;
+        ReentrantLock lock;
         if (bizInternalTopoMap.containsKey(bizId)
             && bizInternalTopoMap.get(bizId).getRight() > System.currentTimeMillis() - 30 * 1000) {
             return bizInternalTopoMap.get(bizId).getLeft();
@@ -566,12 +569,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 totalCount -= limit;
             }
             futures.forEach(it -> {
-                try {
-                    while (!it.isDone()) {
-                        Thread.sleep(100);
-                    }
-                } catch (InterruptedException e) {
-                    log.warn("sleep interrupted", e);
+                while (!it.isDone()) {
+                    ThreadUtils.sleep(100);
                 }
             });
             Long endTime = System.currentTimeMillis();
@@ -809,7 +808,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<CcGroupDTO> getCustomGroupList(long bizId) {
+    public List<CcGroupDTO> getDynamicGroupList(long bizId) {
         SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, defaultUin,
             defaultSupplierAccount);
         req.setBizId(bizId);
@@ -825,6 +824,14 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
                 SEARCH_DYNAMIC_GROUP, req, new TypeReference<EsbResp<SearchDynamicGroupResult>>() {
                 });
+            if (!esbResp.getResult()) {
+                // 由于参数问题导致的CMDB返回数据异常
+                throw new CmdbException(
+                    ErrorType.FAILED_PRECONDITION,
+                    ErrorCode.FAIL_TO_FIND_DYNAMIC_GROUP_BY_BIZ,
+                    new Object[]{bizId, esbResp.getMessage()}
+                );
+            }
             SearchDynamicGroupResult ccRespData = esbResp.getData();
             if (ccRespData != null) {
                 List<CcDynamicGroupDTO> groupInfos = ccRespData.getInfo();
@@ -847,13 +854,30 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return ccGroupDTO;
     }
 
-
-    @Override
-    public List<CcGroupHostPropDTO> getCustomGroupIp(long bizId, String groupId) {
-        return getDynamicGroupIpFromCMDB(bizId, groupId);
+    private List<CcGroupHostPropDTO> convertToCcGroupHostPropList(List<CcHostInfoDTO> hostInfoList) {
+        List<CcGroupHostPropDTO> ccGroupHostList = new ArrayList<>();
+        for (CcHostInfoDTO ccHostInfo : hostInfoList) {
+            if (ccHostInfo.getCloudId() == null || ccHostInfo.getCloudId() < 0) {
+                log.warn(
+                    "host(id={},ip={}) does not have cloud area, ignore",
+                    ccHostInfo.getHostId(),
+                    ccHostInfo.getIp()
+                );
+            } else if (StringUtils.isBlank(ccHostInfo.getIp())) {
+                log.warn(
+                    "host(id={},ip={}) ip invalid, ignore",
+                    ccHostInfo.getHostId(),
+                    ccHostInfo.getIp()
+                );
+            } else {
+                ccGroupHostList.add(convertToCcHost(ccHostInfo));
+            }
+        }
+        return ccGroupHostList;
     }
 
-    private List<CcGroupHostPropDTO> getDynamicGroupIpFromCMDB(long bizId, String groupId) {
+    @Override
+    public List<CcGroupHostPropDTO> getDynamicGroupIp(long bizId, String groupId) {
         ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, defaultUin, defaultSupplierAccount);
         req.setBizId(bizId);
         req.setGroupId(groupId);
@@ -869,32 +893,25 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 EXECUTE_DYNAMIC_GROUP, req, new TypeReference<EsbResp<ExecuteDynamicGroupHostResult>>() {
                 });
             ExecuteDynamicGroupHostResult ccRespData = esbResp.getData();
+            if (!esbResp.getResult()) {
+                // 由于参数问题导致的CMDB返回数据异常
+                throw new CmdbException(
+                    ErrorType.FAILED_PRECONDITION,
+                    ErrorCode.FAIL_TO_FIND_HOST_BY_DYNAMIC_GROUP,
+                    new String[]{groupId, esbResp.getMessage()}
+                );
+            }
             if (ccRespData != null) {
                 List<CcHostInfoDTO> hostInfoList = ccRespData.getInfo();
-                for (CcHostInfoDTO ccHostInfo : hostInfoList) {
-                    if (ccHostInfo.getCloudId() == null || ccHostInfo.getCloudId() < 0) {
-                        log.warn("host(id=" + ccHostInfo.getHostId()
-                            + ",ip=" + ccHostInfo.getIp() + ") does not "
-                            + "have cloud area, ignore");
-                    } else if (StringUtils.isBlank(ccHostInfo.getIp())) {
-                        log.warn("host(id=" + ccHostInfo.getHostId() + ",ip=" + ccHostInfo.getIp() + ") ip " +
-                            "invalid, ignore");
-                    } else {
-                        ccGroupHostList.add(convertToCcHost(ccHostInfo));
-                    }
-                }
+                ccGroupHostList.addAll(convertToCcGroupHostPropList(hostInfoList));
                 start += hostInfoList.size();
                 // 如果该页未达到limit，说明是最后一页
                 if (hostInfoList.size() < limit) {
                     isLastPage = true;
                 }
-            }
-        }
-        if (queryAgentStatusClient != null) {
-            for (CcGroupHostPropDTO ccHost : ccGroupHostList) {
-                // 多IP,需要设置agent绑定的IP
-                ccHost.setIp(queryAgentStatusClient.getHostIpByAgentStatus(ccHost.getIp(),
-                    ccHost.getCloudIdList().get(0).getInstanceId()));
+            } else {
+                log.warn("ccRespData is null");
+                isLastPage = true;
             }
         }
         return ccGroupHostList;

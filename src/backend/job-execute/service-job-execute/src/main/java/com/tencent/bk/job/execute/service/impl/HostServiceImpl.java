@@ -41,7 +41,6 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.ServiceHostResourceClient;
 import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
-import com.tencent.bk.job.execute.common.exception.ObtainHostServiceException;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
@@ -201,37 +200,33 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<HostDTO> getIpByDynamicGroupId(long appId, String groupId) throws ObtainHostServiceException {
+    public List<HostDTO> getIpByDynamicGroupId(long appId, String groupId) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-        try {
-            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
-            List<CcGroupHostPropDTO> cmdbGroupHostList =
-                bizCmdbClient.getCustomGroupIp(Long.parseLong(resourceScope.getId()), groupId);
-            List<HostDTO> ips = new ArrayList<>();
-            if (cmdbGroupHostList == null || cmdbGroupHostList.isEmpty()) {
-                return ips;
-            }
-            for (CcGroupHostPropDTO hostProp : cmdbGroupHostList) {
-                List<CcCloudIdDTO> hostCloudIdList = hostProp.getCloudIdList();
-                if (hostCloudIdList == null || hostCloudIdList.isEmpty()) {
-                    log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, groupId={}, " +
-                        "hostIp={}", appId, groupId, hostProp.getIp());
-                    continue;
-                }
-                CcCloudIdDTO hostCloudId = hostCloudIdList.get(0);
-                if (hostCloudId == null) {
-                    log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, groupId={}, " +
-                        "hostIp={}", appId, groupId, hostProp.getIp());
-                    continue;
-                }
-                HostDTO ip = new HostDTO(hostCloudId.getInstanceId(), hostProp.getIp());
-                ips.add(ip);
-            }
-            log.info("Get hosts by groupId, appId={}, groupId={}, hosts={}", appId, groupId, ips);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        List<CcGroupHostPropDTO> cmdbGroupHostList =
+            bizCmdbClient.getDynamicGroupIp(Long.parseLong(resourceScope.getId()), groupId);
+        List<HostDTO> ips = new ArrayList<>();
+        if (cmdbGroupHostList == null || cmdbGroupHostList.isEmpty()) {
             return ips;
-        } catch (Exception e) {
-            throw new ObtainHostServiceException();
         }
+        for (CcGroupHostPropDTO hostProp : cmdbGroupHostList) {
+            List<CcCloudIdDTO> hostCloudIdList = hostProp.getCloudIdList();
+            if (hostCloudIdList == null || hostCloudIdList.isEmpty()) {
+                log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, groupId={}, " +
+                    "hostIp={}", appId, groupId, hostProp.getIp());
+                continue;
+            }
+            CcCloudIdDTO hostCloudId = hostCloudIdList.get(0);
+            if (hostCloudId == null) {
+                log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, groupId={}, " +
+                    "hostIp={}", appId, groupId, hostProp.getIp());
+                continue;
+            }
+            HostDTO ip = new HostDTO(hostCloudId.getInstanceId(), hostProp.getIp());
+            ips.add(ip);
+        }
+        log.info("Get hosts by groupId, appId={}, groupId={}, hosts={}", appId, groupId, ips);
+        return ips;
     }
 
     @Override
