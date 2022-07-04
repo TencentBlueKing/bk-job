@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.execute.config.GseTaskTableRouteConfig;
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
 import com.tencent.bk.job.execute.dao.GseTaskLogDAO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -38,11 +39,14 @@ public class GseTaskServiceImpl implements GseTaskService {
 
     private final GseTaskDAO gseTaskDAO;
     private final GseTaskLogDAO gseTaskLogDAO;
+    private final GseTaskTableRouteConfig gseTaskTableRouteConfig;
 
     @Autowired
-    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO, GseTaskLogDAO gseTaskLogDAO) {
+    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO, GseTaskLogDAO gseTaskLogDAO,
+                              GseTaskTableRouteConfig gseTaskTableRouteConfig) {
         this.gseTaskDAO = gseTaskDAO;
         this.gseTaskLogDAO = gseTaskLogDAO;
+        this.gseTaskTableRouteConfig = gseTaskTableRouteConfig;
     }
 
     @Override
@@ -57,7 +61,9 @@ public class GseTaskServiceImpl implements GseTaskService {
     }
 
     private boolean usingNewTable(long stepInstanceId) {
-        return false;
+        return gseTaskTableRouteConfig.isNewTableEnabled()
+            && (gseTaskTableRouteConfig.getFromStepInstanceId() == null
+            || stepInstanceId > gseTaskTableRouteConfig.getFromStepInstanceId());
     }
 
     @Override

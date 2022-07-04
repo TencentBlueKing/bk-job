@@ -4,6 +4,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.config.GseTaskTableRouteConfig;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -35,15 +36,18 @@ public class FileAgentTaskServiceImpl
 
     private final FileAgentTaskDAO fileAgentTaskDAO;
     private final GseTaskIpLogDAO gseTaskIpLogDAO;
+    private final GseTaskTableRouteConfig gseTaskTableRouteConfig;
 
     @Autowired
     public FileAgentTaskServiceImpl(FileAgentTaskDAO fileAgentTaskDAO,
                                     StepInstanceService stepInstanceService,
                                     HostService hostService,
-                                    GseTaskIpLogDAO gseTaskIpLogDAO) {
+                                    GseTaskIpLogDAO gseTaskIpLogDAO,
+                                    GseTaskTableRouteConfig gseTaskTableRouteConfig) {
         super(stepInstanceService, hostService);
         this.fileAgentTaskDAO = fileAgentTaskDAO;
         this.gseTaskIpLogDAO = gseTaskIpLogDAO;
+        this.gseTaskTableRouteConfig = gseTaskTableRouteConfig;
     }
 
     @Override
@@ -62,7 +66,9 @@ public class FileAgentTaskServiceImpl
     }
 
     private boolean usingNewTable(long stepInstanceId) {
-        return false;
+        return gseTaskTableRouteConfig.isNewTableEnabled()
+            && (gseTaskTableRouteConfig.getFromStepInstanceId() == null
+            || stepInstanceId > gseTaskTableRouteConfig.getFromStepInstanceId());
     }
 
     @Override
