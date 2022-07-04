@@ -122,7 +122,6 @@ export default class Script extends BaseModel {
     get isVersionEnableRemove () {
         return ![
             Script.STATUS_ONLINE,
-            Script.STATUS_OFFLINE,
         ].includes(this.status);
     }
 
