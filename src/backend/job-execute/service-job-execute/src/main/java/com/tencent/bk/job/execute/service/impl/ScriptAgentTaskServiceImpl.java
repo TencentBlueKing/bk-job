@@ -118,11 +118,13 @@ public class ScriptAgentTaskServiceImpl
         if (hostId == null) {
             // 根据ip反查hostId
             String cloudIp = host.toCloudIp();
-            hostId = stepInstance.getTargetServers().getIpList().stream()
+            HostDTO queryHost = stepInstance.getTargetServers().getIpList().stream()
                 .filter(targetHost -> cloudIp.equals(targetHost.toCloudIp()))
-                .map(HostDTO::getHostId)
                 .findFirst()
                 .orElse(null);
+            if (queryHost != null) {
+                hostId = queryHost.getHostId();
+            }
         }
 
         if (hostId != null) {
