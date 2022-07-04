@@ -313,6 +313,7 @@ public class GseStepEventHandler implements StepEventHandler {
         } else {
             agentTask.setAgentId(host.getAgentId());
         }
+        agentTask.setCloudIp(host.toCloudIp());
         return agentTask;
     }
 
