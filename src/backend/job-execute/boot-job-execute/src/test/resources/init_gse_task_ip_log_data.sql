@@ -22,15 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.listener.event;
+TRUNCATE TABLE job_execute.gse_task_ip_log;
 
-import lombok.Data;
-
-@Data
-public class GseTaskEventSource {
-    private long gseTaskId;
-
-    public GseTaskEventSource(long gseTaskId) {
-        this.gseTaskId = gseTaskId;
-    }
-}
+INSERT INTO job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source)
+VALUES
+(1,0,'0:127.0.0.1',9,1565767148000,1565767149000,1316,0,0,'succ',0,'127.0.0.1',1,0),
+(1,0,'0:127.0.0.2',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.2',1,0),
+(1,0,'0:127.0.0.3',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.3',0,1),
+(2,0,'0:127.0.0.1',9,1565767148000,1565767209000,1211,0,0,'succ',0,'127.0.0.1',1,0),
+(2,1,'0:127.0.0.1',9,1565766610000,1565767211000,1215,0,0,'succ',0,'127.0.0.1',1,0);

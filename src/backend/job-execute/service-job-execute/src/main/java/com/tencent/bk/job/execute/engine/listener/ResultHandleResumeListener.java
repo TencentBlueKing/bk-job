@@ -29,7 +29,7 @@ import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.listener.event.GseTaskResultHandleTaskResumeEvent;
+import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
 import com.tencent.bk.job.execute.engine.model.FileDest;
@@ -145,9 +145,16 @@ public class ResultHandleResumeListener {
      * 恢复被中断的作业结果处理任务
      */
     @StreamListener(TaskResultHandleResumeProcessor.INPUT)
-    public void handleEvent(GseTaskResultHandleTaskResumeEvent event) {
+    public void handleEvent(ResultHandleTaskResumeEvent event) {
         log.info("Receive gse task result handle task resume event: {}", event);
-        GseTaskDTO gseTask = gseTaskService.getGseTask(event.getGseTaskId());
+        GseTaskDTO gseTask;
+        if (event.getGseTaskId() != null) {
+            gseTask = gseTaskService.getGseTask(event.getGseTaskId());
+        } else {
+            // 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景
+            gseTask = gseTaskService.getGseTask(event.getStepInstanceId(), event.getExecuteCount(), event.getBatch());
+        }
+
         long stepInstanceId = gseTask.getStepInstanceId();
 
         String requestId = StringUtils.isNotEmpty(event.getRequestId()) ? event.getRequestId()

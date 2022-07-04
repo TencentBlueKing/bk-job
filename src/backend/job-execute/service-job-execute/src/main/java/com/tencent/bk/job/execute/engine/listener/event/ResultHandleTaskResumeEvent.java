@@ -24,17 +24,56 @@
 
 package com.tencent.bk.job.execute.engine.listener.event;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
-public class StepEventSource {
-    private long stepInstanceId;
+import java.time.LocalDateTime;
 
-    public StepEventSource(long stepInstanceId) {
-        this.stepInstanceId = stepInstanceId;
-    }
+/**
+ * 执行引擎-GSE任务结果处理任务恢复事件
+ */
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ResultHandleTaskResumeEvent extends Event {
+    /**
+     * 步骤实例ID
+     */
+    private Long stepInstanceId;
+    /**
+     * 执行次数
+     */
+    private Integer executeCount;
+    /**
+     * 滚动批次
+     */
+    private Integer batch;
+    /**
+     * GSE 任务ID
+     */
+    private Long gseTaskId;
+    /**
+     * 请求ID
+     */
+    private String requestId;
 
-    public static StepEventSource of(long stepInstanceId) {
-        return new StepEventSource(stepInstanceId);
+    public static ResultHandleTaskResumeEvent resume(Long stepInstanceId,
+                                                     Integer executeCount,
+                                                     Integer batch,
+                                                     Long gseTaskId,
+                                                     String requestId) {
+        ResultHandleTaskResumeEvent event = new ResultHandleTaskResumeEvent();
+        event.setStepInstanceId(stepInstanceId);
+        event.setExecuteCount(executeCount);
+        event.setBatch(batch);
+        event.setGseTaskId(gseTaskId);
+        event.setRequestId(requestId);
+        event.setTime(LocalDateTime.now());
+        return event;
     }
 }
