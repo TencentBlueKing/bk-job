@@ -234,7 +234,11 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     @Override
     public List<HostDTO> listAvailableWhiteIPHost(Long appId, ActionScopeEnum actionScope, Collection<Long> hostIds) {
         List<Long> effectiveAppIds = getEffectiveAppIdList(appId);
-        return whiteIPRecordDAO.listWhiteIPHost(effectiveAppIds, getActionScopeId(actionScope), hostIds);
+        return new ArrayList<>(new HashSet<>(whiteIPRecordDAO.listWhiteIPHost(
+            effectiveAppIds,
+            getActionScopeId(actionScope),
+            hostIds
+        )));
     }
 
     @Override
