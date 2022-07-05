@@ -132,8 +132,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         applicationDTO.setTimeZone(record.get(T_APP.TIMEZONE));
         applicationDTO.setOperateDeptId(record.get(T_APP.BK_OPERATE_DEPT_ID));
         applicationDTO.setLanguage(record.get(T_APP.LANGUAGE));
-        applicationDTO.setDeleted(Bool.isTrue(record.get(T_APP.IS_DELETED).intValue()));
         applicationDTO.setAttrs(JsonUtils.fromJson(record.get(T_APP.ATTRS), ApplicationAttrsDO.class));
+        applicationDTO.setDeleted(Bool.isTrue(record.get(T_APP.IS_DELETED).byteValue()));
         return applicationDTO;
     }
 

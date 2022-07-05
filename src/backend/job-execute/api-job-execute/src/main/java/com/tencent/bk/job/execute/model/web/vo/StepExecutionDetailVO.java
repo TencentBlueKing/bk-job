@@ -53,16 +53,24 @@ public class StepExecutionDetailVO {
     @ApiModelProperty("总耗时")
     @JsonSerialize(using = DecimalFormatJsonSerializer.class)
     private Long totalTime;
-    @ApiModelProperty("步骤状态,1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常，10-强制终止中，11-强制终止成功，12-强制终止失败")
+    @ApiModelProperty("步骤状态,1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常" +
+        "，10-强制终止中，11-强制终止成功，12-强制终止失败，13-确认终止，14-被丢弃，15-滚动等待")
     private Integer status;
     @ApiModelProperty("步骤状态描述")
     private String statusDesc;
-    @ApiModelProperty("gseTaskId")
-    private String gseTaskId;
     @ApiModelProperty("Agent作业执行结果分组")
     private List<ExecutionResultGroupVO> resultGroups;
     @ApiModelProperty("是否是作业中最后一个步骤")
     private Boolean isLastStep;
     @ApiModelProperty("步骤类型，1-脚本，2-文件，3-人工确认")
     private Integer type;
+    /**
+     * 步骤执行模式
+     *
+     * @see com.tencent.bk.job.execute.common.constants.StepRunModeEnum
+     */
+    @ApiModelProperty("步骤执行模式。1-单次全量执行(非滚动步骤)；2-滚动全量执行(滚动步骤)；3-滚动分批执行(滚动步骤)")
+    private Integer runMode;
+    @ApiModelProperty("步骤包含的滚动任务;如果非滚动步骤，那么该值为空")
+    private List<RollingStepBatchTaskVO> rollingTasks;
 }

@@ -234,6 +234,10 @@ public class ErrorCode {
     public static final int FAIL_TO_SAVE_FILE_TO_LOCAL = 1244024;
     // 任务被丢弃
     public static final int TASK_ABANDONED = 1244025;
+    // 非法的滚动策略
+    public static final int INVALID_ROLLING_EXPR = 1244026;
+    // 滚动批次不能大于{}
+    public static final int EXCEED_MAX_ALLOWED_BATCH_SIZE = 1244027;
     // 作业执行 end
 
     // 定时作业 start

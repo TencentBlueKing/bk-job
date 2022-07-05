@@ -25,12 +25,12 @@
 package com.tencent.bk.job.logsvr.service;
 
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.FileLogQuery;
-import com.tencent.bk.job.logsvr.model.FileTaskLog;
+import com.tencent.bk.job.logsvr.model.FileTaskLogDoc;
 import com.tencent.bk.job.logsvr.model.ScriptLogQuery;
-import com.tencent.bk.job.logsvr.model.TaskIpLog;
+import com.tencent.bk.job.logsvr.model.TaskHostLog;
 
 import java.util.List;
 
@@ -41,50 +41,33 @@ public interface LogService {
     /**
      * 保存执行日志
      *
-     * @param taskIpLog 执行日志
+     * @param taskHostLog 执行日志
      */
-    void saveLog(TaskIpLog taskIpLog);
+    void saveLog(TaskHostLog taskHostLog);
 
     /**
      * 保存执行日志
      *
-     * @param logType    日志类型
-     * @param taskIpLogs 执行日志
+     * @param logType      日志类型
+     * @param taskHostLogs 执行日志
      */
-    void saveLogs(LogTypeEnum logType, List<TaskIpLog> taskIpLogs);
-
-    /**
-     * 获取ip对应的脚本任务日志
-     *
-     * @param query 获取执行日志请求
-     * @return 执行日志
-     */
-    TaskIpLog getScriptLogByIp(ScriptLogQuery query);
+    void saveLogs(LogTypeEnum logType, List<TaskHostLog> taskHostLogs);
 
     /**
      * 批量获取脚本执行日志
      *
-     * @param query 获取执行日志请求
+     * @param scriptLogQuery 获取执行日志请求
      * @return 日志内容
      * @throws ServiceException 异常
      */
-    List<TaskIpLog> batchGetScriptLogByIps(ScriptLogQuery query) throws ServiceException;
+    List<TaskHostLog> listScriptLogs(ScriptLogQuery scriptLogQuery);
 
     /**
-     * 获取ip对应的文件任务日志
+     * 查询文件任务执行日志
      *
-     * @param query 获取执行日志请求
-     * @return 执行日志
+     * @param query 查询文件任务执行日志
      */
-    TaskIpLog getFileLogByIp(FileLogQuery query);
-
-    /**
-     * 根据分发模式获取
-     *
-     * @param query 获取执行日志请求
-     * @return
-     */
-    List<FileTaskLog> getFileLogs(FileLogQuery query);
+    List<FileTaskLogDoc> listFileLogs(FileLogQuery query);
 
     /**
      * 根据文件任务ID获取日志
@@ -92,31 +75,31 @@ public interface LogService {
      * @param jobCreateDate  创建时间
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次
      * @param taskIds        任务ID列表
-     * @return
+     * @return 文件任务执行日志
      */
-    List<FileTaskLog> getFileLogsByTaskIds(String jobCreateDate, long stepInstanceId, int executeCount,
-                                           List<String> taskIds);
+    List<FileTaskLogDoc> getFileLogsByTaskIds(String jobCreateDate,
+                                              long stepInstanceId,
+                                              int executeCount,
+                                              Integer batch,
+                                              List<String> taskIds);
 
-
-    /**
-     * 删除步骤日志
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param jobCreateDate  任务创建时间,yyyy_MM_dd
-     */
-    long deleteStepContent(Long stepInstanceId, Integer executeCount, String jobCreateDate);
 
     /**
      * 返回日志内容包含关键字的任务对应的主机ip
      *
+     * @param jobCreateDate  创建时间
      * @param stepInstanceId 步骤ID
      * @param executeCount   执行次数
-     * @param jobCreateDate  创建时间
+     * @param batch          滚动执行批次
      * @param keyword        查询关键字
      * @return ip
      */
-    List<IpDTO> getIpsByKeyword(long stepInstanceId, Integer executeCount, String jobCreateDate, String keyword);
+    List<HostDTO> getIpsByKeyword(String jobCreateDate,
+                                  long stepInstanceId,
+                                  int executeCount,
+                                  Integer batch,
+                                  String keyword);
 
 }

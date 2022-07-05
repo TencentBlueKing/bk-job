@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.execute.dao;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
-import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,15 +35,30 @@ import java.util.List;
 /**
  * GseTaskIpLogDAO
  */
+@CompatibleImplementation(name = "rolling_execute", explain = "兼容老版本数据，过1-2个大版本之后删除", version = "3.7.x")
 public interface GseTaskIpLogDAO {
-    void batchSaveIpLog(List<GseTaskIpLogDTO> ipLogList);
+    /**
+     * 批量保存Agent任务
+     *
+     * @param agentTasks Agent任务
+     */
+    void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks);
 
-    void batchUpdateIpLog(long stepInstanceId, int executeCount, Collection<String> cloudAreaAndIps, Long startTime,
-                          Long endTime, IpStatus ipStatus);
+    /**
+     * 批量更新Agent任务
+     *
+     * @param agentTasks Agent任务
+     */
+    void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks);
 
-    int getSuccessIpCount(long stepInstanceId, int executeCount);
-
-    List<GseTaskIpLogDTO> getSuccessGseTaskIp(long stepInstanceId, int executeCount);
+    /**
+     * 获取步骤成功执行的Agent任务数量
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @return 步骤成功执行的Agent任务数量
+     */
+    int getSuccessAgentTaskCount(long stepInstanceId, int executeCount);
 
     /**
      * 查询执行结果分组
@@ -52,50 +67,68 @@ public interface GseTaskIpLogDAO {
      * @param executeCount   执行次数
      * @return 执行结果分组
      */
-    List<ResultGroupBaseDTO> getResultGroups(long stepInstanceId, int executeCount);
-
-    List<GseTaskIpLogDTO> getIpLogByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                               String tag);
-
-    List<GseTaskIpLogDTO> getIpLogByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                               String tag, Integer limit, String orderField, Order order);
+    List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount);
 
     /**
-     * 获取agent任务信息
+     * 根据执行结果查询Agent任务
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
-     * @param onlyTargetIp   是否仅返回目标服务器IP
-     * @return agent任务信息
+     * @param status         任务状态
+     * @param tag            用户自定义分组标签
+     * @return Agent任务
      */
-    List<GseTaskIpLogDTO> getIpLog(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp);
-
-    GseTaskIpLogDTO getIpLogByIp(Long stepInstanceId, Integer executeCount, String ip);
-
-    List<GseTaskIpLogDTO> getIpLogByIps(Long stepInstanceId, Integer executeCount, String[] ipArray);
-
-    void deleteAllIpLog(long stepInstanceId, int executeCount);
-
-    int getSuccessRetryCount(long stepInstanceId, String cloudAreaAndIp);
+    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                  Integer executeCount,
+                                                  Integer status,
+                                                  String tag);
 
     /**
-     * 获取文件任务源ip
+     * 根据执行结果查询Agent任务(排序、限制返回数量)
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
-     * @return 文件任务源ip
+     * @param status         任务状态
+     * @param tag            用户自定义分组标签
+     * @param limit          最大返回数量
+     * @param orderField     排序字段
+     * @param order          排序方式
+     * @return Agent任务
      */
-    List<String> getTaskFileSourceIps(Long stepInstanceId, Integer executeCount);
+    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                  Integer executeCount,
+                                                  Integer status,
+                                                  String tag,
+                                                  Integer limit,
+                                                  String orderField,
+                                                  Order order);
 
     /**
-     * 获取任务目标ip - 根据ip模糊匹配
+     * 获取Agent任务
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
-     * @param searchIp       用于检索的IP
-     * @return 匹配的任务目标IP列表
+     * @return Agent任务信息
      */
-    List<String> fuzzySearchTargetIpsByIp(Long stepInstanceId, Integer executeCount, String searchIp);
+    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
+                                      Integer executeCount);
 
+    /**
+     * 根据hostId查询Agent任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param ip             主机ip
+     * @return Agent任务
+     */
+    AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip);
 
+    /**
+     * 获取Agent任务实际执行成功的executeCount值(重试场景)
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param cloudIp        主机ip
+     * @return Agent任务实际执行成功的executeCount值
+     */
+    int getActualSuccessExecuteCount(long stepInstanceId, String cloudIp);
 }

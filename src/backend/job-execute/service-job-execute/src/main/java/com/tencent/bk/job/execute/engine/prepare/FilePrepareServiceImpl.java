@@ -25,7 +25,10 @@
 package com.tencent.bk.job.execute.engine.prepare;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.listener.event.EventSource;
+import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareService;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareService;
@@ -35,6 +38,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,20 +60,19 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private final LocalFilePrepareService localFilePrepareService;
     private final ThirdFilePrepareService thirdFilePrepareService;
     private final TaskInstanceService taskInstanceService;
-    private final TaskExecuteControlMsgSender taskControlMsgSender;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final ResultHandleManager resultHandleManager;
 
     @Autowired
-    public FilePrepareServiceImpl(
-        LocalFilePrepareService localFilePrepareService,
-        ThirdFilePrepareService thirdFilePrepareService,
-        TaskInstanceService taskInstanceService,
-        TaskExecuteControlMsgSender taskControlMsgSender,
-        ResultHandleManager resultHandleManager) {
+    public FilePrepareServiceImpl(LocalFilePrepareService localFilePrepareService,
+                                  ThirdFilePrepareService thirdFilePrepareService,
+                                  TaskInstanceService taskInstanceService,
+                                  TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                                  ResultHandleManager resultHandleManager) {
         this.localFilePrepareService = localFilePrepareService;
         this.thirdFilePrepareService = thirdFilePrepareService;
         this.taskInstanceService = taskInstanceService;
-        this.taskControlMsgSender = taskControlMsgSender;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleManager = resultHandleManager;
     }
 
@@ -82,24 +85,6 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     public void clearPreparedTmpFile(long stepInstanceId) {
         localFilePrepareService.clearPreparedTmpFile(stepInstanceId);
         thirdFilePrepareService.clearPreparedTmpFile(stepInstanceId);
-    }
-
-    private boolean hasLocalFile(List<FileSourceDTO> fileSourceList) {
-        for (FileSourceDTO fileSourceDTO : fileSourceList) {
-            if (fileSourceDTO.isLocalUpload()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasThirdFile(List<FileSourceDTO> fileSourceList) {
-        for (FileSourceDTO fileSourceDTO : fileSourceList) {
-            if (fileSourceDTO.getFileSourceId() != null && fileSourceDTO.getFileSourceId() > 0) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void startPrepareLocalFileTask(long stepInstanceId,
@@ -167,12 +152,11 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     }
 
     @Override
-    public void prepareFileForGseTask(long stepInstanceId) {
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+    public void prepareFileForGseTask(StepInstanceDTO stepInstance) {
+        log.info("Begin to prepare source files for step, stepInstanceId: {}", stepInstance.getId());
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-        if (fileSourceList == null) {
-            log.warn("stepInstanceId={},fileSourceList is null", stepInstanceId);
-            taskControlMsgSender.startGseStep(stepInstance.getId());
+        if (CollectionUtils.isEmpty(fileSourceList)) {
+            log.error("FileSource is empty, stepInstanceId: {}", stepInstance.getId());
             return;
         }
         int taskCount = 0;
@@ -182,15 +166,14 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         if (hasThirdFile) taskCount += 1;
         if (taskCount == 0) {
             // 没有需要准备文件的本地文件/第三方源文件
-            taskControlMsgSender.startGseStep(stepInstance.getId());
+            log.error("FileSource no need to prepare, stepInstanceId: {}", stepInstance.getId());
             return;
         }
-        log.debug("stepInstanceId={},prepareTaskCount={}", stepInstanceId, taskCount);
         CountDownLatch latch = new CountDownLatch(taskCount);
         final List<FilePrepareTaskResult> resultList = Collections.synchronizedList(new ArrayList<>(taskCount));
         if (hasLocalFile) {
             // 启动异步准备本地文件任务
-            startPrepareLocalFileTask(stepInstanceId, fileSourceList, resultList, latch);
+            startPrepareLocalFileTask(stepInstance.getId(), fileSourceList, resultList, latch);
         }
         if (hasThirdFile) {
             // 启动异步准备第三方源文件任务
@@ -230,6 +213,24 @@ public class FilePrepareServiceImpl implements FilePrepareService {
                 filePrepareTaskResultHandler
             );
         resultHandleManager.handleDeliveredTask(filePrepareControlTask);
+    }
+
+    private boolean hasLocalFile(List<FileSourceDTO> fileSourceList) {
+        for (FileSourceDTO fileSourceDTO : fileSourceList) {
+            if (fileSourceDTO.isLocalUpload()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasThirdFile(List<FileSourceDTO> fileSourceList) {
+        for (FileSourceDTO fileSourceDTO : fileSourceList) {
+            if (fileSourceDTO.getFileSourceId() != null && fileSourceDTO.getFileSourceId() > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -272,7 +273,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private void onSuccess(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         if (!finalResult.getTaskContext().isForRetry()) {
             // 直接进行下一步
-            taskControlMsgSender.continueGseFileStep(stepInstance.getId());
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.continueGseFileStep(stepInstance.getId()));
         }
     }
 
@@ -280,14 +281,25 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         // 步骤状态变更
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
         // 任务状态变更
-        taskControlMsgSender.refreshTask(stepInstance.getTaskInstanceId());
-        // 强制终止成功后就不再下发GSE Task了
-        // taskControlMsgSender.continueGseFileStep(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchJobEvent(
+            JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                EventSource.buildStepEventSource(stepInstance.getId())));
     }
 
     private void onFailed(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 文件源文件下载失败
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
-        taskControlMsgSender.refreshTask(stepInstance.getTaskInstanceId());
+        taskExecuteMQEventDispatcher.dispatchJobEvent(
+            JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                EventSource.buildStepEventSource(stepInstance.getId())));
+    }
+
+    @Override
+    public boolean needToPrepareSourceFilesForGseTask(StepInstanceDTO stepInstance) {
+        List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+        if (fileSourceList == null) {
+            return false;
+        }
+        return hasLocalFile(fileSourceList) || hasThirdFile(fileSourceList);
     }
 }

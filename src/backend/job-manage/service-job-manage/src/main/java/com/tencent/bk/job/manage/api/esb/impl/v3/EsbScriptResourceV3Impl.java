@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -57,6 +56,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -203,6 +203,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionListUsingPost(
         EsbGetScriptVersionListV3Req request) {
         request.fillAppResourceScope(appScopeMappingService);
+        checkEsbGetScriptVersionListV3Req(request);
 
         long appId = request.getAppId();
         ScriptQuery scriptQuery = new ScriptQuery();
@@ -210,12 +211,12 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         scriptQuery.setPublicScript(false);
         scriptQuery.setId(request.getScriptId());
 
-        checkScriptAvailable(request.getScriptId(), appId);
-        authViewScript(request.getUserName(), request.getAppResourceScope(), request.getScriptId());
-
         BaseSearchCondition baseSearchCondition = BaseSearchCondition.pageCondition(request.getStart(),
             request.getLength());
+
         PageData<ScriptDTO> pageScriptVersions = scriptService.listPageScriptVersion(scriptQuery, baseSearchCondition);
+
+        batchAuthViewScript(request.getUserName(), request.getAppResourceScope(), pageScriptVersions.getData());
 
         EsbPageDataV3<EsbScriptVersionDetailV3DTO> result = EsbPageDataV3.from(pageScriptVersions,
             ScriptDTO::toEsbScriptVersionDetailV3DTO);
@@ -227,22 +228,25 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         return EsbResp.buildSuccessResp(result);
     }
 
-    private void checkScriptAvailable(String scriptId, long appId) {
-        ScriptDTO script = scriptService.getScriptByScriptId(scriptId);
-        if (script == null) {
-            log.warn("Script is not exist, scriptId: {}", scriptId);
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-        }
-        if (script.getAppId() != appId) {
-            log.warn("Script is not in app, scriptId: {}, scriptAppId: {}", scriptId, script.getAppId());
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
+    private void checkEsbGetScriptVersionListV3Req(EsbGetScriptVersionListV3Req request) {
+        if (StringUtils.isBlank(request.getScriptId())) {
+            log.warn("Param [script_id] is empty!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "script_id");
         }
     }
 
-    private void authViewScript(String username, AppResourceScope appResourceScope, String scriptId) {
-        AuthResult authResult = scriptAuthService.authViewScript(username, appResourceScope, scriptId, null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
+    private void batchAuthViewScript(String username, AppResourceScope appResourceScope, List<ScriptDTO> scripts) {
+        if (CollectionUtils.isNotEmpty(scripts)) {
+            // 鉴权
+            List<String> resourceIds =
+                scripts.stream().map(ScriptDTO::getId).distinct().collect(Collectors.toList());
+            if (!resourceIds.isEmpty()) {
+                AuthResult authResult = scriptAuthService.batchAuthResultViewScript(username,
+                    appResourceScope, resourceIds);
+                if (!authResult.isPass()) {
+                    throw new PermissionDeniedException(authResult);
+                }
+            }
         }
     }
 
@@ -251,9 +255,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetailUsingPost(
         EsbGetScriptVersionDetailV3Req request) {
         request.fillAppResourceScope(appScopeMappingService);
-
         checkEsbGetScriptVersionDetailV3Req(request);
-        authViewScript(request.getUserName(), request.getAppResourceScope(), request.getScriptId());
 
         long appId = request.getAppId();
         String scriptId = request.getScriptId();
@@ -266,6 +268,13 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
             scriptVersion = scriptService.getByScriptIdAndVersion(null, appId, scriptId, version);
         }
 
+        if (scriptVersion != null) {
+            AuthResult authResult = scriptAuthService.authViewScript(request.getUserName(), request.getAppResourceScope(),
+                scriptVersion.getId(), null);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
+            }
+        }
 
         EsbScriptVersionDetailV3DTO result = null;
         if (scriptVersion != null) {

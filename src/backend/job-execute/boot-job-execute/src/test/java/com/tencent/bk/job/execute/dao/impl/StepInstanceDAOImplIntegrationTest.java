@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
@@ -87,9 +87,10 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(stepInstance.getTotalTime()).isEqualTo(1111L);
         assertThat(stepInstance.getCreateTime()).isEqualTo(1572868800000L);
         assertThat(stepInstance.getTargetServers()).isNotNull();
-        List<IpDTO> expectedServer = new ArrayList<>();
-        expectedServer.add(new IpDTO(0L, "127.0.0.1"));
+        List<HostDTO> expectedServer = new ArrayList<>();
+        expectedServer.add(new HostDTO(0L, "127.0.0.1"));
         assertThat(stepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
+        assertThat(stepInstance.getBatch()).isEqualTo(0);
     }
 
     @Test
@@ -101,8 +102,8 @@ public class StepInstanceDAOImplIntegrationTest {
         stepInstanceDTO.setStepId(1L);
         stepInstanceDTO.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
         ServersDTO servers = new ServersDTO();
-        List<IpDTO> ipList = new ArrayList<>();
-        ipList.add(new IpDTO(0L, "127.0.0.1"));
+        List<HostDTO> ipList = new ArrayList<>();
+        ipList.add(new HostDTO(0L, "127.0.0.1"));
         servers.setIpList(ipList);
         stepInstanceDTO.setTargetServers(servers);
         stepInstanceDTO.setOperator("admin");
@@ -127,8 +128,8 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getExecuteType()).isEqualTo(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
         assertThat(returnStepInstance.getIpList()).isEqualTo("0:127.0.0.1");
         assertThat(returnStepInstance.getTargetServers().getIpList()).hasSize(1);
-        List<IpDTO> expectedServer = new ArrayList<>();
-        expectedServer.add(new IpDTO(0L, "127.0.0.1"));
+        List<HostDTO> expectedServer = new ArrayList<>();
+        expectedServer.add(new HostDTO(0L, "127.0.0.1"));
         assertThat(returnStepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
         assertThat(returnStepInstance.getOperator()).isEqualTo("admin");
         assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS.getValue());
@@ -139,6 +140,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getCreateTime()).isEqualTo(1572868800000L);
         assertThat(returnStepInstance.getStepNum()).isEqualTo(3);
         assertThat(returnStepInstance.getStepOrder()).isEqualTo(1);
+        assertThat(returnStepInstance.getBatch()).isEqualTo(0);
     }
 
     @Test
@@ -163,9 +165,6 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getStartTime()).isNull();
         assertThat(returnStepInstance.getEndTime()).isNull();
         assertThat(returnStepInstance.getTotalTime()).isNull();
-        assertThat(returnStepInstance.getSuccessIPNum()).isEqualTo(0);
-        assertThat(returnStepInstance.getFailIPNum()).isEqualTo(0);
-        assertThat(returnStepInstance.getRunIPNum()).isEqualTo(0);
     }
 
     @Test
@@ -250,51 +249,6 @@ public class StepInstanceDAOImplIntegrationTest {
     }
 
     @Test
-    public void testUpdateStepStatInfo() {
-        long stepInstanceId = 1L;
-        int successIPNum = 1;
-        int failIPNum = 2;
-        int runIPNum = 3;
-
-        stepInstanceDAO.updateStepStatInfo(stepInstanceId, runIPNum, successIPNum, failIPNum);
-
-        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
-
-        assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
-        assertThat(returnStepInstance.getSuccessIPNum()).isEqualTo(successIPNum);
-        assertThat(returnStepInstance.getFailIPNum()).isEqualTo(failIPNum);
-        assertThat(returnStepInstance.getRunIPNum()).isEqualTo(runIPNum);
-
-    }
-
-    @Test
-    public void testGetFirstStepStartTime() {
-        long taskInstanceId = 1L;
-
-        Long startTime = stepInstanceDAO.getFirstStepStartTime(taskInstanceId);
-
-        assertThat(startTime).isEqualTo(1572868800000L);
-    }
-
-    @Test
-    public void testGetLastStepEndTime() {
-        long taskInstanceId = 1L;
-
-        Long endTime = stepInstanceDAO.getLastStepEndTime(taskInstanceId);
-
-        assertThat(endTime).isEqualTo(1572868802000L);
-    }
-
-    @Test
-    public void testGetAllStepTotalTime() {
-        long taskInstanceId = 1L;
-
-        float totalTime = stepInstanceDAO.getAllStepTotalTime(taskInstanceId);
-
-        assertThat(totalTime).isEqualTo(2223L);
-    }
-
-    @Test
     public void testResetStepExecuteInfoForRetry() {
         long stepInstanceId = 1L;
         stepInstanceDAO.resetStepExecuteInfoForRetry(stepInstanceId);
@@ -305,9 +259,6 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getEndTime()).isNull();
         assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.RUNNING.getValue());
         assertThat(returnStepInstance.getTotalTime()).isNull();
-        assertThat(returnStepInstance.getSuccessIPNum()).isEqualTo(0);
-        assertThat(returnStepInstance.getFailIPNum()).isEqualTo(0);
-        assertThat(returnStepInstance.getRunIPNum()).isEqualTo(0);
     }
 
     @Test
@@ -387,7 +338,7 @@ public class StepInstanceDAOImplIntegrationTest {
         fileSource.setLocalUpload(false);
         fileSource.setFileType(TaskFileTypeEnum.SERVER.getType());
         ServersDTO fileSourceServers = new ServersDTO();
-        fileSourceServers.setIpList(Lists.newArrayList(new IpDTO(1L, "10.10.10.10")));
+        fileSourceServers.setIpList(Lists.newArrayList(new HostDTO(1L, "10.10.10.10")));
         fileSource.setServers(fileSourceServers);
         FileDetailDTO fileDetail = new FileDetailDTO();
         fileDetail.setFilePath("/tmp/1.log");
@@ -417,7 +368,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers()).isNotNull();
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers().getIpList()).isNotEmpty();
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers().getIpList())
-            .containsOnly(new IpDTO(1L,
+            .containsOnly(new HostDTO(1L,
             "10.10.10.10"));
         assertThat(savedStepInstance.getFileSourceList().get(0).getFiles()).isNotEmpty();
         assertThat(savedStepInstance.getFileSourceList().get(0).getFiles().get(0).getFilePath())
@@ -506,8 +457,8 @@ public class StepInstanceDAOImplIntegrationTest {
         fileSourceDTO.setAccountId(1L);
         fileSourceDTO.setAccount("root");
         ServersDTO servers = new ServersDTO();
-        List<IpDTO> ips = new ArrayList<>();
-        ips.add(new IpDTO(1L, "10.10.10.10"));
+        List<HostDTO> ips = new ArrayList<>();
+        ips.add(new HostDTO(1L, "10.10.10.10"));
         servers.setIpList(ips);
         fileSourceDTO.setServers(servers);
         fileSources.add(fileSourceDTO);
@@ -524,7 +475,7 @@ public class StepInstanceDAOImplIntegrationTest {
             "/data/logs/1.log");
         assertThat(updatedStepInstance.getFileSourceList().get(0).getFiles().get(0).getResolvedFilePath()).isEqualTo(
             "/data/logs/1.log");
-        assertThat(updatedStepInstance.getFileSourceList().get(0).getServers().getIpList()).contains(new IpDTO(1L, 
+        assertThat(updatedStepInstance.getFileSourceList().get(0).getServers().getIpList()).contains(new HostDTO(1L,
             "10.10.10.10"));
     }
 
@@ -560,6 +511,22 @@ public class StepInstanceDAOImplIntegrationTest {
         StepInstanceBaseDTO preStepInstance = stepInstanceDAO.getPreExecutableStepInstance(1L, 2L);
         assertThat(preStepInstance).isNotNull();
         assertThat(preStepInstance.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void updateStepCurrentBatch() {
+        stepInstanceDAO.updateStepCurrentBatch(1L, 1);
+
+        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(1L);
+        assertThat(stepInstance.getBatch()).isEqualTo(1);
+    }
+
+    @Test
+    void updateStepRollingConfigId() {
+        stepInstanceDAO.updateStepRollingConfigId(1L, 1000L);
+
+        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(1L);
+        assertThat(stepInstance.getRollingConfigId()).isEqualTo(1000L);
     }
 
 

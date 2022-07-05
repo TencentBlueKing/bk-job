@@ -32,13 +32,13 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
-import com.tencent.bk.job.execute.model.ScriptIpLogContent;
+import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbFileIpLogV3DTO;
@@ -50,7 +50,7 @@ import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceIpLogsDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -150,8 +150,8 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "ip_list");
         }
         for (EsbIpDTO cloudIp : cloudIpList) {
-            if (cloudIp.getCloudAreaId() == null || cloudIp.getCloudAreaId() < 0) {
-                log.warn("CloudAreaId is empty or illegal, cloudAreaId={}", cloudIp.getCloudAreaId());
+            if (cloudIp.getBkCloudId() == null || cloudIp.getBkCloudId() < 0) {
+                log.warn("CloudAreaId is empty or illegal, cloudAreaId={}", cloudIp.getBkCloudId());
                 return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
                     "bk_cloud_id");
             }
@@ -173,9 +173,9 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
 
         String jobCreateDate = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
-        List<ScriptIpLogContent> ipLogContentList = logService.batchGetScriptIpLogContent(jobCreateDate,
-            stepInstance.getId(), stepInstance.getExecuteCount(),
-            ipList.stream().map(cloudIp -> new IpDTO(cloudIp.getCloudAreaId(), cloudIp.getIp()))
+        List<ScriptHostLogContent> ipLogContentList = logService.batchGetScriptHostLogContent(jobCreateDate,
+            stepInstance.getId(), stepInstance.getExecuteCount(), null,
+            ipList.stream().map(cloudIp -> new HostDTO(cloudIp.getBkCloudId(), cloudIp.getIp()))
                 .collect(Collectors.toList()));
 
         if (CollectionUtils.isEmpty(ipLogContentList)) {
@@ -184,8 +184,8 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
 
         List<EsbScriptIpLogV3DTO> scriptTaskLogs = ipLogContentList.stream().map(ipLogContent -> {
             EsbScriptIpLogV3DTO scriptIpLog = new EsbScriptIpLogV3DTO();
-            IpDTO cloudIp = IpUtils.transform(ipLogContent.getIp());
-            scriptIpLog.setCloudAreaId(cloudIp.getCloudAreaId());
+            HostDTO cloudIp = IpUtils.transform(ipLogContent.getIp());
+            scriptIpLog.setCloudAreaId(cloudIp.getBkCloudId());
             scriptIpLog.setIp(cloudIp.getIp());
             scriptIpLog.setLogContent(ipLogContent.getContent());
             return scriptIpLog;
@@ -197,9 +197,9 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
                                List<EsbIpDTO> ipList) {
         esbIpLogs.setLogType(LogTypeEnum.FILE.getValue());
 
-        ServiceIpLogsDTO ipLogs = logService.batchGetFileIpLogContent(
-            stepInstance.getId(), stepInstance.getExecuteCount(),
-            ipList.stream().map(cloudIp -> new IpDTO(cloudIp.getCloudAreaId(), cloudIp.getIp()))
+        ServiceHostLogsDTO ipLogs = logService.batchGetFileIpLogContent(
+            stepInstance.getId(), stepInstance.getExecuteCount(), null,
+            ipList.stream().map(cloudIp -> new HostDTO(cloudIp.getBkCloudId(), cloudIp.getIp()))
                 .collect(Collectors.toList()));
 
         if (ipLogs == null || CollectionUtils.isEmpty(ipLogs.getIpLogs())) {
@@ -210,9 +210,9 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
             List<ServiceFileTaskLogDTO> ipFileLogs = ipLog.getFileTaskLogs();
             EsbFileIpLogV3DTO esbFileIpLog = new EsbFileIpLogV3DTO();
             if (CollectionUtils.isNotEmpty(ipFileLogs)) {
-                IpDTO cloudIp = IpDTO.fromCloudAreaIdAndIpStr(ipLog.getIp());
+                HostDTO cloudIp = HostDTO.fromCloudIp(ipLog.getIp());
                 if (cloudIp != null) {
-                    esbFileIpLog.setCloudAreaId(cloudIp.getCloudAreaId());
+                    esbFileIpLog.setCloudAreaId(cloudIp.getBkCloudId());
                     esbFileIpLog.setIp(cloudIp.getIp());
                 }
                 List<EsbFileLogV3DTO> esbFileLogs = ipFileLogs.stream()

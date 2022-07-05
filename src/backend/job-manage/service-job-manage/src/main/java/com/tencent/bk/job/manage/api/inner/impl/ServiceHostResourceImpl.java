@@ -31,11 +31,12 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
@@ -148,14 +149,20 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     }
 
     @Override
-    public InternalResponse<List<IpDTO>> checkAppHosts(Long appId,
-                                                       ServiceCheckAppHostsReq req) {
+    public InternalResponse<List<HostDTO>> checkAppHosts(Long appId,
+                                                         ServiceCheckAppHostsReq req) {
         return InternalResponse.buildSuccessResp(hostService.checkAppHosts(appId, req.getHosts()));
     }
 
     @Override
+    public InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(Long appId,
+                                                                          ServiceCheckAppHostsReq req) {
+        return InternalResponse.buildSuccessResp(hostService.listAppHosts(appId, req.getHosts()));
+    }
+
+    @Override
     public InternalResponse<List<ServiceHostDTO>> batchGetHosts(ServiceBatchGetHostsReq req) {
-        List<IpDTO> hostIps = req.getHosts();
+        List<HostDTO> hostIps = req.getHosts();
         List<ApplicationHostDTO> hosts = hostService.listHosts(hostIps);
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(null);

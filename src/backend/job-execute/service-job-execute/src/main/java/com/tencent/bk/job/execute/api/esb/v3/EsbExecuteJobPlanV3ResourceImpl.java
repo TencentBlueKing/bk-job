@@ -99,7 +99,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 executeVariableValues.add(taskVariableDTO);
             }
         }
-        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
             TaskExecuteParam
                 .builder()
                 .appId(request.getAppId())
@@ -110,7 +110,6 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 .callbackUrl(request.getCallbackUrl())
                 .appCode(request.getAppCode())
                 .build());
-        taskExecuteService.startTask(taskInstanceDTO.getId());
 
         EsbJobExecuteV3DTO result = new EsbJobExecuteV3DTO();
         result.setTaskInstanceId(taskInstanceDTO.getId());

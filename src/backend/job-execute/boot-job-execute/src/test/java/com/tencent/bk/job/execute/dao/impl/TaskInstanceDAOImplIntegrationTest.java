@@ -170,7 +170,7 @@ class TaskInstanceDAOImplIntegrationTest {
         TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
 
         assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
-        assertThat(taskInstanceDTO.getCurrentStepId()).isEqualTo(stepInstanceId);
+        assertThat(taskInstanceDTO.getCurrentStepInstanceId()).isEqualTo(stepInstanceId);
 
 
     }
@@ -185,7 +185,7 @@ class TaskInstanceDAOImplIntegrationTest {
         assertThat(taskInstanceDTO.getStartTime()).isNull();
         assertThat(taskInstanceDTO.getEndTime()).isNull();
         assertThat(taskInstanceDTO.getTotalTime()).isNull();
-        assertThat(taskInstanceDTO.getCurrentStepId()).isEqualTo(0L);
+        assertThat(taskInstanceDTO.getCurrentStepInstanceId()).isEqualTo(0L);
     }
 
     @Test
@@ -313,7 +313,7 @@ class TaskInstanceDAOImplIntegrationTest {
     void testResetTaskExecuteInfoForResume() {
         long taskInstanceId = 2L;
 
-        taskInstanceDAO.resetTaskExecuteInfoForResume(taskInstanceId);
+        taskInstanceDAO.resetTaskExecuteInfoForRetry(taskInstanceId);
 
         TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
         assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);

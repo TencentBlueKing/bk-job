@@ -38,7 +38,7 @@ public class TaskStepConverter {
         ServiceTaskStepDTO serviceTaskStepDTO = new ServiceTaskStepDTO();
         serviceTaskStepDTO.setId(taskStepDTO.getId());
         serviceTaskStepDTO.setName(taskStepDTO.getName());
-        serviceTaskStepDTO.setType(taskStepDTO.getType().getType());
+        serviceTaskStepDTO.setType(taskStepDTO.getType().getValue());
         serviceTaskStepDTO.setEnable(taskStepDTO.getEnable());
         serviceTaskStepDTO.setApprovalStepInfo(
             TaskApprovalStepConverter.convertToServiceTaskApprovalStepDTO(

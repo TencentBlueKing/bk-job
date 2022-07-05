@@ -36,6 +36,10 @@ import lombok.Data;
 public class AgentTaskExecutionVO {
     @ApiModelProperty("执行次数")
     private Integer retryCount;
+    @ApiModelProperty("滚动批次")
+    private Integer batch;
+    @ApiModelProperty("主机ID")
+    private Long hostId;
     @ApiModelProperty("Agent绑定的ip，包含云区域")
     private String ip;
     @ApiModelProperty("Agent ip显示名称，展示给用户使用该ip")

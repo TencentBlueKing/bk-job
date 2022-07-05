@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.web.WebTaskLogResource;
 import com.tencent.bk.job.execute.config.ArtifactoryConfig;
@@ -79,8 +78,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                   LogExportService logExportService,
                                   ArtifactoryClient artifactoryClient,
                                   ArtifactoryConfig artifactoryConfig,
-                                  LogExportConfig logExportConfig,
-                                  AppScopeMappingService appScopeMappingService) {
+                                  LogExportConfig logExportConfig) {
         this.taskInstanceService = taskInstanceService;
         this.logExportService = logExportService;
         this.logFileDir = NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(),
@@ -119,6 +117,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                String scopeType,
                                                                String scopeId,
                                                                Long stepInstanceId,
+                                                               Long hostId,
                                                                String ip,
                                                                Boolean repackage) {
         Long appId = appResourceScope.getAppId();
@@ -134,7 +133,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         if (!repackage) {
             log.debug("Do not need repackage, check exist job");
-            LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId, ip);
+            LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, ip);
             if (exportInfo != null) {
                 log.debug("Find exist job info|{}", exportInfo);
                 switch (exportInfo.getStatus()) {
@@ -166,18 +165,18 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         int executeCount = stepInstance.getExecuteCount();
 
-        String logFileName = getLogFileName(stepInstanceId, ip, executeCount);
+        String logFileName = getLogFileName(stepInstanceId, hostId, executeCount);
         if (StringUtils.isBlank(logFileName)) {
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
-        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, ip,
+        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, ip,
             executeCount, logFileDir, logFileName, repackage);
         return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
     }
 
-    private String getLogFileName(Long stepInstanceId, String ip, int executeCount) {
-        String fileName = makeExportLogFileName(stepInstanceId, executeCount, ip);
+    private String getLogFileName(Long stepInstanceId, Long hostId, int executeCount) {
+        String fileName = makeExportLogFileName(stepInstanceId, executeCount, hostId);
         String logFileName = fileName + ".log";
 
         File dir = new File(logFileDir);
@@ -244,6 +243,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                  String scopeType,
                                                                  String scopeId,
                                                                  Long stepInstanceId,
+                                                                 Long hostId,
                                                                  String ip) {
         Long appId = appResourceScope.getAppId();
 
@@ -256,16 +256,16 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         LogExportJobInfoDTO exportInfo;
 
-        boolean isGetByIp = StringUtils.isNotBlank(ip);
-        if (isGetByIp) {
-            String logFileName = getLogFileName(stepInstanceId, ip, executeCount);
+        boolean isGetByHost = hostId != null;
+        if (isGetByHost) {
+            String logFileName = getLogFileName(stepInstanceId, hostId, executeCount);
             if (StringUtils.isBlank(logFileName)) {
                 return ResponseEntity.notFound().build();
             }
-            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, ip, executeCount,
+            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, ip, executeCount,
                 logFileDir, logFileName, false);
         } else {
-            exportInfo = logExportService.getExportInfo(appId, stepInstanceId, ip);
+            exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, ip);
         }
 
         if (exportInfo != null) {
@@ -311,12 +311,12 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         return ResponseEntity.notFound().build();
     }
 
-    private String makeExportLogFileName(Long stepInstanceId, Integer executeCount, String ip) {
+    private String makeExportLogFileName(Long stepInstanceId, Integer executeCount, Long hostId) {
         StringBuilder fileName = new StringBuilder();
         fileName.append("bk_job_export_log_");
         fileName.append("step_").append(stepInstanceId).append("_").append(executeCount).append("_");
-        if (!StringUtils.isBlank(ip)) {
-            fileName.append(ip).append("_");
+        if (hostId != null) {
+            fileName.append(hostId).append("_");
         }
         fileName.append(DateUtils.formatLocalDateTime(LocalDateTime.now(), "yyyyMMddHHmmssSSS"));
         return fileName.toString();

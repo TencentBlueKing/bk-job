@@ -32,13 +32,13 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
-import com.tencent.bk.job.execute.model.ScriptIpLogContent;
+import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbFileLogV3DTO;
@@ -139,8 +139,8 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
     private void buildScriptLog(EsbIpLogV3DTO ipLog, Long stepInstanceId, Integer executeCount,
                                 Long cloudAreaId, String ip) {
         ipLog.setLogType(LogTypeEnum.SCRIPT.getValue());
-        ScriptIpLogContent logContent = logService.getScriptIpLogContent(stepInstanceId,
-            executeCount, new IpDTO(cloudAreaId, ip));
+        ScriptHostLogContent logContent = logService.getScriptHostLogContent(stepInstanceId,
+            executeCount, null, new HostDTO(cloudAreaId, ip));
         if (logContent != null && StringUtils.isNotBlank(logContent.getContent())) {
             ipLog.setScriptLogContent(logContent.getContent());
         }
@@ -149,10 +149,10 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
     private void buildFileLog(EsbIpLogV3DTO ipLog, Long stepInstanceId, Integer executeCount,
                               Long cloudAreaId, String ip) {
         ipLog.setLogType(LogTypeEnum.FILE.getValue());
-        FileIpLogContent downloadIpLog = logService.getFileIpLogContent(stepInstanceId, executeCount,
-            new IpDTO(cloudAreaId, ip), FileDistModeEnum.DOWNLOAD.getValue());
+        FileIpLogContent downloadIpLog = logService.getFileIpLogContent(stepInstanceId, executeCount, null,
+            new HostDTO(cloudAreaId, ip), FileDistModeEnum.DOWNLOAD.getValue());
         List<ServiceFileTaskLogDTO> uploadTaskLogs = logService.batchGetFileSourceIpLogContent(
-            stepInstanceId, executeCount);
+            stepInstanceId, executeCount, null);
 
         List<EsbFileLogV3DTO> fileLogs = new ArrayList<>();
         fileLogs.addAll(buildDownloadFileLogs(downloadIpLog));

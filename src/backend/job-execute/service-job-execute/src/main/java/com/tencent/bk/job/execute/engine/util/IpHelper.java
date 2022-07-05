@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.util;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import org.apache.commons.lang3.math.NumberUtils;
 
 /**
@@ -47,19 +47,19 @@ public class IpHelper {
         return compose(transform(sourceAndIp));
     }
 
-    public static IpDTO transform(String sourceAndIp) {
-        IpDTO ipDTO = null;
+    public static HostDTO transform(String sourceAndIp) {
+        HostDTO hostDTO = null;
         if (sourceAndIp != null) {
             String[] split = sourceAndIp.split(SI_SPLIT);
             if (split.length == 2) {
                 long source = optLong(split[0].trim(), DEFAULT_CLOUD_ID);
                 if (source == 1) source = DEFAULT_CLOUD_ID;
-                ipDTO = new IpDTO(source, split[1].trim());
+                hostDTO = new HostDTO(source, split[1].trim());
             } else {
-                ipDTO = new IpDTO(DEFAULT_CLOUD_ID, sourceAndIp.trim());
+                hostDTO = new HostDTO(DEFAULT_CLOUD_ID, sourceAndIp.trim());
             }
         }
-        return ipDTO;
+        return hostDTO;
     }
 
     private static long optLong(String str, long defaultValue) {
@@ -72,11 +72,11 @@ public class IpHelper {
         return defaultValue;
     }
 
-    public static String compose(IpDTO ipDTO) {
-        if (ipDTO == null) {
+    public static String compose(HostDTO hostDTO) {
+        if (hostDTO == null) {
             return null;
         }
-        return compose(ipDTO.getCloudAreaId(), ipDTO.getIp());
+        return compose(hostDTO.getBkCloudId(), hostDTO.getIp());
     }
 
     public static String compose(Long cloudId, String ip) {
