@@ -24,14 +24,17 @@
 
 package com.tencent.bk.job.execute.dao;
 
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 
+@Deprecated
+@CompatibleImplementation(explain = "兼容历史数据使用，建议使用GseTaskDAO", version = "3.7.x")
 public interface GseTaskLogDAO {
-    GseTaskLogDTO getStepLastExecuteLog(long stepInstanceId);
+    GseTaskDTO getStepLastExecuteLog(long stepInstanceId);
 
-    void saveGseTaskLog(GseTaskLogDTO gseTaskLog);
+    void saveGseTaskLog(GseTaskDTO gseTaskLog);
 
-    GseTaskLogDTO getGseTaskLog(long stepInstanceId, int executeCount);
+    GseTaskDTO getGseTaskLog(long stepInstanceId, int executeCount);
 
     void deleteGseTaskLog(long stepInstanceId, int executeCount);
 

@@ -26,6 +26,7 @@ package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * 文件分发执行日志
  */
+@ApiModel("文件分发执行日志")
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -42,78 +44,123 @@ public class ServiceFileTaskLogDTO {
      */
     @JsonProperty("taskId")
     private String taskId;
+
     /**
      * 文件分发类型，mode: upload-0/download-1
      */
     @JsonProperty("mode")
     private Integer mode;
+
     /**
-     * 目标IP - 真实
+     * 目标IP
      */
     @JsonProperty("destIp")
     private String destIp;
+
+    /**
+     * 用于展示的目标IP
+     */
+    @JsonProperty("displayDestIp")
+    private String displayDestIp;
+
+    /**
+     * 目标主机ID
+     */
+    @JsonProperty("destHostId")
+    private Long destHostId;
+
     /**
      * 目标文件路径
      */
     @JsonProperty("destFile")
     private String destFile;
+
     /**
-     * 文件源IP - 真实
+     * 文件源IP
      */
     @JsonProperty("srcIp")
     private String srcIp;
+
+    /**
+     * 文件源主机ID
+     */
+    @JsonProperty("srcHostId")
+    private Long srcHostId;
+
     /**
      * 文件源IP - 显示
      */
     @JsonProperty("displaySrcIp")
     private String displaySrcIp;
+
     /**
      * 源文件路径 - 真实路径
      */
     @JsonProperty("srcFile")
     private String srcFile;
+
     /**
      * 源文件路径 - 用于显示
      */
     @JsonProperty("displaySrcFile")
     private String displaySrcFile;
+
     /**
      * 文件大小
      */
     @JsonProperty("size")
     private String size;
+
     /**
      * 文件任务状态
      */
     @JsonProperty("status")
     private Integer status;
+
     /**
      * 文件任务状态描述
      */
     @JsonProperty("statusDesc")
     private String statusDesc;
+
     /**
      * 速度
      */
     @JsonProperty("speed")
     private String speed;
+
     /**
      * 进度
      */
     @JsonProperty("process")
     private String process;
+
     /**
      * 日志内容
      */
     @JsonProperty("content")
     private String content;
 
-    public ServiceFileTaskLogDTO(Integer mode, String destIp, String destFile, String srcIp, String displaySrcIp,
-                                 String srcFile, String displaySrcFile, String size, Integer status,
-                                 String statusDesc, String speed, String process, String content) {
+    public ServiceFileTaskLogDTO(Integer mode,
+                                 Long destHostId,
+                                 String destIp,
+                                 String destFile,
+                                 Long srcHostId,
+                                 String srcIp,
+                                 String displaySrcIp,
+                                 String srcFile,
+                                 String displaySrcFile,
+                                 String size,
+                                 Integer status,
+                                 String statusDesc,
+                                 String speed,
+                                 String process,
+                                 String content) {
         this.mode = mode;
+        this.destHostId = destHostId;
         this.destIp = destIp;
         this.destFile = destFile;
+        this.srcHostId = srcHostId;
         this.srcIp = srcIp;
         this.displaySrcIp = displaySrcIp;
         this.srcFile = srcFile;
@@ -134,3 +181,5 @@ public class ServiceFileTaskLogDTO {
         }
     }
 }
+
+

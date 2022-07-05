@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -60,7 +59,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     public InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps() {
         List<ApplicationDTO> appList = applicationService.listAllApps();
         List<ServiceAppBaseInfoDTO> resultList =
-            appList.parallelStream().filter(app -> app.getAppType() == AppTypeEnum.NORMAL)
+            appList.parallelStream().filter(ApplicationDTO::isBiz)
                 .map(this::convertToServiceAppBaseInfo).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
     }
@@ -152,11 +151,8 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
             InternalResponse.buildSuccessResp(appList);
         }
 
-        if (scopeType != null) {
-            appList = appList.stream().filter(
-                app -> app.getScope().getType() == ResourceScopeTypeEnum.from(scopeType)
-            ).collect(Collectors.toList());
-        }
+        appList = appList.stream().filter(app -> app.getScope().getType() == ResourceScopeTypeEnum.from(scopeType))
+            .collect(Collectors.toList());
 
         List<ServiceApplicationDTO> resultList =
             appList.stream().map(this::convertToServiceApp).collect(Collectors.toList());

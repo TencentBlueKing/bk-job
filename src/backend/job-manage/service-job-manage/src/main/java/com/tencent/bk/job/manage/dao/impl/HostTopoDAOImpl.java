@@ -77,12 +77,8 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             ULong.valueOf(hostTopoDTO.getBizId()),
             hostTopoDTO.getSetId(),
             hostTopoDTO.getModuleId()
-        );
-        try {
-            return query.execute();
-        } catch (Exception e) {
-            throw e;
-        }
+        ).onDuplicateKeyIgnore();
+        return query.execute();
     }
 
     @Override
@@ -218,7 +214,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             log.error(sql);
             throw e;
         }
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(this::convertRecordToDto);

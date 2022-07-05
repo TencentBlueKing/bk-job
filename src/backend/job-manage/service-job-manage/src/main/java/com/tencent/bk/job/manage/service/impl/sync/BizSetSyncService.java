@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
@@ -156,10 +155,6 @@ public class BizSetSyncService extends BasicAppSyncService {
                 applicationInfoDTO.getScope().getId()).collect(Collectors.toSet())));
         // 将本地业务集的appId赋给CMDB拿到的业务集
         updateAppIdByScope(updateList, genScopeAppIdMap(localBizSetApps));
-        // 过滤掉未接入cmdb的业务集（原Job业务集)
-        updateList = updateList.stream()
-            .filter(app -> FeatureToggle.isCmdbBizSetEnabledForApp(app.getId()))
-            .collect(Collectors.toList());
         return updateList;
     }
 
@@ -178,10 +173,6 @@ public class BizSetSyncService extends BasicAppSyncService {
         log.info("Delete bizSetIds: {}", String.join(",",
             deleteList.stream().map(applicationInfoDTO ->
                 applicationInfoDTO.getScope().getId()).collect(Collectors.toSet())));
-        // 过滤掉未接入cmdb的业务集（原Job业务集)
-        deleteList = deleteList.stream()
-            .filter(app -> FeatureToggle.isCmdbBizSetEnabledForApp(app.getId()))
-            .collect(Collectors.toList());
         return deleteList;
     }
 

@@ -71,8 +71,6 @@ public class ErrorCode {
     public static final int MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME = 1241007;
     // 错误的业务 ID
     public static final int WRONG_APP_ID = 1241008;
-    // 业务集/全业务需要联系管理员配置
-    public static final int NEED_APP_SET_CONFIG = 1241009;
     // 请求参数[0]不合法，原因：[1]
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON = 1241010;
     // 尚未支持的功能
@@ -236,6 +234,10 @@ public class ErrorCode {
     public static final int FAIL_TO_SAVE_FILE_TO_LOCAL = 1244024;
     // 任务被丢弃
     public static final int TASK_ABANDONED = 1244025;
+    // 非法的滚动策略
+    public static final int INVALID_ROLLING_EXPR = 1244026;
+    // 滚动批次不能大于{}
+    public static final int EXCEED_MAX_ALLOWED_BATCH_SIZE = 1244027;
     // 作业执行 end
 
     // 定时作业 start
@@ -378,10 +380,18 @@ public class ErrorCode {
     public static final int LICENSE_ERROR = 1210101;
     // GSE 不可用
     public static final int GSE_ERROR = 1210001;
+
+    // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
     public static final int CMDB_UNREACHABLE_SERVER = 1211001;
     // CMDB接口返回数据结构异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int CMDB_API_DATA_ERROR = 1211002;
+    // 根据动态分组ID查找主机失败，动态分组ID：{0}，原因：{1}，请确认指定的动态分组在业务下是否存在
+    public static final int FAIL_TO_FIND_HOST_BY_DYNAMIC_GROUP = 1211003;
+    // 根据业务ID查找动态分组失败，业务ID：{0}，原因：{1}，请确认指定的业务是否存在动态分组
+    public static final int FAIL_TO_FIND_DYNAMIC_GROUP_BY_BIZ = 1211004;
+
+    // PaaS异常
     // PAAS服务不可达 - 地址配置错误或者地址无法正确解析
     public static final int PAAS_UNREACHABLE_SERVER = 1213001;
     // paas接口返回数据结构异常-一般是被网关防火墙重定向返回统一登录页面

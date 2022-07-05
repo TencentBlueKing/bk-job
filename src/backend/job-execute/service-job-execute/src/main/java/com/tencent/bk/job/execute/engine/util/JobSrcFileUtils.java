@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.util;
 
 import com.google.common.collect.Sets;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.common.util.function.LambdasUtil;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
@@ -66,7 +66,7 @@ public class JobSrcFileUtils {
         for (JobFile srcFile : srcFiles) {
             // 本地文件的源ip是本机ip，展开源文件IP地址宏采用"0.0.0.0"
             String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir, srcFile.isLocalUploadFile() ?
-                "0_0.0.0.0" : srcFile.getCloudAreaIdAndIp());
+                "0_0.0.0.0" : srcFile.getCloudIp());
             destDirPath = MacroUtil.resolveDate(destDirPath, currentTime);
             addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetFileName);
         }
@@ -104,11 +104,11 @@ public class JobSrcFileUtils {
      * 从步骤解析源文件，处理服务器文件、本地文件、第三方源文件的差异，统一为IP+Path信息
      *
      * @param stepInstance      步骤
-     * @param localServerIp     job server ip
+     * @param localHost         job local host
      * @param jobStorageRootDir job共享存储根目录
      * @return 多个要分发的源文件信息集合
      */
-    public static Set<JobFile> parseSendFileList(StepInstanceDTO stepInstance, String localServerIp,
+    public static Set<JobFile> parseSendFileList(StepInstanceDTO stepInstance, HostDTO localHost,
                                                  String jobStorageRootDir) {
         Set<JobFile> sendFiles = Sets.newHashSet();
         for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
@@ -124,25 +124,26 @@ public class JobSrcFileUtils {
                 Long accountId = fileSource.getAccountId();
                 String accountAlias = fileSource.getAccountAlias();
                 // 远程文件
-                List<IpDTO> ipList = fileSource.getServers().getIpList();
-                Set<String> invalidIpSet = stepInstance.getInvalidIps();
+                List<HostDTO> sourceHosts = fileSource.getServers().getIpList();
+                Set<HostDTO> invalidHosts = stepInstance.getInvalidHosts();
                 for (FileDetailDTO file : files) {
                     String filePath = StringUtils.isNotEmpty(file.getResolvedFilePath()) ? file.getResolvedFilePath()
                         : file.getFilePath();
                     Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(filePath);
                     String dir = fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    Predicate<IpDTO> predicate = LambdasUtil.not(ip -> invalidIpSet.contains(ip.convertToStrIp()));
-                    for (IpDTO ipDTO : ipList) {
-                        if (predicate.test(ipDTO)) {
+                    Predicate<HostDTO> predicate = LambdasUtil.not(invalidHosts::contains);
+                    for (HostDTO sourceHost : sourceHosts) {
+                        if (predicate.test(sourceHost)) {
                             // 第三方源文件的displayName不同
                             if (isThirdFile) {
-                                sendFiles.add(new JobFile(false, ipDTO.convertToStrIp(), filePath,
-                                    file.getThirdFilePathWithFileSourceName(), dir, fileName,
-                                    stepInstance.getAppId(), accountId, accountAlias));
+                                sendFiles.add(new JobFile(false, sourceHost,
+                                    file.getThirdFilePathWithFileSourceName(),
+                                    file.getThirdFilePathWithFileSourceName(),
+                                    dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
                             } else {
-                                sendFiles.add(new JobFile(false, ipDTO.convertToStrIp(), filePath,
-                                    filePath, dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
+                                sendFiles.add(new JobFile(false, sourceHost, filePath, filePath, dir,
+                                    fileName, stepInstance.getAppId(), accountId, accountAlias));
                             }
                         }
                     }
@@ -157,15 +158,15 @@ public class JobSrcFileUtils {
                     String fileName = fileNameAndPath.getRight();
                     ServersDTO servers = fileSource.getServers();
                     if (servers != null && servers.getIpList() != null && !servers.getIpList().isEmpty()) {
-                        List<IpDTO> ipList = servers.getIpList();
-                        for (IpDTO ipDTO : ipList) {
-                            sendFiles.add(new JobFile(fileSource.isLocalUpload(), ipDTO.convertToStrIp(),
-                                file.getFilePath(), dir, fileName, "root", null,
+                        List<HostDTO> ipList = servers.getIpList();
+                        for (HostDTO hostDTO : ipList) {
+                            sendFiles.add(new JobFile(fileSource.isLocalUpload(), hostDTO, file.getFilePath(), dir,
+                                fileName, "root", null,
                                 FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                         }
                     } else {
-                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), IpHelper.fix1To0(localServerIp),
-                            file.getFilePath(), dir, fileName, "root", null,
+                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), localHost, file.getFilePath(), dir,
+                            fileName, "root", null,
                             FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                     }
                 }
@@ -176,10 +177,10 @@ public class JobSrcFileUtils {
                     String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    List<IpDTO> ipList = fileSource.getServers().getIpList();
-                    for (IpDTO ipDTO : ipList) {
-                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), ipDTO.convertToStrIp(),
-                            file.getFilePath(), dir, fileName, "root", null,
+                    List<HostDTO> ipList = fileSource.getServers().getIpList();
+                    for (HostDTO hostDTO : ipList) {
+                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), hostDTO, file.getFilePath(), dir,
+                            fileName, "root", null,
                             FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                     }
                 }

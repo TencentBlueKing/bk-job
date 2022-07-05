@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import org.jooq.DSLContext;
 
 import java.util.Collection;
@@ -90,7 +89,14 @@ public interface ApplicationHostDAO {
 
     boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId);
 
+    int updateHostAttrsById(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
+
     int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId, ApplicationHostDTO applicationHostDTO);
+
+    int updateBizHostInfoByHostId(DSLContext dslContext,
+                                  Long bizId,
+                                  ApplicationHostDTO applicationHostDTO,
+                                  boolean updateTopo);
 
     int batchUpdateBizHostInfoByHostId(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
 
@@ -128,5 +134,10 @@ public interface ApplicationHostDAO {
 
     long syncHostTopo(DSLContext dslContext, Long hostId);
 
-    List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps);
+    /**
+     * 根据ip查询主机
+     *
+     * @param cloudIps 主机ip(云区域+ip)列表
+     */
+    List<ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps);
 }

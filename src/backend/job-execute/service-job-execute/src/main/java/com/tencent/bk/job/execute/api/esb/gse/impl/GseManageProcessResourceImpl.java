@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.api.esb.gse.GseManageProcessResource;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.gse.GseApiExecutor;
@@ -84,7 +84,7 @@ public class GseManageProcessResourceImpl implements GseManageProcessResource {
         String procName = manageProcInfo.getProcName();
         String contact = manageProcInfo.getProcOwner();
         gseProcessInfo.setIpList(manageProcInfo.getIpList().stream()
-            .map(ipDTO -> new IpDTO(ipDTO.getCloudAreaId(), ipDTO.getIp())).collect(Collectors.toList()));
+            .map(ipDTO -> new HostDTO(ipDTO.getBkCloudId(), ipDTO.getIp())).collect(Collectors.toList()));
         gseProcessInfo.setProcName(procName);
         gseProcessInfo.setContact(contact);
 

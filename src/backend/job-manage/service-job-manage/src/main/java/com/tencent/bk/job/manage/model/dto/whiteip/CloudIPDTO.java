@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.manage.model.dto.whiteip;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -33,6 +34,7 @@ import lombok.ToString;
 /**
  * IP白名单DTO
  */
+@EqualsAndHashCode
 @AllArgsConstructor
 @Getter
 @Setter
@@ -51,7 +53,8 @@ public class CloudIPDTO {
         return cloudAreaId + ":" + ip;
     }
 
-    public IpDTO toIpDTO() {
-        return new IpDTO(cloudAreaId, ip);
+    public HostDTO toHostDTO() {
+        return new HostDTO(cloudAreaId, ip);
     }
+
 }

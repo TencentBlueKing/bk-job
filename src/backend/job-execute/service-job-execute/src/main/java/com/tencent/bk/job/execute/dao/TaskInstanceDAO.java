@@ -99,11 +99,11 @@ public interface TaskInstanceDAO {
                                  Long startTime, Long endTime, Long totalTime);
 
     /**
-     * 作业恢复执行-重置作业执行状态
+     * 重置作业执行状态
      *
      * @param taskInstanceId 作业实例ID
      */
-    void resetTaskExecuteInfoForResume(long taskInstanceId);
+    void resetTaskExecuteInfoForRetry(long taskInstanceId);
 
     /**
      * 根据条件统计执行过的任务

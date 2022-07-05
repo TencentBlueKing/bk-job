@@ -38,8 +38,6 @@ import java.util.List;
  */
 public interface AppAuthService {
 
-    void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService);
-
     void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService);
 
     AuthResult auth(String username, String actionId, AppResourceScope appResourceScope);

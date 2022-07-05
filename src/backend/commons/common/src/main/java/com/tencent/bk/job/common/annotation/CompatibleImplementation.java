@@ -45,6 +45,11 @@ import static java.lang.annotation.ElementType.TYPE;
 @Target(value = {CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE})
 public @interface CompatibleImplementation {
     /**
+     * 兼容实现的名称
+     */
+    String name() default "";
+
+    /**
      * 说明
      */
     String explain();

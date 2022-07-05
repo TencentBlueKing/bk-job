@@ -27,8 +27,13 @@ package com.tencent.bk.job.execute.service;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
+import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
+import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
+import com.tencent.bk.job.execute.model.TaskExecuteResultDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 
 import java.util.List;
@@ -99,14 +104,20 @@ public interface TaskResultService {
      * @param appId          业务ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次;如果传入null或0，忽略该参数
      * @param resultType     结果
      * @param tag            结果输出分类标签
      * @param keyword        脚本日志关键字
-     * @return
+     * @return 主机列表
      */
-    List<IpDTO> getHostsByResultType(String username, Long appId, Long stepInstanceId,
-                                     Integer executeCount, Integer resultType,
-                                     String tag, String keyword);
+    List<HostDTO> getHostsByResultType(String username,
+                                       Long appId,
+                                       Long stepInstanceId,
+                                       Integer batch,
+                                       Integer executeCount,
+                                       Integer resultType,
+                                       String tag,
+                                       String keyword);
 
     /**
      * 获取步骤执行历史

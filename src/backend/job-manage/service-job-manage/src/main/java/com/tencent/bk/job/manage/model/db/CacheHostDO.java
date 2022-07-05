@@ -51,6 +51,11 @@ public class CacheHostDO {
     private Long hostId;
 
     /**
+     * 主机Agent ID
+     */
+    private String agentId;
+
+    /**
      * 业务ID
      */
     private Long appId;

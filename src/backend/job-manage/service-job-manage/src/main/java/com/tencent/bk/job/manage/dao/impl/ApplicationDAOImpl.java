@@ -91,6 +91,18 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
+    public boolean existBiz(long bizId) {
+        val records = context.selectZero()
+            .from(T_APP)
+            .where(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())))
+            .and(T_APP.BK_SCOPE_TYPE.eq(ResourceScopeTypeEnum.BIZ.getValue()))
+            .and(T_APP.BK_SCOPE_ID.eq("" + bizId))
+            .limit(1)
+            .fetch();
+        return records.size() > 0;
+    }
+
+    @Override
     public ApplicationDTO getAppById(long appId) {
         Record record = context.select(ALL_FIELDS)
             .from(T_APP)
@@ -120,8 +132,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         applicationDTO.setTimeZone(record.get(T_APP.TIMEZONE));
         applicationDTO.setOperateDeptId(record.get(T_APP.BK_OPERATE_DEPT_ID));
         applicationDTO.setLanguage(record.get(T_APP.LANGUAGE));
-        applicationDTO.setDeleted(Bool.isTrue(record.get(T_APP.IS_DELETED).intValue()));
         applicationDTO.setAttrs(JsonUtils.fromJson(record.get(T_APP.ATTRS), ApplicationAttrsDO.class));
+        applicationDTO.setDeleted(Bool.isTrue(record.get(T_APP.IS_DELETED).byteValue()));
         return applicationDTO;
     }
 

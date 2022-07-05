@@ -72,9 +72,9 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
         taskVariable.setId(record.get(TABLE.ID));
         taskVariable.setTaskInstanceId(record.get(TABLE.TASK_INSTANCE_ID));
         taskVariable.setName(record.get(TABLE.NAME));
-        taskVariable.setType(JooqDataTypeUtil.getIntegerFromByte(record.get(TABLE.TYPE)));
+        taskVariable.setType(JooqDataTypeUtil.toInteger(record.get(TABLE.TYPE)));
         taskVariable.setValue(record.get(TABLE.VALUE));
-        taskVariable.setChangeable(JooqDataTypeUtil.getIntegerFromByte(record.get(TABLE.IS_CHANGEABLE)).equals(1));
+        taskVariable.setChangeable(JooqDataTypeUtil.toInteger(record.get(TABLE.IS_CHANGEABLE)).equals(1));
         return taskVariable;
     }
 
@@ -95,8 +95,8 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
                 TABLE.IS_CHANGEABLE);
 
         taskVarList.forEach(taskVar -> insertStep.values(taskVar.getTaskInstanceId(),
-            taskVar.getName(), JooqDataTypeUtil.getByteFromInteger(taskVar.getType()),
-            taskVar.getValue(), JooqDataTypeUtil.getByteFromInteger(taskVar.isChangeable() ? 1 : 0)));
+            taskVar.getName(), JooqDataTypeUtil.toByte(taskVar.getType()),
+            taskVar.getValue(), JooqDataTypeUtil.toByte(taskVar.isChangeable() ? 1 : 0)));
 
         insertStep.execute();
     }

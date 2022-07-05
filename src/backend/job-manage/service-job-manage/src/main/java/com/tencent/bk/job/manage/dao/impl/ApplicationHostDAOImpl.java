@@ -24,14 +24,15 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
@@ -59,6 +60,8 @@ import org.jooq.generated.tables.HostTopo;
 import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -637,8 +640,47 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public int updateHostAttrsById(DSLContext dslContext,
+                                   ApplicationHostDTO applicationHostDTO) {
+        Long hostId = applicationHostDTO.getHostId();
+        if (hostId == null || hostId <= 0) {
+            FormattingTuple msg = MessageFormatter.format(
+                "fail to update host, hostId is invalid:{}",
+                applicationHostDTO
+            );
+            log.error(msg.getMessage());
+            throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
+        }
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
+        val query = dslContext.update(TABLE)
+            .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
+            .set(TABLE.IP, applicationHostDTO.getIp())
+            .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
+            .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
+            .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
+            .set(TABLE.OS, applicationHostDTO.getOs())
+            .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
+            .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getAgentStatusValue()))
+            .where(conditions);
+        try {
+            return query.execute();
+        } catch (Throwable t) {
+            log.info("SQL=" + query.getSQL(ParamType.INLINED));
+            throw t;
+        }
+    }
+
+    @Override
     public int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId,
                                          ApplicationHostDTO applicationHostDTO) {
+        return updateBizHostInfoByHostId(dslContext, bizId, applicationHostDTO, true);
+    }
+
+    @Override
+    public int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId,
+                                         ApplicationHostDTO applicationHostDTO,
+                                         boolean updateTopo) {
         setDefaultValue(applicationHostDTO);
         if (applicationHostDTO.getHostId() == -1L) {
             return -1;
@@ -674,9 +716,11 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 log.info("SQL=" + query.getSQL(ParamType.INLINED));
                 throw t;
             }
-            List<HostTopoDTO> hostTopoDTOList = genHostTopoDTOList(applicationHostDTO);
-            hostTopoDAO.deleteHostTopoByHostId(context, bizId, hostId);
-            hostTopoDAO.batchInsertHostTopo(context, hostTopoDTOList);
+            if (updateTopo) {
+                List<HostTopoDTO> hostTopoDTOList = genHostTopoDTOList(applicationHostDTO);
+                hostTopoDAO.deleteHostTopoByHostId(context, bizId, hostId);
+                hostTopoDAO.batchInsertHostTopo(context, hostTopoDTOList);
+            }
         });
         return affectedNum[0];
     }
@@ -872,7 +916,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             hostInfoDTO.setSetId(setIds);
             hostInfoDTO.setModuleId(moduleIds);
             hostInfoDTO.setModuleType(moduleTypes);
-            return updateBizHostInfoByHostId(dslContext, null, hostInfoDTO);
+            return updateBizHostInfoByHostId(dslContext, null, hostInfoDTO, false);
         }
         return -1L;
     }
@@ -930,10 +974,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps) {
+    public List<ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps) {
         List<Condition> conditions = new ArrayList<>();
-        List<String> cloudIpList = hostIps.stream().map(IpDTO::convertToStrIp).collect(Collectors.toList());
-        conditions.add(TABLE.CLOUD_IP.in(cloudIpList));
+        conditions.add(TABLE.CLOUD_IP.in(cloudIps));
         return queryHostsByCondition(conditions);
     }
 

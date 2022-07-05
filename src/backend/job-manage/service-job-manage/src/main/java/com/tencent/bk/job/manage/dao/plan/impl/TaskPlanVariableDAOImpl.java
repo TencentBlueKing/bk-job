@@ -92,8 +92,8 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
         taskVariable.setType(TaskVariableTypeEnum.valOf(record.get(TABLE.TYPE).intValue()));
         taskVariable.setDefaultValue(record.get(TABLE.DEFAULT_VALUE));
         taskVariable.setDescription(record.get(TABLE.DESCRIPTION));
-        taskVariable.setChangeable(Bool.isTrue(record.get(TABLE.IS_CHANGEABLE).intValue()));
-        taskVariable.setRequired(Bool.isTrue(record.get(TABLE.IS_REQUIRED).intValue()));
+        taskVariable.setChangeable(Bool.isTrue(record.get(TABLE.IS_CHANGEABLE).byteValue()));
+        taskVariable.setRequired(Bool.isTrue(record.get(TABLE.IS_REQUIRED).byteValue()));
         return taskVariable;
     }
 

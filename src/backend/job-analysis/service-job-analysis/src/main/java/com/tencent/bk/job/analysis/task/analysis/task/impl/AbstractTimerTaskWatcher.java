@@ -33,7 +33,6 @@ import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskStatusEnum;
 import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -110,7 +109,7 @@ public abstract class AbstractTimerTaskWatcher extends BaseAnalysisTask {
             List<ServiceApplicationDTO> appInfoList = getAppInfoList();
             AnalysisTaskDTO analysisTask = getAnalysisTask();
             for (ServiceApplicationDTO applicationInfoDTO : appInfoList) {
-                if (applicationInfoDTO.getAppType() != AppTypeEnum.NORMAL.getValue()) {
+                if (!applicationInfoDTO.isBiz()) {
                     continue;
                 }
                 Long appId = applicationInfoDTO.getId();

@@ -24,41 +24,128 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.util.ip.IpUtils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
 
 /**
- * 服务器信息
+ * 主机通用表示-内部服务使用
  */
-@Data
+@Setter
+@Getter
+@AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("服务器信息")
-public class HostDTO {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@ToString
+@PersistenceObject
+public class HostDTO implements Cloneable {
+    /**
+     * 主机ID
+     */
+    @JsonProperty("hostId")
+    private Long hostId;
+
+    /**
+     * 主机 Agent ID
+     */
+    @JsonProperty("agentId")
+    private String agentId;
+
     /**
      * 云区域ID
      */
-    @ApiModelProperty(value = "云区域ID", required = true)
-    private Long cloudAreaId;
-
-    @ApiModelProperty("云区域名称")
-    private String cloudAreaName;
+    @JsonProperty("cloudAreaId")
+    private Long bkCloudId;
 
     /**
-     * 服务器IP
+     * 云区域名称
      */
-    @ApiModelProperty(value = "服务器IP", required = true)
+    @JsonProperty("bkCloudName")
+    private String bkCloudName;
+
+    /**
+     * 主机IP - ipv4
+     */
+    @JsonProperty("ip")
     private String ip;
 
-    @ApiModelProperty(value = "agent状态，0-异常，1-正常")
+    /**
+     * 主机显示IP
+     */
+    @JsonProperty("displayIp")
+    private String displayIp;
+
+    /**
+     * 主机IP - ipv6
+     */
+    @JsonProperty("ipv6")
+    private String ipv6;
+
+    /**
+     * agent状态，0-异常，1-正常
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer alive;
 
-    public HostDTO(Long cloudAreaId, String ip) {
-        this.cloudAreaId = cloudAreaId;
+    public HostDTO(Long bkCloudId, String ip) {
+        this.bkCloudId = bkCloudId;
         this.ip = ip;
+    }
+
+    public static HostDTO fromHostId(Long hostId) {
+        HostDTO hostDTO = new HostDTO();
+        hostDTO.setHostId(hostId);
+        return hostDTO;
+    }
+
+    public static HostDTO fromHostIdAndAgentId(Long hostId, String agentId) {
+        HostDTO hostDTO = new HostDTO();
+        hostDTO.setHostId(hostId);
+        hostDTO.setAgentId(agentId);
+        return hostDTO;
+    }
+
+    public static HostDTO fromHostIdAndCloudIp(Long hostId, String cloudIp) {
+        HostDTO hostDTO = new HostDTO();
+        hostDTO.setHostId(hostId);
+        if (StringUtils.isNotEmpty(cloudIp)) {
+            String[] ipProps = cloudIp.split(IpUtils.COLON);
+            hostDTO.setBkCloudId(Long.valueOf(ipProps[0]));
+            hostDTO.setIp(ipProps[1]);
+        }
+
+        return hostDTO;
+    }
+
+    public static HostDTO fromCloudIp(String cloudIp) {
+        if (!IpUtils.checkCloudIp(cloudIp)) {
+            throw new IllegalArgumentException("Invalid cloudIp : " + cloudIp);
+        }
+        String[] ipProps = cloudIp.split(IpUtils.COLON);
+        return new HostDTO(Long.valueOf(ipProps[0]), ipProps[1]);
+    }
+
+    public String toCloudIp() {
+        return bkCloudId + ":" + ip;
+    }
+
+    public String getDisplayIp() {
+        if (StringUtils.isNotEmpty(displayIp)) {
+            return displayIp;
+        } else {
+            return ip;
+        }
     }
 
     public static HostInfoVO toVO(HostDTO host) {
@@ -69,8 +156,8 @@ public class HostDTO {
         hostInfo.setIp(host.getIp());
         hostInfo.setAlive(host.getAlive());
         CloudAreaInfoVO cloudAreaInfo = new CloudAreaInfoVO();
-        cloudAreaInfo.setId(host.getCloudAreaId());
-        cloudAreaInfo.setName(host.getCloudAreaName());
+        cloudAreaInfo.setId(host.getBkCloudId());
+        cloudAreaInfo.setName(host.getBkCloudName());
         hostInfo.setCloudAreaInfo(cloudAreaInfo);
         return hostInfo;
     }
@@ -81,9 +168,45 @@ public class HostDTO {
         }
         HostDTO host = new HostDTO();
         host.setIp(hostInfo.getIp());
-        host.setCloudAreaId(hostInfo.getCloudAreaInfo().getId());
-        host.setCloudAreaName(hostInfo.getCloudAreaInfo().getName());
+        host.setBkCloudId(hostInfo.getCloudAreaInfo().getId());
+        host.setBkCloudName(hostInfo.getCloudAreaInfo().getName());
         host.setAlive(hostInfo.getAlive());
         return host;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HostDTO hostDTO = (HostDTO) o;
+        if (hostId != null) {
+            return hostId.equals(hostDTO.getHostId());
+        } else {
+            // 兼容没有hostId的场景
+            return bkCloudId.equals(hostDTO.bkCloudId) &&
+                ip.equals(hostDTO.ip);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        if (hostId != null) {
+            return Objects.hashCode(hostId);
+        } else {
+            // 兼容没有hostId的场景
+            return Objects.hash(bkCloudId, ip);
+        }
+    }
+
+    public HostDTO clone() {
+        HostDTO clone = new HostDTO();
+        clone.setHostId(hostId);
+        clone.setAgentId(agentId);
+        clone.setBkCloudId(bkCloudId);
+        clone.setBkCloudName(bkCloudName);
+        clone.setIp(ip);
+        clone.setIpv6(ipv6);
+        clone.setAlive(alive);
+        return clone;
     }
 }
