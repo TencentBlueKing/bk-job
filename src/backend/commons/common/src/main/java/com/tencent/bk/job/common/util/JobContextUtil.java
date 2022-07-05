@@ -61,7 +61,7 @@ public class JobContextUtil {
 
     public static Long getStartTime() {
         JobContext jobContext = JobContextThreadLocal.get();
-        Long startTime = null;
+        Long startTime;
         if (jobContext != null) {
             startTime = jobContext.getStartTime();
         } else {
@@ -226,6 +226,7 @@ public class JobContextUtil {
     private static JobContext getOrInitContext() {
         JobContext jobContext = JobContextThreadLocal.get();
         if (jobContext == null) {
+            log.debug("jobContext is null, init");
             jobContext = new JobContext();
             setContext(jobContext);
         }
@@ -236,6 +237,7 @@ public class JobContextUtil {
         JobContext jobContext = getOrInitContext();
         Map<String, Pair<String, AbstractList<Tag>>> metricTagsMap = jobContext.getMetricTagsMap();
         if (metricTagsMap == null) {
+            log.info("metricTagsMap is null, init");
             metricTagsMap = new HashMap<>();
             jobContext.setMetricTagsMap(metricTagsMap);
         }

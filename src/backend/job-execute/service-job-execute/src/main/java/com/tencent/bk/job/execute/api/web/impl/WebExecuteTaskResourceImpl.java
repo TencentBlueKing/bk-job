@@ -26,7 +26,9 @@ package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -37,6 +39,7 @@ import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.web.metrics.RecordHttpStatus;
 import com.tencent.bk.job.execute.api.web.WebExecuteTaskResource;
 import com.tencent.bk.job.execute.client.GlobalSettingsClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -216,6 +219,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    @RecordHttpStatus(value = CommonMetricNames.WEB_API, extraTags = {"api_name", "fast_execute_script"})
     public Response<StepExecuteVO> fastExecuteScript(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
@@ -346,6 +350,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    @RecordHttpStatus(value = CommonMetricNames.WEB_API, extraTags = {"api_name", "fast_push_file"})
     public Response<StepExecuteVO> fastPushFile(String username,
                                                 AppResourceScope appResourceScope,
                                                 String scopeType,
