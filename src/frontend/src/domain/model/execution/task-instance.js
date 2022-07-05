@@ -138,7 +138,7 @@ export default class TaskInstance {
             fail: 'sync-failed',
             success: 'sync-success',
             forced: 'sync-success',
-            confirm: 'waiting',
+            confirm: 'sync-waiting-01',
             confirmForced: 'sync-failed',
             loading: 'sync-pending',
             disabled: 'sync-default',

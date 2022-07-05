@@ -33,6 +33,7 @@ const AGENT_STATUS_LAST_SUCCESS = 3;
 export default class AgentTask extends Model {
     constructor (payload) {
         super();
+        this.batch = payload.batch;
         this.displayIp = payload.displayIp;
         this.endTime = payload.endTime;
         this.errorCode = payload.errorCode;

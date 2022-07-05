@@ -40,7 +40,9 @@
                 :quick-close="true"
                 :show-footer="false"
                 :width="960">
-                <step-detail-view :task-id="taskInstanceId" :id="stepInstanceId" />
+                <step-detail-view
+                    :task-id="taskInstanceId"
+                    :id="stepInstanceId" />
             </jb-sideslider>
         </div>
     </lower-component>

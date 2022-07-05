@@ -43,6 +43,7 @@ export default {
             component: () => import('@views/fast-execution/exec-script'),
             meta: {
                 title: I18n.t('执行脚本'),
+                full: true,
             },
         },
         {
@@ -51,6 +52,7 @@ export default {
             component: () => import('@views/fast-execution/distro-file'),
             meta: {
                 title: I18n.t('分发文件'),
+                full: true,
             },
         },
     ],
