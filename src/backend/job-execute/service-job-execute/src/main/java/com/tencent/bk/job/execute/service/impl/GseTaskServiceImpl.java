@@ -67,7 +67,7 @@ public class GseTaskServiceImpl implements GseTaskService {
     }
 
     @Override
-    public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, int batch) {
+    public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch) {
         GseTaskDTO gseTask = gseTaskDAO.getGseTask(stepInstanceId, executeCount, batch);
         if (gseTask == null) {
             // 兼容历史数据
