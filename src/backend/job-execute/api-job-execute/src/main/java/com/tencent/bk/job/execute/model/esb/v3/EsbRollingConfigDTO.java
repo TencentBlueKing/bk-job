@@ -22,45 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
-import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 /**
- * 步骤滚动配置
+ * 滚动执行配置
  */
 @Data
-public class StepRollingConfigDTO {
+public class EsbRollingConfigDTO {
     /**
-     * 滚动配置名称
+     * 滚动分批策略表达式
      */
-    private String name;
+    private String expression;
+
     /**
-     * 滚动策略
+     * 滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认
+     *
+     * @see com.tencent.bk.job.common.constant.RollingModeEnum
      */
     private Integer mode;
-    /**
-     * 滚动表达式
-     */
-    private String expr;
 
-    public static StepRollingConfigDTO fromRollingConfigVO(RollingConfigVO rollingConfigVO) {
-        StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
-        stepRollingConfigDTO.setName(StringUtils.isBlank(rollingConfigVO.getName()) ? "default" :
-            rollingConfigVO.getName());
-        stepRollingConfigDTO.setMode(rollingConfigVO.getMode());
-        stepRollingConfigDTO.setExpr(rollingConfigVO.getExpr());
-        return stepRollingConfigDTO;
-    }
-
-    public static StepRollingConfigDTO fromEsbRollingConfig(EsbRollingConfigDTO rollingConfig) {
-        StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
-        stepRollingConfigDTO.setName("default");
-        stepRollingConfigDTO.setMode(rollingConfig.getMode());
-        stepRollingConfigDTO.setExpr(rollingConfig.getExpression());
-        return stepRollingConfigDTO;
-    }
 }

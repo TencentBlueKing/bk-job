@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
@@ -111,6 +112,12 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
      * 传输模式。1-严谨模式，2-强制模式
      */
     private Integer transferMode;
+
+    /**
+     * 滚动配置
+     */
+    @JsonProperty("rolling_config")
+    private EsbRollingConfigDTO rollingConfig;
 
     public void trimIps() {
         if (this.targetServer != null) {
