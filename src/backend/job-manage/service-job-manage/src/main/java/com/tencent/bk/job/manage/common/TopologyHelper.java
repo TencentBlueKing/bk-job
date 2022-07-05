@@ -254,7 +254,7 @@ public class TopologyHelper {
         DynamicGroupInfoVO dynamicGroupInfoVO = new DynamicGroupInfoVO();
         dynamicGroupInfoVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
         dynamicGroupInfoVO.setScopeId(dynamicGroupInfoDTO.getBizId().toString());
-        dynamicGroupInfoVO.setAppName(dynamicGroupInfoDTO.getBizName());
+        dynamicGroupInfoVO.setScopeName(dynamicGroupInfoDTO.getBizName());
         dynamicGroupInfoVO.setId(dynamicGroupInfoDTO.getId());
         dynamicGroupInfoVO.setOwner(dynamicGroupInfoDTO.getOwner());
         dynamicGroupInfoVO.setOwnerName(dynamicGroupInfoDTO.getOwnerName());

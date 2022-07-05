@@ -24,23 +24,17 @@
 
 package com.tencent.bk.job.common.util.ip;
 
-import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.util.CollectionUtils;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,35 +45,36 @@ import java.util.regex.Pattern;
 @Slf4j
 public class IpUtils {
     public static final String COLON = ":";
-    public static final String SEMICOLON = ",";
-    /*
+
+    /**
      * 直连云区域
      */
     public static final long DEFAULT_CLOUD_ID = 0;
     private static final Pattern IP_PATTERN = Pattern.compile(
-        "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b");
+        "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.(" +
+            "(?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b");
     private static final Pattern pattern = Pattern.compile(
-        "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b");
+        "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.(" +
+            "(?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b");
 
     /**
      * 校验云区域:服务器IP
      *
-     * @param cloudAreaIdAndIp 云区域ID:服务器IP
-     * @return
+     * @param cloudIp 云区域ID:服务器IP
      */
-    public static boolean checkCloudIp(String cloudAreaIdAndIp) {
-        if (StringUtils.isEmpty(cloudAreaIdAndIp)) {
+    public static boolean checkCloudIp(String cloudIp) {
+        if (StringUtils.isEmpty(cloudIp)) {
             return false;
         }
-        String[] ipProps = cloudAreaIdAndIp.split(":");
+        String[] ipProps = cloudIp.split(":");
         if (ipProps.length != 2) {
-            log.warn("Both cloudAreaId and ip is required, ip={}", cloudAreaIdAndIp);
+            log.warn("Both cloudAreaId and ip is required, ip={}", cloudIp);
             return false;
         }
         try {
             Integer.parseInt(ipProps[0]);
         } catch (NumberFormatException e) {
-            log.warn("CloudAreaId is illegal for ip:{}", cloudAreaIdAndIp);
+            log.warn("CloudAreaId is illegal for ip:{}", cloudIp);
             return false;
         }
         String ip = ipProps[1];
@@ -88,25 +83,9 @@ public class IpUtils {
     }
 
     /**
-     * 校验ip
-     *
-     * @param hostDTO IP
-     * @return
-     */
-    public static boolean checkIpDTO(HostDTO hostDTO) {
-        if (hostDTO == null || hostDTO.getBkCloudId() == null || StringUtils.isEmpty(hostDTO.getIp().trim())) {
-            log.warn("Both cloudAreaId and ip is required, ip={}", hostDTO);
-            return false;
-        }
-        Matcher matcher = IP_PATTERN.matcher(hostDTO.getIp().trim());
-        return matcher.matches();
-    }
-
-    /**
      * 验证ip格式（不包含云区域ID)
      *
      * @param ipStr ip
-     * @return
      */
     public static boolean checkIp(String ipStr) {
         if (StringUtils.isEmpty(ipStr.trim())) {
@@ -117,54 +96,21 @@ public class IpUtils {
     }
 
     /**
-     * 转换ip列表(1:127.0.0.1,1:127.0.0.2)到 IpDTO 列表
-     *
-     * @param ipListStr
-     * @return
-     */
-    public static Collection<HostDTO> convertCloudAndIpListStrToIpDTOList(String ipListStr) {
-        if (StringUtils.isEmpty(ipListStr)) {
-            return Lists.newArrayList();
-        }
-        return convertCloudAndIpStrListToIpDTOList(Arrays.asList(ipListStr.split(SEMICOLON)));
-    }
-
-    /**
-     * 转换ip列表到IpDTO 列表
-     *
-     * @param cloudAreaAndIpStrList ip列表
-     * @return IpDTO列表
-     */
-    public static Collection<HostDTO> convertCloudAndIpStrListToIpDTOList(Collection<String> cloudAreaAndIpStrList) {
-        List<HostDTO> hostDTOList = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(cloudAreaAndIpStrList)) {
-            for (String cloudAreaAndIp : cloudAreaAndIpStrList) {
-                HostDTO hostDto = transform(cloudAreaAndIp);
-                if (hostDto != null) {
-                    hostDTOList.add(hostDto);
-                }
-            }
-        }
-        return hostDTOList;
-    }
-
-    /**
      * 转换到IpDTO
      *
-     * @param cloudAreaAndIp
-     * @return
+     * @param cloudIp 云区域+IP
      */
-    public static HostDTO transform(String cloudAreaAndIp) {
+    public static HostDTO transform(String cloudIp) {
         HostDTO hostDTO = null;
-        if (cloudAreaAndIp != null) {
-            String[] split = cloudAreaAndIp.split(COLON);
+        if (cloudIp != null) {
+            String[] split = cloudIp.split(COLON);
             if (split.length == 2) {
                 long cloudAreaId = optLong(split[0].trim(), DEFAULT_CLOUD_ID);
                 if (cloudAreaId == 1)
                     cloudAreaId = DEFAULT_CLOUD_ID;
                 hostDTO = new HostDTO(cloudAreaId, split[1].trim());
             } else {
-                hostDTO = new HostDTO(DEFAULT_CLOUD_ID, cloudAreaAndIp.trim());
+                hostDTO = new HostDTO(DEFAULT_CLOUD_ID, cloudIp.trim());
             }
         }
         return hostDTO;
