@@ -103,6 +103,7 @@ public class AgentServiceImpl implements AgentService {
             String agentBindCloudIp = Consts.DEFAULT_CLOUD_ID + ":" + agentBindIp;
             ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindCloudIp));
             agentHost = HostDTO.fromHostIdAndCloudIp(host.getHostId(), agentBindCloudIp);
+            agentHost.setAgentId(agentHost.getFinalAgentId());
             return agentHost;
         }
     }
