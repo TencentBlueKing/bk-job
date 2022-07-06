@@ -8,9 +8,11 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,6 +33,10 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
 
     protected final List<AgentTaskDetailDTO> fillHostDetail(StepInstanceBaseDTO stepInstance,
                                                             List<AgentTaskDTO> agentTasks) {
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            return Collections.emptyList();
+        }
+
         List<AgentTaskDetailDTO> agentTaskDetailList;
         // 历史版本AgentTask会包含ip信息,从当前版本开始AgentTask不会包含ip信息，需要从StepInstance反查
         boolean hasIpInfo = StringUtils.isNotEmpty(agentTasks.get(0).getCloudIp());

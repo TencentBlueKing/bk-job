@@ -2,9 +2,12 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.config.GseTaskTableRouteConfig;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
+import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
@@ -17,6 +20,7 @@ import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,28 +36,64 @@ public class FileAgentTaskServiceImpl
     implements FileAgentTaskService {
 
     private final FileAgentTaskDAO fileAgentTaskDAO;
+    private final GseTaskIpLogDAO gseTaskIpLogDAO;
+    private final GseTaskTableRouteConfig gseTaskTableRouteConfig;
 
     @Autowired
     public FileAgentTaskServiceImpl(FileAgentTaskDAO fileAgentTaskDAO,
                                     StepInstanceService stepInstanceService,
-                                    HostService hostService) {
+                                    HostService hostService,
+                                    GseTaskIpLogDAO gseTaskIpLogDAO,
+                                    GseTaskTableRouteConfig gseTaskTableRouteConfig) {
         super(stepInstanceService, hostService);
         this.fileAgentTaskDAO = fileAgentTaskDAO;
+        this.gseTaskIpLogDAO = gseTaskIpLogDAO;
+        this.gseTaskTableRouteConfig = gseTaskTableRouteConfig;
     }
 
     @Override
     public void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks) {
-        fileAgentTaskDAO.batchSaveAgentTasks(agentTasks);
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            return;
+        }
+        long stepInstanceId = agentTasks.stream().findAny().map(AgentTaskDTO::getStepInstanceId)
+            .orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR));
+        if (usingNewTable(stepInstanceId)) {
+            fileAgentTaskDAO.batchSaveAgentTasks(agentTasks);
+        } else {
+            // 兼容实现，发布之后删除
+            gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
+        }
+    }
+
+    private boolean usingNewTable(long stepInstanceId) {
+        return gseTaskTableRouteConfig.isNewTableEnabled()
+            && (gseTaskTableRouteConfig.getFromStepInstanceId() == null
+            || stepInstanceId > gseTaskTableRouteConfig.getFromStepInstanceId());
     }
 
     @Override
     public void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks) {
-        fileAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            return;
+        }
+        long stepInstanceId = agentTasks.stream().findAny().map(AgentTaskDTO::getStepInstanceId)
+            .orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR));
+        if (usingNewTable(stepInstanceId)) {
+            fileAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
+        } else {
+            // 兼容实现，发布之后删除
+            gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
+        }
     }
 
     @Override
     public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
-        return fileAgentTaskDAO.getSuccessAgentTaskCount(stepInstanceId, executeCount);
+        if (isStepInstanceRecordExist(stepInstanceId)) {
+            return fileAgentTaskDAO.getSuccessAgentTaskCount(stepInstanceId, executeCount);
+        } else {
+            return gseTaskIpLogDAO.getSuccessAgentTaskCount(stepInstanceId, executeCount);
+        }
     }
 
     @Override
@@ -83,6 +123,10 @@ public class FileAgentTaskServiceImpl
                                                                      String tag) {
         List<AgentTaskDTO> agentTasks = fileAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
             executeCount, batch, status);
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            // 兼容历史数据
+            agentTasks = gseTaskIpLogDAO.listAgentTaskByResultGroup(stepInstance.getId(), executeCount, status, tag);
+        }
         return fillHostDetail(stepInstance, agentTasks);
     }
 
@@ -97,13 +141,29 @@ public class FileAgentTaskServiceImpl
                                                                      Order order) {
         List<AgentTaskDTO> agentTasks = fileAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
             executeCount, batch, status, limit, orderField, order);
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            // 兼容历史数据
+            agentTasks = gseTaskIpLogDAO.listAgentTaskByResultGroup(stepInstance.getId(), executeCount, status, tag,
+                limit, orderField, order);
+        }
         return fillHostDetail(stepInstance, agentTasks);
     }
 
     @Override
     public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId, Integer executeCount, Integer batch,
                                              FileTaskModeEnum fileTaskMode) {
-        return fileAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch, fileTaskMode);
+        List<AgentTaskDTO> agentTasks = fileAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch,
+            fileTaskMode);
+        // 兼容历史数据
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            agentTasks = gseTaskIpLogDAO.listAgentTasks(stepInstanceId, executeCount);
+            if (CollectionUtils.isNotEmpty(agentTasks) && fileTaskMode != null) {
+                agentTasks = agentTasks.stream().filter(agentTask -> agentTask.getFileTaskMode() == fileTaskMode)
+                    .collect(Collectors.toList());
+            }
+        }
+
+        return agentTasks;
     }
 
     @Override
@@ -114,6 +174,7 @@ public class FileAgentTaskServiceImpl
     @Override
     public AgentTaskDTO getAgentTaskByHost(StepInstanceDTO stepInstance, Integer executeCount, Integer batch,
                                            FileTaskModeEnum fileTaskMode, HostDTO host) {
+        AgentTaskDTO agentTask = null;
         Long hostId = host.getHostId();
         if (hostId == null) {
             // 根据ip反查hostId
@@ -124,11 +185,16 @@ public class FileAgentTaskServiceImpl
                 throw new NotFoundException(ErrorCode.HOST_NOT_EXIST, new String[]{host.toCloudIp()});
             }
         }
-        if (hostId == null) {
-            return null;
+
+        if (hostId != null) {
+            agentTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch, fileTaskMode,
+                hostId);
+        } else if (StringUtils.isNotEmpty(host.getIp())) {
+            // 兼容历史数据
+            agentTask = gseTaskIpLogDAO.getAgentTaskByIp(stepInstance.getId(), executeCount, host.toCloudIp());
         }
-        return fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch,
-            fileTaskMode, hostId);
+
+        return agentTask;
     }
 
     private HostDTO getStepHostByIp(StepInstanceDTO stepInstance, String cloudIp) {
@@ -158,12 +224,22 @@ public class FileAgentTaskServiceImpl
 
     @Override
     public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId, Integer executeCount, Integer batch) {
-        return fileAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch, null);
+        List<AgentTaskDTO> agentTasks = fileAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch, null);
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            // 兼容历史数据
+            agentTasks = gseTaskIpLogDAO.listAgentTasks(stepInstanceId, executeCount);
+        }
+        return agentTasks;
     }
 
     @Override
     public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, FileTaskModeEnum mode, HostDTO host) {
-        return fileAgentTaskDAO.getActualSuccessExecuteCount(stepInstanceId, batch, mode, host.getHostId());
+        if (isStepInstanceRecordExist(stepInstanceId)) {
+            return fileAgentTaskDAO.getActualSuccessExecuteCount(stepInstanceId, batch, mode, host.getHostId());
+        } else {
+            // 兼容历史数据
+            return gseTaskIpLogDAO.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
+        }
     }
 
     @Override
@@ -172,5 +248,9 @@ public class FileAgentTaskServiceImpl
                                                         Integer batch) {
         List<AgentTaskDTO> agentTasks = listAgentTasks(stepInstance.getId(), executeCount, batch);
         return fillHostDetail(stepInstance, agentTasks);
+    }
+
+    private boolean isStepInstanceRecordExist(long stepInstanceId) {
+        return fileAgentTaskDAO.isStepInstanceRecordExist(stepInstanceId);
     }
 }

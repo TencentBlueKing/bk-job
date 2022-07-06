@@ -93,11 +93,12 @@ class ExponentIncrementRollingExprPartTest {
         context.setBatchCount(1);
 
         ExponentIncrementRollingExprPart exponentIncrementRollingExprPart =
-            (ExponentIncrementRollingExprPart) ROLLING_EXPR_PART.parseExpr("*2");
+            (ExponentIncrementRollingExprPart) ROLLING_EXPR_PART.parseExpr("*3");
         List<HostDTO> serversOnBatch = exponentIncrementRollingExprPart.compute(context);
         assertThat(serversOnBatch).containsSequence(
             new HostDTO(0L, "127.0.0.2"),
-            new HostDTO(0L, "127.0.0.3")
+            new HostDTO(0L, "127.0.0.3"),
+            new HostDTO(0L, "127.0.0.4")
         );
     }
 }

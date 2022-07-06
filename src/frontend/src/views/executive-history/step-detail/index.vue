@@ -400,6 +400,7 @@
             handleBatchChange (batch) {
                 this.params = {
                     ...this.params,
+                    retryCount: '',
                     batch,
                 };
                 this.currentGroup = {

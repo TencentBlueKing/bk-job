@@ -31,6 +31,12 @@ import lombok.Data;
 @ApiModel("滚动执行配置")
 @Data
 public class RollingConfigVO {
+    /**
+     * 滚动配置名称
+     */
+    @ApiModelProperty(value = "滚动配置名称")
+    private String name;
+
     @ApiModelProperty(value = "滚动分批策略表达式")
     private String expr;
 

@@ -36,7 +36,7 @@ import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
-import com.tencent.bk.job.execute.engine.listener.event.GseTaskResultHandleTaskResumeEvent;
+import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
@@ -401,7 +401,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, " +
                         "stepInstanceId:{}",
                     taskInstance.getId(), stepInstance.getId());
-                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.stopGseTask(gseTask.getId()));
+                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.stopGseTask(
+                    gseTask.getStepInstanceId(), gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId()));
                 this.isGseTaskTerminating = true;
                 log.info("Send stop gse step control action successfully!");
             }
@@ -539,7 +540,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
         saveGseTaskExecutionInfo(result, isSuccess, endTime, gseTotalTime);
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-            EventSource.buildGseTaskEventSource(gseTask.getId())));
+            EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
+                stepInstance.getBatch(), gseTask.getId())));
     }
 
     private void saveGseTaskExecutionInfo(GseTaskExecuteResult result, boolean isSuccess, long endTime,
@@ -596,7 +598,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.info("ResultHandleTask-onStop start, stepInstanceId: {}", stepInstanceId);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
             taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
-                GseTaskResultHandleTaskResumeEvent.resume(gseTask.getId(), requestId));
+                ResultHandleTaskResumeEvent.resume(gseTask.getStepInstanceId(),
+                    gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId(), requestId));
 
             this.isStopped = true;
             StopTaskCounter.getInstance().decrement(getTaskId());

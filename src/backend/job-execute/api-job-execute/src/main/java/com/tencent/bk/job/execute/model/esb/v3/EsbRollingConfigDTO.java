@@ -22,15 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.listener.event;
+package com.tencent.bk.job.execute.model.esb.v3;
 
 import lombok.Data;
 
+/**
+ * 滚动执行配置
+ */
 @Data
-public class GseTaskEventSource {
-    private long gseTaskId;
+public class EsbRollingConfigDTO {
+    /**
+     * 滚动分批策略表达式
+     */
+    private String expression;
 
-    public GseTaskEventSource(long gseTaskId) {
-        this.gseTaskId = gseTaskId;
-    }
+    /**
+     * 滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认
+     *
+     * @see com.tencent.bk.job.common.constant.RollingModeEnum
+     */
+    private Integer mode;
+
 }

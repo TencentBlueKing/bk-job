@@ -108,11 +108,11 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
-    public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, int batch) {
+    public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch) {
         Record record = dslContext.select(ALL_FIELDS).from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(TABLE.EXECUTE_COUNT.eq(executeCount))
-            .and(TABLE.BATCH.eq((short) batch))
+            .and(TABLE.BATCH.eq(batch == null ? 0 : batch.shortValue()))
             .fetchOne();
         return extractInfo(record);
     }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.model.req.web;
 
 
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -65,10 +66,10 @@ public class FileSourceCreateUpdateReq {
     @ApiModelProperty(value = "是否为公共文件源", required = true)
     private Boolean publicFlag;
     /**
-     * 共享的业务Id集合
+     * 共享的资源范围列表
      */
-    @ApiModelProperty(value = "共享的业务Id列表", required = true)
-    private List<Long> sharedAppIdList;
+    @ApiModelProperty(value = "共享的资源范围列表", required = true)
+    private List<ResourceScope> sharedScopeList;
     /**
      * 是否共享到全业务
      */

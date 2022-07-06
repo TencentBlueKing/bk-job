@@ -37,6 +37,8 @@ public class EventSource {
     private EventSourceTypeEnum sourceType;
     private Long taskInstanceId;
     private Long stepInstanceId;
+    private Integer executeCount;
+    private Integer batch;
     private Long gseTaskId;
 
     public static EventSource buildStepEventSource(long stepInstanceId) {
@@ -46,20 +48,16 @@ public class EventSource {
         return eventSource;
     }
 
-    public static EventSource buildGseTaskEventSource(long gseTaskId) {
+    public static EventSource buildGseTaskEventSource(Long stepInstanceId,
+                                                      Integer executeCount,
+                                                      Integer batch,
+                                                      Long gseTaskId) {
         EventSource eventSource = new EventSource();
+        eventSource.setStepInstanceId(stepInstanceId);
+        eventSource.setExecuteCount(executeCount);
+        eventSource.setBatch(batch);
         eventSource.setGseTaskId(gseTaskId);
         eventSource.setSourceType(EventSourceTypeEnum.GSE_TASK);
         return eventSource;
     }
-
-    public StepEventSource toStepEventSource() {
-        return new StepEventSource(this.stepInstanceId);
-    }
-
-    public GseTaskEventSource toGseTaskEventSource() {
-        return new GseTaskEventSource(this.gseTaskId);
-    }
-
-
 }
