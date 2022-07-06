@@ -47,7 +47,7 @@ public interface GseTaskDAO {
      * @param batch          滚动执行批次
      * @return GSE 任务
      */
-    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, int batch);
+    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch);
 
     /**
      * 获取 GSE 任务

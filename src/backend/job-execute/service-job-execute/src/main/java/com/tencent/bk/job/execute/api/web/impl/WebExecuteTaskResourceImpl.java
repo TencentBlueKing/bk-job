@@ -66,7 +66,6 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
-import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
 import com.tencent.bk.job.execute.model.web.vo.StepOperationVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
@@ -231,18 +230,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setScriptContent(decodeScriptContent);
         StepRollingConfigDTO rollingConfig = null;
         if (request.isRollingEnabled()) {
-            rollingConfig = buildRollingConfig(request.getRollingConfig());
+            rollingConfig = StepRollingConfigDTO.fromRollingConfigVO(request.getRollingConfig());
         }
 
         return createAndStartFastTask(request.isRedoTask(), taskInstance, stepInstance, rollingConfig);
-    }
-
-    private StepRollingConfigDTO buildRollingConfig(RollingConfigVO rollingConfigVO) {
-        StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
-        stepRollingConfigDTO.setName("default");
-        stepRollingConfigDTO.setMode(rollingConfigVO.getMode());
-        stepRollingConfigDTO.setExpr(rollingConfigVO.getExpr());
-        return stepRollingConfigDTO;
     }
 
     private boolean checkFastExecuteScriptRequest(WebFastExecuteScriptRequest request) {
@@ -350,7 +341,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         StepInstanceDTO stepInstance = buildFastFileStepInstance(username, appResourceScope.getAppId(), request);
         StepRollingConfigDTO rollingConfig = null;
         if (request.isRollingEnabled()) {
-            rollingConfig = buildRollingConfig(request.getRollingConfig());
+            rollingConfig = StepRollingConfigDTO.fromRollingConfigVO(request.getRollingConfig());
         }
 
         return createAndStartFastTask(false, taskInstance, stepInstance, rollingConfig);

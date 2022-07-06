@@ -59,7 +59,6 @@ export default class SourceFile extends Model {
         super();
         this.id = payload.id;
         this.alias = payload.alias;
-        this.appId = payload.appId;
         this.scopeType = payload.scopeType;
         this.scopeId = payload.scopeId;
         this.code = payload.code;
@@ -74,7 +73,7 @@ export default class SourceFile extends Model {
         this.lastModifyUser = payload.lastModifyUser;
         this.publicFlag = payload.publicFlag;
         this.shareToAllApp = payload.shareToAllApp;
-        this.sharedAppIdList = payload.sharedAppIdList;
+        this.sharedScopeList = payload.sharedScopeList;
         this.status = payload.status;
         this.storageType = payload.storageType;
         this.workerId = payload.workerId;

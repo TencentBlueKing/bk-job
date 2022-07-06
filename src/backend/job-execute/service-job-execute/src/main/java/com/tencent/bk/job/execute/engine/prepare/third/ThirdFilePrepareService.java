@@ -217,7 +217,9 @@ public class ThirdFilePrepareService {
         List<FileSourceTaskContent> fileSourceTaskList = thirdFileSource.getRight();
         if (thirdFileSourceList == null || thirdFileSourceList.isEmpty()) {
             // TODO-Rolling
-            taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstance.getId(), null));
+            taskExecuteMQEventDispatcher.dispatchGseTaskEvent(
+                GseTaskEvent.startGseTask(stepInstance.getId(), stepInstance.getExecuteCount(),
+                    stepInstance.getBatch(), null, null));
             return null;
         }
         log.debug("Start FileSourceBatchTask: {}", fileSourceTaskList);

@@ -43,6 +43,7 @@ import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastExecuteScriptV3Request;
@@ -93,8 +94,16 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
             return EsbResp.buildCommonFailResp(ErrorCode.TASK_ABANDONED);
         }
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(request);
+        StepRollingConfigDTO rollingConfig = null;
+        if (request.getRollingConfig() != null) {
+            rollingConfig = StepRollingConfigDTO.fromEsbRollingConfig(request.getRollingConfig());
+        }
         long taskInstanceId = taskExecuteService.executeFastTask(
-            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+            FastTaskDTO.builder()
+                .taskInstance(taskInstance)
+                .stepInstance(stepInstance)
+                .rollingConfig(rollingConfig)
+                .build()
         );
 
         EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
@@ -205,6 +214,8 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
         stepInstance.setAccountAlias(request.getAccountAlias());
         stepInstance.setOperator(request.getUserName());
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
+
         return stepInstance;
     }
+
 }

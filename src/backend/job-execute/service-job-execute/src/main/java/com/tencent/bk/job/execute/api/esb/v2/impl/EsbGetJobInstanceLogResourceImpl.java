@@ -100,7 +100,6 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
             taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
         List<EsbStepInstanceResultAndLog> stepInstResultAndLogList = Lists.newArrayList();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
-            // TODO Rolling
             GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(),
                 stepInstance.getExecuteCount(), 0);
             if (null == gseTask) {

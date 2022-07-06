@@ -232,7 +232,8 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
                 gseTaskService.saveGseTask(gseTask);
                 taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-                    EventSource.buildGseTaskEventSource(gseTask.getId())));
+                    EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
+                        stepInstance.getBatch(), gseTask.getId())));
                 watch.stop();
                 return;
             }

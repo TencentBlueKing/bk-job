@@ -51,7 +51,6 @@ import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
-import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDTO;
@@ -936,15 +935,9 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
         }
 
-        // TODO Rolling
-        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(),
-            stepInstance.getExecuteCount(), 0);
-        if (gseTask == null) {
-            if (stepInstance.getTargetServers().getIpList() != null) {
-                return stepInstance.getTargetServers().getIpList();
-            } else {
-                return Collections.emptyList();
-            }
+        if (stepInstance.getStatus().equals(RunStatusEnum.BLANK.getValue())) {
+            // 步骤未启动，AgentTask数据还未在DB初始化，构造初始任务结果
+            return filterTargetHostsByBatch(stepInstance, query.getBatch());
         }
 
         List<AgentTaskDetailDTO> agentTaskGroupByResultType = listAgentTaskByResultGroup(stepInstance,

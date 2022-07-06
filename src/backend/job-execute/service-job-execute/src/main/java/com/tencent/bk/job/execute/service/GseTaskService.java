@@ -36,7 +36,7 @@ public interface GseTaskService {
      *
      * @param gseTask GSE 任务
      */
-    long saveGseTask(GseTaskDTO gseTask);
+    Long saveGseTask(GseTaskDTO gseTask);
 
     /**
      * 获取 GSE 任务
@@ -46,7 +46,7 @@ public interface GseTaskService {
      * @param batch          滚动执行批次
      * @return GSE 任务
      */
-    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, int batch);
+    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch);
 
     /**
      * 获取 GSE 任务

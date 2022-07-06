@@ -147,5 +147,12 @@ public interface ScriptAgentTaskDAO {
      */
     int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, long hostId);
 
+    /**
+     * 判断步骤实例的Agent Task 记录是否存在
+     *
+     * @param stepInstanceId 步骤实例ID
+     */
+    boolean isStepInstanceRecordExist(long stepInstanceId);
+
 
 }
