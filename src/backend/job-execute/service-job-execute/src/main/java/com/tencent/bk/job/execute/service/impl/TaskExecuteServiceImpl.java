@@ -2081,6 +2081,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskDetail.setStepInstanceId(stepInstance.getId());
         taskDetail.setStepName(stepInstance.getName());
         taskDetail.setExecuteCount(stepInstance.getExecuteCount());
+        taskDetail.setBatch(stepInstance.getBatch());
         operationLog.setDetail(taskDetail);
         return operationLog;
     }

@@ -50,9 +50,13 @@ public interface StepInstanceRollingTaskDAO {
      * 查询步骤滚动任务
      *
      * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数;如果不为null，会根据executeCount过滤
+     * @param batch          滚动执行批次;如果不为null，会根据batch过滤
      * @return 步骤滚动任务
      */
-    List<StepInstanceRollingTaskDTO> listRollingTasks(long stepInstanceId);
+    List<StepInstanceRollingTaskDTO> listRollingTasks(long stepInstanceId,
+                                                      Integer executeCount,
+                                                      Integer batch);
 
     /**
      * 保存步骤滚动任务
