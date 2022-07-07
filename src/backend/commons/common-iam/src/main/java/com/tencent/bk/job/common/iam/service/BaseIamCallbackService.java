@@ -43,27 +43,40 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.lang.NonNull;
 
 import java.util.Map;
 
 @Slf4j
 public abstract class BaseIamCallbackService {
 
-    public CallbackBaseResponseDTO getFailResp(Long code, String message) {
+    private CallbackBaseResponseDTO getFailResp(Long code, String message) {
         CallbackBaseResponseDTO respDTO = new CallbackBaseResponseDTO();
         respDTO.setCode(code);
         respDTO.setMessage(message);
         return respDTO;
     }
 
-    public CallbackBaseResponseDTO getNotFoundResp(String message) {
+    private CallbackBaseResponseDTO getNotFoundResp(String message) {
         return getFailResp(CommonResponseCode.NOT_FOUND, message);
     }
 
+    private String genNotExistMessage(String id) {
+        return String.format("cannot find resource by id %s, may be deleted", id);
+    }
+
+    protected void logNotExistId(@NonNull Object id) {
+        log.warn(genNotExistMessage(id.toString()));
+    }
+
+    protected void logBuildInstanceFailure(Object rawInstance, Exception e) {
+        FormattingTuple msg = MessageFormatter.format("Fail to buildInstance for {}", rawInstance);
+        log.warn(msg.getMessage(), e);
+    }
+
     public CallbackBaseResponseDTO getNotFoundRespById(String id) {
-        String msg = String.format("cannot find resource by id %s, may be deleted", id);
-        log.warn(msg);
-        return getNotFoundResp(msg);
+        logNotExistId(id);
+        return getNotFoundResp(genNotExistMessage(id));
     }
 
     /**
