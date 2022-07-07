@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.crontab.api.iam.IamCallbackController;
+import com.tencent.bk.job.crontab.api.iam.IamCronCallbackResource;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -55,14 +55,14 @@ import java.util.Set;
 
 @Slf4j
 @RestController
-public class IamCallbackControllerImpl extends BaseIamCallbackService implements IamCallbackController {
+public class IamCronCallbackResourceImpl extends BaseIamCallbackService implements IamCronCallbackResource {
 
     private final CronJobService cronJobService;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public IamCallbackControllerImpl(CronJobService cronJobService,
-                                     AppScopeMappingService appScopeMappingService) {
+    public IamCronCallbackResourceImpl(CronJobService cronJobService,
+                                       AppScopeMappingService appScopeMappingService) {
         this.cronJobService = cronJobService;
         this.appScopeMappingService = appScopeMappingService;
     }
@@ -115,6 +115,24 @@ public class IamCallbackControllerImpl extends BaseIamCallbackService implements
         return IamRespUtil.getListInstanceRespFromPageData(cronJobInfoPageData, this::convert);
     }
 
+    private InstanceInfoDTO buildInstance(CronJobInfoDTO cronJobInfoDTO, Map<Long, ResourceScope> appIdScopeMap) {
+        Long appId = cronJobInfoDTO.getAppId();
+        // 拓扑路径构建
+        List<PathInfoDTO> path = new ArrayList<>();
+        PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
+        PathInfoDTO cronJobNode = new PathInfoDTO();
+        cronJobNode.setType(ResourceTypeId.CRON);
+        cronJobNode.setId(cronJobInfoDTO.getId().toString());
+        rootNode.setChild(cronJobNode);
+        path.add(rootNode);
+        // 实例组装
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(cronJobInfoDTO.getId().toString());
+        instanceInfo.setDisplayName(cronJobInfoDTO.getName());
+        instanceInfo.setPath(path);
+        return instanceInfo;
+    }
+
     @Override
     protected CallbackBaseResponseDTO fetchInstanceResp(
         CallbackRequestDTO callbackRequest
@@ -138,23 +156,15 @@ public class IamCallbackControllerImpl extends BaseIamCallbackService implements
         for (Long id : cronJobIdList) {
             CronJobInfoDTO cronJobInfoDTO = cronJobInfoMap.get(id);
             if (cronJobInfoDTO == null) {
-                return getNotFoundRespById(id.toString());
+                logNotExistId(id);
+                continue;
             }
-            Long appId = cronJobInfoDTO.getAppId();
-            // 拓扑路径构建
-            List<PathInfoDTO> path = new ArrayList<>();
-            PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
-            PathInfoDTO cronJobNode = new PathInfoDTO();
-            cronJobNode.setType(ResourceTypeId.CRON);
-            cronJobNode.setId(cronJobInfoDTO.getId().toString());
-            rootNode.setChild(cronJobNode);
-            path.add(rootNode);
-            // 实例组装
-            InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-            instanceInfo.setId(id.toString());
-            instanceInfo.setDisplayName(cronJobInfoDTO.getName());
-            instanceInfo.setPath(path);
-            instanceAttributeInfoList.add(instanceInfo);
+            try {
+                InstanceInfoDTO instanceInfo = buildInstance(cronJobInfoDTO, appIdScopeMap);
+                instanceAttributeInfoList.add(instanceInfo);
+            } catch (Exception e) {
+                logBuildInstanceFailure(cronJobInfoDTO, e);
+            }
         }
 
         FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();

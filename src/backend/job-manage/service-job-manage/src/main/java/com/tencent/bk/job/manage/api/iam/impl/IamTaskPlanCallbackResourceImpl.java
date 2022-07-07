@@ -117,6 +117,29 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
         return IamRespUtil.getSearchInstanceRespFromPageData(planDTOPageData, this::convert);
     }
 
+    private InstanceInfoDTO buildInstance(TaskPlanBasicInfoDTO planBasicInfoDTO,
+                                          Map<Long, ResourceScope> appIdScopeMap) {
+        Long appId = planBasicInfoDTO.getAppId();
+        // 拓扑路径构建
+        List<PathInfoDTO> path = new ArrayList<>();
+        PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
+        PathInfoDTO templateNode = new PathInfoDTO();
+        templateNode.setType(ResourceTypeId.TEMPLATE);
+        templateNode.setId(planBasicInfoDTO.getTemplateId().toString());
+        rootNode.setChild(templateNode);
+        PathInfoDTO planNode = new PathInfoDTO();
+        planNode.setType(ResourceTypeId.PLAN);
+        planNode.setId(planBasicInfoDTO.getId().toString());
+        templateNode.setChild(planNode);
+        path.add(rootNode);
+        // 实例组装
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(planBasicInfoDTO.getId().toString());
+        instanceInfo.setDisplayName(planBasicInfoDTO.getName());
+        instanceInfo.setPath(path);
+        return instanceInfo;
+    }
+
     @Override
     protected CallbackBaseResponseDTO fetchInstanceResp(
         CallbackRequestDTO callbackRequest
@@ -142,33 +165,17 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
         // Job app --> CMDB biz/businessSet转换
         Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
+            long id = Long.parseLong(instanceId);
+            TaskPlanBasicInfoDTO planBasicInfoDTO = planBasicInfoDTOMap.get(id);
+            if (planBasicInfoDTO == null) {
+                logNotExistId(id);
+                continue;
+            }
             try {
-                long id = Long.parseLong(instanceId);
-                TaskPlanBasicInfoDTO planBasicInfoDTO = planBasicInfoDTOMap.get(id);
-                if (planBasicInfoDTO == null) {
-                    return getNotFoundRespById(instanceId);
-                }
-                Long appId = planBasicInfoDTO.getAppId();
-                // 拓扑路径构建
-                List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
-                PathInfoDTO templateNode = new PathInfoDTO();
-                templateNode.setType(ResourceTypeId.TEMPLATE);
-                templateNode.setId(planBasicInfoDTO.getTemplateId().toString());
-                rootNode.setChild(templateNode);
-                PathInfoDTO planNode = new PathInfoDTO();
-                planNode.setType(ResourceTypeId.PLAN);
-                planNode.setId(planBasicInfoDTO.getId().toString());
-                templateNode.setChild(planNode);
-                path.add(rootNode);
-                // 实例组装
-                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                instanceInfo.setId(instanceId);
-                instanceInfo.setDisplayName(planBasicInfoDTO.getName());
-                instanceInfo.setPath(path);
+                InstanceInfoDTO instanceInfo = buildInstance(planBasicInfoDTO, appIdScopeMap);
                 instanceAttributeInfoList.add(instanceInfo);
-            } catch (NumberFormatException e) {
-                log.error("Parse object id failed!|{}", instanceId, e);
+            } catch (Exception e) {
+                logBuildInstanceFailure(planBasicInfoDTO, e);
             }
         }
         FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();

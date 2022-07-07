@@ -25,12 +25,9 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.model.PermissionActionResource;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
@@ -51,9 +48,6 @@ import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @Slf4j
@@ -196,6 +190,19 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
+    private Response<AuthResultVO> checkCloneTemplate(String username,
+                                                      AppResourceScope appResourceScope,
+                                                      String resourceId,
+                                                      boolean isReturnApplyUrl) {
+        AuthResult authResult = templateAuthService.authViewJobTemplate(
+            username,
+            appResourceScope,
+            Long.parseLong(resourceId)
+        );
+        authResult = authResult.mergeAuthResult(templateAuthService.authCreateJobTemplate(username, appResourceScope));
+        return Response.buildSuccessResp(webAuthService.toAuthResultVO(isReturnApplyUrl, authResult));
+    }
+
     private Response<AuthResultVO> checkJobTemplateOperationPermission(
         String username,
         AppResourceScope appResourceScope,
@@ -207,7 +214,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
-        Long templateId;
+        long templateId;
         switch (action) {
             case "create":
                 return Response.buildSuccessResp(
@@ -218,7 +225,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 );
             case "view":
             case "debug":
-                templateId = Long.valueOf(resourceId);
+                templateId = Long.parseLong(resourceId);
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
@@ -226,7 +233,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     )
                 );
             case "edit":
-                templateId = Long.valueOf(resourceId);
+                templateId = Long.parseLong(resourceId);
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
@@ -234,7 +241,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     )
                 );
             case "delete":
-                templateId = Long.valueOf(resourceId);
+                templateId = Long.parseLong(resourceId);
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
@@ -242,20 +249,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     )
                 );
             case "clone":
-                List<PermissionActionResource> actionResources = new ArrayList<>(2);
-                PermissionActionResource viewTemplateActionResource = new PermissionActionResource();
-                viewTemplateActionResource.setActionId(ActionId.VIEW_JOB_TEMPLATE);
-                viewTemplateActionResource.addResource(ResourceTypeEnum.TEMPLATE, resourceId,
-                    IamUtil.buildScopePathInfo(appResourceScope));
-                PermissionActionResource createTemplateActionResource = new PermissionActionResource();
-                createTemplateActionResource.setActionId(ActionId.CREATE_JOB_TEMPLATE);
-                createTemplateActionResource.addResource(
-                    IamUtil.getIamResourceTypeForResourceScope(appResourceScope),
-                    appResourceScope.getId(),
-                    IamUtil.buildScopePathInfo(appResourceScope));
-                actionResources.add(viewTemplateActionResource);
-                actionResources.add(createTemplateActionResource);
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username, actionResources));
+                return checkCloneTemplate(username, appResourceScope, resourceId, isReturnApplyUrl);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
@@ -365,7 +359,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
-        Long accountId;
+        long accountId;
         switch (action) {
             case "create":
                 log.info("before transfer, scope={}", appResourceScope);
@@ -378,7 +372,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             case "view":
             case "edit":
             case "delete":
-                accountId = Long.valueOf(resourceId);
+                accountId = Long.parseLong(resourceId);
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
@@ -386,7 +380,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     )
                 );
             case "use":
-                accountId = Long.valueOf(resourceId);
+                accountId = Long.parseLong(resourceId);
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
