@@ -168,6 +168,25 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
         return IamRespUtil.getSearchInstanceRespFromPageData(fileSourceDTOPageData, this::convert);
     }
 
+    private InstanceInfoDTO buildInstance(FileSourceBasicInfoDTO fileSourceBasicInfoDTO,
+                                          Map<Long, ResourceScope> appIdScopeMap) {
+        Long appId = fileSourceBasicInfoDTO.getAppId();
+        // 拓扑路径构建
+        List<PathInfoDTO> path = new ArrayList<>();
+        PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
+        PathInfoDTO fileSourceNode = new PathInfoDTO();
+        fileSourceNode.setType(ResourceTypeId.FILE_SOURCE);
+        fileSourceNode.setId(fileSourceBasicInfoDTO.getId().toString());
+        rootNode.setChild(fileSourceNode);
+        path.add(rootNode);
+        // 实例组装
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(fileSourceBasicInfoDTO.getId().toString());
+        instanceInfo.setDisplayName(fileSourceBasicInfoDTO.getAlias());
+        instanceInfo.setPath(path);
+        return instanceInfo;
+    }
+
     @Override
     protected CallbackBaseResponseDTO fetchInstanceResp(
         CallbackRequestDTO callbackRequest
@@ -195,29 +214,17 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
         // Job app --> CMDB biz/businessSet转换
         Map<Long, ResourceScope> appIdScopeMap = appScopeMappingService.getScopeByAppIds(appIdSet);
         for (Integer id : fileSourceIdList) {
+            // 文件源详情查询实现
+            FileSourceBasicInfoDTO fileSourceBasicInfoDTO = fileSourceBasicInfoDTOMap.get(id);
+            if (fileSourceBasicInfoDTO == null) {
+                logNotExistId(id);
+                continue;
+            }
             try {
-                // 文件源详情查询实现
-                FileSourceBasicInfoDTO fileSourceBasicInfoDTO = fileSourceBasicInfoDTOMap.get(id);
-                if (fileSourceBasicInfoDTO == null) {
-                    return getNotFoundRespById(id.toString());
-                }
-                Long appId = fileSourceBasicInfoDTO.getAppId();
-                // 拓扑路径构建
-                List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
-                PathInfoDTO fileSourceNode = new PathInfoDTO();
-                fileSourceNode.setType(ResourceTypeId.FILE_SOURCE);
-                fileSourceNode.setId(fileSourceBasicInfoDTO.getId().toString());
-                rootNode.setChild(fileSourceNode);
-                path.add(rootNode);
-                // 实例组装
-                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                instanceInfo.setId(id.toString());
-                instanceInfo.setDisplayName(fileSourceBasicInfoDTO.getAlias());
-                instanceInfo.setPath(path);
+                InstanceInfoDTO instanceInfo = buildInstance(fileSourceBasicInfoDTO, appIdScopeMap);
                 instanceAttributeInfoList.add(instanceInfo);
-            } catch (NumberFormatException e) {
-                log.error("Parse object id failed!|{}", id, e);
+            } catch (Exception e) {
+                logBuildInstanceFailure(fileSourceBasicInfoDTO, e);
             }
         }
 

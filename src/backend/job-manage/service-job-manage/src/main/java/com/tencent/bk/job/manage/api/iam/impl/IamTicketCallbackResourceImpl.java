@@ -120,6 +120,25 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
         return IamRespUtil.getListInstanceRespFromPageData(cronJobInfoPageData, this::convert);
     }
 
+    private InstanceInfoDTO buildInstance(ServiceCredentialDisplayDTO credentialDisplayDTO,
+                                          Map<Long, ResourceScope> appIdScopeMap) {
+        Long appId = credentialDisplayDTO.getAppId();
+        // 拓扑路径构建
+        List<PathInfoDTO> path = new ArrayList<>();
+        PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
+        PathInfoDTO ticketNode = new PathInfoDTO();
+        ticketNode.setType(ResourceTypeId.TICKET);
+        ticketNode.setId(credentialDisplayDTO.getId());
+        rootNode.setChild(ticketNode);
+        path.add(rootNode);
+        // 实例组装
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(credentialDisplayDTO.getId());
+        instanceInfo.setDisplayName(credentialDisplayDTO.getName());
+        instanceInfo.setPath(path);
+        return instanceInfo;
+    }
+
     @Override
     protected CallbackBaseResponseDTO fetchInstanceResp(
         CallbackRequestDTO callbackRequest
@@ -144,23 +163,15 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
         for (String id : searchCondition.getIdList()) {
             ServiceCredentialDisplayDTO credentialDisplayDTO = credentialDTOMap.get(id);
             if (credentialDisplayDTO == null) {
-                return getNotFoundRespById(id);
+                logNotExistId(id);
+                continue;
             }
-            Long appId = credentialDisplayDTO.getAppId();
-            // 拓扑路径构建
-            List<PathInfoDTO> path = new ArrayList<>();
-            PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
-            PathInfoDTO ticketNode = new PathInfoDTO();
-            ticketNode.setType(ResourceTypeId.TICKET);
-            ticketNode.setId(credentialDisplayDTO.getId());
-            rootNode.setChild(ticketNode);
-            path.add(rootNode);
-            // 实例组装
-            InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-            instanceInfo.setId(id);
-            instanceInfo.setDisplayName(credentialDisplayDTO.getName());
-            instanceInfo.setPath(path);
-            instanceAttributeInfoList.add(instanceInfo);
+            try {
+                InstanceInfoDTO instanceInfo = buildInstance(credentialDisplayDTO, appIdScopeMap);
+                instanceAttributeInfoList.add(instanceInfo);
+            } catch (Exception e) {
+                logBuildInstanceFailure(credentialDisplayDTO, e);
+            }
         }
 
         FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
