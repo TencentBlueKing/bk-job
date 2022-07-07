@@ -31,4 +31,8 @@ export default {
         return WebGlobalSource.getVersionLog()
             .then(({ data }) => Object.freeze(data));
     },
+    fetchVersionENLog () {
+        return WebGlobalSource.getVersionENLog()
+            .then(({ data }) => Object.freeze(data));
+    },
 };

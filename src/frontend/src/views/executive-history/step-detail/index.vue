@@ -28,6 +28,12 @@
 <template>
     <div class="executive-history-step">
         <task-status ref="taskStatus" @on-init="handleTaskInit">
+            <rolling-batch
+                v-if="data.isRollingTask"
+                :value="params.batch"
+                :data="data"
+                @change="handleBatchChange"
+                @on-confirm="operationCode => handleStatusUpdate(operationCode)" />
             <div class="step-info-header">
                 <div class="step-info-wraper">
                     <div class="step-type-text">{{ stepTypeText }}</div>
@@ -41,7 +47,9 @@
                     </div>
                 </div>
                 <!-- 步骤执行操作 -->
-                <div class="step-action-box">
+                <div
+                    v-if="!params.batch || params.batch === data.runningBatchOrder"
+                    class="step-action-box">
                     <step-action
                         v-for="action in data.actions"
                         :name="action"
@@ -51,7 +59,10 @@
                 </div>
                 <div class="log-search-box">
                     <compose-form-item>
-                        <bk-select v-model="searchModel" :clearable="false" style="width: 100px;">
+                        <bk-select
+                            v-model="searchModel"
+                            :clearable="false"
+                            style="width: 100px;">
                             <bk-option id="log" :name="$t('history.搜索日志')" />
                             <bk-option id="ip" :name="$t('history.搜索 IP')" />
                         </bk-select>
@@ -79,18 +90,28 @@
                         <Icon class="loading-flag" type="loading" />
                     </div>
                 </div>
-                <export-log :step-instance-id="params.id" :is-file="isFile" />
+                <export-log
+                    :step-instance-id="params.id"
+                    :is-file="isFile" />
                 <div class="task-instance-action">
-                    <view-global-variable v-if="isTask" :task-instance-id="taskInstanceId" />
+                    <view-global-variable
+                        v-if="isTask"
+                        :task-instance-id="taskInstanceId" />
                     <view-operation-record :task-instance-id="taskInstanceId" />
-                    <view-step-info :task-instance-id="taskInstanceId" :step-instance-id="params.id" />
+                    <view-step-info
+                        :task-instance-id="taskInstanceId"
+                        :step-instance-id="params.id" />
                 </div>
             </div>
             <!-- 主机分组 -->
             <group-tab
+                :value="currentGroup"
                 :data="data.resultGroups"
                 @on-change="handelGroupChange" />
-            <div class="detail-container">
+            <div
+                ref="detailContainer"
+                class="detail-container"
+                :style="defailContainerStyles">
                 <div class="container-left" v-bkloading="{ isLoading: isHostLoading }">
                     <!-- 主机列表 -->
                     <!-- eslint-disable max-len -->
@@ -145,6 +166,7 @@
     import ComposeFormItem from '@components/compose-form-item';
     import ExecutionStatusBar from '../common/execution-status-bar';
     import StepAction from '../common/step-action';
+    import RollingBatch from './components/rolling-batch';
     import TaskStatus from './components/task-status';
     import ExecutionHistorySelect from './components/execution-history-select';
     import GroupTab from './components/group-tab';
@@ -162,6 +184,7 @@
             ComposeFormItem,
             ExecutionStatusBar,
             StepAction,
+            RollingBatch,
             TaskStatus,
             ExecutionHistorySelect,
             GroupTab,
@@ -181,6 +204,7 @@
                 isLoading: true,
                 isLogSearching: false,
                 isIPSearching: false,
+                defailContainerStyles: {},
                 // 搜索模式
                 searchModel: 'log',
                 // 步骤所属作业的所有步骤列表
@@ -195,6 +219,7 @@
                 // 接口参数
                 params: {
                     id: 0,
+                    batch: '',
                     retryCount: '',
                     maxIpsPerResultGroup: 0,
                     keyword: '', // 日志的筛选值
@@ -275,6 +300,12 @@
             this.isForceing = false;
             this.$Progress.start();
         },
+        mounted () {
+            window.addEventListener('rezie', this.calcDetailContainerStyle);
+            this.$once('hook:beforeDestroy', () => {
+                window.removeEventListener('rezie', this.calcDetailContainerStyle);
+            });
+        },
         beforeDestroy () {
             this.$Progress.finish();
         },
@@ -300,6 +331,8 @@
                         return;
                     }
                     this.data = Object.freeze(data);
+
+                    this.calcDetailContainerStyle();
 
                     this.isFile = data.isFile;
                     //  已选中的分组不存在了——默认选中第一个分组
@@ -334,8 +367,13 @@
                         this.isIPSearching = false;
                         this.paginationChangeLoading = false;
                     });
-            }, 30),
-            
+            }, 100),
+            calcDetailContainerStyle: _.throttle(function () {
+                const { top } = this.$refs.detailContainer.getBoundingClientRect();
+                this.defailContainerStyles = {
+                    height: `calc(100vh - ${top}px)`,
+                };
+            }, 20),
             /**
              * @desc 步骤所属作业初始化
              * @param {Object} payload 步骤信息
@@ -351,6 +389,24 @@
                 this.taskInstanceId = payload.taskInstanceId;
                 this.isTask = payload.isTask;
                 this.taskStepList = Object.freeze(payload.taskStepList);
+                this.fetchStep();
+            },
+            /**
+             * @desc 滚动执行批次筛选
+             * @param { Number | String } batch 0: 查看全部批次；’‘：查看当前最新批次
+             *
+             * 切换批次需要执行结果分组
+             */
+            handleBatchChange (batch) {
+                this.params = {
+                    ...this.params,
+                    retryCount: '',
+                    batch,
+                };
+                this.currentGroup = {
+                    resultType: '',
+                    tag: '',
+                };
                 this.fetchStep();
             },
             /**
@@ -374,6 +430,9 @@
              *
              */
             handelGroupChange (group) {
+                if (this.currentGroup.resultType === group.resultType) {
+                    return;
+                }
                 this.currentGroup = group;
                 this.fetchStep();
             },

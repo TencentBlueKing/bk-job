@@ -113,7 +113,8 @@ export default class Request {
 
         // axio 支持更过配置项通过config.payload获取
         const axioMoreConfig = [
-            'onUploadProgress', 'timeout',
+            'onUploadProgress', 
+            'timeout',
         ]
         axioMoreConfig.forEach(configExtend => {
             if (Object.prototype.hasOwnProperty.call(this.config.payload, configExtend)) {

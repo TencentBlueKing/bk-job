@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @RequestMapping("/iam/api/v1/resources/cron")
 @IamCallbackAPI
-public interface IamCallbackController {
+public interface IamCronCallbackResource {
 
     /**
      * 权限中心回调

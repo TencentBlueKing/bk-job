@@ -97,31 +97,37 @@ public class IamDashBoardViewCallbackResourceImpl extends BaseIamCallbackService
         return instanceResponse;
     }
 
+    private InstanceInfoDTO buildInstance(String id) {
+        // 拓扑路径构建
+        List<PathInfoDTO> path = new ArrayList<>();
+        PathInfoDTO rootNode = new PathInfoDTO();
+        rootNode.setType(ResourceTypeId.DASHBOARD_VIEW);
+        rootNode.setId(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
+        path.add(rootNode);
+        // 实例组装
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(id);
+        instanceInfo.setDisplayName(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME);
+        instanceInfo.setPath(path);
+        return instanceInfo;
+    }
+
     @Override
     protected CallbackBaseResponseDTO fetchInstanceResp(
         CallbackRequestDTO callbackRequest
     ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
-        for (String instanceId : searchCondition.getIdList()) {
+        for (String id : searchCondition.getIdList()) {
+            if (!AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID.equals(id)) {
+                logNotExistId(id);
+                continue;
+            }
             try {
-                if (!AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID.equals(instanceId)) {
-                    return getNotFoundRespById(instanceId);
-                }
-                // 拓扑路径构建
-                List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO rootNode = new PathInfoDTO();
-                rootNode.setType(ResourceTypeId.DASHBOARD_VIEW);
-                rootNode.setId(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
-                path.add(rootNode);
-                // 实例组装
-                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                instanceInfo.setId(instanceId);
-                instanceInfo.setDisplayName(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME);
-                instanceInfo.setPath(path);
+                InstanceInfoDTO instanceInfo = buildInstance(id);
                 instanceAttributeInfoList.add(instanceInfo);
-            } catch (NumberFormatException e) {
-                log.error("Parse object id failed!|{}", instanceId, e);
+            } catch (Exception e) {
+                logBuildInstanceFailure(id, e);
             }
         }
 

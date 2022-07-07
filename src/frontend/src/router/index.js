@@ -190,6 +190,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
         return params;
     };
     const leaveConfirmHandler = (currentRoute) => {
+        // 在业务逻辑中可以找到当前路由的 meta 挂在自定义 leavaConfirm
         if (Object.prototype.hasOwnProperty.call(currentRoute, 'meta')
             && Object.prototype.hasOwnProperty.call(currentRoute.meta, 'leavaConfirm')
             && typeof currentRoute.meta.leavaConfirm === 'function') {
@@ -214,7 +215,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     // 检测页面数据的编辑状态——弹出确认框提示用户确认
     // 如果需要路由回溯（window.routerFlashBack === true）查找缓存是否有跳转目标的路由缓存数据
     router.replace = (params, callback = () => {}) => {
-    // 检测当前路由自定义离开确认交互
+        // 检测当前路由自定义离开确认交互
         const { currentRoute } = router;
         leaveConfirmHandler(currentRoute).then(() => {
             routerReplace.call(router, routerFlaskBack(params, currentRoute));
@@ -228,6 +229,31 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
         if (/Loading chunk (\d*) failed/.test(error.message)) {
             window.location.href = lastRouterHrefCache;
         }
+    });
+    
+    router.afterEach(() => {
+        history.pushState(null, null, document.URL);
+        const callback = () => {
+            leaveConfirm()
+                .then(() => {
+                    window.removeEventListener('popstate', callback);
+                    window.history.go(-2);
+                })
+                .catch(() => {
+                    history.pushState(null, null, document.URL);
+                });
+        };
+        
+        window.addEventListener('popstate', callback);
+
+        const currentRoute = _.last(router.currentRoute.matched);
+        setTimeout(() => {
+            if (currentRoute) {
+                currentRoute.instances.default.$once('hook:beforeDestroy', () => {
+                    window.removeEventListener('popstate', callback);
+                });
+            }
+        });
     });
     return router;
 };

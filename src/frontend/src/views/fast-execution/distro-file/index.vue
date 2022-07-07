@@ -26,88 +26,107 @@
 -->
 
 <template>
-    <div class="distro-file-page" v-bkloading="{ isLoading }">
-        <smart-action offset-target="bk-form-content">
-            <jb-form
-                class="push-file-form"
-                ref="pushFileForm"
-                v-test="{ type: 'form', value: 'pushFile' }"
-                :model="formData">
-                <card-layout :title="$t('execution.基本信息')" class="block">
-                    <item-factory
-                        name="stepName"
-                        field="name"
-                        :label="$t('execution.任务名称')"
-                        :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位...')"
-                        :form-data="formData"
-                        @on-change="handleChange" />
-                    <item-factory
-                        name="timeout"
-                        field="timeout"
-                        :form-data="formData"
-                        @on-change="handleChange" />
-                    <item-factory
-                        name="speedLimit"
-                        field="uploadSpeedLimit"
-                        :label="$t('execution.上传限速')"
-                        :form-data="formData"
-                        @on-change="handleChange" />
-                    <item-factory
-                        name="speedLimit"
-                        field="downloadSpeedLimit"
-                        :label="$t('execution.下载限速')"
-                        :form-data="formData"
-                        @on-change="handleChange" />
-                </card-layout>
-                <card-layout :title="$t('execution.文件来源')" class="block">
-                    <item-factory
-                        name="sourceFileOfExecution"
-                        field="fileSourceList"
-                        :form-data="formData"
-                        @on-change="handleChange" />
-                </card-layout>
-                <card-layout :title="$t('execution.传输目标')" class="block" style="margin-bottom: 0;">
-                    <item-factory
-                        ref="targetPath"
-                        name="targetPath"
-                        field="path"
-                        :tips-placement="targetPathTipsPlacement"
-                        :form-data="formData"
-                        @on-change="handleChange" />
-                    <item-factory
-                        name="transferMode"
-                        field="transferMode"
-                        :form-data="formData"
-                        @on-change="handleChange" />
-                    <item-factory
-                        name="executeAccount"
-                        field="account"
-                        :form-data="formData"
-                        @on-change="handleChange" />
-                    <item-factory
-                        name="targetServerOfExecution"
-                        field="server"
-                        :form-data="formData"
-                        @on-change="handleChange" />
-                </card-layout>
-            </jb-form>
-            <template #action>
-                <bk-button
-                    class="w120 mr10"
-                    theme="primary"
-                    :loading="isSubmiting"
-                    @click="handleSubmit"
-                    v-test="{ type: 'button', value: 'fastPushFileSubmit' }">
-                    {{ $t('execution.执行') }}
-                </bk-button>
-                <bk-button
-                    @click="handleCancel"
-                    v-test="{ type: 'button', value: 'fastPushFileReset' }">
-                    {{ $t('execution.重置') }}
-                </bk-button>
-            </template>
-        </smart-action>
-        <div v-if="historyList.length > 0" class="execution-history" :class="{ active: isShowHistory }">
+    <div class="push-file-page" v-bkloading="{ isLoading }">
+        <resize-layout
+            class="push-file-content"
+            :right-width="366"
+            :right-fixed="true">
+            <smart-action offset-target="bk-form-content">
+                <jb-form
+                    class="push-file-form"
+                    ref="pushFileForm"
+                    v-test="{ type: 'form', value: 'pushFile' }"
+                    :model="formData">
+                    <card-layout :title="$t('execution.基本信息')">
+                        <item-factory
+                            name="stepName"
+                            field="name"
+                            :label="$t('execution.任务名称')"
+                            :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位...')"
+                            :form-data="formData"
+                            @on-change="handleChange" />
+                        <item-factory
+                            name="timeout"
+                            field="timeout"
+                            :form-data="formData"
+                            @on-change="handleChange" />
+                        <item-factory
+                            name="speedLimit"
+                            field="uploadSpeedLimit"
+                            :label="$t('execution.上传限速')"
+                            :form-data="formData"
+                            @on-change="handleChange" />
+                        <item-factory
+                            name="speedLimit"
+                            field="downloadSpeedLimit"
+                            :label="$t('execution.下载限速')"
+                            :form-data="formData"
+                            @on-change="handleChange" />
+                    </card-layout>
+                    <card-layout :title="$t('execution.文件来源')">
+                        <item-factory
+                            name="sourceFileOfExecution"
+                            field="fileSourceList"
+                            :form-data="formData"
+                            @on-change="handleChange" />
+                    </card-layout>
+                    <card-layout
+                        :title="$t('execution.传输目标')"
+                        style="margin-bottom: 20px;">
+                        <item-factory
+                            ref="targetPath"
+                            name="targetPath"
+                            field="path"
+                            :tips-placement="targetPathTipsPlacement"
+                            :form-data="formData"
+                            @on-change="handleChange" />
+                        <item-factory
+                            name="transferMode"
+                            field="transferMode"
+                            :form-data="formData"
+                            @on-change="handleChange" />
+                        <item-factory
+                            name="executeAccount"
+                            field="account"
+                            :form-data="formData"
+                            @on-change="handleChange" />
+                        <item-factory
+                            name="targetServerOfExecution"
+                            field="server"
+                            :form-data="formData"
+                            @on-change="handleChange" />
+                        <item-factory
+                            name="rolling"
+                            enabled-field="rollingEnabled"
+                            expr-field="rollingExpr"
+                            mode-field="rollingMode"
+                            :form-data="formData"
+                            @on-reset="handleReset"
+                            @on-change="handleChange" />
+                    </card-layout>
+                </jb-form>
+                <template #action>
+                    <bk-button
+                        class="w120 mr10"
+                        theme="primary"
+                        :loading="isSubmiting"
+                        @click="handleSubmit"
+                        v-test="{ type: 'button', value: 'fastPushFileSubmit' }">
+                        {{ $t('execution.执行') }}
+                    </bk-button>
+                    <bk-button
+                        @click="handleCancel"
+                        v-test="{ type: 'button', value: 'fastPushFileReset' }">
+                        {{ $t('execution.重置') }}
+                    </bk-button>
+                </template>
+            </smart-action>
+            <div slot="right" id="rollingExprGuide" />
+        </resize-layout>
+        <div
+            v-if="historyList.length > 0"
+            class="execution-history"
+            :class="{ active: isShowHistory }">
             <div class="toggle-btn" @click="handleShowHistory">
                 <Icon class="toggle-flag" type="angle-double-left" />
                 <div class="recent-result">{{ $t('execution.最近结果') }}</div>
@@ -136,6 +155,7 @@
     import JbForm from '@components/jb-form';
     import CardLayout from '@components/task-step/file/card-layout';
     import ItemFactory from '@components/task-step/file/item-factory';
+    import ResizeLayout from '@components/resize-layout';
     import {
         genDefaultName,
         compareHost,
@@ -164,6 +184,16 @@
         path: '',
         // 目标服务器
         server: new TaskHostNodeModel({}),
+        // 开启滚动
+        rollingEnabled: false,
+        // 滚动执行配置，编辑时拍平
+        // 提交时合并
+        // rollingConfig: {
+        //     expr: '10%',
+        //     mode: 1,
+        // }
+        rollingExpr: '',
+        rollingMode: 1,
     });
 
     export default {
@@ -172,6 +202,7 @@
             JbForm,
             CardLayout,
             ItemFactory,
+            ResizeLayout,
         },
         data () {
             return {
@@ -189,6 +220,7 @@
             }),
         },
         created () {
+            window.IPInputScope = 'FILE_DISTRIBUTION';
             this.init();
             this.calcTargetPathTipsPlacement();
         },
@@ -197,7 +229,6 @@
             this.$once('hook:beforeDestroy', () => {
                 window.removeEventListener('resize', this.calcTargetPathTipsPlacement);
             });
-            window.IPInputScope = 'FILE_DISTRIBUTION';
             this.$once('hook:beforeDestroy', () => {
                 window.IPInputScope = '';
             });
@@ -214,23 +245,30 @@
                 }), () => {
                     this.isLoading = true;
                 }).then((data) => {
-                    const { stepInfo } = data;
+                    const {
+                        name,
+                        rollingEnabled,
+                        rollingConfig: {
+                            expr: rollingExpr,
+                            mode: rollingMode,
+                        },
+                    } = data.stepInfo;
                     const {
                         downloadSpeedLimit,
-                        fileDestination,
+                        fileDestination: {
+                            account,
+                            path,
+                            server,
+                        },
                         fileSourceList,
                         timeout,
                         transferMode,
                         uploadSpeedLimit,
-                    } = stepInfo.fileStepInfo;
-                    const {
-                        account,
-                        path,
-                        server,
-                    } = fileDestination;
+                    } = data.stepInfo.fileStepInfo;
+                    
                     this.formData = {
                         ...this.formData,
-                        name: stepInfo.name,
+                        name,
                         uploadSpeedLimit,
                         downloadSpeedLimit,
                         account,
@@ -239,6 +277,9 @@
                         timeout,
                         fileSourceList,
                         transferMode,
+                        rollingEnabled,
+                        rollingExpr,
+                        rollingMode,
                     };
                 })
                     .finally(() => {
@@ -326,10 +367,19 @@
              * @desc 表单值更新
              * @param {String} field 字段名
              * @param {Any} value  字段最新值
-             *
              */
             handleChange (field, value) {
                 this.formData[field] = value;
+            },
+            /**
+             * @desc 批量更新字段
+             * @param {Object} payload 将要更新的字段值
+             */
+            handleReset (payload) {
+                this.formData = {
+                    ...this.formData,
+                    ...payload,
+                };
             },
             /**
              * @desc 执行
@@ -427,6 +477,9 @@
                             account,
                             path,
                             server,
+                            rollingEnabled,
+                            rollingExpr,
+                            rollingMode,
                         } = this.formData;
                         
                         return TaskExecuteService.pushFile({
@@ -440,6 +493,11 @@
                                 account,
                                 path,
                                 server,
+                            },
+                            rollingEnabled,
+                            rollingConfig: {
+                                expr: rollingExpr,
+                                mode: rollingMode,
                             },
                         }).then((data) => {
                             window.changeConfirm = false;
@@ -486,13 +544,13 @@
         }
     }
 
-    .distro-file-page {
-        .push-file-form {
-            margin-bottom: 24px;
+    .push-file-page {
+        .push-file-content {
+            height: calc(100vh - 104px);
+        }
 
-            .card-box {
-                margin-bottom: 6px;
-            }
+        .push-file-form {
+            padding: 20px 24px 0;
 
             .form-item-content {
                 width: 500px;
@@ -513,6 +571,10 @@
                     width: 680px;
                 }
             }
+        }
+
+        .card-layout {
+            margin-bottom: 6px;
         }
 
         .execution-history {

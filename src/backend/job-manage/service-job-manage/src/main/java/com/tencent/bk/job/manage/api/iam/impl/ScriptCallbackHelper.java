@@ -86,6 +86,33 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
         return IamRespUtil.getSearchInstanceRespFromPageData(accountDTOPageData, this::convert);
     }
 
+    private InstanceInfoDTO buildInstance(ScriptBasicDTO scriptBasicDTO,
+                                          Map<Long, ResourceScope> appIdScopeMap) {
+        // 拓扑路径构建
+        List<PathInfoDTO> path = new ArrayList<>();
+        PathInfoDTO rootNode = new PathInfoDTO();
+        if (basicInfoInterface.isPublicScript()) {
+            // 公共脚本
+            rootNode.setType(ResourceTypeId.PUBLIC_SCRIPT);
+            rootNode.setId(scriptBasicDTO.getId());
+        } else {
+            // 业务脚本
+            Long appId = scriptBasicDTO.getAppId();
+            rootNode = getPathNodeByAppId(appId, appIdScopeMap);
+            PathInfoDTO scriptNode = new PathInfoDTO();
+            scriptNode.setType(ResourceTypeId.SCRIPT);
+            scriptNode.setId(scriptBasicDTO.getId());
+            rootNode.setChild(scriptNode);
+        }
+        path.add(rootNode);
+        // 实例组装
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(scriptBasicDTO.getId());
+        instanceInfo.setDisplayName(scriptBasicDTO.getName());
+        instanceInfo.setPath(path);
+        return instanceInfo;
+    }
+
     @Override
     protected CallbackBaseResponseDTO fetchInstanceResp(
         CallbackRequestDTO callbackRequest
@@ -102,37 +129,17 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
         }
         // Job app --> CMDB biz/businessSet转换
         Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
-        for (String instanceId : searchCondition.getIdList()) {
+        for (String id : searchCondition.getIdList()) {
+            ScriptBasicDTO scriptBasicDTO = scriptBasicDTOMap.get(id);
+            if (scriptBasicDTO == null || scriptBasicDTO.isPublicScript() != basicInfoInterface.isPublicScript()) {
+                logNotExistId(id);
+                continue;
+            }
             try {
-                ScriptBasicDTO scriptBasicDTO = scriptBasicDTOMap.get(instanceId);
-                if (scriptBasicDTO == null || scriptBasicDTO.isPublicScript() != basicInfoInterface.isPublicScript()) {
-                    return getNotFoundRespById(instanceId);
-                }
-                // 拓扑路径构建
-                List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO rootNode = new PathInfoDTO();
-                if (basicInfoInterface.isPublicScript()) {
-                    // 公共脚本
-                    rootNode.setType(ResourceTypeId.PUBLIC_SCRIPT);
-                    rootNode.setId(scriptBasicDTO.getId());
-                } else {
-                    // 业务脚本
-                    Long appId = scriptBasicDTO.getAppId();
-                    rootNode = getPathNodeByAppId(appId, appIdScopeMap);
-                    PathInfoDTO scriptNode = new PathInfoDTO();
-                    scriptNode.setType(ResourceTypeId.SCRIPT);
-                    scriptNode.setId(scriptBasicDTO.getId());
-                    rootNode.setChild(scriptNode);
-                }
-                path.add(rootNode);
-                // 实例组装
-                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                instanceInfo.setId(instanceId);
-                instanceInfo.setDisplayName(scriptBasicDTO.getName());
-                instanceInfo.setPath(path);
+                InstanceInfoDTO instanceInfo = buildInstance(scriptBasicDTO, appIdScopeMap);
                 instanceAttributeInfoList.add(instanceInfo);
-            } catch (NumberFormatException e) {
-                log.error("Parse object id failed!|{}", instanceId, e);
+            } catch (Exception e) {
+                logBuildInstanceFailure(scriptBasicDTO, e);
             }
         }
 
