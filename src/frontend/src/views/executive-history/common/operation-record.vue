@@ -102,6 +102,7 @@
                     },
                     query: {
                         stepInstanceId: payload.stepInstanceId,
+                        batch: payload.batch,
                         retryCount: payload.retry,
                         from: this.from || this.$route.query.from,
                     },

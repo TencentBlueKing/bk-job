@@ -35,7 +35,7 @@
         <div ref="content" class="dropdown-menu">
             <div
                 v-for="item in executionList"
-                :key="item.createTime"
+                :key="item.retryCount"
                 class="menu-item"
                 :class="{
                     active: item.retryCount === retryCount,
@@ -62,6 +62,10 @@
             retryCount: {
                 type: [Number, String],
                 default: 0,
+            },
+            batch: {
+                type: [Number, String],
+                default: '',
             },
         },
         data () {
@@ -92,6 +96,15 @@
                 },
                 immediate: true,
             },
+            batch: {
+                handler () {
+                    if (!this.stepInstanceId) {
+                        return;
+                    }
+                    this.fetchStepExecutionHistory('batch');
+                },
+                immediate: true,
+            },
         },
         beforeDestroy () {
             this.popperDestroy();
@@ -109,9 +122,10 @@
              * retryCount的最大值显示为LATEST
              * 如果重试次数大于0，显示retryCount切换列表
              */
-            fetchStepExecutionHistory () {
+            fetchStepExecutionHistory: _.debounce(function (from) {
                 TaskExecuteService.fetchStepExecutionHistory({
                     stepInstanceId: this.stepInstanceId,
+                    batch: this.batch,
                 }).then((data) => {
                     const max = _.max(data.map(_ => _.retryCount));
                     const result = data.map((item) => {
@@ -128,6 +142,10 @@
                         };
                     });
                     this.executionList = Object.freeze(result);
+                    // 切换批次导致的数据刷新，需要获取最新重试次数
+                    if (from === 'batch') {
+                        this.$emit('on-change', _.first(result).retryCount);
+                    }
                     // 重试次数大于1才需要显示
                     this.isNeedRender = this.executionList.length > 1;
                     if (this.isNeedRender) {
@@ -149,7 +167,7 @@
                         this.popperDestroy();
                     }
                 });
-            },
+            }, 100),
             /**
              * @desc 销毁popover实例
              */
@@ -166,7 +184,6 @@
              * 切换成功后需要将retryCount的最新值更新到url上
              */
             handleSelectRetryCount (retryCount) {
-                this.selectRetryCount = retryCount;
                 this.popperInstance && this.popperInstance.hide();
                 this.$emit('on-change', retryCount);
                 const searchParams = new URLSearchParams(window.location.search);

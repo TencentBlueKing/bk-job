@@ -219,7 +219,11 @@ class TaskExecute extends ModuleBase {
 
     // 获取步骤执行历史
     getStepExecutionHistory (params = {}) {
-        return Request.get(`${this.path}/step-execution-history/${params.stepInstanceId}`);
+        const realParams = { ...params };
+        delete realParams.stepInstanceId;
+        return Request.get(`${this.path}/step-execution-history/${params.stepInstanceId}`, {
+            params: realParams,
+        });
     }
 }
 
