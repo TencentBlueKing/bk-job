@@ -110,6 +110,25 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
         return IamRespUtil.getListInstanceRespFromPageData(tagDTOPageData, this::convert);
     }
 
+    private InstanceInfoDTO buildInstance(TagDTO tagDTO,
+                                          Map<Long, ResourceScope> appIdScopeMap) {
+        Long appId = tagDTO.getAppId();
+        // 拓扑路径构建
+        List<PathInfoDTO> path = new ArrayList<>();
+        PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
+        PathInfoDTO tagNode = new PathInfoDTO();
+        tagNode.setType(ResourceTypeId.TAG);
+        tagNode.setId(tagDTO.getId().toString());
+        rootNode.setChild(tagNode);
+        path.add(rootNode);
+        // 实例组装
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(tagDTO.getId().toString());
+        instanceInfo.setDisplayName(tagDTO.getName());
+        instanceInfo.setPath(path);
+        return instanceInfo;
+    }
+
     @Override
     protected CallbackBaseResponseDTO fetchInstanceResp(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
@@ -132,30 +151,18 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
         }
         // Job app --> CMDB biz/businessSet转换
         Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
-        for (String instanceId : searchCondition.getIdList()) {
+        for (String id : searchCondition.getIdList()) {
+            Long tagId = Long.parseLong(id);
+            TagDTO tagDTO = tagDTOMap.get(tagId);
+            if (tagDTO == null) {
+                logNotExistId(id);
+                continue;
+            }
             try {
-                Long tagId = Long.parseLong(instanceId);
-                TagDTO tagDTO = tagDTOMap.get(tagId);
-                if (tagDTO == null) {
-                    return getNotFoundRespById(instanceId);
-                }
-                Long appId = tagDTO.getAppId();
-                // 拓扑路径构建
-                List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
-                PathInfoDTO tagNode = new PathInfoDTO();
-                tagNode.setType(ResourceTypeId.TAG);
-                tagNode.setId(tagDTO.getId().toString());
-                rootNode.setChild(tagNode);
-                path.add(rootNode);
-                // 实例组装
-                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                instanceInfo.setId(instanceId);
-                instanceInfo.setDisplayName(tagDTO.getName());
-                instanceInfo.setPath(path);
+                InstanceInfoDTO instanceInfo = buildInstance(tagDTO, appIdScopeMap);
                 instanceAttributeInfoList.add(instanceInfo);
-            } catch (NumberFormatException e) {
-                log.error("Parse object id failed!|{}", instanceId, e);
+            } catch (Exception e) {
+                logBuildInstanceFailure(tagDTO, e);
             }
         }
 
