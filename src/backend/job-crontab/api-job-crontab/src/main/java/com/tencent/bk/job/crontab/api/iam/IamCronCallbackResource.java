@@ -22,15 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.listener.event;
+package com.tencent.bk.job.crontab.api.iam;
 
-import lombok.Data;
+import com.tencent.bk.job.common.annotation.IamCallbackAPI;
+import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-@Data
-public class GseTaskEventSource {
-    private long gseTaskId;
+/**
+ * @since 20/3/2020 21:44
+ */
+@RequestMapping("/iam/api/v1/resources/cron")
+@IamCallbackAPI
+public interface IamCronCallbackResource {
 
-    public GseTaskEventSource(long gseTaskId) {
-        this.gseTaskId = gseTaskId;
-    }
+    /**
+     * 权限中心回调
+     *
+     * @param callbackRequest 回调请求
+     * @return 权限中心回调响应
+     */
+    @PostMapping("/job")
+    CallbackBaseResponseDTO callback(@RequestBody CallbackRequestDTO callbackRequest);
 }

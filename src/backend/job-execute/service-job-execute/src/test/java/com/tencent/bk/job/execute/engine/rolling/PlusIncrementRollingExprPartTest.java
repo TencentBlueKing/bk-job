@@ -53,6 +53,9 @@ class PlusIncrementRollingExprPartTest {
         assertThat(rollingExprPart).isNull();
 
         assertThrows(RollingExprParseException.class, () -> ROLLING_EXPR_PART.parseExpr("+0"));
+
+        rollingExprPart = ROLLING_EXPR_PART.parseExpr("*2");
+        assertThat(rollingExprPart).isNull();
     }
 
     @Test
@@ -97,12 +100,13 @@ class PlusIncrementRollingExprPartTest {
         context.setBatchCount(1);
 
         PlusIncrementRollingExprPart plusIncrementRollingExprPart =
-            (PlusIncrementRollingExprPart) ROLLING_EXPR_PART.parseExpr("+2");
+            (PlusIncrementRollingExprPart) ROLLING_EXPR_PART.parseExpr("+3");
         List<HostDTO> serversOnBatch = plusIncrementRollingExprPart.compute(context);
         assertThat(serversOnBatch).containsSequence(
             new HostDTO(0L, "127.0.0.2"),
             new HostDTO(0L, "127.0.0.3"),
-            new HostDTO(0L, "127.0.0.4")
+            new HostDTO(0L, "127.0.0.4"),
+            new HostDTO(0L, "127.0.0.5")
         );
     }
 }

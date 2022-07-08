@@ -50,32 +50,61 @@ public class GseTaskEvent extends Event {
      */
     private int action;
     /**
+     * 步骤实例ID
+     */
+    private Long stepInstanceId;
+    /**
+     * 执行次数
+     */
+    private Integer executeCount;
+    /**
+     * 滚动批次
+     */
+    private Integer batch;
+    /**
      * GSE任务ID
      */
-    private long gseTaskId;
+    private Long gseTaskId;
     /**
      * 请求ID,防止重复下发任务
      */
     private String requestId;
 
-    public static GseTaskEvent startGseTask(long gseTaskId, String requestId) {
-        GseTaskEvent gseTaskEvent = new GseTaskEvent();
-        gseTaskEvent.setGseTaskId(gseTaskId);
+    public static GseTaskEvent startGseTask(Long stepInstanceId,
+                                            Integer executeCount,
+                                            Integer batch,
+                                            Long gseTaskId,
+                                            String requestId) {
+        GseTaskEvent gseTaskEvent = buildGseTaskEvent(stepInstanceId, executeCount, batch, gseTaskId);
         if (StringUtils.isNotEmpty(requestId)) {
             gseTaskEvent.setRequestId(requestId);
         } else {
             gseTaskEvent.setRequestId(UUID.randomUUID().toString());
         }
         gseTaskEvent.setAction(GseTaskActionEnum.START.getValue());
-        gseTaskEvent.setTime(LocalDateTime.now());
         return gseTaskEvent;
     }
 
-    public static GseTaskEvent stopGseTask(long gseTaskId) {
+    public static GseTaskEvent stopGseTask(Long stepInstanceId,
+                                           Integer executeCount,
+                                           Integer batch,
+                                           Long gseTaskId) {
+        GseTaskEvent gseTaskEvent = buildGseTaskEvent(stepInstanceId, executeCount, batch, gseTaskId);
+        gseTaskEvent.setAction(GseTaskActionEnum.STOP.getValue());
+        return gseTaskEvent;
+    }
+
+    private static GseTaskEvent buildGseTaskEvent(Long stepInstanceId,
+                                                  Integer executeCount,
+                                                  Integer batch,
+                                                  Long gseTaskId) {
         GseTaskEvent gseTaskEvent = new GseTaskEvent();
         gseTaskEvent.setGseTaskId(gseTaskId);
-        gseTaskEvent.setAction(GseTaskActionEnum.STOP.getValue());
+        gseTaskEvent.setStepInstanceId(stepInstanceId);
+        gseTaskEvent.setExecuteCount(executeCount);
+        gseTaskEvent.setBatch(batch);
         gseTaskEvent.setTime(LocalDateTime.now());
+
         return gseTaskEvent;
     }
 

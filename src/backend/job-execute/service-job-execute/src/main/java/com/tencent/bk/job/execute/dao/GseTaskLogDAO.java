@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 
 @Deprecated
-@CompatibleImplementation(explain = "兼容历史数据使用，建议使用GseTaskLogDAO", version = "3.6.x")
+@CompatibleImplementation(explain = "兼容历史数据使用，建议使用GseTaskDAO", version = "3.7.x")
 public interface GseTaskLogDAO {
     GseTaskDTO getStepLastExecuteLog(long stepInstanceId);
 

@@ -355,4 +355,9 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             return 0;
         }
     }
+
+    @Override
+    public boolean isStepInstanceRecordExist(long stepInstanceId) {
+        return CTX.fetchExists(T_GSE_FILE_AGENT_TASK, T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
+    }
 }

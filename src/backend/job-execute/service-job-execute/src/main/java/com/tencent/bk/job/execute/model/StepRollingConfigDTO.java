@@ -24,13 +24,19 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 步骤滚动配置
  */
 @Data
 public class StepRollingConfigDTO {
+    /**
+     * 滚动配置名称
+     */
     private String name;
     /**
      * 滚动策略
@@ -40,4 +46,21 @@ public class StepRollingConfigDTO {
      * 滚动表达式
      */
     private String expr;
+
+    public static StepRollingConfigDTO fromRollingConfigVO(RollingConfigVO rollingConfigVO) {
+        StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
+        stepRollingConfigDTO.setName(StringUtils.isBlank(rollingConfigVO.getName()) ? "default" :
+            rollingConfigVO.getName());
+        stepRollingConfigDTO.setMode(rollingConfigVO.getMode());
+        stepRollingConfigDTO.setExpr(rollingConfigVO.getExpr());
+        return stepRollingConfigDTO;
+    }
+
+    public static StepRollingConfigDTO fromEsbRollingConfig(EsbRollingConfigDTO rollingConfig) {
+        StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
+        stepRollingConfigDTO.setName("default");
+        stepRollingConfigDTO.setMode(rollingConfig.getMode());
+        stepRollingConfigDTO.setExpr(rollingConfig.getExpression());
+        return stepRollingConfigDTO;
+    }
 }

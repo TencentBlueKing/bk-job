@@ -51,6 +51,7 @@ import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastTransferFileV3Request;
@@ -114,8 +115,16 @@ public class EsbFastTransferFileV3ResourceImpl
 
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
         StepInstanceDTO stepInstance = buildFastFileStepInstance(request);
+        StepRollingConfigDTO rollingConfig = null;
+        if (request.getRollingConfig() != null) {
+            rollingConfig = StepRollingConfigDTO.fromEsbRollingConfig(request.getRollingConfig());
+        }
         long taskInstanceId = taskExecuteService.executeFastTask(
-            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+            FastTaskDTO.builder()
+                .taskInstance(taskInstance)
+                .stepInstance(stepInstance)
+                .rollingConfig(rollingConfig)
+                .build()
         );
 
         EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();

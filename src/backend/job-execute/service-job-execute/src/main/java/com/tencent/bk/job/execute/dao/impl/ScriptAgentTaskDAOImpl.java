@@ -143,7 +143,8 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
         Integer count = CTX.selectCount()
             .from(T_GSE_SCRIPT_AGENT_TASK)
-            .where(T_GSE_SCRIPT_AGENT_TASK.STATUS.in(AgentTaskStatus.LAST_SUCCESS.getValue(), AgentTaskStatus.SUCCESS.getValue()))
+            .where(T_GSE_SCRIPT_AGENT_TASK.STATUS.in(AgentTaskStatus.LAST_SUCCESS.getValue(),
+                AgentTaskStatus.SUCCESS.getValue()))
             .and(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount))
             .fetchOne(0, Integer.class);
@@ -361,5 +362,10 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
         } else {
             return 0;
         }
+    }
+
+    @Override
+    public boolean isStepInstanceRecordExist(long stepInstanceId) {
+        return CTX.fetchExists(T_GSE_SCRIPT_AGENT_TASK, T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
     }
 }

@@ -74,4 +74,3 @@ job-file-worker-{version}.jar | File Source Access Point Springboot.jar
 job-gateway-{version}.jar | Backend Gateway Microservice Springboot.jar  
 job-logsvr-{version}.jar | Log Management Microservice Springboot.jar  
 job-manage-{version}.jar | Job Management Microservice Springboot.jar  
-job-ticket-{version}.jar | Ticket Management Microservice Springboot.jar  

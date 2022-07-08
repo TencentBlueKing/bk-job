@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
@@ -114,6 +115,12 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("callback_url")
     private String callbackUrl;
+
+    /**
+     * 滚动配置
+     */
+    @JsonProperty("rolling_config")
+    private EsbRollingConfigDTO rollingConfig;
 
     public void trimIps() {
         if (this.targetServer != null) {

@@ -112,6 +112,26 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
         return IamRespUtil.getSearchInstanceRespFromPageData(accountDTOPageData, this::convert);
     }
 
+    private InstanceInfoDTO buildInstance(String instanceId,
+                                          AccountDisplayDTO accountDTO,
+                                          Map<Long, ResourceScope> appIdScopeMap) {
+        Long appId = accountDTO.getAppId();
+        PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
+        // 拓扑路径构建
+        List<PathInfoDTO> path = new ArrayList<>();
+        PathInfoDTO accountNode = new PathInfoDTO();
+        accountNode.setType(ResourceTypeId.ACCOUNT);
+        accountNode.setId(accountDTO.getId().toString());
+        rootNode.setChild(accountNode);
+        path.add(rootNode);
+        // 实例组装
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(instanceId);
+        instanceInfo.setDisplayName(accountDTO.getAlias());
+        instanceInfo.setPath(path);
+        return instanceInfo;
+    }
+
     @Override
     protected CallbackBaseResponseDTO fetchInstanceResp(
         CallbackRequestDTO callbackRequest
@@ -133,29 +153,17 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
         accountInfoMap.values().forEach(accountDisplayDTO -> appIdSet.add(accountDisplayDTO.getAppId()));
         Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
+            long id = Long.parseLong(instanceId);
+            AccountDisplayDTO accountDTO = accountInfoMap.get(id);
+            if (accountDTO == null) {
+                logNotExistId(id);
+                continue;
+            }
             try {
-                long id = Long.parseLong(instanceId);
-                AccountDisplayDTO accountDTO = accountInfoMap.get(id);
-                if (accountDTO == null) {
-                    return getNotFoundRespById(instanceId);
-                }
-                Long appId = accountDTO.getAppId();
-                PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
-                // 拓扑路径构建
-                List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO accountNode = new PathInfoDTO();
-                accountNode.setType(ResourceTypeId.ACCOUNT);
-                accountNode.setId(accountDTO.getId().toString());
-                rootNode.setChild(accountNode);
-                path.add(rootNode);
-                // 实例组装
-                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                instanceInfo.setId(instanceId);
-                instanceInfo.setDisplayName(accountDTO.getAlias());
-                instanceInfo.setPath(path);
+                InstanceInfoDTO instanceInfo = buildInstance(instanceId, accountDTO, appIdScopeMap);
                 instanceAttributeInfoList.add(instanceInfo);
-            } catch (NumberFormatException e) {
-                log.error("Parse object id failed!|{}", instanceId, e);
+            } catch (Exception e) {
+                logBuildInstanceFailure(accountDTO, e);
             }
         }
 

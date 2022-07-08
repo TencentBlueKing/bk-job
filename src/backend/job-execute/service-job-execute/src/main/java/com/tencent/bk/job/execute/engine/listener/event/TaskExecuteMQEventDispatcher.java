@@ -126,7 +126,7 @@ public class TaskExecuteMQEventDispatcher {
      *
      * @param event 结果处理任务恢复事件
      */
-    public void dispatchResultHandleTaskResumeEvent(GseTaskResultHandleTaskResumeEvent event) {
+    public void dispatchResultHandleTaskResumeEvent(ResultHandleTaskResumeEvent event) {
         log.info("Begin to dispatch gse task result handle resume event, event: {}", event);
         resultHandleTaskResumeOutput.send(MessageBuilder.withPayload(event).build());
         log.info("Dispatch gse task result handle resume event successfully, event: {}", event);

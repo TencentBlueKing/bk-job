@@ -203,7 +203,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                 handleStartGseTaskError(gseTaskResponse);
                 gseTasksExceptionCounter.increment();
                 taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-                    EventSource.buildGseTaskEventSource(gseTask.getId())));
+                    EventSource.buildGseTaskEventSource(stepInstanceId, executeCount, batch, gseTask.getId())));
                 watch.stop();
                 return;
             } else {

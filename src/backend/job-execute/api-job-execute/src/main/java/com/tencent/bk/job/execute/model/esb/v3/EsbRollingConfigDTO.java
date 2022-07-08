@@ -22,28 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.api.iam;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.job.common.annotation.IamCallbackAPI;
-import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import lombok.Data;
 
 /**
- * @since 20/3/2020 21:44
+ * 滚动执行配置
  */
-@RequestMapping("/iam/api/v1/resources/cron")
-@IamCallbackAPI
-public interface IamCallbackController {
+@Data
+public class EsbRollingConfigDTO {
+    /**
+     * 滚动分批策略表达式
+     */
+    private String expression;
 
     /**
-     * 权限中心回调
+     * 滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认
      *
-     * @param callbackRequest 回调请求
-     * @return 权限中心回调响应
+     * @see com.tencent.bk.job.common.constant.RollingModeEnum
      */
-    @PostMapping("/job")
-    CallbackBaseResponseDTO callback(@RequestBody CallbackRequestDTO callbackRequest);
+    private Integer mode;
+
 }

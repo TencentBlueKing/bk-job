@@ -274,9 +274,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             }
             if (allSuccess) {
                 Map<String, FileSourceTaskStatusDTO> map = new HashMap<>();
-                resultList.forEach(result -> {
-                    map.put(result.getTaskId(), result);
-                });
+                resultList.forEach(result -> map.put(result.getTaskId(), result));
                 //添加服务器文件信息
                 for (FileSourceDTO fileSourceDTO : fileSourceList) {
                     String fileSourceTaskId = fileSourceDTO.getFileSourceTaskId();

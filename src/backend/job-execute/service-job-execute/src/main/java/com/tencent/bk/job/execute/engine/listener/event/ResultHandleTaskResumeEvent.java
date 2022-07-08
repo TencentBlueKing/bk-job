@@ -40,18 +40,37 @@ import java.time.LocalDateTime;
 @ToString
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class GseTaskResultHandleTaskResumeEvent extends Event {
+public class ResultHandleTaskResumeEvent extends Event {
     /**
-     * 作业实例ID
+     * 步骤实例ID
      */
-    private long gseTaskId;
+    private Long stepInstanceId;
+    /**
+     * 执行次数
+     */
+    private Integer executeCount;
+    /**
+     * 滚动批次
+     */
+    private Integer batch;
+    /**
+     * GSE 任务ID
+     */
+    private Long gseTaskId;
     /**
      * 请求ID
      */
     private String requestId;
 
-    public static GseTaskResultHandleTaskResumeEvent resume(long gseTaskId, String requestId) {
-        GseTaskResultHandleTaskResumeEvent event = new GseTaskResultHandleTaskResumeEvent();
+    public static ResultHandleTaskResumeEvent resume(Long stepInstanceId,
+                                                     Integer executeCount,
+                                                     Integer batch,
+                                                     Long gseTaskId,
+                                                     String requestId) {
+        ResultHandleTaskResumeEvent event = new ResultHandleTaskResumeEvent();
+        event.setStepInstanceId(stepInstanceId);
+        event.setExecuteCount(executeCount);
+        event.setBatch(batch);
         event.setGseTaskId(gseTaskId);
         event.setRequestId(requestId);
         event.setTime(LocalDateTime.now());

@@ -84,7 +84,7 @@ public class PlusIncrementRollingExprPart extends RollingExprPart {
             throw new RollingExprParseException();
         }
 
-        int currentBatchSize = preServerBatch.getBatch() + addend;
+        int currentBatchSize = preServerBatch.getServers().size() + addend;
         return new ArrayList<>(candidateServers.subList(0, Math.min(currentBatchSize, candidateServers.size())));
     }
 }
