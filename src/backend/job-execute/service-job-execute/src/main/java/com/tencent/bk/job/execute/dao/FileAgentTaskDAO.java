@@ -139,17 +139,6 @@ public interface FileAgentTaskDAO {
                                       FileTaskModeEnum mode, long hostId);
 
     /**
-     * 获取Agent任务实际执行成功的executeCount值(重试场景)
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
-     * @param mode           文件分发任务模式
-     * @param hostId         主机ID
-     * @return Agent任务实际执行成功的executeCount值
-     */
-    int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, FileTaskModeEnum mode, long hostId);
-
-    /**
      * 判断步骤实例的Agent Task 记录是否存在
      *
      * @param stepInstanceId 步骤实例ID

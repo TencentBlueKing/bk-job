@@ -150,10 +150,14 @@ public class LogServiceImpl implements LogService {
         if (agentTask == null) {
             return null;
         }
-        if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
-            actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId,
-                agentTask.getBatch(), host);
+
+        if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
+            actualExecuteCount = agentTask.getActualExecuteCount();
+        } else if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
+            // 兼容历史数据
+            actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
         }
+
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         InternalResponse<ServiceHostLogDTO> resp;
@@ -260,9 +264,11 @@ public class LogServiceImpl implements LogService {
         if (agentTask == null) {
             return null;
         }
-        if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
-            actualExecuteCount = fileAgentTaskService.getActualSuccessExecuteCount(stepInstanceId,
-                agentTask.getBatch(), agentTask.getFileTaskMode(), host);
+        if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
+            actualExecuteCount = agentTask.getActualExecuteCount();
+        } else if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
+            // 兼容历史数据
+            actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
         }
 
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,

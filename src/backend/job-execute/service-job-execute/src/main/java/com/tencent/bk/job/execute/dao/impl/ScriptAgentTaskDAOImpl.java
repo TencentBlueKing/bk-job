@@ -308,7 +308,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(record.get(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT));
-        agentTask.setActualExecuteCount(record.get(T_GSE_SCRIPT_AGENT_TASK.ACTUAL_EXECUTE_COUNT));
+        agentTask.setActualExecuteCount(record.get(T_GSE_SCRIPT_AGENT_TASK.ACTUAL_EXECUTE_COUNT).intValue());
         agentTask.setBatch(record.get(T_GSE_SCRIPT_AGENT_TASK.BATCH));
         agentTask.setHostId(record.get(T_GSE_SCRIPT_AGENT_TASK.HOST_ID));
         agentTask.setAgentId(record.get(T_GSE_SCRIPT_AGENT_TASK.AGENT_ID));
@@ -348,24 +348,6 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
             .and(T_GSE_SCRIPT_AGENT_TASK.HOST_ID.eq(hostId))
             .fetchOne();
         return extract(record);
-    }
-
-    @Override
-    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, long hostId) {
-        Record record = CTX.select(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT)
-            .from(T_GSE_SCRIPT_AGENT_TASK)
-            .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch == null ? 0 : batch.shortValue()))
-            .and(T_GSE_SCRIPT_AGENT_TASK.HOST_ID.eq(hostId))
-            .and(T_GSE_SCRIPT_AGENT_TASK.STATUS.eq(AgentTaskStatus.SUCCESS.getValue()))
-            .orderBy(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.desc())
-            .limit(1)
-            .fetchOne();
-        if (record != null && record.size() > 0) {
-            return record.getValue(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT);
-        } else {
-            return 0;
-        }
     }
 
     @Override

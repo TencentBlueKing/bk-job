@@ -138,13 +138,9 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, HostDTO host) {
-        if (isStepInstanceRecordExist(stepInstanceId)) {
-            return scriptAgentTaskDAO.getActualSuccessExecuteCount(stepInstanceId, batch, host.getHostId());
-        } else {
-            // 兼容历史数据
-            return gseTaskIpLogDAO.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
-        }
+    public int getActualSuccessExecuteCount(long stepInstanceId, String cloudIp) {
+        // 兼容历史数据
+        return gseTaskIpLogDAO.getActualSuccessExecuteCount(stepInstanceId, cloudIp);
     }
 
     @Override

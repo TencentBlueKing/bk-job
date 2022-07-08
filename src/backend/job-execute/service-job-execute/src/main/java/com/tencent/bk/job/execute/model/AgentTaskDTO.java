@@ -53,7 +53,7 @@ public class AgentTaskDTO {
     /**
      * Agent 任务对应的实际的步骤执行次数（重试场景，可能Agent任务并没有实际被执行)
      */
-    private int actualExecuteCount;
+    private Integer actualExecuteCount;
     /**
      * 滚动执行批次
      */

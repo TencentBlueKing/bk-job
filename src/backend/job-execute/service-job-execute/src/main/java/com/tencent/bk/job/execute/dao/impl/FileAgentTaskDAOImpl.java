@@ -298,7 +298,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(record.get(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT));
-        agentTask.setActualExecuteCount(record.get(T_GSE_FILE_AGENT_TASK.ACTUAL_EXECUTE_COUNT));
+        agentTask.setActualExecuteCount(record.get(T_GSE_FILE_AGENT_TASK.ACTUAL_EXECUTE_COUNT).intValue());
         agentTask.setBatch(record.get(T_GSE_FILE_AGENT_TASK.BATCH));
         agentTask.setFileTaskMode(FileTaskModeEnum.getFileTaskMode(record.get(T_GSE_FILE_AGENT_TASK.MODE).intValue()));
         agentTask.setHostId(record.get(T_GSE_FILE_AGENT_TASK.HOST_ID));
@@ -338,25 +338,6 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             .and(T_GSE_FILE_AGENT_TASK.HOST_ID.eq(hostId))
             .fetchOne();
         return extract(record);
-    }
-
-    @Override
-    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, FileTaskModeEnum mode, long hostId) {
-        Record record = CTX.select(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT)
-            .from(T_GSE_FILE_AGENT_TASK)
-            .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_FILE_AGENT_TASK.BATCH.eq(batch == null ? 0 : batch.shortValue()))
-            .and(T_GSE_FILE_AGENT_TASK.HOST_ID.eq(hostId))
-            .and(T_GSE_FILE_AGENT_TASK.STATUS.eq(AgentTaskStatus.SUCCESS.getValue()))
-            .and(T_GSE_FILE_AGENT_TASK.MODE.eq(mode.getValue().byteValue()))
-            .orderBy(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.desc())
-            .limit(1)
-            .fetchOne();
-        if (record != null && record.size() > 0) {
-            return record.getValue(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT);
-        } else {
-            return 0;
-        }
     }
 
     @Override
