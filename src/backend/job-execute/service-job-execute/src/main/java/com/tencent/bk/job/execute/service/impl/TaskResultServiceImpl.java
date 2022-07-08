@@ -983,7 +983,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             // 获取步骤维度的重试记录
             records = queryStepRetryRecords(stepInstance);
         } else {
-            // 获取滚动任务维护的重试记录
+            // 获取滚动任务维度的重试记录
             records = queryStepRollingTaskRetryRecords(stepInstanceId, batch);
         }
 
@@ -994,36 +994,32 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private List<StepExecutionRecordDTO> queryStepRetryRecords(StepInstanceBaseDTO stepInstance) {
         Long stepInstanceId = stepInstance.getId();
-        List<OperationLogDTO> operationLogs = operationLogService.listOperationLog(stepInstance.getTaskInstanceId());
-        // 重试操作
-        List<OperationLogDTO> retryOperationLogs = operationLogs.stream().filter(operationLog -> {
-            UserOperationEnum operation = operationLog.getOperationEnum();
-            OperationLogDTO.OperationDetail operationDetail = operationLog.getDetail();
-            return ((UserOperationEnum.RETRY_STEP_ALL == operation || UserOperationEnum.RETRY_STEP_FAIL == operation)
-                && (operationDetail != null && stepInstanceId.equals(operationDetail.getStepInstanceId())));
-        }).collect(Collectors.toList());
+        // 步骤最新的重试次数
+        int latestExecuteCount = stepInstance.getExecuteCount();
+        List<OperationLogDTO> operationLogs =
+            operationLogService.listOperationLog(stepInstance.getTaskInstanceId());
 
 
         List<StepExecutionRecordDTO> records = new ArrayList<>();
-        // 重试记录
-        List<StepExecutionRecordDTO> retryRecords = retryOperationLogs.stream().map(operationLog -> {
+        Map<Integer, Long> executeCountAndCreateTimeMap = new HashMap<>();
+        operationLogs.forEach(opLog -> {
+            UserOperationEnum operation = opLog.getOperationEnum();
+            if (UserOperationEnum.START == operation) {
+                executeCountAndCreateTimeMap.put(0, opLog.getCreateTime());
+            } else if ((UserOperationEnum.RETRY_STEP_ALL == operation || UserOperationEnum.RETRY_STEP_FAIL == operation)
+                && (opLog.getDetail() != null && stepInstanceId.equals(opLog.getDetail().getStepInstanceId()))) {
+                // 操作记录保存的是重试前的任务信息，所以executeCount需要+1
+                executeCountAndCreateTimeMap.put(opLog.getDetail().getExecuteCount() + 1, opLog.getCreateTime());
+            }
+        });
+
+        for (int executeCount = latestExecuteCount; executeCount >= 0; executeCount--) {
             StepExecutionRecordDTO record = new StepExecutionRecordDTO();
             record.setStepInstanceId(stepInstanceId);
-            record.setRetryCount(operationLog.getDetail().getExecuteCount());
-            record.setCreateTime(operationLog.getCreateTime());
-            return record;
-        }).collect(Collectors.toList());
-
-        if (CollectionUtils.isNotEmpty(retryRecords)) {
-            records.addAll(retryRecords);
+            record.setRetryCount(executeCount);
+            record.setCreateTime(executeCountAndCreateTimeMap.get(executeCount));
+            records.add(record);
         }
-
-        // 当前正在执行的记录
-        StepExecutionRecordDTO currentRecord = new StepExecutionRecordDTO();
-        currentRecord.setStepInstanceId(stepInstanceId);
-        currentRecord.setRetryCount(stepInstance.getExecuteCount());
-        currentRecord.setCreateTime(stepInstance.getCreateTime());
-        records.add(currentRecord);
 
         return records;
     }

@@ -51,6 +51,10 @@ public class AgentTaskDTO {
      */
     private int executeCount;
     /**
+     * Agent 任务对应的实际的步骤执行次数（重试场景，可能Agent任务并没有实际被执行)
+     */
+    private int actualExecuteCount;
+    /**
      * 滚动执行批次
      */
     private int batch;
@@ -121,6 +125,7 @@ public class AgentTaskDTO {
     public AgentTaskDTO(long stepInstanceId, int executeCount, int batch, Long hostId, String agentId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
+        this.actualExecuteCount = executeCount;
         this.batch = batch;
         this.hostId = hostId;
         this.agentId = agentId;
@@ -130,6 +135,7 @@ public class AgentTaskDTO {
                         Long hostId, String agentId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
+        this.actualExecuteCount = executeCount;
         this.batch = batch;
         this.fileTaskMode = fileTaskMode;
         this.hostId = hostId;
@@ -139,6 +145,7 @@ public class AgentTaskDTO {
     public AgentTaskDTO(AgentTaskDTO agentTask) {
         this.stepInstanceId = agentTask.getStepInstanceId();
         this.executeCount = agentTask.getExecuteCount();
+        this.actualExecuteCount = agentTask.getActualExecuteCount();
         this.batch = agentTask.getBatch();
         this.fileTaskMode = agentTask.getFileTaskMode();
         this.hostId = agentTask.getHostId();

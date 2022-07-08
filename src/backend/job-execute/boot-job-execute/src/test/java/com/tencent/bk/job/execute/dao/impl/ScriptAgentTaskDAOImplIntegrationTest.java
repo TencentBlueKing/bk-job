@@ -86,7 +86,8 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         List<AgentTaskDTO> agentTaskList = new ArrayList<>();
         AgentTaskDTO agentTask1 = new AgentTaskDTO();
         agentTask1.setStepInstanceId(100L);
-        agentTask1.setExecuteCount(0);
+        agentTask1.setExecuteCount(1);
+        agentTask1.setActualExecuteCount(1);
         agentTask1.setBatch(1);
         agentTask1.setHostId(101L);
         agentTask1.setAgentId("0:127.0.0.1");
@@ -102,7 +103,8 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
 
         AgentTaskDTO agentTask2 = new AgentTaskDTO();
         agentTask2.setStepInstanceId(100L);
-        agentTask2.setExecuteCount(0);
+        agentTask2.setExecuteCount(1);
+        agentTask2.setActualExecuteCount(1);
         agentTask2.setBatch(1);
         agentTask2.setHostId(102L);
         agentTask2.setAgentId("0:127.0.0.2");
@@ -120,9 +122,10 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
 
         scriptAgentTaskDAO.batchSaveAgentTasks(agentTaskList);
 
-        AgentTaskDTO agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 0, 1, 101L);
+        AgentTaskDTO agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1, 101L);
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(100L);
-        assertThat(agentTask1Return.getExecuteCount()).isEqualTo(0L);
+        assertThat(agentTask1Return.getExecuteCount()).isEqualTo(1L);
+        assertThat(agentTask1Return.getActualExecuteCount()).isEqualTo(1L);
         assertThat(agentTask1Return.getBatch()).isEqualTo(1);
         assertThat(agentTask1Return.getHostId()).isEqualTo(101L);
         assertThat(agentTask1Return.getAgentId()).isEqualTo("0:127.0.0.1");
@@ -136,9 +139,10 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getExitCode()).isEqualTo(1);
 
 
-        AgentTaskDTO agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 0, 1, 102L);
+        AgentTaskDTO agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1, 102L);
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(100L);
-        assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
+        assertThat(agentTask2Return.getExecuteCount()).isEqualTo(1L);
+        assertThat(agentTask2Return.getActualExecuteCount()).isEqualTo(1L);
         assertThat(agentTask2Return.getBatch()).isEqualTo(1);
         assertThat(agentTask2Return.getHostId()).isEqualTo(102L);
         assertThat(agentTask2Return.getGseTaskId()).isEqualTo(1001L);

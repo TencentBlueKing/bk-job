@@ -263,20 +263,20 @@ public class GseStepEventHandler implements StepEventHandler {
             if (rollingConfig.isBatchRollingStep(stepInstanceId) && stepInstance.isFirstRollingBatch()) {
                 List<RollingServerBatchDO> serverBatchList = rollingConfig.getConfigDetail().getServerBatchList();
                 serverBatchList.forEach(serverBatch -> agentTasks.addAll(buildGseAgentTasks(stepInstanceId,
-                    executeCount, serverBatch.getBatch(), gseTaskId, serverBatch.getServers(),
+                    executeCount, executeCount, serverBatch.getBatch(), gseTaskId, serverBatch.getServers(),
                     AgentTaskStatus.WAITING)));
             } else if (rollingConfig.isAllRollingStep(stepInstanceId)) {
-                agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
+                agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
                     gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatus.WAITING));
             }
         } else {
-            agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
+            agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
                 gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatus.WAITING));
         }
 
         // 无效主机
         if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getInvalidIpList())) {
-            agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
+            agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
                 0L, stepInstance.getTargetServers().getInvalidIpList(), AgentTaskStatus.HOST_NOT_EXIST));
         }
         saveAgentTasks(stepInstance, agentTasks);
@@ -284,17 +284,20 @@ public class GseStepEventHandler implements StepEventHandler {
 
     private List<AgentTaskDTO> buildGseAgentTasks(long stepInstanceId,
                                                   int executeCount,
+                                                  int actualExecuteCount,
                                                   int batch,
                                                   Long gseTaskId,
                                                   List<HostDTO> hosts,
                                                   AgentTaskStatus status) {
         return hosts.stream()
-            .map(host -> buildGseAgentTask(stepInstanceId, executeCount, batch, gseTaskId, host, status))
+            .map(host -> buildGseAgentTask(stepInstanceId, executeCount, actualExecuteCount,
+                batch, gseTaskId, host, status))
             .collect(Collectors.toList());
     }
 
     protected AgentTaskDTO buildGseAgentTask(long stepInstanceId,
                                              int executeCount,
+                                             int actualExecuteCount,
                                              int batch,
                                              Long gseTaskId,
                                              HostDTO host,
@@ -302,6 +305,7 @@ public class GseStepEventHandler implements StepEventHandler {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(stepInstanceId);
         agentTask.setExecuteCount(executeCount);
+        agentTask.setActualExecuteCount(actualExecuteCount);
         agentTask.setBatch(batch);
         agentTask.setGseTaskId(gseTaskId);
         agentTask.setStatus(status.getValue());
@@ -514,6 +518,7 @@ public class GseStepEventHandler implements StepEventHandler {
                 if (batch != null && latestAgentTask.getBatch() != batch) {
                     continue;
                 }
+                latestAgentTask.setActualExecuteCount(executeCount);
                 latestAgentTask.resetTaskInitialStatus();
                 latestAgentTask.setGseTaskId(gseTaskId);
             }
@@ -532,6 +537,7 @@ public class GseStepEventHandler implements StepEventHandler {
             if (batch != null && latestAgentTask.getBatch() != batch) {
                 continue;
             }
+            latestAgentTask.setActualExecuteCount(executeCount);
             latestAgentTask.resetTaskInitialStatus();
             latestAgentTask.setGseTaskId(gseTaskId);
         }

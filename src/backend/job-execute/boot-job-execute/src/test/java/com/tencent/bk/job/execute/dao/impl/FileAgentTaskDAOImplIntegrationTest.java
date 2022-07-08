@@ -84,7 +84,8 @@ public class FileAgentTaskDAOImplIntegrationTest {
         List<AgentTaskDTO> agentTaskList = new ArrayList<>();
         AgentTaskDTO agentTask1 = new AgentTaskDTO();
         agentTask1.setStepInstanceId(100L);
-        agentTask1.setExecuteCount(0);
+        agentTask1.setExecuteCount(1);
+        agentTask1.setActualExecuteCount(1);
         agentTask1.setBatch(1);
         agentTask1.setFileTaskMode(FileTaskModeEnum.UPLOAD);
         agentTask1.setHostId(101L);
@@ -99,7 +100,8 @@ public class FileAgentTaskDAOImplIntegrationTest {
 
         AgentTaskDTO agentTask2 = new AgentTaskDTO();
         agentTask2.setStepInstanceId(100L);
-        agentTask2.setExecuteCount(0);
+        agentTask2.setExecuteCount(1);
+        agentTask2.setActualExecuteCount(1);
         agentTask2.setBatch(1);
         agentTask2.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
         agentTask2.setHostId(102L);
@@ -115,10 +117,11 @@ public class FileAgentTaskDAOImplIntegrationTest {
 
         fileAgentTaskDAO.batchSaveAgentTasks(agentTaskList);
 
-        AgentTaskDTO agentTask1Return = fileAgentTaskDAO.getAgentTaskByHostId(100L, 0, 1,
+        AgentTaskDTO agentTask1Return = fileAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1,
             FileTaskModeEnum.UPLOAD, 101L);
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(100L);
-        assertThat(agentTask1Return.getExecuteCount()).isEqualTo(0L);
+        assertThat(agentTask1Return.getExecuteCount()).isEqualTo(1L);
+        assertThat(agentTask1Return.getActualExecuteCount()).isEqualTo(1L);
         assertThat(agentTask1Return.getBatch()).isEqualTo(1);
         assertThat(agentTask1Return.getFileTaskMode()).isEqualTo(FileTaskModeEnum.UPLOAD);
         assertThat(agentTask1Return.getHostId()).isEqualTo(101L);
@@ -131,10 +134,11 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getStatus()).isEqualTo(1);
 
 
-        AgentTaskDTO agentTask2Return = fileAgentTaskDAO.getAgentTaskByHostId(100L, 0, 1,
+        AgentTaskDTO agentTask2Return = fileAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1,
             FileTaskModeEnum.DOWNLOAD, 102L);
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(100L);
-        assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
+        assertThat(agentTask2Return.getExecuteCount()).isEqualTo(1L);
+        assertThat(agentTask2Return.getActualExecuteCount()).isEqualTo(1L);
         assertThat(agentTask2Return.getBatch()).isEqualTo(1);
         assertThat(agentTask2Return.getFileTaskMode()).isEqualTo(FileTaskModeEnum.DOWNLOAD);
         assertThat(agentTask2Return.getHostId()).isEqualTo(102L);
