@@ -142,12 +142,15 @@
                         };
                     });
                     this.executionList = Object.freeze(result);
-                    // 切换批次导致的数据刷新，需要获取最新重试次数
-                    if (from === 'batch') {
-                        this.$emit('on-change', _.first(result).retryCount);
-                    }
+                    
                     // 重试次数大于1才需要显示
                     this.isNeedRender = this.executionList.length > 1;
+
+                    // 切换批次导致的数据刷新，需要获取最新重试次数
+                    if (from === 'batch') {
+                        this.$emit('on-change', this.isNeedRender ? _.first(result).retryCount : 0);
+                    }
+
                     if (this.isNeedRender) {
                         this.$nextTick(() => {
                             if (!this.popperInstance) {
