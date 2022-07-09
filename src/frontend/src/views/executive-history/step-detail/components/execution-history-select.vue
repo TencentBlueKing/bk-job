@@ -148,7 +148,8 @@
 
                     // 切换批次导致的数据刷新，需要获取最新重试次数
                     if (from === 'batch') {
-                        this.$emit('on-change', this.isNeedRender ? _.first(result).retryCount : 0);
+                        const first = _.first(result);
+                        this.$emit('on-change', first ? first.retryCount : 0);
                     }
 
                     if (this.isNeedRender) {
