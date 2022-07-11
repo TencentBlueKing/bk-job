@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -43,7 +42,6 @@ import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.web.metrics.RecordHttpStatus;
 import com.tencent.bk.job.manage.api.web.WebAppAccountResource;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
@@ -311,7 +309,6 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     }
 
     @Override
-    @RecordHttpStatus(value = CommonMetricNames.WEB_API, extraTags = {"api_name", "list_accounts"})
     public Response<List<AccountVO>> listAccounts(String username,
                                                   AppResourceScope appResourceScope,
                                                   String scopeType,
