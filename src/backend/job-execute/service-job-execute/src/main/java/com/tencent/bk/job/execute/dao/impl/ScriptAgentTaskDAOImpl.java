@@ -310,7 +310,8 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(record.get(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT));
-        agentTask.setActualExecuteCount(record.get(T_GSE_SCRIPT_AGENT_TASK.ACTUAL_EXECUTE_COUNT).intValue());
+        Short actualExecuteCount = record.get(T_GSE_SCRIPT_AGENT_TASK.ACTUAL_EXECUTE_COUNT);
+        agentTask.setActualExecuteCount(actualExecuteCount != null ? actualExecuteCount.intValue() : null);
         agentTask.setBatch(record.get(T_GSE_SCRIPT_AGENT_TASK.BATCH));
         agentTask.setHostId(record.get(T_GSE_SCRIPT_AGENT_TASK.HOST_ID));
         agentTask.setAgentId(record.get(T_GSE_SCRIPT_AGENT_TASK.AGENT_ID));
