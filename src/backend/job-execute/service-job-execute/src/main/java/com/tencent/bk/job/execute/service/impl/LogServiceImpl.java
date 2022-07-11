@@ -146,7 +146,6 @@ public class LogServiceImpl implements LogService {
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
         AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch, host);
-        log.info("Get agent task by host, host: {}, agentTask:{}", host, agentTask);
         if (agentTask == null) {
             return null;
         }
@@ -164,12 +163,10 @@ public class LogServiceImpl implements LogService {
         if (agentTask.getHostId() != null) {
             resp = logServiceResourceClient.getScriptHostLogByHostId(taskCreateDateStr,
                 stepInstanceId, actualExecuteCount, agentTask.getHostId(), batch);
-            log.info("Get log by hostId, resp: {}", resp);
         } else {
             // 兼容ip查询
             resp = logServiceResourceClient.getScriptHostLogByIp(taskCreateDateStr,
                 stepInstanceId, actualExecuteCount, agentTask.getCloudIp(), batch);
-            log.info("Get log by ip, resp: {}", resp);
         }
         if (!resp.isSuccess()) {
             log.error("Get script log content by host error, stepInstanceId={}, executeCount={}, batch={}, host={}",

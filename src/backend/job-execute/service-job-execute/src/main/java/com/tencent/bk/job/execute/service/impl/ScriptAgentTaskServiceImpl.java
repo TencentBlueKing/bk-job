@@ -205,4 +205,9 @@ public class ScriptAgentTaskServiceImpl
     private boolean isStepInstanceRecordExist(long stepInstanceId) {
         return scriptAgentTaskDAO.isStepInstanceRecordExist(stepInstanceId);
     }
+
+    @Override
+    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
+        scriptAgentTaskDAO.updateActualExecuteCount(stepInstanceId, batch, actualExecuteCount);
+    }
 }

@@ -246,4 +246,9 @@ public class FileAgentTaskServiceImpl
     private boolean isStepInstanceRecordExist(long stepInstanceId) {
         return fileAgentTaskDAO.isStepInstanceRecordExist(stepInstanceId);
     }
+
+    @Override
+    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
+        fileAgentTaskDAO.updateActualExecuteCount(stepInstanceId, batch, actualExecuteCount);
+    }
 }

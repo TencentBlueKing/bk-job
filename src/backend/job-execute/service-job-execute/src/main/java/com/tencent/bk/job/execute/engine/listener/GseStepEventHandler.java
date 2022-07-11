@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
+import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -186,7 +188,7 @@ public class GseStepEventHandler implements StepEventHandler {
             }
 
             Long gseTaskId = saveInitialGseTask(stepInstance);
-            saveInitialGseAgentTasks(gseTaskId, stepInstance, rollingConfig);
+            saveGseAgentTasksForStartStep(gseTaskId, stepInstance, rollingConfig);
 
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.RUNNING,
                 stepInstance.getStartTime() == null ? DateUtils.currentTimeMillis() : null, null, null);
@@ -244,47 +246,69 @@ public class GseStepEventHandler implements StepEventHandler {
     }
 
     /**
-     * 初始化的GSE Agent 任务
+     * 启动步骤的时候保存 GSE Agent 任务
      *
      * @param gseTaskId     GSE任务ID
      * @param stepInstance  步骤实例
      * @param rollingConfig 滚动配置
      */
-    private void saveInitialGseAgentTasks(Long gseTaskId,
-                                          StepInstanceDTO stepInstance,
-                                          RollingConfigDTO rollingConfig) {
-        List<AgentTaskDTO> agentTasks = new ArrayList<>();
-
+    private void saveGseAgentTasksForStartStep(Long gseTaskId,
+                                               StepInstanceDTO stepInstance,
+                                               RollingConfigDTO rollingConfig) {
         long stepInstanceId = stepInstance.getId();
         int executeCount = stepInstance.getExecuteCount();
         int batch = stepInstance.getBatch();
 
-        if (stepInstance.isRollingStep()) {
-            if (rollingConfig.isBatchRollingStep(stepInstanceId) && stepInstance.isFirstRollingBatch()) {
-                List<RollingServerBatchDO> serverBatchList = rollingConfig.getConfigDetail().getServerBatchList();
-                serverBatchList.forEach(serverBatch -> agentTasks.addAll(buildGseAgentTasks(stepInstanceId,
-                    executeCount, executeCount, serverBatch.getBatch(), gseTaskId, serverBatch.getServers(),
-                    AgentTaskStatus.WAITING)));
-            } else if (rollingConfig.isAllRollingStep(stepInstanceId)) {
+        if (needInitAgentTasksWhenStartStep(stepInstance)) {
+            List<AgentTaskDTO> agentTasks = new ArrayList<>();
+
+            if (stepInstance.isRollingStep() && stepInstance.isFirstRollingBatch()) {
+                // 如果是第一批次的执行，需要初始化所有批次的agent任务（查询需要)
+                if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
+                    List<RollingServerBatchDO> serverBatchList =
+                        rollingConfig.getConfigDetail().getServerBatchList();
+                    serverBatchList.forEach(serverBatch -> {
+                        Integer actualExecuteCount = serverBatch.getBatch() == 1 ? executeCount : null;
+                        agentTasks.addAll(buildGseAgentTasks(stepInstanceId,
+                            executeCount, actualExecuteCount, serverBatch.getBatch(), gseTaskId,
+                            serverBatch.getServers(), AgentTaskStatus.WAITING));
+                    });
+                } else if (rollingConfig.isAllRollingStep(stepInstanceId)) {
+                    // 暂时不支持，滚动执行二期需求
+                    log.warn("All rolling step is not supported!");
+                    throw new NotImplementedException("All rolling step is not supported",
+                        ErrorCode.NOT_SUPPORT_FEATURE);
+                }
+            } else {
                 agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
                     gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatus.WAITING));
             }
+
+            // 无效主机
+            if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getInvalidIpList())) {
+                agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
+                    0L, stepInstance.getTargetServers().getInvalidIpList(), AgentTaskStatus.HOST_NOT_EXIST));
+            }
+            saveAgentTasks(stepInstance, agentTasks);
         } else {
-            agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
-                gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatus.WAITING));
+            // 仅更新 AgentTask 的 actualExecuteCount
+            if (stepInstance.isScriptStep()) {
+                scriptAgentTaskService.updateActualExecuteCount(stepInstanceId, batch, executeCount);
+            } else if (stepInstance.isFileStep()) {
+                fileAgentTaskService.updateActualExecuteCount(stepInstanceId, batch, executeCount);
+            }
         }
 
-        // 无效主机
-        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getInvalidIpList())) {
-            agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
-                0L, stepInstance.getTargetServers().getInvalidIpList(), AgentTaskStatus.HOST_NOT_EXIST));
-        }
-        saveAgentTasks(stepInstance, agentTasks);
+    }
+
+    private boolean needInitAgentTasksWhenStartStep(StepInstanceBaseDTO stepInstance) {
+        // 步骤启动阶段(非滚动步骤启动、滚动步骤的第一批次启动)，需要初始化所有AgentTask
+        return !stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch();
     }
 
     private List<AgentTaskDTO> buildGseAgentTasks(long stepInstanceId,
                                                   int executeCount,
-                                                  int actualExecuteCount,
+                                                  Integer actualExecuteCount,
                                                   int batch,
                                                   Long gseTaskId,
                                                   List<HostDTO> hosts,
@@ -297,7 +321,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
     protected AgentTaskDTO buildGseAgentTask(long stepInstanceId,
                                              int executeCount,
-                                             int actualExecuteCount,
+                                             Integer actualExecuteCount,
                                              int batch,
                                              Long gseTaskId,
                                              HostDTO host,

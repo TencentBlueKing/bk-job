@@ -41,7 +41,9 @@ import org.jooq.SelectConditionStep;
 import org.jooq.SelectLimitPercentStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.TableField;
+import org.jooq.UpdateConditionStep;
 import org.jooq.generated.tables.GseFileAgentTask;
+import org.jooq.generated.tables.records.GseFileAgentTaskRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -139,9 +141,10 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
         Integer count = CTX.selectCount()
             .from(T_GSE_FILE_AGENT_TASK)
-            .where(T_GSE_FILE_AGENT_TASK.STATUS.in(AgentTaskStatus.LAST_SUCCESS.getValue(), AgentTaskStatus.SUCCESS.getValue()))
+            .where(T_GSE_FILE_AGENT_TASK.STATUS.in(AgentTaskStatus.LAST_SUCCESS.getValue(),
+                AgentTaskStatus.SUCCESS.getValue()))
             .and(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq((short)executeCount))
+            .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
             .and(T_GSE_FILE_AGENT_TASK.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()))
             .fetchOne(0, Integer.class);
         return count == null ? 0 : count;
@@ -153,7 +156,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             CTX.select(T_GSE_FILE_AGENT_TASK.STATUS, count().as("ip_count"))
                 .from(T_GSE_FILE_AGENT_TASK)
                 .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-                .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq((short)executeCount))
+                .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
                 .and(T_GSE_FILE_AGENT_TASK.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()));
         if (batch != null && batch > 0) {
             selectConditionStep.and(T_GSE_FILE_AGENT_TASK.BATCH.eq(batch.shortValue()));
@@ -343,5 +346,17 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     @Override
     public boolean isStepInstanceRecordExist(long stepInstanceId) {
         return CTX.fetchExists(T_GSE_FILE_AGENT_TASK, T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
+    }
+
+    @Override
+    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
+        UpdateConditionStep<GseFileAgentTaskRecord> updateConditionStep =
+            CTX.update(T_GSE_FILE_AGENT_TASK)
+                .set(T_GSE_FILE_AGENT_TASK.ACTUAL_EXECUTE_COUNT, (short) actualExecuteCount)
+                .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
+        if (batch != null) {
+            updateConditionStep.and(T_GSE_FILE_AGENT_TASK.BATCH.eq(batch.shortValue()));
+        }
+        updateConditionStep.execute();
     }
 }

@@ -41,7 +41,9 @@ import org.jooq.SelectConditionStep;
 import org.jooq.SelectLimitPercentStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.TableField;
+import org.jooq.UpdateConditionStep;
 import org.jooq.generated.tables.GseScriptAgentTask;
+import org.jooq.generated.tables.records.GseScriptAgentTaskRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -149,7 +151,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
             .where(T_GSE_SCRIPT_AGENT_TASK.STATUS.in(AgentTaskStatus.LAST_SUCCESS.getValue(),
                 AgentTaskStatus.SUCCESS.getValue()))
             .and(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((short)executeCount))
+            .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
             .fetchOne(0, Integer.class);
         return count == null ? 0 : count;
     }
@@ -353,5 +355,17 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     @Override
     public boolean isStepInstanceRecordExist(long stepInstanceId) {
         return CTX.fetchExists(T_GSE_SCRIPT_AGENT_TASK, T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
+    }
+
+    @Override
+    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
+        UpdateConditionStep<GseScriptAgentTaskRecord> updateConditionStep =
+            CTX.update(T_GSE_SCRIPT_AGENT_TASK)
+                .set(T_GSE_SCRIPT_AGENT_TASK.ACTUAL_EXECUTE_COUNT, (short) actualExecuteCount)
+                .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
+        if (batch != null) {
+            updateConditionStep.and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch.shortValue()));
+        }
+        updateConditionStep.execute();
     }
 }

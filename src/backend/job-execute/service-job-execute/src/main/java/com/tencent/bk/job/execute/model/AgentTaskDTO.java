@@ -125,7 +125,6 @@ public class AgentTaskDTO {
     public AgentTaskDTO(long stepInstanceId, int executeCount, int batch, Long hostId, String agentId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
-        this.actualExecuteCount = executeCount;
         this.batch = batch;
         this.hostId = hostId;
         this.agentId = agentId;
@@ -135,7 +134,6 @@ public class AgentTaskDTO {
                         Long hostId, String agentId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
-        this.actualExecuteCount = executeCount;
         this.batch = batch;
         this.fileTaskMode = fileTaskMode;
         this.hostId = hostId;

@@ -154,5 +154,14 @@ public interface AgentTaskService {
     @CompatibleImplementation(name = "rolling_execution", explain = "兼容历史数据", version = "3.7.x")
     int getActualSuccessExecuteCount(long stepInstanceId, String cloudIp);
 
+    /**
+     * 更新Agent任务实际执行的步骤重试次数
+     *
+     * @param stepInstanceId     步骤实例ID
+     * @param batch              滚动执行批次；传入null将忽略该条件
+     * @param actualExecuteCount Agent任务实际执行的步骤重试次数
+     */
+    void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount);
+
 
 }
