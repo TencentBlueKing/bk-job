@@ -127,18 +127,17 @@
                     stepInstanceId: this.stepInstanceId,
                     batch: this.batch,
                 }).then((data) => {
-                    const max = _.max(data.map(_ => _.retryCount));
-                    const result = data.map((item) => {
+                    const num = data.length;
+                    const result = data.map((item, index) => {
                         const {
                             retryCount,
                             createTime,
                         } = item;
 
-                        const realIndex = retryCount + 1;
                         return {
                             retryCount,
                             createTime,
-                            text: retryCount !== max ? ordinalSuffixOf(realIndex) : 'LATEST',
+                            text: index === 0 ? 'LATEST' : ordinalSuffixOf(num - index),
                         };
                     });
                     this.executionList = Object.freeze(result);
