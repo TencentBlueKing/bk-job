@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface RecordHttpStatus {
+public @interface RecordTaskStart {
     /**
      * Name of the Timer metric.
      *
@@ -48,5 +48,28 @@ public @interface RecordHttpStatus {
      * @see io.micrometer.core.instrument.Timer.Builder#tags(String...)
      */
     String[] extraTags() default {};
+    /**
+     * List of percentiles to calculate client-side for the {@link io.micrometer.core.instrument.Timer}.
+     * For example, the 95th percentile should be passed as {@code 0.95}.
+     *
+     * @return percentiles to calculate
+     * @see io.micrometer.core.instrument.Timer.Builder#publishPercentiles(double...)
+     */
+    double[] percentiles() default {};
 
+    /**
+     * Whether to enable recording of a percentile histogram for the {@link io.micrometer.core.instrument.Timer Timer}.
+     *
+     * @return whether percentile histogram is enabled
+     * @see io.micrometer.core.instrument.Timer.Builder#publishPercentileHistogram(Boolean)
+     */
+    boolean histogram() default true;
+
+    /**
+     * Description of the {@link io.micrometer.core.instrument.Timer}.
+     *
+     * @return meter description
+     * @see io.micrometer.core.instrument.Timer.Builder#description(String)
+     */
+    String description() default "";
 }

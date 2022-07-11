@@ -37,10 +37,12 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.web.metrics.RecordTaskStart;
 import com.tencent.bk.job.execute.client.FileSourceResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -98,6 +100,11 @@ public class EsbFastTransferFileV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_fast_transfer_file"})
+    @RecordTaskStart(value = CommonMetricNames.JOB_TASK_START,
+        extraTags = {
+            CommonMetricTags.KEY_START_MODE, CommonMetricTags.VALUE_START_MODE_API,
+            CommonMetricTags.KEY_TASK_TYPE, CommonMetricTags.VALUE_TASK_TYPE_FAST_FILE
+        })
     public EsbResp<EsbJobExecuteV3DTO> fastTransferFile(EsbFastTransferFileV3Request request) {
         request.fillAppResourceScope(appScopeMappingService);
 

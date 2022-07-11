@@ -27,13 +27,15 @@ package com.tencent.bk.job.execute.api.inner;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
+import com.tencent.bk.job.common.web.metrics.RecordTaskStart;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
@@ -60,20 +62,21 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private final TaskExecuteService taskExecuteService;
 
-    private final MessageI18nService i18nService;
-
     private final WebAuthService webAuthService;
 
     @Autowired
     public ServiceExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
-                                          MessageI18nService i18nService,
                                           WebAuthService webAuthService) {
         this.taskExecuteService = taskExecuteService;
-        this.i18nService = i18nService;
         this.webAuthService = webAuthService;
     }
 
     @Override
+    @RecordTaskStart(value = CommonMetricNames.JOB_TASK_START,
+        extraTags = {
+            CommonMetricTags.KEY_START_MODE, CommonMetricTags.VALUE_START_MODE_CRON,
+            CommonMetricTags.KEY_TASK_TYPE, CommonMetricTags.VALUE_TASK_TYPE_EXECUTE_PLAN
+        })
     public InternalResponse<ServiceTaskExecuteResult> executeTask(ServiceTaskExecuteRequest request) {
         log.info("Execute task, request={}", request);
         if (!checkExecuteTaskRequest(request)) {
