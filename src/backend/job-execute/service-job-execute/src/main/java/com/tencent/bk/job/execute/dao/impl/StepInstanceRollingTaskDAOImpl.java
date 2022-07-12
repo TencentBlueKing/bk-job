@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.SelectConditionStep;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.StepInstanceRollingTask;
@@ -70,7 +71,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
         Record record = CTX.select(ALL_FIELDS)
             .from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(TABLE.EXECUTE_COUNT.eq(JooqDataTypeUtil.toByte(executeCount)))
+            .and(TABLE.EXECUTE_COUNT.eq(JooqDataTypeUtil.toShort(executeCount)))
             .and(TABLE.BATCH.eq(JooqDataTypeUtil.toShort(batch)))
             .fetchOne();
         return extract(record);
@@ -93,15 +94,24 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     }
 
     @Override
-    public List<StepInstanceRollingTaskDTO> listRollingTasks(long stepInstanceId) {
-        Result<Record> result = CTX.select(ALL_FIELDS)
+    public List<StepInstanceRollingTaskDTO> listRollingTasks(long stepInstanceId,
+                                                             Integer executeCount,
+                                                             Integer batch) {
+        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(TABLE)
-            .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .orderBy(TABLE.BATCH.asc())
-            .fetch();
+            .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId));
+        if (executeCount != null) {
+            selectConditionStep.and(TABLE.EXECUTE_COUNT.eq(executeCount.shortValue()));
+        }
+        if (batch != null && batch > 0) {
+            selectConditionStep.and(TABLE.BATCH.eq(batch.shortValue()));
+        }
+
+        Result<? extends Record> result = selectConditionStep.orderBy(TABLE.BATCH.asc()).fetch();
+
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks = new ArrayList<>();
         if (result.size() > 0) {
-            result.into(record -> stepInstanceRollingTasks.add(extract(record)));
+            stepInstanceRollingTasks = result.map(this::extract);
         }
         return stepInstanceRollingTasks;
     }
@@ -119,7 +129,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
             TABLE.TOTAL_TIME)
             .values(
                 rollingTask.getStepInstanceId(),
-                JooqDataTypeUtil.toByte(rollingTask.getExecuteCount()),
+                JooqDataTypeUtil.toShort(rollingTask.getExecuteCount()),
                 JooqDataTypeUtil.toShort(rollingTask.getBatch()),
                 JooqDataTypeUtil.toByte(rollingTask.getStatus()),
                 rollingTask.getStartTime(),
@@ -169,7 +179,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
             return;
         }
         updateSetMoreStep.where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(TABLE.EXECUTE_COUNT.eq(JooqDataTypeUtil.toByte(executeCount)))
+            .and(TABLE.EXECUTE_COUNT.eq(JooqDataTypeUtil.toByte(executeCount).shortValue()))
             .and(TABLE.BATCH.eq(JooqDataTypeUtil.toShort(batch)))
             .execute();
 

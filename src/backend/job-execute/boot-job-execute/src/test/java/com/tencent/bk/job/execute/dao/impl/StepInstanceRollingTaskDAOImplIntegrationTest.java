@@ -70,7 +70,7 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
     @Test
     @DisplayName("根据步骤实例ID查询步骤滚动任务")
     void listRollingTasks() {
-        List<StepInstanceRollingTaskDTO> rollingTasks = stepInstanceRollingTaskDAO.listRollingTasks(1L);
+        List<StepInstanceRollingTaskDTO> rollingTasks = stepInstanceRollingTaskDAO.listRollingTasks(1L, null, null);
         assertThat(rollingTasks).hasSize(2);
 
         StepInstanceRollingTaskDTO rollingTask1 = rollingTasks.get(0);

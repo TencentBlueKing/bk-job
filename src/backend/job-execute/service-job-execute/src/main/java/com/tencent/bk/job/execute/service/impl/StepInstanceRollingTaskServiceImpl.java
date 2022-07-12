@@ -60,7 +60,7 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
     @Override
     public List<StepInstanceRollingTaskDTO> listLatestRollingTasks(long stepInstanceId, int executeCount) {
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks =
-            stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId);
+            stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId, null, null);
         if (CollectionUtils.isEmpty(stepInstanceRollingTasks)) {
             return stepInstanceRollingTasks;
         }
@@ -89,6 +89,11 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
         return latestRollingTasks.values().stream()
             .sorted(Comparator.comparing(StepInstanceRollingTaskDTO::getBatch))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<StepInstanceRollingTaskDTO> listRollingTasksByBatch(long stepInstanceId, Integer batch) {
+        return stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId, null, batch);
     }
 
     @Override

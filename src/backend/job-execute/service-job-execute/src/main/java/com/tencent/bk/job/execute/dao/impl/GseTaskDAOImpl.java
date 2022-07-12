@@ -57,7 +57,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
 
         gseTaskDTO.setId(record.get(TABLE.ID));
         gseTaskDTO.setStepInstanceId(record.get(TABLE.STEP_INSTANCE_ID));
-        gseTaskDTO.setExecuteCount(record.get(TABLE.EXECUTE_COUNT));
+        gseTaskDTO.setExecuteCount(record.get(TABLE.EXECUTE_COUNT).intValue());
         gseTaskDTO.setBatch(record.get(TABLE.BATCH));
         gseTaskDTO.setStartTime(record.get(TABLE.START_TIME));
         gseTaskDTO.setEndTime(record.get(TABLE.END_TIME));
@@ -81,7 +81,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
             TABLE.GSE_TASK_ID)
             .values(
                 gseTask.getStepInstanceId(),
-                gseTask.getExecuteCount(),
+                gseTask.getExecuteCount().shortValue(),
                 (short) gseTask.getBatch(),
                 gseTask.getStartTime(),
                 gseTask.getEndTime(),
@@ -111,7 +111,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch) {
         Record record = dslContext.select(ALL_FIELDS).from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(TABLE.EXECUTE_COUNT.eq(executeCount))
+            .and(TABLE.EXECUTE_COUNT.eq((short)executeCount))
             .and(TABLE.BATCH.eq(batch == null ? 0 : batch.shortValue()))
             .fetchOne();
         return extractInfo(record);

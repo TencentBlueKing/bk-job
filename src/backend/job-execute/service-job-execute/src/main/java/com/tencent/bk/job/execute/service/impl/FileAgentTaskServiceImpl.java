@@ -233,13 +233,9 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, FileTaskModeEnum mode, HostDTO host) {
-        if (isStepInstanceRecordExist(stepInstanceId)) {
-            return fileAgentTaskDAO.getActualSuccessExecuteCount(stepInstanceId, batch, mode, host.getHostId());
-        } else {
-            // 兼容历史数据
-            return gseTaskIpLogDAO.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
-        }
+    public int getActualSuccessExecuteCount(long stepInstanceId, String cloudIp) {
+        // 兼容历史数据
+        return gseTaskIpLogDAO.getActualSuccessExecuteCount(stepInstanceId, cloudIp);
     }
 
     @Override
@@ -252,5 +248,10 @@ public class FileAgentTaskServiceImpl
 
     private boolean isStepInstanceRecordExist(long stepInstanceId) {
         return fileAgentTaskDAO.isStepInstanceRecordExist(stepInstanceId);
+    }
+
+    @Override
+    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
+        fileAgentTaskDAO.updateActualExecuteCount(stepInstanceId, batch, actualExecuteCount);
     }
 }

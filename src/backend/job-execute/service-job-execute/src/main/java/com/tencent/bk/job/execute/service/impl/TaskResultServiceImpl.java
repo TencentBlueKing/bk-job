@@ -963,30 +963,44 @@ public class TaskResultServiceImpl implements TaskResultService {
 
 
     @Override
-    public List<StepExecutionRecordDTO> listStepExecutionHistory(String username, Long appId, Long stepInstanceId) {
+    public List<StepExecutionRecordDTO> listStepExecutionHistory(String username,
+                                                                 Long appId,
+                                                                 Long stepInstanceId,
+                                                                 Integer batch) {
         StepInstanceBaseDTO stepInstance = checkGetStepExecutionDetail(username, appId, stepInstanceId);
-        int latestExecuteCount = stepInstance.getExecuteCount();
-        if (latestExecuteCount == 0) {
+
+        // 步骤没有重试执行过
+        if (stepInstance.getExecuteCount() == 0) {
             StepExecutionRecordDTO record = new StepExecutionRecordDTO();
             record.setStepInstanceId(stepInstanceId);
-            record.setRetryCount(latestExecuteCount);
+            record.setRetryCount(0);
             record.setCreateTime(stepInstance.getCreateTime());
             return Collections.singletonList(record);
         }
 
-        List<OperationLogDTO> operationLogs = operationLogService.listOperationLog(stepInstance.getTaskInstanceId());
-        List<StepExecutionRecordDTO> records = new ArrayList<>();
-        if (CollectionUtils.isEmpty(operationLogs)) {
-            for (int executeCount = latestExecuteCount; executeCount >= 0; executeCount--) {
-                StepExecutionRecordDTO record = new StepExecutionRecordDTO();
-                record.setStepInstanceId(stepInstanceId);
-                record.setRetryCount(executeCount);
-                record.setCreateTime(stepInstance.getCreateTime());
-                records.add(record);
-            }
-            return records;
+        List<StepExecutionRecordDTO> records;
+        if (batch == null) {
+            // 获取步骤维度的重试记录
+            records = queryStepRetryRecords(stepInstance);
+        } else {
+            // 获取滚动任务维度的重试记录
+            records = queryStepRollingTaskRetryRecords(stepInstanceId, batch);
         }
 
+        records.sort(Comparator.comparingInt(StepExecutionRecordDTO::getRetryCount).reversed());
+
+        return records;
+    }
+
+    private List<StepExecutionRecordDTO> queryStepRetryRecords(StepInstanceBaseDTO stepInstance) {
+        Long stepInstanceId = stepInstance.getId();
+        // 步骤最新的重试次数
+        int latestExecuteCount = stepInstance.getExecuteCount();
+        List<OperationLogDTO> operationLogs =
+            operationLogService.listOperationLog(stepInstance.getTaskInstanceId());
+
+
+        List<StepExecutionRecordDTO> records = new ArrayList<>();
         Map<Integer, Long> executeCountAndCreateTimeMap = new HashMap<>();
         operationLogs.forEach(opLog -> {
             UserOperationEnum operation = opLog.getOperationEnum();
@@ -1006,6 +1020,21 @@ public class TaskResultServiceImpl implements TaskResultService {
             record.setCreateTime(executeCountAndCreateTimeMap.get(executeCount));
             records.add(record);
         }
+
+        return records;
+    }
+
+    private List<StepExecutionRecordDTO> queryStepRollingTaskRetryRecords(long stepInstanceId, int batch) {
+        List<StepExecutionRecordDTO> records = new ArrayList<>();
+        List<StepInstanceRollingTaskDTO> rollingTasks =
+            stepInstanceRollingTaskService.listRollingTasksByBatch(stepInstanceId, batch);
+        rollingTasks.forEach(rollingTask -> {
+            StepExecutionRecordDTO record = new StepExecutionRecordDTO();
+            record.setStepInstanceId(stepInstanceId);
+            record.setRetryCount(rollingTask.getExecuteCount());
+            record.setCreateTime(rollingTask.getStartTime());
+            records.add(record);
+        });
         return records;
     }
 }

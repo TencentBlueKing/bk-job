@@ -146,26 +146,27 @@ public class LogServiceImpl implements LogService {
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
         AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch, host);
-        log.info("Get agent task by host, host: {}, agentTask:{}", host, agentTask);
         if (agentTask == null) {
             return null;
         }
-        if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
-            actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId,
-                agentTask.getBatch(), host);
+
+        if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
+            actualExecuteCount = agentTask.getActualExecuteCount();
+        } else if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
+            // 兼容历史数据
+            actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
         }
+
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         InternalResponse<ServiceHostLogDTO> resp;
         if (agentTask.getHostId() != null) {
             resp = logServiceResourceClient.getScriptHostLogByHostId(taskCreateDateStr,
                 stepInstanceId, actualExecuteCount, agentTask.getHostId(), batch);
-            log.info("Get log by hostId, resp: {}", resp);
         } else {
             // 兼容ip查询
             resp = logServiceResourceClient.getScriptHostLogByIp(taskCreateDateStr,
                 stepInstanceId, actualExecuteCount, agentTask.getCloudIp(), batch);
-            log.info("Get log by ip, resp: {}", resp);
         }
         if (!resp.isSuccess()) {
             log.error("Get script log content by host error, stepInstanceId={}, executeCount={}, batch={}, host={}",
@@ -260,9 +261,11 @@ public class LogServiceImpl implements LogService {
         if (agentTask == null) {
             return null;
         }
-        if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
-            actualExecuteCount = fileAgentTaskService.getActualSuccessExecuteCount(stepInstanceId,
-                agentTask.getBatch(), agentTask.getFileTaskMode(), host);
+        if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
+            actualExecuteCount = agentTask.getActualExecuteCount();
+        } else if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
+            // 兼容历史数据
+            actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
         }
 
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
