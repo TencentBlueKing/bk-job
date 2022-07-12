@@ -29,6 +29,14 @@ package com.tencent.bk.job.common.metrics;
  */
 public class CommonMetricTags {
     /**
+     * 名称
+     */
+    public static final String KEY_NAME = "name";
+    /**
+     * Job业务ID
+     */
+    public static final String KEY_APP_ID = "app_id";
+    /**
      * API类型
      */
     public static final String KEY_API_TYPE = "api_type";
