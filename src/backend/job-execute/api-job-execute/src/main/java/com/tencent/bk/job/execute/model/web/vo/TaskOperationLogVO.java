@@ -47,6 +47,8 @@ public class TaskOperationLogVO {
     private Long stepInstanceId;
     @ApiModelProperty("步骤执行次数")
     private Integer retry;
+    @ApiModelProperty("滚动执行批次")
+    private Integer batch;
     @ApiModelProperty("步骤名称")
     private String stepName;
     @ApiModelProperty("操作时间")

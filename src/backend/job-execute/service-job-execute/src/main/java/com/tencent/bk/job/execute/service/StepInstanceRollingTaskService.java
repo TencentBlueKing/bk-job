@@ -49,11 +49,20 @@ public interface StepInstanceRollingTaskService {
     /**
      * 查询最新的步骤滚动任务
      *
-     * @param stepInstanceId   步骤实例ID
-     * @param executeCount 步骤执行次数
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   步骤执行次数
      * @return 步骤滚动任务
      */
     List<StepInstanceRollingTaskDTO> listLatestRollingTasks(long stepInstanceId, int executeCount);
+
+    /**
+     * 根据批次查询滚动任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param batch          滚动批次
+     * @return 步骤滚动任务
+     */
+    List<StepInstanceRollingTaskDTO> listRollingTasksByBatch(long stepInstanceId, Integer batch);
 
     /**
      * 保存步骤滚动任务

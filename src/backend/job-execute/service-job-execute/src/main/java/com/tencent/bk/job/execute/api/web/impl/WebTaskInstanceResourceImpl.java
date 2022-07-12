@@ -414,6 +414,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             vo.setStepInstanceId(detail.getStepInstanceId());
             vo.setStepName(detail.getStepName());
             vo.setRetry(detail.getExecuteCount());
+            vo.setBatch(detail.getBatch());
             vo.setDetail(buildDetail(operationLog.getOperationEnum(), operationLog.getDetail()));
             vos.add(vo);
         }

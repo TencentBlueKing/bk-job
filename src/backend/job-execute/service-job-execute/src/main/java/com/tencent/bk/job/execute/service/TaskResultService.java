@@ -125,8 +125,12 @@ public interface TaskResultService {
      * @param username       用户名
      * @param appId          业务ID
      * @param stepInstanceId 步骤实例ID
+     * @param batch          滚动执行批次;如果传入，则会按照batch过滤步骤执行历史
      * @return 执行历史
      */
-    List<StepExecutionRecordDTO> listStepExecutionHistory(String username, Long appId, Long stepInstanceId);
+    List<StepExecutionRecordDTO> listStepExecutionHistory(String username,
+                                                          Long appId,
+                                                          Long stepInstanceId,
+                                                          Integer batch);
 
 }

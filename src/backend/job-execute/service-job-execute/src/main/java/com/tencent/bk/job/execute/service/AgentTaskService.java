@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
@@ -142,6 +143,25 @@ public interface AgentTaskService {
     List<AgentTaskDetailDTO> listAgentTaskDetail(StepInstanceBaseDTO stepInstance,
                                                  Integer executeCount,
                                                  Integer batch);
+
+    /**
+     * 获取Agent任务实际执行成功的executeCount值(重试场景,兼容历史数据)
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param cloudIp        云区域+ip
+     * @return Agent任务实际执行成功的executeCount值
+     */
+    @CompatibleImplementation(name = "rolling_execution", explain = "兼容历史数据", version = "3.7.x")
+    int getActualSuccessExecuteCount(long stepInstanceId, String cloudIp);
+
+    /**
+     * 更新Agent任务实际执行的步骤重试次数
+     *
+     * @param stepInstanceId     步骤实例ID
+     * @param batch              滚动执行批次；传入null将忽略该条件
+     * @param actualExecuteCount Agent任务实际执行的步骤重试次数
+     */
+    void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount);
 
 
 }

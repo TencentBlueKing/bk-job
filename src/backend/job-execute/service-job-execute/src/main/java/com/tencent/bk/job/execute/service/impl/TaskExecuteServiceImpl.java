@@ -703,14 +703,35 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
                 continue;
             }
+            // 目标主机设置主机详情
+            fillTargetHostDetail(stepInstance, hostMap);
+            // 文件源设置主机详情
+            fillFileSourceHostDetail(stepInstance, hostMap);
+        }
+    }
+
+    private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
+        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getStaticIpList())) {
+            stepInstance.getTargetServers().getStaticIpList()
+                .forEach(host -> fillHostDetail(host, hostMap));
+        }
+        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getIpList())) {
             stepInstance.getTargetServers().getIpList()
                 .forEach(host -> fillHostDetail(host, hostMap));
-            if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
-                List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-                if (fileSourceList != null) {
-                    for (FileSourceDTO fileSource : fileSourceList) {
-                        ServersDTO servers = fileSource.getServers();
-                        if (servers != null && servers.getIpList() != null) {
+        }
+    }
+
+    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
+        if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
+            List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+            if (fileSourceList != null) {
+                for (FileSourceDTO fileSource : fileSourceList) {
+                    ServersDTO servers = fileSource.getServers();
+                    if (servers != null) {
+                        if (CollectionUtils.isNotEmpty(servers.getStaticIpList())) {
+                            servers.getStaticIpList().forEach(host -> fillHostDetail(host, hostMap));
+                        }
+                        if (CollectionUtils.isNotEmpty(servers.getIpList())) {
                             servers.getIpList().forEach(host -> fillHostDetail(host, hostMap));
                         }
                     }
@@ -1093,7 +1114,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
 
-
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
             username, new AppResourceScope(appId), accountIds);
 
@@ -1103,16 +1123,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 主机为空，无需对主机鉴权
             authResult = accountAuthResult;
         } else {
-            AuthResult serverAuthResult = null;
+            AuthResult serverAuthResult;
             if (isDebugTask) {
-                // 鉴权调试
-
+                // 鉴权模板调试
                 serverAuthResult = executeAuthService.authDebugTemplate(
                     username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     authServers);
             } else {
-                // 鉴权执行方案
-
+                // 鉴权执行方案的执行
                 serverAuthResult = executeAuthService.authExecutePlan(
                     username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     plan.getId(), plan.getName(), authServers);
@@ -1157,9 +1175,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private StepExecuteTypeEnum getExecuteTypeFromTaskStepType(ServiceTaskStepDTO step) throws ServiceException {
         StepExecuteTypeEnum executeType = null;
         TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
-        if (stepType == null) {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        }
         switch (stepType) {
             case SCRIPT:
                 ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(step.getScriptStepInfo().getType());
@@ -2081,6 +2096,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskDetail.setStepInstanceId(stepInstance.getId());
         taskDetail.setStepName(stepInstance.getName());
         taskDetail.setExecuteCount(stepInstance.getExecuteCount());
+        taskDetail.setBatch(stepInstance.getBatch());
         operationLog.setDetail(taskDetail);
         return operationLog;
     }

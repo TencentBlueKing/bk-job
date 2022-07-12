@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
+import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -186,7 +188,7 @@ public class GseStepEventHandler implements StepEventHandler {
             }
 
             Long gseTaskId = saveInitialGseTask(stepInstance);
-            saveInitialGseAgentTasks(gseTaskId, stepInstance, rollingConfig);
+            saveGseAgentTasksForStartStep(gseTaskId, stepInstance, rollingConfig);
 
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.RUNNING,
                 stepInstance.getStartTime() == null ? DateUtils.currentTimeMillis() : null, null, null);
@@ -244,57 +246,82 @@ public class GseStepEventHandler implements StepEventHandler {
     }
 
     /**
-     * 初始化的GSE Agent 任务
+     * 启动步骤的时候保存 GSE Agent 任务
      *
      * @param gseTaskId     GSE任务ID
      * @param stepInstance  步骤实例
      * @param rollingConfig 滚动配置
      */
-    private void saveInitialGseAgentTasks(Long gseTaskId,
-                                          StepInstanceDTO stepInstance,
-                                          RollingConfigDTO rollingConfig) {
-        List<AgentTaskDTO> agentTasks = new ArrayList<>();
-
+    private void saveGseAgentTasksForStartStep(Long gseTaskId,
+                                               StepInstanceDTO stepInstance,
+                                               RollingConfigDTO rollingConfig) {
         long stepInstanceId = stepInstance.getId();
         int executeCount = stepInstance.getExecuteCount();
         int batch = stepInstance.getBatch();
 
-        if (stepInstance.isRollingStep()) {
-            if (rollingConfig.isBatchRollingStep(stepInstanceId) && stepInstance.isFirstRollingBatch()) {
-                List<RollingServerBatchDO> serverBatchList = rollingConfig.getConfigDetail().getServerBatchList();
-                serverBatchList.forEach(serverBatch -> agentTasks.addAll(buildGseAgentTasks(stepInstanceId,
-                    executeCount, serverBatch.getBatch(), gseTaskId, serverBatch.getServers(),
-                    AgentTaskStatus.WAITING)));
-            } else if (rollingConfig.isAllRollingStep(stepInstanceId)) {
-                agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
+        if (needInitAgentTasksWhenStartStep(stepInstance)) {
+            List<AgentTaskDTO> agentTasks = new ArrayList<>();
+
+            if (stepInstance.isRollingStep() && stepInstance.isFirstRollingBatch()) {
+                // 如果是第一批次的执行，需要初始化所有批次的agent任务（查询需要)
+                if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
+                    List<RollingServerBatchDO> serverBatchList =
+                        rollingConfig.getConfigDetail().getServerBatchList();
+                    serverBatchList.forEach(serverBatch -> {
+                        Integer actualExecuteCount = serverBatch.getBatch() == 1 ? executeCount : null;
+                        agentTasks.addAll(buildGseAgentTasks(stepInstanceId,
+                            executeCount, actualExecuteCount, serverBatch.getBatch(), gseTaskId,
+                            serverBatch.getServers(), AgentTaskStatus.WAITING));
+                    });
+                } else if (rollingConfig.isAllRollingStep(stepInstanceId)) {
+                    // 暂时不支持，滚动执行二期需求
+                    log.warn("All rolling step is not supported!");
+                    throw new NotImplementedException("All rolling step is not supported",
+                        ErrorCode.NOT_SUPPORT_FEATURE);
+                }
+            } else {
+                agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
                     gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatus.WAITING));
             }
+
+            // 无效主机
+            if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getInvalidIpList())) {
+                agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
+                    0L, stepInstance.getTargetServers().getInvalidIpList(), AgentTaskStatus.HOST_NOT_EXIST));
+            }
+            saveAgentTasks(stepInstance, agentTasks);
         } else {
-            agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
-                gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatus.WAITING));
+            // 仅更新 AgentTask 的 actualExecuteCount
+            if (stepInstance.isScriptStep()) {
+                scriptAgentTaskService.updateActualExecuteCount(stepInstanceId, batch, executeCount);
+            } else if (stepInstance.isFileStep()) {
+                fileAgentTaskService.updateActualExecuteCount(stepInstanceId, batch, executeCount);
+            }
         }
 
-        // 无效主机
-        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getInvalidIpList())) {
-            agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, batch,
-                0L, stepInstance.getTargetServers().getInvalidIpList(), AgentTaskStatus.HOST_NOT_EXIST));
-        }
-        saveAgentTasks(stepInstance, agentTasks);
+    }
+
+    private boolean needInitAgentTasksWhenStartStep(StepInstanceBaseDTO stepInstance) {
+        // 步骤启动阶段(非滚动步骤启动、滚动步骤的第一批次启动)，需要初始化所有AgentTask
+        return !stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch();
     }
 
     private List<AgentTaskDTO> buildGseAgentTasks(long stepInstanceId,
                                                   int executeCount,
+                                                  Integer actualExecuteCount,
                                                   int batch,
                                                   Long gseTaskId,
                                                   List<HostDTO> hosts,
                                                   AgentTaskStatus status) {
         return hosts.stream()
-            .map(host -> buildGseAgentTask(stepInstanceId, executeCount, batch, gseTaskId, host, status))
+            .map(host -> buildGseAgentTask(stepInstanceId, executeCount, actualExecuteCount,
+                batch, gseTaskId, host, status))
             .collect(Collectors.toList());
     }
 
     protected AgentTaskDTO buildGseAgentTask(long stepInstanceId,
                                              int executeCount,
+                                             Integer actualExecuteCount,
                                              int batch,
                                              Long gseTaskId,
                                              HostDTO host,
@@ -302,6 +329,7 @@ public class GseStepEventHandler implements StepEventHandler {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(stepInstanceId);
         agentTask.setExecuteCount(executeCount);
+        agentTask.setActualExecuteCount(actualExecuteCount);
         agentTask.setBatch(batch);
         agentTask.setGseTaskId(gseTaskId);
         agentTask.setStatus(status.getValue());
@@ -380,11 +408,8 @@ public class GseStepEventHandler implements StepEventHandler {
                 stepInstanceRollingTaskService.queryRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
                     stepInstance.getBatch());
             if (stepInstanceRollingTask != null) {
-                long endTime = stepInstanceRollingTask.getEndTime() != null ?
-                    stepInstanceRollingTask.getEndTime() : System.currentTimeMillis();
-                stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                    stepInstance.getBatch(), RunStatusEnum.IGNORE_ERROR, null, endTime,
-                    TaskCostCalculator.calculate(stepInstanceRollingTask.getStartTime(), endTime, null));
+                finishRollingTask(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                    RunStatusEnum.IGNORE_ERROR);
             }
         }
 
@@ -506,7 +531,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
     private void saveAgentTasksForRetryFail(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
                                             Long gseTaskId) {
-        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1, batch);
+        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1);
 
         for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
             latestAgentTask.setExecuteCount(executeCount);
@@ -514,6 +539,7 @@ public class GseStepEventHandler implements StepEventHandler {
                 if (batch != null && latestAgentTask.getBatch() != batch) {
                     continue;
                 }
+                latestAgentTask.setActualExecuteCount(executeCount);
                 latestAgentTask.resetTaskInitialStatus();
                 latestAgentTask.setGseTaskId(gseTaskId);
             }
@@ -525,13 +551,14 @@ public class GseStepEventHandler implements StepEventHandler {
 
     private void saveAgentTasksForRetryAll(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
                                            Long gseTaskId) {
-        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1, batch);
+        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1);
 
         for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
             latestAgentTask.setExecuteCount(executeCount);
             if (batch != null && latestAgentTask.getBatch() != batch) {
                 continue;
             }
+            latestAgentTask.setActualExecuteCount(executeCount);
             latestAgentTask.resetTaskInitialStatus();
             latestAgentTask.setGseTaskId(gseTaskId);
         }
@@ -539,12 +566,12 @@ public class GseStepEventHandler implements StepEventHandler {
         saveAgentTasks(stepInstance, latestAgentTasks);
     }
 
-    private List<AgentTaskDTO> listAgentTasks(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch) {
+    private List<AgentTaskDTO> listAgentTasks(StepInstanceBaseDTO stepInstance, int executeCount) {
         List<AgentTaskDTO> agentTasks = Collections.emptyList();
         if (stepInstance.isScriptStep()) {
-            agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, batch);
+            agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null);
         } else if (stepInstance.isFileStep()) {
-            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, batch);
+            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null);
         }
         return agentTasks;
     }
@@ -680,16 +707,13 @@ public class GseStepEventHandler implements StepEventHandler {
         long totalTime = endTime - startTime;
 
         if (stepInstance.isRollingStep()) {
-            log.info("rolling step");
             RollingConfigDTO rollingConfig =
                 rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
-            stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                stepInstance.getBatch(), RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
+            finishRollingTask(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                RunStatusEnum.SUCCESS);
             int totalBatch = rollingConfig.getConfigDetail().getTotalBatch();
-            log.info("rollingConfig: {}, stepInstance: {}", rollingConfig, stepInstance);
             boolean isLastBatch = totalBatch == stepInstance.getBatch();
             if (isLastBatch) {
-                log.info("updateStepExecutionInfo-SUCCESS");
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
                     startTime, endTime, totalTime);
                 // 步骤执行成功后清理产生的临时文件
@@ -697,10 +721,8 @@ public class GseStepEventHandler implements StepEventHandler {
             } else {
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ROLLING_WAITING,
                     startTime, endTime, totalTime);
-                log.info("updateStepExecutionInfo-ROLLING_WAITING");
             }
         } else {
-            log.info("not rolling step");
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
                 startTime, endTime, totalTime);
             // 步骤执行成功后清理产生的临时文件
@@ -718,8 +740,8 @@ public class GseStepEventHandler implements StepEventHandler {
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.IGNORE_ERROR,
                 startTime, endTime, totalTime);
             if (stepInstance.isRollingStep()) {
-                stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                    stepInstance.getBatch(), RunStatusEnum.IGNORE_ERROR, startTime, endTime, totalTime);
+                finishRollingTask(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                    RunStatusEnum.IGNORE_ERROR);
             }
             return;
         }
@@ -731,15 +753,15 @@ public class GseStepEventHandler implements StepEventHandler {
             switch (rollingMode) {
                 case IGNORE_ERROR:
                     log.info("Ignore error for rolling step, rollingMode: {}", rollingMode);
-                    stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.IGNORE_ERROR, startTime, endTime, totalTime);
+                    finishRollingTask(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                        RunStatusEnum.IGNORE_ERROR);
                     taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.IGNORE_ERROR,
                         startTime, endTime, totalTime);
                     break;
                 case PAUSE_IF_FAIL:
                 case MANUAL:
-                    stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.FAIL, startTime, endTime, totalTime);
+                    finishRollingTask(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                        RunStatusEnum.FAIL);
                     taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
                         startTime, endTime, totalTime);
                     break;
@@ -763,8 +785,8 @@ public class GseStepEventHandler implements StepEventHandler {
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
                 startTime, endTime, totalTime);
             if (stepInstance.isRollingStep()) {
-                stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                    stepInstance.getBatch(), RunStatusEnum.STOP_SUCCESS, startTime, endTime, totalTime);
+                finishRollingTask(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                    RunStatusEnum.STOP_SUCCESS);
             }
         } else {
             log.error("Refresh step fail, stepInstanceId: {}, stepStatus: {}, gseTaskStatus: {}",
@@ -773,14 +795,10 @@ public class GseStepEventHandler implements StepEventHandler {
     }
 
     private void onAbnormalState(StepInstanceDTO stepInstance) {
-        long stepInstanceId = stepInstance.getId();
-        long endTime = System.currentTimeMillis();
-        long startTime = stepInstance.getStartTime();
-        long totalTime = endTime - startTime;
         setAbnormalStatusForStep(stepInstance);
         if (stepInstance.isRollingStep()) {
-            stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                stepInstance.getBatch(), RunStatusEnum.ABNORMAL_STATE, startTime, endTime, totalTime);
+            finishRollingTask(stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                RunStatusEnum.ABNORMAL_STATE);
         }
     }
 
@@ -803,5 +821,20 @@ public class GseStepEventHandler implements StepEventHandler {
                 stepInstance.getStatus()
             );
         }
+    }
+
+    private void finishRollingTask(long stepInstanceId, int executeCount, int batch, RunStatusEnum status) {
+        StepInstanceRollingTaskDTO rollingTask =
+            stepInstanceRollingTaskService.queryRollingTask(stepInstanceId, executeCount, batch);
+        if (rollingTask == null) {
+            log.error("Rolling task is not exist, skip update! stepInstanceId: {}, executeCount: {}, batch: {}",
+                stepInstanceId, executeCount, batch);
+            return;
+        }
+        long now = System.currentTimeMillis();
+        long startTime = rollingTask.getStartTime() != null ? rollingTask.getStartTime() : now;
+
+        stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, executeCount,
+            batch, status, startTime, now, now - startTime);
     }
 }
