@@ -27,7 +27,9 @@
 
 <template>
     <div class="executive-history-step">
-        <task-status ref="taskStatus" @on-init="handleTaskInit">
+        <task-status
+            ref="taskStatus"
+            @on-init="handleTaskInit">
             <rolling-batch
                 v-if="data.isRollingTask"
                 :value="params.batch"
