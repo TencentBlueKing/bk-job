@@ -248,14 +248,14 @@ export const listColumnsCache = {
 export const debugScriptCache = {
     key: 'debug_script',
     setItem (value) {
-        localStorage.setItem(debugScriptCache.key, value);
+        localStorage.setItem(debugScriptCache.key, JSON.stringify(value));
     },
     getItem () {
-        const scriptContent = localStorage.getItem(debugScriptCache.key);
-        if (!scriptContent) {
-            return '';
+        const scriptInfo = JSON.parse(localStorage.getItem(debugScriptCache.key));
+        if (!_.isPlainObject(scriptInfo)) {
+            return null;
         }
-        return scriptContent;
+        return scriptInfo;
     },
     clearItem () {
         localStorage.removeItem(debugScriptCache.key);
