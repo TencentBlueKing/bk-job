@@ -24,10 +24,7 @@ spec:
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
   {{- end }}
   {{- if .Values.job.ingress.https.enabled }}
-  tls:
-  - hosts:
-      - {{ .Values.job.web.apiDomain }}
-    secretName: {{ include "common.names.fullname" . }}-ingress-tls
+  {{- include "job.ingress.gateway.tls" . | nindent 2 }}
   {{- end }}
   rules:
   {{- if .Values.job.web.apiDomain }}
