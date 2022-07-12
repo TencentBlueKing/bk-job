@@ -703,26 +703,36 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
                 continue;
             }
-            if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getStaticIpList())) {
-                stepInstance.getTargetServers().getStaticIpList()
-                    .forEach(host -> fillHostDetail(host, hostMap));
-            }
-            if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getIpList())) {
-                stepInstance.getTargetServers().getIpList()
-                    .forEach(host -> fillHostDetail(host, hostMap));
-            }
-            if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
-                List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-                if (fileSourceList != null) {
-                    for (FileSourceDTO fileSource : fileSourceList) {
-                        ServersDTO servers = fileSource.getServers();
-                        if (servers != null) {
-                            if (CollectionUtils.isNotEmpty(servers.getStaticIpList())) {
-                                servers.getStaticIpList().forEach(host -> fillHostDetail(host, hostMap));
-                            }
-                            if (CollectionUtils.isNotEmpty(servers.getIpList())) {
-                                servers.getIpList().forEach(host -> fillHostDetail(host, hostMap));
-                            }
+            // 目标主机设置主机详情
+            fillTargetHostDetail(stepInstance, hostMap);
+            // 文件源设置主机详情
+            fillFileSourceHostDetail(stepInstance, hostMap);
+        }
+    }
+
+    private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
+        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getStaticIpList())) {
+            stepInstance.getTargetServers().getStaticIpList()
+                .forEach(host -> fillHostDetail(host, hostMap));
+        }
+        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getIpList())) {
+            stepInstance.getTargetServers().getIpList()
+                .forEach(host -> fillHostDetail(host, hostMap));
+        }
+    }
+
+    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
+        if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
+            List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+            if (fileSourceList != null) {
+                for (FileSourceDTO fileSource : fileSourceList) {
+                    ServersDTO servers = fileSource.getServers();
+                    if (servers != null) {
+                        if (CollectionUtils.isNotEmpty(servers.getStaticIpList())) {
+                            servers.getStaticIpList().forEach(host -> fillHostDetail(host, hostMap));
+                        }
+                        if (CollectionUtils.isNotEmpty(servers.getIpList())) {
+                            servers.getIpList().forEach(host -> fillHostDetail(host, hostMap));
                         }
                     }
                 }
