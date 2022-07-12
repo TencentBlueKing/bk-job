@@ -180,12 +180,16 @@
         created () {
             this.list = Object.freeze(this.data.rollingTasks);
             this.selectBatch = this.data.runningBatchOrder;
-            this.isAutoSelectRunningBatch = true;
+            this.isAutoSelectRunningBatch = false;
         },
         mounted () {
             this.initRender();
             setTimeout(() => {
-                this.handleLocalChange(this.data.runningBatchOrder);
+                // url 上面有 batch 参数
+                const defaultBatch = parseInt(this.$route.query.batch, 10) < 0
+                    ? this.data.runningBatchOrder
+                    : parseInt(this.$route.query.batch, 10);
+                this.handleLocalChange(defaultBatch);
                 this.isAutoSelectRunningBatch = true;
             }, 300);
             const resizeHandler = _.throttle(() => {
