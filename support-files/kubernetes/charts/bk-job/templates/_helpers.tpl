@@ -511,3 +511,18 @@ Return the Job Storage Env Content
 - name: BK_JOB_STORAGE_LOCAL_DIR
   value: {{ .Values.persistence.localStorage.path }}/local
 {{- end -}}
+
+{{/*
+Return the Job Ingress Frontend TLS Config
+*/}}
+{{- define "job.ingress.frontend.tls" -}}
+{{- if .Values.frontendConfig.ingress.tls -}}
+tls: {{- include "common.tplvalues.render" ( dict "value" .Values.frontendConfig.ingress.tls "context" $) -}}
+{{- else -}}
+tls:
+- hosts:
+    - {{ .Values.job.web.domain }}
+  secretName: {{ include "common.names.fullname" . }}-ingress-tls
+{{- end -}}
+{{- end -}}
+
