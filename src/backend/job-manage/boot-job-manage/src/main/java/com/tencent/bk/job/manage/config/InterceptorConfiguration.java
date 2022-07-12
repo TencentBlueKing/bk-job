@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
 import com.tencent.bk.job.common.iam.interceptor.JobIamInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
-import com.tencent.bk.job.common.web.interceptor.JobApiMetricInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import com.tencent.bk.job.manage.common.interceptor.UriPermissionInterceptor;
@@ -44,7 +43,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
-    private final JobApiMetricInterceptor jobApiMetricInterceptor;
     private final AuthAppInterceptor authAppInterceptor;
     private final UriPermissionInterceptor uriPermissionInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
@@ -55,7 +53,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     @Autowired
     public InterceptorConfiguration(
         JobCommonInterceptor jobCommonInterceptor,
-        JobApiMetricInterceptor jobApiMetricInterceptor,
         AuthAppInterceptor authAppInterceptor,
         UriPermissionInterceptor uriPermissionInterceptor,
         EsbApiLogInterceptor esbApiLogInterceptor,
@@ -64,7 +61,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         JobIamInterceptor iamInterceptor
     ) {
         this.jobCommonInterceptor = jobCommonInterceptor;
-        this.jobApiMetricInterceptor = jobApiMetricInterceptor;
         this.authAppInterceptor = authAppInterceptor;
         this.uriPermissionInterceptor = uriPermissionInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
@@ -77,7 +73,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册拦截器
         registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(0);
-        registry.addInterceptor(jobApiMetricInterceptor).addPathPatterns("/**").order(10);
         registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(20);
         registry.addInterceptor(uriPermissionInterceptor)
             .addPathPatterns(

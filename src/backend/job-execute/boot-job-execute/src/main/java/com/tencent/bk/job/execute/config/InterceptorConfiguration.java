@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.config;
 import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
-import com.tencent.bk.job.common.web.interceptor.JobApiMetricInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import com.tencent.bk.job.execute.common.interceptor.UriPermissionInterceptor;
@@ -39,7 +38,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
-    private final JobApiMetricInterceptor jobApiMetricInterceptor;
     private final JobCommonInterceptor jobCommonInterceptor;
     private final UriPermissionInterceptor uriPermissionInterceptor;
     private final AuthAppInterceptor authAppInterceptor;
@@ -49,14 +47,12 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
 
     @Autowired
     public InterceptorConfiguration(
-        JobApiMetricInterceptor jobApiMetricInterceptor,
         JobCommonInterceptor jobCommonInterceptor,
         AuthAppInterceptor authAppInterceptor,
         UriPermissionInterceptor uriPermissionInterceptor, EsbApiLogInterceptor esbApiLogInterceptor,
         ServiceSecurityInterceptor serviceSecurityInterceptor,
         EsbReqRewriteInterceptor esbReqRewriteInterceptor
     ) {
-        this.jobApiMetricInterceptor = jobApiMetricInterceptor;
         this.jobCommonInterceptor = jobCommonInterceptor;
         this.uriPermissionInterceptor = uriPermissionInterceptor;
         this.authAppInterceptor = authAppInterceptor;
@@ -70,8 +66,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         // 注册拦截器
         // 最高优先级：初始化JobContext
         registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(0);
-        // 需要借助JobContext存储metrics数据
-        registry.addInterceptor(jobApiMetricInterceptor).addPathPatterns("/**").order(10);
         registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(20);
         registry.addInterceptor(uriPermissionInterceptor)
             .addPathPatterns(
