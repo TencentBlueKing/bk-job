@@ -189,7 +189,7 @@ public class ErrorCode {
     // 主机为空
     public static final int SERVER_EMPTY = 1244001;
     // 主机[{0}]无效，请检查源或目标主机是否存在于配置平台；另外，主机跨业务需要联系作业平台管理员先将其添加到IP白名单。
-    public static final int SERVER_UNREGISTERED = 1244002;
+    public static final int HOST_INVALID = 1244002;
     // 账号不存在
     public static final int ACCOUNT_NOT_EXIST = 1244003;
     // 没有该账号的权限
