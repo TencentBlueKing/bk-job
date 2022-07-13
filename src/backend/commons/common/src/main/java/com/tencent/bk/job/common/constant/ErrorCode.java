@@ -188,7 +188,7 @@ public class ErrorCode {
     // 作业执行 start
     // 主机为空
     public static final int SERVER_EMPTY = 1244001;
-    // 主机未注册:{}
+    // 主机不在目标业务下:{0}，若需要跨业务使用请联系运营人员添加到Job白名单，除目标主机外，还可能来源于文件分发步骤中的源文件服务器，请检查
     public static final int SERVER_UNREGISTERED = 1244002;
     // 账号不存在
     public static final int ACCOUNT_NOT_EXIST = 1244003;
