@@ -979,7 +979,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
 
         List<StepExecutionRecordDTO> records;
-        if (batch == null) {
+        if (batch == null || batch == 0) {
             // 获取步骤维度的重试记录
             records = queryStepRetryRecords(stepInstance);
         } else {

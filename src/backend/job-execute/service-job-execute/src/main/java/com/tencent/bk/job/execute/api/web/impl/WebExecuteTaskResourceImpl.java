@@ -526,15 +526,16 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         }
         List<FileSourceDTO> fileSourceDTOS = new ArrayList<>();
         fileSources.forEach(fileSource -> {
+            TaskFileTypeEnum fileType = TaskFileTypeEnum.valueOf(fileSource.getFileType());
             FileSourceDTO fileSourceDTO = new FileSourceDTO();
             fileSourceDTO.setAccountId(fileSource.getAccountId());
-            fileSourceDTO.setLocalUpload(TaskFileTypeEnum.LOCAL.getType() == fileSource.getFileType());
-            fileSourceDTO.setFileType(fileSource.getFileType());
+            fileSourceDTO.setLocalUpload(TaskFileTypeEnum.LOCAL == fileType);
+            fileSourceDTO.setFileType(fileType.getType());
             fileSourceDTO.setFileSourceId(fileSource.getFileSourceId());
             List<FileDetailDTO> files = new ArrayList<>();
             if (fileSource.getFileLocation() != null) {
                 for (String file : fileSource.getFileLocation()) {
-                    if (TaskFileTypeEnum.LOCAL.getType() == fileSource.getFileType()) {
+                    if (TaskFileTypeEnum.LOCAL == fileType) {
                         files.add(new FileDetailDTO(true, file, fileSource.getFileHash(),
                             Long.valueOf(fileSource.getFileSize())));
                     } else {
@@ -544,7 +545,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 }
             }
             fileSourceDTO.setFiles(files);
-            fileSourceDTO.setServers(convertToServersDTO(fileSource.getHost()));
+            if (fileType == TaskFileTypeEnum.SERVER) {
+                // 服务器文件分发才需要解析主机参数
+                fileSourceDTO.setServers(convertToServersDTO(fileSource.getHost()));
+            }
             fileSourceDTOS.add(fileSourceDTO);
         });
         return fileSourceDTOS;
