@@ -137,8 +137,8 @@ public class EsbFastTransferFileV3ResourceImpl
     private ValidateResult checkFileSource(EsbFileSourceV3DTO fileSource) {
         Integer fileType = fileSource.getFileType();
         // fileType是后加的字段，为null则默认为服务器文件不校验
-        if (TaskFileTypeEnum.isValid(fileType)) {
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source.file_type");
+        if (fileType != null && !TaskFileTypeEnum.isValid(fileType)) {
+            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "file_source.file_type");
         }
         List<String> files = fileSource.getFiles();
         if (files == null || files.isEmpty()) {
