@@ -33,43 +33,39 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface RecordTaskStart {
+public @interface CustomTimed {
     /**
-     * Name of the Timer metric.
-     *
-     * @return name of the Timer metric
+     * 指标名称
      */
-    String value() default "";
+    String metricName() default "";
 
     /**
-     * List of key-value pair arguments to supply the Timer as extra tags.
-     *
-     * @return key-value pair of tags
-     * @see io.micrometer.core.instrument.Timer.Builder#tags(String...)
+     * 额外标签
      */
     String[] extraTags() default {};
+
     /**
-     * List of percentiles to calculate client-side for the {@link io.micrometer.core.instrument.Timer}.
-     * For example, the 95th percentile should be passed as {@code 0.95}.
-     *
-     * @return percentiles to calculate
-     * @see io.micrometer.core.instrument.Timer.Builder#publishPercentiles(double...)
+     * 分位数
      */
     double[] percentiles() default {};
 
     /**
-     * Whether to enable recording of a percentile histogram for the {@link io.micrometer.core.instrument.Timer Timer}.
-     *
-     * @return whether percentile histogram is enabled
-     * @see io.micrometer.core.instrument.Timer.Builder#publishPercentileHistogram(Boolean)
+     * 是否公开指标直方图数据
      */
     boolean histogram() default true;
 
     /**
-     * Description of the {@link io.micrometer.core.instrument.Timer}.
-     *
-     * @return meter description
-     * @see io.micrometer.core.instrument.Timer.Builder#description(String)
+     * 直方图数据的最小期望时长，单位：ms
+     */
+    long minExpectedMillis() default 10L;
+
+    /**
+     * 直方图数据的最大期望时长，单位：ms
+     */
+    long maxExpectedMillis() default 60_000L;
+
+    /**
+     * 指标描述信息
      */
     String description() default "";
 }

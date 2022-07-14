@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.web.metrics.RecordTaskStart;
+import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -82,7 +82,7 @@ public class EsbPushConfigFileResourceV3Impl
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_push_config_file"})
-    @RecordTaskStart(value = CommonMetricNames.JOB_TASK_START,
+    @CustomTimed(metricName = CommonMetricNames.JOB_TASK_START,
         extraTags = {
             CommonMetricTags.KEY_START_MODE, CommonMetricTags.VALUE_START_MODE_API,
             CommonMetricTags.KEY_TASK_TYPE, CommonMetricTags.VALUE_TASK_TYPE_FAST_CONFIG_FILE

@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.web.metrics.RecordTaskStart;
+import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
@@ -71,7 +71,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_execute_job_plan"})
-    @RecordTaskStart(value = CommonMetricNames.JOB_TASK_START,
+    @CustomTimed(metricName = CommonMetricNames.JOB_TASK_START,
         extraTags = {
             CommonMetricTags.KEY_START_MODE, CommonMetricTags.VALUE_START_MODE_API,
             CommonMetricTags.KEY_TASK_TYPE, CommonMetricTags.VALUE_TASK_TYPE_EXECUTE_PLAN

@@ -39,7 +39,7 @@ import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.web.metrics.RecordTaskStart;
+import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.web.WebExecuteTaskResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -102,7 +102,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    @RecordTaskStart(value = CommonMetricNames.JOB_TASK_START,
+    @CustomTimed(metricName = CommonMetricNames.JOB_TASK_START,
         extraTags = {
             CommonMetricTags.KEY_START_MODE, CommonMetricTags.VALUE_START_MODE_WEB,
             CommonMetricTags.KEY_TASK_TYPE, CommonMetricTags.VALUE_TASK_TYPE_EXECUTE_PLAN
@@ -220,7 +220,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    @RecordTaskStart(value = CommonMetricNames.JOB_TASK_START,
+    @CustomTimed(metricName = CommonMetricNames.JOB_TASK_START,
         extraTags = {
             CommonMetricTags.KEY_START_MODE, CommonMetricTags.VALUE_START_MODE_WEB,
             CommonMetricTags.KEY_TASK_TYPE, CommonMetricTags.VALUE_TASK_TYPE_FAST_SCRIPT
@@ -355,7 +355,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    @RecordTaskStart(value = CommonMetricNames.JOB_TASK_START,
+    @CustomTimed(metricName = CommonMetricNames.JOB_TASK_START,
         extraTags = {
             CommonMetricTags.KEY_START_MODE, CommonMetricTags.VALUE_START_MODE_WEB,
             CommonMetricTags.KEY_TASK_TYPE, CommonMetricTags.VALUE_TASK_TYPE_FAST_FILE

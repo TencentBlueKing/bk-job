@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
-import com.tencent.bk.job.common.web.metrics.RecordTaskStart;
+import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
@@ -72,7 +72,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
     }
 
     @Override
-    @RecordTaskStart(value = CommonMetricNames.JOB_TASK_START,
+    @CustomTimed(metricName = CommonMetricNames.JOB_TASK_START,
         extraTags = {
             CommonMetricTags.KEY_START_MODE, CommonMetricTags.VALUE_START_MODE_CRON,
             CommonMetricTags.KEY_TASK_TYPE, CommonMetricTags.VALUE_TASK_TYPE_EXECUTE_PLAN
