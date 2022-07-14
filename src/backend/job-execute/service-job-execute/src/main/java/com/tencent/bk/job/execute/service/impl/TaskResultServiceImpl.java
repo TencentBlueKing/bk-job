@@ -351,7 +351,6 @@ public class TaskResultServiceImpl implements TaskResultService {
                 (StringUtils.isEmpty(tag) ? StringUtils.isEmpty(resultGroup.getTag()) :
                     tag.equals(resultGroup.getTag())))) {
                 resultGroup.setAgentTasks(agentTasksForResultType);
-                resultGroup.setTotalAgentTasks(agentTasksForResultType.size());
             }
         }
     }
@@ -385,7 +384,6 @@ public class TaskResultServiceImpl implements TaskResultService {
             return false;
         }
         resultGroup.setAgentTasks(agentTasks);
-        resultGroup.setTotalAgentTasks(agentTasks.size());
         return true;
     }
 
