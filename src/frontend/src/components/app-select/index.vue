@@ -33,7 +33,7 @@
                 <input
                     class="app-name"
                     readonly
-                    :value="scopeName"
+                    :value="`${scopeName} (${scopeId})`"
                     @keydown.down.prevent="handleStep('next')"
                     @keydown.up.prevent="handleStep('prev')"
                     @keydown.enter.prevent="handleSelect">
@@ -73,7 +73,7 @@
                                 @click="handleAppChange(app)">
                                 <div class="app-wrapper">
                                     <span class="app-name">{{ app.name }}</span>
-                                    <span class="app-id">(#{{ app.scopeId }})</span>
+                                    <span class="app-id">({{ app.scopeId }})</span>
                                 </div>
                                 <div class="app-collection">
                                     <Icon
