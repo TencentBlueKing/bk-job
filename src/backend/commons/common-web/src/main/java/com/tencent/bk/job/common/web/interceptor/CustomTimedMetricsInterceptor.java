@@ -67,6 +67,21 @@ public class CustomTimedMetricsInterceptor implements HandlerInterceptor {
         Method method = handlerMethod.getMethod();
         // 注解提取
         CustomTimed customTimedAnnotation = method.getAnnotation(CustomTimed.class);
+        if (customTimedAnnotation == null) {
+            return;
+        }
+        try {
+            recordCustomTimedMetrics(customTimedAnnotation, request, response, handlerMethod, ex);
+        } catch (Exception e) {
+            log.warn("Fail to recordCustomTimedMetrics", e);
+        }
+    }
+
+    private void recordCustomTimedMetrics(CustomTimed customTimedAnnotation,
+                                          HttpServletRequest request,
+                                          HttpServletResponse response,
+                                          HandlerMethod handlerMethod,
+                                          Exception ex) {
         final String metricName = customTimedAnnotation.metricName();
         // 标签获取
         Iterable<Tag> tags = customTimedTagsProvider.getTags(metricName, request, response, handlerMethod, ex);
