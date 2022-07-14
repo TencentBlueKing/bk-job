@@ -9,6 +9,7 @@ import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.HostService;
@@ -157,6 +158,19 @@ public class ScriptAgentTaskServiceImpl
         resultGroups = groupAgentTasks(agentTaskDetailList);
 
         return resultGroups.stream().sorted().collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId,
+                                                              int executeCount,
+                                                              Integer batch) {
+        List<AgentTaskResultGroupBaseDTO> resultGroups;
+        resultGroups = scriptAgentTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
+        if (CollectionUtils.isEmpty(resultGroups)) {
+            // 兼容历史数据
+            resultGroups = gseTaskIpLogDAO.listResultGroups(stepInstanceId, executeCount);
+        }
+        return resultGroups;
     }
 
     @Override

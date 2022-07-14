@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 
@@ -93,6 +94,18 @@ public interface AgentTaskService {
     List<AgentTaskResultGroupDTO> listAndGroupAgentTasks(StepInstanceBaseDTO stepInstance,
                                                          int executeCount,
                                                          Integer batch);
+
+    /**
+     * 获取任务结果分组
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param batch          滚动执行批次；传入null或者0将忽略该参数
+     * @return Agent任务
+     */
+    List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId,
+                                                       int executeCount,
+                                                       Integer batch);
 
     /**
      * 根据执行结果查询Agent任务详情(排序、限制返回数量) - 包含主机详情

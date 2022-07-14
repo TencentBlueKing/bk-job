@@ -48,6 +48,7 @@ import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
@@ -551,7 +552,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
             watch.start("loadAllTasksFromDbAndGroup");
             List<AgentTaskResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance,
-                query.getStepInstanceId(), query.getExecuteCount(), query.getBatch());
+                query.getExecuteCount(), query.getBatch());
 
             if (CollectionUtils.isNotEmpty(query.getMatchHostIds())) {
                 filterAgentTasksByMatchIp(resultGroups, query.getMatchHostIds());
@@ -579,7 +580,6 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private List<AgentTaskResultGroupDTO> listAndGroupAgentTasks(StepInstanceBaseDTO stepInstance,
-                                                                 long stepInstanceId,
                                                                  int executeCount,
                                                                  Integer batch) {
         List<AgentTaskResultGroupDTO> resultGroups = null;
@@ -671,7 +671,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private StepExecutionDetailDTO buildExecutionDetailWhenTaskAreEmpty(StepInstanceBaseDTO stepInstance,
                                                                         Integer batch) {
-        List<AgentTaskResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance, stepInstance.getId(),
+        List<AgentTaskResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance,
             stepInstance.getExecuteCount(), batch);
         StepExecutionDetailDTO executeDetail = new StepExecutionDetailDTO(stepInstance);
         executeDetail.setResultGroups(resultGroups);
@@ -713,7 +713,6 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                                     StepInstanceBaseDTO stepInstance,
                                                                     StepExecutionResultQuery query) {
         query.transformOrderFieldToDbField();
-        long stepInstanceId = query.getStepInstanceId();
         int queryExecuteCount = query.getExecuteCount();
         Integer status = query.getStatus();
         String tag = query.getTag();
@@ -722,11 +721,14 @@ public class TaskResultServiceImpl implements TaskResultService {
         executeDetail.setExecuteCount(queryExecuteCount);
 
         watch.start("getBaseResultGroups");
-        List<AgentTaskResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance, stepInstanceId,
+        List<AgentTaskResultGroupBaseDTO> baseResultGroups = listBaseResultGroups(stepInstance,
             queryExecuteCount, query.getBatch());
         watch.stop();
 
         watch.start("setAgentTasks");
+        List<AgentTaskResultGroupDTO> resultGroups = baseResultGroups.stream()
+            .map(AgentTaskResultGroupDTO::new)
+            .collect(Collectors.toList());
         if (status != null) {
             List<AgentTaskDetailDTO> tasks = listAgentTaskByResultGroup(stepInstance, queryExecuteCount,
                 query.getBatch(), status, tag, query.getMaxAgentTasksForResultGroup(), query.getOrderField(),
@@ -746,6 +748,18 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         executeDetail.setResultGroups(resultGroups);
         return executeDetail;
+    }
+
+    private List<AgentTaskResultGroupBaseDTO> listBaseResultGroups(StepInstanceBaseDTO stepInstance,
+                                                                   int executeCount,
+                                                                   Integer batch) {
+        List<AgentTaskResultGroupBaseDTO> resultGroups = null;
+        if (stepInstance.isScriptStep()) {
+            resultGroups = scriptAgentTaskService.listResultGroups(stepInstance.getId(), executeCount, batch);
+        } else if (stepInstance.isFileStep()) {
+            resultGroups = fileAgentTaskService.listResultGroups(stepInstance.getId(), executeCount, batch);
+        }
+        return resultGroups;
     }
 
     private List<AgentTaskDetailDTO> listAgentTaskByResultGroup(StepInstanceBaseDTO stepInstance,
