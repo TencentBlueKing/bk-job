@@ -37,17 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class ApiTypeTagsContributor implements WebMvcTagsContributor {
 
-    private String parseApiTypeFromUri(String uri) {
-        if (!uri.startsWith("/")) {
-            uri = "/" + uri;
-        }
-        int secondSlashIndex = uri.indexOf("/", 1);
-        if (secondSlashIndex > 1) {
-            return uri.substring(1, secondSlashIndex);
-        }
-        return CommonMetricTags.VALUE_API_TYPE_UNKNOWN;
-    }
-
     @Override
     public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler,
                                  Throwable exception) {
@@ -59,5 +48,16 @@ public class ApiTypeTagsContributor implements WebMvcTagsContributor {
     public Iterable<Tag> getLongRequestTags(HttpServletRequest request, Object handler) {
         Tag uriTag = WebMvcTags.uri(request, null);
         return Tags.of(CommonMetricTags.KEY_API_TYPE, parseApiTypeFromUri(uriTag.getValue()));
+    }
+
+    private String parseApiTypeFromUri(String uri) {
+        if (!uri.startsWith("/")) {
+            uri = "/" + uri;
+        }
+        int secondSlashIndex = uri.indexOf("/", 1);
+        if (secondSlashIndex > 1) {
+            return uri.substring(1, secondSlashIndex);
+        }
+        return CommonMetricTags.VALUE_API_TYPE_UNKNOWN;
     }
 }
