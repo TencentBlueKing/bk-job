@@ -348,6 +348,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                     JobContextUtil.getAppResourceScope(),
                     JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                     request.getRequestURI(), ex);
+                log.error("After completion exception", ex);
             } else {
                 log.debug("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
                     JobContextUtil.getAppResourceScope(),
