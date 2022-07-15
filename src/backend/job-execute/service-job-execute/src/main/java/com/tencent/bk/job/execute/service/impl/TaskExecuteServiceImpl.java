@@ -1307,7 +1307,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             UserOperationEnum.START));
 
         // 启动作业
-        startTask(taskInstanceId);
+        startTask(taskInstance.getId());
 
         return taskInstance;
     }
