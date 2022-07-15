@@ -127,15 +127,15 @@ public class StatisticsTaskScheduler {
         this.clearExpiredStatisticsTask = clearExpiredStatisticsTask;
         meterRegistry.gauge(
             StatisticsConstants.NAME_STATISTICS_TASK_SCHEDULE_POOL_SIZE,
-            Collections.singletonList(Tag.of(StatisticsConstants.TAG_MODULE,
-                StatisticsConstants.VALUE_MODULE_STATISTICS_TASK)),
+            Collections.singletonList(Tag.of(StatisticsConstants.TAG_KEY_MODULE,
+                StatisticsConstants.TAG_VALUE_MODULE_STATISTICS_TASK)),
             currentStatisticsTaskExecutor,
             ThreadPoolExecutor::getPoolSize
         );
         meterRegistry.gauge(
             StatisticsConstants.NAME_STATISTICS_TASK_SCHEDULE_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(StatisticsConstants.TAG_MODULE,
-                StatisticsConstants.VALUE_MODULE_STATISTICS_TASK)),
+            Collections.singletonList(Tag.of(StatisticsConstants.TAG_KEY_MODULE,
+                StatisticsConstants.TAG_VALUE_MODULE_STATISTICS_TASK)),
             currentStatisticsTaskExecutor,
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );

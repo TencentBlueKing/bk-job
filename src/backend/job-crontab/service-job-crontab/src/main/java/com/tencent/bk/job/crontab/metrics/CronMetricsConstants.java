@@ -25,7 +25,6 @@
 package com.tencent.bk.job.crontab.metrics;
 
 public class CronMetricsConstants {
-    // metric name
     /**
      * Quartz工作线程池线程数
      */
@@ -39,9 +38,7 @@ public class CronMetricsConstants {
      */
     public static final String NAME_JOB_CRON_SCHEDULE_DELAY = "job.cron.schedule.delay";
 
-    // tag
-    public static final String TAG_MODULE = "module";
+    public static final String TAG_KEY_MODULE = "module";
 
-    // value
-    public static final String VALUE_MODULE_CRON = "cron";
+    public static final String TAG_VALUE_MODULE_CRON = "cron";
 }

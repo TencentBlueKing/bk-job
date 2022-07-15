@@ -195,13 +195,13 @@ public class NotifyServiceImpl implements NotifyService {
         this.jobManageConfig = jobManageConfig;
         meterRegistry.gauge(
             MetricsConstants.NAME_NOTIFY_POOL_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_NOTIFY)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
             notificationThreadPoolExecutor,
             ThreadPoolExecutor::getPoolSize
         );
         meterRegistry.gauge(
             MetricsConstants.NAME_NOTIFY_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_NOTIFY)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
             notificationThreadPoolExecutor,
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );
