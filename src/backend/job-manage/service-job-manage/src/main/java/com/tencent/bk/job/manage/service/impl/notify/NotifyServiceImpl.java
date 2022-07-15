@@ -579,6 +579,29 @@ public class NotifyServiceImpl implements NotifyService {
         return channelSet.size();
     }
 
+    private Set<String> findJobResourceOwners(Integer resourceType, String resourceIdStr) {
+        Set<String> userSet = new HashSet<>();
+        if (resourceType == ResourceTypeEnum.SCRIPT.getType()) {
+            userSet.add(scriptDAO.getScriptByScriptId(resourceIdStr).getLastModifyUser());
+        } else if (resourceType == ResourceTypeEnum.JOB.getType()) {
+            long resourceId = Long.parseLong(resourceIdStr);
+            userSet.add(taskPlanDAO.getTaskPlanById(resourceId).getLastModifyUser());
+        } else {
+            logger.warn("Unknown resourceType:{}", resourceType);
+        }
+        return userSet;
+    }
+
+    private Set<String> findCmdbRoleUsers(Long appId, String role) {
+        // CMDB中的业务角色，获取角色对应人员
+        try {
+            return roleService.listAppUsersByRole(appId, role);
+        } catch (Exception e) {
+            logger.error(String.format("Fail to fetch role users:(%d,%s)", appId, role), e);
+        }
+        return Collections.emptySet();
+    }
+
     @Override
     public Set<String> findUserByResourceRoles(Long appId, String triggerUser, Integer resourceType,
                                                String resourceIdStr, Set<String> roleSet) {
@@ -586,37 +609,13 @@ public class NotifyServiceImpl implements NotifyService {
         Set<String> userSet = new HashSet<>();
         for (String role : roleSet) {
             if (role.equals(JobRoleEnum.JOB_RESOURCE_OWNER.name())) {
-                if (resourceType == ResourceTypeEnum.SCRIPT.getType()) {
-                    userSet.add(scriptDAO.getScriptByScriptId(resourceIdStr).getLastModifyUser());
-                } else if (resourceType == ResourceTypeEnum.JOB.getType()) {
-                    long resourceId = -1L;
-                    try {
-                        resourceId = Long.parseLong(resourceIdStr);
-                    } catch (Exception e) {
-                        logger.warn("fail to parse resourceId to long", e);
-                    }
-                    if (resourceId > 0) {
-                        userSet.add(
-                            taskPlanDAO.getTaskPlanById(appId, -1L, resourceId, TaskPlanTypeEnum.NORMAL)
-                                .getLastModifyUser()
-                        );
-                    }
-                } else {
-                    logger.warn("Unknown resourceType:{}", resourceType);
-                }
+                userSet.addAll(findJobResourceOwners(resourceType, resourceIdStr));
             } else if (role.equals(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name())) {
-                if (!StringUtils.isBlank(triggerUser)) {
-                    userSet.add(triggerUser);
-                }
+                userSet.add(triggerUser);
             } else if (role.equals(JobRoleEnum.JOB_EXTRA_OBSERVER.name())) {
                 log.debug("ignore extra observers role");
             } else {
-                // CMDB中的业务角色，获取角色对应人员
-                try {
-                    userSet.addAll(roleService.listAppUsersByRole(appId, role));
-                } catch (Exception e) {
-                    logger.error(String.format("Fail to fetch role users:(%d,%s)", appId, role), e);
-                }
+                userSet.addAll(findCmdbRoleUsers(appId, role));
             }
         }
         return userSet;
