@@ -260,16 +260,7 @@ public class StatisticsTaskScheduler {
         int count = 0;
         int maxPreviousDays = 1000;
         while (targetDate.compareTo(startDate) >= 0 && count < maxPreviousDays) {
-            for (String taskName : taskNameList) {
-                if (statisticsTaskMap.containsKey(taskName)) {
-                    IStatisticsTask task = statisticsTaskMap.get(taskName);
-                    log.info("OP Start {} of {}", taskName, targetDate);
-                    pastStatisticsMakeupTask.startTask(task, targetDate);
-                    startedTaskNames.add(taskName);
-                } else {
-                    log.warn("Cannot find task:{}", taskName);
-                }
-            }
+            startByTaskNameList(taskNameList, targetDate, startedTaskNames);
             targetDate = targetDate.minusDays(1);
             count += 1;
         }
@@ -277,6 +268,21 @@ public class StatisticsTaskScheduler {
             log.warn("Unexpected OP operations:startTasks for over {} days, plz check", maxPreviousDays);
         }
         return startedTaskNames;
+    }
+
+    private void startByTaskNameList(List<String> taskNameList,
+                                     LocalDateTime targetDate,
+                                     List<String> startedTaskNames) {
+        for (String taskName : taskNameList) {
+            if (statisticsTaskMap.containsKey(taskName)) {
+                IStatisticsTask task = statisticsTaskMap.get(taskName);
+                log.info("OP Start {} of {}", taskName, targetDate);
+                pastStatisticsMakeupTask.startTask(task, targetDate);
+                startedTaskNames.add(taskName);
+            } else {
+                log.warn("Cannot find task:{}", taskName);
+            }
+        }
     }
 
     /**
@@ -374,20 +380,17 @@ public class StatisticsTaskScheduler {
         }).start();
     }
 
-    /**
-     * 调度运行统计任务
-     */
-    public void schedule() {
+    private boolean needToRunStatisticTasks() {
         if (!statisticConfig.getEnable()) {
             log.info("StatisticsTaskScheduler not enabled, you can enable it by set job.analysis.statistics" +
                 ".enable=true in config file and restart process");
-            return;
+            return false;
         }
         if (currentCycleHours % statisticConfig.getIntervalHours() != 0) {
             log.info("Skip, currentCycleHours={}, every {} hours execute one statisticTask", currentCycleHours,
                 statisticConfig.getIntervalHours());
             currentCycleHours += 1;
-            return;
+            return false;
         } else {
             log.info("Hit, currentCycleHours={}, every {} hours execute one statisticTask", currentCycleHours,
                 statisticConfig.getIntervalHours());
@@ -398,12 +401,22 @@ public class StatisticsTaskScheduler {
         boolean lockGotten = LockUtils.tryGetDistributedLock(REDIS_KEY_STATISTIC_JOB_LOCK, machineIp, 50);
         if (!lockGotten) {
             log.info("lock {} gotten by another machine, return", REDIS_KEY_STATISTIC_JOB_LOCK);
-            return;
+            return false;
         }
         String runningMachine = redisTemplate.opsForValue().get(REDIS_KEY_STATISTIC_JOB_RUNNING_MACHINE);
         if (StringUtils.isNotBlank(runningMachine)) {
             //已有同步线程在跑，不再同步
             log.info("StatisticsTaskScheduler thread already running on {}", runningMachine);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 调度运行统计任务
+     */
+    public void schedule() {
+        if (!needToRunStatisticTasks()) {
             return;
         }
         // 开一个心跳子线程，维护当前机器正在执行后台统计任务的状态
