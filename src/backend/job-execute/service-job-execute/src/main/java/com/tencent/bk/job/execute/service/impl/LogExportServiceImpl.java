@@ -125,7 +125,7 @@ public class LogExportServiceImpl implements LogExportService {
         }
         saveExportInfo(exportJobInfo);
 
-        boolean isGetByHost = hostId != null;
+        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(ip);
 
         if (isGetByHost) {
             doPackage(exportJobInfo, stepInstanceId, hostId, ip, executeCount, logFileDir, logFileName);
@@ -190,7 +190,7 @@ public class LogExportServiceImpl implements LogExportService {
     private void doPackage(LogExportJobInfoDTO exportJobInfo, long stepInstanceId, Long hostId,
                            String ip, int executeCount, String logFileDir, String logFileName) {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        boolean isGetByHost = hostId != null;
+        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(ip);
         File logFile = new File(logFileDir + logFileName);
 
         StopWatch watch = new StopWatch("exportJobLog");
