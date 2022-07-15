@@ -344,10 +344,10 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                 log.warn("status {} given by {}", response.getStatus(), handler);
             }
             if (ex != null) {
-                log.error("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
+                log.error("After completion|{}|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
                     JobContextUtil.getAppResourceScope(),
                     JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
-                    request.getRequestURI(), ex);
+                    request.getRequestURI(), ex.getMessage());
             } else {
                 log.debug("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
                     JobContextUtil.getAppResourceScope(),

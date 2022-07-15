@@ -76,7 +76,7 @@ public interface WebTaskLogResource {
             Long hostId,
         @ApiParam(value = "ip", name = "ip")
         @RequestParam(value = "ip", required = false)
-            String ip,
+            String cloudIp,
         @ApiParam(value = "重新打包", name = "repackage")
         @RequestParam(value = "repackage", required = false)
             Boolean repackage
@@ -106,6 +106,6 @@ public interface WebTaskLogResource {
             Long hostId,
         @ApiParam(value = "ip", name = "ip")
         @RequestParam(value = "ip", required = false)
-            String ip
+            String cloudIp
     );
 }

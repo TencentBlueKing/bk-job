@@ -46,36 +46,10 @@ import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
-import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
-import com.tencent.bk.job.execute.model.OperationLogDTO;
-import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.StepExecutionDTO;
-import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
-import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
-import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
-import com.tencent.bk.job.execute.model.TaskExecuteResultDTO;
-import com.tencent.bk.job.execute.model.TaskExecutionDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceQuery;
+import com.tencent.bk.job.execute.model.*;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.HostService;
-import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
-import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.service.TaskOperationLogService;
-import com.tencent.bk.job.execute.service.TaskResultService;
+import com.tencent.bk.job.execute.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -83,14 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.constant.Order.DESCENDING;
@@ -958,7 +925,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             return Collections.emptyList();
         }
         List<HostDTO> hosts = agentTaskGroupByResultType.stream()
-            .map(agentTask -> HostDTO.fromHostId(agentTask.getHostId()))
+            .map(AgentTaskDetailDTO::getHost)
             .collect(Collectors.toList());
         if (filterByKeyword && CollectionUtils.isNotEmpty(matchHostIds)) {
             List<HostDTO> finalHosts = new ArrayList<>();
