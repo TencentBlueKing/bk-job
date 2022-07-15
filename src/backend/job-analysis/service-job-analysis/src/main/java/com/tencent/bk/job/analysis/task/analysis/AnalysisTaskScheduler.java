@@ -68,13 +68,13 @@ public class AnalysisTaskScheduler {
     public AnalysisTaskScheduler(MeterRegistry meterRegistry) {
         meterRegistry.gauge(
             NAME_ANALYSIS_TASK_SCHEDULE_POOL_SIZE,
-            Arrays.asList(Tag.of(StatisticsConstants.TAG_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
+            Arrays.asList(Tag.of(StatisticsConstants.TAG_KEY_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
             scheduleThreadPoolExecutor,
             ThreadPoolExecutor::getPoolSize
         );
         meterRegistry.gauge(
             NAME_ANALYSIS_TASK_SCHEDULE_QUEUE_SIZE,
-            Arrays.asList(Tag.of(StatisticsConstants.TAG_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
+            Arrays.asList(Tag.of(StatisticsConstants.TAG_KEY_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
             scheduleThreadPoolExecutor,
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );

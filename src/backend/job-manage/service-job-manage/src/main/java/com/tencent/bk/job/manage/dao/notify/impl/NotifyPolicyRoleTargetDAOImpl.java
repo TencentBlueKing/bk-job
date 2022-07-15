@@ -32,6 +32,7 @@ import com.tencent.bk.job.manage.model.dto.notify.NotifyPolicyRoleTargetDTO;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.NotifyPolicyRoleTarget;
 import org.jooq.generated.tables.records.NotifyPolicyRoleTargetRecord;
 import org.jooq.types.ULong;
@@ -53,7 +54,7 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
     private static final NotifyPolicyRoleTarget T_NOTIFY_POLICY_ROLE_TARGET =
         NotifyPolicyRoleTarget.NOTIFY_POLICY_ROLE_TARGET;
     private static final NotifyPolicyRoleTarget defaultTable = T_NOTIFY_POLICY_ROLE_TARGET;
-    private NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO;
+    private final NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO;
 
     public NotifyPolicyRoleTargetDAOImpl(NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO) {
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
@@ -81,9 +82,10 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
             notifyPolicyRoleTargetDTO.getLastModifier(),
             ULong.valueOf(notifyPolicyRoleTargetDTO.getLastModifyTime())
         ).returning(T_NOTIFY_POLICY_ROLE_TARGET.ID);
-        val sql = query.getSQL(true);
+        val sql = query.getSQL(ParamType.INLINED);
         try {
             Record record = query.fetchOne();
+            assert record != null;
             return record.get(T_NOTIFY_POLICY_ROLE_TARGET.ID);
         } catch (Exception e) {
             logger.errorWithRequestId(sql);
@@ -104,13 +106,11 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
         val records = dslContext.selectFrom(defaultTable).where(
             defaultTable.POLICY_ID.eq(policyId)
         ).fetch();
-        if (null == records || records.isEmpty()) {
+        if (records.isEmpty()) {
             return 0;
         }
         //2.删从表
-        records.forEach(record -> {
-            notifyRoleTargetChannelDAO.deleteByRoleTargetId(dslContext, record.getId());
-        });
+        records.forEach(record -> notifyRoleTargetChannelDAO.deleteByRoleTargetId(dslContext, record.getId()));
         //3.删主表
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.in(records.map(NotifyPolicyRoleTargetRecord::getId))
@@ -144,21 +144,17 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
         val records = dslContext.selectFrom(T_NOTIFY_POLICY_ROLE_TARGET).where(
             T_NOTIFY_POLICY_ROLE_TARGET.POLICY_ID.eq(policyId)
         ).fetch();
-        if (null == records) {
-            return new ArrayList<>();
-        } else {
-            return new ArrayList<>(records.map(record -> new NotifyPolicyRoleTargetDTO(
-                record.getId(),
-                record.getPolicyId(),
-                record.getRole(),
-                record.getEnable(),
-                record.getExtraObservers(),
-                record.getCreator(),
-                record.getCreateTime().longValue(),
-                record.getLastModifyUser(),
-                record.getLastModifyTime().longValue()
-            )));
-        }
+        return new ArrayList<>(records.map(record -> new NotifyPolicyRoleTargetDTO(
+            record.getId(),
+            record.getPolicyId(),
+            record.getRole(),
+            record.getEnable(),
+            record.getExtraObservers(),
+            record.getCreator(),
+            record.getCreateTime().longValue(),
+            record.getLastModifyUser(),
+            record.getLastModifyTime().longValue()
+        )));
     }
 
     @Override

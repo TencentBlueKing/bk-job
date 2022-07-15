@@ -72,15 +72,15 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册拦截器
-        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(0);
-        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(1);
+        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(0);
+        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(20);
         registry.addInterceptor(uriPermissionInterceptor)
             .addPathPatterns(
                 uriPermissionInterceptor.getControlUriPatterns()
-            ).order(2);
-        registry.addInterceptor(iamInterceptor).addPathPatterns("/iam/api/v1/resources/**").order(3);
-        registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(10);
-        registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(11);
-        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(12);
+            ).order(30);
+        registry.addInterceptor(iamInterceptor).addPathPatterns("/iam/api/v1/resources/**").order(40);
+        registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(50);
+        registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(60);
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(70);
     }
 }

@@ -88,25 +88,24 @@ public class MetricsConstants {
     public static final String NAME_ACCOUNT_COUNT_APP = "account.count.app";
 
 
-    // tag
-    public static final String TAG_MODULE = "module";
-    public static final String TAG_ASPECT = "aspect";
-    public static final String TAG_RESOURCE_ID = "resourceId";
+    // tag key
+    public static final String TAG_KEY_MODULE = "module";
+    public static final String TAG_KEY_ASPECT = "aspect";
+    public static final String TAG_KEY_RESOURCE_ID = "resourceId";
 
 
-    // value
-    public static final String VALUE_MODULE_APPLICATION = "application";
-    public static final String VALUE_MODULE_HOST = "host";
-    public static final String VALUE_MODULE_RESOURCE = "resource";
-    public static final String VALUE_MODULE_TEMPLATE = "template";
-    public static final String VALUE_MODULE_TASK_PLAN = "taskPlan";
-    public static final String VALUE_MODULE_WHITE_IP = "whiteIp";
-    public static final String VALUE_MODULE_SCRIPT = "script";
-    public static final String VALUE_MODULE_ACCOUNT = "account";
-    public static final String VALUE_MODULE_NOTIFY = "notify";
-    public static final String VALUE_MODULE_CMDB = "cmdb";
-    public static final String VALUE_MODULE_ANALYSIS_TASK = "analysisTask";
-    public static final String VALUE_MODULE_SYNC = "sync";
-
-    public static final String VALUE_ASPECT_FLOW_CONTROL = "flowControl";
+    // tag value
+    public static final String TAG_VALUE_MODULE_APPLICATION = "application";
+    public static final String TAG_VALUE_MODULE_HOST = "host";
+    public static final String TAG_VALUE_MODULE_RESOURCE = "resource";
+    public static final String TAG_VALUE_MODULE_TEMPLATE = "template";
+    public static final String TAG_VALUE_MODULE_TASK_PLAN = "taskPlan";
+    public static final String TAG_VALUE_MODULE_WHITE_IP = "whiteIp";
+    public static final String TAG_VALUE_MODULE_SCRIPT = "script";
+    public static final String TAG_VALUE_MODULE_ACCOUNT = "account";
+    public static final String TAG_VALUE_MODULE_NOTIFY = "notify";
+    public static final String TAG_VALUE_MODULE_CMDB = "cmdb";
+    public static final String TAG_VALUE_MODULE_ANALYSIS_TASK = "analysisTask";
+    public static final String TAG_VALUE_MODULE_SYNC = "sync";
+    public static final String TAG_VALUE_ASPECT_FLOW_CONTROL = "flowControl";
 }
