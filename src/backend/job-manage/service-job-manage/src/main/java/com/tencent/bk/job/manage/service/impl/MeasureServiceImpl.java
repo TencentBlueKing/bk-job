@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.function.ToDoubleFunction;
+import java.util.Collections;
 
 @Slf4j
 @Service
@@ -76,81 +76,91 @@ public class MeasureServiceImpl implements MeasureService {
 
     @Override
     public void init() {
+        measureAppAndHostCount();
+        measureAppSyncDelay();
+        measureHostSyncDelay();
+        measureAgentStatusSyncDelay();
+        measureAccountCount();
+        measureScriptCount();
+        measureTemplateCount();
+        measurePlanCount();
+        measureWhiteIpCount();
+        measureSyncAppExecutor();
+        measureSyncHostExecutor();
+        measureSyncAgentStatusExecutor();
+    }
+
+    private void measureAppAndHostCount() {
         // 业务
         meterRegistry.gauge(
             MetricsConstants.NAME_APPLICATION_COUNT,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_APPLICATION)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                MetricsConstants.TAG_VALUE_MODULE_APPLICATION)),
             this.applicationDAO,
-            new ToDoubleFunction<ApplicationDAO>() {
-                @Override
-                public double applyAsDouble(ApplicationDAO applicationDAO) {
-                    return applicationDAO.countApps();
-                }
-            }
+            ApplicationDAO::countApps
         );
         // 主机
         meterRegistry.gauge(
             MetricsConstants.NAME_HOST_COUNT,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
             this.applicationHostDAO,
-            new ToDoubleFunction<ApplicationHostDAO>() {
-                @Override
-                public double applyAsDouble(ApplicationHostDAO dao) {
-                    return dao.countAllHosts();
-                }
-            }
+            ApplicationHostDAO::countAllHosts
         );
+    }
+
+    private void measureAppSyncDelay() {
         // 业务同步延迟
         meterRegistry.gauge(
             MetricsConstants.NAME_APPLICATION_SYNC_AFTER_LAST_SECONDS,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_APPLICATION)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                MetricsConstants.TAG_VALUE_MODULE_APPLICATION)),
             this.syncService,
-            new ToDoubleFunction<SyncService>() {
-                @Override
-                public double applyAsDouble(SyncService syncService) {
-                    Long lastFinishTime = syncService.getLastFinishTimeSyncApp();
-                    if (lastFinishTime == null) {
-                        return -1L;
-                    } else {
-                        return (System.currentTimeMillis() - lastFinishTime) / 1000.0;
-                    }
+            syncService -> {
+                Long lastFinishTime = syncService.getLastFinishTimeSyncApp();
+                if (lastFinishTime == null) {
+                    return -1L;
+                } else {
+                    return (System.currentTimeMillis() - lastFinishTime) / 1000.0;
                 }
             }
         );
+    }
+
+    private void measureHostSyncDelay() {
         // 主机同步延迟
         meterRegistry.gauge(
             MetricsConstants.NAME_HOST_SYNC_AFTER_LAST_SECONDS,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
             this.syncService,
-            new ToDoubleFunction<SyncService>() {
-                @Override
-                public double applyAsDouble(SyncService syncService) {
-                    Long lastFinishTime = syncService.getLastFinishTimeSyncHost();
-                    if (lastFinishTime == null) {
-                        return -1L;
-                    } else {
-                        return (System.currentTimeMillis() - lastFinishTime) / 1000.0;
-                    }
+            syncService -> {
+                Long lastFinishTime = syncService.getLastFinishTimeSyncHost();
+                if (lastFinishTime == null) {
+                    return -1L;
+                } else {
+                    return (System.currentTimeMillis() - lastFinishTime) / 1000.0;
                 }
             }
         );
+    }
+
+    private void measureAgentStatusSyncDelay() {
         // 主机Agent状态同步延迟
         meterRegistry.gauge(
             MetricsConstants.NAME_HOST_AGENT_STATUS_SYNC_AFTER_LAST_SECONDS,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
             this.syncService,
-            new ToDoubleFunction<SyncService>() {
-                @Override
-                public double applyAsDouble(SyncService syncService) {
-                    Long lastFinishTime = syncService.getLastFinishTimeSyncAgentStatus();
-                    if (lastFinishTime == null) {
-                        return -1L;
-                    } else {
-                        return (System.currentTimeMillis() - lastFinishTime) / 1000.0;
-                    }
+            syncService -> {
+                Long lastFinishTime = syncService.getLastFinishTimeSyncAgentStatus();
+                if (lastFinishTime == null) {
+                    return -1L;
+                } else {
+                    return (System.currentTimeMillis() - lastFinishTime) / 1000.0;
                 }
             }
         );
+    }
+
+    private void measureAccountCount() {
         // 账号
         meterRegistry.gauge(
             MetricsConstants.NAME_ACCOUNT_COUNT_ALL,
@@ -159,13 +169,11 @@ public class MeasureServiceImpl implements MeasureService {
                 Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_ACCOUNT)
             ),
             this.accountDAO,
-            new ToDoubleFunction<AccountDAO>() {
-                @Override
-                public double applyAsDouble(AccountDAO accountDAO) {
-                    return accountDAO.countAccounts(null);
-                }
-            }
+            accountDAO -> accountDAO.countAccounts(null)
         );
+    }
+
+    private void measureScriptCount() {
         // 脚本
         meterRegistry.gauge(
             MetricsConstants.NAME_SCRIPT_COUNT_ALL,
@@ -174,13 +182,11 @@ public class MeasureServiceImpl implements MeasureService {
                 Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SCRIPT)
             ),
             this.scriptDAO,
-            new ToDoubleFunction<ScriptDAO>() {
-                @Override
-                public double applyAsDouble(ScriptDAO scriptDAO) {
-                    return scriptDAO.countScripts();
-                }
-            }
+            ScriptDAO::countScripts
         );
+    }
+
+    private void measureTemplateCount() {
         // 作业模板
         meterRegistry.gauge(
             MetricsConstants.NAME_TEMPLATE_COUNT_ALL,
@@ -189,13 +195,11 @@ public class MeasureServiceImpl implements MeasureService {
                 Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_TEMPLATE)
             ),
             this.taskTemplateService,
-            new ToDoubleFunction<TaskTemplateService>() {
-                @Override
-                public double applyAsDouble(TaskTemplateService taskTemplateService) {
-                    return taskTemplateService.countTemplates(null);
-                }
-            }
+            taskTemplateService -> taskTemplateService.countTemplates(null)
         );
+    }
+
+    private void measurePlanCount() {
         // 执行方案
         meterRegistry.gauge(
             MetricsConstants.NAME_TASK_PLAN_COUNT_ALL,
@@ -204,13 +208,11 @@ public class MeasureServiceImpl implements MeasureService {
                 Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_TASK_PLAN)
             ),
             this.taskPlanService,
-            new ToDoubleFunction<TaskPlanService>() {
-                @Override
-                public double applyAsDouble(TaskPlanService taskPlanService) {
-                    return taskPlanService.countTaskPlans(null);
-                }
-            }
+            taskPlanService -> taskPlanService.countTaskPlans(null)
         );
+    }
+
+    private void measureWhiteIpCount() {
         // IP白名单
         meterRegistry.gauge(
             MetricsConstants.NAME_WHITE_IP_COUNT_ALL,
@@ -219,49 +221,53 @@ public class MeasureServiceImpl implements MeasureService {
                 Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_WHITE_IP)
             ),
             this.whiteIPRecordDAO,
-            new ToDoubleFunction<WhiteIPRecordDAO>() {
-                @Override
-                public double applyAsDouble(WhiteIPRecordDAO whiteIPRecordDAO) {
-                    return whiteIPRecordDAO.countWhiteIPIP();
-                }
-            }
+            WhiteIPRecordDAO::countWhiteIPIP
         );
+    }
+
+    private void measureSyncAppExecutor() {
         // 同步线程池监控：业务
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_APP_EXECUTOR_POOL_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncAppExecutor().getPoolSize()
         );
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_APP_EXECUTOR_QUEUE_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncAppExecutor().getQueue().size()
         );
+    }
+
+    private void measureSyncHostExecutor() {
         // 同步线程池监控：主机
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_HOST_EXECUTOR_POOL_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncHostExecutor().getPoolSize()
         );
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_HOST_EXECUTOR_QUEUE_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncHostExecutor().getQueue().size()
         );
+    }
+
+    private void measureSyncAgentStatusExecutor() {
         // 同步线程池监控：Agent状态
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_AGENT_STATUS_EXECUTOR_POOL_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncAgentStatusExecutor().getPoolSize()
         );
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_AGENT_STATUS_EXECUTOR_QUEUE_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncAgentStatusExecutor().getQueue().size()
         );
