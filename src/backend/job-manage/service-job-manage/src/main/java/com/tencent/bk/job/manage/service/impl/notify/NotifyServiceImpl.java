@@ -195,13 +195,15 @@ public class NotifyServiceImpl implements NotifyService {
         this.jobManageConfig = jobManageConfig;
         meterRegistry.gauge(
             MetricsConstants.NAME_NOTIFY_POOL_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
             notificationThreadPoolExecutor,
             ThreadPoolExecutor::getPoolSize
         );
         meterRegistry.gauge(
             MetricsConstants.NAME_NOTIFY_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
             notificationThreadPoolExecutor,
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );
@@ -209,7 +211,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId) {
-        return notifyTriggerPolicyDAO.list(dslContext, getTriggerUser(username), appId,
+        return notifyTriggerPolicyDAO.list(dslContext, getDefaultTriggerUser(), appId,
             NotifyConsts.DEFAULT_RESOURCE_ID);
     }
 
@@ -246,6 +248,38 @@ public class NotifyServiceImpl implements NotifyService {
             ));
     }
 
+    private void setExtraObserversForRoleTarget(NotifyPolicyRoleTargetDTO roleTargetDTO,
+                                                String role,
+                                                TriggerPolicy triggerPolicy) {
+        if (StringUtils.isBlank(role) || !JobRoleEnum.JOB_EXTRA_OBSERVER.name().equals(role)) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(triggerPolicy.getExtraObserverList())) {
+            return;
+        }
+        Set<String> extraObserverSet = Sets.newHashSet(triggerPolicy.getExtraObserverList());
+        triggerPolicy.getExtraObserverList().forEach(extraObserver -> {
+            if (StringUtils.isBlank(extraObserver)) {
+                extraObserverSet.remove(extraObserver);
+            }
+        });
+        String extraObserverStr = String.join(NotifyConsts.SEPERATOR_COMMA, extraObserverSet);
+        //额外通知对象添加额外通知者字段
+        roleTargetDTO.setExtraObservers(extraObserverStr);
+    }
+
+    private NotifyPolicyRoleTargetDTO buildBasicRoleTarget(Long policyId, String role, String operator) {
+        return NotifyPolicyRoleTargetDTO.builder()
+            .policyId(policyId)
+            .role(role)
+            .enable(true)
+            .creator(operator)
+            .createTime(System.currentTimeMillis())
+            .lastModifier(operator)
+            .lastModifyTime(System.currentTimeMillis())
+            .build();
+    }
+
     private void saveNotifyRoleTargets(DSLContext context,
                                        Long policyId,
                                        TriggerPolicy triggerPolicy,
@@ -253,30 +287,8 @@ public class NotifyServiceImpl implements NotifyService {
                                        String operator) {
         Set<String> roleSet = new HashSet<>(triggerPolicy.getRoleList());
         roleSet.forEach(role -> {
-            NotifyPolicyRoleTargetDTO roleTargetDTO = NotifyPolicyRoleTargetDTO.builder()
-                .policyId(policyId)
-                .role(role)
-                .enable(true)
-                .creator(operator)
-                .createTime(System.currentTimeMillis())
-                .lastModifier(operator)
-                .lastModifyTime(System.currentTimeMillis())
-                .build();
-            if (null != role && role.equals(JobRoleEnum.JOB_EXTRA_OBSERVER.name())) {
-                String extraObserverStr = null;
-                if (triggerPolicy.getExtraObserverList() != null) {
-                    Set<String> extraObserverSet =
-                        Sets.newHashSet(triggerPolicy.getExtraObserverList());
-                    triggerPolicy.getExtraObserverList().forEach(extraObserver -> {
-                        if (StringUtils.isBlank(extraObserver)) {
-                            extraObserverSet.remove(extraObserver);
-                        }
-                    });
-                    extraObserverStr = String.join(NotifyConsts.SEPERATOR_COMMA, extraObserverSet);
-                }
-                //额外通知对象添加额外通知者字段
-                roleTargetDTO.setExtraObservers(extraObserverStr);
-            }
+            NotifyPolicyRoleTargetDTO roleTargetDTO = buildBasicRoleTarget(policyId, role, operator);
+            setExtraObserversForRoleTarget(roleTargetDTO, role, triggerPolicy);
             Long roleTargetId = notifyPolicyRoleTargetDAO.insert(context, roleTargetDTO);
             //为每一个通知对象保存所有channel
             Set<String> channelSet = new HashSet<>(resourceStatusChannel.getChannelList());
@@ -286,6 +298,26 @@ public class NotifyServiceImpl implements NotifyService {
                     new NotifyRoleTargetChannelDTO(roleTargetId, channel, operator)
                 );
             }
+        });
+    }
+
+    private void saveTriggerPolicy(DSLContext context,
+                                   String operator,
+                                   Long appId,
+                                   String triggerUser,
+                                   TriggerPolicy triggerPolicy) {
+        Set<ResourceTypeEnum> resourceTypeSet = new HashSet<>(triggerPolicy.getResourceTypeList());
+        resourceTypeSet.forEach(resourceType -> {
+            Set<ResourceStatusChannel> channelSet = new HashSet<>(triggerPolicy.getResourceStatusChannelList());
+            channelSet.forEach(channel -> {
+                //保存触发策略
+                val policyId = saveTriggerPolicy(
+                    context, appId, resourceType,
+                    triggerUser, triggerPolicy, channel, operator
+                );
+                //保存所有通知对象
+                saveNotifyRoleTargets(context, policyId, triggerPolicy, channel, operator);
+            });
         });
     }
 
@@ -300,28 +332,33 @@ public class NotifyServiceImpl implements NotifyService {
             //2.删除当前用户定义的已有业务策略
             notifyTriggerPolicyDAO.deleteAppNotifyPolicies(context, appId, triggerUser);
             //3.保存notify_trigger_policy
-            policyList.forEach(triggerPolicy -> {
-                Set<ResourceTypeEnum> resourceTypeSet = new HashSet<>(triggerPolicy.getResourceTypeList());
-                resourceTypeSet.forEach(resourceType -> {
-                    Set<ResourceStatusChannel> channelSet = new HashSet<>(triggerPolicy.getResourceStatusChannelList());
-                    channelSet.forEach(channel -> {
-                        //保存触发策略
-                        val policyId = saveTriggerPolicy(
-                            context, appId, resourceType,
-                            triggerUser, triggerPolicy, channel, operator
-                        );
-                        //保存所有通知对象
-                        saveNotifyRoleTargets(context, policyId, triggerPolicy, channel, operator);
-                    });
-                });
-            });
+            policyList.forEach(policy -> saveTriggerPolicy(context, operator, appId, triggerUser, policy));
         });
         return (long) policyList.size();
     }
 
-    private String getTriggerUser(String operator) {
+    private String getDefaultTriggerUser() {
         // 按业务保存、触发策略，采用公共触发者
         return NotifyConsts.DEFAULT_TRIGGER_USER;
+    }
+
+    private Long tryToSavePoliciesToLocal(String username, Long appId, NotifyPoliciesCreateUpdateReq createUpdateReq) {
+        String requestId = JobContextUtil.getRequestId();
+        try {
+            if (!LockUtils.tryGetDistributedLock(
+                REDIS_KEY_SAVE_APP_DEFAULT_NOTIFY_POLICIES,
+                requestId,
+                5000)
+            ) {
+                return 0L;
+            }
+            return saveAppDefaultNotifyPoliciesToLocal(username, appId, getDefaultTriggerUser(), createUpdateReq);
+        } catch (Throwable t) {
+            log.error("Fail to saveAppDefaultNotifyPoliciesToLocal", t);
+            throw t;
+        } finally {
+            LockUtils.releaseDistributedLock(REDIS_KEY_SAVE_APP_DEFAULT_NOTIFY_POLICIES, requestId);
+        }
     }
 
     @Override
@@ -331,26 +368,11 @@ public class NotifyServiceImpl implements NotifyService {
         NotifyPoliciesCreateUpdateReq createUpdateReq,
         boolean checkAuth
     ) {
-        String requestId = JobContextUtil.getRequestId();
         //0.1配置记录
-        if (!notifyConfigStatusDAO.exist(dslContext, getTriggerUser(username), appId)) {
-            notifyConfigStatusDAO.insertNotifyConfigStatus(dslContext, getTriggerUser(username), appId);
+        if (!notifyConfigStatusDAO.exist(dslContext, getDefaultTriggerUser(), appId)) {
+            notifyConfigStatusDAO.insertNotifyConfigStatus(dslContext, getDefaultTriggerUser(), appId);
         }
-        try {
-            if (!LockUtils.tryGetDistributedLock(
-                REDIS_KEY_SAVE_APP_DEFAULT_NOTIFY_POLICIES,
-                requestId,
-                5000)
-            ) {
-                return 0L;
-            }
-            return saveAppDefaultNotifyPoliciesToLocal(username, appId, getTriggerUser(username), createUpdateReq);
-        } catch (Throwable t) {
-            log.error("Fail to saveAppDefaultNotifyPolicies", t);
-            throw t;
-        } finally {
-            LockUtils.releaseDistributedLock(REDIS_KEY_SAVE_APP_DEFAULT_NOTIFY_POLICIES, requestId);
-        }
+        return tryToSavePoliciesToLocal(username, appId, createUpdateReq);
     }
 
     @Override
@@ -441,6 +463,19 @@ public class NotifyServiceImpl implements NotifyService {
         return channelCodeList.size();
     }
 
+    private void filterBlackUsers(List<UserVO> userVOList) {
+        //过滤黑名单内用户
+        Set<String> blackUserSet =
+            notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext).stream()
+                .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
+        logger.debug(String.format("listUsers:blackUserSet:%s", String.join(",", blackUserSet)));
+        userVOList.forEach(it -> {
+            if (blackUserSet.contains(it.getEnglishName())) {
+                it.setEnable(false);
+            }
+        });
+    }
+
     @Override
     public List<UserVO> listUsers(
         String username,
@@ -476,16 +511,7 @@ public class NotifyServiceImpl implements NotifyService {
         List<UserVO> userVOList = esbUserInfoDTOList.stream().map(it -> new UserVO(it.getUsername(),
             it.getDisplayName(), it.getLogo(), true)).collect(Collectors.toList());
         if (excludeBlackUsers) {
-            //过滤黑名单内用户
-            Set<String> blackUserSet =
-                notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext).stream()
-                    .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
-            logger.debug(String.format("listUsers:blackUserSet:%s", String.join(",", blackUserSet)));
-            userVOList.forEach(it -> {
-                if (blackUserSet.contains(it.getEnglishName())) {
-                    it.setEnable(false);
-                }
-            });
+            filterBlackUsers(userVOList);
         }
         if (offset >= userVOList.size()) {
             return new ArrayList<>();
@@ -506,6 +532,21 @@ public class NotifyServiceImpl implements NotifyService {
         return notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext, start, pageSize);
     }
 
+    private void saveBlackUsersToDB(DSLContext context, String[] users, String creator, List<String> resultList) {
+        for (String user : users) {
+            if (StringUtils.isBlank(user)) {
+                continue;
+            }
+            notifyBlackUserInfoDAO.insertNotifyBlackUserInfo(context, new NotifyBlackUserInfoDTO(
+                null,
+                user,
+                creator,
+                System.currentTimeMillis()
+            ));
+            resultList.add(user);
+        }
+    }
+
     @Override
     public List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req) {
         val resultList = new ArrayList<String>();
@@ -513,18 +554,7 @@ public class NotifyServiceImpl implements NotifyService {
         dslContext.transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
             notifyBlackUserInfoDAO.deleteAllNotifyBlackUser(context);
-            for (String user : users) {
-                if ("".equals(user.replace(" ", ""))) {
-                    continue;
-                }
-                notifyBlackUserInfoDAO.insertNotifyBlackUserInfo(context, new NotifyBlackUserInfoDTO(
-                    null,
-                    user,
-                    username,
-                    System.currentTimeMillis()
-                ));
-                resultList.add(user);
-            }
+            saveBlackUsersToDB(context, users, username, resultList);
         });
         return resultList;
     }
@@ -619,7 +649,7 @@ public class NotifyServiceImpl implements NotifyService {
         }
         // 3.默认业务
         // 业务未配置消息通知策略才使用默认策略
-        if (!notifyConfigStatusDAO.exist(dslContext, getTriggerUser(triggerUser), appId)) {
+        if (!notifyConfigStatusDAO.exist(dslContext, getDefaultTriggerUser(), appId)) {
             if (null == notifyTriggerPolicyDTOList || notifyTriggerPolicyDTOList.isEmpty()) {
                 notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(dslContext,
                     NotifyConsts.DEFAULT_TRIGGER_USER, NotifyConsts.DEFAULT_APP_ID, NotifyConsts.DEFAULT_RESOURCE_ID,
@@ -985,12 +1015,8 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     private void sendUserChannelNotify(Set<String> userSet, String channel, String title, String content) {
-        if (null == userSet) {
-            logger.warn(String.format("userSet is null of channel [%s], do not send notification", channel));
-            return;
-        }
-        if (userSet.isEmpty()) {
-            logger.warn(String.format("userSet is empty of channel [%s], do not send notification", channel));
+        if (CollectionUtils.isEmpty(userSet)) {
+            logger.warn("userSet is empty of channel {}, do not send notification", channel);
             return;
         }
         logger.debug(String.format("Begin to send %s notify to %s, title:%s, content:%s",
