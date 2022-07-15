@@ -110,12 +110,12 @@ public class LogExportServiceImpl implements LogExportService {
 
     @Override
     public LogExportJobInfoDTO packageLogFile(String username, Long appId, Long stepInstanceId, Long hostId,
-                                              String ip, int executeCount,
+                                              String cloudIp, int executeCount,
                                               String logFileDir, String logFileName, Boolean repackage) {
         log.debug("Package log file for {}|{}|{}|{}|{}|{}|{}|{}", username, appId, stepInstanceId, hostId, executeCount,
             logFileDir, logFileName, repackage);
         LogExportJobInfoDTO exportJobInfo = new LogExportJobInfoDTO();
-        exportJobInfo.setJobKey(getExportJobKey(appId, stepInstanceId, hostId, ip));
+        exportJobInfo.setJobKey(getExportJobKey(appId, stepInstanceId, hostId, cloudIp));
         exportJobInfo.setStatus(LogExportStatusEnum.INIT);
 
         if (repackage) {
@@ -125,10 +125,10 @@ public class LogExportServiceImpl implements LogExportService {
         }
         saveExportInfo(exportJobInfo);
 
-        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(ip);
+        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(cloudIp);
 
         if (isGetByHost) {
-            doPackage(exportJobInfo, stepInstanceId, hostId, ip, executeCount, logFileDir, logFileName);
+            doPackage(exportJobInfo, stepInstanceId, hostId, cloudIp, executeCount, logFileDir, logFileName);
         } else {
             logExportExecutor.execute(() -> {
                 String requestId = UUID.randomUUID().toString();
@@ -141,7 +141,7 @@ public class LogExportServiceImpl implements LogExportService {
                         exportJobInfo.setStatus(LogExportStatusEnum.PROCESSING);
                         saveExportInfo(exportJobInfo);
 
-                        doPackage(exportJobInfo, stepInstanceId, hostId, ip, executeCount, logFileDir, logFileName);
+                        doPackage(exportJobInfo, stepInstanceId, hostId, cloudIp, executeCount, logFileDir, logFileName);
                     } else {
                         log.error("Job already running!|{}|{}|{}|{}", requestId, appId, stepInstanceId, hostId);
                     }
@@ -177,12 +177,12 @@ public class LogExportServiceImpl implements LogExportService {
         redisTemplate.delete(jobKey);
     }
 
-    private String getExportJobKey(Long appId, Long stepInstanceId, Long hostId, String ip) {
+    private String getExportJobKey(Long appId, Long stepInstanceId, Long hostId, String cloudIp) {
         String key = EXPORT_KEY_PREFIX + appId + ":" + stepInstanceId + ":";
         if (hostId != null) {
             key = key + hostId;
         } else {
-            key = key + ip;
+            key = key + cloudIp;
         }
         return key;
     }
@@ -197,9 +197,7 @@ public class LogExportServiceImpl implements LogExportService {
         watch.start("listJobIps");
         List<AgentTaskDTO> gseAgentTasks = new ArrayList<>();
         if (isGetByHost) {
-            HostDTO host = new HostDTO();
-            host.setHostId(hostId);
-            host.setIp(ip);
+            HostDTO host = HostDTO.fromHostIdAndCloudIp(hostId, ip);
             AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, null,
                 host);
             if (agentTask != null) {

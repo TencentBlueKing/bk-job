@@ -118,7 +118,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                String scopeId,
                                                                Long stepInstanceId,
                                                                Long hostId,
-                                                               String ip,
+                                                               String cloudIp,
                                                                Boolean repackage) {
         Long appId = appResourceScope.getAppId();
 
@@ -133,7 +133,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         if (!repackage) {
             log.debug("Do not need repackage, check exist job");
-            LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, ip);
+            LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, cloudIp);
             if (exportInfo != null) {
                 log.debug("Find exist job info|{}", exportInfo);
                 switch (exportInfo.getStatus()) {
@@ -165,18 +165,18 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         int executeCount = stepInstance.getExecuteCount();
 
-        String logFileName = getLogFileName(stepInstanceId, hostId, ip, executeCount);
+        String logFileName = getLogFileName(stepInstanceId, hostId, cloudIp, executeCount);
         if (StringUtils.isBlank(logFileName)) {
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
-        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, ip,
+        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, cloudIp,
             executeCount, logFileDir, logFileName, repackage);
         return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
     }
 
-    private String getLogFileName(Long stepInstanceId, Long hostId, String ip, int executeCount) {
-        String fileName = makeExportLogFileName(stepInstanceId, executeCount, hostId, ip);
+    private String getLogFileName(Long stepInstanceId, Long hostId, String cloudIp, int executeCount) {
+        String fileName = makeExportLogFileName(stepInstanceId, executeCount, hostId, cloudIp);
         String logFileName = fileName + ".log";
 
         File dir = new File(logFileDir);
@@ -244,7 +244,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                  String scopeId,
                                                                  Long stepInstanceId,
                                                                  Long hostId,
-                                                                 String ip) {
+                                                                 String cloudIp) {
         Long appId = appResourceScope.getAppId();
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
@@ -257,16 +257,16 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         LogExportJobInfoDTO exportInfo;
 
-        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(ip);
+        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(cloudIp);
         if (isGetByHost) {
-            String logFileName = getLogFileName(stepInstanceId, hostId, ip, executeCount);
+            String logFileName = getLogFileName(stepInstanceId, hostId, cloudIp, executeCount);
             if (StringUtils.isBlank(logFileName)) {
                 return ResponseEntity.notFound().build();
             }
-            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, ip, executeCount,
+            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, cloudIp, executeCount,
                 logFileDir, logFileName, false);
         } else {
-            exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, ip);
+            exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, cloudIp);
         }
 
         if (exportInfo != null) {
@@ -312,14 +312,14 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         return ResponseEntity.notFound().build();
     }
 
-    private String makeExportLogFileName(Long stepInstanceId, Integer executeCount, Long hostId, String ip) {
+    private String makeExportLogFileName(Long stepInstanceId, Integer executeCount, Long hostId, String cloudIp) {
         StringBuilder fileName = new StringBuilder();
         fileName.append("bk_job_export_log_");
         fileName.append("step_").append(stepInstanceId).append("_").append(executeCount).append("_");
         if (hostId != null) {
             fileName.append(hostId).append("_");
-        } else if (StringUtils.isNotBlank(ip)) {
-            fileName.append(ip).append("_");
+        } else if (StringUtils.isNotBlank(cloudIp)) {
+            fileName.append(cloudIp).append("_");
         }
         fileName.append(DateUtils.formatLocalDateTime(LocalDateTime.now(), "yyyyMMddHHmmssSSS"));
         return fileName.toString();
