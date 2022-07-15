@@ -58,9 +58,9 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册拦截器
         registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(0);
-        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(1);
+        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(10);
         registry.addInterceptor(uriPermissionInterceptor)
-            .addPathPatterns(uriPermissionInterceptor.getControlUriPatterns()).order(2);
-        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(3);
+            .addPathPatterns(uriPermissionInterceptor.getControlUriPatterns()).order(30);
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(40);
     }
 }

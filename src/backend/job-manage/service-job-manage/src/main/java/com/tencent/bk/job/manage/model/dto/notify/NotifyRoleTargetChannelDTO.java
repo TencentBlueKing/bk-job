@@ -26,7 +26,11 @@ package com.tencent.bk.job.manage.model.dto.notify;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * 通知的角色目标对应的通知渠道DTO
@@ -64,4 +68,13 @@ public class NotifyRoleTargetChannelDTO {
      */
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
+
+    public NotifyRoleTargetChannelDTO(Long roleTargetId, String channel, String creator) {
+        this.roleTargetId = roleTargetId;
+        this.channel = channel;
+        this.creator = creator;
+        this.createTime = System.currentTimeMillis();
+        this.lastModifier = creator;
+        this.lastModifyTime = System.currentTimeMillis();
+    }
 }

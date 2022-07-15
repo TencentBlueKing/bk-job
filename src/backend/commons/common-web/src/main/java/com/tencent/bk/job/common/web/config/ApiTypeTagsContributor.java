@@ -22,35 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.metrics;
+package com.tencent.bk.job.common.web.config;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import com.tencent.bk.job.common.metrics.CommonMetricTags;
+import com.tencent.bk.job.common.util.StringUtil;
 import io.micrometer.core.instrument.Tag;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Service;
+import io.micrometer.core.instrument.Tags;
+import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags;
+import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsContributor;
+import org.springframework.stereotype.Component;
 
-import java.util.Collections;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-@Slf4j
-@Service
-public class MeasureServiceImpl {
+@Component
+public class ApiTypeTagsContributor implements WebMvcTagsContributor {
 
-    @Autowired
-    public MeasureServiceImpl(MeterRegistry meterRegistry, ThreadPoolTaskExecutor quartzTaskExecutor) {
-        // 同步线程池监控：Agent状态
-        meterRegistry.gauge(
-            CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_POOL_SIZE,
-            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE, CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
-            quartzTaskExecutor,
-            taskExecutor -> taskExecutor.getThreadPoolExecutor().getPoolSize()
-        );
-        meterRegistry.gauge(
-            CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE, CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
-            quartzTaskExecutor,
-            taskExecutor -> taskExecutor.getThreadPoolExecutor().getQueue().size()
-        );
+    @Override
+    public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler,
+                                 Throwable exception) {
+        Tag uriTag = WebMvcTags.uri(request, response);
+        return Tags.of(CommonMetricTags.KEY_API_TYPE, parseApiTypeFromUri(uriTag.getValue()));
+    }
+
+    @Override
+    public Iterable<Tag> getLongRequestTags(HttpServletRequest request, Object handler) {
+        Tag uriTag = WebMvcTags.uri(request, null);
+        return Tags.of(CommonMetricTags.KEY_API_TYPE, parseApiTypeFromUri(uriTag.getValue()));
+    }
+
+    private String parseApiTypeFromUri(String uri) {
+        uri = StringUtil.removePrefix(uri, "/");
+        int slashIndex = uri.indexOf("/");
+        if (slashIndex > 0) {
+            return uri.substring(0, slashIndex);
+        }
+        return CommonMetricTags.VALUE_API_TYPE_UNKNOWN;
     }
 }

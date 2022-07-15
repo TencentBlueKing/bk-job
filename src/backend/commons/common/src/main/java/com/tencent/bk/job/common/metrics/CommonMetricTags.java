@@ -22,21 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.metrics;
+package com.tencent.bk.job.common.metrics;
 
-public class MetricsConstants {
-
-    // metric name
-    public static final String NAME_FILE_WORKER_NUM = "fileWorker.num";
-    public static final String NAME_FILE_WORKER_ONLINE_NUM = "fileWorker.online.num";
-    public static final String NAME_FILE_WORKER_RESPONSE_TIME = "fileWorker.response.time";
-    public static final String NAME_FILE_GATEWAY_DISPATCH_TIME = "fileGateway.dispatch.time";
-
-    // tag
-    public static final String TAG_KEY_MODULE = "module";
-
-    // value
-    public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
-    public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
-
+/**
+ * 公共监控指标
+ */
+public class CommonMetricTags {
+    /**
+     * 名称
+     */
+    public static final String KEY_NAME = "name";
+    /**
+     * Job业务ID
+     */
+    public static final String KEY_APP_ID = "app_id";
+    /**
+     * API类型
+     */
+    public static final String KEY_API_TYPE = "api_type";
+    /**
+     * API类型：未知
+     */
+    public static final String VALUE_API_TYPE_UNKNOWN = "unknown";
 }
