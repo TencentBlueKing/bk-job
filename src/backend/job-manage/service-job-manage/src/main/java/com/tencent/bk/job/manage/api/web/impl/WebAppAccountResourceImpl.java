@@ -225,9 +225,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         List<Long> canManageIdList =
             accountAuthService.batchAuthManageAccount(username, appResourceScope,
                 accountVOS.parallelStream().map(AccountVO::getId).collect(Collectors.toList()));
-        accountVOS.forEach(it -> {
-            it.setCanManage(canManageIdList.contains(it.getId()));
-        });
+        accountVOS.forEach(it -> it.setCanManage(canManageIdList.contains(it.getId())));
         result.setData(accountVOS);
         result.setCanCreate(checkCreateAccountPermission(username, appResourceScope).isPass());
         return Response.buildSuccessResp(result);
@@ -351,8 +349,8 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     }
 
     private void checkManageAccountPermission(String username,
-                                                    AppResourceScope appResourceScope,
-                                                    Long accountId) {
+                                              AppResourceScope appResourceScope,
+                                              Long accountId) {
         AuthResult authResult = accountAuthService.authManageAccount(username, appResourceScope, accountId, null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

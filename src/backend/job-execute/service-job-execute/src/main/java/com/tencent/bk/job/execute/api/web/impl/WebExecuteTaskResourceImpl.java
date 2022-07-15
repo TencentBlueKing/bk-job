@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.web.WebExecuteTaskResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -44,6 +45,7 @@ import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
@@ -101,6 +103,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    @CustomTimed(metricName = ExecuteMetricsConstants.NAME_JOB_TASK_START,
+        extraTags = {
+            ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_WEB,
+            ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_EXECUTE_PLAN
+        })
     public Response<TaskExecuteVO> executeTask(String username,
                                                AppResourceScope appResourceScope,
                                                String scopeType,
@@ -212,6 +219,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    @CustomTimed(metricName = ExecuteMetricsConstants.NAME_JOB_TASK_START,
+        extraTags = {
+            ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_WEB,
+            ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_SCRIPT
+        })
     public Response<StepExecuteVO> fastExecuteScript(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
@@ -346,6 +358,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    @CustomTimed(metricName = ExecuteMetricsConstants.NAME_JOB_TASK_START,
+        extraTags = {
+            ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_WEB,
+            ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_FILE
+        })
     public Response<StepExecuteVO> fastPushFile(String username,
                                                 AppResourceScope appResourceScope,
                                                 String scopeType,

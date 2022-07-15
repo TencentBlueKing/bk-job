@@ -22,18 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.metrics;
+package com.tencent.bk.job.common.web.metrics;
 
-public class MetricsConstants {
-    // metric name
-    // Quartz工作线程池线程数
-    public static final String NAME_CRON_QUARTZ_TASK_EXECUTOR_POOL_SIZE = "cron.quartz.task.executor.pool.size";
-    // Quartz工作线程池队列大小
-    public static final String NAME_CRON_QUARTZ_TASK_EXECUTOR_QUEUE_SIZE = "cron.quartz.task.executor.queue.size";
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import org.springframework.web.method.HandlerMethod;
 
-    // tag
-    public static final String TAG_MODULE = "module";
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
-    // value
-    public static final String VALUE_MODULE_CRON = "cron";
+/**
+ * 默认的自定义Timer指标标签提供者
+ */
+public class DefaultCustomTimedTagsProvider implements CustomTimedTagsProvider {
+
+    private final List<CustomTimedTagsContributor> contributors;
+
+    public DefaultCustomTimedTagsProvider(
+        List<CustomTimedTagsContributor> contributors) {
+        this.contributors = contributors;
+    }
+
+    @Override
+    public Iterable<Tag> getTags(String metricName, HttpServletRequest request, HttpServletResponse response,
+                                 HandlerMethod handlerMethod, Throwable exception) {
+        CustomTimed customTimedAnnotation = handlerMethod.getMethod().getAnnotation(CustomTimed.class);
+        Tags tags = Tags.of(customTimedAnnotation.extraTags());
+        for (CustomTimedTagsContributor contributor : this.contributors) {
+            if (contributor.supports(metricName)) {
+                tags = tags.and(contributor.getTags(metricName, request, response, handlerMethod, exception));
+            }
+        }
+        return tags;
+    }
 }

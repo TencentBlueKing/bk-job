@@ -22,21 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.metrics;
+package com.tencent.bk.job.execute.metrics;
 
-public class MetricsConstants {
+import com.tencent.bk.job.common.web.metrics.CustomTimedTagsContributor;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import org.apache.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.method.HandlerMethod;
 
-    // metric name
-    public static final String NAME_FILE_WORKER_NUM = "fileWorker.num";
-    public static final String NAME_FILE_WORKER_ONLINE_NUM = "fileWorker.online.num";
-    public static final String NAME_FILE_WORKER_RESPONSE_TIME = "fileWorker.response.time";
-    public static final String NAME_FILE_GATEWAY_DISPATCH_TIME = "fileGateway.dispatch.time";
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-    // tag
-    public static final String TAG_KEY_MODULE = "module";
+/**
+ * 任务启动指标标签生成器
+ */
+@Component
+public class TaskStartTagsContributor implements CustomTimedTagsContributor {
 
-    // value
-    public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
-    public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
+    @Override
+    public boolean supports(String metricName) {
+        return ExecuteMetricsConstants.NAME_JOB_TASK_START.equals(metricName);
+    }
 
+    @Override
+    public Iterable<Tag> getTags(String metricName,
+                                 HttpServletRequest request,
+                                 HttpServletResponse response,
+                                 HandlerMethod handlerMethod,
+                                 Throwable exception) {
+        return Tags.of(ExecuteMetricsConstants.TAG_KEY_START_STATUS, parseStartStatusFromResp(response));
+    }
+
+    private String parseStartStatusFromResp(HttpServletResponse response) {
+        if (response.getStatus() < HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+            return ExecuteMetricsConstants.TAG_VALUE_START_STATUS_SUCCESS;
+        }
+        return ExecuteMetricsConstants.TAG_VALUE_START_STATUS_FAILED;
+    }
 }
