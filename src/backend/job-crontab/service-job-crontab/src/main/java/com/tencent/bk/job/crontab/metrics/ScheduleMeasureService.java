@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.crontab.metrics;
 
-import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.crontab.constant.CronConstants;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -81,7 +80,7 @@ public class ScheduleMeasureService {
     }
 
     private void record(long delayMillis, Tags tags) {
-        Timer.builder(CommonMetricNames.JOB_CRON_SCHEDULE_DELAY)
+        Timer.builder(CronMetricsConstants.NAME_JOB_CRON_SCHEDULE_DELAY)
             .description("cron schedule delay")
             .tags(tags)
             .publishPercentileHistogram(true)

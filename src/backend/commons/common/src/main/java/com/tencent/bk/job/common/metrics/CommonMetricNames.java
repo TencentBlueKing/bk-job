@@ -86,12 +86,4 @@ public class CommonMetricNames {
      * 被调用WEB API
      */
     public static final String WEB_API = "job.server.web.api";
-    /**
-     * 任务启动指标
-     */
-    public static final String JOB_TASK_START = "job.task.start";
-    /**
-     * 定时任务调度延迟指标
-     */
-    public static final String JOB_CRON_SCHEDULE_DELAY = "job.cron.schedule.delay";
 }

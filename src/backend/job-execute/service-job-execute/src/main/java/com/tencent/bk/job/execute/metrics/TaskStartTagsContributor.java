@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.execute.metrics;
 
-import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.web.metrics.CustomTimedTagsContributor;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -44,7 +42,7 @@ public class TaskStartTagsContributor implements CustomTimedTagsContributor {
 
     @Override
     public boolean supports(String metricName) {
-        return CommonMetricNames.JOB_TASK_START.equals(metricName);
+        return ExecuteMetricsConstants.NAME_JOB_TASK_START.equals(metricName);
     }
 
     @Override
@@ -53,13 +51,13 @@ public class TaskStartTagsContributor implements CustomTimedTagsContributor {
                                  HttpServletResponse response,
                                  HandlerMethod handlerMethod,
                                  Throwable exception) {
-        return Tags.of(CommonMetricTags.KEY_START_STATUS, parseStartStatusFromResp(response));
+        return Tags.of(ExecuteMetricsConstants.TAG_KEY_START_STATUS, parseStartStatusFromResp(response));
     }
 
     private String parseStartStatusFromResp(HttpServletResponse response) {
         if (response.getStatus() < HttpStatus.SC_INTERNAL_SERVER_ERROR) {
-            return CommonMetricTags.VALUE_START_STATUS_SUCCESS;
+            return ExecuteMetricsConstants.TAG_VALUE_START_STATUS_SUCCESS;
         }
-        return CommonMetricTags.VALUE_START_STATUS_FAILED;
+        return ExecuteMetricsConstants.TAG_VALUE_START_STATUS_FAILED;
     }
 }

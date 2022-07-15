@@ -31,28 +31,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 @Slf4j
 @Service
 public class MeasureServiceImpl {
 
-    private final ThreadPoolTaskExecutor quartzTaskExecutor;
-
     @Autowired
     public MeasureServiceImpl(MeterRegistry meterRegistry, ThreadPoolTaskExecutor quartzTaskExecutor) {
-        this.quartzTaskExecutor = quartzTaskExecutor;
         // 同步线程池监控：Agent状态
         meterRegistry.gauge(
-            MetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_POOL_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_CRON)),
-            this.quartzTaskExecutor,
+            CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_POOL_SIZE,
+            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_MODULE, CronMetricsConstants.VALUE_MODULE_CRON)),
+            quartzTaskExecutor,
             taskExecutor -> taskExecutor.getThreadPoolExecutor().getPoolSize()
         );
         meterRegistry.gauge(
-            MetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_QUEUE_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_CRON)),
-            this.quartzTaskExecutor,
+            CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_QUEUE_SIZE,
+            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_MODULE, CronMetricsConstants.VALUE_MODULE_CRON)),
+            quartzTaskExecutor,
             taskExecutor -> taskExecutor.getThreadPoolExecutor().getQueue().size()
         );
     }

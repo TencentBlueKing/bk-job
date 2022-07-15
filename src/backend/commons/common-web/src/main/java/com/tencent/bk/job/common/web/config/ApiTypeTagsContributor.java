@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
+import com.tencent.bk.job.common.util.StringUtil;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags;
@@ -51,12 +52,10 @@ public class ApiTypeTagsContributor implements WebMvcTagsContributor {
     }
 
     private String parseApiTypeFromUri(String uri) {
-        if (!uri.startsWith("/")) {
-            uri = "/" + uri;
-        }
-        int secondSlashIndex = uri.indexOf("/", 1);
-        if (secondSlashIndex > 1) {
-            return uri.substring(1, secondSlashIndex);
+        uri = StringUtil.removePrefix(uri, "/");
+        int slashIndex = uri.indexOf("/");
+        if (slashIndex > 0) {
+            return uri.substring(0, slashIndex);
         }
         return CommonMetricTags.VALUE_API_TYPE_UNKNOWN;
     }
