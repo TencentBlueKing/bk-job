@@ -26,7 +26,12 @@ package com.tencent.bk.job.manage.model.dto.notify;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * 通知策略对应的角色目标DTO
@@ -36,6 +41,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
+@Builder
 public class NotifyPolicyRoleTargetDTO {
     private Long id;
     /**

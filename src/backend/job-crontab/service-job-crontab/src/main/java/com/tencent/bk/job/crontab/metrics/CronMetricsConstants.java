@@ -22,21 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.metrics;
+package com.tencent.bk.job.crontab.metrics;
 
-public class MetricsConstants {
+public class CronMetricsConstants {
+    /**
+     * Quartz工作线程池线程数
+     */
+    public static final String NAME_CRON_QUARTZ_TASK_EXECUTOR_POOL_SIZE = "cron.quartz.task.executor.pool.size";
+    /**
+     * Quartz工作线程池队列大小
+     */
+    public static final String NAME_CRON_QUARTZ_TASK_EXECUTOR_QUEUE_SIZE = "cron.quartz.task.executor.queue.size";
+    /**
+     * 定时任务调度延迟指标
+     */
+    public static final String NAME_JOB_CRON_SCHEDULE_DELAY = "job.cron.schedule.delay";
 
-    // metric name
-    public static final String NAME_FILE_WORKER_NUM = "fileWorker.num";
-    public static final String NAME_FILE_WORKER_ONLINE_NUM = "fileWorker.online.num";
-    public static final String NAME_FILE_WORKER_RESPONSE_TIME = "fileWorker.response.time";
-    public static final String NAME_FILE_GATEWAY_DISPATCH_TIME = "fileGateway.dispatch.time";
-
-    // tag
     public static final String TAG_KEY_MODULE = "module";
 
-    // value
-    public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
-    public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
-
+    public static final String TAG_VALUE_MODULE_CRON = "cron";
 }

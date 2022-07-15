@@ -22,21 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.metrics;
+package com.tencent.bk.job.common.web.metrics;
 
-public class MetricsConstants {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    // metric name
-    public static final String NAME_FILE_WORKER_NUM = "fileWorker.num";
-    public static final String NAME_FILE_WORKER_ONLINE_NUM = "fileWorker.online.num";
-    public static final String NAME_FILE_WORKER_RESPONSE_TIME = "fileWorker.response.time";
-    public static final String NAME_FILE_GATEWAY_DISPATCH_TIME = "fileGateway.dispatch.time";
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface CustomTimed {
+    /**
+     * 指标名称
+     */
+    String metricName() default "";
 
-    // tag
-    public static final String TAG_KEY_MODULE = "module";
+    /**
+     * 额外标签
+     */
+    String[] extraTags() default {};
 
-    // value
-    public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
-    public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
+    /**
+     * 分位数
+     */
+    double[] percentiles() default {};
 
+    /**
+     * 是否公开指标直方图数据
+     */
+    boolean histogram() default true;
+
+    /**
+     * 直方图数据的最小期望时长，单位：ms
+     */
+    long minExpectedMillis() default 10L;
+
+    /**
+     * 直方图数据的最大期望时长，单位：ms
+     */
+    long maxExpectedMillis() default 60_000L;
+
+    /**
+     * 指标描述信息
+     */
+    String description() default "";
 }

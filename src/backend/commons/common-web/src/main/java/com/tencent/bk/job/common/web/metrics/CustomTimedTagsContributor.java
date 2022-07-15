@@ -22,21 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.metrics;
+package com.tencent.bk.job.common.web.metrics;
 
-public class MetricsConstants {
+import io.micrometer.core.instrument.Tag;
+import org.springframework.web.method.HandlerMethod;
 
-    // metric name
-    public static final String NAME_FILE_WORKER_NUM = "fileWorker.num";
-    public static final String NAME_FILE_WORKER_ONLINE_NUM = "fileWorker.online.num";
-    public static final String NAME_FILE_WORKER_RESPONSE_TIME = "fileWorker.response.time";
-    public static final String NAME_FILE_GATEWAY_DISPATCH_TIME = "fileGateway.dispatch.time";
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-    // tag
-    public static final String TAG_KEY_MODULE = "module";
+/**
+ * 为Job自定义timer类指标提供标签
+ */
+public interface CustomTimedTagsContributor {
 
-    // value
-    public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
-    public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
+    /**
+     * 是否支持解析指定指标数据的标签
+     *
+     * @param metricName 指标名称
+     * @return 是否支持
+     */
+    boolean supports(String metricName);
 
+    /**
+     * 根据指标名称、请求内容、响应、handler等原始数据提取Tags
+     *
+     * @param metricName    指标名称
+     * @param request       请求
+     * @param response      响应
+     * @param handlerMethod 请求处理方法
+     * @param exception     异常
+     * @return 指标集合
+     */
+    Iterable<Tag> getTags(String metricName,
+                          HttpServletRequest request,
+                          HttpServletResponse response,
+                          HandlerMethod handlerMethod,
+                          Throwable exception);
 }

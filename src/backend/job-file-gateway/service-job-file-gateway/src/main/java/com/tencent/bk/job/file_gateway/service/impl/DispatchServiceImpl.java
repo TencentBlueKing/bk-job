@@ -102,7 +102,7 @@ public class DispatchServiceImpl implements DispatchService {
         Timer.Sample sample = Timer.start(meterRegistry);
         FileWorkerDTO fileWorkerDTO = findBestFileWorkerIndeed(fileSourceDTO);
         long nanoSeconds = sample.stop(meterRegistry.timer(MetricsConstants.NAME_FILE_GATEWAY_DISPATCH_TIME,
-            MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_FILE_GATEWAY));
+            MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_GATEWAY));
         long millis = TimeUnit.NANOSECONDS.toMillis(nanoSeconds);
         if (millis > 2000) {
             log.warn("Dispatch time over 2000ms, fileSourceDTO={}", JsonUtils.toJson(fileSourceDTO));

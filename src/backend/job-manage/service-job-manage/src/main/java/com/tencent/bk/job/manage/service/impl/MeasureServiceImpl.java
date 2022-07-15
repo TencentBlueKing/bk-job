@@ -79,7 +79,7 @@ public class MeasureServiceImpl implements MeasureService {
         // 业务
         meterRegistry.gauge(
             MetricsConstants.NAME_APPLICATION_COUNT,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_APPLICATION)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_APPLICATION)),
             this.applicationDAO,
             new ToDoubleFunction<ApplicationDAO>() {
                 @Override
@@ -91,7 +91,7 @@ public class MeasureServiceImpl implements MeasureService {
         // 主机
         meterRegistry.gauge(
             MetricsConstants.NAME_HOST_COUNT,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_HOST)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
             this.applicationHostDAO,
             new ToDoubleFunction<ApplicationHostDAO>() {
                 @Override
@@ -103,7 +103,7 @@ public class MeasureServiceImpl implements MeasureService {
         // 业务同步延迟
         meterRegistry.gauge(
             MetricsConstants.NAME_APPLICATION_SYNC_AFTER_LAST_SECONDS,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_APPLICATION)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_APPLICATION)),
             this.syncService,
             new ToDoubleFunction<SyncService>() {
                 @Override
@@ -120,7 +120,7 @@ public class MeasureServiceImpl implements MeasureService {
         // 主机同步延迟
         meterRegistry.gauge(
             MetricsConstants.NAME_HOST_SYNC_AFTER_LAST_SECONDS,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_HOST)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
             this.syncService,
             new ToDoubleFunction<SyncService>() {
                 @Override
@@ -137,7 +137,7 @@ public class MeasureServiceImpl implements MeasureService {
         // 主机Agent状态同步延迟
         meterRegistry.gauge(
             MetricsConstants.NAME_HOST_AGENT_STATUS_SYNC_AFTER_LAST_SECONDS,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_HOST)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
             this.syncService,
             new ToDoubleFunction<SyncService>() {
                 @Override
@@ -155,8 +155,8 @@ public class MeasureServiceImpl implements MeasureService {
         meterRegistry.gauge(
             MetricsConstants.NAME_ACCOUNT_COUNT_ALL,
             Arrays.asList(
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_RESOURCE),
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_ACCOUNT)
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_RESOURCE),
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_ACCOUNT)
             ),
             this.accountDAO,
             new ToDoubleFunction<AccountDAO>() {
@@ -170,8 +170,8 @@ public class MeasureServiceImpl implements MeasureService {
         meterRegistry.gauge(
             MetricsConstants.NAME_SCRIPT_COUNT_ALL,
             Arrays.asList(
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_RESOURCE),
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_SCRIPT)
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_RESOURCE),
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SCRIPT)
             ),
             this.scriptDAO,
             new ToDoubleFunction<ScriptDAO>() {
@@ -185,8 +185,8 @@ public class MeasureServiceImpl implements MeasureService {
         meterRegistry.gauge(
             MetricsConstants.NAME_TEMPLATE_COUNT_ALL,
             Arrays.asList(
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_RESOURCE),
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_TEMPLATE)
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_RESOURCE),
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_TEMPLATE)
             ),
             this.taskTemplateService,
             new ToDoubleFunction<TaskTemplateService>() {
@@ -200,8 +200,8 @@ public class MeasureServiceImpl implements MeasureService {
         meterRegistry.gauge(
             MetricsConstants.NAME_TASK_PLAN_COUNT_ALL,
             Arrays.asList(
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_RESOURCE),
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_TASK_PLAN)
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_RESOURCE),
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_TASK_PLAN)
             ),
             this.taskPlanService,
             new ToDoubleFunction<TaskPlanService>() {
@@ -215,8 +215,8 @@ public class MeasureServiceImpl implements MeasureService {
         meterRegistry.gauge(
             MetricsConstants.NAME_WHITE_IP_COUNT_ALL,
             Arrays.asList(
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_RESOURCE),
-                Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_WHITE_IP)
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_RESOURCE),
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_WHITE_IP)
             ),
             this.whiteIPRecordDAO,
             new ToDoubleFunction<WhiteIPRecordDAO>() {
@@ -229,39 +229,39 @@ public class MeasureServiceImpl implements MeasureService {
         // 同步线程池监控：业务
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_APP_EXECUTOR_POOL_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_SYNC)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncAppExecutor().getPoolSize()
         );
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_APP_EXECUTOR_QUEUE_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_SYNC)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncAppExecutor().getQueue().size()
         );
         // 同步线程池监控：主机
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_HOST_EXECUTOR_POOL_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_SYNC)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncHostExecutor().getPoolSize()
         );
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_HOST_EXECUTOR_QUEUE_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_SYNC)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncHostExecutor().getQueue().size()
         );
         // 同步线程池监控：Agent状态
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_AGENT_STATUS_EXECUTOR_POOL_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_SYNC)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncAgentStatusExecutor().getPoolSize()
         );
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_AGENT_STATUS_EXECUTOR_QUEUE_SIZE,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_SYNC)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncAgentStatusExecutor().getQueue().size()
         );

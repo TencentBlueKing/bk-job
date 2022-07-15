@@ -22,21 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.metrics;
+package com.tencent.bk.job.crontab.constant;
 
-public class MetricsConstants {
-
-    // metric name
-    public static final String NAME_FILE_WORKER_NUM = "fileWorker.num";
-    public static final String NAME_FILE_WORKER_ONLINE_NUM = "fileWorker.online.num";
-    public static final String NAME_FILE_WORKER_RESPONSE_TIME = "fileWorker.response.time";
-    public static final String NAME_FILE_GATEWAY_DISPATCH_TIME = "fileGateway.dispatch.time";
-
-    // tag
-    public static final String TAG_KEY_MODULE = "module";
-
-    // value
-    public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
-    public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
-
+/**
+ * 定时任务相关的常量
+ */
+public class CronConstants {
+    // Job业务Id字符串
+    public static final String JOB_DATA_KEY_APP_ID_STR = "appIdStr";
+    // 定时任务Id字符串
+    public static final String JOB_DATA_KEY_CRON_JOB_ID_STR = "cronJobIdStr";
+    // 定时任务内容字符串
+    public static final String JOB_DATA_KEY_CRON_JOB_INFO_STR = "cronJobInfoStr";
 }
