@@ -159,7 +159,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             .and(defaultTable.RESOURCE_ID.eq(resourceId))
             .fetch();
         if (records.isEmpty()) {
-            if (!notifyConfigStatusDAO.exist(dslContext, triggerUser, appId)) {
+            if (!notifyConfigStatusDAO.exist(triggerUser, appId)) {
                 logger.warn(triggerUser + "未在业务(id=" + appId + ")下配置消息通知策略，采用业务无关通用默认策略");
                 records = dslContext.selectFrom(defaultTable)
                     .where(defaultTable.TRIGGER_USER.eq(NotifyConsts.DEFAULT_TRIGGER_USER))

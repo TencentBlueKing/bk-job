@@ -30,6 +30,6 @@ public interface NotifyConfigStatusDAO {
 
     int insertNotifyConfigStatus(DSLContext dslContext, String userName, Long appId);
 
-    boolean exist(DSLContext dslContext, String userName, Long appId);
+    boolean exist(String userName, Long appId);
 
 }
