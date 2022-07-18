@@ -33,15 +33,7 @@ import java.util.List;
 public interface NotifyTriggerPolicyDAO {
     Long insertNotifyTriggerPolicy(DSLContext dslContext, NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
 
-    int deleteNotifyTriggerPolicyById(DSLContext dslContext, Long id);
-
-    int deleteAllDefaultNotifyPolicies(DSLContext dslContext);
-
     int deleteAppNotifyPolicies(DSLContext dslContext, Long appId, String triggerUser);
-
-    NotifyTriggerPolicyDTO getNotifyTriggerPolicyById(DSLContext dslContext, Long id);
-
-    int updateNotifyTriggerPolicyById(DSLContext dslContext, NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
 
     List<TriggerPolicyVO> list(DSLContext dslContext, String triggerUser, Long appId, String resourceId);
 
