@@ -26,19 +26,18 @@ package com.tencent.bk.job.manage.dao.notify;
 
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(DSLContext dslContext, NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
+    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
 
-    int deleteAppNotifyPolicies(DSLContext dslContext, Long appId, String triggerUser);
+    int deleteAppNotifyPolicies(Long appId, String triggerUser);
 
-    List<TriggerPolicyVO> list(DSLContext dslContext, String triggerUser, Long appId, String resourceId);
+    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
 
-    List<NotifyTriggerPolicyDTO> list(DSLContext dslContext, String triggerUser, Long appId, String resourceId,
+    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
                                       Integer resourceType, Integer triggerType, Integer executeStatus);
 
-    int countDefaultPolicies(DSLContext dslContext);
+    int countDefaultPolicies();
 }

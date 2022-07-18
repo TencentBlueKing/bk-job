@@ -30,20 +30,16 @@ import org.jooq.DSLContext;
 import java.util.List;
 
 public interface NotifyTemplateDAO {
+
     int insertNotifyTemplate(DSLContext dslContext, NotifyTemplateDTO notifyTemplateDTO);
 
     int updateNotifyTemplateById(DSLContext dslContext, NotifyTemplateDTO notifyTemplateDTO);
-
-    int deleteNotifyTemplateById(DSLContext dslContext, Integer id);
-
-    NotifyTemplateDTO getNotifyTemplateById(DSLContext dslContext, Integer id);
 
     NotifyTemplateDTO getNotifyTemplate(DSLContext dslContext, String channelCode, String messageTypeCode,
                                         boolean isDefault);
 
     List<NotifyTemplateDTO> listNotifyTemplateByCode(DSLContext dslContext, String code);
 
-    List<NotifyTemplateDTO> listNotifyTemplate(DSLContext dslContext);
-
     boolean existsNotifyTemplate(DSLContext dslContext, String channelCode, String messageTypeCode, boolean isDefault);
+
 }

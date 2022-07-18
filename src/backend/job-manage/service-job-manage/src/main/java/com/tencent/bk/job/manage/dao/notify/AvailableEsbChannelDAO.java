@@ -32,11 +32,7 @@ import java.util.List;
 public interface AvailableEsbChannelDAO {
     int insertAvailableEsbChannel(DSLContext dslContext, AvailableEsbChannelDTO availableEsbChannelDTO);
 
-    int deleteAvailableEsbChannelByType(DSLContext dslContext, String type);
-
     int deleteAll(DSLContext dslContext);
-
-    AvailableEsbChannelDTO getAvailableEsbChannelByType(DSLContext dslContext, String type);
 
     List<AvailableEsbChannelDTO> listAvailableEsbChannel(DSLContext dslContext);
 }
