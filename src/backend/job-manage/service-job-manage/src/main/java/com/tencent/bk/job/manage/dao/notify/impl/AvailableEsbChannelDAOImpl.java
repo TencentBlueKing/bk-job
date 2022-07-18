@@ -28,6 +28,7 @@ import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
 import lombok.val;
 import org.jooq.DSLContext;
+import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.AvailableEsbChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,7 @@ public class AvailableEsbChannelDAOImpl implements AvailableEsbChannelDAO {
             availableEsbChannelDTO.getCreator(),
             availableEsbChannelDTO.getLastModifyTime()
         );
-        val sql = query.getSQL(true);
+        val sql = query.getSQL(ParamType.INLINED);
         try {
             return query.execute();
         } catch (Exception e) {
@@ -71,38 +72,14 @@ public class AvailableEsbChannelDAOImpl implements AvailableEsbChannelDAO {
     }
 
     @Override
-    public int deleteAvailableEsbChannelByType(DSLContext dslContext, String type) {
-        return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.TYPE.eq(type)
-        ).execute();
-    }
-
-    @Override
     public int deleteAll(DSLContext dslContext) {
         return dslContext.deleteFrom(defaultTable).execute();
     }
 
     @Override
-    public AvailableEsbChannelDTO getAvailableEsbChannelByType(DSLContext dslContext, String type) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.TYPE.eq(type)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return new AvailableEsbChannelDTO(
-                record.getType(),
-                record.getEnable(),
-                record.getCreator(),
-                record.getLastModifyTime()
-            );
-        }
-    }
-
-    @Override
     public List<AvailableEsbChannelDTO> listAvailableEsbChannel(DSLContext dslContext) {
         val records = dslContext.selectFrom(defaultTable).fetch();
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return new ArrayList<>();
         } else {
             return records.map(record -> new AvailableEsbChannelDTO(

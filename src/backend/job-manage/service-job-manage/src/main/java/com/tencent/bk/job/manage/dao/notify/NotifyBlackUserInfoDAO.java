@@ -31,22 +31,13 @@ import org.jooq.DSLContext;
 import java.util.List;
 
 public interface NotifyBlackUserInfoDAO {
-    Long insertNotifyBlackUserInfo(DSLContext dslContext, NotifyBlackUserInfoDTO notifyBlackUserInfoDTO);
 
-    int deleteNotifyBlackUserInfoById(DSLContext dslContext, Long id);
+    Long insertNotifyBlackUserInfo(NotifyBlackUserInfoDTO notifyBlackUserInfoDTO);
 
-    int deleteNotifyBlackUserInfoByUsername(DSLContext dslContext, String username);
-
-    int deleteAllNotifyBlackUser(DSLContext dslContext);
-
-    NotifyBlackUserInfoDTO getNotifyBlackUserInfoById(DSLContext dslContext, Long id);
-
-    NotifyBlackUserInfoDTO getNotifyBlackUserInfoByUsername(DSLContext dslContext, String username);
+    int deleteAllNotifyBlackUser();
 
     List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo(DSLContext dslContext);
 
     List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(DSLContext dslContext, Integer start, Integer limit);
-
-    int updateNotifyBlackUserInfoById(DSLContext dslContext, NotifyBlackUserInfoDTO notifyBlackUserInfoDTO);
 
 }

@@ -97,12 +97,12 @@ import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
@@ -211,8 +211,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId) {
-        return notifyTriggerPolicyDAO.list(dslContext, getDefaultTriggerUser(), appId,
-            NotifyConsts.DEFAULT_RESOURCE_ID);
+        return notifyTriggerPolicyDAO.list(getDefaultTriggerUser(), appId, NotifyConsts.DEFAULT_RESOURCE_ID);
     }
 
     @Override
@@ -225,14 +224,13 @@ public class NotifyServiceImpl implements NotifyService {
         return saveAppDefaultNotifyPolicies(username, appId, createUpdateReq, true);
     }
 
-    private Long saveTriggerPolicy(DSLContext context,
-                                   Long appId,
+    private Long saveTriggerPolicy(Long appId,
                                    ResourceTypeEnum resourceType,
                                    String triggerUser,
                                    TriggerPolicy triggerPolicy,
                                    ResourceStatusChannel resourceStatusChannel,
                                    String operator) {
-        return notifyTriggerPolicyDAO.insertNotifyTriggerPolicy(context,
+        return notifyTriggerPolicyDAO.insertNotifyTriggerPolicy(
             new NotifyTriggerPolicyDTO(
                 null,
                 appId,
@@ -280,8 +278,7 @@ public class NotifyServiceImpl implements NotifyService {
             .build();
     }
 
-    private void saveNotifyRoleTargets(DSLContext context,
-                                       Long policyId,
+    private void saveNotifyRoleTargets(Long policyId,
                                        TriggerPolicy triggerPolicy,
                                        ResourceStatusChannel resourceStatusChannel,
                                        String operator) {
@@ -289,20 +286,18 @@ public class NotifyServiceImpl implements NotifyService {
         roleSet.forEach(role -> {
             NotifyPolicyRoleTargetDTO roleTargetDTO = buildBasicRoleTarget(policyId, role, operator);
             setExtraObserversForRoleTarget(roleTargetDTO, role, triggerPolicy);
-            Long roleTargetId = notifyPolicyRoleTargetDAO.insert(context, roleTargetDTO);
+            Long roleTargetId = notifyPolicyRoleTargetDAO.insert(roleTargetDTO);
             //为每一个通知对象保存所有channel
             Set<String> channelSet = new HashSet<>(resourceStatusChannel.getChannelList());
             for (String channel : channelSet) {
                 notifyRoleTargetChannelDAO.insert(
-                    context,
                     new NotifyRoleTargetChannelDTO(roleTargetId, channel, operator)
                 );
             }
         });
     }
 
-    private void saveTriggerPolicy(DSLContext context,
-                                   String operator,
+    private void saveTriggerPolicy(String operator,
                                    Long appId,
                                    String triggerUser,
                                    TriggerPolicy triggerPolicy) {
@@ -312,28 +307,26 @@ public class NotifyServiceImpl implements NotifyService {
             channelSet.forEach(channel -> {
                 //保存触发策略
                 val policyId = saveTriggerPolicy(
-                    context, appId, resourceType,
+                    appId, resourceType,
                     triggerUser, triggerPolicy, channel, operator
                 );
                 //保存所有通知对象
-                saveNotifyRoleTargets(context, policyId, triggerPolicy, channel, operator);
+                saveNotifyRoleTargets(policyId, triggerPolicy, channel, operator);
             });
         });
     }
 
     @Override
+    @Transactional
     public Long saveAppDefaultNotifyPoliciesToLocal(String operator, Long appId, String triggerUser,
                                                     NotifyPoliciesCreateUpdateReq createUpdateReq) {
         val policyList = createUpdateReq.getTriggerPoliciesList();
-        dslContext.transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            //1.删除当前用户定义的已有个人策略
-            notifyTriggerPolicyDAO.deleteAppNotifyPolicies(context, appId, operator);
-            //2.删除当前用户定义的已有业务策略
-            notifyTriggerPolicyDAO.deleteAppNotifyPolicies(context, appId, triggerUser);
-            //3.保存notify_trigger_policy
-            policyList.forEach(policy -> saveTriggerPolicy(context, operator, appId, triggerUser, policy));
-        });
+        //1.删除当前用户定义的已有个人策略
+        notifyTriggerPolicyDAO.deleteAppNotifyPolicies(appId, operator);
+        //2.删除当前用户定义的已有业务策略
+        notifyTriggerPolicyDAO.deleteAppNotifyPolicies(appId, triggerUser);
+        //3.保存notify_trigger_policy
+        policyList.forEach(policy -> saveTriggerPolicy(operator, appId, triggerUser, policy));
         return (long) policyList.size();
     }
 
@@ -532,30 +525,32 @@ public class NotifyServiceImpl implements NotifyService {
         return notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext, start, pageSize);
     }
 
-    private void saveBlackUsersToDB(DSLContext context, String[] users, String creator, List<String> resultList) {
+    private void saveBlackUsersToDB(String[] users, String creator, List<String> resultList) {
         for (String user : users) {
             if (StringUtils.isBlank(user)) {
                 continue;
             }
-            notifyBlackUserInfoDAO.insertNotifyBlackUserInfo(context, new NotifyBlackUserInfoDTO(
-                null,
-                user,
-                creator,
-                System.currentTimeMillis()
-            ));
+            notifyBlackUserInfoDAO.insertNotifyBlackUserInfo(
+                new NotifyBlackUserInfoDTO(
+                    null,
+                    user,
+                    creator,
+                    System.currentTimeMillis()
+                ));
             resultList.add(user);
         }
     }
 
     @Override
     public List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req) {
-        val resultList = new ArrayList<String>();
         String[] users = req.getUsersStr().split(NotifyConsts.SEPERATOR_COMMA);
-        dslContext.transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            notifyBlackUserInfoDAO.deleteAllNotifyBlackUser(context);
-            saveBlackUsersToDB(context, users, username, resultList);
-        });
+        return saveNotifyBlackUsers(username, users);
+    }
+
+    public List<String> saveNotifyBlackUsers(String username, String[] users) {
+        val resultList = new ArrayList<String>();
+        notifyBlackUserInfoDAO.deleteAllNotifyBlackUser();
+        saveBlackUsersToDB(users, username, resultList);
         return resultList;
     }
 
@@ -632,7 +627,7 @@ public class NotifyServiceImpl implements NotifyService {
         Integer resourceType = triggerDTO.getResourceType();
         Integer resourceExecuteStatus = triggerDTO.getResourceExecuteStatus();
         // 1.业务公共触发策略
-        List<NotifyTriggerPolicyDTO> notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(dslContext,
+        List<NotifyTriggerPolicyDTO> notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(
             NotifyConsts.DEFAULT_TRIGGER_USER, appId, NotifyConsts.DEFAULT_RESOURCE_ID, resourceType, triggerType,
             resourceExecuteStatus);
         logger.debug(String.format("search application policies of (triggerUser=%s,appId=%d,resourceId=%s," +
@@ -640,7 +635,7 @@ public class NotifyServiceImpl implements NotifyService {
             resourceExecuteStatus));
         // 2.查找当前触发者自己制定的触发策略
         if (null == notifyTriggerPolicyDTOList || notifyTriggerPolicyDTOList.isEmpty()) {
-            notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(dslContext, triggerUser, appId,
+            notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(triggerUser, appId,
                 NotifyConsts.DEFAULT_RESOURCE_ID, resourceType, triggerType, resourceExecuteStatus);
             logger.debug(String.format("search default policies of (triggerUser=%s,appId=%d,resourceId=%s," +
                     "resourceExecuteStatus=%d)", triggerUser, appId, NotifyConsts.DEFAULT_RESOURCE_ID,
@@ -650,7 +645,7 @@ public class NotifyServiceImpl implements NotifyService {
         // 业务未配置消息通知策略才使用默认策略
         if (!notifyConfigStatusDAO.exist(dslContext, getDefaultTriggerUser(), appId)) {
             if (null == notifyTriggerPolicyDTOList || notifyTriggerPolicyDTOList.isEmpty()) {
-                notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(dslContext,
+                notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(
                     NotifyConsts.DEFAULT_TRIGGER_USER, NotifyConsts.DEFAULT_APP_ID, NotifyConsts.DEFAULT_RESOURCE_ID,
                     resourceType, triggerType, resourceExecuteStatus);
                 logger.debug(String.format("search default policies of (triggerUser=%s,appId=%d,resourceId=%s," +

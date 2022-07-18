@@ -67,26 +67,31 @@ import java.util.stream.Collectors;
  */
 @Repository
 public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
+
     private static final RequestIdLogger logger =
         new SimpleRequestIdLogger(LoggerFactory.getLogger(NotifyTriggerPolicyDAOImpl.class));
     private static final NotifyTriggerPolicy T_NOTIFY_TRIGGER_POLICY = NotifyTriggerPolicy.NOTIFY_TRIGGER_POLICY;
     private static final NotifyTriggerPolicy defaultTable = T_NOTIFY_TRIGGER_POLICY;
+
+    private final DSLContext dslContext;
     private final NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO;
     private final NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO;
     private final NotifyConfigStatusDAO notifyConfigStatusDAO;
 
     @Autowired
-    public NotifyTriggerPolicyDAOImpl(NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO,
+    public NotifyTriggerPolicyDAOImpl(DSLContext dslContext,
+                                      NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO,
                                       NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO,
                                       NotifyConfigStatusDAO notifyConfigStatusDAO
     ) {
+        this.dslContext = dslContext;
         this.notifyPolicyRoleTargetDAO = notifyPolicyRoleTargetDAO;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
         this.notifyConfigStatusDAO = notifyConfigStatusDAO;
     }
 
     @Override
-    public Long insertNotifyTriggerPolicy(DSLContext dslContext, NotifyTriggerPolicyDTO notifyTriggerPolicyDTO) {
+    public Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO) {
         val query = dslContext.insertInto(T_NOTIFY_TRIGGER_POLICY,
             T_NOTIFY_TRIGGER_POLICY.APP_ID,
             T_NOTIFY_TRIGGER_POLICY.RESOURCE_ID,
@@ -121,7 +126,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         }
     }
 
-    private int cascadeDelete(DSLContext dslContext, Result<NotifyTriggerPolicyRecord> records) {
+    private int cascadeDelete(Result<NotifyTriggerPolicyRecord> records) {
         if (null == records || records.isEmpty()) {
             return 0;
         }
@@ -134,7 +139,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     }
 
     @Override
-    public int deleteAppNotifyPolicies(DSLContext dslContext, Long appId, String triggerUser) {
+    public int deleteAppNotifyPolicies(Long appId, String triggerUser) {
         // 1.查出所有记录
         val records = dslContext.selectFrom(defaultTable)
             .where(defaultTable.TRIGGER_USER.eq(triggerUser))
@@ -142,11 +147,11 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             .and(defaultTable.RESOURCE_ID.eq(NotifyConsts.DEFAULT_RESOURCE_ID))
             .fetch();
         // 2.级联删除
-        return cascadeDelete(dslContext, records);
+        return cascadeDelete(records);
     }
 
     @Override
-    public List<TriggerPolicyVO> list(DSLContext dslContext, String triggerUser, Long appId, String resourceId) {
+    public List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId) {
         val resultList = new ArrayList<TriggerPolicyVO>();
         var records = dslContext.selectFrom(defaultTable)
             .where(defaultTable.TRIGGER_USER.eq(triggerUser))
@@ -175,13 +180,13 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         }
         val triggerTypes = TriggerTypeEnum.values();
         for (TriggerTypeEnum triggerType : triggerTypes) {
-            resultList.add(getTriggerPolicyVO(dslContext, records, triggerType));
+            resultList.add(getTriggerPolicyVO(records, triggerType));
         }
         return resultList;
     }
 
     @Override
-    public List<NotifyTriggerPolicyDTO> list(DSLContext dslContext, String triggerUser, Long appId, String resourceId
+    public List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId
         , Integer resourceType, Integer triggerType, Integer executeStatus) {
         List<NotifyTriggerPolicyDTO> resultList;
         List<Condition> conditions = new ArrayList<>();
@@ -226,7 +231,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     }
 
     @Override
-    public int countDefaultPolicies(DSLContext dslContext) {
+    public int countDefaultPolicies() {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.APP_ID.eq(NotifyConsts.DEFAULT_APP_ID));
         Integer count = dslContext.selectCount().from(defaultTable)
@@ -252,7 +257,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         );
     }
 
-    private TriggerPolicyVO getTriggerPolicyVO(DSLContext dslContext, List<NotifyTriggerPolicyRecord> records,
+    private TriggerPolicyVO getTriggerPolicyVO(List<NotifyTriggerPolicyRecord> records,
                                                TriggerTypeEnum triggerType) {
         List<NotifyTriggerPolicyRecord> currentTriggerTypeRecords = new ArrayList<>();
         //1.过滤出当前触发类型对应的记录
