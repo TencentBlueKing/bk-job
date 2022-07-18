@@ -43,7 +43,6 @@ import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
@@ -99,6 +98,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -362,7 +363,7 @@ public class NotifyServiceImpl implements NotifyService {
         boolean checkAuth
     ) {
         //0.1配置记录
-        if (!notifyConfigStatusDAO.exist(dslContext, getDefaultTriggerUser(), appId)) {
+        if (!notifyConfigStatusDAO.exist(getDefaultTriggerUser(), appId)) {
             notifyConfigStatusDAO.insertNotifyConfigStatus(dslContext, getDefaultTriggerUser(), appId);
         }
         return tryToSavePoliciesToLocal(username, appId, createUpdateReq);
@@ -616,106 +617,153 @@ public class NotifyServiceImpl implements NotifyService {
         return userSet;
     }
 
-    private Map<String, Set<String>> getChannelUsersMap(ServiceNotificationTriggerDTO triggerDTO) {
-        Long appId = triggerDTO.getAppId();
-        if (null == appId) {
-            appId = NotifyConsts.DEFAULT_APP_ID;
+    private List<NotifyTriggerPolicyDTO> searchNotifyPolices(Long appId,
+                                                             String triggerUser,
+                                                             Integer triggerType,
+                                                             Integer resourceType,
+                                                             Integer resourceExecuteStatus) {
+        FormattingTuple msg = MessageFormatter.format(
+            "search policies of (triggerUser={},appId={},resourceId={}, resourceExecuteStatus={})",
+            new String[]{
+                NotifyConsts.DEFAULT_TRIGGER_USER,
+                appId.toString(),
+                NotifyConsts.DEFAULT_RESOURCE_ID,
+                resourceExecuteStatus.toString()
+            }
+        );
+        logger.debug(msg.getMessage());
+        return notifyTriggerPolicyDAO.list(
+            triggerUser,
+            appId,
+            NotifyConsts.DEFAULT_RESOURCE_ID,
+            resourceType,
+            triggerType,
+            resourceExecuteStatus
+        );
+    }
+
+    private List<NotifyTriggerPolicyDTO> searchAppNotifyPolices(Long appId,
+                                                                Integer triggerType,
+                                                                Integer resourceType,
+                                                                Integer resourceExecuteStatus) {
+        return searchNotifyPolices(
+            appId,
+            NotifyConsts.DEFAULT_TRIGGER_USER,
+            resourceType,
+            triggerType,
+            resourceExecuteStatus
+        );
+    }
+
+    private List<NotifyTriggerPolicyDTO> systemDefaultNotifyPolices(Integer triggerType,
+                                                                    Integer resourceType,
+                                                                    Integer resourceExecuteStatus) {
+        List<NotifyTriggerPolicyDTO> policyList = searchNotifyPolices(
+            NotifyConsts.DEFAULT_APP_ID,
+            NotifyConsts.DEFAULT_TRIGGER_USER,
+            resourceType,
+            triggerType,
+            resourceExecuteStatus
+        );
+        if (CollectionUtils.isEmpty(policyList)) {
+            logger.warn("system default notify policies not configured, please check sql migration");
         }
-        final Long finalAppId = appId;
+        return policyList;
+    }
+
+    private boolean appNotifyPolicyConfigured(Long appId) {
+        return notifyConfigStatusDAO.exist(getDefaultTriggerUser(), appId);
+    }
+
+    private List<NotifyTriggerPolicyDTO> getTriggerPolicys(Long appId,
+                                                           String triggerUser,
+                                                           Integer triggerType,
+                                                           Integer resourceType,
+                                                           Integer resourceExecuteStatus) {
+        // 1.业务公共触发策略
+        List<NotifyTriggerPolicyDTO> triggerPolicyList = searchAppNotifyPolices(
+            appId,
+            triggerType,
+            resourceType,
+            resourceExecuteStatus
+        );
+        // 2.查找当前触发者自己制定的触发策略
+        if (CollectionUtils.isEmpty(triggerPolicyList)) {
+            triggerPolicyList = searchNotifyPolices(
+                appId,
+                triggerUser,
+                triggerType,
+                resourceType,
+                resourceExecuteStatus
+            );
+        }
+        // 3.默认业务
+        // 业务未配置消息通知策略才使用默认策略
+        if (!appNotifyPolicyConfigured(appId) && CollectionUtils.isEmpty(triggerPolicyList)) {
+            triggerPolicyList = systemDefaultNotifyPolices(resourceType, triggerType, resourceExecuteStatus);
+        }
+        return triggerPolicyList;
+    }
+
+    private Set<String> findUserByRole(Long appId,
+                                       String role,
+                                       String triggerUser,
+                                       Integer resourceType,
+                                       String resourceId,
+                                       String extraObservers) {
+        if (role.equals(JobRoleEnum.JOB_RESOURCE_OWNER.name())) {
+            return findJobResourceOwners(resourceType, resourceId);
+        } else if (role.equals(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name())) {
+            return Sets.newHashSet(triggerUser);
+        } else if (role.equals(JobRoleEnum.JOB_EXTRA_OBSERVER.name())) {
+            if (StringUtils.isNotBlank(extraObservers)) {
+                return Sets.newHashSet(extraObservers.split(NotifyConsts.SEPERATOR_COMMA));
+            }
+        } else {
+            return findCmdbRoleUsers(appId, role);
+        }
+        return Collections.emptySet();
+    }
+
+    private Map<String, Set<String>> getChannelUsersMap(ServiceNotificationTriggerDTO triggerDTO) {
+        Long appId = triggerDTO.getAppId() == null ? NotifyConsts.DEFAULT_APP_ID : triggerDTO.getAppId();
         String triggerUser = triggerDTO.getTriggerUser();
         Integer triggerType = triggerDTO.getTriggerType();
         Integer resourceType = triggerDTO.getResourceType();
         Integer resourceExecuteStatus = triggerDTO.getResourceExecuteStatus();
-        // 1.业务公共触发策略
-        List<NotifyTriggerPolicyDTO> notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(
-            NotifyConsts.DEFAULT_TRIGGER_USER, appId, NotifyConsts.DEFAULT_RESOURCE_ID, resourceType, triggerType,
-            resourceExecuteStatus);
-        logger.debug(String.format("search application policies of (triggerUser=%s,appId=%d,resourceId=%s," +
-                "resourceExecuteStatus=%d)", NotifyConsts.DEFAULT_TRIGGER_USER, appId, NotifyConsts.DEFAULT_RESOURCE_ID,
-            resourceExecuteStatus));
-        // 2.查找当前触发者自己制定的触发策略
-        if (null == notifyTriggerPolicyDTOList || notifyTriggerPolicyDTOList.isEmpty()) {
-            notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(triggerUser, appId,
-                NotifyConsts.DEFAULT_RESOURCE_ID, resourceType, triggerType, resourceExecuteStatus);
-            logger.debug(String.format("search default policies of (triggerUser=%s,appId=%d,resourceId=%s," +
-                    "resourceExecuteStatus=%d)", triggerUser, appId, NotifyConsts.DEFAULT_RESOURCE_ID,
-                resourceExecuteStatus));
-        }
-        // 3.默认业务
-        // 业务未配置消息通知策略才使用默认策略
-        if (!notifyConfigStatusDAO.exist(dslContext, getDefaultTriggerUser(), appId)) {
-            if (null == notifyTriggerPolicyDTOList || notifyTriggerPolicyDTOList.isEmpty()) {
-                notifyTriggerPolicyDTOList = notifyTriggerPolicyDAO.list(
-                    NotifyConsts.DEFAULT_TRIGGER_USER, NotifyConsts.DEFAULT_APP_ID, NotifyConsts.DEFAULT_RESOURCE_ID,
-                    resourceType, triggerType, resourceExecuteStatus);
-                logger.debug(String.format("search default policies of (triggerUser=%s,appId=%d,resourceId=%s," +
-                        "resourceExecuteStatus=%d)", NotifyConsts.DEFAULT_TRIGGER_USER, NotifyConsts.DEFAULT_APP_ID,
-                    NotifyConsts.DEFAULT_RESOURCE_ID, resourceExecuteStatus));
-            }
-            // 4.默认策略未配置
-            if (null == notifyTriggerPolicyDTOList || notifyTriggerPolicyDTOList.isEmpty()) {
-                logger.debug("Do not sendNotification because default notify policies not triggered");
-            }
-        }
-        if (notifyTriggerPolicyDTOList == null) {
-            notifyTriggerPolicyDTOList = Collections.emptyList();
+        List<NotifyTriggerPolicyDTO> triggerPolicyList = getTriggerPolicys(
+            appId,
+            triggerUser,
+            triggerType,
+            resourceType,
+            resourceExecuteStatus
+        );
+        if (CollectionUtils.isEmpty(triggerPolicyList)) {
+            return Collections.emptyMap();
         }
         // 5.根据策略查找通知角色，找出对象通知渠道、去重
         Map<String, Set<String>> channelUsersMap = new HashMap<>();
-        notifyTriggerPolicyDTOList.forEach(policy -> {
-            List<NotifyPolicyRoleTargetDTO> notifyPolicyRoleTargetDTOList =
+        for (NotifyTriggerPolicyDTO policy : triggerPolicyList) {
+            List<NotifyPolicyRoleTargetDTO> roleTargetList =
                 notifyPolicyRoleTargetDAO.listByPolicyId(dslContext, policy.getId());
-            notifyPolicyRoleTargetDTOList.forEach(roleTargetDTO -> {
-                String role = roleTargetDTO.getRole();
-                List<NotifyRoleTargetChannelDTO> notifyRoleTargetChannelDTOList =
-                    notifyRoleTargetChannelDAO.listByRoleTargetId(dslContext,
-                        roleTargetDTO.getId());
+            for (NotifyPolicyRoleTargetDTO roleTarget : roleTargetList) {
+                String role = roleTarget.getRole();
+                List<NotifyRoleTargetChannelDTO> roleTargetChannelList =
+                    notifyRoleTargetChannelDAO.listByRoleTargetId(dslContext, roleTarget.getId());
                 Set<String> channels =
-                    notifyRoleTargetChannelDTOList.stream()
+                    roleTargetChannelList.stream()
                         .map(NotifyRoleTargetChannelDTO::getChannel).collect(Collectors.toSet());
-                // Job内部角色
-                if (role.equals(JobRoleEnum.JOB_RESOURCE_OWNER.name())) {
-                    Set<String> userSet = new HashSet<>();
-                    if (resourceType == ResourceTypeEnum.JOB.getType()) {
-                        // 只有执行计划支持资源所属者角色
-                        long resourceIdLongValue = -1L;
-                        try {
-                            resourceIdLongValue = Long.parseLong(triggerDTO.getResourceId());
-                        } catch (Exception e) {
-                            logger.warn("fail to parse resourceId to long", e);
-                        }
-                        if (resourceIdLongValue > 0) {
-                            userSet.add(
-                                taskPlanDAO.getTaskPlanById(
-                                    triggerDTO.getAppId(),
-                                    -1L,
-                                    resourceIdLongValue,
-                                    TaskPlanTypeEnum.NORMAL
-                                ).getLastModifyUser()
-                            );
-                        }
-                    }
-                    channels.forEach(channel -> addChannelUsersToMap(channelUsersMap, channel, userSet));
-                } else if (role.equals(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name())) {
-                    channels.forEach(channel -> addChannelUsersToMap(channelUsersMap, channel,
-                        Sets.newHashSet(triggerUser)));
-                } else if (role.equals(JobRoleEnum.JOB_EXTRA_OBSERVER.name())) {
-                    Set<String> extraObservers =
-                        Sets.newHashSet(roleTargetDTO.getExtraObservers().split(NotifyConsts.SEPERATOR_COMMA));
-                    channels.forEach(channel -> addChannelUsersToMap(channelUsersMap, channel, extraObservers));
-                } else {
-                    // CMDB中的业务角色，获取角色对应人员
-                    Set<String> userSet = Sets.newHashSet();
-                    try {
-                        userSet = roleService.listAppUsersByRole(finalAppId, role);
-                    } catch (Exception e) {
-                        logger.error(String.format("Fail to fetch role users:(%d,%s)", finalAppId, role), e);
-                    }
-                    final Set<String> finalUserSet = userSet;
-                    channels.forEach(channel -> addChannelUsersToMap(channelUsersMap, channel, finalUserSet));
-                }
-            });
-        });
+                Set<String> userSet = findUserByRole(
+                    appId,
+                    role,
+                    triggerUser,
+                    resourceType,
+                    triggerDTO.getResourceId(),
+                    roleTarget.getExtraObservers()
+                );
+                channels.forEach(channel -> addChannelUsersToMap(channelUsersMap, channel, userSet));
+            }
+        }
         // 6.过滤通知黑名单
         channelUsersMap.keySet().forEach(key -> channelUsersMap.put(key, filterBlackUser(channelUsersMap.get(key))));
         return channelUsersMap;
@@ -759,61 +807,17 @@ public class NotifyServiceImpl implements NotifyService {
             serviceNotificationMessage));
     }
 
-    private Set<String> findUserByRole(Long appId, String triggerUser, Integer resourceType, String resourceId,
+    private Set<String> findUserByRole(Long appId,
+                                       String triggerUser,
+                                       Integer resourceType,
+                                       String resourceId,
                                        Collection<String> roleCodes) {
         Set<String> userSet = new HashSet<>();
         if (CollectionUtils.isEmpty(roleCodes)) {
             return userSet;
         }
         for (String role : roleCodes) {
-            // Job内部角色
-            if (role.equals(JobRoleEnum.JOB_RESOURCE_OWNER.name())) {
-                if (resourceType != null) {
-                    ResourceTypeEnum resourceTypeEnum = ResourceTypeEnum.get(resourceType);
-                    if (resourceTypeEnum != null) {
-                        switch (resourceTypeEnum) {
-                            case JOB:
-                                long resourceIdLongValue = -1L;
-                                try {
-                                    resourceIdLongValue = Long.parseLong(resourceId);
-                                } catch (Exception e) {
-                                    logger.warn("fail to parse resourceId to long", e);
-                                }
-                                if (resourceIdLongValue > 0) {
-                                    userSet.add(
-                                        taskPlanDAO.getTaskPlanById(
-                                            appId,
-                                            -1L,
-                                            resourceIdLongValue,
-                                            TaskPlanTypeEnum.NORMAL
-                                        ).getLastModifyUser());
-                                }
-                                break;
-                            case SCRIPT:
-                                userSet.add(scriptDAO.getScriptByScriptId(resourceId).getLastModifyUser());
-                                break;
-                        }
-                    } else {
-                        logger.warn("Unknown resourceType:{}", resourceType);
-                    }
-                } else {
-                    logger.warn("No resourceType in request");
-                }
-            } else if (role.equals(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name())) {
-                userSet.add(triggerUser);
-            } else {
-                // CMDB中的业务角色，获取角色对应人员
-                try {
-                    ApplicationDTO appInfo = applicationDAO.getAppById(appId);
-                    if (appInfo.isBiz()) {
-                        userSet.addAll(roleService.listAppUsersByRole(appId, role));
-                    } else {
-                        log.info("Ignore role {} of not normal appId {}", role, appId);
-                    }
-                } catch (Exception e) {
-                    logger.error(String.format("Fail to fetch role users:(%d,%s)", appId, role), e);
-                }
-            }
+            userSet.addAll(findUserByRole(appId, role, triggerUser, resourceType, resourceId, null));
         }
         return userSet;
     }

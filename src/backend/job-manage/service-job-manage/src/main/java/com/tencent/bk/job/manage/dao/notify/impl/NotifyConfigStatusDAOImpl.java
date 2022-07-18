@@ -33,6 +33,7 @@ import org.jooq.generated.tables.NotifyConfigStatus;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -46,6 +47,13 @@ public class NotifyConfigStatusDAOImpl implements NotifyConfigStatusDAO {
     private static final Logger logger = LoggerFactory.getLogger(NotifyConfigStatusDAOImpl.class);
     private static final NotifyConfigStatus T_NOTIFY_CONFIG_STATUS = NotifyConfigStatus.NOTIFY_CONFIG_STATUS;
     private static final NotifyConfigStatus defaultTable = T_NOTIFY_CONFIG_STATUS;
+
+    private final DSLContext dslContext;
+
+    @Autowired
+    public NotifyConfigStatusDAOImpl(DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
 
     @Override
     public int insertNotifyConfigStatus(DSLContext dslContext, String userName, Long appId) {
@@ -68,7 +76,7 @@ public class NotifyConfigStatusDAOImpl implements NotifyConfigStatusDAO {
     }
 
     @Override
-    public boolean exist(DSLContext dslContext, String userName, Long appId) {
+    public boolean exist(String userName, Long appId) {
         val records = dslContext.selectFrom(defaultTable)
             .where(defaultTable.USERNAME.eq(userName))
             .and(defaultTable.APP_ID.eq(appId))
