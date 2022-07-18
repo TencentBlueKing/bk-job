@@ -121,13 +121,6 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         }
     }
 
-    @Override
-    public int deleteNotifyTriggerPolicyById(DSLContext dslContext, Long id) {
-        return dslContext.deleteFrom(T_NOTIFY_TRIGGER_POLICY).where(
-            T_NOTIFY_TRIGGER_POLICY.ID.eq(id)
-        ).execute();
-    }
-
     private int cascadeDelete(DSLContext dslContext, Result<NotifyTriggerPolicyRecord> records) {
         if (null == records || records.isEmpty()) {
             return 0;
@@ -141,18 +134,6 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     }
 
     @Override
-    public int deleteAllDefaultNotifyPolicies(DSLContext dslContext) {
-        // 1.查出所有记录
-        val records = dslContext.selectFrom(defaultTable)
-            .where(defaultTable.TRIGGER_USER.eq(NotifyConsts.DEFAULT_TRIGGER_USER))
-            .and(defaultTable.APP_ID.eq(NotifyConsts.DEFAULT_APP_ID))
-            .and(defaultTable.RESOURCE_ID.eq(NotifyConsts.DEFAULT_RESOURCE_ID))
-            .fetch();
-        // 2.级联删除
-        return cascadeDelete(dslContext, records);
-    }
-
-    @Override
     public int deleteAppNotifyPolicies(DSLContext dslContext, Long appId, String triggerUser) {
         // 1.查出所有记录
         val records = dslContext.selectFrom(defaultTable)
@@ -162,47 +143,6 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             .fetch();
         // 2.级联删除
         return cascadeDelete(dslContext, records);
-    }
-
-    @Override
-    public NotifyTriggerPolicyDTO getNotifyTriggerPolicyById(DSLContext dslContext, Long id) {
-        val record = dslContext.selectFrom(T_NOTIFY_TRIGGER_POLICY).where(
-            T_NOTIFY_TRIGGER_POLICY.ID.eq(id)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return new NotifyTriggerPolicyDTO(
-                record.getId(),
-                record.getAppId(),
-                record.getResourceId(),
-                ResourceTypeEnum.get(record.getResourceType()),
-                record.getTriggerUser(),
-                TriggerTypeEnum.get(record.getTriggerType()),
-                ExecuteStatusEnum.get(record.getExecuteStatus()),
-                record.getCreator(),
-                record.getCreateTime().longValue(),
-                record.getLastModifyUser(),
-                record.getLastModifyTime().longValue()
-            );
-        }
-    }
-
-    @Override
-    public int updateNotifyTriggerPolicyById(DSLContext dslContext, NotifyTriggerPolicyDTO notifyTriggerPolicyDTO) {
-        return dslContext.update(T_NOTIFY_TRIGGER_POLICY)
-            .set(T_NOTIFY_TRIGGER_POLICY.APP_ID, notifyTriggerPolicyDTO.getAppId())
-            .set(T_NOTIFY_TRIGGER_POLICY.RESOURCE_ID, notifyTriggerPolicyDTO.getResourceId())
-            .set(T_NOTIFY_TRIGGER_POLICY.RESOURCE_TYPE, (byte) notifyTriggerPolicyDTO.getResourceType().getType())
-            .set(T_NOTIFY_TRIGGER_POLICY.TRIGGER_USER, notifyTriggerPolicyDTO.getTriggerUser())
-            .set(T_NOTIFY_TRIGGER_POLICY.TRIGGER_TYPE, (byte) notifyTriggerPolicyDTO.getTriggerType().getType())
-            .set(T_NOTIFY_TRIGGER_POLICY.EXECUTE_STATUS, (byte) notifyTriggerPolicyDTO.getExecuteStatus().getStatus())
-            .set(T_NOTIFY_TRIGGER_POLICY.CREATOR, notifyTriggerPolicyDTO.getCreator())
-            .set(T_NOTIFY_TRIGGER_POLICY.CREATE_TIME, ULong.valueOf(notifyTriggerPolicyDTO.getCreateTime()))
-            .set(T_NOTIFY_TRIGGER_POLICY.LAST_MODIFY_USER, notifyTriggerPolicyDTO.getLastModifier())
-            .set(T_NOTIFY_TRIGGER_POLICY.LAST_MODIFY_TIME, ULong.valueOf(notifyTriggerPolicyDTO.getLastModifyTime()))
-            .where(T_NOTIFY_TRIGGER_POLICY.ID.eq(notifyTriggerPolicyDTO.getId()))
-            .execute();
     }
 
     @Override
