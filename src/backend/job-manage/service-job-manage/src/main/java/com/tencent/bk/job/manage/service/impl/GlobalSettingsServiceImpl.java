@@ -172,10 +172,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     public Boolean isNotifyChannelConfiged(DSLContext dslContext) {
         GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
             GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED);
-        if (globalSettingDTO == null || !globalSettingDTO.getValue().toLowerCase().equals("true")) {
-            return false;
-        }
-        return true;
+        return globalSettingDTO != null && globalSettingDTO.getValue().toLowerCase().equals("true");
     }
 
     @Override
@@ -360,7 +357,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                     GlobalSettingKeys.KEY_CURRENT_NAME_RULES);
             }
         }
-        List<AccountNameRule> currentNameRules = new ArrayList<>();
+        List<AccountNameRule> currentNameRules;
         if (currentNameRulesDTO != null) {
             currentNameRules = JsonUtils.fromJson(currentNameRulesDTO.getValue(),
                 new TypeReference<List<AccountNameRule>>() {
@@ -612,14 +609,17 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"channelCode", "channelCode cannot be blank"});
         }
-        NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, req.getChannelCode(),
-            req.getMessageTypeCode(), false);
+        NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+            req.getChannelCode(),
+            req.getMessageTypeCode(),
+            false
+        );
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
         if (notifyTemplateDTO == null) {
             notifyTemplateDTO = new NotifyTemplateDTO(null, req.getMessageTypeCode(), req.getMessageTypeCode(),
                 req.getChannelCode(), req.getTitle(), req.getContent(), req.getTitle(), req.getContent(), false,
                 username, System.currentTimeMillis(), username, System.currentTimeMillis());
-            return notifyTemplateDAO.insertNotifyTemplate(dslContext, notifyTemplateDTO);
+            return notifyTemplateDAO.insertNotifyTemplate(notifyTemplateDTO);
         } else {
             if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
                 notifyTemplateDTO.setTitleEn(req.getTitle());
@@ -630,7 +630,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             }
             notifyTemplateDTO.setLastModifyUser(username);
             notifyTemplateDTO.setLastModifyTime(System.currentTimeMillis());
-            return notifyTemplateDAO.updateNotifyTemplateById(dslContext, notifyTemplateDTO);
+            return notifyTemplateDAO.updateNotifyTemplateById(notifyTemplateDTO);
         }
     }
 
@@ -649,17 +649,29 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public ChannelTemplateDetailWithDefaultVO getChannelTemplateDetail(String username, String channelCode,
                                                                        String messageTypeCode) {
-        NotifyTemplateDTO currentNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, channelCode,
-            messageTypeCode, false);
-        NotifyTemplateDTO defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, channelCode,
-            messageTypeCode, true);
+        NotifyTemplateDTO currentNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+            channelCode,
+            messageTypeCode,
+            false
+        );
+        NotifyTemplateDTO defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+            channelCode,
+            messageTypeCode,
+            true
+        );
         // 渠道下无默认模板，则为新增渠道，使用通用模板
         if (defaultNotifyTemplateDTO == null) {
-            defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext,
-                NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON, messageTypeCode, false);
+            defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+                NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON,
+                messageTypeCode,
+                false
+            );
             if (defaultNotifyTemplateDTO == null) {
-                defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext,
-                    NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON, messageTypeCode, true);
+                defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+                    NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON,
+                    messageTypeCode,
+                    true
+                );
             }
             if (defaultNotifyTemplateDTO != null) {
                 defaultNotifyTemplateDTO.setChannel(channelCode);
@@ -705,7 +717,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             String channelCode = notifyChannelWithIconVO.getCode();
             List<TemplateBasicInfo> configStatusList = new ArrayList<>();
             messageCodeList.forEach(messageCode -> {
-                Boolean configStatus = notifyTemplateDAO.existsNotifyTemplate(dslContext, channelCode, messageCode,
+                Boolean configStatus = notifyTemplateDAO.existsNotifyTemplate(channelCode, messageCode,
                     false);
                 configStatusList.add(new TemplateBasicInfo(messageCode,
                     i18nService.getI18n(NotifyConsts.NOTIFY_TEMPLATE_NAME_PREFIX + messageCode), configStatus));
@@ -723,7 +735,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     @Override
     public String getDocCenterBaseUrl() {
-        String url = "";
+        String url;
         if (org.apache.commons.lang3.StringUtils.isNotBlank(jobManageConfig.getBkDocRoot())) {
             url = removeSuffixBackSlash(jobManageConfig.getBkDocRoot());
         } else {
@@ -740,7 +752,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     private String getFeedBackRootUrl() {
-        String url = "";
+        String url;
         if (StringUtils.isNotBlank(jobManageConfig.getBkFeedBackRoot())) {
             url = removeSuffixBackSlash(jobManageConfig.getBkFeedBackRoot());
         } else {
