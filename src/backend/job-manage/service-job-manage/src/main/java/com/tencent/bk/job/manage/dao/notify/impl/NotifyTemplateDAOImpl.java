@@ -36,6 +36,7 @@ import org.jooq.generated.tables.NotifyTemplate;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -53,8 +54,15 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     private static final NotifyTemplate T_NOTIFY_TEMPLATE = NotifyTemplate.NOTIFY_TEMPLATE;
     private static final NotifyTemplate defaultTable = T_NOTIFY_TEMPLATE;
 
+    private final DSLContext dslContext;
+
+    @Autowired
+    public NotifyTemplateDAOImpl(DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
+
     @Override
-    public int insertNotifyTemplate(DSLContext dslContext, NotifyTemplateDTO notifyTemplateDTO) {
+    public int insertNotifyTemplate(NotifyTemplateDTO notifyTemplateDTO) {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.CODE,
             defaultTable.NAME,
@@ -92,7 +100,7 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     }
 
     @Override
-    public int updateNotifyTemplateById(DSLContext dslContext, NotifyTemplateDTO notifyTemplateDTO) {
+    public int updateNotifyTemplateById(NotifyTemplateDTO notifyTemplateDTO) {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.CODE, notifyTemplateDTO.getCode())
             .set(defaultTable.NAME, notifyTemplateDTO.getName())
@@ -133,8 +141,7 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     }
 
     @Override
-    public NotifyTemplateDTO getNotifyTemplate(DSLContext dslContext, String channelCode, String messageTypeCode,
-                                               boolean isDefault) {
+    public NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault) {
         val record = dslContext.select(
             defaultTable.ID,
             defaultTable.CODE,
@@ -163,15 +170,14 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     }
 
     @Override
-    public List<NotifyTemplateDTO> listNotifyTemplateByCode(DSLContext dslContext, String code) {
+    public List<NotifyTemplateDTO> listNotifyTemplateByCode(String code) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.CODE.eq(code));
-        return listNotifyTemplateByConditions(dslContext, conditions);
+        return listNotifyTemplateByConditions(conditions);
     }
 
     @Override
-    public boolean existsNotifyTemplate(DSLContext dslContext, String channelCode, String messageTypeCode,
-                                        boolean isDefault) {
+    public boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault) {
         Integer count = dslContext.selectCount().from(defaultTable)
             .where(defaultTable.CHANNEL.eq(channelCode))
             .and(defaultTable.CODE.eq(messageTypeCode))
@@ -181,7 +187,7 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
         return count > 0;
     }
 
-    private List<NotifyTemplateDTO> listNotifyTemplateByConditions(DSLContext dslContext, List<Condition> conditions) {
+    private List<NotifyTemplateDTO> listNotifyTemplateByConditions(List<Condition> conditions) {
         if (conditions == null) {
             conditions = new ArrayList<>();
         }

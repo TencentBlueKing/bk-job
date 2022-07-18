@@ -26,9 +26,6 @@ package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -36,15 +33,11 @@ import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PrefConsts;
-import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.TypeUtil;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.config.JobManageConfig;
-import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
@@ -54,7 +47,6 @@ import com.tencent.bk.job.manage.dao.notify.NotifyConfigStatusDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyPolicyRoleTargetDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyRoleTargetChannelDAO;
-import com.tencent.bk.job.manage.dao.notify.NotifyTemplateDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTriggerPolicyDAO;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -111,7 +103,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -145,11 +136,9 @@ public class NotifyServiceImpl implements NotifyService {
     private final NotifyBlackUserInfoDAO notifyBlackUserInfoDAO;
     private final LocalPermissionService localPermissionService;
     private final NotifyConfigStatusDAO notifyConfigStatusDAO;
-    private final NotifyTemplateDAO notifyTemplateDAO;
+    private final NotifyTemplateService notifyTemplateService;
     private final ScriptDAO scriptDAO;
     private final TaskPlanDAO taskPlanDAO;
-    private final ApplicationDAO applicationDAO;
-    private final JobManageConfig jobManageConfig;
     private final PaaSService paaSService;
     private final AppRoleService roleService;
 
@@ -169,11 +158,9 @@ public class NotifyServiceImpl implements NotifyService {
         PaaSService paaSService,
         AppRoleService roleService,
         NotifyConfigStatusDAO notifyConfigStatusDAO,
-        NotifyTemplateDAO notifyTemplateDAO,
+        NotifyTemplateService notifyTemplateService,
         ScriptDAO scriptDAO,
         TaskPlanDAO taskPlanDAO,
-        ApplicationDAO applicationDAO,
-        JobManageConfig jobManageConfig,
         MeterRegistry meterRegistry
     ) {
         this.dslContext = dslContext;
@@ -189,11 +176,9 @@ public class NotifyServiceImpl implements NotifyService {
         this.paaSService = paaSService;
         this.roleService = roleService;
         this.notifyConfigStatusDAO = notifyConfigStatusDAO;
-        this.notifyTemplateDAO = notifyTemplateDAO;
+        this.notifyTemplateService = notifyTemplateService;
         this.scriptDAO = scriptDAO;
         this.taskPlanDAO = taskPlanDAO;
-        this.applicationDAO = applicationDAO;
-        this.jobManageConfig = jobManageConfig;
         meterRegistry.gauge(
             MetricsConstants.NAME_NOTIFY_POOL_SIZE,
             Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
@@ -824,19 +809,9 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public Integer sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO) {
-        String templateCode = templateNotificationDTO.getTemplateCode();
-        List<NotifyTemplateDTO> notifyTemplateDTOList = notifyTemplateDAO.listNotifyTemplateByCode(dslContext,
-            templateCode);
-        // 优先使用自定义模板
-        notifyTemplateDTOList.sort(Comparator.comparingInt(o -> TypeUtil.booleanToInt(o.isDefault())));
-        Map<String, NotifyTemplateDTO> channelTemplateMap = new HashMap<>();
-        notifyTemplateDTOList.forEach(notifyTemplateDTO -> channelTemplateMap.putIfAbsent(
-            notifyTemplateDTO.getChannel(), notifyTemplateDTO
-        ));
-        if (notifyTemplateDTOList.isEmpty()) {
-            log.warn("no valid templates of code:{}", templateNotificationDTO.getTemplateCode());
-            return 0;
-        }
+        Map<String, NotifyTemplateDTO> channelTemplateMap = notifyTemplateService.getChannelTemplateMap(
+            templateNotificationDTO.getTemplateCode()
+        );
         //获取通知用户
         Set<String> userSet = new HashSet<>();
         UserRoleInfoDTO receiverInfo = templateNotificationDTO.getReceiverInfo();
@@ -858,102 +833,27 @@ public class NotifyServiceImpl implements NotifyService {
                 NotifyTemplateDTO templateDTO = channelTemplateMap.get(channel);
                 //变量替换
                 Map<String, String> variablesMap = templateNotificationDTO.getVariablesMap();
-                ServiceNotificationMessage notificationMessage = getNotificationMessageFromTemplate(appId,
-                    templateDTO, variablesMap);
+                ServiceNotificationMessage notifyMsg = notifyTemplateService.getNotificationMessageFromTemplate(
+                    appId,
+                    templateDTO,
+                    variablesMap
+                );
                 //发送消息通知
-                if (notificationMessage != null) {
-                    sendUserChannelNotify(userSet, channel, notificationMessage.getTitle(),
-                        notificationMessage.getContent());
+                if (notifyMsg != null) {
+                    sendUserChannelNotify(userSet, channel, notifyMsg.getTitle(),
+                        notifyMsg.getContent());
                 } else {
-                    log.warn("Fail to get notificationMessage from template of templateCode:{},channel:{}, ignore",
-                        templateCode, channel);
+                    log.warn(
+                        "Fail to get notifyMsg from template of templateCode:{},channel:{}, ignore",
+                        templateNotificationDTO.getTemplateCode(),
+                        channel
+                    );
                 }
             } else {
                 log.warn("No templates found for channel:{}", channel);
             }
         }
         return userSet.size();
-    }
-
-    private String getDisplayIdStr(ResourceScope scope) {
-        return scope.getType().getValue() + ":" + scope.getId();
-    }
-
-    private ServiceNotificationMessage getNotificationMessageFromTemplate(
-        Long appId,
-        NotifyTemplateDTO templateDTO,
-        Map<String, String> variablesMap
-    ) {
-        ApplicationDTO applicationDTO = applicationDAO.getAppById(appId);
-        if (applicationDTO == null) {
-            log.error("cannot find applicationInfo of appId:{}", appId);
-            return null;
-        }
-        String appName = applicationDTO.getName();
-        //国际化
-        String title;
-        String content;
-        String userLang = JobContextUtil.getUserLang();
-        if (userLang == null) {
-            String appLang = applicationDTO.getLanguage();
-            if ("1".equals(appLang)) {
-                userLang = LocaleUtils.LANG_ZH_CN;
-            } else if ("2".equals(appLang)) {
-                userLang = LocaleUtils.LANG_EN_US;
-            } else {
-                log.warn("appLang=null, use zh_CN, appId={}", appId);
-                userLang = LocaleUtils.LANG_ZH_CN;
-            }
-        }
-        String normalLang = LocaleUtils.getNormalLang(userLang);
-        if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
-            title = templateDTO.getTitleEn();
-            if (title == null || StringUtils.isEmpty(title)) {
-                title = templateDTO.getTitle();
-            }
-            content = templateDTO.getContentEn();
-            if (content == null || StringUtils.isEmpty(content)) {
-                content = templateDTO.getContent();
-            }
-        } else {
-            title = templateDTO.getTitle();
-            content = templateDTO.getContent();
-        }
-        //添加默认变量
-        ResourceScope scope = applicationDTO.getScope();
-        variablesMap.putIfAbsent("BASE_HOST", jobManageConfig.getJobWebUrl());
-        variablesMap.putIfAbsent("APP_ID", getDisplayIdStr(scope));
-        variablesMap.putIfAbsent("task.bk_biz_id", scope.getId());
-        variablesMap.putIfAbsent("APP_NAME", appName);
-        variablesMap.putIfAbsent("task.bk_biz_name", appName);
-        String pattern = "(\\{\\{(.*?)\\}\\})";
-        StopWatch watch = new StopWatch();
-        watch.start("replace title and content");
-        title = StringUtil.replaceByRegex(title, pattern, variablesMap);
-        content = StringUtil.replaceByRegex(content, pattern, variablesMap);
-        watch.stop();
-        if (watch.getTotalTimeMillis() > 1000) {
-            log.warn("{},{},{},{},{}", PrefConsts.TAG_PREF_SLOW + watch.prettyPrint(), title, content, pattern,
-                variablesMap);
-        }
-        return new ServiceNotificationMessage(title, content);
-    }
-
-    private ServiceNotificationMessage getNotificationMessage(Long appId, String templateCode, String channel,
-                                                              Map<String, String> variablesMap) {
-        //1.查出自定义模板信息
-        NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, channel, templateCode,
-            false);
-        if (notifyTemplateDTO == null) {
-            //2.未配置自定义模板则使用默认模板
-            notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, channel, templateCode, true);
-        }
-        if (notifyTemplateDTO == null) {
-            log.warn("Cannot find template of templateCode:{},channel:{}, plz config a default template",
-                templateCode, channel);
-            return null;
-        }
-        return getNotificationMessageFromTemplate(appId, notifyTemplateDTO, variablesMap);
     }
 
     @Override
@@ -981,8 +881,12 @@ public class NotifyServiceImpl implements NotifyService {
                 String templateCode = triggerTemplateNotification.getTemplateCode();
                 Map<String, String> variablesMap = triggerTemplateNotification.getVariablesMap();
                 watch.start("getNotificationMessage_" + channel);
-                ServiceNotificationMessage notificationMessage = getNotificationMessage(appId, templateCode, channel,
-                    variablesMap);
+                ServiceNotificationMessage notificationMessage = notifyTemplateService.getNotificationMessage(
+                    appId,
+                    templateCode,
+                    channel,
+                    variablesMap
+                );
                 watch.stop();
                 if (watch.getLastTaskTimeMillis() > 500) {
                     log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());
