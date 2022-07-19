@@ -44,8 +44,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -88,39 +90,11 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
 
     @Override
     public List<BkUserDTO> getUserList(String fields,
-                                       String lookupField,
-                                       String exactLookups,
-                                       String fuzzyLookups,
-                                       long page,
-                                       long pageSize,
-                                       boolean noPage,
                                        String bkToken,
                                        String uin) {
-        List<EsbListUsersResult> oriUsers;
+        List<EsbListUsersResult> esbUserList;
         try {
-            GetUserListReq req = makeBaseReqByWeb(GetUserListReq.class, null, uin, null);
-
-            if (StringUtils.isNotBlank(fields)) {
-                req.setFields(fields);
-            }
-
-            if (page > 0) {
-                req.setPage(page);
-            }
-            if (pageSize > 0) {
-                req.setPageSize(pageSize);
-            }
-            if (StringUtils.isNotBlank(lookupField)) {
-                req.setLookupField(lookupField);
-                if (StringUtils.isNotBlank(exactLookups)) {
-                    req.setExactLookups(exactLookups);
-                } else if (StringUtils.isNotBlank(fuzzyLookups)) {
-                    req.setFuzzyLookups(fuzzyLookups);
-                } else {
-                    return null;
-                }
-            }
-            req.setNoPage(noPage);
+            GetUserListReq req = buildGetUserListReq(uin, fields);
 
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_USER_MANAGE_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(
@@ -133,7 +107,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
                 new TypeReference<EsbResp<List<EsbListUsersResult>>>() {
                 }
             );
-            oriUsers = esbResp.getData();
+            esbUserList = esbResp.getData();
         } catch (Exception e) {
             String errorMsg = "Get " + API_GET_USER_LIST + " error";
             log.error(errorMsg, e);
@@ -141,20 +115,35 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
-        if (oriUsers == null || oriUsers.isEmpty()) {
-            return null;
+        return convert(esbUserList);
+    }
+
+    private GetUserListReq buildGetUserListReq(String uin, String fields) {
+        GetUserListReq req = makeBaseReqByWeb(GetUserListReq.class, null, uin, null);
+        if (StringUtils.isNotBlank(fields)) {
+            req.setFields(fields);
         }
-        List<BkUserDTO> users = new ArrayList<>();
-        for (EsbListUsersResult oriUser : oriUsers) {
+        req.setPage(0L);
+        req.setPageSize(0L);
+        req.setNoPage(true);
+        return req;
+    }
+
+    private List<BkUserDTO> convert(List<EsbListUsersResult> esbUserList) {
+        if (CollectionUtils.isEmpty(esbUserList)) {
+            return Collections.emptyList();
+        }
+        List<BkUserDTO> userList = new ArrayList<>();
+        for (EsbListUsersResult esbUser : esbUserList) {
             BkUserDTO user = new BkUserDTO();
-            user.setId(oriUser.getId());
-            user.setUsername(oriUser.getUsername());
-            user.setDisplayName(oriUser.getDisplayName());
-            user.setLogo(oriUser.getLogo());
-            user.setUid(oriUser.getUid());
-            users.add(user);
+            user.setId(esbUser.getId());
+            user.setUsername(esbUser.getUsername());
+            user.setDisplayName(esbUser.getDisplayName());
+            user.setLogo(esbUser.getLogo());
+            user.setUid(esbUser.getUid());
+            userList.add(user);
         }
-        return users;
+        return userList;
     }
 
     @Override
@@ -186,15 +175,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         String title,
         String content
     ) {
-        PostSendMsgReq req = makeBaseReqByWeb(PostSendMsgReq.class, null, "admin", "superadmin");
-        if (title == null || title.isEmpty()) {
-            title = "Default Title";
-        }
-        req.setMsgType(msgType);
-        req.setSender(sender);
-        req.setReceiverUsername(String.join(",", receivers));
-        req.setTitle(title);
-        req.setContent(content);
+        PostSendMsgReq req = buildSendMsgReq(msgType, sender, receivers, title, content);
         long start = System.nanoTime();
         String status = "none";
         String uri = API_POST_SEND_MSG;
@@ -229,19 +210,40 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             return false;
         } finally {
             HttpMetricUtil.clearHttpMetric();
-            long end = System.nanoTime();
-            meterRegistry.timer(
-                CommonMetricNames.ESB_CMSI_API,
-                "api_name", API_POST_SEND_MSG,
-                "status", status,
-                "msg_type", msgType
-            ).record(end - start, TimeUnit.NANOSECONDS);
-            String key = "today.msg." + msgType + "." + status;
-            AtomicInteger valueWrapper = todayMsgStatisticsMap.computeIfAbsent(key,
-                str -> new AtomicInteger(0));
-            Integer value = valueWrapper.incrementAndGet();
-            log.debug("statistics:{}->{}", key, value);
-            meterRegistry.gauge(key, valueWrapper);
+            recordMetrics(start, status, msgType);
         }
+    }
+
+    private PostSendMsgReq buildSendMsgReq(String msgType,
+                                           String sender,
+                                           Set<String> receivers,
+                                           String title,
+                                           String content) {
+        PostSendMsgReq req = makeBaseReqByWeb(PostSendMsgReq.class, null, "admin", "superadmin");
+        if (title == null || title.isEmpty()) {
+            title = "Default Title";
+        }
+        req.setMsgType(msgType);
+        req.setSender(sender);
+        req.setReceiverUsername(String.join(",", receivers));
+        req.setTitle(title);
+        req.setContent(content);
+        return req;
+    }
+
+    private void recordMetrics(long startTimeNanos, String status, String msgType) {
+        long end = System.nanoTime();
+        meterRegistry.timer(
+            CommonMetricNames.ESB_CMSI_API,
+            "api_name", API_POST_SEND_MSG,
+            "status", status,
+            "msg_type", msgType
+        ).record(end - startTimeNanos, TimeUnit.NANOSECONDS);
+        String key = "today.msg." + msgType + "." + status;
+        AtomicInteger valueWrapper = todayMsgStatisticsMap.computeIfAbsent(key,
+            str -> new AtomicInteger(0));
+        Integer value = valueWrapper.incrementAndGet();
+        log.debug("statistics:{}->{}", key, value);
+        meterRegistry.gauge(key, valueWrapper);
     }
 }
