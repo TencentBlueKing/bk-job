@@ -2,6 +2,7 @@ package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
+import com.tencent.bk.job.common.gse.constants.FileTaskTypeEnum;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -74,7 +75,7 @@ public class AtomicFileTaskResultContent {
      * 文件大小，单位Byte，字节
      */
     @JsonProperty("size")
-    private Integer size;
+    private Long size;
 
     /**
      * 任务状态
@@ -120,7 +121,7 @@ public class AtomicFileTaskResultContent {
     /**
      * 任务类型，1-文件分发，2-目录分发，3-正则分发，4-通配符分发
      */
-    private TaskType taskType;
+    private FileTaskTypeEnum taskType;
 
 
     public boolean isDownloadMode() {
@@ -184,29 +185,4 @@ public class AtomicFileTaskResultContent {
         return sj.toString();
     }
 
-    private enum TaskType {
-        FILE(1), DIR(2), REGEX(3), WILDCARD(4);
-
-        private final int value;
-
-        TaskType(int taskType) {
-            this.value = taskType;
-        }
-
-        public static TaskType valueOf(Integer taskType) {
-            if (taskType == null) {
-                return null;
-            }
-            for (TaskType inst : values()) {
-                if (inst.value == taskType) {
-                    return inst;
-                }
-            }
-            return null;
-        }
-
-        public final int getValue() {
-            return value;
-        }
-    }
 }

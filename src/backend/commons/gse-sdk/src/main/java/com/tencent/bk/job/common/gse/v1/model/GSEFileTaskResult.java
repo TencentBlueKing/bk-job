@@ -25,6 +25,7 @@ package com.tencent.bk.job.common.gse.v1.model;/*
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
+import com.tencent.bk.job.common.gse.constants.FileTaskTypeEnum;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -175,7 +176,7 @@ public class GSEFileTaskResult {
     /**
      * 任务类型，1-文件分发，2-目录分发，3-正则分发，4-通配符分发
      */
-    private TaskType taskType;
+    private FileTaskTypeEnum taskType;
 
 
     public String getSourceCloudIp() {
@@ -274,31 +275,5 @@ public class GSEFileTaskResult {
             return Long.valueOf(endTimeStr);
         }
         return null;
-    }
-
-    private enum TaskType {
-        FILE(1), DIR(2), REGEX(3), WILDCARD(4);
-
-        private final int value;
-
-        TaskType(int taskType) {
-            this.value = taskType;
-        }
-
-        public static TaskType valueOf(Integer taskType) {
-            if (taskType == null) {
-                return null;
-            }
-            for (TaskType inst : values()) {
-                if (inst.value == taskType) {
-                    return inst;
-                }
-            }
-            return null;
-        }
-
-        public final int getValue() {
-            return value;
-        }
     }
 }

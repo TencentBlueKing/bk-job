@@ -24,11 +24,13 @@ import com.tencent.bk.gse.taskapi.api_task_request;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.IGseClient;
-import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.v1.model.AgentStatusDTO;
+import com.tencent.bk.job.common.gse.v1.model.CopyFileRsp;
+import com.tencent.bk.job.common.gse.v1.model.GSEFileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
@@ -57,11 +59,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class GseV1ApiClient implements IGseClient {
+
+    private static final String FILE_TASK_MODE_DOWNLOAD = "download";
+    private static final String FILE_TASK_MODE_UPLOAD = "upload";
 
     private final MeterRegistry meterRegistry;
     private final GseCacheClientFactory gseCacheClientFactory;
@@ -398,162 +404,61 @@ public class GseV1ApiClient implements IGseClient {
     private FileTaskResult toFileTaskResult(api_map_rsp rsp) {
         FileTaskResult result = new FileTaskResult();
         if (rsp.getResult().isEmpty()) {
-            return result;
+            return null;
         }
 
         List<AtomicFileTaskResult> atomicFileTaskResults = new ArrayList<>();
-        rsp.getResult().forEach((key, rst) -> {
+        Set<Map.Entry<String, String>> ipResults = rsp.getResult().entrySet();
+        for (Map.Entry<String, String> ipResult : ipResults) {
+            CopyFileRsp copyFileRsp = parseCopyFileRsp(ipResult);
+            if (copyFileRsp == null) {
+                continue;
+            }
+            AtomicFileTaskResult atomicFileTaskResult = new AtomicFileTaskResult();
+            atomicFileTaskResult.setErrorCode(copyFileRsp.getFinalErrorCode());
+            atomicFileTaskResult.setErrorMsg(copyFileRsp.getFinalErrorMsg());
 
-        });
-
+            AtomicFileTaskResultContent content = new AtomicFileTaskResultContent();
+            GSEFileTaskResult fileTaskResult = copyFileRsp.getGseFileTaskResult();
+            content.setSourceAgentId(fileTaskResult.getSourceCloudIp());
+            content.setSourceFileDir(fileTaskResult.getSrcDirPath());
+            content.setSourceFileName(fileTaskResult.getSrcFileName());
+            content.setStandardSourceFilePath(fileTaskResult.getStandardSourceFilePath());
+            content.setDestAgentId(fileTaskResult.getDestCloudIp());
+            content.setDestFileDir(fileTaskResult.getDestDirPath());
+            content.setDestFileName(fileTaskResult.getDestFileName());
+            content.setStandardDestFilePath(fileTaskResult.getStandardDestFilePath());
+            content.setStartTime(fileTaskResult.getStartTime());
+            content.setEndTime(fileTaskResult.getEndTime());
+            content.setMode(fileTaskResult.getMode());
+            content.setProgress(fileTaskResult.getProcess());
+            content.setSize(fileTaskResult.getSize());
+            content.setSpeed(fileTaskResult.getSpeed());
+            content.setStatus(fileTaskResult.getStatus());
+            content.setStatusInfo(fileTaskResult.getStatusDesc());
+            content.setTaskId(fileTaskResult.getTaskId());
+            content.setTaskType(fileTaskResult.getTaskType());
+            atomicFileTaskResult.setContent(content);
+            atomicFileTaskResults.add(atomicFileTaskResult);
+        }
         result.setAtomicFileTaskResults(atomicFileTaskResults);
         return result;
     }
 
-    private FileTaskResult parseFileTaskResult(Map.Entry<String, String> ipResult) {
-        log.info("ParseIpResult: {}", ipResult);
+    private CopyFileRsp parseCopyFileRsp(Map.Entry<String, String> ipResult) {
+        log.info("ParseCopyFileRsp: {}", ipResult);
         String taskInfo = ipResult.getValue();
-        FileTaskResult copyFileRsp;
+        CopyFileRsp copyFileRsp;
         try {
             copyFileRsp = JsonUtils.fromJson(taskInfo, CopyFileRsp.class);
             if (copyFileRsp == null) {
                 return null;
             }
         } catch (Throwable e) {
-            log.error("[" + this.stepInstanceId + "]: Convert to CopyFileRsp error", e);
+            log.error("Parse CopyFileRsp error", e);
             return null;
         }
-
-        // 新版GSE, 把所有任务相关的信息全部放入fileTaskResult，并且新增了status字段
-        boolean isStandardGSEProtocol = isStandardGSEProtocol(copyFileRsp.getGseFileTaskResult());
-        if (!isStandardGSEProtocol) {
-            copyFileRsp = parseCopyFileRspFromResultKey(copyFileRsp, ipResult.getKey());
-            if (copyFileRsp != null) {
-                log.debug("Parse from resultKey, copyFileRsp: {}", copyFileRsp);
-            }
-        }
         return copyFileRsp;
-    }
-
-    private boolean isStandardGSEProtocol(GSEFileTaskResult fileTaskResult) {
-        return fileTaskResult != null && fileTaskResult.getProtocolVersion() != null
-            && fileTaskResult.getProtocolVersion() > 1;
-    }
-
-    private CopyFileRsp parseCopyFileRspFromResultKey(CopyFileRsp copyFileRsp, String resultKey) {
-        boolean isGSEAgentLog =
-            resultKey.startsWith(FILE_TASK_MODE_DOWNLOAD) || resultKey.startsWith(FILE_TASK_MODE_UPLOAD);
-        // 过滤GSE Server 115状态的日志（GSE BUG, TO BE FIXED)
-        if (!isGSEAgentLog && copyFileRsp.getFinalErrorCode().equals(GSECode.AtomicErrorCode.RUNNING.getValue())) {
-            return null;
-        }
-
-        // 从key中提取任务信息
-        String[] taskProps = resultKey.split(":");
-        GSEFileTaskResult fileTaskResult = copyFileRsp.getGseFileTaskResult();
-        if (fileTaskResult == null) {
-            fileTaskResult = new GSEFileTaskResult();
-            copyFileRsp.setGseFileTaskResult(fileTaskResult);
-        }
-        if (fileTaskResult.getMode() == null) {
-            fileTaskResult.setMode(parseFileTaskModeFromKey(isGSEAgentLog, taskProps).getValue());
-        }
-        HostDTO cloudIp = parseCloudIpFromKey(taskProps);
-        if (FileDistModeEnum.DOWNLOAD.getValue().equals(fileTaskResult.getMode())) {
-            fileTaskResult.setDestIp(cloudIp.getIp());
-            fileTaskResult.setDestCloudId(cloudIp.getBkCloudId());
-            HostDTO fileSourceCloudIp = parseFileSourceIpFromKey(isGSEAgentLog, cloudIp, taskProps);
-            if (fileSourceCloudIp != null) {
-                fileTaskResult.setSourceCloudId(fileSourceCloudIp.getBkCloudId());
-                fileTaskResult.setSourceIp(fileSourceCloudIp.getIp());
-            }
-            // GSE BUG, 只有目标文件信息，没有源文件信息
-            String destFilePath = parseFilePathFromKey(taskProps);
-            Pair<String, String> dirAndFileName = FilePathUtils.parseDirAndFileName(destFilePath);
-            fileTaskResult.setDestDirPath(dirAndFileName.getLeft());
-            fileTaskResult.setDestFileName(dirAndFileName.getRight());
-        } else {
-            fileTaskResult.setSourceIp(cloudIp.getIp());
-            fileTaskResult.setSourceCloudId(cloudIp.getBkCloudId());
-            String sourceFilePath = parseFilePathFromKey(taskProps);
-            Pair<String, String> dirAndFileName = FilePathUtils.parseDirAndFileName(sourceFilePath);
-            fileTaskResult.setSrcDirPath(dirAndFileName.getLeft());
-            fileTaskResult.setSrcFileName(dirAndFileName.getRight());
-        }
-        return copyFileRsp;
-    }
-
-    private String parseFilePathFromKey(String[] taskProps) {
-        String filePath = taskProps[taskProps.length - 3];
-        if (taskProps.length > 4 && taskProps[taskProps.length - 4] != null) {
-            // 如果是正则的文件， /tmp/REGEX:abc.*.txt 这种有:，在key中会被分开，要拼回去
-            // GSE 的Redis Key问题 可能引入空格变=号，导致key被当成key=value, 所以要判断 taskProps.length > 4
-            // Windows路径包含:
-            if (taskProps[taskProps.length - 4].endsWith("REGEX")
-                || WindowsHelper.isWindowsDiskPartition(taskProps[taskProps.length - 4])) {
-                filePath = taskProps[taskProps.length - 4] + ":" + filePath;
-            }
-        }
-        return filePath;
-    }
-
-
-    private HostDTO parseCloudIpFromKey(String[] taskProps) {
-        String ip = taskProps[taskProps.length - 1];
-        long cloudAreaId = Long.parseLong(taskProps[taskProps.length - 2].trim());
-        return new HostDTO(cloudAreaId, ip);
-    }
-
-    private FileDistModeEnum parseFileTaskModeFromKey(boolean isGseAgentLog, String[] taskProps) {
-        FileDistModeEnum fileDistMode;
-        if (isGseAgentLog) {
-            fileDistMode = taskProps[0].equals(FILE_TASK_MODE_DOWNLOAD) ? FileDistModeEnum.DOWNLOAD :
-                FileDistModeEnum.UPLOAD;
-        } else {
-            HostDTO cloudIp = parseCloudIpFromKey(taskProps);
-            // GSE Task Server 日志， 如果该key为目标服务器ip的日志，并且key的第一个字段如果为"-1"或者为源文件ip, 表示download日志
-            String fileSourceCloudIp = this.intSourceIpMapping.get(taskProps[0]);
-            if (this.targetAgentIds.contains(cloudIp.toCloudIp())
-                && (taskProps[0].equals("-1")
-                || (fileSourceCloudIp != null && this.sourceAgentIds.contains(fileSourceCloudIp)))) {
-                fileDistMode = FileDistModeEnum.DOWNLOAD;
-            } else {
-                fileDistMode = FileDistModeEnum.UPLOAD;
-            }
-        }
-        return fileDistMode;
-    }
-
-    private HostDTO parseFileSourceIpFromKey(boolean isGseAgentLog, HostDTO cloudIp, String[] taskProps) {
-        HostDTO fileSourceIp = null;
-        if (isGseAgentLog) {
-            if (FILE_TASK_MODE_DOWNLOAD.equalsIgnoreCase(taskProps[0])) {
-                // GSE BUG, download日志无法获取到源IP的云区域
-                String fileSourceCloudIp = guessFileSourceCloudIp(taskProps[2]);
-                if (StringUtils.isNotEmpty(fileSourceCloudIp)) {
-                    fileSourceIp = HostDTO.fromCloudIp(fileSourceCloudIp);
-                }
-            } else {
-                fileSourceIp = cloudIp;
-            }
-        } else {
-            // GSE Task Server 日志， key的第一个字段为源IP;
-            // GSE BUG, GSE Task Server 日志， key的第一个字段可能为-1
-            String fileSourceCloudIp = guessFileSourceCloudIp(taskProps[0]);
-            if (StringUtils.isNotEmpty(fileSourceCloudIp)) {
-                fileSourceIp = HostDTO.fromCloudIp(fileSourceCloudIp);
-            } else {
-                if (this.sourceAgentIds.contains(cloudIp.toCloudIp())) {
-                    fileSourceIp = cloudIp;
-                }
-            }
-        }
-        return fileSourceIp;
-    }
-
-    private String guessFileSourceCloudIp(String intIp) {
-        // gse bug，使用int保存ip会溢出，所以必须根据当前的源ip反向推出key中源ip
-        return this.intSourceIpMapping.get(intIp);
     }
 
 
