@@ -86,22 +86,16 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         todayMsgStatisticsMap.forEach((key, value) -> value.set(0));
     }
 
-    /**
-     * 获取用户列表
-     *
-     * @param lookupField
-     * @param exactLookups
-     * @param fuzzyLookups
-     * @param page
-     * @param pageSize
-     * @param uin
-     * @return
-     */
     @Override
-    public List<BkUserDTO> getUserList(String fields, String lookupField,
-                                       String exactLookups, String fuzzyLookups,
-                                       long page, long pageSize, boolean noPage,
-                                       String bkToken, String uin) {
+    public List<BkUserDTO> getUserList(String fields,
+                                       String lookupField,
+                                       String exactLookups,
+                                       String fuzzyLookups,
+                                       long page,
+                                       long pageSize,
+                                       boolean noPage,
+                                       String bkToken,
+                                       String uin) {
         List<EsbListUsersResult> oriUsers;
         try {
             GetUserListReq req = makeBaseReqByWeb(GetUserListReq.class, null, uin, null);
@@ -188,17 +182,17 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
     public Boolean sendMsg(
         String msgType,
         String sender,
-        Set<String> receiverList,
+        Set<String> receivers,
         String title,
         String content
-    ) throws Exception {
+    ) {
         PostSendMsgReq req = makeBaseReqByWeb(PostSendMsgReq.class, null, "admin", "superadmin");
         if (title == null || title.isEmpty()) {
             title = "Default Title";
         }
         req.setMsgType(msgType);
         req.setSender(sender);
-        req.setReceiverUsername(String.join(",", receiverList));
+        req.setReceiverUsername(String.join(",", receivers));
         req.setTitle(title);
         req.setContent(content);
         long start = System.nanoTime();

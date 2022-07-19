@@ -70,10 +70,17 @@ public class PaaSServiceImpl implements PaaSService {
     public List<BkUserDTO> getAllUserList(String bkToken, String uin) {
         IPaasClient paasClient = getClientWithCurrentLang();
         try {
-            List<BkUserDTO> userList = paasClient.getUserList("id,username,display_name,logo",
-                null, null, null, 0L,
-                0L, true, bkToken, uin);
-            return userList;
+            return paasClient.getUserList(
+                "id,username,display_name,logo",
+                null,
+                null,
+                null,
+                0L,
+                0L,
+                true,
+                bkToken,
+                uin
+            );
         } catch (Exception e) {
             logger.error("Exception while get user list!", e);
         }
@@ -84,8 +91,7 @@ public class PaaSServiceImpl implements PaaSService {
     @Override
     public List<EsbNotifyChannelDTO> getAllChannelList(String bkToken, String uin) {
         IPaasClient paasClient = getClientWithCurrentLang();
-        List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = paasClient.getNotifyChannelList(uin);
-        return esbNotifyChannelDTOList;
+        return paasClient.getNotifyChannelList(uin);
     }
 
     @Override
@@ -93,10 +99,10 @@ public class PaaSServiceImpl implements PaaSService {
     public Boolean sendMsg(
         String msgType,
         String sender,
-        Set<String> receiverList,
+        Set<String> receivers,
         String title, String content
     ) throws Exception {
         IPaasClient paasClient = getClientWithCurrentLang();
-        return paasClient.sendMsg(msgType, sender, receiverList, title, content);
+        return paasClient.sendMsg(msgType, sender, receivers, title, content);
     }
 }
