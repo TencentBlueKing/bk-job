@@ -30,6 +30,7 @@ import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
 import com.tencent.bk.job.manage.service.PaaSService;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -40,29 +41,18 @@ import java.util.Set;
 @Slf4j
 public class SendNotifyTask implements Runnable {
 
+    // 发送消息失败后的最大重试次数
+    private final int NOTIFY_MAX_RETRY_COUNT = 1;
+
     private PaaSService paaSService;
     private EsbUserInfoDAO esbUserInfoDAO;
-    //结果队列
+
     private final String requestId;
     private final String msgType;
     private final String sender;
     private final Set<String> receivers;
     private final String title;
     private final String content;
-
-    public SendNotifyTask(String requestId,
-                          String msgType,
-                          String sender,
-                          Set<String> receivers,
-                          String title,
-                          String content) {
-        this.requestId = requestId;
-        this.msgType = msgType;
-        this.sender = sender;
-        this.receivers = receivers;
-        this.title = title;
-        this.content = content;
-    }
 
     public void bindService(PaaSService paaSService,
                             EsbUserInfoDAO esbUserInfoDAO) {
@@ -72,55 +62,66 @@ public class SendNotifyTask implements Runnable {
 
     @Override
     public void run() {
-        if (receivers == null || receivers.isEmpty()) {
-            log.warn("receiverList is null or empty, skip, msgType={},title={},content={}", msgType, title, content);
+        if (CollectionUtils.isEmpty(receivers)) {
+            logInvalidReceivers();
             return;
         }
         JobContextUtil.setRequestId(requestId);
         try {
-            int count = 0;
-            Boolean sendResult = false;
-            while (!sendResult && count < 1) {
-                count += 1;
-                sendResult = paaSService.sendMsg(msgType, sender, receivers, title, content);
-                if (sendResult == null) {
-                    sendResult = false;
-                }
-            }
+            boolean sendResult = sendMsgWithRetry();
             if (sendResult) {
-                log.info("Success to send notify:({},{},{})", String.join(",", receivers), msgType, title);
+                logSendSuccess();
             } else {
-                List<EsbUserInfoDTO> validUsers = esbUserInfoDAO.listEsbUserInfo(receivers, null);
-                if (validUsers.isEmpty()) {
-                    // 收信人已全部离职/某些渠道不支持平台用户
-                    log.info("Ignore to send notify:({},{},{})", String.join(",", receivers), msgType, title);
-                } else {
-                    log.error(
-                        "Fail to send notify:({},{},{},{})",
-                        String.join(",", receivers),
-                        msgType,
-                        title,
-                        content
-                    );
-                }
+                handleSendFail(null);
             }
         } catch (Exception e) {
-            List<EsbUserInfoDTO> validUsers = esbUserInfoDAO.listEsbUserInfo(receivers, null);
-            if (validUsers.isEmpty()) {
-                // 收信人已全部离职/某些渠道不支持平台用户
-                log.info("Ignore to send notify:({},{},{})", String.join(",", receivers), msgType, title);
-            } else {
-                FormattingTuple msg = MessageFormatter.format(
-                    "Fail to send notify:({},{},{},{})",
-                    new String[]{
-                        String.join(",", receivers),
-                        msgType,
-                        title,
-                        content
-                    }
-                );
-                log.error(msg.getMessage(), e);
-            }
+            handleSendFail(e);
         }
     }
+
+    private void logInvalidReceivers() {
+        log.warn("receivers is null or empty, skip, msgType={},title={}", msgType, title);
+    }
+
+    private boolean sendMsgWithRetry() throws Exception {
+        int count = 0;
+        boolean sendResult = false;
+        while (!sendResult && count < NOTIFY_MAX_RETRY_COUNT) {
+            count += 1;
+            sendResult = paaSService.sendMsg(msgType, sender, receivers, title, content);
+        }
+        return sendResult;
+    }
+
+    private void logSendSuccess() {
+        log.info("Success to send notify:({},{},{})", String.join(",", receivers), msgType, title);
+    }
+
+    private void handleSendFail(Exception e) {
+        List<EsbUserInfoDTO> validUsers = esbUserInfoDAO.listEsbUserInfo(receivers);
+        if (validUsers.isEmpty()) {
+            // 收信人已全部离职/某些渠道不支持平台用户
+            logIgnoreToSend();
+            return;
+        }
+        FormattingTuple msg = MessageFormatter.format(
+            "Fail to send notify:({},{},{},{})",
+            new String[]{
+                String.join(",", receivers),
+                msgType,
+                title,
+                content
+            }
+        );
+        if (e != null) {
+            log.error(msg.getMessage(), e);
+        } else {
+            log.error(msg.getMessage());
+        }
+    }
+
+    private void logIgnoreToSend() {
+        log.info("Ignore to send notify:({},{},{})", String.join(",", receivers), msgType, title);
+    }
+
 }

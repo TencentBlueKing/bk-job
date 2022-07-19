@@ -40,6 +40,6 @@ public interface EsbUserInfoDAO {
 
     List<EsbUserInfoDTO> listEsbUserInfo(String prefixStr, Long limit);
 
-    List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames, Long limit);
+    List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames);
 
 }
