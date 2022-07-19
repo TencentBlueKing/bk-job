@@ -116,10 +116,10 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
     }
 
     @Override
-    public List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames, Long limit) {
+    public List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.in(userNames));
-        return listEsbUserInfoByConditions(defaultDslContext, conditions, limit);
+        return listEsbUserInfoByConditions(defaultDslContext, conditions, null);
     }
 
     private List<EsbUserInfoDTO> listEsbUserInfoByConditions(DSLContext dslContext, List<Condition> conditions,

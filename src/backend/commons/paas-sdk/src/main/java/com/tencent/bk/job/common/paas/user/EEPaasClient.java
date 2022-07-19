@@ -179,7 +179,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
     }
 
     @Override
-    public Boolean sendMsg(
+    public boolean sendMsg(
         String msgType,
         String sender,
         Set<String> receivers,

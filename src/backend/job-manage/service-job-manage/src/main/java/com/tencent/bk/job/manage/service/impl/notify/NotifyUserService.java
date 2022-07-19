@@ -139,7 +139,7 @@ public class NotifyUserService {
             while (userNames.contains("")) {
                 userNames.remove("");
             }
-            esbUserInfoDTOList = esbUserInfoDAO.listEsbUserInfo(userNames, -1L);
+            esbUserInfoDTOList = esbUserInfoDAO.listEsbUserInfo(userNames);
         } else {
             esbUserInfoDTOList = esbUserInfoDAO.listEsbUserInfo(prefixStr, -1L);
         }
