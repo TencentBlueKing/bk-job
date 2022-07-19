@@ -44,16 +44,7 @@ public interface IPaasClient {
     /**
      * 获取用户列表
      */
-    List<BkUserDTO> getUserList(String fields,
-                                String lookupField,
-                                String exactLookups,
-                                String fuzzyLookups,
-                                long page,
-                                long pageSize,
-                                boolean noPage,
-                                String bkToken,
-                                String uin);
-
+    List<BkUserDTO> getUserList(String fields, String bkToken, String uin);
 
     /**
      * 获取消息通知渠道

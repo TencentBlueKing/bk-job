@@ -26,9 +26,6 @@ package com.tencent.bk.job.common.trace.executors;
 
 
 import brave.Tracing;
-import com.tencent.bk.job.common.trace.executors.TraceCallable;
-import com.tencent.bk.job.common.trace.executors.TraceRunnable;
-import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;

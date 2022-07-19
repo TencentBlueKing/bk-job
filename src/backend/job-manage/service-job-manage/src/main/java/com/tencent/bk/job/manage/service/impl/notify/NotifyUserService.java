@@ -131,7 +131,17 @@ public class NotifyUserService {
         if (null == limit || limit <= 0) {
             limit = -1L;
         }
-        List<EsbUserInfoDTO> esbUserInfoDTOList;
+        List<EsbUserInfoDTO> esbUserInfoDTOList = searchUserByPrefix(prefixStr);
+        List<UserVO> userVOList = esbUserInfoDTOList.stream().map(it ->
+            new UserVO(it.getUsername(), it.getDisplayName(), it.getLogo(), true)
+        ).collect(Collectors.toList());
+        if (excludeBlackUsers) {
+            filterBlackUsers(userVOList);
+        }
+        return calcFinalListByOffsetAndLimit(userVOList, offset, limit);
+    }
+
+    private List<EsbUserInfoDTO> searchUserByPrefix(String prefixStr) {
         // 从数据库查
         if (prefixStr.contains(NotifyConsts.SEPERATOR_COMMA)) {
             // 前端回显，传全量
@@ -139,18 +149,13 @@ public class NotifyUserService {
             while (userNames.contains("")) {
                 userNames.remove("");
             }
-            esbUserInfoDTOList = esbUserInfoDAO.listEsbUserInfo(userNames);
+            return esbUserInfoDAO.listEsbUserInfo(userNames);
         } else {
-            esbUserInfoDTOList = esbUserInfoDAO.listEsbUserInfo(prefixStr, -1L);
+            return esbUserInfoDAO.listEsbUserInfo(prefixStr, -1L);
         }
-        if (esbUserInfoDTOList == null) {
-            return new ArrayList<>();
-        }
-        List<UserVO> userVOList = esbUserInfoDTOList.stream().map(it -> new UserVO(it.getUsername(),
-            it.getDisplayName(), it.getLogo(), true)).collect(Collectors.toList());
-        if (excludeBlackUsers) {
-            filterBlackUsers(userVOList);
-        }
+    }
+
+    private List<UserVO> calcFinalListByOffsetAndLimit(List<UserVO> userVOList, Long offset, Long limit) {
         if (offset >= userVOList.size()) {
             return new ArrayList<>();
         }
