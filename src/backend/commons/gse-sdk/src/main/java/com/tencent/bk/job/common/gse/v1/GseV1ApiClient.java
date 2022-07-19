@@ -57,6 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -133,6 +134,8 @@ public class GseV1ApiClient implements IGseClient {
                     .collect(Collectors.toList());
 
             taskReq.setRel_list(relations);
+        } else {
+            taskReq.setRel_list(Collections.emptyList());
         }
 
         scriptReq.setTasks(taskReq);
