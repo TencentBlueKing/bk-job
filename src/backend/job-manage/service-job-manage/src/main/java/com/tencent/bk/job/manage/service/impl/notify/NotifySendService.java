@@ -48,8 +48,11 @@ public class NotifySendService {
 
     //发通知专用线程池
     private final ThreadPoolExecutor notificationThreadPoolExecutor = new ThreadPoolExecutor(
-        5, 30, 60L,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<>(10)
+        5,
+        30,
+        60L,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(10)
     );
 
     private final PaaSService paaSService;
@@ -81,8 +84,8 @@ public class NotifySendService {
         );
     }
 
-    private SendNotificationTask buildSendTask(Set<String> receivers, String channel, String title, String content) {
-        SendNotificationTask task = SendNotificationTask.builder()
+    private SendNotifyTask buildSendTask(Set<String> receivers, String channel, String title, String content) {
+        SendNotifyTask task = SendNotifyTask.builder()
             .requestId(JobContextUtil.getRequestId())
             .msgType(channel)
             .receivers(receivers)

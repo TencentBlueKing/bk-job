@@ -38,7 +38,7 @@ import java.util.Set;
 
 @Builder
 @Slf4j
-public class SendNotificationTask implements Runnable {
+public class SendNotifyTask implements Runnable {
 
     private PaaSService paaSService;
     private EsbUserInfoDAO esbUserInfoDAO;
@@ -50,12 +50,12 @@ public class SendNotificationTask implements Runnable {
     private final String title;
     private final String content;
 
-    public SendNotificationTask(String requestId,
-                                String msgType,
-                                String sender,
-                                Set<String> receivers,
-                                String title,
-                                String content) {
+    public SendNotifyTask(String requestId,
+                          String msgType,
+                          String sender,
+                          Set<String> receivers,
+                          String title,
+                          String content) {
         this.requestId = requestId;
         this.msgType = msgType;
         this.sender = sender;
