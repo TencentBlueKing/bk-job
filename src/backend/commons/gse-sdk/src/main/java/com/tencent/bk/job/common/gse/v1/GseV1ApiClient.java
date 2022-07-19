@@ -66,9 +66,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GseV1ApiClient implements IGseClient {
 
-    private static final String FILE_TASK_MODE_DOWNLOAD = "download";
-    private static final String FILE_TASK_MODE_UPLOAD = "upload";
-
     private final MeterRegistry meterRegistry;
     private final GseCacheClientFactory gseCacheClientFactory;
 
@@ -110,6 +107,7 @@ public class GseV1ApiClient implements IGseClient {
         api_task_request taskReq = new api_task_request();
         taskReq.setAtomic_task_num(request.getAtomicTaskNum());
         taskReq.setVersion("1.0");
+        taskReq.setCrond("");
 
         // 脚本任务 - 目标 agent
         List<api_agent> agents = buildAgents(request.getAgents());
