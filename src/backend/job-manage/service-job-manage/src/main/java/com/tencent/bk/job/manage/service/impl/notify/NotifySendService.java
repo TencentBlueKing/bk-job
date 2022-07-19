@@ -28,7 +28,7 @@ import brave.Tracing;
 import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.PaaSService;
+import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -51,15 +51,15 @@ public class NotifySendService {
     //发通知专用线程池
     private final TraceableExecutorService notifySendExecutor;
 
-    private final PaaSService paaSService;
+    private final WatchableSendMsgService watchableSendMsgService;
     private final EsbUserInfoDAO esbUserInfoDAO;
 
     @Autowired
-    public NotifySendService(PaaSService paaSService,
+    public NotifySendService(WatchableSendMsgService watchableSendMsgService,
                              EsbUserInfoDAO esbUserInfoDAO,
                              Tracing tracing,
                              MeterRegistry meterRegistry) {
-        this.paaSService = paaSService;
+        this.watchableSendMsgService = watchableSendMsgService;
         this.esbUserInfoDAO = esbUserInfoDAO;
         notifySendExecutor = new TraceableExecutorService(
             new ThreadPoolExecutor(
@@ -95,18 +95,24 @@ public class NotifySendService {
         }
     }
 
-    private SendNotifyTask buildSendTask(Set<String> receivers, String channel, String title, String content) {
+    private SendNotifyTask buildSendTask(Long appId,
+                                         Set<String> receivers,
+                                         String channel,
+                                         String title,
+                                         String content) {
         SendNotifyTask task = SendNotifyTask.builder()
+            .appId(appId)
+            .createTimeMillis(System.currentTimeMillis())
             .msgType(channel)
             .receivers(receivers)
             .title(title)
             .content(content)
             .build();
-        task.bindService(paaSService, esbUserInfoDAO);
+        task.bindService(watchableSendMsgService, esbUserInfoDAO);
         return task;
     }
 
-    public void sendUserChannelNotify(Set<String> receivers, String channel, String title, String content) {
+    public void sendUserChannelNotify(Long appId, Set<String> receivers, String channel, String title, String content) {
         if (CollectionUtils.isEmpty(receivers)) {
             log.warn("receivers is empty of channel {}, do not send notification", channel);
             return;
@@ -118,10 +124,10 @@ public class NotifySendService {
             title,
             content
         );
-        notifySendExecutor.submit(buildSendTask(receivers, channel, title, content));
+        notifySendExecutor.submit(buildSendTask(appId, receivers, channel, title, content));
     }
 
-    public void sendNotifyMessages(Map<String, Set<String>> channelUsersMap, String title, String content) {
-        channelUsersMap.forEach((channel, userSet) -> sendUserChannelNotify(userSet, channel, title, content));
+    public void sendNotifyMessages(Long appId, Map<String, Set<String>> channelUsersMap, String title, String content) {
+        channelUsersMap.forEach((channel, userSet) -> sendUserChannelNotify(appId, userSet, channel, title, content));
     }
 }

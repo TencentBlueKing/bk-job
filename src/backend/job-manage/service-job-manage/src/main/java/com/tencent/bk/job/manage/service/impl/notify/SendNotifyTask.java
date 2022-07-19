@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
-import com.tencent.bk.job.manage.service.PaaSService;
+import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -43,18 +43,20 @@ public class SendNotifyTask implements Runnable {
     // 发送消息失败后的最大重试次数
     private final int NOTIFY_MAX_RETRY_COUNT = 1;
 
-    private PaaSService paaSService;
+    private WatchableSendMsgService watchableSendMsgService;
     private EsbUserInfoDAO esbUserInfoDAO;
 
+    private final Long appId;
+    private final long createTimeMillis;
     private final String msgType;
     private final String sender;
     private final Set<String> receivers;
     private final String title;
     private final String content;
 
-    public void bindService(PaaSService paaSService,
+    public void bindService(WatchableSendMsgService watchableSendMsgService,
                             EsbUserInfoDAO esbUserInfoDAO) {
-        this.paaSService = paaSService;
+        this.watchableSendMsgService = watchableSendMsgService;
         this.esbUserInfoDAO = esbUserInfoDAO;
     }
 
@@ -85,7 +87,15 @@ public class SendNotifyTask implements Runnable {
         boolean sendResult = false;
         while (!sendResult && count < NOTIFY_MAX_RETRY_COUNT) {
             count += 1;
-            sendResult = paaSService.sendMsg(msgType, sender, receivers, title, content);
+            sendResult = watchableSendMsgService.sendMsg(
+                appId,
+                createTimeMillis,
+                msgType,
+                sender,
+                receivers,
+                title,
+                content
+            );
         }
         return sendResult;
     }
