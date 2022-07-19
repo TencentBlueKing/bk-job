@@ -70,17 +70,7 @@ public class PaaSServiceImpl implements PaaSService {
     public List<BkUserDTO> getAllUserList(String bkToken, String uin) {
         IPaasClient paasClient = getClientWithCurrentLang();
         try {
-            return paasClient.getUserList(
-                "id,username,display_name,logo",
-                null,
-                null,
-                null,
-                0L,
-                0L,
-                true,
-                bkToken,
-                uin
-            );
+            return paasClient.getUserList("id,username,display_name,logo", bkToken, uin);
         } catch (Exception e) {
             logger.error("Exception while get user list!", e);
         }
