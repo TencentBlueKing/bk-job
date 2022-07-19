@@ -1,0 +1,99 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.manage.service.impl.notify;
+
+import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
+import com.tencent.bk.job.manage.metrics.MetricsConstants;
+import com.tencent.bk.job.manage.service.PaaSService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
+@Service
+public class NotifySendService {
+
+    //发通知专用线程池
+    private final ThreadPoolExecutor notificationThreadPoolExecutor = new ThreadPoolExecutor(
+        5, 30, 60L,
+        TimeUnit.SECONDS, new LinkedBlockingQueue<>(10)
+    );
+
+    private final PaaSService paaSService;
+    private final EsbUserInfoDAO esbUserInfoDAO;
+
+    @Autowired
+    public NotifySendService(PaaSService paaSService,
+                             EsbUserInfoDAO esbUserInfoDAO,
+                             MeterRegistry meterRegistry) {
+        this.paaSService = paaSService;
+        this.esbUserInfoDAO = esbUserInfoDAO;
+        measureNotifySendExecutor(meterRegistry);
+    }
+
+    private void measureNotifySendExecutor(MeterRegistry meterRegistry) {
+        meterRegistry.gauge(
+            MetricsConstants.NAME_NOTIFY_POOL_SIZE,
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
+            notificationThreadPoolExecutor,
+            ThreadPoolExecutor::getPoolSize
+        );
+        meterRegistry.gauge(
+            MetricsConstants.NAME_NOTIFY_QUEUE_SIZE,
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
+            notificationThreadPoolExecutor,
+            threadPoolExecutor -> threadPoolExecutor.getQueue().size()
+        );
+    }
+
+    public void sendUserChannelNotify(Set<String> userSet, String channel, String title, String content) {
+        if (CollectionUtils.isEmpty(userSet)) {
+            log.warn("userSet is empty of channel {}, do not send notification", channel);
+            return;
+        }
+        log.debug(String.format("Begin to send %s notify to %s, title:%s, content:%s",
+            channel, String.join(",", userSet), title, content));
+        notificationThreadPoolExecutor.submit(new SendNotificationTask(paaSService, esbUserInfoDAO,
+            JobContextUtil.getRequestId(), channel, null,
+            userSet, title, content));
+    }
+
+    public void sendNotifyMessages(Map<String, Set<String>> channelUsersMap, String title, String content) {
+        channelUsersMap.forEach((channel, userSet) -> sendUserChannelNotify(userSet, channel, title, content));
+    }
+}
