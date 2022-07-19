@@ -49,7 +49,6 @@ import com.tencent.bk.job.manage.dao.notify.NotifyPolicyRoleTargetDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyRoleTargetChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTriggerPolicyDAO;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
-import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
@@ -80,16 +79,11 @@ import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.AppRoleService;
 import com.tencent.bk.job.manage.service.LocalPermissionService;
 import com.tencent.bk.job.manage.service.NotifyService;
-import com.tencent.bk.job.manage.service.PaaSService;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,9 +102,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -119,11 +110,6 @@ public class NotifyServiceImpl implements NotifyService {
 
     private static final String REDIS_KEY_SAVE_APP_DEFAULT_NOTIFY_POLICIES = "NotifyServiceImpl" +
         ".saveAppDefaultNotifyPolicies";
-    private static final Logger logger = LoggerFactory.getLogger(NotifyServiceImpl.class);
-    //发通知专用线程池
-    private final ThreadPoolExecutor notificationThreadPoolExecutor = new ThreadPoolExecutor(
-        5, 30, 60L,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<>(10));
 
     private final DSLContext dslContext;
     private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
@@ -139,7 +125,7 @@ public class NotifyServiceImpl implements NotifyService {
     private final NotifyTemplateService notifyTemplateService;
     private final ScriptDAO scriptDAO;
     private final TaskPlanDAO taskPlanDAO;
-    private final PaaSService paaSService;
+    private final NotifySendService notifySendService;
     private final AppRoleService roleService;
 
     @Autowired
@@ -155,13 +141,12 @@ public class NotifyServiceImpl implements NotifyService {
         NotifyEsbChannelDAO notifyEsbChannelDAO,
         NotifyBlackUserInfoDAO notifyBlackUserInfoDAO,
         LocalPermissionService localPermissionService,
-        PaaSService paaSService,
+        NotifySendService notifySendService,
         AppRoleService roleService,
         NotifyConfigStatusDAO notifyConfigStatusDAO,
         NotifyTemplateService notifyTemplateService,
         ScriptDAO scriptDAO,
-        TaskPlanDAO taskPlanDAO,
-        MeterRegistry meterRegistry
+        TaskPlanDAO taskPlanDAO
     ) {
         this.dslContext = dslContext;
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
@@ -173,26 +158,12 @@ public class NotifyServiceImpl implements NotifyService {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.notifyBlackUserInfoDAO = notifyBlackUserInfoDAO;
         this.localPermissionService = localPermissionService;
-        this.paaSService = paaSService;
+        this.notifySendService = notifySendService;
         this.roleService = roleService;
         this.notifyConfigStatusDAO = notifyConfigStatusDAO;
         this.notifyTemplateService = notifyTemplateService;
         this.scriptDAO = scriptDAO;
         this.taskPlanDAO = taskPlanDAO;
-        meterRegistry.gauge(
-            MetricsConstants.NAME_NOTIFY_POOL_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
-                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
-            notificationThreadPoolExecutor,
-            ThreadPoolExecutor::getPoolSize
-        );
-        meterRegistry.gauge(
-            MetricsConstants.NAME_NOTIFY_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
-                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
-            notificationThreadPoolExecutor,
-            threadPoolExecutor -> threadPoolExecutor.getQueue().size()
-        );
     }
 
     @Override
@@ -447,7 +418,7 @@ public class NotifyServiceImpl implements NotifyService {
         Set<String> blackUserSet =
             notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext).stream()
                 .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
-        logger.debug(String.format("listUsers:blackUserSet:%s", String.join(",", blackUserSet)));
+        log.debug(String.format("listUsers:blackUserSet:%s", String.join(",", blackUserSet)));
         userVOList.forEach(it -> {
             if (blackUserSet.contains(it.getEnglishName())) {
                 it.setEnable(false);
@@ -542,11 +513,11 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public Integer sendSimpleNotification(ServiceNotificationDTO notification) {
-        logger.debug("Input:" + notification.toString());
+        log.debug("Input:" + notification.toString());
         // 1.获取需要通知的渠道与人员
         Map<String, Set<String>> channelUsersMap = getChannelUsersMap(notification.getTriggerDTO());
         channelUsersMap.forEach((channel, users) ->
-            logger.debug(String.format("[%s]-->[%s]", channel, String.join(","
+            log.debug(String.format("[%s]-->[%s]", channel, String.join(","
                 , users))));
         // 2.调ESB接口发送通知
         val notifyMessageMap = notification.getNotificationMessageMap();
@@ -556,7 +527,11 @@ public class NotifyServiceImpl implements NotifyService {
         }
         ServiceNotificationMessage notificationMessage =
             notifyMessageMap.get(new ArrayList<>(notifyMessageMap.keySet()).get(0));
-        sendNotifyMessages(channelUsersMap, notificationMessage.getTitle(), notificationMessage.getContent());
+        notifySendService.sendNotifyMessages(
+            channelUsersMap,
+            notificationMessage.getTitle(),
+            notificationMessage.getContent()
+        );
         return channelSet.size();
     }
 
@@ -568,7 +543,7 @@ public class NotifyServiceImpl implements NotifyService {
             long resourceId = Long.parseLong(resourceIdStr);
             userSet.add(taskPlanDAO.getTaskPlanById(resourceId).getLastModifyUser());
         } else {
-            logger.warn("Unknown resourceType:{}", resourceType);
+            log.warn("Unknown resourceType:{}", resourceType);
         }
         return userSet;
     }
@@ -578,7 +553,7 @@ public class NotifyServiceImpl implements NotifyService {
         try {
             return roleService.listAppUsersByRole(appId, role);
         } catch (Exception e) {
-            logger.error(String.format("Fail to fetch role users:(%d,%s)", appId, role), e);
+            log.error(String.format("Fail to fetch role users:(%d,%s)", appId, role), e);
         }
         return Collections.emptySet();
     }
@@ -586,7 +561,7 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public Set<String> findUserByResourceRoles(Long appId, String triggerUser, Integer resourceType,
                                                String resourceIdStr, Set<String> roleSet) {
-        logger.debug("Input:{},{},{},{},{}", appId, triggerUser, resourceType, resourceIdStr, roleSet);
+        log.debug("Input:{},{},{},{},{}", appId, triggerUser, resourceType, resourceIdStr, roleSet);
         Set<String> userSet = new HashSet<>();
         for (String role : roleSet) {
             if (role.equals(JobRoleEnum.JOB_RESOURCE_OWNER.name())) {
@@ -616,7 +591,7 @@ public class NotifyServiceImpl implements NotifyService {
                 resourceExecuteStatus.toString()
             }
         );
-        logger.debug(msg.getMessage());
+        log.debug(msg.getMessage());
         return notifyTriggerPolicyDAO.list(
             triggerUser,
             appId,
@@ -651,7 +626,7 @@ public class NotifyServiceImpl implements NotifyService {
             resourceExecuteStatus
         );
         if (CollectionUtils.isEmpty(policyList)) {
-            logger.warn("system default notify policies not configured, please check sql migration");
+            log.warn("system default notify policies not configured, please check sql migration");
         }
         return policyList;
     }
@@ -726,7 +701,7 @@ public class NotifyServiceImpl implements NotifyService {
         if (CollectionUtils.isEmpty(triggerPolicyList)) {
             return Collections.emptyMap();
         }
-        // 5.根据策略查找通知角色，找出对象通知渠道、去重
+        // 根据策略查找通知角色，找出对象通知渠道、去重
         Map<String, Set<String>> channelUsersMap = new HashMap<>();
         for (NotifyTriggerPolicyDTO policy : triggerPolicyList) {
             List<NotifyPolicyRoleTargetDTO> roleTargetList =
@@ -749,7 +724,7 @@ public class NotifyServiceImpl implements NotifyService {
                 channels.forEach(channel -> addChannelUsersToMap(channelUsersMap, channel, userSet));
             }
         }
-        // 6.过滤通知黑名单
+        // 过滤通知黑名单
         channelUsersMap.keySet().forEach(key -> channelUsersMap.put(key, filterBlackUser(channelUsersMap.get(key))));
         return channelUsersMap;
     }
@@ -767,7 +742,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public Integer sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
-        // 1.获取所有可用渠道
+        // 获取所有可用渠道
         List<String> availableChannelTypeList = getAvailableChannelTypeList();
         return sendNotificationsToUsersByChannel(serviceUserNotificationDTO, availableChannelTypeList);
     }
@@ -775,13 +750,17 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public Integer sendNotificationsToUsersByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
                                                      List<String> channelTypeList) {
-        // 2.组装通知map
+        // 组装通知map
         Map<String, Set<String>> channelUsersMap = new HashMap<>();
         for (String channelType : channelTypeList) {
             channelUsersMap.put(channelType, serviceUserNotificationDTO.getReceivers());
         }
         ServiceNotificationMessage notificationMessage = serviceUserNotificationDTO.getNotificationMessage();
-        sendNotifyMessages(channelUsersMap, notificationMessage.getTitle(), notificationMessage.getContent());
+        notifySendService.sendNotifyMessages(
+            channelUsersMap,
+            notificationMessage.getTitle(),
+            notificationMessage.getContent()
+        );
         return serviceUserNotificationDTO.getReceivers().size();
     }
 
@@ -840,8 +819,12 @@ public class NotifyServiceImpl implements NotifyService {
                 );
                 //发送消息通知
                 if (notifyMsg != null) {
-                    sendUserChannelNotify(userSet, channel, notifyMsg.getTitle(),
-                        notifyMsg.getContent());
+                    notifySendService.sendUserChannelNotify(
+                        userSet,
+                        channel,
+                        notifyMsg.getTitle(),
+                        notifyMsg.getContent()
+                    );
                 } else {
                     log.warn(
                         "Fail to get notifyMsg from template of templateCode:{},channel:{}, ignore",
@@ -892,8 +875,12 @@ public class NotifyServiceImpl implements NotifyService {
                     log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());
                 }
                 if (notificationMessage != null) {
-                    sendUserChannelNotify(userSet, channel, notificationMessage.getTitle(),
-                        notificationMessage.getContent());
+                    notifySendService.sendUserChannelNotify(
+                        userSet,
+                        channel,
+                        notificationMessage.getTitle(),
+                        notificationMessage.getContent()
+                    );
                     counter.addOne();
                 } else {
                     log.warn("Cannot find template of templateCode:{},channel:{}, ignore", templateCode, channel);
@@ -908,28 +895,12 @@ public class NotifyServiceImpl implements NotifyService {
         Set<String> blackUserSet =
             notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext).stream()
                 .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
-        logger.debug(String.format("sendUserChannelNotify:blackUserSet:%s", String.join(",", blackUserSet)));
+        log.debug(String.format("sendUserChannelNotify:blackUserSet:%s", String.join(",", blackUserSet)));
         val removedBlackUserSet = userSet.stream().filter(blackUserSet::contains).collect(Collectors.toSet());
         userSet = userSet.stream().filter(it -> !blackUserSet.contains(it)).collect(Collectors.toSet());
-        logger.debug(String.format("sendUserChannelNotify:%d black users are removed, removed users=[%s]",
+        log.debug(String.format("sendUserChannelNotify:%d black users are removed, removed users=[%s]",
             removedBlackUserSet.size(), String.join(",", removedBlackUserSet)));
         return userSet;
-    }
-
-    private void sendUserChannelNotify(Set<String> userSet, String channel, String title, String content) {
-        if (CollectionUtils.isEmpty(userSet)) {
-            logger.warn("userSet is empty of channel {}, do not send notification", channel);
-            return;
-        }
-        logger.debug(String.format("Begin to send %s notify to %s, title:%s, content:%s",
-            channel, String.join(",", userSet), title, content));
-        notificationThreadPoolExecutor.submit(new SendNotificationTask(paaSService, esbUserInfoDAO,
-            JobContextUtil.getRequestId(), channel, null,
-            userSet, title, content));
-    }
-
-    private void sendNotifyMessages(Map<String, Set<String>> channelUsersMap, String title, String content) {
-        channelUsersMap.forEach((channel, userSet) -> sendUserChannelNotify(userSet, channel, title, content));
     }
 
     private void addChannelUsersToMap(Map<String, Set<String>> channelUsersMap, String channel, Set<String> userSet) {
