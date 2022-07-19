@@ -41,8 +41,6 @@ import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
-import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
-import com.tencent.bk.job.manage.dao.notify.NotifyBlackUserInfoDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyConfigStatusDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyPolicyRoleTargetDAO;
@@ -50,8 +48,6 @@ import com.tencent.bk.job.manage.dao.notify.NotifyRoleTargetChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTriggerPolicyDAO;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
-import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
-import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyPolicyRoleTargetDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyRoleTargetChannelDTO;
@@ -63,19 +59,16 @@ import com.tencent.bk.job.manage.model.inner.ServiceNotificationTriggerDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
-import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ResourceStatusChannel;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
 import com.tencent.bk.job.manage.model.web.request.notify.TriggerPolicy;
 import com.tencent.bk.job.manage.model.web.vo.notify.ExecuteStatusVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ResourceTypeVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerTypeVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.AppRoleService;
 import com.tencent.bk.job.manage.service.LocalPermissionService;
 import com.tencent.bk.job.manage.service.NotifyService;
@@ -115,16 +108,15 @@ public class NotifyServiceImpl implements NotifyService {
     private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
     private final NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO;
     private final NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO;
-    private final EsbUserInfoDAO esbUserInfoDAO;
     private final EsbAppRoleDAO esbAppRoleDAO;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyEsbChannelDAO notifyEsbChannelDAO;
-    private final NotifyBlackUserInfoDAO notifyBlackUserInfoDAO;
     private final LocalPermissionService localPermissionService;
     private final NotifyConfigStatusDAO notifyConfigStatusDAO;
     private final NotifyTemplateService notifyTemplateService;
     private final ScriptDAO scriptDAO;
     private final TaskPlanDAO taskPlanDAO;
+    private final NotifyUserService notifyUserService;
     private final NotifySendService notifySendService;
     private final AppRoleService roleService;
 
@@ -135,29 +127,26 @@ public class NotifyServiceImpl implements NotifyService {
         NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
         NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO,
         NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO,
-        EsbUserInfoDAO esbUserInfoDAO,
         EsbAppRoleDAO esbAppRoleDAO,
         AvailableEsbChannelDAO availableEsbChannelDAO,
         NotifyEsbChannelDAO notifyEsbChannelDAO,
-        NotifyBlackUserInfoDAO notifyBlackUserInfoDAO,
         LocalPermissionService localPermissionService,
         NotifySendService notifySendService,
         AppRoleService roleService,
         NotifyConfigStatusDAO notifyConfigStatusDAO,
         NotifyTemplateService notifyTemplateService,
         ScriptDAO scriptDAO,
-        TaskPlanDAO taskPlanDAO
-    ) {
+        TaskPlanDAO taskPlanDAO,
+        NotifyUserService notifyUserService) {
         this.dslContext = dslContext;
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
         this.notifyPolicyRoleTargetDAO = notifyPolicyRoleTargetDAO;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
-        this.esbUserInfoDAO = esbUserInfoDAO;
         this.esbAppRoleDAO = esbAppRoleDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
-        this.notifyBlackUserInfoDAO = notifyBlackUserInfoDAO;
         this.localPermissionService = localPermissionService;
+        this.notifyUserService = notifyUserService;
         this.notifySendService = notifySendService;
         this.roleService = roleService;
         this.notifyConfigStatusDAO = notifyConfigStatusDAO;
@@ -413,104 +402,6 @@ public class NotifyServiceImpl implements NotifyService {
         return channelCodeList.size();
     }
 
-    private void filterBlackUsers(List<UserVO> userVOList) {
-        //过滤黑名单内用户
-        Set<String> blackUserSet =
-            notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext).stream()
-                .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
-        log.debug(String.format("listUsers:blackUserSet:%s", String.join(",", blackUserSet)));
-        userVOList.forEach(it -> {
-            if (blackUserSet.contains(it.getEnglishName())) {
-                it.setEnable(false);
-            }
-        });
-    }
-
-    @Override
-    public List<UserVO> listUsers(
-        String username,
-        String prefixStr,
-        Long offset,
-        Long limit,
-        Boolean excludeBlackUsers
-    ) {
-        if (null == prefixStr) {
-            prefixStr = "";
-        }
-        if (null == offset || offset < 0) {
-            offset = 0L;
-        }
-        if (null == limit || limit <= 0) {
-            limit = -1L;
-        }
-        List<EsbUserInfoDTO> esbUserInfoDTOList;
-        // 从数据库查
-        if (prefixStr.contains(NotifyConsts.SEPERATOR_COMMA)) {
-            // 前端回显，传全量
-            List<String> userNames = Arrays.asList(prefixStr.split(NotifyConsts.SEPERATOR_COMMA));
-            while (userNames.contains("")) {
-                userNames.remove("");
-            }
-            esbUserInfoDTOList = esbUserInfoDAO.listEsbUserInfo(userNames, -1L);
-        } else {
-            esbUserInfoDTOList = esbUserInfoDAO.listEsbUserInfo(prefixStr, -1L);
-        }
-        if (esbUserInfoDTOList == null) {
-            return new ArrayList<>();
-        }
-        List<UserVO> userVOList = esbUserInfoDTOList.stream().map(it -> new UserVO(it.getUsername(),
-            it.getDisplayName(), it.getLogo(), true)).collect(Collectors.toList());
-        if (excludeBlackUsers) {
-            filterBlackUsers(userVOList);
-        }
-        if (offset >= userVOList.size()) {
-            return new ArrayList<>();
-        }
-        if (limit != -1L) {
-            long stopIndex = offset + limit;
-            if (stopIndex >= userVOList.size()) {
-                stopIndex = userVOList.size();
-            }
-            return userVOList.subList(offset.intValue(), (int) stopIndex);
-        } else {
-            return userVOList.subList(offset.intValue(), userVOList.size());
-        }
-    }
-
-    @Override
-    public List<NotifyBlackUserInfoVO> listNotifyBlackUsers(String username, Integer start, Integer pageSize) {
-        return notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext, start, pageSize);
-    }
-
-    private void saveBlackUsersToDB(String[] users, String creator, List<String> resultList) {
-        for (String user : users) {
-            if (StringUtils.isBlank(user)) {
-                continue;
-            }
-            notifyBlackUserInfoDAO.insertNotifyBlackUserInfo(
-                new NotifyBlackUserInfoDTO(
-                    null,
-                    user,
-                    creator,
-                    System.currentTimeMillis()
-                ));
-            resultList.add(user);
-        }
-    }
-
-    @Override
-    public List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req) {
-        String[] users = req.getUsersStr().split(NotifyConsts.SEPERATOR_COMMA);
-        return saveNotifyBlackUsers(username, users);
-    }
-
-    public List<String> saveNotifyBlackUsers(String username, String[] users) {
-        val resultList = new ArrayList<String>();
-        notifyBlackUserInfoDAO.deleteAllNotifyBlackUser();
-        saveBlackUsersToDB(users, username, resultList);
-        return resultList;
-    }
-
     @Override
     public Integer sendSimpleNotification(ServiceNotificationDTO notification) {
         log.debug("Input:" + notification.toString());
@@ -725,7 +616,9 @@ public class NotifyServiceImpl implements NotifyService {
             }
         }
         // 过滤通知黑名单
-        channelUsersMap.keySet().forEach(key -> channelUsersMap.put(key, filterBlackUser(channelUsersMap.get(key))));
+        channelUsersMap.keySet().forEach(key ->
+            channelUsersMap.put(key, notifyUserService.filterBlackUser(channelUsersMap.get(key)))
+        );
         return channelUsersMap;
     }
 
@@ -799,7 +692,7 @@ public class NotifyServiceImpl implements NotifyService {
             templateNotificationDTO.getResourceType(), templateNotificationDTO.getResourceId(),
             receiverInfo.getRoleList()));
         //过滤黑名单用户
-        userSet = filterBlackUser(userSet);
+        userSet = notifyUserService.filterBlackUser(userSet);
         //获取可用通知渠道
         Set<String> availableChannelSet = new HashSet<>(getAvailableChannelTypeList());
         //与激活通知渠道取交集
@@ -888,19 +781,6 @@ public class NotifyServiceImpl implements NotifyService {
             }
         });
         return counter.getValue().intValue();
-    }
-
-    private Set<String> filterBlackUser(Set<String> userSet) {
-        // 过滤黑名单内用户
-        Set<String> blackUserSet =
-            notifyBlackUserInfoDAO.listNotifyBlackUserInfo(dslContext).stream()
-                .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
-        log.debug(String.format("sendUserChannelNotify:blackUserSet:%s", String.join(",", blackUserSet)));
-        val removedBlackUserSet = userSet.stream().filter(blackUserSet::contains).collect(Collectors.toSet());
-        userSet = userSet.stream().filter(it -> !blackUserSet.contains(it)).collect(Collectors.toSet());
-        log.debug(String.format("sendUserChannelNotify:%d black users are removed, removed users=[%s]",
-            removedBlackUserSet.size(), String.join(",", removedBlackUserSet)));
-        return userSet;
     }
 
     private void addChannelUsersToMap(Map<String, Set<String>> channelUsersMap, String channel, Set<String> userSet) {

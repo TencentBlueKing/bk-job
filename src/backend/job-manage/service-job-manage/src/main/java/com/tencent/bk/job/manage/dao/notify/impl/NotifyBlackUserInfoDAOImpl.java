@@ -90,7 +90,7 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     }
 
     @Override
-    public List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo(DSLContext dslContext) {
+    public List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo() {
         val records = dslContext.selectFrom(defaultTable).fetch();
         if (records.isEmpty()) {
             return new ArrayList<>();
@@ -105,7 +105,7 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     }
 
     @Override
-    public List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(DSLContext dslContext, Integer start, Integer limit) {
+    public List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(Integer start, Integer limit) {
         if (null == start) start = 0;
         if (null == limit) limit = -1;
         val baseQuery = dslContext.selectFrom(defaultTable);

@@ -36,8 +36,8 @@ public interface NotifyBlackUserInfoDAO {
 
     int deleteAllNotifyBlackUser();
 
-    List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo(DSLContext dslContext);
+    List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo();
 
-    List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(DSLContext dslContext, Integer start, Integer limit);
+    List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(Integer start, Integer limit);
 
 }
