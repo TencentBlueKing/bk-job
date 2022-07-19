@@ -80,6 +80,7 @@ import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.NotifyService;
+import com.tencent.bk.job.manage.service.impl.notify.NotifyUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -120,6 +121,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final NotifyEsbChannelDAO notifyEsbChannelDAO;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyService notifyService;
+    private final NotifyUserService notifyUserService;
     private final GlobalSettingDAO globalSettingDAO;
     private final NotifyTemplateDAO notifyTemplateDAO;
     private final MessageI18nService i18nService;
@@ -138,7 +140,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         , NotifyEsbChannelDAO notifyEsbChannelDAO
         , AvailableEsbChannelDAO availableEsbChannelDAO
         , NotifyService notifyService
-        , GlobalSettingDAO globalSettingDAO
+        , NotifyUserService notifyUserService,
+        GlobalSettingDAO globalSettingDAO
         , NotifyTemplateDAO notifyTemplateDAO,
         MessageI18nService i18nService,
         JobManageConfig jobManageConfig,
@@ -149,6 +152,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyService = notifyService;
+        this.notifyUserService = notifyUserService;
         this.globalSettingDAO = globalSettingDAO;
         this.notifyTemplateDAO = notifyTemplateDAO;
         this.i18nService = i18nService;
@@ -224,17 +228,17 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public List<UserVO> listUsers(String username, String prefixStr, Long offset, Long limit) {
         //这里就是要选择人来添加黑名单，故不排除已在黑名单内的人
-        return notifyService.listUsers(username, prefixStr, offset, limit, false);
+        return notifyUserService.listUsers(prefixStr, offset, limit, false);
     }
 
     @Override
     public List<NotifyBlackUserInfoVO> listNotifyBlackUsers(String username, Integer start, Integer pageSize) {
-        return notifyService.listNotifyBlackUsers(username, start, pageSize);
+        return notifyUserService.listNotifyBlackUsers(start, pageSize);
     }
 
     @Override
     public List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req) {
-        return notifyService.saveNotifyBlackUsers(username, req);
+        return notifyUserService.saveNotifyBlackUsers(username, req);
     }
 
     @Override
@@ -407,16 +411,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private FileUploadSettingVO getConfigedFileUploadSettings() {
         log.debug("configedMaxFileSize=" + configedMaxFileSize);
         return getFileUploadSettingsFromStr(configedMaxFileSize);
-    }
-
-    private FileUploadSettingVO getDBFileUploadSettings() {
-        GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
-            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
-        if (fileUploadSettingDTO == null) {
-            return null;
-        }
-        String maxFileSizeStr = fileUploadSettingDTO.getValue();
-        return getFileUploadSettingsFromStr(maxFileSizeStr);
     }
 
     @Override
@@ -783,18 +777,18 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return urlMap;
     }
 
-    private void addFileUploadConfig(String username, Map<String, Object> configMap) {
+    private void addFileUploadConfig(Map<String, Object> configMap) {
         FileUploadSettingVO fileUploadSettingVO = getFileUploadSettings();
         if (fileUploadSettingVO != null) {
             configMap.put(GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING, fileUploadSettingVO);
         }
     }
 
-    private void addEnableFeatureFileManageConfig(String username, Map<String, Object> configMap) {
+    private void addEnableFeatureFileManageConfig(Map<String, Object> configMap) {
         configMap.put(GlobalSettingKeys.KEY_ENABLE_FEATURE_FILE_MANAGE, enableFeatureFileManage);
     }
 
-    private void addEnableUploadToArtifactoryConfig(String username, Map<String, Object> configMap) {
+    private void addEnableUploadToArtifactoryConfig(Map<String, Object> configMap) {
         configMap.put(
             GlobalSettingKeys.KEY_ENABLE_UPLOAD_TO_ARTIFACTORY,
             JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(localFileConfigForManage.getStorageBackend())
@@ -804,9 +798,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public Map<String, Object> getJobConfig(String username) {
         Map<String, Object> configMap = new HashMap<>();
-        addFileUploadConfig(username, configMap);
-        addEnableFeatureFileManageConfig(username, configMap);
-        addEnableUploadToArtifactoryConfig(username, configMap);
+        addFileUploadConfig(configMap);
+        addEnableFeatureFileManageConfig(configMap);
+        addEnableUploadToArtifactoryConfig(configMap);
         return configMap;
     }
 }
