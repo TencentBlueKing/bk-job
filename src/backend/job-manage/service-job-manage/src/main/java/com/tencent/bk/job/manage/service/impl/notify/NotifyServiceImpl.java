@@ -419,6 +419,7 @@ public class NotifyServiceImpl implements NotifyService {
         ServiceNotificationMessage notificationMessage =
             notifyMessageMap.get(new ArrayList<>(notifyMessageMap.keySet()).get(0));
         notifySendService.sendNotifyMessages(
+            notification.getTriggerDTO().getAppId(),
             channelUsersMap,
             notificationMessage.getTitle(),
             notificationMessage.getContent()
@@ -650,6 +651,7 @@ public class NotifyServiceImpl implements NotifyService {
         }
         ServiceNotificationMessage notificationMessage = serviceUserNotificationDTO.getNotificationMessage();
         notifySendService.sendNotifyMessages(
+            null,
             channelUsersMap,
             notificationMessage.getTitle(),
             notificationMessage.getContent()
@@ -713,6 +715,7 @@ public class NotifyServiceImpl implements NotifyService {
                 //发送消息通知
                 if (notifyMsg != null) {
                     notifySendService.sendUserChannelNotify(
+                        appId,
                         userSet,
                         channel,
                         notifyMsg.getTitle(),
@@ -769,6 +772,7 @@ public class NotifyServiceImpl implements NotifyService {
                 }
                 if (notificationMessage != null) {
                     notifySendService.sendUserChannelNotify(
+                        appId,
                         userSet,
                         channel,
                         notificationMessage.getTitle(),
