@@ -22,13 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.sdk;
+package com.tencent.bk.job.common.gse.v1;
 
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import javax.net.ssl.*;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -38,33 +47,27 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 /**
- * 针对Thrift的SSL做免TrustManager验证，主要是因为centos 7.x以上系统，可能存在认证异常 Caused by: sun.security.validator.ValidatorException:
- * KeyUsage does not allow key encipherment at
- * sun.security.validator.EndEntityChecker.checkTLSServer(EndEntityChecker.java:264) at
- * sun.security.validator.EndEntityChecker.check(EndEntityChecker.java:141) at
- * sun.security.validator.Validator.validate(Validator.java:264) at
- * sun.security.ssl.X509TrustManagerImpl.validate(X509TrustManagerImpl.java:324) at
- * sun.security.ssl.X509TrustManagerImpl.checkTrusted(X509TrustManagerImpl.java:229) at
- * sun.security.ssl.X509TrustManagerImpl.checkServerTrusted(X509TrustManagerImpl.java:124) at
- * sun.security.ssl.ClientHandshaker.serverCertificate(ClientHandshaker.java:1496)
+ * 针对Thrift的SSL做免TrustManager验证，主要是因为centos 7.x以上系统，可能存在认证异常
+ * Caused by: sun.security.validator.ValidatorException: KeyUsage does not allow key encipherment
+ * at sun.security.validator.EndEntityChecker.checkTLSServer(EndEntityChecker.java:264)
+ * at sun.security.validator.EndEntityChecker.check(EndEntityChecker.java:141)
+ * at sun.security.validator.Validator.validate(Validator.java:264)
+ * at sun.security.ssl.X509TrustManagerImpl.validate(X509TrustManagerImpl.java:324)
+ * at sun.security.ssl.X509TrustManagerImpl.checkTrusted(X509TrustManagerImpl.java:229)
+ * at sun.security.ssl.X509TrustManagerImpl.checkServerTrusted(X509TrustManagerImpl.java:124)
+ * at sun.security.ssl.ClientHandshaker.serverCertificate(ClientHandshaker.java:1496)
  *
  * @version 1.0
  * @time 2017/6/19.
  */
 public class BKTSSLTransportFactory {
-    private final static X509TrustManager TRUST_MANAGER = new X509TrustManager() {
-        @SuppressWarnings("all")
-        @Override
+    private final static X509TrustManager trustManager = new X509TrustManager() {
         public void checkClientTrusted(X509Certificate[] xcs, String string) {
         }
 
-        @SuppressWarnings("all")
-        @Override
         public void checkServerTrusted(X509Certificate[] xcs, String string) {
         }
 
-        @SuppressWarnings("all")
-        @Override
         public X509Certificate[] getAcceptedIssuers() {
             return null;
         }
@@ -81,8 +84,8 @@ public class BKTSSLTransportFactory {
         return getServerSocket(port, clientTimeout, false, (InetAddress) null);
     }
 
-    public static TServerSocket getServerSocket(int port, int clientTimeout, boolean clientAuth, InetAddress ifAddress)
-        throws TTransportException {
+    public static TServerSocket getServerSocket(int port, int clientTimeout, boolean clientAuth,
+                                                InetAddress ifAddress) throws TTransportException {
         SSLServerSocketFactory factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
         return createServer(factory, port, clientTimeout, clientAuth, ifAddress, null);
     }
@@ -94,13 +97,14 @@ public class BKTSSLTransportFactory {
             return createServer(ctx.getServerSocketFactory(), port, clientTimeout, params.clientAuth, ifAddress,
                 params);
         } else {
-            throw new TTransportException(
-                "Either one of the KeyStore or TrustStore must be set for SSLTransportParameters");
+            throw new TTransportException("Either one of the KeyStore or TrustStore must be set for " +
+                "SSLTransportParameters");
         }
     }
 
-    private static TServerSocket createServer(SSLServerSocketFactory factory, int port, int timeout, boolean clientAuth,
-                                              InetAddress ifAddress, TSSLTransportParameters params) throws TTransportException {
+    private static TServerSocket createServer(SSLServerSocketFactory factory, int port, int timeout,
+                                              boolean clientAuth, InetAddress ifAddress,
+                                              TSSLTransportParameters params) throws TTransportException {
         try {
             SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(port, 100, ifAddress);
             serverSocket.setSoTimeout(timeout);
@@ -109,9 +113,8 @@ public class BKTSSLTransportFactory {
                 serverSocket.setEnabledCipherSuites(params.cipherSuites);
             }
 
-            return new TServerSocket(
-                (TServerSocket.ServerSocketTransportArgs) (new TServerSocket.ServerSocketTransportArgs())
-                    .serverSocket(serverSocket).clientTimeout(timeout));
+            return new TServerSocket((new TServerSocket.ServerSocketTransportArgs())
+                .serverSocket(serverSocket).clientTimeout(timeout));
         } catch (Exception var7) {
             throw new TTransportException("Could not bind to port " + port, var7);
         }
@@ -126,14 +129,14 @@ public class BKTSSLTransportFactory {
         return getClientSocket(host, port, 0);
     }
 
-    public static TSocket getClientSocket(String host, int port, int timeout, TSSLTransportParameters params)
-        throws TTransportException {
+    public static TSocket getClientSocket(String host, int port, int timeout,
+                                          TSSLTransportParameters params) throws TTransportException {
         if (params != null && (params.isKeyStoreSet || params.isTrustStoreSet)) {
             SSLContext ctx = createSSLContext(params);
             return createClient(ctx.getSocketFactory(), host, port, timeout);
         } else {
-            throw new TTransportException(
-                "Either one of the KeyStore or TrustStore must be set for SSLTransportParameters");
+            throw new TTransportException("Either one of the KeyStore or TrustStore must be set for " +
+                "SSLTransportParameters");
         }
     }
 
@@ -164,11 +167,11 @@ public class BKTSSLTransportFactory {
             }
 
             if (params.isKeyStoreSet && params.isTrustStoreSet) {
-                ctx.init(kmf.getKeyManagers(), new TrustManager[]{TRUST_MANAGER}, (SecureRandom) null);
+                ctx.init(kmf.getKeyManagers(), new TrustManager[]{trustManager}, (SecureRandom) null);
             } else if (params.isKeyStoreSet) {
                 ctx.init(kmf.getKeyManagers(), (TrustManager[]) null, (SecureRandom) null);
             } else {
-                ctx.init((KeyManager[]) null, new TrustManager[]{TRUST_MANAGER}, (SecureRandom) null);
+                ctx.init((KeyManager[]) null, new TrustManager[]{trustManager}, (SecureRandom) null);
             }
         } catch (Exception var17) {
             throw new TTransportException("Error creating the transport", var17);
@@ -194,8 +197,8 @@ public class BKTSSLTransportFactory {
         return ctx;
     }
 
-    private static TSocket createClient(SSLSocketFactory factory, String host, int port, int timeout)
-        throws TTransportException {
+    private static TSocket createClient(SSLSocketFactory factory, String host, int port,
+                                        int timeout) throws TTransportException {
         try {
             SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
             socket.setSoTimeout(timeout);

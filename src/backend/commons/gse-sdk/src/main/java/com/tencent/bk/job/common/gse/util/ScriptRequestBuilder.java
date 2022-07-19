@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.gse;
+package com.tencent.bk.job.common.gse.util;
 
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.AtomicScriptTask;

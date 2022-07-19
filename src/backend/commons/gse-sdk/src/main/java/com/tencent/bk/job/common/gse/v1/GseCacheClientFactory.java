@@ -22,20 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.sdk;
+package com.tencent.bk.job.common.gse.v1;
 
 import com.tencent.bk.gse.cacheapi.CacheAPI;
-import com.tencent.bk.job.common.gse.config.GseConfig;
+import com.tencent.bk.job.common.gse.config.GseProperties;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.layered.TFramedTransport;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,34 +43,34 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class GseCacheClientFactory {
 
-    private static final AtomicInteger currentIpIndex = new AtomicInteger(0);
-    private final GseConfig gseConfig;
+    private static final AtomicInteger currentHostIndex = new AtomicInteger(0);
+    private final GseProperties gseProperties;
+    private final GseProperties.CacheApiServer.ApiServer cacheApiServerProperties;
+    private final String[] gseCacheApiServerHosts;
 
-    public GseCacheClientFactory(GseConfig gseConfig) {
-        this.gseConfig = gseConfig;
+    @Autowired
+    public GseCacheClientFactory(GseProperties gseProperties) {
+        this.gseProperties = gseProperties;
+        this.cacheApiServerProperties = gseProperties.getCache().getApiServer();
+        this.gseCacheApiServerHosts = this.cacheApiServerProperties.getHost().split(",");
     }
 
     public GseCacheClient getClient() {
-        if (gseConfig.getGseCacheApiServerHost().length == 1
-            && StringUtils.isBlank(gseConfig.getGseCacheApiServerHost()[0])) {
-            return null;
-        }
-
-        int tryTimes = gseConfig.getGseCacheApiServerHost().length;
+        int tryTimes = gseCacheApiServerHosts.length;
         while (true) {
-            int ipIndex = currentIpIndex.incrementAndGet() % gseConfig.getGseCacheApiServerHost().length;
+            int hostIndex = currentHostIndex.incrementAndGet() % gseCacheApiServerHosts.length;
             String ip = "";
             if (tryTimes > 0) {
                 try {
-                    ip = gseConfig.getGseCacheApiServerHost()[ipIndex];
+                    ip = gseCacheApiServerHosts[hostIndex];
                     if (StringUtils.isBlank(ip)) {
                         continue;
                     }
-                    return getAgent(ip, gseConfig.getGseCacheApiServerPort());
+                    return getAgent(ip, cacheApiServerProperties.getPort());
                 } catch (TException e) {
                     String msg = MessageFormatter.format(
                         "Get GseCacheClient fail|{}:{}|msg={}",
-                        ArrayUtil.toArray(ip, gseConfig.getGseCacheApiServerPort(), e.getMessage()))
+                        ArrayUtil.toArray(ip, cacheApiServerProperties.getPort(), e.getMessage()))
                         .getMessage();
                     log.error(msg, e);
                     if ((--tryTimes) == 0) {
@@ -81,24 +81,18 @@ public class GseCacheClientFactory {
         }
     }
 
-    /**
-     * 构建gse访问客户端, 并连接服务端
-     */
     private GseCacheClient getAgent(String ip, int port) throws TException {
         log.info("Enter getClient with ip=" + ip + ", port=" + port);
         TTransport tTransport;
-        if (gseConfig.isEnableSsl()) {
-            BKTSSLTransportFactory.TSSLTransportParameters params =
-                new BKTSSLTransportFactory.TSSLTransportParameters();
-            params.setTrustStore(gseConfig.getTrustStore(), gseConfig.getTrustStorePass(),
-                gseConfig.getTrustManagerType(), gseConfig.getTrustStoreType());
-            params.setKeyStore(gseConfig.getKeyStore(), gseConfig.getKeyStorePass());
-            tTransport = new TFramedTransport(BKTSSLTransportFactory.getClientSocket(ip, port, 15000, params));
-        } else {
-            TSocket tSocket = new TSocket(ip, port);
-            tSocket.setTimeout(15000);
-            tTransport = new TFramedTransport(tSocket);
-        }
+        BKTSSLTransportFactory.TSSLTransportParameters params =
+            new BKTSSLTransportFactory.TSSLTransportParameters();
+        params.setTrustStore(gseProperties.getSsl().getTrustStore().getPath(),
+            gseProperties.getSsl().getTrustStore().getPassword(),
+            gseProperties.getSsl().getTrustStore().getManagerType(),
+            gseProperties.getSsl().getTrustStore().getStoreType());
+        params.setKeyStore(gseProperties.getSsl().getKeyStore().getPath(),
+            gseProperties.getSsl().getKeyStore().getPassword());
+        tTransport = new TFramedTransport(BKTSSLTransportFactory.getClientSocket(ip, port, 15000, params));
         TProtocol tProtocol = new TBinaryProtocol(tTransport);
         CacheAPI.Client gseAgentClient = new CacheAPI.Client(tProtocol);
         return new GseCacheClient(gseAgentClient, tTransport);

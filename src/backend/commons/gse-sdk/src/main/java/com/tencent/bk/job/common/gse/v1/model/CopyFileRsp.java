@@ -1,4 +1,4 @@
-/*
+package com.tencent.bk.job.common.gse.v1.model;/*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
  * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
@@ -21,30 +21,65 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-
-package com.tencent.bk.job.common.gse.model;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.gse.constants.GSECode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
-public class AgentStatusDTO {
-    @JsonProperty("businessid")
-    private String businessId;
-    /**
-     * Agent是否存在，1: 存在，0: 不存在
-     */
-    private Integer exist;
-
-    private String ip;
-
-    /**
-     * 云区域ID
-     */
-    private String region;
+/**
+ * GSE拷贝文件的执行结果
+ */
+@Setter
+@Getter
+@ToString
+public class CopyFileRsp {
 
     /**
-     * Agent版本
+     * 执行内容
      */
-    private String version;
+    @JsonProperty("content")
+    private GSEFileTaskResult gseFileTaskResult;
+
+    /**
+     * 0 执行正常包括执行中和执行成功， 非0 执行失败， 115 预留
+     */
+    @JsonProperty("error_code")
+    private Integer errorCode;
+
+    /**
+     * 兼容gse协议，等同于error_code
+     */
+    @JsonProperty("errcode")
+    private Integer errCode;
+
+    /**
+     * 错误信息
+     */
+    @JsonProperty("error_msg")
+    private String errorMsg;
+
+    /**
+     * 错误信息,兼容gse协议，等同于error_msg
+     */
+    @JsonProperty("errmsg")
+    private String errMsg;
+
+    public Integer getFinalErrorCode() {
+        if (errorCode != null) {
+            return errorCode;
+        } else if (errCode != null) {
+            return errCode;
+        } else {
+            return GSECode.AtomicErrorCode.ERROR.getValue();
+        }
+    }
+
+    public String getFinalErrorMsg() {
+        if (errorCode != null) {
+            return errorMsg;
+        } else {
+            return errMsg;
+        }
+    }
 }

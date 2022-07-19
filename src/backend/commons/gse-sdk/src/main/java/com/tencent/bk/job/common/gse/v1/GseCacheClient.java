@@ -22,42 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.model;
+package com.tencent.bk.job.common.gse.v1;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.gse.cacheapi.CacheAPI;
+import org.apache.thrift.TException;
+import org.apache.thrift.transport.TTransport;
 
-@Data
-@NoArgsConstructor
-public class GseTaskResponse {
-    /**
-     * GSE任务下单成功
-     */
-    public static final int ERROR_CODE_SUCCESS = 0;
+/**
+ * GSE Cache API Client
+ */
+public class GseCacheClient {
 
-    public static final int ERROR_CODE_FAIL = 1;
+    private final CacheAPI.Client cacheClient;
+    private final TTransport transport;
 
-    /**
-     * 错误码
-     */
-    private int errorCode;
-
-    /**
-     * 错误信息
-     */
-    private String errorMessage;
-
-    /**
-     * GSE任务ID
-     */
-    private String gseTaskId;
-
-    public GseTaskResponse(int errorCode, String errorMessage) {
-        this.errorCode = errorCode;
-        this.errorMessage = errorMessage;
+    GseCacheClient(CacheAPI.Client cacheClient, TTransport transport) throws TException {
+        this.cacheClient = cacheClient;
+        this.transport = transport;
+        if (!transport.isOpen()) {
+            transport.open();
+        }
     }
 
-    public static GseTaskResponse fail(int errorCode, String errorMessage) {
-        return new GseTaskResponse(errorCode, errorMessage);
+    public CacheAPI.Client getCacheClient() {
+        return cacheClient;
+    }
+
+    /**
+     * 关闭连接
+     */
+    public void tearDown() {
+        try {
+            transport.close();
+        } catch (Throwable ignored) {
+        }
     }
 }

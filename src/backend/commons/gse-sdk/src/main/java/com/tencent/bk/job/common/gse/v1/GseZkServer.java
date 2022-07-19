@@ -22,12 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.gse;
+package com.tencent.bk.job.common.gse.v1;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.tencent.bk.job.common.gse.config.GseProperties;
+import com.tencent.bk.job.common.gse.v1.model.AccessServerInfoDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.engine.gse.model.AccessServerInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -47,8 +48,9 @@ public class GseZkServer extends GseServer {
     private PathChildrenCache cache;
     private List<Map.Entry<String, Integer>> servers;
 
-    public GseZkServer(CuratorFramework client, String gseServerPath) {
-        super();
+    public GseZkServer(GseProperties gseProperties, CuratorFramework client) {
+        super(gseProperties);
+        String gseServerPath = gseProperties.getServer().getZooKeeper().getPath();
         if (client != null) {
             try {
                 gseServerPath = PathUtils.validatePath(gseServerPath);
@@ -73,9 +75,9 @@ public class GseZkServer extends GseServer {
      * 构建gse访问客户端, 并连接服务端
      */
     @Override
-    public GseClient getClient() {
+    public GseTaskClient getClient() {
         List<Map.Entry<String, Integer>> servers = getGseServer();
-        GseClient client = getGseClient(servers);
+        GseTaskClient client = getGseClient(servers);
 
         if (client == null) {
             client = super.getClient();

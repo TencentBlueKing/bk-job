@@ -22,57 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.gse.v1.config;
 
-import com.tencent.bk.job.execute.engine.gse.GseServer;
-import com.tencent.bk.job.execute.engine.gse.GseZkServer;
-import com.tencent.bk.job.execute.engine.gse.IntervalIncrementForeverRetry;
+import com.tencent.bk.job.common.gse.config.GseProperties;
+import com.tencent.bk.job.common.gse.v1.CuratorFrameworkFactoryBean;
+import com.tencent.bk.job.common.gse.v1.GseCacheClientFactory;
+import com.tencent.bk.job.common.gse.v1.GseServer;
+import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
+import com.tencent.bk.job.common.gse.v1.GseZkServer;
+import com.tencent.bk.job.common.gse.v1.IntervalIncrementForeverRetry;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.curator.framework.CuratorFramework;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @since 22/12/2020 21:41
- */
-@Configuration
-public class GseServerAutoConfig {
+import java.util.Objects;
+
+
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(name = "gse.version", havingValue = "v1")
+public class GseV1AutoConfiguration {
 
     private static final String ZOOKEEPER_SERVER_TYPE = "zookeeper";
 
-    /**
-     * GSE ZooKeeper 连接信息
-     */
-    @Value("${gse.server.zookeeper.connect.string:}")
-    private String gseServerZkConnectString;
-
-    /**
-     * 储存 GSE 接入服务器信息的 ZooKeeper 节点
-     */
-    @Value("${gse.server.zookeeper.path:/gse/config/server/task/accessv3}")
-    private String gseServerZkPath;
-
-    /**
-     * ZooKeeper 会话超时时间
-     */
-    @Value("${gse.server.zookeeper.timeout.session:60000}")
-    private Integer gseServerZkSessionTimeOutMills;
-
-    /**
-     * ZooKeeper 连接超时时间
-     */
-    @Value("${gse.server.zookeeper.timeout.connect:60000}")
-    private Integer gseServerZkConnectTimeOutMills;
-
-    /**
-     * 不存在 gseServer，回落到 domain/ip list 方式
-     */
     @Bean("gseServer")
     @ConditionalOnMissingBean(name = "gseServer")
-    public GseServer gseServer() {
-        return new GseServer();
+    public GseServer gseServer(GseProperties gseProperties) {
+        return new GseServer(gseProperties);
     }
 
     /**
@@ -82,8 +60,8 @@ public class GseServerAutoConfig {
      */
     @Bean("gseServer")
     @ConditionalOnProperty(name = "gse.server.discovery.type", havingValue = ZOOKEEPER_SERVER_TYPE)
-    public GseServer gseServer(CuratorFramework curatorFramework) {
-        return new GseZkServer(curatorFramework, gseServerZkPath);
+    public GseServer gseServer(GseProperties gseProperties, CuratorFramework curatorFramework) {
+        return new GseZkServer(gseProperties, curatorFramework);
     }
 
     /**
@@ -91,8 +69,19 @@ public class GseServerAutoConfig {
      */
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnProperty(name = "gse.server.discovery.type", havingValue = ZOOKEEPER_SERVER_TYPE)
-    public CuratorFrameworkFactoryBean curatorFrameworkFactoryBean() {
-        return new CuratorFrameworkFactoryBean(gseServerZkConnectString, gseServerZkSessionTimeOutMills,
-            gseServerZkConnectTimeOutMills, new IntervalIncrementForeverRetry(60000));
+    public CuratorFrameworkFactoryBean curatorFrameworkFactoryBean(GseProperties gseProperties) {
+        Objects.requireNonNull(gseProperties.getServer().getZooKeeper());
+        return new CuratorFrameworkFactoryBean(gseProperties.getServer().getZooKeeper(),
+            new IntervalIncrementForeverRetry(60000));
+    }
+
+    @Bean("gseCacheClientFactory")
+    public GseCacheClientFactory gseCacheClientFactory(GseProperties gseProperties) {
+        return new GseCacheClientFactory(gseProperties);
+    }
+
+    @Bean("gseV1ApiClient")
+    public GseV1ApiClient gseV1ApiClient(MeterRegistry meterRegistry, GseCacheClientFactory gseCacheClientFactory) {
+        return new GseV1ApiClient(meterRegistry, gseCacheClientFactory);
     }
 }

@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.gse.v1;
 
+import com.tencent.bk.job.common.gse.config.GseProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -55,8 +56,11 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
      */
     private volatile int phase;
 
-    public CuratorFrameworkFactoryBean(String connectionString, int sessionTimeOutMills,
-                                       int connectTimeOutMills, RetryPolicy retryPolicy) {
+    public CuratorFrameworkFactoryBean(GseProperties.Server.ZooKeeper zooKeeperConfig,
+                                       RetryPolicy retryPolicy) {
+        String connectionString = zooKeeperConfig.getConnect().getString();
+        int sessionTimeOutMills = zooKeeperConfig.getTimeout().getSession();
+        int connectTimeOutMills = zooKeeperConfig.getTimeout().getConnect();
         if (connectionString == null || connectionString.trim().length() == 0) {
             this.client = null;
         } else {

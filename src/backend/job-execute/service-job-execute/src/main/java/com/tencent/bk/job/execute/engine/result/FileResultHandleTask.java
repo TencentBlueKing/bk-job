@@ -25,8 +25,9 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.google.common.collect.Sets;
+import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.constants.GSECode;
 import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
@@ -35,7 +36,6 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
-import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.consts.GseConstants;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
@@ -169,7 +169,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 FileAgentTaskService fileAgentTaskService,
                                 StepInstanceService stepInstanceService,
-                                GseApiClient gseApiClient,
+                                GseClient gseClient,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -192,7 +192,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
-            gseApiClient,
+                gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -254,7 +254,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             notFinishedAgentIds.addAll(runningTargetAgentIds);
             request.setAgentIds(notFinishedAgentIds.stream().distinct().collect(Collectors.toList()));
         }
-        FileTaskResult result = gseApiClient.getTransferFileResult(request);
+        FileTaskResult result = gseClient.getTransferFileResult(request);
         GseLogBatchPullResult<FileTaskResult> pullResult;
         if (result != null) {
             pullResult = new GseLogBatchPullResult<>(

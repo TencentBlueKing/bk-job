@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * GSE 源文件
+ * GSE 文件分发任务
  */
 @Data
 @NoArgsConstructor

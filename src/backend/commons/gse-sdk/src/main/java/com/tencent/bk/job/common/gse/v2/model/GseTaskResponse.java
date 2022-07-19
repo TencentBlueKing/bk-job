@@ -22,16 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.gse.model;
+package com.tencent.bk.job.common.gse.v2.model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * @since 24/12/2020 10:43
- */
 @Data
-public class AccessServerInfoDTO {
-    private Integer port;
+@NoArgsConstructor
+public class GseTaskResponse {
+    /**
+     * GSE任务下单成功
+     */
+    public static final int ERROR_CODE_SUCCESS = 0;
 
-    private Integer load;
+    public static final int ERROR_CODE_FAIL = 1;
+
+    /**
+     * 错误码
+     */
+    private int errorCode;
+
+    /**
+     * 错误信息
+     */
+    private String errorMessage;
+
+    /**
+     * GSE任务ID
+     */
+    private String gseTaskId;
+
+    public GseTaskResponse(int errorCode, String errorMessage) {
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+    }
+
+    public static GseTaskResponse fail(int errorCode, String errorMessage) {
+        return new GseTaskResponse(errorCode, errorMessage);
+    }
 }

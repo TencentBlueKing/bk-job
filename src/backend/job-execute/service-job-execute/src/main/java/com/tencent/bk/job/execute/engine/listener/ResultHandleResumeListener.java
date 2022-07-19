@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
@@ -107,7 +107,7 @@ public class ResultHandleResumeListener {
     private final FileAgentTaskService fileAgentTaskService;
 
     private final StepInstanceService stepInstanceService;
-    private final GseApiClient gseApiClient;
+    private final GseClient gseClient;
 
     @Autowired
     public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
@@ -125,7 +125,7 @@ public class ResultHandleResumeListener {
                                       ScriptAgentTaskService scriptAgentTaskService,
                                       FileAgentTaskService fileAgentTaskService,
                                       StepInstanceService stepInstanceService,
-                                      GseApiClient gseApiClient) {
+                                      GseClient gseClient) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -141,7 +141,7 @@ public class ResultHandleResumeListener {
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.stepInstanceService = stepInstanceService;
-        this.gseApiClient = gseApiClient;
+        this.gseClient = gseClient;
     }
 
 
@@ -221,7 +221,7 @@ public class ResultHandleResumeListener {
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
-            gseApiClient,
+            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -270,7 +270,7 @@ public class ResultHandleResumeListener {
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
-            gseApiClient,
+            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

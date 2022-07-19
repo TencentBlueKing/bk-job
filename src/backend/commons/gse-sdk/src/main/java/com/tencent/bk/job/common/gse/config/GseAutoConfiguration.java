@@ -22,48 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.gse;
+package com.tencent.bk.job.common.gse.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.RetrySleeper;
+import com.tencent.bk.job.common.gse.v1.config.GseV1AutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-import java.util.concurrent.TimeUnit;
 
-@Slf4j
-public class IntervalIncrementForeverRetry implements RetryPolicy {
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(GseProperties.class)
+@Import({GseV1AutoConfiguration.class})
+public class GseAutoConfiguration {
 
-    private final int maxSleepMs;
-
-    /**
-     * @param maxSleepMs max time in ms to sleep on each retry
-     */
-    public IntervalIncrementForeverRetry(int maxSleepMs) {
-        this.maxSleepMs = maxSleepMs;
-    }
-
-    @Override
-    public boolean allowRetry(int retryCount, long elapsedTimeMs, RetrySleeper sleeper) {
-        try {
-            long sleepTimeMs = getSleepTimeMs(retryCount);
-            log.info("Retry {}, sleepTimeMs: {}, elapsedTimeMs: {}", retryCount, sleepTimeMs, elapsedTimeMs);
-            sleeper.sleepFor(sleepTimeMs, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return false;
-        }
-        return true;
-    }
-
-    private long getSleepTimeMs(int retryCount) {
-        if (retryCount < 10) {
-            return Math.min(1000, maxSleepMs);
-        } else if (retryCount < 50) {
-            return Math.min(5000, maxSleepMs);
-        } else if (retryCount < 100) {
-            return Math.min(10000, maxSleepMs);
-        } else {
-            return maxSleepMs;
-        }
-    }
 }

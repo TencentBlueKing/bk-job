@@ -22,22 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.util;
+package com.tencent.bk.job.common.gse.v1.model;
 
-import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-public final class AgentUtils {
+/**
+ * Agent 状态查询结果
+ */
+@Data
+public class AgentStatusDTO {
+    @JsonProperty("businessid")
+    private String businessId;
+    /**
+     * Agent是否存在，1: 存在，0: 不存在
+     */
+    private Integer exist;
 
-    private AgentUtils() {
-    }
+    private String ip;
 
     /**
-     * 返回Agent的状态是否正常
-     *
-     * @param status agent的状态
-     * @return 正常: true, 异常: false
+     * 云区域ID
      */
-    public static boolean isAgentOkByStatus(int status) {
-        return status == AgentStatusEnum.ALIVE.getValue();
-    }
+    private String region;
+
+    /**
+     * Agent版本
+     */
+    private String version;
 }

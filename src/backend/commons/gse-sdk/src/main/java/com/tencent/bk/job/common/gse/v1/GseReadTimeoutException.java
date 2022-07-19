@@ -22,59 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.config;
-
-import lombok.Getter;
-import lombok.Setter;
+package com.tencent.bk.job.common.gse.v1;
 
 /**
- * @since 12/11/2019 11:10
+ * GSE Server 读取超时异常
  */
-@Getter
-@Setter
-public class GseConfig {
-    /**
-     * GSE task server host
-     */
-    private String[] gseTaskServerHost;
+public class GseReadTimeoutException extends RuntimeException {
 
-    /**
-     * GSE task server port
-     */
-    private int gseTaskServerPort = 48673;
+    public GseReadTimeoutException() {
+        super("Read timeout");
+    }
 
-    /**
-     * GSE cache api service host
-     */
-    private String[] gseCacheApiServerHost;
-
-    /**
-     * GSE cache api service port
-     */
-    private int gseCacheApiServerPort = 59313;
-
-    /**
-     * 是否使用ssl
-     */
-    private boolean enableSsl = true;
-
-
-    private String keyStore;
-
-    private String keyStorePass;
-
-
-    private String trustStore;
-
-    private String trustStorePass;
-
-
-    private String trustManagerType = "SunX509";
-
-    private String trustStoreType = "JKS";
-
-    private int queryThreadsNum = 5;
-
-    private int queryBatchSize = 5000;
-
+    public GseReadTimeoutException(String errorMessage) {
+        super(errorMessage);
+    }
 }

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.gse;
+package com.tencent.bk.job.execute.engine.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

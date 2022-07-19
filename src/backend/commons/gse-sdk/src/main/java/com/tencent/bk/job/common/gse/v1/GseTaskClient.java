@@ -22,25 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.gse;
+package com.tencent.bk.job.common.gse.v1;
 
 import com.tencent.bk.gse.taskapi.doSomeCmdV3;
+import com.tencent.bk.job.common.gse.config.GseProperties;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import com.tencent.bk.job.execute.config.GseConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.thrift.TConfiguration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.springframework.beans.BeansException;
 
 import java.io.Closeable;
 
+/**
+ * GSE Task Server Client
+ */
 @Slf4j
-public class GseClient implements Closeable {
+public class GseTaskClient implements Closeable {
 
-    private static final boolean ENABLE_SSL;
     private static final String KEY_STORE;
     private static final String TRUST_STORE;
     private static final String KEY_STORE_PASS;
@@ -49,14 +49,13 @@ public class GseClient implements Closeable {
     private static final String TRUST_STORE_TYPE;
 
     static {
-        GseConfig gseConfig = ApplicationContextRegister.getBean("gseConfig", GseConfig.class);
-        ENABLE_SSL = gseConfig.isGseSSLEnable();
-        KEY_STORE = gseConfig.getGseSSLKeystore();
-        KEY_STORE_PASS = gseConfig.getGseSSLKeystorePassword();
-        TRUST_STORE = gseConfig.getGseSSLTruststore();
-        TRUST_STORE_PASS = gseConfig.getGseSSLTruststorePassword();
-        TRUST_MANAGER_TYPE = gseConfig.getGseSSLTruststoreManagerType();
-        TRUST_STORE_TYPE = gseConfig.getGseSSLTruststoreStoreType();
+        GseProperties gseProperties = ApplicationContextRegister.getBean(GseProperties.class);
+        KEY_STORE = gseProperties.getSsl().getKeyStore().getPath();
+        KEY_STORE_PASS = gseProperties.getSsl().getKeyStore().getPassword();
+        TRUST_STORE = gseProperties.getSsl().getTrustStore().getPath();
+        TRUST_STORE_PASS = gseProperties.getSsl().getTrustStore().getPassword();
+        TRUST_MANAGER_TYPE = gseProperties.getSsl().getTrustStore().getManagerType();
+        TRUST_STORE_TYPE = gseProperties.getSsl().getTrustStore().getStoreType();
     }
 
     /**
@@ -65,23 +64,19 @@ public class GseClient implements Closeable {
     private final doSomeCmdV3.Client gseAgentClient;
     private final TTransport transport;
 
-    private GseClient(String ip, int port) throws TException {
-        if (ENABLE_SSL) {
-            BKTSSLTransportFactory.TSSLTransportParameters params =
-                new BKTSSLTransportFactory.TSSLTransportParameters();
-            params.setTrustStore(TRUST_STORE, TRUST_STORE_PASS, TRUST_MANAGER_TYPE, TRUST_STORE_TYPE);
-            params.setKeyStore(KEY_STORE, KEY_STORE_PASS);
-            transport = BKTSSLTransportFactory.getClientSocket(ip, port, 60000, params);
-        } else {
-            this.transport = new TSocket(new TConfiguration(), ip, port, 60000);
-        }
+    private GseTaskClient(String ip, int port) throws TException {
+        BKTSSLTransportFactory.TSSLTransportParameters params =
+            new BKTSSLTransportFactory.TSSLTransportParameters();
+        params.setTrustStore(TRUST_STORE, TRUST_STORE_PASS, TRUST_MANAGER_TYPE, TRUST_STORE_TYPE);
+        params.setKeyStore(KEY_STORE, KEY_STORE_PASS);
+        transport = BKTSSLTransportFactory.getClientSocket(ip, port, 60000, params);
         TBinaryProtocol tProtocol = new TBinaryProtocol(transport);
         this.gseAgentClient = new doSomeCmdV3.Client(tProtocol);
         if (!transport.isOpen())
             transport.open();
     }
 
-    public static GseClient getClient() {
+    public static GseTaskClient getClient() {
         try {
             GseServer gseServer = ApplicationContextRegister.getBean("gseServer");
             return gseServer.getClient();
@@ -98,8 +93,8 @@ public class GseClient implements Closeable {
      * @param port GSE Port
      * @return GseClient
      */
-    static GseClient getClient(String ip, int port) throws TException {
-        return new GseClient(ip, port);
+    static GseTaskClient getClient(String ip, int port) throws TException {
+        return new GseTaskClient(ip, port);
     }
 
     public doSomeCmdV3.Client getGseAgentClient() {

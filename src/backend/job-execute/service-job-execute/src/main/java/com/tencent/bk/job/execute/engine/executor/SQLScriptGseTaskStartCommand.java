@@ -28,7 +28,8 @@ import brave.Tracing;
 import com.google.common.collect.Maps;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.util.Base64Util;
@@ -36,7 +37,6 @@ import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.gse.ScriptRequestBuilder;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -137,7 +137,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         GseTasksExceptionCounter gseTasksExceptionCounter,
                                         JobBuildInVariableResolver jobBuildInVariableResolver,
                                         Tracing tracing,
-                                        GseApiClient gseApiClient,
+                                        GseClient gseClient,
                                         String requestId,
                                         TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
@@ -161,7 +161,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             gseTasksExceptionCounter,
             jobBuildInVariableResolver,
             tracing,
-            gseApiClient,
+            gseClient,
             requestId,
             taskInstance,
             stepInstance,
@@ -185,7 +185,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
 
-        List<Agent> agentList = gseApiClient.buildAgents(targetAgentTaskMap.keySet(),
+        List<Agent> agentList = gseClient.buildAgents(targetAgentTaskMap.keySet(),
             accountInfo.getAccount(), accountInfo.getPassword());
 
         builder.addScriptTask(agentList, scriptFilePath, publicScriptName, buildRunSqlShellParams(sqlScriptFileName),

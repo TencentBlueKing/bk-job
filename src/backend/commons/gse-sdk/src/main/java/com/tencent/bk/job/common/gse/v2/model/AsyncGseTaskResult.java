@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class AysncGseTaskResult {
+public class AsyncGseTaskResult {
     /**
      * 执行结果
      */

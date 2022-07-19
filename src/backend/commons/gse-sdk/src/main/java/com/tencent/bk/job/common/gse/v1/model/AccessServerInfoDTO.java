@@ -22,18 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.exception;
+package com.tencent.bk.job.common.gse.v1.model;
 
-/**
- * 消息处理异常
- */
-public class ReadTimeoutException extends RuntimeException {
+import lombok.Data;
 
-    public ReadTimeoutException() {
-        super("Read timeout");
-    }
 
-    public ReadTimeoutException(String errorMessage) {
-        super(errorMessage);
-    }
+@Data
+public class AccessServerInfoDTO {
+    private Integer port;
+
+    private Integer load;
 }

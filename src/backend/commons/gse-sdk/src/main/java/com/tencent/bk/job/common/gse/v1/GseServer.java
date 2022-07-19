@@ -22,12 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.gse;
+package com.tencent.bk.job.common.gse.v1;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.tencent.bk.job.common.gse.config.GseProperties;
 import com.tencent.bk.job.common.util.ArrayUtil;
-import com.tencent.bk.job.execute.config.GseConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,20 +44,20 @@ public class GseServer {
     private final transient AtomicBoolean isInit = new AtomicBoolean(false);
 
     private List<Map.Entry<String, Integer>> servers;
+
+    private final GseProperties gseProperties;
+
     @Autowired
-    private GseConfig gseConfig;
-
-    public GseServer() {
-
+    public GseServer(GseProperties gseProperties) {
+        this.gseProperties = gseProperties;
     }
 
     @PostConstruct
     public void init() {
         if (!isInit.get()) {
             Map<String, Integer> maps = Maps.newHashMap();
-            log.info("Init gseConfig, config={}", gseConfig);
-            String[] gseServerIps = gseConfig.getTaskServerHost().split(",");
-            int gseServerPort = gseConfig.getTaskServerPort();
+            String[] gseServerIps = gseProperties.getTaskServer().getHost().split(",");
+            int gseServerPort = gseProperties.getTaskServer().getPort();
             for (String gseServerIp : gseServerIps) {
                 maps.put(gseServerIp, gseServerPort);
             }
@@ -69,7 +69,7 @@ public class GseServer {
     /**
      * 构建gse访问客户端, 并连接服务端
      */
-    public GseClient getClient() {
+    public GseTaskClient getClient() {
         return getGseClient(Lists.newArrayList(servers));
     }
 
@@ -78,7 +78,7 @@ public class GseServer {
     }
 
     @SuppressWarnings("all")
-    GseClient getGseClient(List<Map.Entry<String, Integer>> servers) {
+    GseTaskClient getGseClient(List<Map.Entry<String, Integer>> servers) {
         if (servers == null) {
             return null;
         }
@@ -93,10 +93,10 @@ public class GseServer {
             }
             Map.Entry<String, Integer> server = servers.get(ipIndex);
             try {
-                return GseClient.getClient(server.getKey(), server.getValue());
+                return GseTaskClient.getClient(server.getKey(), server.getValue());
             } catch (Throwable e) {
                 String msg = MessageFormatter.format(
-                    "Get GseClient fail|{}:{}|msg={}",
+                    "Get GseTaskClient fail|{}:{}|msg={}",
                     ArrayUtil.toArray(server.getKey(), server.getValue(), e.getMessage()))
                     .getMessage();
                 log.error(msg, e);

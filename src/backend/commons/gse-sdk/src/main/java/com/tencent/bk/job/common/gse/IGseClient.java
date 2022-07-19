@@ -1,19 +1,20 @@
-package com.tencent.bk.job.common.gse.v2;
+package com.tencent.bk.job.common.gse;
 
-import com.tencent.bk.job.common.gse.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
+import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
-import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
-import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
+import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * GSE API 客户端
@@ -51,7 +52,11 @@ public interface IGseClient {
      * @param password 密码
      * @return Agent
      */
-    List<Agent> buildAgents(Collection<String> agentIds, String user, String password);
+    default List<Agent> buildAgents(Collection<String> agentIds, String user, String password) {
+        return agentIds.stream()
+            .map(agentId -> buildAgent(agentId, user, password))
+            .collect(Collectors.toList());
+    }
 
     /**
      * 构建目标Agent
@@ -61,7 +66,13 @@ public interface IGseClient {
      * @param password 密码
      * @return Agent
      */
-    Agent buildAgent(String agentId, String user, String password);
+    default Agent buildAgent(String agentId, String user, String password) {
+        Agent agent = new Agent();
+        agent.setAgentId(agentId);
+        agent.setUser(user);
+        agent.setPwd(password);
+        return agent;
+    }
 
     /**
      * 分发文件

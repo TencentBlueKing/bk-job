@@ -24,17 +24,17 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.constants.GSECode;
+import com.tencent.bk.job.common.gse.v1.GseReadTimeoutException;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptAgentTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
-import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -152,7 +152,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   ScriptAgentTaskService scriptAgentTaskService,
                                   StepInstanceService stepInstanceService,
-                                  GseApiClient gseApiClient,
+                                  GseClient gseClient,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -170,7 +170,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
-            gseApiClient,
+                gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -215,7 +215,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                 pullResultBatchesIndex.incrementAndGet();
             }
             return batchPullResult;
-        } catch (ReadTimeoutException e) {
+        } catch (GseReadTimeoutException e) {
             boolean isSuccess = tryReduceBatchSizeAndRebuildBatchList();
             if (isSuccess) {
                 log.info("Reduce batch size and rebuild batch list successfully, currentBatchSize: {}, batches: {}. " +
@@ -246,7 +246,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             }
         });
 
-        return gseApiClient.getExecuteScriptResult(request);
+        return gseClient.getExecuteScriptResult(request);
     }
 
     private boolean tryReduceBatchSizeAndRebuildBatchList() {

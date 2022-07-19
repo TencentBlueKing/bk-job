@@ -22,36 +22,48 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.sdk;
+package com.tencent.bk.job.common.gse.v1;
 
-import com.tencent.bk.gse.cacheapi.CacheAPI;
-import org.apache.thrift.TException;
-import org.apache.thrift.transport.TTransport;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.RetrySleeper;
 
-public class GseCacheClient {
+import java.util.concurrent.TimeUnit;
 
-    private CacheAPI.Client cacheClient;
-    private TTransport transport;
+@Slf4j
+public class IntervalIncrementForeverRetry implements RetryPolicy {
 
-    GseCacheClient(CacheAPI.Client cacheClient, TTransport transport) throws TException {
-        this.cacheClient = cacheClient;
-        this.transport = transport;
-        if (!transport.isOpen()) {
-            transport.open();
-        }
-    }
-
-    public CacheAPI.Client getCacheClient() {
-        return cacheClient;
-    }
+    private final int maxSleepMs;
 
     /**
-     * 关闭连接
+     * @param maxSleepMs max time in ms to sleep on each retry
      */
-    public void tearDown() {
+    public IntervalIncrementForeverRetry(int maxSleepMs) {
+        this.maxSleepMs = maxSleepMs;
+    }
+
+    @Override
+    public boolean allowRetry(int retryCount, long elapsedTimeMs, RetrySleeper sleeper) {
         try {
-            transport.close();
-        } catch (Throwable ignored) {
+            long sleepTimeMs = getSleepTimeMs(retryCount);
+            log.info("Retry {}, sleepTimeMs: {}, elapsedTimeMs: {}", retryCount, sleepTimeMs, elapsedTimeMs);
+            sleeper.sleepFor(sleepTimeMs, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        return true;
+    }
+
+    private long getSleepTimeMs(int retryCount) {
+        if (retryCount < 10) {
+            return Math.min(1000, maxSleepMs);
+        } else if (retryCount < 50) {
+            return Math.min(5000, maxSleepMs);
+        } else if (retryCount < 100) {
+            return Math.min(10000, maxSleepMs);
+        } else {
+            return maxSleepMs;
         }
     }
 }
