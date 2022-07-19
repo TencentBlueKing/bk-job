@@ -28,42 +28,52 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
 import com.tencent.bk.job.manage.service.PaaSService;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.List;
 import java.util.Set;
 
+@Builder
 @Slf4j
 public class SendNotificationTask implements Runnable {
 
-    private final PaaSService paaSService;
-    private final EsbUserInfoDAO esbUserInfoDAO;
+    private PaaSService paaSService;
+    private EsbUserInfoDAO esbUserInfoDAO;
     //结果队列
-    String requestId;
-    String msgType;
-    String sender;
-    Set<String> receiverList;
-    String title;
-    String content;
+    private final String requestId;
+    private final String msgType;
+    private final String sender;
+    private final Set<String> receivers;
+    private final String title;
+    private final String content;
 
-    public SendNotificationTask(PaaSService paaSService, EsbUserInfoDAO esbUserInfoDAO, String requestId,
-                                String msgType, String sender, Set<String> receiverList,
-                                String title, String content) {
-        this.paaSService = paaSService;
-        this.esbUserInfoDAO = esbUserInfoDAO;
+    public SendNotificationTask(String requestId,
+                                String msgType,
+                                String sender,
+                                Set<String> receivers,
+                                String title,
+                                String content) {
         this.requestId = requestId;
         this.msgType = msgType;
         this.sender = sender;
-        this.receiverList = receiverList;
+        this.receivers = receivers;
         this.title = title;
         this.content = content;
     }
 
+    public void bindService(PaaSService paaSService,
+                            EsbUserInfoDAO esbUserInfoDAO) {
+        this.paaSService = paaSService;
+        this.esbUserInfoDAO = esbUserInfoDAO;
+    }
+
     @Override
     public void run() {
-        if (receiverList == null || receiverList.isEmpty()) {
-            log.warn(String.format("receiverList is null or empty, skip, msgType={},title={},content={}",
-                msgType, title, content));
+        if (receivers == null || receivers.isEmpty()) {
+            log.warn("receiverList is null or empty, skip, msgType={},title={},content={}", msgType, title, content);
             return;
         }
         JobContextUtil.setRequestId(requestId);
@@ -72,34 +82,44 @@ public class SendNotificationTask implements Runnable {
             Boolean sendResult = false;
             while (!sendResult && count < 1) {
                 count += 1;
-                sendResult = paaSService.sendMsg(msgType, sender, receiverList, title, content);
+                sendResult = paaSService.sendMsg(msgType, sender, receivers, title, content);
                 if (sendResult == null) {
                     sendResult = false;
                 }
             }
             if (sendResult) {
-                log.info(String.format("Success to send notify:(%s,%s,%s)", String.join(",", receiverList),
-                    msgType, title));
+                log.info("Success to send notify:({},{},{})", String.join(",", receivers), msgType, title);
             } else {
-                List<EsbUserInfoDTO> validUsers = esbUserInfoDAO.listEsbUserInfo(receiverList, null);
+                List<EsbUserInfoDTO> validUsers = esbUserInfoDAO.listEsbUserInfo(receivers, null);
                 if (validUsers.isEmpty()) {
                     // 收信人已全部离职/某些渠道不支持平台用户
-                    log.info(String.format("Ignore to send notify:(%s,%s,%s)", String.join(",", receiverList),
-                        msgType, title));
+                    log.info("Ignore to send notify:({},{},{})", String.join(",", receivers), msgType, title);
                 } else {
-                    log.error(String.format("Fail to send notify:(%s,%s,%s,%s)", String.join(",",
-                        receiverList), msgType, title, content));
+                    log.error(
+                        "Fail to send notify:({},{},{},{})",
+                        String.join(",", receivers),
+                        msgType,
+                        title,
+                        content
+                    );
                 }
             }
         } catch (Exception e) {
-            List<EsbUserInfoDTO> validUsers = esbUserInfoDAO.listEsbUserInfo(receiverList, null);
+            List<EsbUserInfoDTO> validUsers = esbUserInfoDAO.listEsbUserInfo(receivers, null);
             if (validUsers.isEmpty()) {
                 // 收信人已全部离职/某些渠道不支持平台用户
-                log.info(String.format("Ignore to send notify:(%s,%s,%s)", String.join(",", receiverList),
-                    msgType, title));
+                log.info("Ignore to send notify:({},{},{})", String.join(",", receivers), msgType, title);
             } else {
-                log.error(String.format("Fail to send notify:(%s,%s,%s,%s)", String.join(",", receiverList),
-                    msgType, title, content), e);
+                FormattingTuple msg = MessageFormatter.format(
+                    "Fail to send notify:({},{},{},{})",
+                    new String[]{
+                        String.join(",", receivers),
+                        msgType,
+                        title,
+                        content
+                    }
+                );
+                log.error(msg.getMessage(), e);
             }
         }
     }

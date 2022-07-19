@@ -43,7 +43,7 @@ public interface PaaSService {
     Boolean sendMsg(
         String msgType,
         String sender,
-        Set<String> receiverList,
+        Set<String> receivers,
         String title,
         String content
     ) throws Exception;

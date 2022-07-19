@@ -81,16 +81,31 @@ public class NotifySendService {
         );
     }
 
-    public void sendUserChannelNotify(Set<String> userSet, String channel, String title, String content) {
-        if (CollectionUtils.isEmpty(userSet)) {
-            log.warn("userSet is empty of channel {}, do not send notification", channel);
+    private SendNotificationTask buildSendTask(Set<String> receivers, String channel, String title, String content) {
+        SendNotificationTask task = SendNotificationTask.builder()
+            .requestId(JobContextUtil.getRequestId())
+            .msgType(channel)
+            .receivers(receivers)
+            .title(title)
+            .content(content)
+            .build();
+        task.bindService(paaSService, esbUserInfoDAO);
+        return task;
+    }
+
+    public void sendUserChannelNotify(Set<String> receivers, String channel, String title, String content) {
+        if (CollectionUtils.isEmpty(receivers)) {
+            log.warn("receivers is empty of channel {}, do not send notification", channel);
             return;
         }
-        log.debug(String.format("Begin to send %s notify to %s, title:%s, content:%s",
-            channel, String.join(",", userSet), title, content));
-        notificationThreadPoolExecutor.submit(new SendNotificationTask(paaSService, esbUserInfoDAO,
-            JobContextUtil.getRequestId(), channel, null,
-            userSet, title, content));
+        log.debug(
+            "Begin to send {} notify to {}, title:{}, content:{}",
+            channel,
+            String.join(",", receivers),
+            title,
+            content
+        );
+        notificationThreadPoolExecutor.submit(buildSendTask(receivers, channel, title, content));
     }
 
     public void sendNotifyMessages(Map<String, Set<String>> channelUsersMap, String title, String content) {
