@@ -47,7 +47,7 @@ public class MeasureServiceImpl {
         // FileWorker数量
         meterRegistry.gauge(
             MetricsConstants.NAME_FILE_WORKER_NUM,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_FILE_WORKER)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_WORKER)),
             this.fileWorkerDAO,
             new ToDoubleFunction<FileWorkerDAO>() {
                 @Override
@@ -59,7 +59,7 @@ public class MeasureServiceImpl {
         // 在线的FileWorker数量
         meterRegistry.gauge(
             MetricsConstants.NAME_FILE_WORKER_ONLINE_NUM,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_FILE_WORKER)),
+            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_WORKER)),
             this.fileWorkerDAO,
             new ToDoubleFunction<FileWorkerDAO>() {
                 @Override

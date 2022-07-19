@@ -27,7 +27,9 @@
 
 <template>
     <div class="executive-history-step">
-        <task-status ref="taskStatus" @on-init="handleTaskInit">
+        <task-status
+            ref="taskStatus"
+            @on-init="handleTaskInit">
             <rolling-batch
                 v-if="data.isRollingTask"
                 :value="params.batch"
@@ -43,6 +45,7 @@
                             ref="executionHistorySelect"
                             :step-instance-id="params.id"
                             :retry-count="params.retryCount"
+                            :batch="params.batch"
                             @on-change="handleRetryCountChange" />
                     </div>
                 </div>
@@ -178,6 +181,18 @@
     import ViewStepInfo from './components/view-step-info';
     import mixins from './components/mixins';
 
+    const appendURLParams = (params = {}) => {
+        const curSearchParams = new URLSearchParams(window.location.search);
+        Object.keys(params).forEach((key) => {
+            if (curSearchParams.has(key)) {
+                curSearchParams.set(key, params[key]);
+            } else {
+                curSearchParams.append(key, params[key]);
+            }
+        });
+        window.history.replaceState({}, '', `?${curSearchParams.toString()}`);
+    };
+
     export default {
         name: 'StepExecuteDetail',
         components: {
@@ -297,6 +312,7 @@
         },
         created () {
             this.taskInstanceId = 0;
+            this.params.batch = this.$route.query.batch || '';
             this.isForceing = false;
             this.$Progress.start();
         },
@@ -389,25 +405,31 @@
                 this.taskInstanceId = payload.taskInstanceId;
                 this.isTask = payload.isTask;
                 this.taskStepList = Object.freeze(payload.taskStepList);
+                appendURLParams({
+                    retryCount: payload.retryCount,
+                    stepInstanceId: payload.stepInstanceId,
+                });
                 this.fetchStep();
             },
             /**
              * @desc 滚动执行批次筛选
              * @param { Number | String } batch 0: 查看全部批次；’‘：查看当前最新批次
              *
-             * 切换批次需要执行结果分组
+             * 切换批次时不主动获取步骤执行数据，
+             * 切换批次时会导致组件 execution-history-select 刷新数据，这个时候会主动获取步骤执行数据
              */
             handleBatchChange (batch) {
                 this.params = {
                     ...this.params,
-                    retryCount: '',
                     batch,
                 };
                 this.currentGroup = {
                     resultType: '',
                     tag: '',
                 };
-                this.fetchStep();
+                appendURLParams({
+                    batch: this.params.batch,
+                });
             },
             /**
              * @desc 执行历史
@@ -420,6 +442,9 @@
                     ...this.params,
                     retryCount,
                 };
+                appendURLParams({
+                    retryCount: this.params.retryCount,
+                });
                 this.fetchStep();
             },
             /**
@@ -557,6 +582,9 @@
                         limit: 1,
                         theme: 'success',
                         message: I18n.t('history.操作成功'),
+                    });
+                    appendURLParams({
+                        retryCount: this.params.retryCount,
                     });
                     this.fetchStep();
                     return true;

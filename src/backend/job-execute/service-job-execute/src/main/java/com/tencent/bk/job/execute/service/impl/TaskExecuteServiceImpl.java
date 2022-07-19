@@ -845,11 +845,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void throwHostInvalidException(Collection<HostDTO> unavailableHosts, long appId) {
-        String unavailableHostListStr = unavailableHosts.parallelStream()
-            .map(HostDTO::getHostIdAndIpDescription)
-            .collect(Collectors.joining());
-        log.warn("The following hosts are not registered, appId:{}, hosts={}", appId, unavailableHostListStr);
-        throw new FailedPreconditionException(ErrorCode.HOST_NOT_EXIST, new Object[]{unavailableHostListStr});
+        String ipListStr = StringUtils.join(unavailableHosts.stream().map(HostDTO::getIp).collect(Collectors.toList()),
+            ",");
+        log.warn("The following hosts are invalid, appId:{}, ips={}", appId, ipListStr);
+        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{ipListStr});
     }
 
     private void checkStepInstanceConstraint(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
@@ -1309,7 +1308,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             UserOperationEnum.START));
 
         // 启动作业
-        startTask(taskInstanceId);
+        startTask(taskInstance.getId());
 
         return taskInstance;
     }

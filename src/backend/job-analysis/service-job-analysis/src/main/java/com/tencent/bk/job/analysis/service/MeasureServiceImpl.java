@@ -43,16 +43,16 @@ public class MeasureServiceImpl {
         // 当前正在运行的统计任务数量
         meterRegistry.gauge(
             StatisticsConstants.NAME_STATISTICS_TASK_ARRANGED_TASK_NUM,
-            Collections.singletonList(Tag.of(StatisticsConstants.TAG_MODULE,
-                StatisticsConstants.VALUE_MODULE_STATISTICS_TASK)),
+            Collections.singletonList(Tag.of(StatisticsConstants.TAG_KEY_MODULE,
+                StatisticsConstants.TAG_VALUE_MODULE_STATISTICS_TASK)),
             statisticsTaskScheduler,
             statisticsTaskScheduler1 -> statisticsTaskScheduler1.listArrangedTasks().size()
         );
         // 被线程池拒绝的统计任务数量
         meterRegistry.gauge(
             StatisticsConstants.NAME_STATISTICS_TASK_REJECTED_TASK_NUM,
-            Collections.singletonList(Tag.of(StatisticsConstants.TAG_MODULE,
-                StatisticsConstants.VALUE_MODULE_STATISTICS_TASK)),
+            Collections.singletonList(Tag.of(StatisticsConstants.TAG_KEY_MODULE,
+                StatisticsConstants.TAG_VALUE_MODULE_STATISTICS_TASK)),
             statisticsTaskScheduler,
             StatisticsTaskScheduler::getRejectedStatisticsTaskNum
         );

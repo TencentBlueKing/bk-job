@@ -39,7 +39,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Description
@@ -68,13 +72,13 @@ public class AnalysisTaskScheduler {
     public AnalysisTaskScheduler(MeterRegistry meterRegistry) {
         meterRegistry.gauge(
             NAME_ANALYSIS_TASK_SCHEDULE_POOL_SIZE,
-            Arrays.asList(Tag.of(StatisticsConstants.TAG_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
+            Arrays.asList(Tag.of(StatisticsConstants.TAG_KEY_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
             scheduleThreadPoolExecutor,
             ThreadPoolExecutor::getPoolSize
         );
         meterRegistry.gauge(
             NAME_ANALYSIS_TASK_SCHEDULE_QUEUE_SIZE,
-            Arrays.asList(Tag.of(StatisticsConstants.TAG_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
+            Arrays.asList(Tag.of(StatisticsConstants.TAG_KEY_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
             scheduleThreadPoolExecutor,
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );

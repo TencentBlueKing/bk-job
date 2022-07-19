@@ -33,10 +33,10 @@ public class MetricsConstants {
     public static final String NAME_FILE_GATEWAY_DISPATCH_TIME = "fileGateway.dispatch.time";
 
     // tag
-    public static final String TAG_MODULE = "module";
+    public static final String TAG_KEY_MODULE = "module";
 
     // value
-    public static final String VALUE_MODULE_FILE_WORKER = "fileWorker";
-    public static final String VALUE_MODULE_FILE_GATEWAY = "fileGateway";
+    public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
+    public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
 
 }

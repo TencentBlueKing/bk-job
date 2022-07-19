@@ -10,6 +10,7 @@ import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -116,6 +117,19 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
+    public List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId,
+                                                              int executeCount,
+                                                              Integer batch) {
+        List<AgentTaskResultGroupBaseDTO> resultGroups;
+        resultGroups = fileAgentTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
+        if (CollectionUtils.isEmpty(resultGroups)) {
+            // 兼容历史数据
+            resultGroups = gseTaskIpLogDAO.listResultGroups(stepInstanceId, executeCount);
+        }
+        return resultGroups;
+    }
+
+    @Override
     public List<AgentTaskDetailDTO> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
                                                                      Integer executeCount,
                                                                      Integer batch,
@@ -182,7 +196,7 @@ public class FileAgentTaskServiceImpl
             if (queryHost != null) {
                 hostId = queryHost.getHostId();
             } else {
-                throw new NotFoundException(ErrorCode.HOST_NOT_EXIST, new String[]{host.toCloudIp()});
+                throw new NotFoundException(ErrorCode.HOST_INVALID, new String[]{host.toCloudIp()});
             }
         }
 
