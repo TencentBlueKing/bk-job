@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
 import com.tencent.bk.job.manage.service.PaaSService;
@@ -47,7 +46,6 @@ public class SendNotifyTask implements Runnable {
     private PaaSService paaSService;
     private EsbUserInfoDAO esbUserInfoDAO;
 
-    private final String requestId;
     private final String msgType;
     private final String sender;
     private final Set<String> receivers;
@@ -66,7 +64,6 @@ public class SendNotifyTask implements Runnable {
             logInvalidReceivers();
             return;
         }
-        JobContextUtil.setRequestId(requestId);
         try {
             boolean sendResult = sendMsgWithRetry();
             if (sendResult) {

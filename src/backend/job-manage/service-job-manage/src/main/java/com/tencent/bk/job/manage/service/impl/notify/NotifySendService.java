@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
-import com.tencent.bk.job.common.util.JobContextUtil;
+import brave.Tracing;
+import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.PaaSService;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -47,13 +49,7 @@ import java.util.concurrent.TimeUnit;
 public class NotifySendService {
 
     //发通知专用线程池
-    private final ThreadPoolExecutor notificationThreadPoolExecutor = new ThreadPoolExecutor(
-        5,
-        30,
-        60L,
-        TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>(10)
-    );
+    private final TraceableExecutorService notifySendExecutor;
 
     private final PaaSService paaSService;
     private final EsbUserInfoDAO esbUserInfoDAO;
@@ -61,32 +57,46 @@ public class NotifySendService {
     @Autowired
     public NotifySendService(PaaSService paaSService,
                              EsbUserInfoDAO esbUserInfoDAO,
+                             Tracing tracing,
                              MeterRegistry meterRegistry) {
         this.paaSService = paaSService;
         this.esbUserInfoDAO = esbUserInfoDAO;
+        notifySendExecutor = new TraceableExecutorService(
+            new ThreadPoolExecutor(
+                5,
+                30,
+                60L,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(10)
+            ),
+            tracing
+        );
         measureNotifySendExecutor(meterRegistry);
     }
 
     private void measureNotifySendExecutor(MeterRegistry meterRegistry) {
-        meterRegistry.gauge(
-            MetricsConstants.NAME_NOTIFY_POOL_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
-                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
-            notificationThreadPoolExecutor,
-            ThreadPoolExecutor::getPoolSize
-        );
-        meterRegistry.gauge(
-            MetricsConstants.NAME_NOTIFY_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
-                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
-            notificationThreadPoolExecutor,
-            threadPoolExecutor -> threadPoolExecutor.getQueue().size()
-        );
+        ExecutorService executorService = notifySendExecutor.getDelegateExecutorService();
+        if (executorService instanceof ThreadPoolExecutor) {
+            ThreadPoolExecutor notifySendExecutor = (ThreadPoolExecutor) executorService;
+            meterRegistry.gauge(
+                MetricsConstants.NAME_NOTIFY_POOL_SIZE,
+                Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                    MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
+                notifySendExecutor,
+                ThreadPoolExecutor::getPoolSize
+            );
+            meterRegistry.gauge(
+                MetricsConstants.NAME_NOTIFY_QUEUE_SIZE,
+                Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                    MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
+                notifySendExecutor,
+                threadPoolExecutor -> threadPoolExecutor.getQueue().size()
+            );
+        }
     }
 
     private SendNotifyTask buildSendTask(Set<String> receivers, String channel, String title, String content) {
         SendNotifyTask task = SendNotifyTask.builder()
-            .requestId(JobContextUtil.getRequestId())
             .msgType(channel)
             .receivers(receivers)
             .title(title)
@@ -108,7 +118,7 @@ public class NotifySendService {
             title,
             content
         );
-        notificationThreadPoolExecutor.submit(buildSendTask(receivers, channel, title, content));
+        notifySendExecutor.submit(buildSendTask(receivers, channel, title, content));
     }
 
     public void sendNotifyMessages(Map<String, Set<String>> channelUsersMap, String title, String content) {
