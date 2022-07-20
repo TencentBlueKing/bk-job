@@ -486,11 +486,11 @@ public class GseV1ApiClient implements IGseClient {
             && fileTaskResult.getProtocolVersion() > 1;
     }
 
-    private CopyFileRsp parseCopyFileRspFromResultKey(CopyFileRsp copyFileRsp, String resultKey) {
+    private void parseCopyFileRspFromResultKey(CopyFileRsp copyFileRsp, String resultKey) {
         if (!(resultKey.startsWith(FileDistModeEnum.UPLOAD.getName())
-            && resultKey.startsWith(FileDistModeEnum.DOWNLOAD.getName()))) {
+            || resultKey.startsWith(FileDistModeEnum.DOWNLOAD.getName()))) {
             log.warn("Invalid resultKey: {}, ignore", resultKey);
-            return copyFileRsp;
+            return;
         }
 
         // 从key中提取任务信息
@@ -525,7 +525,6 @@ public class GseV1ApiClient implements IGseClient {
             fileTaskResult.setSrcDirPath(dirAndFileName.getLeft());
             fileTaskResult.setSrcFileName(dirAndFileName.getRight());
         }
-        return copyFileRsp;
     }
 
     private String parseFilePathFromKey(String[] taskProps) {
