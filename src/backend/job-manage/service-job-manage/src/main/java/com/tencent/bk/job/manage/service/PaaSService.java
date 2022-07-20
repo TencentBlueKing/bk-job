@@ -40,10 +40,10 @@ public interface PaaSService {
 
     List<EsbNotifyChannelDTO> getAllChannelList(String bkToken, String uin) throws IOException;
 
-    Boolean sendMsg(
+    boolean sendMsg(
         String msgType,
         String sender,
-        Set<String> receiverList,
+        Set<String> receivers,
         String title,
         String content
     ) throws Exception;

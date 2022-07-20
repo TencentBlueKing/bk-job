@@ -37,6 +37,7 @@ import org.jooq.generated.tables.NotifyPolicyRoleTarget;
 import org.jooq.generated.tables.records.NotifyPolicyRoleTargetRecord;
 import org.jooq.types.ULong;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -54,15 +55,19 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
     private static final NotifyPolicyRoleTarget T_NOTIFY_POLICY_ROLE_TARGET =
         NotifyPolicyRoleTarget.NOTIFY_POLICY_ROLE_TARGET;
     private static final NotifyPolicyRoleTarget defaultTable = T_NOTIFY_POLICY_ROLE_TARGET;
+
+    private final DSLContext dslContext;
     private final NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO;
 
-    public NotifyPolicyRoleTargetDAOImpl(NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO) {
+    @Autowired
+    public NotifyPolicyRoleTargetDAOImpl(DSLContext dslContext,
+                                         NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO) {
+        this.dslContext = dslContext;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
     }
 
     @Override
-    public Long insert(DSLContext dslContext,
-                       NotifyPolicyRoleTargetDTO notifyPolicyRoleTargetDTO) {
+    public Long insert(NotifyPolicyRoleTargetDTO notifyPolicyRoleTargetDTO) {
         val query = dslContext.insertInto(T_NOTIFY_POLICY_ROLE_TARGET,
             T_NOTIFY_POLICY_ROLE_TARGET.POLICY_ID,
             T_NOTIFY_POLICY_ROLE_TARGET.ROLE,
@@ -94,13 +99,6 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
     }
 
     @Override
-    public int deleteById(DSLContext dslContext, Long id) {
-        return dslContext.deleteFrom(T_NOTIFY_POLICY_ROLE_TARGET).where(
-            T_NOTIFY_POLICY_ROLE_TARGET.ID.eq(id)
-        ).execute();
-    }
-
-    @Override
     public int deleteByPolicyId(DSLContext dslContext, Long policyId) {
         //1.查记录
         val records = dslContext.selectFrom(defaultTable).where(
@@ -115,28 +113,6 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.in(records.map(NotifyPolicyRoleTargetRecord::getId))
         ).execute();
-    }
-
-    @Override
-    public NotifyPolicyRoleTargetDTO getById(DSLContext dslContext, Long id) {
-        val record = dslContext.selectFrom(T_NOTIFY_POLICY_ROLE_TARGET).where(
-            T_NOTIFY_POLICY_ROLE_TARGET.ID.eq(id)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return new NotifyPolicyRoleTargetDTO(
-                record.getId(),
-                record.getPolicyId(),
-                record.getRole(),
-                record.getEnable(),
-                record.getExtraObservers(),
-                record.getCreator(),
-                record.getCreateTime().longValue(),
-                record.getLastModifyUser(),
-                record.getLastModifyTime().longValue()
-            );
-        }
     }
 
     @Override
@@ -155,22 +131,5 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
             record.getLastModifyUser(),
             record.getLastModifyTime().longValue()
         )));
-    }
-
-    @Override
-    public int updateById(DSLContext dslContext,
-                          NotifyPolicyRoleTargetDTO notifyPolicyRoleTargetDTO) {
-        return dslContext.update(T_NOTIFY_POLICY_ROLE_TARGET)
-            .set(T_NOTIFY_POLICY_ROLE_TARGET.POLICY_ID, notifyPolicyRoleTargetDTO.getPolicyId())
-            .set(T_NOTIFY_POLICY_ROLE_TARGET.ROLE, notifyPolicyRoleTargetDTO.getRole())
-            .set(T_NOTIFY_POLICY_ROLE_TARGET.ENABLE, notifyPolicyRoleTargetDTO.isEnable())
-            .set(T_NOTIFY_POLICY_ROLE_TARGET.EXTRA_OBSERVERS, notifyPolicyRoleTargetDTO.getExtraObservers())
-            .set(T_NOTIFY_POLICY_ROLE_TARGET.CREATOR, notifyPolicyRoleTargetDTO.getCreator())
-            .set(T_NOTIFY_POLICY_ROLE_TARGET.CREATE_TIME, ULong.valueOf(notifyPolicyRoleTargetDTO.getCreateTime()))
-            .set(T_NOTIFY_POLICY_ROLE_TARGET.LAST_MODIFY_USER, notifyPolicyRoleTargetDTO.getLastModifier())
-            .set(T_NOTIFY_POLICY_ROLE_TARGET.LAST_MODIFY_TIME,
-                ULong.valueOf(notifyPolicyRoleTargetDTO.getLastModifyTime()))
-            .where(T_NOTIFY_POLICY_ROLE_TARGET.ID.eq(notifyPolicyRoleTargetDTO.getId()))
-            .execute();
     }
 }

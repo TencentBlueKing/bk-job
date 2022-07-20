@@ -31,11 +31,13 @@ import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.NotifyBlackUserInfo;
 import org.jooq.generated.tables.records.NotifyBlackUserInfoRecord;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -53,8 +55,15 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     private static final NotifyBlackUserInfo T_ESB_USER_INFO = NotifyBlackUserInfo.NOTIFY_BLACK_USER_INFO;
     private static final NotifyBlackUserInfo defaultTable = T_ESB_USER_INFO;
 
+    private final DSLContext dslContext;
+
+    @Autowired
+    public NotifyBlackUserInfoDAOImpl(DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
+
     @Override
-    public Long insertNotifyBlackUserInfo(DSLContext dslContext, NotifyBlackUserInfoDTO notifyBlackUserInfoDTO) {
+    public Long insertNotifyBlackUserInfo(NotifyBlackUserInfoDTO notifyBlackUserInfoDTO) {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.USERNAME,
             defaultTable.CREATOR,
@@ -64,9 +73,10 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
             notifyBlackUserInfoDTO.getCreator(),
             ULong.valueOf(notifyBlackUserInfoDTO.getLastModifyTime())
         ).returning(defaultTable.ID);
-        val sql = query.getSQL(true);
+        val sql = query.getSQL(ParamType.INLINED);
         try {
             Record record = query.fetchOne();
+            assert record != null;
             return record.get(defaultTable.ID);
         } catch (Exception e) {
             logger.error(sql);
@@ -75,62 +85,14 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     }
 
     @Override
-    public int deleteNotifyBlackUserInfoById(DSLContext dslContext, Long id) {
-        return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).execute();
-    }
-
-    @Override
-    public int deleteNotifyBlackUserInfoByUsername(DSLContext dslContext, String username) {
-        return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.USERNAME.eq(username)
-        ).execute();
-    }
-
-    @Override
-    public int deleteAllNotifyBlackUser(DSLContext dslContext) {
+    public int deleteAllNotifyBlackUser() {
         return dslContext.deleteFrom(defaultTable).execute();
     }
 
     @Override
-    public NotifyBlackUserInfoDTO getNotifyBlackUserInfoById(DSLContext dslContext, Long id) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return new NotifyBlackUserInfoDTO(
-                record.getId(),
-                record.getUsername(),
-                record.getCreator(),
-                record.getLastModifyTime().longValue()
-            );
-        }
-    }
-
-    @Override
-    public NotifyBlackUserInfoDTO getNotifyBlackUserInfoByUsername(DSLContext dslContext, String username) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.USERNAME.eq(username)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return new NotifyBlackUserInfoDTO(
-                record.getId(),
-                record.getUsername(),
-                record.getCreator(),
-                record.getLastModifyTime().longValue()
-            );
-        }
-    }
-
-    @Override
-    public List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo(DSLContext dslContext) {
+    public List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo() {
         val records = dslContext.selectFrom(defaultTable).fetch();
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return new ArrayList<>();
         } else {
             return records.map(record -> new NotifyBlackUserInfoDTO(
@@ -143,7 +105,7 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     }
 
     @Override
-    public List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(DSLContext dslContext, Integer start, Integer limit) {
+    public List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(Integer start, Integer limit) {
         if (null == start) start = 0;
         if (null == limit) limit = -1;
         val baseQuery = dslContext.selectFrom(defaultTable);
@@ -155,7 +117,7 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
         } else {
             records = baseQuery.fetch();
         }
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return new ArrayList<>();
         } else {
             return records.map(record -> new NotifyBlackUserInfoVO(
@@ -165,15 +127,5 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
                 record.getLastModifyTime().longValue()
             ));
         }
-    }
-
-    @Override
-    public int updateNotifyBlackUserInfoById(DSLContext dslContext, NotifyBlackUserInfoDTO notifyBlackUserInfoDTO) {
-        return dslContext.update(defaultTable)
-            .set(defaultTable.USERNAME, notifyBlackUserInfoDTO.getUsername())
-            .set(defaultTable.CREATOR, notifyBlackUserInfoDTO.getCreator())
-            .set(defaultTable.LAST_MODIFY_TIME, ULong.valueOf(notifyBlackUserInfoDTO.getLastModifyTime()))
-            .where(defaultTable.ID.eq(notifyBlackUserInfoDTO.getId()))
-            .execute();
     }
 }
