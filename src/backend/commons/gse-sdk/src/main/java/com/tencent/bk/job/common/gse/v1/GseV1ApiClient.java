@@ -515,8 +515,8 @@ public class GseV1ApiClient implements IGseClient {
             fileTaskResult.setDestIp(cloudIp.getIp());
             fileTaskResult.setDestCloudId(cloudIp.getBkCloudId());
             fileTaskResult.setSourceIp(IpUtils.revertIpFromNumericalStr(taskProps[1]));
-            // GSE BUG, 只有源主机IP，没有云区域ID;设置为默认的云区域ID
-            fileTaskResult.setSourceCloudId((long) GseConstants.DEFAULT_CLOUD_ID);
+            // GSE BUG, 只有源主机IP，没有云区域ID
+            fileTaskResult.setSourceCloudId(null);
             // GSE BUG, 只有目标文件信息，没有源文件信息
             String destFilePath = parseFilePathFromKey(taskProps);
             Pair<String, String> dirAndFileName = FilePathUtils.parseDirAndFileName(destFilePath);
@@ -572,7 +572,7 @@ public class GseV1ApiClient implements IGseClient {
 
     private api_stop_task_request toV1StopTaskRequest(TerminateGseTaskRequest request) {
         api_stop_task_request stopRequest = new api_stop_task_request();
-        stopRequest.setTask_id(request.getTaskId());
+        stopRequest.setStop_task_id(request.getTaskId());
         if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
             stopRequest.setAgents(request.getAgentIds().stream()
                 .map(this::buildAgent).collect(Collectors.toList()));
