@@ -100,6 +100,7 @@ public class GseV1ApiClient implements IGseClient {
             scriptFile.setDownload_path(script.getStoreDir());
             scriptFile.setName(script.getName());
             scriptFile.setContent(script.getContent());
+            scriptFile.setMd5("");
             scriptFiles.add(scriptFile);
         });
         scriptReq.setScripts(scriptFiles);
