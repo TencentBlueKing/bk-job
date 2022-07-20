@@ -161,7 +161,7 @@ public class IpUtils {
     }
 
     /**
-     * 将long转换为ip
+     * 将数值转换为ip
      *
      * @return ip
      */
