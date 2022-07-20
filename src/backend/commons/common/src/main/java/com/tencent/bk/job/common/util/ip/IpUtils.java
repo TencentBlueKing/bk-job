@@ -148,7 +148,7 @@ public class IpUtils {
     }
 
     /**
-     * 将long转换为ip
+     * 将数值转换为ip
      *
      * @return ip
      */
@@ -165,9 +165,9 @@ public class IpUtils {
      *
      * @return ip
      */
-    public static String revertIpFromLongStr(String longStr) {
+    public static String revertIpFromNumericalStr(String numericalStr) {
         try {
-            InetAddress addr = InetAddress.getByName(longStr);
+            InetAddress addr = InetAddress.getByName(numericalStr);
             return addr.getHostAddress();
         } catch (UnknownHostException e) {
             return "";

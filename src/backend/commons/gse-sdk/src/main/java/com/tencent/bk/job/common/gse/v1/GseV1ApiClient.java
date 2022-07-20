@@ -70,6 +70,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * GSE V1 api client
+ */
 @Slf4j
 public class GseV1ApiClient implements IGseClient {
 
@@ -106,6 +109,7 @@ public class GseV1ApiClient implements IGseClient {
             scriptFile.setDownload_path(script.getStoreDir());
             scriptFile.setName(script.getName());
             scriptFile.setContent(script.getContent());
+            // 必须设置为空字符，否则GSE报错
             scriptFile.setMd5("");
             scriptFiles.add(scriptFile);
         });
@@ -115,6 +119,7 @@ public class GseV1ApiClient implements IGseClient {
         api_task_request taskReq = new api_task_request();
         taskReq.setAtomic_task_num(request.getAtomicTaskNum());
         taskReq.setVersion("1.0");
+        // 必须设置为空字符，否则GSE报错
         taskReq.setCrond("");
 
         // 脚本任务 - 目标 agent
@@ -142,6 +147,7 @@ public class GseV1ApiClient implements IGseClient {
 
             taskReq.setRel_list(relations);
         } else {
+            // 必须设置为空的集合，否则GSE会报错
             taskReq.setRel_list(Collections.emptyList());
         }
 
@@ -428,11 +434,11 @@ public class GseV1ApiClient implements IGseClient {
 
             AtomicFileTaskResultContent content = new AtomicFileTaskResultContent();
             GSEFileTaskResult fileTaskResult = copyFileRsp.getGseFileTaskResult();
-            content.setSourceAgentId(fileTaskResult.getSourceCloudIp());
+            content.setSourceAgentId(fileTaskResult.getSourceAgentId());
             content.setSourceFileDir(fileTaskResult.getSrcDirPath());
             content.setSourceFileName(fileTaskResult.getSrcFileName());
             content.setStandardSourceFilePath(fileTaskResult.getStandardSourceFilePath());
-            content.setDestAgentId(fileTaskResult.getDestCloudIp());
+            content.setDestAgentId(fileTaskResult.getDestAgentId());
             content.setDestFileDir(fileTaskResult.getDestDirPath());
             content.setDestFileName(fileTaskResult.getDestFileName());
             content.setStandardDestFilePath(fileTaskResult.getStandardDestFilePath());
@@ -508,7 +514,7 @@ public class GseV1ApiClient implements IGseClient {
             // 格式: "download:srcIpInt:srcIpInt:destFilePath:destCloudId:destIp"
             fileTaskResult.setDestIp(cloudIp.getIp());
             fileTaskResult.setDestCloudId(cloudIp.getBkCloudId());
-            fileTaskResult.setSourceIp(IpUtils.revertIpFromLongStr(taskProps[0]));
+            fileTaskResult.setSourceIp(IpUtils.revertIpFromNumericalStr(taskProps[1]));
             // GSE BUG, 只有源主机IP，没有云区域ID;设置为默认的云区域ID
             fileTaskResult.setSourceCloudId((long) GseConstants.DEFAULT_CLOUD_ID);
             // GSE BUG, 只有目标文件信息，没有源文件信息

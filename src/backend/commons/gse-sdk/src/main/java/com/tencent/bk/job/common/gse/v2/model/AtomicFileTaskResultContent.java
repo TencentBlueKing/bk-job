@@ -161,6 +161,11 @@ public class AtomicFileTaskResultContent {
         return taskId;
     }
 
+    public String buildTaskId() {
+        return buildTaskId(mode, sourceAgentId, getStandardSourceFilePath(), destAgentId,
+            getStandardDestFilePath());
+    }
+
     public static String buildTaskId(Integer mode, String sourceAgentId, String sourceFilePath, String destAgentId,
                                      String destFilePath) {
         String taskId;
