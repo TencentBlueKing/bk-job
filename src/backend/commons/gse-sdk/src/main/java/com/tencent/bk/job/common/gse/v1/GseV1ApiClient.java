@@ -26,6 +26,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
+import com.tencent.bk.job.common.gse.constants.GseTaskTypeEnum;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.util.WindowsHelper;
 import com.tencent.bk.job.common.gse.v1.model.AgentStatusDTO;
@@ -569,10 +570,11 @@ public class GseV1ApiClient implements IGseClient {
 
     @Override
     public GseTaskResponse terminateGseFileTask(TerminateGseTaskRequest request) {
-        return sendForceStopTaskRequest(toV1StopTaskRequest(request));
+        return sendForceStopTaskRequest(toV1StopTaskRequest(request, GseTaskTypeEnum.FILE));
     }
 
-    private api_stop_task_request toV1StopTaskRequest(TerminateGseTaskRequest request) {
+    private api_stop_task_request toV1StopTaskRequest(TerminateGseTaskRequest request,
+                                                      GseTaskTypeEnum taskType) {
         api_stop_task_request stopRequest = new api_stop_task_request();
         stopRequest.setStop_task_id(request.getTaskId());
         if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
@@ -580,6 +582,7 @@ public class GseV1ApiClient implements IGseClient {
                 .map(agentId -> buildAgent(agentId, buildEmptyApiAuth()))
                 .collect(Collectors.toList()));
         }
+        stopRequest.setType(taskType.getValue());
         return stopRequest;
     }
 
@@ -592,7 +595,7 @@ public class GseV1ApiClient implements IGseClient {
 
     @Override
     public GseTaskResponse terminateGseScriptTask(TerminateGseTaskRequest request) {
-        return sendForceStopTaskRequest(toV1StopTaskRequest(request));
+        return sendForceStopTaskRequest(toV1StopTaskRequest(request, GseTaskTypeEnum.SCRIPT));
     }
 
 
