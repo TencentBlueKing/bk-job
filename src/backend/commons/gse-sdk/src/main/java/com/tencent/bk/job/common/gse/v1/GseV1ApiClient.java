@@ -514,7 +514,9 @@ public class GseV1ApiClient implements IGseClient {
             // 格式: "download:srcIpInt:srcIpInt:destFilePath:destCloudId:destIp"
             fileTaskResult.setDestIp(cloudIp.getIp());
             fileTaskResult.setDestCloudId(cloudIp.getBkCloudId());
-            fileTaskResult.setSourceIp(IpUtils.revertIpFromNumericalStr(taskProps[1]));
+            // GSE BUG, srcIpInt可能为-1(download:-1:2130706433:/tmp/1.log:0:127.0.0.2)
+            String srcIpInt = "-1".equals(taskProps[1]) ? taskProps[2] : taskProps[1];
+            fileTaskResult.setSourceIp(IpUtils.revertIpFromNumericalStr(srcIpInt));
             // GSE BUG, 只有源主机IP，没有云区域ID
             fileTaskResult.setSourceCloudId(null);
             // GSE BUG, 只有目标文件信息，没有源文件信息
@@ -575,10 +577,17 @@ public class GseV1ApiClient implements IGseClient {
         stopRequest.setStop_task_id(request.getTaskId());
         if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
             stopRequest.setAgents(request.getAgentIds().stream()
-                .map(agentId -> buildAgent(agentId, new api_auth()))
+                .map(agentId -> buildAgent(agentId, buildEmptyApiAuth()))
                 .collect(Collectors.toList()));
         }
         return stopRequest;
+    }
+
+    private api_auth buildEmptyApiAuth() {
+        api_auth auth = new api_auth();
+        auth.setUser("test");
+        auth.setPassword("");
+        return auth;
     }
 
     @Override
