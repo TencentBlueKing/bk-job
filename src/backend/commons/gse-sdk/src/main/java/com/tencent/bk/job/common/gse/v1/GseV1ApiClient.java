@@ -194,7 +194,6 @@ public class GseV1ApiClient implements IGseClient {
     }
 
     private api_agent buildAgent(Agent agent) {
-        api_agent apiAgent = buildAgent(agent.getAgentId());
         api_auth auth = new api_auth();
         auth.setUser(agent.getUser());
         if (agent.getPwd() != null) {
@@ -202,12 +201,11 @@ public class GseV1ApiClient implements IGseClient {
         } else {
             auth.setPassword("");
         }
-        apiAgent.setAuth(auth);
 
-        return apiAgent;
+        return buildAgent(agent.getAgentId(), auth);
     }
 
-    private api_agent buildAgent(String cloudIp) {
+    private api_agent buildAgent(String cloudIp, api_auth auth) {
         // 在gse api v1, agentId=云区域:IP
         int bkCloudId = GseConstants.DEFAULT_CLOUD_ID;
         String ip;
@@ -223,6 +221,8 @@ public class GseV1ApiClient implements IGseClient {
         if (bkCloudId > 1) {
             apiAgent.setGse_composite_id(bkCloudId);
         }
+
+        apiAgent.setAuth(auth);
         return apiAgent;
     }
 
@@ -575,7 +575,8 @@ public class GseV1ApiClient implements IGseClient {
         stopRequest.setStop_task_id(request.getTaskId());
         if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
             stopRequest.setAgents(request.getAgentIds().stream()
-                .map(this::buildAgent).collect(Collectors.toList()));
+                .map(agentId -> buildAgent(agentId, new api_auth()))
+                .collect(Collectors.toList()));
         }
         return stopRequest;
     }
