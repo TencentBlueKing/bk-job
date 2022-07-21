@@ -416,6 +416,8 @@ domain:
 
 ## 蓝鲸GSE参数配置
 gse:
+  # Job 对接的 GSE 版本 (v1/v2)
+  version: "v2"
   # 已存在的Tls证书Secret名称
   existingTlsSecret: ""
   # Agent状态查询接口相关配置
