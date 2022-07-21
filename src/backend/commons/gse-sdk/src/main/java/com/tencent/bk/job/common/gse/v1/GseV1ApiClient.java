@@ -579,7 +579,9 @@ public class GseV1ApiClient implements IGseClient {
         stopRequest.setStop_task_id(request.getTaskId());
         if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
             stopRequest.setAgents(request.getAgentIds().stream()
-                .map(agentId -> buildAgent(agentId, buildEmptyApiAuth()))
+                .map(agentId ->
+                    // 终止任务并不不需要账号密码,此处传入为了绕过thrift协议的校验
+                    buildAgent(agentId, buildEmptyApiAuth()))
                 .collect(Collectors.toList()));
         }
         stopRequest.setType(taskType.getValue());
@@ -588,7 +590,7 @@ public class GseV1ApiClient implements IGseClient {
 
     private api_auth buildEmptyApiAuth() {
         api_auth auth = new api_auth();
-        auth.setUser("test");
+        auth.setUser("job");
         auth.setPassword("");
         return auth;
     }

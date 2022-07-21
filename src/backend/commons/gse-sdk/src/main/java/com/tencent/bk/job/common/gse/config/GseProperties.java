@@ -32,7 +32,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * GSE 配置
  */
-
 @ConfigurationProperties(prefix = "gse")
 @Getter
 @Setter
