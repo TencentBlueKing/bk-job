@@ -409,7 +409,7 @@ bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
 bkNodemanUrl: "http://nodeman.example.com"
 # 蓝鲸 GSE API Gateway url
-bkGseApiGatewayUrl: "http://bkapi.example.com"z
+bkGseApiGatewayUrl: "http://bkapi.example.com"
 
 ## 蓝鲸GSE参数配置
 gse:
