@@ -73,4 +73,16 @@ public class AgentTaskDetailDTO extends AgentTaskDTO {
         }
     }
 
+    public HostDTO getHost() {
+        HostDTO host = new HostDTO();
+        host.setHostId(getHostId());
+        host.setIp(getIp());
+        host.setBkCloudId(getBkCloudId());
+        host.setBkCloudName(getBkCloudName());
+        host.setDisplayIp(getDisplayIp());
+        host.setAgentId(getAgentId());
+        return host;
+    }
+
+
 }

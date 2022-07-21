@@ -56,6 +56,12 @@ public class AgentTaskResultGroupBaseDTO implements Comparable<AgentTaskResultGr
         this.tag = tag;
     }
 
+    public AgentTaskResultGroupBaseDTO(AgentTaskResultGroupBaseDTO baseResultGroup) {
+        this.status = baseResultGroup.getStatus();
+        this.tag = baseResultGroup.getTag();
+        this.totalAgentTasks = baseResultGroup.getTotalAgentTasks();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

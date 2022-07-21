@@ -35,8 +35,8 @@ export default class TaskInstanceDetailStep {
         this.type = payload.type;
         this.enable = Boolean(payload.enable);
         this.delete = payload.delete;
-        this.rollingEnabled = payload.rollingEnabled;
-        this.rollingConfig = payload.rollingConfig;
+        this.rollingEnabled = Boolean(payload.rollingEnabled);
+        this.rollingConfig = this.initRollingConfig(payload.rollingConfig);
         this.approvalStepInfo = {};
         this.fileStepInfo = this.initFileStepInfo(payload.fileStepInfo);
         this.scriptStepInfo = this.initScriptStepInfo(payload.scriptStepInfo);
@@ -64,5 +64,22 @@ export default class TaskInstanceDetailStep {
             return {};
         }
         return new TaskInstanceDetailStepScriptModel(scriptStepInfo);
+    }
+
+    initRollingConfig (rollingConfig) {
+        if (!_.isObject(rollingConfig)) {
+            return {
+                expr: '',
+                mode: '',
+            };
+        }
+        const {
+            expr = '',
+            mode = '',
+        } = rollingConfig;
+        return {
+            expr,
+            mode,
+        };
     }
 }

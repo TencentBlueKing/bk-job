@@ -27,11 +27,19 @@ package com.tencent.bk.job.manage.service;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
-import com.tencent.bk.job.manage.model.inner.*;
-import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
+import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
+import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
-import com.tencent.bk.job.manage.model.web.vo.notify.*;
+import com.tencent.bk.job.manage.model.web.vo.notify.ExecuteStatusVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.ResourceTypeVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.TriggerTypeVO;
 
 import java.util.List;
 import java.util.Set;
@@ -73,26 +81,12 @@ public interface NotifyService {
 
     /**
      * 获取所有的通知渠道
-     *
-     * @return
      */
     List<NotifyEsbChannelDTO> listAllNotifyChannel();
 
     List<NotifyChannelVO> listAvailableNotifyChannel(String username);
 
     Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req);
-
-    List<UserVO> listUsers(
-        String username,
-        String prefixStr,
-        Long offset,
-        Long limit,
-        Boolean excludeBlackUsers
-    );
-
-    List<NotifyBlackUserInfoVO> listNotifyBlackUsers(String username, Integer start, Integer pageSize);
-
-    List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req);
 
     Integer sendSimpleNotification(ServiceNotificationDTO notification);
 

@@ -80,6 +80,7 @@ import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.NotifyService;
+import com.tencent.bk.job.manage.service.impl.notify.NotifyUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -120,6 +121,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final NotifyEsbChannelDAO notifyEsbChannelDAO;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyService notifyService;
+    private final NotifyUserService notifyUserService;
     private final GlobalSettingDAO globalSettingDAO;
     private final NotifyTemplateDAO notifyTemplateDAO;
     private final MessageI18nService i18nService;
@@ -138,7 +140,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         , NotifyEsbChannelDAO notifyEsbChannelDAO
         , AvailableEsbChannelDAO availableEsbChannelDAO
         , NotifyService notifyService
-        , GlobalSettingDAO globalSettingDAO
+        , NotifyUserService notifyUserService,
+        GlobalSettingDAO globalSettingDAO
         , NotifyTemplateDAO notifyTemplateDAO,
         MessageI18nService i18nService,
         JobManageConfig jobManageConfig,
@@ -149,6 +152,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyService = notifyService;
+        this.notifyUserService = notifyUserService;
         this.globalSettingDAO = globalSettingDAO;
         this.notifyTemplateDAO = notifyTemplateDAO;
         this.i18nService = i18nService;
@@ -172,10 +176,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     public Boolean isNotifyChannelConfiged(DSLContext dslContext) {
         GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
             GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED);
-        if (globalSettingDTO == null || !globalSettingDTO.getValue().toLowerCase().equals("true")) {
-            return false;
-        }
-        return true;
+        return globalSettingDTO != null && globalSettingDTO.getValue().toLowerCase().equals("true");
     }
 
     @Override
@@ -227,17 +228,17 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public List<UserVO> listUsers(String username, String prefixStr, Long offset, Long limit) {
         //这里就是要选择人来添加黑名单，故不排除已在黑名单内的人
-        return notifyService.listUsers(username, prefixStr, offset, limit, false);
+        return notifyUserService.listUsers(prefixStr, offset, limit, false);
     }
 
     @Override
     public List<NotifyBlackUserInfoVO> listNotifyBlackUsers(String username, Integer start, Integer pageSize) {
-        return notifyService.listNotifyBlackUsers(username, start, pageSize);
+        return notifyUserService.listNotifyBlackUsers(start, pageSize);
     }
 
     @Override
     public List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req) {
-        return notifyService.saveNotifyBlackUsers(username, req);
+        return notifyUserService.saveNotifyBlackUsers(username, req);
     }
 
     @Override
@@ -360,7 +361,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                     GlobalSettingKeys.KEY_CURRENT_NAME_RULES);
             }
         }
-        List<AccountNameRule> currentNameRules = new ArrayList<>();
+        List<AccountNameRule> currentNameRules;
         if (currentNameRulesDTO != null) {
             currentNameRules = JsonUtils.fromJson(currentNameRulesDTO.getValue(),
                 new TypeReference<List<AccountNameRule>>() {
@@ -410,16 +411,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private FileUploadSettingVO getConfigedFileUploadSettings() {
         log.debug("configedMaxFileSize=" + configedMaxFileSize);
         return getFileUploadSettingsFromStr(configedMaxFileSize);
-    }
-
-    private FileUploadSettingVO getDBFileUploadSettings() {
-        GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
-            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
-        if (fileUploadSettingDTO == null) {
-            return null;
-        }
-        String maxFileSizeStr = fileUploadSettingDTO.getValue();
-        return getFileUploadSettingsFromStr(maxFileSizeStr);
     }
 
     @Override
@@ -612,14 +603,17 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"channelCode", "channelCode cannot be blank"});
         }
-        NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, req.getChannelCode(),
-            req.getMessageTypeCode(), false);
+        NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+            req.getChannelCode(),
+            req.getMessageTypeCode(),
+            false
+        );
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
         if (notifyTemplateDTO == null) {
             notifyTemplateDTO = new NotifyTemplateDTO(null, req.getMessageTypeCode(), req.getMessageTypeCode(),
                 req.getChannelCode(), req.getTitle(), req.getContent(), req.getTitle(), req.getContent(), false,
                 username, System.currentTimeMillis(), username, System.currentTimeMillis());
-            return notifyTemplateDAO.insertNotifyTemplate(dslContext, notifyTemplateDTO);
+            return notifyTemplateDAO.insertNotifyTemplate(notifyTemplateDTO);
         } else {
             if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
                 notifyTemplateDTO.setTitleEn(req.getTitle());
@@ -630,7 +624,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             }
             notifyTemplateDTO.setLastModifyUser(username);
             notifyTemplateDTO.setLastModifyTime(System.currentTimeMillis());
-            return notifyTemplateDAO.updateNotifyTemplateById(dslContext, notifyTemplateDTO);
+            return notifyTemplateDAO.updateNotifyTemplateById(notifyTemplateDTO);
         }
     }
 
@@ -649,17 +643,29 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public ChannelTemplateDetailWithDefaultVO getChannelTemplateDetail(String username, String channelCode,
                                                                        String messageTypeCode) {
-        NotifyTemplateDTO currentNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, channelCode,
-            messageTypeCode, false);
-        NotifyTemplateDTO defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, channelCode,
-            messageTypeCode, true);
+        NotifyTemplateDTO currentNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+            channelCode,
+            messageTypeCode,
+            false
+        );
+        NotifyTemplateDTO defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+            channelCode,
+            messageTypeCode,
+            true
+        );
         // 渠道下无默认模板，则为新增渠道，使用通用模板
         if (defaultNotifyTemplateDTO == null) {
-            defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext,
-                NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON, messageTypeCode, false);
+            defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+                NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON,
+                messageTypeCode,
+                false
+            );
             if (defaultNotifyTemplateDTO == null) {
-                defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext,
-                    NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON, messageTypeCode, true);
+                defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+                    NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON,
+                    messageTypeCode,
+                    true
+                );
             }
             if (defaultNotifyTemplateDTO != null) {
                 defaultNotifyTemplateDTO.setChannel(channelCode);
@@ -705,7 +711,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             String channelCode = notifyChannelWithIconVO.getCode();
             List<TemplateBasicInfo> configStatusList = new ArrayList<>();
             messageCodeList.forEach(messageCode -> {
-                Boolean configStatus = notifyTemplateDAO.existsNotifyTemplate(dslContext, channelCode, messageCode,
+                Boolean configStatus = notifyTemplateDAO.existsNotifyTemplate(channelCode, messageCode,
                     false);
                 configStatusList.add(new TemplateBasicInfo(messageCode,
                     i18nService.getI18n(NotifyConsts.NOTIFY_TEMPLATE_NAME_PREFIX + messageCode), configStatus));
@@ -723,7 +729,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     @Override
     public String getDocCenterBaseUrl() {
-        String url = "";
+        String url;
         if (org.apache.commons.lang3.StringUtils.isNotBlank(jobManageConfig.getBkDocRoot())) {
             url = removeSuffixBackSlash(jobManageConfig.getBkDocRoot());
         } else {
@@ -740,7 +746,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     private String getFeedBackRootUrl() {
-        String url = "";
+        String url;
         if (StringUtils.isNotBlank(jobManageConfig.getBkFeedBackRoot())) {
             url = removeSuffixBackSlash(jobManageConfig.getBkFeedBackRoot());
         } else {
@@ -771,18 +777,18 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return urlMap;
     }
 
-    private void addFileUploadConfig(String username, Map<String, Object> configMap) {
+    private void addFileUploadConfig(Map<String, Object> configMap) {
         FileUploadSettingVO fileUploadSettingVO = getFileUploadSettings();
         if (fileUploadSettingVO != null) {
             configMap.put(GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING, fileUploadSettingVO);
         }
     }
 
-    private void addEnableFeatureFileManageConfig(String username, Map<String, Object> configMap) {
+    private void addEnableFeatureFileManageConfig(Map<String, Object> configMap) {
         configMap.put(GlobalSettingKeys.KEY_ENABLE_FEATURE_FILE_MANAGE, enableFeatureFileManage);
     }
 
-    private void addEnableUploadToArtifactoryConfig(String username, Map<String, Object> configMap) {
+    private void addEnableUploadToArtifactoryConfig(Map<String, Object> configMap) {
         configMap.put(
             GlobalSettingKeys.KEY_ENABLE_UPLOAD_TO_ARTIFACTORY,
             JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(localFileConfigForManage.getStorageBackend())
@@ -792,9 +798,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public Map<String, Object> getJobConfig(String username) {
         Map<String, Object> configMap = new HashMap<>();
-        addFileUploadConfig(username, configMap);
-        addEnableFeatureFileManageConfig(username, configMap);
-        addEnableUploadToArtifactoryConfig(username, configMap);
+        addFileUploadConfig(configMap);
+        addEnableFeatureFileManageConfig(configMap);
+        addEnableUploadToArtifactoryConfig(configMap);
         return configMap;
     }
 }

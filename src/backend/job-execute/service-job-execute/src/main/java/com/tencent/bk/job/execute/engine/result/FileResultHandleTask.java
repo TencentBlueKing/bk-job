@@ -25,8 +25,10 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.google.common.collect.Sets;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.constants.GSECode;
 import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
@@ -35,7 +37,6 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
-import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.consts.GseConstants;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
@@ -158,6 +159,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      */
     private String taskInfo;
 
+    private Map<String, Long> ipAndCloudIMapping = null;
+
     public FileResultHandleTask(TaskInstanceService taskInstanceService,
                                 GseTaskService gseTaskService,
                                 LogService logService,
@@ -169,7 +172,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 FileAgentTaskService fileAgentTaskService,
                                 StepInstanceService stepInstanceService,
-                                GseApiClient gseApiClient,
+                                GseClient gseClient,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -192,7 +195,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
-            gseApiClient,
+            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -254,7 +257,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             notFinishedAgentIds.addAll(runningTargetAgentIds);
             request.setAgentIds(notFinishedAgentIds.stream().distinct().collect(Collectors.toList()));
         }
-        FileTaskResult result = gseApiClient.getTransferFileResult(request);
+        FileTaskResult result = gseClient.getTransferFileResult(request);
         GseLogBatchPullResult<FileTaskResult> pullResult;
         if (result != null) {
             pullResult = new GseLogBatchPullResult<>(
@@ -267,6 +270,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     @Override
     GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<FileTaskResult> taskDetail) {
+        correctSourceAgentId(taskDetail.getResult());
         // 执行日志, Map<hostId, 日志>
         Map<Long, ServiceHostLogDTO> executionLogs = new HashMap<>();
 
@@ -324,6 +328,41 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             log.info("Analyse file gse task is slow, statistics: {}", watch.prettyPrint());
         }
         return analyseExecuteResult();
+    }
+
+    /**
+     * GSE 1.0 BUG(GSE Agent 版本低于1.7.6), download结果可能没有源云区域ID，需要处理
+     */
+    @CompatibleImplementation(name = "ipv6", explain = "GSE 1.0 BUG(GSE Agent 版本低于1.7.6)", version = "> 3.7")
+    private void correctSourceAgentId(FileTaskResult fileTaskResult) {
+        for (AtomicFileTaskResult result : fileTaskResult.getAtomicFileTaskResults()) {
+            if (result.getContent() != null && isDownloadLog(result.getContent().getMode())) {
+                String sourceAgentId = result.getContent().getSourceAgentId();
+                // 没有云区域ID, 尝试结合文件源主机推测(ip匹配)
+                if (sourceAgentId.startsWith(":")) {
+                    log.warn("[{}] Invalid sourceAgentId: {}", stepInstanceId, sourceAgentId);
+                    String ip = sourceAgentId.substring(1);
+                    if (ipAndCloudIMapping == null) {
+                        initSourceIpAndCloudIdMapping();
+                    }
+                    Long bkCloudId = ipAndCloudIMapping.get(ip);
+                    result.getContent().setSourceAgentId(bkCloudId + ":" + ip);
+                    result.getContent().setTaskId(result.getContent().buildTaskId());
+                }
+            }
+        }
+    }
+
+    private void initSourceIpAndCloudIdMapping() {
+        if (ipAndCloudIMapping == null) {
+            ipAndCloudIMapping = new HashMap<>();
+            for (String agentId : sourceAgentIds) {
+                String[] props = agentId.split(":");
+                if (props.length == 2) {
+                    ipAndCloudIMapping.put(props[1], Long.valueOf(props[0]));
+                }
+            }
+        }
     }
 
     private void analyseFileResult(String agentId,
@@ -775,7 +814,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         AtomicFileTaskResultContent content = result.getContent();
         Integer mode = content.getMode();
         boolean isDownloadLog = isDownloadLog(mode);
-        String agentId = isDownloadLog ? content.getDestAgentId() : content.getSourceAgentId();
         GSECode.AtomicErrorCode errorCode = GSECode.AtomicErrorCode.getErrorCode(result.getErrorCode());
         String key = content.getTaskId();
         Integer process = processMap.computeIfAbsent(key, k -> -1);

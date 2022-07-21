@@ -48,6 +48,7 @@ import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
@@ -350,7 +351,6 @@ public class TaskResultServiceImpl implements TaskResultService {
                 (StringUtils.isEmpty(tag) ? StringUtils.isEmpty(resultGroup.getTag()) :
                     tag.equals(resultGroup.getTag())))) {
                 resultGroup.setAgentTasks(agentTasksForResultType);
-                resultGroup.setTotalAgentTasks(agentTasksForResultType.size());
             }
         }
     }
@@ -384,7 +384,6 @@ public class TaskResultServiceImpl implements TaskResultService {
             return false;
         }
         resultGroup.setAgentTasks(agentTasks);
-        resultGroup.setTotalAgentTasks(agentTasks.size());
         return true;
     }
 
@@ -551,7 +550,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
             watch.start("loadAllTasksFromDbAndGroup");
             List<AgentTaskResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance,
-                query.getStepInstanceId(), query.getExecuteCount(), query.getBatch());
+                query.getExecuteCount(), query.getBatch());
 
             if (CollectionUtils.isNotEmpty(query.getMatchHostIds())) {
                 filterAgentTasksByMatchIp(resultGroups, query.getMatchHostIds());
@@ -579,7 +578,6 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private List<AgentTaskResultGroupDTO> listAndGroupAgentTasks(StepInstanceBaseDTO stepInstance,
-                                                                 long stepInstanceId,
                                                                  int executeCount,
                                                                  Integer batch) {
         List<AgentTaskResultGroupDTO> resultGroups = null;
@@ -671,7 +669,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private StepExecutionDetailDTO buildExecutionDetailWhenTaskAreEmpty(StepInstanceBaseDTO stepInstance,
                                                                         Integer batch) {
-        List<AgentTaskResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance, stepInstance.getId(),
+        List<AgentTaskResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance,
             stepInstance.getExecuteCount(), batch);
         StepExecutionDetailDTO executeDetail = new StepExecutionDetailDTO(stepInstance);
         executeDetail.setResultGroups(resultGroups);
@@ -713,7 +711,6 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                                     StepInstanceBaseDTO stepInstance,
                                                                     StepExecutionResultQuery query) {
         query.transformOrderFieldToDbField();
-        long stepInstanceId = query.getStepInstanceId();
         int queryExecuteCount = query.getExecuteCount();
         Integer status = query.getStatus();
         String tag = query.getTag();
@@ -722,11 +719,14 @@ public class TaskResultServiceImpl implements TaskResultService {
         executeDetail.setExecuteCount(queryExecuteCount);
 
         watch.start("getBaseResultGroups");
-        List<AgentTaskResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance, stepInstanceId,
+        List<AgentTaskResultGroupBaseDTO> baseResultGroups = listBaseResultGroups(stepInstance,
             queryExecuteCount, query.getBatch());
         watch.stop();
 
         watch.start("setAgentTasks");
+        List<AgentTaskResultGroupDTO> resultGroups = baseResultGroups.stream()
+            .map(AgentTaskResultGroupDTO::new)
+            .collect(Collectors.toList());
         if (status != null) {
             List<AgentTaskDetailDTO> tasks = listAgentTaskByResultGroup(stepInstance, queryExecuteCount,
                 query.getBatch(), status, tag, query.getMaxAgentTasksForResultGroup(), query.getOrderField(),
@@ -746,6 +746,18 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         executeDetail.setResultGroups(resultGroups);
         return executeDetail;
+    }
+
+    private List<AgentTaskResultGroupBaseDTO> listBaseResultGroups(StepInstanceBaseDTO stepInstance,
+                                                                   int executeCount,
+                                                                   Integer batch) {
+        List<AgentTaskResultGroupBaseDTO> resultGroups = null;
+        if (stepInstance.isScriptStep()) {
+            resultGroups = scriptAgentTaskService.listResultGroups(stepInstance.getId(), executeCount, batch);
+        } else if (stepInstance.isFileStep()) {
+            resultGroups = fileAgentTaskService.listResultGroups(stepInstance.getId(), executeCount, batch);
+        }
+        return resultGroups;
     }
 
     private List<AgentTaskDetailDTO> listAgentTaskByResultGroup(StepInstanceBaseDTO stepInstance,
@@ -946,7 +958,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             return Collections.emptyList();
         }
         List<HostDTO> hosts = agentTaskGroupByResultType.stream()
-            .map(agentTask -> HostDTO.fromHostId(agentTask.getHostId()))
+            .map(AgentTaskDetailDTO::getHost)
             .collect(Collectors.toList());
         if (filterByKeyword && CollectionUtils.isNotEmpty(matchHostIds)) {
             List<HostDTO> finalHosts = new ArrayList<>();
@@ -963,30 +975,44 @@ public class TaskResultServiceImpl implements TaskResultService {
 
 
     @Override
-    public List<StepExecutionRecordDTO> listStepExecutionHistory(String username, Long appId, Long stepInstanceId) {
+    public List<StepExecutionRecordDTO> listStepExecutionHistory(String username,
+                                                                 Long appId,
+                                                                 Long stepInstanceId,
+                                                                 Integer batch) {
         StepInstanceBaseDTO stepInstance = checkGetStepExecutionDetail(username, appId, stepInstanceId);
-        int latestExecuteCount = stepInstance.getExecuteCount();
-        if (latestExecuteCount == 0) {
+
+        // 步骤没有重试执行过
+        if (stepInstance.getExecuteCount() == 0) {
             StepExecutionRecordDTO record = new StepExecutionRecordDTO();
             record.setStepInstanceId(stepInstanceId);
-            record.setRetryCount(latestExecuteCount);
+            record.setRetryCount(0);
             record.setCreateTime(stepInstance.getCreateTime());
             return Collections.singletonList(record);
         }
 
-        List<OperationLogDTO> operationLogs = operationLogService.listOperationLog(stepInstance.getTaskInstanceId());
-        List<StepExecutionRecordDTO> records = new ArrayList<>();
-        if (CollectionUtils.isEmpty(operationLogs)) {
-            for (int executeCount = latestExecuteCount; executeCount >= 0; executeCount--) {
-                StepExecutionRecordDTO record = new StepExecutionRecordDTO();
-                record.setStepInstanceId(stepInstanceId);
-                record.setRetryCount(executeCount);
-                record.setCreateTime(stepInstance.getCreateTime());
-                records.add(record);
-            }
-            return records;
+        List<StepExecutionRecordDTO> records;
+        if (batch == null || batch == 0) {
+            // 获取步骤维度的重试记录
+            records = queryStepRetryRecords(stepInstance);
+        } else {
+            // 获取滚动任务维度的重试记录
+            records = queryStepRollingTaskRetryRecords(stepInstanceId, batch);
         }
 
+        records.sort(Comparator.comparingInt(StepExecutionRecordDTO::getRetryCount).reversed());
+
+        return records;
+    }
+
+    private List<StepExecutionRecordDTO> queryStepRetryRecords(StepInstanceBaseDTO stepInstance) {
+        Long stepInstanceId = stepInstance.getId();
+        // 步骤最新的重试次数
+        int latestExecuteCount = stepInstance.getExecuteCount();
+        List<OperationLogDTO> operationLogs =
+            operationLogService.listOperationLog(stepInstance.getTaskInstanceId());
+
+
+        List<StepExecutionRecordDTO> records = new ArrayList<>();
         Map<Integer, Long> executeCountAndCreateTimeMap = new HashMap<>();
         operationLogs.forEach(opLog -> {
             UserOperationEnum operation = opLog.getOperationEnum();
@@ -1006,6 +1032,21 @@ public class TaskResultServiceImpl implements TaskResultService {
             record.setCreateTime(executeCountAndCreateTimeMap.get(executeCount));
             records.add(record);
         }
+
+        return records;
+    }
+
+    private List<StepExecutionRecordDTO> queryStepRollingTaskRetryRecords(long stepInstanceId, int batch) {
+        List<StepExecutionRecordDTO> records = new ArrayList<>();
+        List<StepInstanceRollingTaskDTO> rollingTasks =
+            stepInstanceRollingTaskService.listRollingTasksByBatch(stepInstanceId, batch);
+        rollingTasks.forEach(rollingTask -> {
+            StepExecutionRecordDTO record = new StepExecutionRecordDTO();
+            record.setStepInstanceId(stepInstanceId);
+            record.setRetryCount(rollingTask.getExecuteCount());
+            record.setCreateTime(rollingTask.getStartTime());
+            records.add(record);
+        });
         return records;
     }
 }

@@ -120,7 +120,7 @@ public class HostDTO implements Cloneable {
     public static HostDTO fromHostIdAndCloudIp(Long hostId, String cloudIp) {
         HostDTO hostDTO = new HostDTO();
         hostDTO.setHostId(hostId);
-        if (StringUtils.isNotEmpty(cloudIp)) {
+        if (StringUtils.isNotBlank(cloudIp)) {
             String[] ipProps = cloudIp.split(IpUtils.COLON);
             hostDTO.setBkCloudId(Long.valueOf(ipProps[0]));
             hostDTO.setIp(ipProps[1]);

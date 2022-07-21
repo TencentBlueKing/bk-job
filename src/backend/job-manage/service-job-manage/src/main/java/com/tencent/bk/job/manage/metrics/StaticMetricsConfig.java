@@ -51,14 +51,14 @@ public class StaticMetricsConfig {
         ThreadPoolExecutor cmdbQueryThreadPool = BizCmdbClient.threadPoolExecutor;
         meterRegistry.gauge(
             MetricsConstants.NAME_CMDB_QUERY_POOL_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_CMDB)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB)),
             cmdbQueryThreadPool,
             ThreadPoolExecutor::getPoolSize
         );
         // CMDB请求线程池队列大小
         meterRegistry.gauge(
             MetricsConstants.NAME_CMDB_QUERY_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_CMDB)),
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB)),
             cmdbQueryThreadPool,
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );
@@ -69,9 +69,9 @@ public class StaticMetricsConfig {
                 meterRegistry.gauge(
                     MetricsConstants.NAME_CMDB_RESOURCE_LIMIT,
                     Arrays.asList(
-                        Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_CMDB),
-                        Tag.of(MetricsConstants.TAG_ASPECT, MetricsConstants.VALUE_ASPECT_FLOW_CONTROL),
-                        Tag.of(MetricsConstants.TAG_RESOURCE_ID, key)
+                        Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB),
+                        Tag.of(MetricsConstants.TAG_KEY_ASPECT, MetricsConstants.TAG_VALUE_ASPECT_FLOW_CONTROL),
+                        Tag.of(MetricsConstants.TAG_KEY_RESOURCE_ID, key)
                     ),
                     cmdbGlobalFlowController,
                     new ToDoubleFunction<RedisSlideWindowFlowController>() {
@@ -87,9 +87,9 @@ public class StaticMetricsConfig {
                 meterRegistry.gauge(
                     MetricsConstants.NAME_CMDB_RESOURCE_RATE,
                     Arrays.asList(
-                        Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_CMDB),
-                        Tag.of(MetricsConstants.TAG_ASPECT, MetricsConstants.VALUE_ASPECT_FLOW_CONTROL),
-                        Tag.of(MetricsConstants.TAG_RESOURCE_ID, key)
+                        Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB),
+                        Tag.of(MetricsConstants.TAG_KEY_ASPECT, MetricsConstants.TAG_VALUE_ASPECT_FLOW_CONTROL),
+                        Tag.of(MetricsConstants.TAG_KEY_RESOURCE_ID, key)
                     ),
                     cmdbGlobalFlowController,
                     new ToDoubleFunction<RedisSlideWindowFlowController>() {

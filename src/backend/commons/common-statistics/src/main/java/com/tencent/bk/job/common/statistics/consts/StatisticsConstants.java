@@ -47,10 +47,10 @@ public class StatisticsConstants {
     public static final String NAME_STATISTICS_TASK_REJECTED_TASK_NUM = "statisticsTask.rejectedTask.num";
 
     // tag
-    public static final String TAG_MODULE = "module";
+    public static final String TAG_KEY_MODULE = "module";
 
     // value
-    public static final String VALUE_MODULE_STATISTICS_TASK = "statisticsTask";
+    public static final String TAG_VALUE_MODULE_STATISTICS_TASK = "statisticsTask";
 
     // Resource
     // 全局资源

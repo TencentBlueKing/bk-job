@@ -25,7 +25,7 @@ public class GetExecuteScriptResultRequest {
     private List<AgentTask> agentTasks = new ArrayList<>();
 
     @Data
-    private static class AgentTask {
+    public static class AgentTask {
         /**
          * 目标Agent ，数据格式分为两种。1. cloudId:ip（兼容老版本Agent没有agentId的情况) 2. agentId
          */
@@ -40,7 +40,7 @@ public class GetExecuteScriptResultRequest {
     }
 
     @Data
-    private static class AtomicTask {
+    public static class AtomicTask {
         /**
          * id 编号，在当前任务里面唯一，需要取大于等于0的值
          */

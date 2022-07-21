@@ -31,20 +31,15 @@ import java.util.Collection;
 import java.util.List;
 
 public interface EsbUserInfoDAO {
+
     int insertEsbUserInfo(DSLContext dslContext, EsbUserInfoDTO esbUserInfoDTO);
 
     int deleteEsbUserInfoById(DSLContext dslContext, Long id);
-
-    EsbUserInfoDTO getEsbUserInfoById(Long id);
 
     List<EsbUserInfoDTO> listEsbUserInfo();
 
     List<EsbUserInfoDTO> listEsbUserInfo(String prefixStr, Long limit);
 
-    List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames, Long limit);
-
-    int updateEsbUserInfoById(DSLContext dslContext, EsbUserInfoDTO esbUserInfoDTO);
-
-    boolean isUserExist(String username);
+    List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames);
 
 }

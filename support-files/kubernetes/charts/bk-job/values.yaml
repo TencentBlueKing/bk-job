@@ -409,13 +409,12 @@ bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
 bkNodemanUrl: "http://nodeman.example.com"
 # 蓝鲸 GSE API Gateway url
-bkGseApiGatewayUrl: "http://bkapi.example.com"
-
-domain:
-  bkDomain:
+bkGseApiGatewayUrl: "http://bkapi.example.com"z
 
 ## 蓝鲸GSE参数配置
 gse:
+  # Job 对接的 GSE 版本 (v1/v2)
+  version: "v2"
   # 已存在的Tls证书Secret名称
   existingTlsSecret: ""
   # Agent状态查询接口相关配置
@@ -650,7 +649,7 @@ gatewayConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-gateway
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -738,7 +737,7 @@ manageConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-manage
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -796,7 +795,7 @@ executeConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -847,7 +846,7 @@ crontabConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-crontab
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -907,7 +906,7 @@ logsvrConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-logsvr
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -962,7 +961,7 @@ backupConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1012,7 +1011,7 @@ analysisConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-analysis
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1062,7 +1061,7 @@ fileGatewayConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-file-gateway
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1112,7 +1111,7 @@ fileWorkerConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-file-worker
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1185,7 +1184,7 @@ frontendConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-frontend
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1246,7 +1245,7 @@ migration:
     # 镜像拉取仓库组织与镜像名称
     repository: "blueking/job-migration"
     # 镜像标签
-    tag: 3.6.0-beta-4
+    tag: 3.7.0-beta-5
     # 镜像拉取策略
     pullPolicy: IfNotPresent
 

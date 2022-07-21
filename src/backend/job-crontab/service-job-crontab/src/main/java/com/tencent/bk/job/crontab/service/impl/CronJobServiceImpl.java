@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
+import com.tencent.bk.job.crontab.constant.CronConstants;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
@@ -444,7 +445,9 @@ public class CronJobServiceImpl implements CronJobService {
         String innerCronJobInfoStr = JsonUtils.toJson(innerCronJobInfoDTO);
 
         QuartzJob job = QuartzJobBuilder.newJob().withIdentity(request.getJobKey(), request.getSystemId())
-            .forJob(InnerJobExecutor.class).usingJobData("cronJobInfoStr", innerCronJobInfoStr).withTrigger(trigger)
+            .forJob(InnerJobExecutor.class)
+            .usingJobData(CronConstants.JOB_DATA_KEY_CRON_JOB_INFO_STR, innerCronJobInfoStr)
+            .withTrigger(trigger)
             .build();
 
         try {
@@ -635,8 +638,11 @@ public class CronJobServiceImpl implements CronJobService {
 
                 QuartzJob job =
                     QuartzJobBuilder.newJob().withIdentity(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
-                        .forJob(SimpleJobExecutor.class).usingJobData("appIdStr", String.valueOf(appId))
-                        .usingJobData("cronJobIdStr", String.valueOf(cronJobId)).withTrigger(trigger).build();
+                        .forJob(SimpleJobExecutor.class)
+                        .usingJobData(CronConstants.JOB_DATA_KEY_APP_ID_STR, String.valueOf(appId))
+                        .usingJobData(CronConstants.JOB_DATA_KEY_CRON_JOB_ID_STR, String.valueOf(cronJobId))
+                        .withTrigger(trigger)
+                        .build();
 
                 try {
                     quartzTaskHandler
@@ -669,8 +675,11 @@ public class CronJobServiceImpl implements CronJobService {
 
                     QuartzJob notifyJob = QuartzJobBuilder.newJob()
                         .withIdentity(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
-                        .forJob(NotifyJobExecutor.class).usingJobData("appIdStr", String.valueOf(appId))
-                        .usingJobData("cronJobIdStr", String.valueOf(cronJobId)).withTrigger(notifyTrigger).build();
+                        .forJob(NotifyJobExecutor.class)
+                        .usingJobData(CronConstants.JOB_DATA_KEY_APP_ID_STR, String.valueOf(appId))
+                        .usingJobData(CronConstants.JOB_DATA_KEY_CRON_JOB_ID_STR, String.valueOf(cronJobId))
+                        .withTrigger(notifyTrigger)
+                        .build();
 
                     try {
                         quartzTaskHandler.deleteJob(
