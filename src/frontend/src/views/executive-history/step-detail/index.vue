@@ -455,9 +455,6 @@
              *
              */
             handelGroupChange (group) {
-                if (this.currentGroup.resultType === group.resultType) {
-                    return;
-                }
                 this.currentGroup = group;
                 this.fetchStep();
             },

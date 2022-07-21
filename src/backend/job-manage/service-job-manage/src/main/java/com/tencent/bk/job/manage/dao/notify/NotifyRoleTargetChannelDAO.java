@@ -30,16 +30,10 @@ import org.jooq.DSLContext;
 import java.util.List;
 
 public interface NotifyRoleTargetChannelDAO {
-    Long insert(DSLContext dslContext, NotifyRoleTargetChannelDTO notifyRoleTargetChannelDTO);
-
-    int deleteById(DSLContext dslContext, Long id);
+    Long insert(NotifyRoleTargetChannelDTO notifyRoleTargetChannelDTO);
 
     int deleteByRoleTargetId(DSLContext dslContext, Long roleTargetId);
 
-    NotifyRoleTargetChannelDTO getById(DSLContext dslContext, Long id);
-
     List<NotifyRoleTargetChannelDTO> listByRoleTargetId(DSLContext dslContext,
                                                         Long roleTargetId);
-
-    int updateById(DSLContext dslContext, NotifyRoleTargetChannelDTO notifyRoleTargetChannelDTO);
 }

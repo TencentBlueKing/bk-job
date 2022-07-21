@@ -22,13 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.trace.executors;
+package com.tencent.bk.job.common.trace.executors;
 
 import brave.Tracing;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class TraceableExecutorService implements ExecutorService {
 
@@ -38,6 +43,10 @@ public class TraceableExecutorService implements ExecutorService {
     public TraceableExecutorService(ExecutorService executorService, Tracing tracing) {
         this.delegateExecutorService = executorService;
         this.tracing = tracing;
+    }
+
+    public ExecutorService getDelegateExecutorService() {
+        return delegateExecutorService;
     }
 
     @Override

@@ -26,7 +26,11 @@ package com.tencent.bk.job.manage.config.listener;
 
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.manage.common.consts.notify.*;
+import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
+import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
+import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
+import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
+import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTriggerPolicyDAO;
 import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
@@ -43,12 +47,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -64,7 +68,7 @@ public class ApplicationReadyEventListener implements ApplicationListener<Applic
     final DSLContext dslContext;
 
     @Value("${notify.default.channels.available:mail,weixin,rtx}")
-    private String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
+    private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
 
     @Autowired
     public ApplicationReadyEventListener(PaaSService paaSService, GlobalSettingsService globalSettingsService,
@@ -79,94 +83,28 @@ public class ApplicationReadyEventListener implements ApplicationListener<Applic
     }
 
     @Override
-    public void onApplicationEvent(ApplicationReadyEvent event) {
+    public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
         // 应用启动完成后的一些初始化操作
         // 1.消息通知默认配置
-        try {
-            log.info("init default notify channels");
-            List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = paaSService.getAllChannelList("", "100");
-            if (esbNotifyChannelDTOList == null) {
-                log.error("Fail to get notify channels from esb, null");
-                return;
-            }
-            dslContext.transaction(configuration -> {
-                DSLContext context = DSL.using(configuration);
-                if (!globalSettingsService.isNotifyChannelConfiged(context)) {
-                    globalSettingsService.setNotifyChannelConfiged(context);
-                    availableEsbChannelDAO.deleteAll(context);
-                    for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
-                        if (esbNotifyChannelDTO.isActive()) {
-                            availableEsbChannelDAO.insertAvailableEsbChannel(context,
-                                new AvailableEsbChannelDTO(esbNotifyChannelDTO.getType(), true, "admin",
-                                    LocalDateTime.now()));
-                        }
-                    }
-                }
-            });
-        } catch (IOException e) {
-            log.error("Fail to get notify channels from esb", e);
-        } catch (Exception e) {
-            log.error("Fail to init default notify channels", e);
-        }
+        initDefaultNotifyChannels();
         // 2.用户侧默认配置
         try {
-            if (notifyTriggerPolicyDAO.countDefaultPolicies(dslContext) == 0) {
+            if (notifyTriggerPolicyDAO.countDefaultPolicies() == 0) {
                 //
                 NotifyPoliciesCreateUpdateReq req = new NotifyPoliciesCreateUpdateReq();
                 List<TriggerPolicy> triggerPolicyList = new ArrayList<>();
                 //1.页面执行策略
                 TriggerPolicy pageExecuteTriggerPolicy = new TriggerPolicy();
                 pageExecuteTriggerPolicy.setTriggerType(TriggerTypeEnum.PAGE_EXECUTE);
-                //默认通知任务执行人
-                pageExecuteTriggerPolicy.setRoleList(Arrays.asList(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name()));
-                pageExecuteTriggerPolicy.setExtraObserverList(Collections.emptyList());
-                //三种资源类型默认全部选中
-                List<ResourceTypeEnum> pageExecuteResourceTypeList = new ArrayList<>();
-                pageExecuteResourceTypeList.add(ResourceTypeEnum.SCRIPT);
-                pageExecuteResourceTypeList.add(ResourceTypeEnum.FILE);
-                pageExecuteResourceTypeList.add(ResourceTypeEnum.JOB);
-                pageExecuteTriggerPolicy.setResourceTypeList(pageExecuteResourceTypeList);
-                //成功、失败均默认邮件通知
-                List<ResourceStatusChannel> resourceStatusChannelList = new ArrayList<>();
-                List<String> defaultAvailableChannelList = StringUtil.strToList(defaultAvailableNotifyChannelsStr,
-                    String.class, "[,;]");
-                resourceStatusChannelList.add(new ResourceStatusChannel(ExecuteStatusEnum.FAIL,
-                    defaultAvailableChannelList));
-                pageExecuteTriggerPolicy.setResourceStatusChannelList(resourceStatusChannelList);
+                setDefaultTargetAndChannels(pageExecuteTriggerPolicy);
                 //2.API调用策略
                 TriggerPolicy apiInvokeTriggerPolicy = new TriggerPolicy();
                 apiInvokeTriggerPolicy.setTriggerType(TriggerTypeEnum.API_INVOKE);
-                //默认通知任务执行人
-                apiInvokeTriggerPolicy.setRoleList(Arrays.asList(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name()));
-                apiInvokeTriggerPolicy.setExtraObserverList(Collections.emptyList());
-                //三种资源类型默认全部选中
-                List<ResourceTypeEnum> apiInvokeResourceTypeList = new ArrayList<>();
-                apiInvokeResourceTypeList.add(ResourceTypeEnum.SCRIPT);
-                apiInvokeResourceTypeList.add(ResourceTypeEnum.FILE);
-                apiInvokeResourceTypeList.add(ResourceTypeEnum.JOB);
-                apiInvokeTriggerPolicy.setResourceTypeList(apiInvokeResourceTypeList);
-                //成功、失败均默认邮件通知
-                List<ResourceStatusChannel> apiInvokeResourceStatusChannelList = new ArrayList<>();
-                apiInvokeResourceStatusChannelList.add(new ResourceStatusChannel(ExecuteStatusEnum.FAIL,
-                    defaultAvailableChannelList));
-                apiInvokeTriggerPolicy.setResourceStatusChannelList(apiInvokeResourceStatusChannelList);
+                setDefaultTargetAndChannels(apiInvokeTriggerPolicy);
                 //3.定时任务策略
                 TriggerPolicy timerTaskTriggerPolicy = new TriggerPolicy();
                 timerTaskTriggerPolicy.setTriggerType(TriggerTypeEnum.TIMER_TASK);
-                //默认通知任务执行人
-                timerTaskTriggerPolicy.setRoleList(Arrays.asList(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name()));
-                timerTaskTriggerPolicy.setExtraObserverList(Collections.emptyList());
-                //三种资源类型默认全部选中
-                List<ResourceTypeEnum> timerTaskResourceTypeList = new ArrayList<>();
-                timerTaskResourceTypeList.add(ResourceTypeEnum.SCRIPT);
-                timerTaskResourceTypeList.add(ResourceTypeEnum.FILE);
-                timerTaskResourceTypeList.add(ResourceTypeEnum.JOB);
-                timerTaskTriggerPolicy.setResourceTypeList(timerTaskResourceTypeList);
-                //成功、失败均默认邮件通知
-                List<ResourceStatusChannel> timerTaskResourceStatusChannelList = new ArrayList<>();
-                timerTaskResourceStatusChannelList.add(new ResourceStatusChannel(ExecuteStatusEnum.FAIL,
-                    defaultAvailableChannelList));
-                timerTaskTriggerPolicy.setResourceStatusChannelList(timerTaskResourceStatusChannelList);
+                setDefaultTargetAndChannels(timerTaskTriggerPolicy);
                 //策略集成
                 triggerPolicyList.add(pageExecuteTriggerPolicy);
                 triggerPolicyList.add(apiInvokeTriggerPolicy);
@@ -184,5 +122,62 @@ public class ApplicationReadyEventListener implements ApplicationListener<Applic
         } catch (Exception e) {
             log.error("Fail to config default notify policies", e);
         }
+    }
+
+    private void initDefaultNotifyChannels() {
+        try {
+            log.info("init default notify channels");
+            List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = paaSService.getAllChannelList("", "100");
+            if (esbNotifyChannelDTOList == null) {
+                log.error("Fail to get notify channels from esb, null");
+                return;
+            }
+            dslContext.transaction(configuration -> {
+                DSLContext context = DSL.using(configuration);
+                if (!globalSettingsService.isNotifyChannelConfiged(context)) {
+                    globalSettingsService.setNotifyChannelConfiged(context);
+                    availableEsbChannelDAO.deleteAll(context);
+                    for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
+                        if (!esbNotifyChannelDTO.isActive()) {
+                            continue;
+                        }
+                        availableEsbChannelDAO.insertAvailableEsbChannel(
+                            context,
+                            new AvailableEsbChannelDTO(
+                                esbNotifyChannelDTO.getType(),
+                                true,
+                                "admin",
+                                LocalDateTime.now()
+                            )
+                        );
+                    }
+                }
+            });
+        } catch (IOException e) {
+            log.error("Fail to get notify channels from esb", e);
+        } catch (Exception e) {
+            log.error("Fail to init default notify channels", e);
+        }
+    }
+
+    private void setDefaultTargetAndChannels(TriggerPolicy policy) {
+        //默认通知任务执行人
+        policy.setRoleList(
+            Collections.singletonList(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name())
+        );
+        policy.setExtraObserverList(Collections.emptyList());
+        //三种资源类型默认全部选中
+        List<ResourceTypeEnum> pageExecuteResourceTypeList = new ArrayList<>();
+        pageExecuteResourceTypeList.add(ResourceTypeEnum.SCRIPT);
+        pageExecuteResourceTypeList.add(ResourceTypeEnum.FILE);
+        pageExecuteResourceTypeList.add(ResourceTypeEnum.JOB);
+        policy.setResourceTypeList(pageExecuteResourceTypeList);
+        //成功、失败均默认邮件通知
+        List<ResourceStatusChannel> resourceStatusChannelList = new ArrayList<>();
+        List<String> defaultAvailableChannelList = StringUtil.strToList(defaultAvailableNotifyChannelsStr,
+            String.class, "[,;]");
+        resourceStatusChannelList.add(new ResourceStatusChannel(ExecuteStatusEnum.FAIL,
+            defaultAvailableChannelList));
+        policy.setResourceStatusChannelList(resourceStatusChannelList);
     }
 }

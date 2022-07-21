@@ -36,6 +36,7 @@ import com.tencent.bk.job.manage.service.PaaSService;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -54,26 +55,25 @@ import java.util.stream.Collectors;
 public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(NotifyEsbChannelDAOImpl.class);
-    private static final String KEY_ESB_CHANNEL = "esbChannel";
-    private PaaSService paaSService;
-    private LoadingCache<String, List<NotifyEsbChannelDTO>> esbChannelCache = CacheBuilder.newBuilder()
+    private final PaaSService paaSService;
+    private final LoadingCache<String, List<NotifyEsbChannelDTO>> esbChannelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
             build(new CacheLoader<String, List<NotifyEsbChannelDTO>>() {
                       @Override
-                      public List<NotifyEsbChannelDTO> load(String searchKey) throws Exception {
+                      public List<NotifyEsbChannelDTO> load(@NonNull String searchKey) {
                           logger.info("esbChannelCache searchKey=" + searchKey);
-                          List<NotifyEsbChannelDTO> channelDtoList = null;
+                          List<NotifyEsbChannelDTO> channelDtoList;
                           try {
                               //新增渠道默认为已启用
                               channelDtoList =
                                   paaSService.getAllChannelList("", "100").stream().map(it -> new NotifyEsbChannelDTO(
-                                  it.getType(),
-                                  it.getLabel(),
-                                  it.isActive(),
-                                  true,
-                                  it.getIcon(),
-                                  LocalDateTime.now()
-                              )).collect(Collectors.toList());
+                                      it.getType(),
+                                      it.getLabel(),
+                                      it.isActive(),
+                                      true,
+                                      it.getIcon(),
+                                      LocalDateTime.now()
+                                  )).collect(Collectors.toList());
                               logger.info(String.format("result.size=%d", channelDtoList.size()));
                               return channelDtoList;
                           } catch (IOException e) {
@@ -83,25 +83,9 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
                       }
                   }
             );
+
     public NotifyEsbChannelDAOImpl(PaaSService paaSService) {
         this.paaSService = paaSService;
-    }
-
-    @Override
-    public NotifyEsbChannelDTO getNotifyEsbChannelByType(DSLContext dslContext, String type) {
-        try {
-            List<NotifyEsbChannelDTO> notifyEsbChannelDTOList = esbChannelCache.get(KEY_ESB_CHANNEL);
-            for (NotifyEsbChannelDTO notifyEsbChannelDTO : notifyEsbChannelDTOList) {
-                if (notifyEsbChannelDTO.getType().equals(type)) {
-                    return notifyEsbChannelDTO;
-                }
-            }
-        } catch (ExecutionException e) {
-            String errorMsg = "Fail to load EsbChannel from cache";
-            logger.error(errorMsg, e);
-            throw new InternalException(errorMsg, e, ErrorCode.PAAS_MSG_CHANNEL_DATA_ERROR);
-        }
-        return null;
     }
 
     @Override

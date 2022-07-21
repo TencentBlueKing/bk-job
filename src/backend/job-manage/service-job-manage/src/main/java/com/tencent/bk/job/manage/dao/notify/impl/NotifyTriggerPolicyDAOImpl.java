@@ -25,26 +25,19 @@
 package com.tencent.bk.job.manage.dao.notify.impl;
 
 import com.tencent.bk.job.common.RequestIdLogger;
-import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.constant.NotifyChannelEnum;
-import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyConfigStatusDAO;
-import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyPolicyRoleTargetDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyRoleTargetChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTriggerPolicyDAO;
-import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyPolicyRoleTargetDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyRoleTargetChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import lombok.val;
 import lombok.var;
@@ -52,6 +45,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.NotifyTriggerPolicy;
 import org.jooq.generated.tables.records.NotifyTriggerPolicyRecord;
 import org.jooq.types.ULong;
@@ -73,31 +67,31 @@ import java.util.stream.Collectors;
  */
 @Repository
 public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
+
     private static final RequestIdLogger logger =
         new SimpleRequestIdLogger(LoggerFactory.getLogger(NotifyTriggerPolicyDAOImpl.class));
     private static final NotifyTriggerPolicy T_NOTIFY_TRIGGER_POLICY = NotifyTriggerPolicy.NOTIFY_TRIGGER_POLICY;
     private static final NotifyTriggerPolicy defaultTable = T_NOTIFY_TRIGGER_POLICY;
-    private NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO;
-    private NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO;
-    private EsbAppRoleDAO esbAppRoleDAO;
-    private NotifyEsbChannelDAO notifyEsbChannelDAO;
-    private NotifyConfigStatusDAO notifyConfigStatusDAO;
+
+    private final DSLContext dslContext;
+    private final NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO;
+    private final NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO;
+    private final NotifyConfigStatusDAO notifyConfigStatusDAO;
+
     @Autowired
-    public NotifyTriggerPolicyDAOImpl(NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO,
+    public NotifyTriggerPolicyDAOImpl(DSLContext dslContext,
+                                      NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO,
                                       NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO,
-                                      EsbAppRoleDAO esbAppRoleDAO,
-                                      NotifyEsbChannelDAO notifyEsbChannelDAO,
                                       NotifyConfigStatusDAO notifyConfigStatusDAO
     ) {
+        this.dslContext = dslContext;
         this.notifyPolicyRoleTargetDAO = notifyPolicyRoleTargetDAO;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
-        this.esbAppRoleDAO = esbAppRoleDAO;
-        this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.notifyConfigStatusDAO = notifyConfigStatusDAO;
     }
 
     @Override
-    public Long insertNotifyTriggerPolicy(DSLContext dslContext, NotifyTriggerPolicyDTO notifyTriggerPolicyDTO) {
+    public Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO) {
         val query = dslContext.insertInto(T_NOTIFY_TRIGGER_POLICY,
             T_NOTIFY_TRIGGER_POLICY.APP_ID,
             T_NOTIFY_TRIGGER_POLICY.RESOURCE_ID,
@@ -121,9 +115,10 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             notifyTriggerPolicyDTO.getLastModifier(),
             ULong.valueOf(notifyTriggerPolicyDTO.getLastModifyTime())
         ).returning(T_NOTIFY_TRIGGER_POLICY.ID);
-        val sql = query.getSQL(true);
+        val sql = query.getSQL(ParamType.INLINED);
         try {
             Record record = query.fetchOne();
+            assert record != null;
             return record.get(T_NOTIFY_TRIGGER_POLICY.ID);
         } catch (Exception e) {
             logger.errorWithRequestId(sql);
@@ -131,21 +126,12 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         }
     }
 
-    @Override
-    public int deleteNotifyTriggerPolicyById(DSLContext dslContext, Long id) {
-        return dslContext.deleteFrom(T_NOTIFY_TRIGGER_POLICY).where(
-            T_NOTIFY_TRIGGER_POLICY.ID.eq(id)
-        ).execute();
-    }
-
-    private int cascadeDelete(DSLContext dslContext, Result<NotifyTriggerPolicyRecord> records) {
+    private int cascadeDelete(Result<NotifyTriggerPolicyRecord> records) {
         if (null == records || records.isEmpty()) {
             return 0;
         }
         //1.删从表
-        records.forEach(record -> {
-            notifyPolicyRoleTargetDAO.deleteByPolicyId(dslContext, record.getId());
-        });
+        records.forEach(record -> notifyPolicyRoleTargetDAO.deleteByPolicyId(dslContext, record.getId()));
         //2.删主表
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.in(records.map(NotifyTriggerPolicyRecord::getId))
@@ -153,19 +139,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     }
 
     @Override
-    public int deleteAllDefaultNotifyPolicies(DSLContext dslContext) {
-        // 1.查出所有记录
-        val records = dslContext.selectFrom(defaultTable)
-            .where(defaultTable.TRIGGER_USER.eq(NotifyConsts.DEFAULT_TRIGGER_USER))
-            .and(defaultTable.APP_ID.eq(NotifyConsts.DEFAULT_APP_ID))
-            .and(defaultTable.RESOURCE_ID.eq(NotifyConsts.DEFAULT_RESOURCE_ID))
-            .fetch();
-        // 2.级联删除
-        return cascadeDelete(dslContext, records);
-    }
-
-    @Override
-    public int deleteAppNotifyPolicies(DSLContext dslContext, Long appId, String triggerUser) {
+    public int deleteAppNotifyPolicies(Long appId, String triggerUser) {
         // 1.查出所有记录
         val records = dslContext.selectFrom(defaultTable)
             .where(defaultTable.TRIGGER_USER.eq(triggerUser))
@@ -173,90 +147,49 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             .and(defaultTable.RESOURCE_ID.eq(NotifyConsts.DEFAULT_RESOURCE_ID))
             .fetch();
         // 2.级联删除
-        return cascadeDelete(dslContext, records);
+        return cascadeDelete(records);
     }
 
     @Override
-    public NotifyTriggerPolicyDTO getNotifyTriggerPolicyById(DSLContext dslContext, Long id) {
-        val record = dslContext.selectFrom(T_NOTIFY_TRIGGER_POLICY).where(
-            T_NOTIFY_TRIGGER_POLICY.ID.eq(id)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return new NotifyTriggerPolicyDTO(
-                record.getId(),
-                record.getAppId(),
-                record.getResourceId(),
-                ResourceTypeEnum.get(record.getResourceType()),
-                record.getTriggerUser(),
-                TriggerTypeEnum.get(record.getTriggerType()),
-                ExecuteStatusEnum.get(record.getExecuteStatus()),
-                record.getCreator(),
-                record.getCreateTime().longValue(),
-                record.getLastModifyUser(),
-                record.getLastModifyTime().longValue()
-            );
-        }
-    }
-
-    @Override
-    public int updateNotifyTriggerPolicyById(DSLContext dslContext, NotifyTriggerPolicyDTO notifyTriggerPolicyDTO) {
-        return dslContext.update(T_NOTIFY_TRIGGER_POLICY)
-            .set(T_NOTIFY_TRIGGER_POLICY.APP_ID, notifyTriggerPolicyDTO.getAppId())
-            .set(T_NOTIFY_TRIGGER_POLICY.RESOURCE_ID, notifyTriggerPolicyDTO.getResourceId())
-            .set(T_NOTIFY_TRIGGER_POLICY.RESOURCE_TYPE, (byte) notifyTriggerPolicyDTO.getResourceType().getType())
-            .set(T_NOTIFY_TRIGGER_POLICY.TRIGGER_USER, notifyTriggerPolicyDTO.getTriggerUser())
-            .set(T_NOTIFY_TRIGGER_POLICY.TRIGGER_TYPE, (byte) notifyTriggerPolicyDTO.getTriggerType().getType())
-            .set(T_NOTIFY_TRIGGER_POLICY.EXECUTE_STATUS, (byte) notifyTriggerPolicyDTO.getExecuteStatus().getStatus())
-            .set(T_NOTIFY_TRIGGER_POLICY.CREATOR, notifyTriggerPolicyDTO.getCreator())
-            .set(T_NOTIFY_TRIGGER_POLICY.CREATE_TIME, ULong.valueOf(notifyTriggerPolicyDTO.getCreateTime()))
-            .set(T_NOTIFY_TRIGGER_POLICY.LAST_MODIFY_USER, notifyTriggerPolicyDTO.getLastModifier())
-            .set(T_NOTIFY_TRIGGER_POLICY.LAST_MODIFY_TIME, ULong.valueOf(notifyTriggerPolicyDTO.getLastModifyTime()))
-            .where(T_NOTIFY_TRIGGER_POLICY.ID.eq(notifyTriggerPolicyDTO.getId()))
-            .execute();
-    }
-
-    @Override
-    public List<TriggerPolicyVO> list(DSLContext dslContext, String triggerUser, Long appId, String resourceId) {
+    public List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId) {
         val resultList = new ArrayList<TriggerPolicyVO>();
         var records = dslContext.selectFrom(defaultTable)
             .where(defaultTable.TRIGGER_USER.eq(triggerUser))
             .and(defaultTable.APP_ID.eq(appId))
             .and(defaultTable.RESOURCE_ID.eq(resourceId))
             .fetch();
-        if (null == records || records.isEmpty()) {
-            if (!notifyConfigStatusDAO.exist(dslContext, triggerUser, appId)) {
+        if (records.isEmpty()) {
+            if (!notifyConfigStatusDAO.exist(triggerUser, appId)) {
                 logger.warn(triggerUser + "未在业务(id=" + appId + ")下配置消息通知策略，采用业务无关通用默认策略");
                 records = dslContext.selectFrom(defaultTable)
                     .where(defaultTable.TRIGGER_USER.eq(NotifyConsts.DEFAULT_TRIGGER_USER))
                     .and(defaultTable.APP_ID.eq(NotifyConsts.DEFAULT_APP_ID))
                     .and(defaultTable.RESOURCE_ID.eq(resourceId))
                     .fetch();
-                if (null == records || records.isEmpty()) {
+                if (records.isEmpty()) {
                     logger.info("业务无关通用默认策略未配置");
                 }
             } else {
                 //已配置为不发送任何通知
                 val triggerTypes = TriggerTypeEnum.values();
-                for (int i = 0; i < triggerTypes.length; i++) {
-                    resultList.add(getEmptyTriggerPolicyVO(triggerTypes[i]));
+                for (TriggerTypeEnum triggerType : triggerTypes) {
+                    resultList.add(getEmptyTriggerPolicyVO(triggerType));
                 }
                 return resultList;
             }
         }
         val triggerTypes = TriggerTypeEnum.values();
         for (TriggerTypeEnum triggerType : triggerTypes) {
-            resultList.add(getTriggerPolicyVO(dslContext, records, triggerType));
+            resultList.add(getTriggerPolicyVO(records, triggerType));
         }
         return resultList;
     }
 
     @Override
-    public List<NotifyTriggerPolicyDTO> list(DSLContext dslContext, String triggerUser, Long appId, String resourceId
+    public List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId
         , Integer resourceType, Integer triggerType, Integer executeStatus) {
         List<NotifyTriggerPolicyDTO> resultList;
-        List<Condition> conditions = new ArrayList<Condition>();
+        List<Condition> conditions = new ArrayList<>();
         if (null != triggerUser) {
             conditions.add(defaultTable.TRIGGER_USER.eq(triggerUser));
         }
@@ -298,50 +231,18 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     }
 
     @Override
-    public int countDefaultPolicies(DSLContext dslContext) {
-        List<Condition> conditions = new ArrayList<Condition>();
+    public int countDefaultPolicies() {
+        List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.APP_ID.eq(NotifyConsts.DEFAULT_APP_ID));
-        int count = dslContext.selectCount().from(defaultTable)
+        Integer count = dslContext.selectCount().from(defaultTable)
             .where(conditions)
             .fetchOne(0, Integer.class);
+        assert count != null;
         return count;
     }
 
-    private RoleVO getRoleVOByCode(DSLContext dslContext, String roleCode) {
-        RoleVO roleVO;
-        try {
-            roleVO = JobRoleEnum.getVO(roleCode);
-        } catch (IllegalArgumentException ignore) {
-            AppRoleDTO appRoleDTO = esbAppRoleDAO.getEsbAppRoleById(dslContext, roleCode);
-            if (null == appRoleDTO) {
-                logger.warn(String.format("Unknown roleCode:%s", roleCode));
-                roleVO = new RoleVO(roleCode, roleCode);
-            } else {
-                roleVO = new RoleVO(roleCode, appRoleDTO.getName());
-            }
-        }
-        return roleVO;
-    }
-
-    private NotifyChannelVO getNotifyChannelVOByCode(DSLContext dslContext, String notifyChannelType) {
-        NotifyChannelVO notifyChannelVO;
-        try {
-            notifyChannelVO = NotifyChannelEnum.getVO(notifyChannelType);
-        } catch (IllegalArgumentException ignore) {
-            NotifyEsbChannelDTO notifyEsbChannelDTO = notifyEsbChannelDAO.getNotifyEsbChannelByType(dslContext,
-                notifyChannelType);
-            if (null == notifyEsbChannelDTO) {
-                logger.warn(String.format("Unknown notifyChannelType:%s", notifyChannelType));
-                notifyChannelVO = new NotifyChannelVO(notifyChannelType, notifyChannelType);
-            } else {
-                notifyChannelVO = new NotifyChannelVO(notifyChannelType, notifyEsbChannelDTO.getLabel());
-            }
-        }
-        return notifyChannelVO;
-    }
-
     private TriggerPolicyVO getEmptyTriggerPolicyVO(TriggerTypeEnum triggerType) {
-        Map<String,List<String>> resourceStatusChannelMap = new HashMap<>();
+        Map<String, List<String>> resourceStatusChannelMap = new HashMap<>();
         resourceStatusChannelMap.put(ExecuteStatusEnum.SUCCESS.name(), new ArrayList<>());
         resourceStatusChannelMap.put(ExecuteStatusEnum.FAIL.name(),
             new ArrayList<>());
@@ -356,7 +257,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         );
     }
 
-    private TriggerPolicyVO getTriggerPolicyVO(DSLContext dslContext, List<NotifyTriggerPolicyRecord> records,
+    private TriggerPolicyVO getTriggerPolicyVO(List<NotifyTriggerPolicyRecord> records,
                                                TriggerTypeEnum triggerType) {
         List<NotifyTriggerPolicyRecord> currentTriggerTypeRecords = new ArrayList<>();
         //1.过滤出当前触发类型对应的记录
@@ -372,7 +273,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             return getEmptyTriggerPolicyVO(triggerType);
         }
         //页面执行
-        List<String> resourceTypeList = new ArrayList<>();
+        List<String> resourceTypeList;
         List<String> appRoleList = new ArrayList<>();
         final List<String> extraObserverList = new ArrayList<>();
         Map<String, List<String>> resourceStatusChannelMap = new HashMap<>();
@@ -393,8 +294,6 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
                         extraObserverList.addAll(Arrays.asList(extraObserversStr.split(NotifyConsts.SEPERATOR_COMMA)));
                     }
                 }
-            } else {
-                //未启用的通知对象不作为内容
             }
         });
         List<NotifyTriggerPolicyRecord> executeStatusDefaultRecords = currentTriggerTypeRecords.stream().filter(it -> {

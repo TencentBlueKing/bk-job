@@ -188,6 +188,10 @@
              * @param {Object} group 最新选中的分组
              */
             handleGroupChange (group) {
+                const { resultType, tag } = this.value;
+                if (resultType === group.resultType && tag === group.tag) {
+                    return;
+                }
                 this.$emit('on-change', group);
             },
         },

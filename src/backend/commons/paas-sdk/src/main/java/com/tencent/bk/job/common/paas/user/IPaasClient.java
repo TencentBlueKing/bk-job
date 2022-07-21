@@ -28,7 +28,6 @@ package com.tencent.bk.job.common.paas.user;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -41,46 +40,20 @@ public interface IPaasClient {
      * 重置当天的统计数据
      */
     void resetTodayStatistics();
+
     /**
      * 获取用户列表
-     *
-     * @param fields
-     * @param lookupField
-     * @param exactLookups
-     * @param fuzzyLookups
-     * @param page
-     * @param pageSize
-     * @param noPage
-     * @param bkToken
-     * @param uin
-     * @return
      */
-    List<BkUserDTO> getUserList(String fields, String lookupField,
-                                String exactLookups, String fuzzyLookups,
-                                long page, long pageSize, boolean noPage,
-                                String bkToken, String uin);
-
+    List<BkUserDTO> getUserList(String fields, String bkToken, String uin);
 
     /**
      * 获取消息通知渠道
-     *
-     * @param uin 用户
-     * @return
-     * @throws IOException
      */
     List<EsbNotifyChannelDTO> getNotifyChannelList(String uin);
 
     /**
      * ESB发通知信息接口
-     *
-     * @param msgType
-     * @param sender
-     * @param receiverList
-     * @param title
-     * @param content
-     * @return
-     * @throws Exception
      */
-    Boolean sendMsg(String msgType, String sender, Set<String> receiverList, String title, String content)
+    boolean sendMsg(String msgType, String sender, Set<String> receivers, String title, String content)
         throws Exception;
 }

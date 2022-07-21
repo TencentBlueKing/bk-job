@@ -30,6 +30,7 @@ import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
+import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.EsbUserInfo;
 import org.jooq.generated.tables.records.EsbUserInfoRecord;
 import org.jooq.types.ULong;
@@ -50,7 +51,7 @@ import java.util.List;
 @Repository
 public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
 
-    private DSLContext defaultDslContext;
+    private final DSLContext defaultDslContext;
     private static final Logger logger = LoggerFactory.getLogger(EsbUserInfoDAOImpl.class);
     private static final EsbUserInfo T_ESB_USER_INFO = EsbUserInfo.ESB_USER_INFO;
     private static final EsbUserInfo defaultTable = T_ESB_USER_INFO;
@@ -75,7 +76,7 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
             esbUserInfoDTO.getLogo(),
             ULong.valueOf(esbUserInfoDTO.getLastModifyTime())
         );
-        val sql = query.getSQL(true);
+        val sql = query.getSQL(ParamType.INLINED);
         try {
             return query.execute();
         } catch (Exception e) {
@@ -92,27 +93,9 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
     }
 
     @Override
-    public EsbUserInfoDTO getEsbUserInfoById(Long id) {
-        val record = defaultDslContext.selectFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return new EsbUserInfoDTO(
-                record.getId(),
-                record.getUsername(),
-                record.getDisplayName(),
-                record.getLogo(),
-                record.getLastModifyTime().longValue()
-            );
-        }
-    }
-
-    @Override
     public List<EsbUserInfoDTO> listEsbUserInfo() {
         val records = defaultDslContext.selectFrom(defaultTable).fetch();
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return new ArrayList<>();
         } else {
             return records.map(record -> new EsbUserInfoDTO(
@@ -133,10 +116,10 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
     }
 
     @Override
-    public List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames, Long limit) {
+    public List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.in(userNames));
-        return listEsbUserInfoByConditions(defaultDslContext, conditions, limit);
+        return listEsbUserInfoByConditions(defaultDslContext, conditions, null);
     }
 
     private List<EsbUserInfoDTO> listEsbUserInfoByConditions(DSLContext dslContext, List<Condition> conditions,
@@ -149,7 +132,7 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
         } else {
             records = baseQuery.fetch();
         }
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return new ArrayList<>();
         } else {
             return records.map(record -> new EsbUserInfoDTO(
@@ -160,20 +143,5 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
                 record.getLastModifyTime().longValue()
             ));
         }
-    }
-
-    @Override
-    public int updateEsbUserInfoById(DSLContext dslContext, EsbUserInfoDTO esbUserInfoDTO) {
-        return dslContext.update(defaultTable)
-            .set(defaultTable.USERNAME, esbUserInfoDTO.getUsername())
-            .set(defaultTable.DISPLAY_NAME, esbUserInfoDTO.getDisplayName())
-            .set(defaultTable.LAST_MODIFY_TIME, ULong.valueOf(esbUserInfoDTO.getLastModifyTime()))
-            .where(defaultTable.ID.eq(esbUserInfoDTO.getId()))
-            .execute();
-    }
-
-    @Override
-    public boolean isUserExist(String username) {
-        return defaultDslContext.fetchExists(defaultDslContext.selectOne().from(defaultTable).where(defaultTable.USERNAME.eq(username)));
     }
 }

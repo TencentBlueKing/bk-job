@@ -22,22 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.common.cc.constants;
 
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
-
-import java.util.List;
-
-public interface NotifyTemplateDAO {
-
-    int insertNotifyTemplate(NotifyTemplateDTO notifyTemplateDTO);
-
-    int updateNotifyTemplateById(NotifyTemplateDTO notifyTemplateDTO);
-
-    NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault);
-
-    List<NotifyTemplateDTO> listNotifyTemplateByCode(String code);
-
-    boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault);
-
+public class CmdbConstants {
+    // 业务语言：中文
+    public static final String APP_LANG_VALUE_ZH_CN = "1";
+    // 业务语言：英文
+    public static final String APP_LANG_VALUE_EN_US = "2";
 }

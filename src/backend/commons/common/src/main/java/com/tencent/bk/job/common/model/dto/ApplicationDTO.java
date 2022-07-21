@@ -71,7 +71,7 @@ public class ApplicationDTO {
     private String timeZone;
 
     /**
-     * 语言
+     * 语言：1-中文，2-英文
      */
     private String language;
 
