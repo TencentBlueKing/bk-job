@@ -34,7 +34,7 @@ public enum AgentStateStatusEnum {
     /**
      * 未找到
      */
-    NOT_FIND(-2),
+    NOT_FOUND(-2),
     /**
      * 查询失败
      */

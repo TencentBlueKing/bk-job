@@ -24,6 +24,7 @@ import com.tencent.bk.gse.taskapi.api_task_request;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.IGseClient;
+import com.tencent.bk.job.common.gse.constants.AgentStateStatusEnum;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.constants.GseTaskTypeEnum;
@@ -315,7 +316,7 @@ public class GseV1ApiClient implements IGseClient {
             agentStatusResponse.getResult().forEach((agentId, stateStr) -> {
 
                 AgentState agentState = new AgentState();
-                agentState.setStatusCode(parseCacheAgentStatus(stateStr));
+                agentState.setStatusCode(parseCacheAgentStatus(stateStr).getValue());
                 agentState.setAgentId(agentId);
                 agentStates.add(agentState);
             });
@@ -327,9 +328,13 @@ public class GseV1ApiClient implements IGseClient {
     /**
      * 解析agent状态 预期解析的文本: {"businessid":"","exist":1,"ip":"1.1.1.1","region":"1","version":"NULL"}
      */
-    private int parseCacheAgentStatus(String statusStr) {
+    private AgentStateStatusEnum parseCacheAgentStatus(String statusStr) {
         AgentStatusDTO agentStatus = JsonUtils.fromJson(statusStr, AgentStatusDTO.class);
-        return agentStatus.getExist();
+        if (agentStatus.getExist() != null && agentStatus.getExist().equals(1)) {
+            return AgentStateStatusEnum.RUNNING;
+        } else {
+            return AgentStateStatusEnum.NOT_FOUND;
+        }
     }
 
     private AgentStatusResponse queryAgentStatusFromCacheApi(Collection<String> agentIds) {
