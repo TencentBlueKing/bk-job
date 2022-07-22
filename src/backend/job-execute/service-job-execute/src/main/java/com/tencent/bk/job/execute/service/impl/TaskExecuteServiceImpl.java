@@ -71,6 +71,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
@@ -687,7 +688,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void checkStepInstanceHostNonEmpty(StepInstanceDTO stepInstance) {
-        if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+        if (!isStepContainsHostProps(stepInstance)) {
             return;
         }
         ServersDTO targetServers = stepInstance.getTargetServers();
@@ -698,13 +699,21 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (stepInstance.isFileStep()) {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
             for (FileSourceDTO fileSource : fileSourceList) {
-                ServersDTO servers = fileSource.getServers();
-                if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
-                    log.warn("Empty file source server, stepInstanceId: {}", stepInstance.getId());
-                    throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+                // 远程文件分发需要判断文件源主机是否为空
+                if (TaskFileTypeEnum.SERVER.getType() == fileSource.getFileType()) {
+                    ServersDTO servers = fileSource.getServers();
+                    if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
+                        log.warn("Empty file source server, stepInstanceId: {}", stepInstance.getId());
+                        throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+                    }
                 }
             }
         }
+    }
+
+    private boolean isStepContainsHostProps(StepInstanceBaseDTO stepInstance) {
+        // 判断步骤是否包含主机信息
+        return !stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue());
     }
 
     private void fillStepHostDetail(List<StepInstanceDTO> stepInstanceList, ServiceListAppHostResultDTO hosts) {
@@ -723,7 +732,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+            if (!isStepContainsHostProps(stepInstance)) {
                 continue;
             }
             // 目标主机设置主机详情
@@ -780,7 +789,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void addNeedCheckHosts(List<StepInstanceDTO> stepInstanceList, Set<HostDTO> checkHosts) {
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+            if (!isStepContainsHostProps(stepInstance)) {
                 continue;
             }
             checkHosts.addAll(stepInstance.getTargetServers().getIpList());
