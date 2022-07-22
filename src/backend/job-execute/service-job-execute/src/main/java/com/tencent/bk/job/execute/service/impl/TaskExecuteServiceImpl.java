@@ -650,14 +650,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     /**
-     * 设置主机信息并检查主机的合法性并
+     * 设置主机信息并检查主机的合法性并设置主机信息
      *
      * @param stepInstanceList 步骤列表
      * @throws ServiceException 如果包含不合法的主机，抛出异常
      */
     private void checkAndSetHosts(List<StepInstanceDTO> stepInstanceList) throws ServiceException {
-        long appId = stepInstanceList.get(0).getAppId();
+        // 检查步骤引用的主机不为空
+        stepInstanceList.forEach(this::checkStepInstanceHostNonEmpty);
 
+        long appId = stepInstanceList.get(0).getAppId();
         Set<HostDTO> checkHosts = new HashSet<>();
         addNeedCheckHosts(stepInstanceList, checkHosts);
         if (checkHosts.isEmpty()) {
@@ -680,6 +682,27 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (!invalidHosts.isEmpty()) {
                 log.warn("Contains invalid host, invalidHost: {}", JsonUtils.toJson(invalidHosts));
                 throwHostInvalidException(invalidHosts, appId);
+            }
+        }
+    }
+
+    private void checkStepInstanceHostNonEmpty(StepInstanceDTO stepInstance) {
+        if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+            return;
+        }
+        ServersDTO targetServers = stepInstance.getTargetServers();
+        if (targetServers == null || CollectionUtils.isEmpty(targetServers.getIpList())) {
+            log.warn("Empty target server, stepInstanceId: {}", stepInstance.getId());
+            throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+        }
+        if (stepInstance.isFileStep()) {
+            List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+            for (FileSourceDTO fileSource : fileSourceList) {
+                ServersDTO servers = fileSource.getServers();
+                if (CollectionUtils.isEmpty(servers.getIpList())) {
+                    log.warn("Empty file source server, stepInstanceId: {}", stepInstance.getId());
+                    throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+                }
             }
         }
     }
