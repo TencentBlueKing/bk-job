@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -50,7 +51,6 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -699,7 +699,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
             for (FileSourceDTO fileSource : fileSourceList) {
                 ServersDTO servers = fileSource.getServers();
-                if (CollectionUtils.isEmpty(servers.getIpList())) {
+                if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
                     log.warn("Empty file source server, stepInstanceId: {}", stepInstance.getId());
                     throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
                 }
