@@ -50,7 +50,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.common.trace.executors.TraceableExecutorService;
+import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
