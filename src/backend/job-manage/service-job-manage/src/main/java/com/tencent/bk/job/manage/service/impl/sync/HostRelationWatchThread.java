@@ -100,6 +100,7 @@ public class HostRelationWatchThread extends Thread {
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostRelationWatchThread-" + instanceNum.getAndIncrement());
         this.eventsHandler = buildHostRelationEventsHandler();
+        this.eventsHandler.setName("[" + eventsHandler.getId() + "]-HostRelationEventsHandler");
     }
 
     private HostRelationEventsHandler buildHostRelationEventsHandler() {
@@ -137,7 +138,7 @@ public class HostRelationWatchThread extends Thread {
                 dispatchEvent(event);
             }
             if (events.size() > 0) {
-                log.info("events.size={},events={}", events.size(), JsonUtils.toJson(events));
+                log.info("events.size={}", events.size());
                 cursor = events.get(events.size() - 1).getCursor();
             } else {
                 log.warn("Unexpected:events.size==0");

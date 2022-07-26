@@ -94,6 +94,7 @@ public class HostWatchThread extends Thread {
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostWatchThread-" + instanceNum.getAndIncrement());
         this.eventsHandler = buildHostEventsHandler();
+        this.eventsHandler.setName("[" + eventsHandler.getId() + "]-HostEventsHandler");
     }
 
     private HostEventsHandler buildHostEventsHandler() {
@@ -133,7 +134,7 @@ public class HostWatchThread extends Thread {
                 dispatchEvent(event);
             }
             if (events.size() > 0) {
-                log.info("events.size={},events={}", events.size(), JsonUtils.toJson(events));
+                log.info("events.size={}", events.size());
                 cursor = events.get(events.size() - 1).getCursor();
                 log.info("refresh cursor(success):{}", cursor);
             } else {
