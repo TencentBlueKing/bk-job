@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
@@ -70,6 +71,7 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
     }
 
     private void handleOneEvent(ResourceEvent<HostRelationEventDetail> event) {
+        log.info("start to handle host relation event:{}", JsonUtils.toJson(event));
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
         Long appId = hostTopoDTO.getBizId();
         try {
@@ -84,6 +86,8 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
             }
         } catch (Throwable t) {
             log.error(String.format("Fail to handle hostRelationEvent of appId %d, event:%s", appId, event), t);
+        } finally {
+            log.info("end to handle host relation event");
         }
     }
 
@@ -129,9 +133,11 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
     private void updateTopoToHost(HostTopoDTO hostTopoDTO) {
         // 若主机存在需将拓扑信息同步至主机信息冗余字段
         int affectedNum = applicationHostDAO.syncHostTopo(dslContext, hostTopoDTO.getHostId());
-        if (affectedNum == 0) {
+        if (affectedNum > 0) {
+            log.info("host topo synced: affectedNum={}", affectedNum);
+        } else if (affectedNum == 0) {
             log.info("no host topo synced");
-        } else if (affectedNum < 0) {
+        } else {
             FormattingTuple msg = MessageFormatter.format(
                 "cannot find hostInfo by hostId:{}, wait for host event or sync",
                 hostTopoDTO.getHostId()
@@ -149,6 +155,7 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
         ApplicationHostDTO host = applicationHostDAO.getHostById(hostTopoDTO.getHostId());
         if (host != null && applicationService.existBiz(host.getBizId())) {
             hostCache.addOrUpdateHost(host);
+            log.info("host cached updated: hostId={}", host.getHostId());
         }
     }
 
@@ -174,10 +181,12 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
         if (hostRelationCount == 0) {
             // 主机被移除
             hostCache.deleteHost(host);
+            log.info("host cached deleted: hostId={}", host.getHostId());
         } else {
             // 主机被转移到其他业务下
             if (applicationService.existBiz(host.getBizId())) {
                 hostCache.addOrUpdateHost(host);
+                log.info("host cached updated: hostId={}", host.getHostId());
             }
         }
     }

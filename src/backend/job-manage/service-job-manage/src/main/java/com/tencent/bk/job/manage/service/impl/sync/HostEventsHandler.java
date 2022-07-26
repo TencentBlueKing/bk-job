@@ -70,12 +70,12 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
 
     private void handleOneEventRelatedToApp(ResourceEvent<HostEventDetail> event) {
         try {
-            log.info("start to handle event:{}", JsonUtils.toJson(event));
+            log.info("start to handle host event:{}", JsonUtils.toJson(event));
             handleOneEventIndeed(event);
         } catch (Throwable t) {
             log.error(String.format("Fail to handle hostEvent:%s", event), t);
         } finally {
-            log.info("end to handle event");
+            log.info("end to handle host event");
         }
     }
 
