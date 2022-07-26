@@ -46,7 +46,6 @@ import org.jooq.DSLContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -78,12 +77,11 @@ public class HostRelationWatchThread extends Thread {
     private final HostTopoDAO hostTopoDAO;
     private final HostCache hostCache;
     private final RedisTemplate<String, String> redisTemplate;
-    private final List<HostRelationEventsHandler> eventsHandlerList;
+    private final HostRelationEventsHandler eventsHandler;
 
     private final BlockingQueue<ResourceEvent<HostRelationEventDetail>> appHostRelationEventQueue =
         new LinkedBlockingQueue<>(10000);
 
-    private final Integer MAX_HANDLER_NUM = 1;
     private final String REDIS_KEY_RESOURCE_WATCH_HOST_RELATION_JOB_RUNNING_MACHINE = "resource-watch-host-relation" +
         "-job-running-machine";
     private String cursor = null;
@@ -101,13 +99,7 @@ public class HostRelationWatchThread extends Thread {
         this.redisTemplate = redisTemplate;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostRelationWatchThread-" + instanceNum.getAndIncrement());
-        this.eventsHandlerList = new ArrayList<>();
-        // 初始内置1个Handler
-        for (int i = 0; i < 1; i++) {
-            HostRelationEventsHandler handler = buildHostRelationEventsHandler();
-            handler.setName("[" + handler.getId() + "]-AppHostRelationEventsHandler-" + (i + 1));
-            eventsHandlerList.add(handler);
-        }
+        this.eventsHandler = buildHostRelationEventsHandler();
     }
 
     private HostRelationEventsHandler buildHostRelationEventsHandler() {
@@ -122,9 +114,7 @@ public class HostRelationWatchThread extends Thread {
     }
 
     private void init() {
-        for (HostRelationEventsHandler handler : eventsHandlerList) {
-            handler.start();
-        }
+        eventsHandler.start();
     }
 
     public void setWatchFlag(boolean value) {
@@ -134,29 +124,7 @@ public class HostRelationWatchThread extends Thread {
     private void dispatchEvent(ResourceEvent<HostRelationEventDetail> event) {
         HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
         Long appId = hostTopoDTO.getBizId();
-        List<HostRelationEventsHandler> idleHandlerList = new ArrayList<>();
-        for (HostRelationEventsHandler handler : eventsHandlerList) {
-            if (appId.equals(handler.getAppId())) {
-                handler.commitEvent(appId, event);
-                return;
-            } else if (handler.isIdle()) {
-                idleHandlerList.add(handler);
-            }
-        }
-        if (!idleHandlerList.isEmpty()) {
-            HostRelationEventsHandler handler = idleHandlerList.get((int) (Math.random() * idleHandlerList.size()));
-            handler.commitEvent(appId, event);
-        } else if (eventsHandlerList.size() < MAX_HANDLER_NUM) {
-            HostRelationEventsHandler handler = buildHostRelationEventsHandler();
-            handler.setName("AppHostRelationEventsHandler-" + (eventsHandlerList.size() + 1));
-            handler.start();
-            eventsHandlerList.add(handler);
-            handler.commitEvent(appId, event);
-        } else {
-            HostRelationEventsHandler handler =
-                eventsHandlerList.get((int) (Math.random() * eventsHandlerList.size()));
-            handler.commitEvent(appId, event);
-        }
+        eventsHandler.commitEvent(appId, event);
     }
 
     public String handleHostRelationWatchResult(ResourceWatchResult<HostRelationEventDetail> hostRelationWatchResult) {
@@ -254,7 +222,7 @@ public class HostRelationWatchThread extends Thread {
         ResourceWatchResult<HostRelationEventDetail> hostRelationWatchResult;
         while (hostRelationWatchFlag.get()) {
             if (cursor == null) {
-                hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(startTime, cursor);
+                hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(startTime, null);
             } else {
                 hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(null, cursor);
             }
