@@ -176,7 +176,7 @@ public class HostRelationWatchThread extends Thread {
      */
     private void updateTopoToHost(HostTopoDTO hostTopoDTO) {
         // 若主机存在需将拓扑信息同步至主机信息冗余字段
-        long affectedNum = applicationHostDAO.syncHostTopo(dslContext, hostTopoDTO.getHostId());
+        int affectedNum = applicationHostDAO.syncHostTopo(dslContext, hostTopoDTO.getHostId());
         if (affectedNum == 0) {
             log.info("no host topo synced");
         } else if (affectedNum < 0) {
