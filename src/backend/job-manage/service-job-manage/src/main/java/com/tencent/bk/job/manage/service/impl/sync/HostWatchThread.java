@@ -46,7 +46,6 @@ import org.jooq.DSLContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -76,9 +75,8 @@ public class HostWatchThread extends Thread {
     private final RedisTemplate<String, String> redisTemplate;
     private final HostCache hostCache;
     private final String REDIS_KEY_RESOURCE_WATCH_HOST_JOB_RUNNING_MACHINE = "resource-watch-host-job-running-machine";
-    private final List<HostEventsHandler> eventsHandlerList;
+    private final HostEventsHandler eventsHandler;
     private final BlockingQueue<ResourceEvent<HostEventDetail>> appHostEventQueue = new LinkedBlockingQueue<>(10000);
-    private final Integer MAX_HANDLER_NUM = 1;
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private String cursor = null;
 
@@ -95,13 +93,7 @@ public class HostWatchThread extends Thread {
         this.redisTemplate = redisTemplate;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostWatchThread-" + instanceNum.getAndIncrement());
-        this.eventsHandlerList = new ArrayList<>();
-        // 初始内置1个Handler
-        for (int i = 0; i < 1; i++) {
-            HostEventsHandler handler = buildHostEventsHandler();
-            handler.setName("[" + handler.getId() + "]-HostEventsHandler-" + (i + 1));
-            eventsHandlerList.add(handler);
-        }
+        this.eventsHandler = buildHostEventsHandler();
     }
 
     private HostEventsHandler buildHostEventsHandler() {
@@ -116,9 +108,7 @@ public class HostWatchThread extends Thread {
     }
 
     private void init() {
-        for (HostEventsHandler appHostEventsHandler : eventsHandlerList) {
-            appHostEventsHandler.start();
-        }
+        eventsHandler.start();
     }
 
     public void setWatchFlag(boolean value) {
@@ -130,28 +120,7 @@ public class HostWatchThread extends Thread {
         Long hostId = hostInfoDTO.getHostId();
         ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
         Long appId = oldHostInfoDTO.getBizId();
-        List<HostEventsHandler> idleHandlerList = new ArrayList<>();
-        for (HostEventsHandler handler : eventsHandlerList) {
-            if (appId.equals(handler.getAppId())) {
-                handler.commitEvent(appId, event);
-                return;
-            } else if (handler.isIdle()) {
-                idleHandlerList.add(handler);
-            }
-        }
-        if (!idleHandlerList.isEmpty()) {
-            HostEventsHandler handler = idleHandlerList.get((int) (Math.random() * idleHandlerList.size()));
-            handler.commitEvent(appId, event);
-        } else if (eventsHandlerList.size() < MAX_HANDLER_NUM) {
-            HostEventsHandler handler = buildHostEventsHandler();
-            handler.setName("[" + handler.getId() + "]-HostEventsHandler-" + (eventsHandlerList.size() + 1));
-            handler.start();
-            eventsHandlerList.add(handler);
-            handler.commitEvent(appId, event);
-        } else {
-            HostEventsHandler handler = eventsHandlerList.get((int) (Math.random() * eventsHandlerList.size()));
-            handler.commitEvent(appId, event);
-        }
+        eventsHandler.commitEvent(appId, event);
     }
 
     public String handleHostWatchResult(ResourceWatchResult<HostEventDetail> hostWatchResult) {
@@ -255,7 +224,7 @@ public class HostWatchThread extends Thread {
         while (hostWatchFlag.get()) {
             if (cursor == null) {
                 log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
-                hostWatchResult = bizCmdbClient.getHostEvents(startTime, cursor);
+                hostWatchResult = bizCmdbClient.getHostEvents(startTime, null);
             } else {
                 hostWatchResult = bizCmdbClient.getHostEvents(null, cursor);
             }
