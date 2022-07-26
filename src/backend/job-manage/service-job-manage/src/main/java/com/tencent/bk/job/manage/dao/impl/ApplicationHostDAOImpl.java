@@ -430,24 +430,18 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public int insertAppHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO) {
-        return insertOrUpdateHost(dslContext, applicationHostDTO, false, false);
-    }
-
-    @Override
-    public int insertAppHostInfo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO) {
-        return insertOrUpdateHost(dslContext, applicationHostDTO, true, false);
+    public int insertHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO) {
+        return insertOrUpdateHost(dslContext, applicationHostDTO, false);
     }
 
     @Override
     public int insertOrUpdateHost(DSLContext dslContext, ApplicationHostDTO hostDTO) {
-        return insertOrUpdateHost(dslContext, hostDTO, true, true);
+        return insertOrUpdateHost(dslContext, hostDTO, true);
     }
 
     private int insertOrUpdateHost(DSLContext dslContext,
                                    ApplicationHostDTO applicationHostDTO,
-                                   Boolean insertTopo,
-                                   boolean onConflictUpdate) {
+                                   Boolean insertTopo) {
         setDefaultValue(applicationHostDTO);
         int[] result = new int[]{-1};
         String finalSetIdsStr = applicationHostDTO.getSetIdsStr();
@@ -494,24 +488,20 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 cloudIp
             );
             try {
-                if (onConflictUpdate) {
-                    result[0] = query.onDuplicateKeyUpdate()
-                        .set(TABLE.APP_ID, bizId)
-                        .set(TABLE.IP, ip)
-                        .set(TABLE.IP_DESC, ipDesc)
-                        .set(TABLE.SET_IDS, finalSetIdsStr)
-                        .set(TABLE.MODULE_IDS, finalModuleIdsStr)
-                        .set(TABLE.CLOUD_AREA_ID, cloudAreaId)
-                        .set(TABLE.DISPLAY_IP, displayIp)
-                        .set(TABLE.OS, os)
-                        .set(TABLE.OS_TYPE, osType)
-                        .set(TABLE.MODULE_TYPE, finalModuleTypeStr)
-                        .set(TABLE.IS_AGENT_ALIVE, gseAgentAlive)
-                        .set(TABLE.CLOUD_IP, cloudIp)
-                        .execute();
-                } else {
-                    result[0] = query.execute();
-                }
+                result[0] = query.onDuplicateKeyUpdate()
+                    .set(TABLE.APP_ID, bizId)
+                    .set(TABLE.IP, ip)
+                    .set(TABLE.IP_DESC, ipDesc)
+                    .set(TABLE.SET_IDS, finalSetIdsStr)
+                    .set(TABLE.MODULE_IDS, finalModuleIdsStr)
+                    .set(TABLE.CLOUD_AREA_ID, cloudAreaId)
+                    .set(TABLE.DISPLAY_IP, displayIp)
+                    .set(TABLE.OS, os)
+                    .set(TABLE.OS_TYPE, osType)
+                    .set(TABLE.MODULE_TYPE, finalModuleTypeStr)
+                    .set(TABLE.IS_AGENT_ALIVE, gseAgentAlive)
+                    .set(TABLE.CLOUD_IP, cloudIp)
+                    .execute();
             } catch (Throwable t) {
                 log.info("SQL=" + query.getSQL(ParamType.INLINED));
                 throw t;
@@ -900,7 +890,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public long syncHostTopo(DSLContext dslContext, Long hostId) {
+    public int syncHostTopo(DSLContext dslContext, Long hostId) {
         ApplicationHostDTO hostInfoDTO = getHostById(hostId);
         if (hostInfoDTO != null) {
             List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByHostId(dslContext, hostId);
@@ -919,7 +909,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             hostInfoDTO.setModuleType(moduleTypes);
             return updateBizHostInfoByHostId(dslContext, null, hostInfoDTO, false);
         }
-        return -1L;
+        return -1;
     }
 
     /**
