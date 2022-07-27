@@ -645,7 +645,7 @@ gatewayConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-gateway
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -733,7 +733,7 @@ manageConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-manage
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -791,7 +791,7 @@ executeConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -842,7 +842,7 @@ crontabConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-crontab
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -902,7 +902,7 @@ logsvrConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-logsvr
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -957,7 +957,7 @@ backupConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1007,7 +1007,7 @@ analysisConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-analysis
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1057,7 +1057,7 @@ fileGatewayConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-file-gateway
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1107,7 +1107,7 @@ fileWorkerConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-file-worker
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1180,7 +1180,7 @@ frontendConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-frontend
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -1241,7 +1241,7 @@ migration:
     # 镜像拉取仓库组织与镜像名称
     repository: "blueking/job-migration"
     # 镜像标签
-    tag: 3.6.0-rc.7
+    tag: 3.6.0-rc.8
     # 镜像拉取策略
     pullPolicy: IfNotPresent
 
