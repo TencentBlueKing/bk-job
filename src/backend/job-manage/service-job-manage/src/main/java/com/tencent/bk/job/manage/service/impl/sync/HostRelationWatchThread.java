@@ -175,8 +175,7 @@ public class HostRelationWatchThread extends Thread {
                 }
                 // 开一个心跳子线程，维护当前机器正在WatchResource的状态
                 RedisKeyHeartBeatThread relationWatchBeatThread = startRedisKeyHeartBeatThread();
-                log.info("start watch hostRelation at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
-                    System.currentTimeMillis());
+                log.info("start watch hostRelation at {}", TimeUtil.getCurrentTimeStr("HH:mm:ss.SSS"));
                 StopWatch watch = new StopWatch("hostRelationWatch");
                 watch.start("total");
                 try {
