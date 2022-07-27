@@ -85,9 +85,14 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
                 log.debug("handle hostRelationEvent:" + watch.prettyPrint());
             }
         } catch (Throwable t) {
-            log.error(String.format("Fail to handle hostRelationEvent of appId %d, event:%s", appId, event), t);
-        } finally {
-            log.info("end to handle host relation event");
+            FormattingTuple msg = MessageFormatter.format(
+                "Fail to handle hostRelationEvent of appId {}, event:{}",
+                new String[]{
+                    appId.toString(),
+                    event.toString()
+                }
+            );
+            log.error(msg.getMessage(), t);
         }
     }
 
@@ -102,9 +107,6 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
                 updateTopoToHost(hostTopoDTO);
                 // 更新主机缓存
                 updateHostCacheWhenRelCreated(hostTopoDTO);
-                break;
-            case ResourceWatchReq.EVENT_TYPE_UPDATE:
-                log.warn("Unexpected event:hostRelation Update");
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
                 // 删除拓扑数据
@@ -138,11 +140,7 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
         } else if (affectedNum == 0) {
             log.info("no host topo synced");
         } else {
-            FormattingTuple msg = MessageFormatter.format(
-                "cannot find hostInfo by hostId:{}, wait for host event or sync",
-                hostTopoDTO.getHostId()
-            );
-            log.warn(msg.getMessage());
+            log.warn("cannot find hostInfo by hostId:{}, wait for host event or sync", hostTopoDTO.getHostId());
         }
     }
 

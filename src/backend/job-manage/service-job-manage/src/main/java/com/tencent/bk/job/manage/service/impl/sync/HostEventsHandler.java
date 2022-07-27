@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -37,6 +38,8 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -73,9 +76,8 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
             log.info("start to handle host event:{}", JsonUtils.toJson(event));
             handleOneEventIndeed(event);
         } catch (Throwable t) {
-            log.error(String.format("Fail to handle hostEvent:%s", event), t);
-        } finally {
-            log.info("end to handle host event");
+            FormattingTuple msg = MessageFormatter.format("Fail to handle hostEvent:{}", event);
+            log.error(msg.getMessage(), t);
         }
     }
 
@@ -119,15 +121,20 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
         );
     }
 
+    private boolean getCloudIpAgentStatus(String cloudIp) {
+        QueryAgentStatusClient.AgentStatus agentStatus = queryAgentStatusClient.getAgentStatus(cloudIp);
+        return agentStatus != null && agentStatus.status == AgentStatusEnum.ALIVE.getValue();
+    }
+
     private void updateIpAndAgentStatus(ApplicationHostDTO hostInfoDTO) {
         Long cloudAreaId = hostInfoDTO.getCloudAreaId();
         String ip = queryAgentStatusClient.getHostIpByAgentStatus(hostInfoDTO.getDisplayIp(), cloudAreaId);
         hostInfoDTO.setIp(ip);
         if (!ip.contains(":")) {
             String cloudIp = cloudAreaId + ":" + ip;
-            hostInfoDTO.setGseAgentAlive(queryAgentStatusClient.getAgentStatus(cloudIp).status == 1);
+            hostInfoDTO.setGseAgentAlive(getCloudIpAgentStatus(cloudIp));
         } else {
-            hostInfoDTO.setGseAgentAlive(queryAgentStatusClient.getAgentStatus(ip).status == 1);
+            hostInfoDTO.setGseAgentAlive(getCloudIpAgentStatus(ip));
         }
     }
 
