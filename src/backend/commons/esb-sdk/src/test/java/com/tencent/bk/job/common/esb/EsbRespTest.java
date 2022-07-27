@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 public class EsbRespTest {
 
     @Test
@@ -40,7 +42,7 @@ public class EsbRespTest {
             new TypeReference<EsbResp<Object>>() {
             }
         );
-        System.out.println("esbResp=" + esbResp);
+        assertThat(esbResp).isNotNull();
         respStr = "{\"message\": \"message\", \"code\": \"00\", \"data\": [\"test\"], \"result\": true, " +
             "\"request_id\": \"test\"}";
         esbResp = JsonUtils.fromJson(
@@ -48,6 +50,6 @@ public class EsbRespTest {
             new TypeReference<EsbResp<Object>>() {
             }
         );
-        System.out.println("esbResp=" + esbResp);
+        assertThat(esbResp).isNotNull();
     }
 }
