@@ -77,9 +77,7 @@ public interface ApplicationHostDAO {
     PageData<ApplicationHostDTO> listHostInfoByPage(ApplicationHostDTO applicationHostInfoCondition,
                                                     BaseSearchCondition baseSearchCondition);
 
-    int insertAppHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
-
-    int insertAppHostInfo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
+    int insertHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
 
     int insertOrUpdateHost(DSLContext dslContext, ApplicationHostDTO hostDTO);
 
@@ -132,7 +130,7 @@ public interface ApplicationHostDAO {
 
     long countHostsByOsType(String osType);
 
-    long syncHostTopo(DSLContext dslContext, Long hostId);
+    int syncHostTopo(DSLContext dslContext, Long hostId);
 
     /**
      * 根据ip查询主机
