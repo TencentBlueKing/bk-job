@@ -2,8 +2,13 @@ apiVersion: v2
 name: "bk-job"
 description: The BK-JOB is a ops script management and execution system with the capability of dealing with multiple tasks simultaneously.
 type: application
+<<<<<<< HEAD
 version: 0.2.5
 appVersion: "3.5.0-rc.23"
+=======
+version: 0.3.0-rc.9
+appVersion: "3.6.0-rc.9"
+>>>>>>> a8b83ccfdc... perf: 主机与主机关系事件处理优化 #1145
 
 dependencies:
 - name: common
