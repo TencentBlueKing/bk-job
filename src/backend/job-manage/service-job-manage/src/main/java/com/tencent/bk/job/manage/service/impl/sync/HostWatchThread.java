@@ -120,8 +120,7 @@ public class HostWatchThread extends Thread {
         ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
         Long hostId = hostInfoDTO.getHostId();
         ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
-        Long appId = oldHostInfoDTO.getBizId();
-        eventsHandler.commitEvent(appId, event);
+        eventsHandler.commitEvent(oldHostInfoDTO == null ? null : oldHostInfoDTO.getBizId(), event);
     }
 
     public String handleHostWatchResult(ResourceWatchResult<HostEventDetail> hostWatchResult) {
