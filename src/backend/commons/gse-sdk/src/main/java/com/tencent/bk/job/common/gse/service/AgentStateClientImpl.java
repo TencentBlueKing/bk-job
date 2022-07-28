@@ -26,10 +26,9 @@ package com.tencent.bk.job.common.gse.service;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
 import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
@@ -53,32 +52,32 @@ import java.util.Map;
 public class AgentStateClientImpl implements AgentStateClient {
 
     private final AgentStateQueryConfig agentStateQueryConfig;
-    private final GseApiClient gseApiClient;
+    private final GseClient gseClient;
 
     @Autowired
-    public AgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig, GseApiClient gseApiClient) {
+    public AgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig, GseClient gseClient) {
         this.agentStateQueryConfig = agentStateQueryConfig;
-        this.gseApiClient = gseApiClient;
+        this.gseClient = gseClient;
     }
 
     @Override
     public AgentState getAgentState(String agentId) {
         ListAgentStateReq req = new ListAgentStateReq();
         req.setAgentIdList(Collections.singletonList(agentId));
-        List<AgentState> agentStateList = gseApiClient.listAgentState(req);
+        List<AgentState> agentStateList = gseClient.listAgentState(req);
         if (CollectionUtils.isEmpty(agentStateList)) {
             FormattingTuple msg = MessageFormatter.format(
                 "cannot find agent state by agentId:{}",
                 agentId
             );
-            throw new NotFoundException(ErrorCode.GSE_API_DATA_ERROR, new String[]{msg.getMessage()});
+            throw new InternalException(ErrorCode.GSE_API_DATA_ERROR, new String[]{msg.getMessage()});
         } else if (agentStateList.size() > 1) {
             FormattingTuple msg = MessageFormatter.format(
                 "multi({}) agent states by agentId:{}",
                 agentStateList.size(),
                 agentId
             );
-            throw new NotFoundException(ErrorCode.GSE_API_DATA_ERROR, new String[]{msg.getMessage()});
+            throw new InternalException(ErrorCode.GSE_API_DATA_ERROR, new String[]{msg.getMessage()});
         }
         return agentStateList.get(0);
     }
@@ -165,7 +164,7 @@ public class AgentStateClientImpl implements AgentStateClient {
         Map<String, AgentState> resultMap = new HashMap<>();
         ListAgentStateReq req = new ListAgentStateReq();
         req.setAgentIdList(agentIdList);
-        List<AgentState> agentStateList = gseApiClient.listAgentState(req);
+        List<AgentState> agentStateList = gseClient.listAgentState(req);
         for (AgentState agentState : agentStateList) {
             resultMap.put(agentState.getAgentId(), agentState);
         }

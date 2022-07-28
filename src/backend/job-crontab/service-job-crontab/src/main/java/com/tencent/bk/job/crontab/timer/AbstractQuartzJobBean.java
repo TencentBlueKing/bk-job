@@ -27,6 +27,7 @@ package com.tencent.bk.job.crontab.timer;
 import brave.Tracer;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.crontab.metrics.ScheduleMeasureService;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -42,6 +43,9 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
 
     private static final DateTimeFormatter FORMATTER =
         DateTimeFormatter.ofPattern("yyyyMMddHHmmssX").withZone(ZoneOffset.UTC);
+
+    @Autowired
+    ScheduleMeasureService scheduleMeasureService;
 
     @Autowired
     Tracer tracer;
@@ -61,7 +65,8 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
     public abstract String name();
 
     @Override
-    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+    protected void executeInternal(JobExecutionContext context) {
+        scheduleMeasureService.recordCronScheduleDelay(name(), context);
         JobContextUtil.setRequestId(tracer.currentSpan().context().traceIdString());
         String executeId = JobContextUtil.getRequestId();
         try {

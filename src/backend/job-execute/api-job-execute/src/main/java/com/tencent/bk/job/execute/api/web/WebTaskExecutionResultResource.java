@@ -395,7 +395,10 @@ public interface WebTaskExecutionResultResource {
             String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
-            Long stepInstanceId
+            Long stepInstanceId,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false)
+            Integer batch
     );
 
 }

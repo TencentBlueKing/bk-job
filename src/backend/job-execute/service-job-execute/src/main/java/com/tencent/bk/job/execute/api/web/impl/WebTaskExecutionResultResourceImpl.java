@@ -891,10 +891,11 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                           AppResourceScope appResourceScope,
                                                                           String scopeType,
                                                                           String scopeId,
-                                                                          Long stepInstanceId) {
+                                                                          Long stepInstanceId,
+                                                                          Integer batch) {
 
         List<StepExecutionRecordDTO> stepExecutionRecords = taskResultService.listStepExecutionHistory(username,
-            appResourceScope.getAppId(), stepInstanceId);
+            appResourceScope.getAppId(), stepInstanceId, batch);
 
         return Response.buildSuccessResp(stepExecutionRecords.stream().map(stepExecutionRecord -> {
             StepExecutionRecordVO vo = new StepExecutionRecordVO();

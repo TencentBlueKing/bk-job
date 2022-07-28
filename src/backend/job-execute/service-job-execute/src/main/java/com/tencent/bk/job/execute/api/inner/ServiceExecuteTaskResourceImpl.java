@@ -27,14 +27,15 @@ package com.tencent.bk.job.execute.api.inner;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
+import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
@@ -59,20 +60,21 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private final TaskExecuteService taskExecuteService;
 
-    private final MessageI18nService i18nService;
-
     private final WebAuthService webAuthService;
 
     @Autowired
     public ServiceExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
-                                          MessageI18nService i18nService,
                                           WebAuthService webAuthService) {
         this.taskExecuteService = taskExecuteService;
-        this.i18nService = i18nService;
         this.webAuthService = webAuthService;
     }
 
     @Override
+    @CustomTimed(metricName = ExecuteMetricsConstants.NAME_JOB_TASK_START,
+        extraTags = {
+            ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_CRON,
+            ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_EXECUTE_PLAN
+        })
     public InternalResponse<ServiceTaskExecuteResult> executeTask(ServiceTaskExecuteRequest request) {
         log.info("Execute task, request={}", request);
         if (!checkExecuteTaskRequest(request)) {

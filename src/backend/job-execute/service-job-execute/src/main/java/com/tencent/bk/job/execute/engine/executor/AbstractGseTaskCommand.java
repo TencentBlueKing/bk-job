@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -51,7 +51,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
     protected final GseTaskService gseTaskService;
     protected final AgentTaskService agentTaskService;
     protected final Tracing tracing;
-    protected final GseApiClient gseApiClient;
+    protected final GseClient gseClient;
 
     /**
      * 步骤实例
@@ -92,7 +92,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
                                   GseTaskService gseTaskService,
                                   AgentTaskService agentTaskService,
                                   Tracing tracing,
-                                  GseApiClient gseApiClient,
+                                  GseClient gseClient,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   GseTaskDTO gseTask) {
@@ -101,7 +101,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
         this.gseTaskService = gseTaskService;
         this.agentTaskService = agentTaskService;
         this.tracing = tracing;
-        this.gseApiClient = gseApiClient;
+        this.gseClient = gseClient;
         this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
         this.gseTask = gseTask;

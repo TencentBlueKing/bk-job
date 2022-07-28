@@ -35,14 +35,14 @@ public interface TaskOperationLogService {
     /**
      * 保存用户操作日志
      *
-     * @param operationLog
+     * @param operationLog 操作日志
      */
     long saveOperationLog(OperationLogDTO operationLog);
 
     /**
      * 获取用户操作日志
      *
-     * @param taskInstanceId
+     * @param taskInstanceId 作业实例ID
      */
     List<OperationLogDTO> listOperationLog(long taskInstanceId);
 }

@@ -25,25 +25,19 @@
 package com.tencent.bk.job.manage.dao.notify;
 
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface NotifyTemplateDAO {
-    int insertNotifyTemplate(DSLContext dslContext, NotifyTemplateDTO notifyTemplateDTO);
 
-    int updateNotifyTemplateById(DSLContext dslContext, NotifyTemplateDTO notifyTemplateDTO);
+    int insertNotifyTemplate(NotifyTemplateDTO notifyTemplateDTO);
 
-    int deleteNotifyTemplateById(DSLContext dslContext, Integer id);
+    int updateNotifyTemplateById(NotifyTemplateDTO notifyTemplateDTO);
 
-    NotifyTemplateDTO getNotifyTemplateById(DSLContext dslContext, Integer id);
+    NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault);
 
-    NotifyTemplateDTO getNotifyTemplate(DSLContext dslContext, String channelCode, String messageTypeCode,
-                                        boolean isDefault);
+    List<NotifyTemplateDTO> listNotifyTemplateByCode(String code);
 
-    List<NotifyTemplateDTO> listNotifyTemplateByCode(DSLContext dslContext, String code);
+    boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault);
 
-    List<NotifyTemplateDTO> listNotifyTemplate(DSLContext dslContext);
-
-    boolean existsNotifyTemplate(DSLContext dslContext, String channelCode, String messageTypeCode, boolean isDefault);
 }

@@ -26,10 +26,11 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.gse.model.GseTaskResponse;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
+import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -39,7 +40,6 @@ import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.gse.ScriptRequestBuilder;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
@@ -119,7 +119,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      GseTasksExceptionCounter gseTasksExceptionCounter,
                                      JobBuildInVariableResolver jobBuildInVariableResolver,
                                      Tracing tracing,
-                                     GseApiClient gseApiClient,
+                                     GseClient gseClient,
                                      String requestId,
                                      TaskInstanceDTO taskInstance,
                                      StepInstanceDTO stepInstance,
@@ -141,7 +141,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             exceptionStatusManager,
             gseTasksExceptionCounter,
             tracing,
-            gseApiClient,
+            gseClient,
             requestId,
             taskInstance,
             stepInstance,
@@ -174,7 +174,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     @Override
     protected GseTaskResponse startGseTask() {
-        return gseApiClient.asyncExecuteScript(buildScriptRequest());
+        return gseClient.asyncExecuteScript(buildScriptRequest());
     }
 
     protected ExecuteScriptRequest buildScriptRequest() {
@@ -265,7 +265,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<Agent> agents = gseApiClient.buildAgents(targetAgentTaskMap.keySet(),
+        List<Agent> agents = gseClient.buildAgents(targetAgentTaskMap.keySet(),
             accountInfo.getAccount(), accountInfo.getPassword());
 
         builder.addScriptTask(agents, scriptFilePath, scriptFileName, resolvedScriptParam, timeout);
@@ -300,7 +300,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<Agent> agentList = gseApiClient.buildAgents(targetAgentTaskMap.keySet(),
+        List<Agent> agentList = gseClient.buildAgents(targetAgentTaskMap.keySet(),
             accountInfo.getAccount(), accountInfo.getPassword());
         builder.addScriptTask(agentList, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
         return builder.build();
@@ -420,7 +420,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<Agent> agentList = gseApiClient.buildAgents(targetAgentTaskMap.keySet(),
+        List<Agent> agentList = gseClient.buildAgents(targetAgentTaskMap.keySet(),
             accountInfo.getAccount(), accountInfo.getPassword());
 
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
@@ -647,7 +647,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 taskEvictPolicyExecutor,
                 scriptAgentTaskService,
                 stepInstanceService,
-                gseApiClient,
+                gseClient,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,

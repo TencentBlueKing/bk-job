@@ -48,4 +48,7 @@ public class AgentTaskResultGroupDTO extends AgentTaskResultGroupBaseDTO {
         super(status, tag);
     }
 
+    public AgentTaskResultGroupDTO(AgentTaskResultGroupBaseDTO baseResultGroup) {
+        super(baseResultGroup);
+    }
 }

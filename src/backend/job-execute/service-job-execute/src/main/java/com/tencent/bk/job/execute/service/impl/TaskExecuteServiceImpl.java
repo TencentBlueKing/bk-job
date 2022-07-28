@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -51,7 +52,6 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -72,6 +72,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
@@ -651,14 +652,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     /**
-     * 设置主机信息并检查主机的合法性并
+     * 设置主机信息并检查主机的合法性并设置主机信息
      *
      * @param stepInstanceList 步骤列表
      * @throws ServiceException 如果包含不合法的主机，抛出异常
      */
     private void checkAndSetHosts(List<StepInstanceDTO> stepInstanceList) throws ServiceException {
-        long appId = stepInstanceList.get(0).getAppId();
+        // 检查步骤引用的主机不为空
+        stepInstanceList.forEach(this::checkStepInstanceHostNonEmpty);
 
+        long appId = stepInstanceList.get(0).getAppId();
         Set<HostDTO> checkHosts = new HashSet<>();
         addNeedCheckHosts(stepInstanceList, checkHosts);
         if (checkHosts.isEmpty()) {
@@ -685,6 +688,35 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    private void checkStepInstanceHostNonEmpty(StepInstanceDTO stepInstance) {
+        if (!isStepContainsHostProps(stepInstance)) {
+            return;
+        }
+        ServersDTO targetServers = stepInstance.getTargetServers();
+        if (targetServers == null || CollectionUtils.isEmpty(targetServers.getIpList())) {
+            log.warn("Empty target server, stepInstanceId: {}", stepInstance.getId());
+            throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+        }
+        if (stepInstance.isFileStep()) {
+            List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+            for (FileSourceDTO fileSource : fileSourceList) {
+                // 远程文件分发需要判断文件源主机是否为空
+                if (TaskFileTypeEnum.SERVER.getType() == fileSource.getFileType()) {
+                    ServersDTO servers = fileSource.getServers();
+                    if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
+                        log.warn("Empty file source server, stepInstanceId: {}", stepInstance.getId());
+                        throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isStepContainsHostProps(StepInstanceBaseDTO stepInstance) {
+        // 判断步骤是否包含主机信息
+        return !stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue());
+    }
+
     private void fillStepHostDetail(List<StepInstanceDTO> stepInstanceList, ServiceListAppHostResultDTO hosts) {
         Map<String, HostDTO> hostMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
@@ -701,17 +733,38 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+            if (!isStepContainsHostProps(stepInstance)) {
                 continue;
             }
+            // 目标主机设置主机详情
+            fillTargetHostDetail(stepInstance, hostMap);
+            // 文件源设置主机详情
+            fillFileSourceHostDetail(stepInstance, hostMap);
+        }
+    }
+
+    private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
+        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getStaticIpList())) {
+            stepInstance.getTargetServers().getStaticIpList()
+                .forEach(host -> fillHostDetail(host, hostMap));
+        }
+        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getIpList())) {
             stepInstance.getTargetServers().getIpList()
                 .forEach(host -> fillHostDetail(host, hostMap));
-            if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
-                List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-                if (fileSourceList != null) {
-                    for (FileSourceDTO fileSource : fileSourceList) {
-                        ServersDTO servers = fileSource.getServers();
-                        if (servers != null && servers.getIpList() != null) {
+        }
+    }
+
+    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
+        if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
+            List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+            if (fileSourceList != null) {
+                for (FileSourceDTO fileSource : fileSourceList) {
+                    ServersDTO servers = fileSource.getServers();
+                    if (servers != null) {
+                        if (CollectionUtils.isNotEmpty(servers.getStaticIpList())) {
+                            servers.getStaticIpList().forEach(host -> fillHostDetail(host, hostMap));
+                        }
+                        if (CollectionUtils.isNotEmpty(servers.getIpList())) {
                             servers.getIpList().forEach(host -> fillHostDetail(host, hostMap));
                         }
                     }
@@ -737,7 +790,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void addNeedCheckHosts(List<StepInstanceDTO> stepInstanceList, Set<HostDTO> checkHosts) {
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+            if (!isStepContainsHostProps(stepInstance)) {
                 continue;
             }
             checkHosts.addAll(stepInstance.getTargetServers().getIpList());
@@ -824,11 +877,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void throwHostInvalidException(Collection<HostDTO> unavailableHosts, long appId) {
-        String unavailableHostListStr = unavailableHosts.parallelStream()
-            .map(HostDTO::getHostIdAndIpDescription)
-            .collect(Collectors.joining());
-        log.warn("The following hosts are not registered, appId:{}, hosts={}", appId, unavailableHostListStr);
-        throw new FailedPreconditionException(ErrorCode.HOST_NOT_EXIST, new Object[]{unavailableHostListStr});
+        String ipListStr = StringUtils.join(unavailableHosts.stream().map(HostDTO::getIp).collect(Collectors.toList()),
+            ",");
+        log.warn("The following hosts are invalid, appId:{}, ips={}", appId, ipListStr);
+        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{ipListStr});
     }
 
     private void checkStepInstanceConstraint(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
@@ -1095,7 +1147,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
 
-
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
             username, new AppResourceScope(appId), accountIds);
 
@@ -1105,16 +1156,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 主机为空，无需对主机鉴权
             authResult = accountAuthResult;
         } else {
-            AuthResult serverAuthResult = null;
+            AuthResult serverAuthResult;
             if (isDebugTask) {
-                // 鉴权调试
-
+                // 鉴权模板调试
                 serverAuthResult = executeAuthService.authDebugTemplate(
                     username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     authServers);
             } else {
-                // 鉴权执行方案
-
+                // 鉴权执行方案的执行
                 serverAuthResult = executeAuthService.authExecutePlan(
                     username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     plan.getId(), plan.getName(), authServers);
@@ -1159,9 +1208,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private StepExecuteTypeEnum getExecuteTypeFromTaskStepType(ServiceTaskStepDTO step) throws ServiceException {
         StepExecuteTypeEnum executeType = null;
         TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
-        if (stepType == null) {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        }
         switch (stepType) {
             case SCRIPT:
                 ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(step.getScriptStepInfo().getType());
@@ -1294,7 +1340,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             UserOperationEnum.START));
 
         // 启动作业
-        startTask(taskInstanceId);
+        startTask(taskInstance.getId());
 
         return taskInstance;
     }
@@ -2081,6 +2127,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskDetail.setStepInstanceId(stepInstance.getId());
         taskDetail.setStepName(stepInstance.getName());
         taskDetail.setExecuteCount(stepInstance.getExecuteCount());
+        taskDetail.setBatch(stepInstance.getBatch());
         operationLog.setDetail(taskDetail);
         return operationLog;
     }

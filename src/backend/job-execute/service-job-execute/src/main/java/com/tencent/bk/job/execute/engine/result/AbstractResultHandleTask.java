@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -102,7 +102,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected AgentTaskService agentTaskService;
     protected StepInstanceService stepInstanceService;
-    protected GseApiClient gseApiClient;
+    protected GseClient gseClient;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -218,7 +218,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                        AgentTaskService agentTaskService,
                                        StepInstanceService stepInstanceService,
-                                       GseApiClient gseApiClient,
+                                       GseClient gseClient,
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -236,7 +236,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.agentTaskService = agentTaskService;
         this.stepInstanceService = stepInstanceService;
-        this.gseApiClient = gseApiClient;
+        this.gseClient = gseClient;
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();

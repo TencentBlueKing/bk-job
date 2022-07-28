@@ -9,6 +9,7 @@ import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.HostService;
@@ -138,13 +139,9 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public int getActualSuccessExecuteCount(long stepInstanceId, Integer batch, HostDTO host) {
-        if (isStepInstanceRecordExist(stepInstanceId)) {
-            return scriptAgentTaskDAO.getActualSuccessExecuteCount(stepInstanceId, batch, host.getHostId());
-        } else {
-            // 兼容历史数据
-            return gseTaskIpLogDAO.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
-        }
+    public int getActualSuccessExecuteCount(long stepInstanceId, String cloudIp) {
+        // 兼容历史数据
+        return gseTaskIpLogDAO.getActualSuccessExecuteCount(stepInstanceId, cloudIp);
     }
 
     @Override
@@ -161,6 +158,19 @@ public class ScriptAgentTaskServiceImpl
         resultGroups = groupAgentTasks(agentTaskDetailList);
 
         return resultGroups.stream().sorted().collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId,
+                                                              int executeCount,
+                                                              Integer batch) {
+        List<AgentTaskResultGroupBaseDTO> resultGroups;
+        resultGroups = scriptAgentTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
+        if (CollectionUtils.isEmpty(resultGroups)) {
+            // 兼容历史数据
+            resultGroups = gseTaskIpLogDAO.listResultGroups(stepInstanceId, executeCount);
+        }
+        return resultGroups;
     }
 
     @Override
@@ -208,5 +218,10 @@ public class ScriptAgentTaskServiceImpl
 
     private boolean isStepInstanceRecordExist(long stepInstanceId) {
         return scriptAgentTaskDAO.isStepInstanceRecordExist(stepInstanceId);
+    }
+
+    @Override
+    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
+        scriptAgentTaskDAO.updateActualExecuteCount(stepInstanceId, batch, actualExecuteCount);
     }
 }

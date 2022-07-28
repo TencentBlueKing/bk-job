@@ -47,7 +47,7 @@ public class IpUtilsTest {
     @Test
     void testLongStr2Ip() {
         String ipLongStr = "2130706433";
-        String ip = IpUtils.revertIpFromLongStr(ipLongStr);
+        String ip = IpUtils.revertIpFromNumericalStr(ipLongStr);
         assertThat(ip).isEqualTo("127.0.0.1");
     }
 }

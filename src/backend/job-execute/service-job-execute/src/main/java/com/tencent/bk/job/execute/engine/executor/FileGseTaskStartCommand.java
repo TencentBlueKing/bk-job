@@ -26,12 +26,12 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
-import com.tencent.bk.job.common.gse.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
+import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
@@ -138,7 +138,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    GseTasksExceptionCounter gseTasksExceptionCounter,
                                    StepInstanceService stepInstanceService,
                                    Tracing tracing,
-                                   GseApiClient gseApiClient,
+                                   GseClient gseClient,
                                    String requestId,
                                    TaskInstanceDTO taskInstance,
                                    StepInstanceDTO stepInstance,
@@ -161,7 +161,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             exceptionStatusManager,
             gseTasksExceptionCounter,
             tracing,
-            gseApiClient,
+            gseClient,
             requestId,
             taskInstance,
             stepInstance,
@@ -293,11 +293,11 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         initSourceDestPathMap(srcAndDestMap);
 
 
-        List<Agent> targetAgents = gseApiClient.buildAgents(targetAgentTaskMap.keySet(), accountInfo.getAccount(),
+        List<Agent> targetAgents = gseClient.buildAgents(targetAgentTaskMap.keySet(), accountInfo.getAccount(),
             accountInfo.getPassword());
         // 构造GSE文件分发请求
         for (JobFile file : sendFiles) {
-            Agent srcAgent = gseApiClient.buildAgent(file.getAgentId(), file.getAccount(), file.getPassword());
+            Agent srcAgent = gseClient.buildAgent(file.getAgentId(), file.getAccount(), file.getPassword());
             SourceFile sourceFile = new SourceFile(file.getFileName(), file.getDir(), srcAgent);
 
             FileDest fileDest = srcAndDestMap.get(file.getFileUniqueKey());
@@ -321,7 +321,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         request.setTimeout(stepInstance.getTimeout());
 
         saveInitialFileTaskLogs(sourceDestPathMap);
-        return gseApiClient.asyncTransferFile(request);
+        return gseClient.asyncTransferFile(request);
     }
 
     /**
@@ -433,7 +433,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 taskEvictPolicyExecutor,
                 fileAgentTaskService,
                 stepInstanceService,
-                gseApiClient,
+                gseClient,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,

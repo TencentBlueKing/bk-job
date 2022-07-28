@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.gse.model.GseTaskResponse;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -129,7 +129,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 ExceptionStatusManager exceptionStatusManager,
                                 GseTasksExceptionCounter gseTasksExceptionCounter,
                                 Tracing tracing,
-                                GseApiClient gseApiClient,
+                                GseClient gseClient,
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
@@ -140,7 +140,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             gseTaskService,
             agentTaskService,
             tracing,
-            gseApiClient,
+            gseClient,
             taskInstance,
             stepInstance,
             gseTask);

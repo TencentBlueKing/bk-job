@@ -73,7 +73,7 @@
             </div>
             <render-more-btn
                 :step-data="data"
-                @on-change="handleLocalChange" />
+                @on-change="handleLocalBatchChange" />
         </template>
         <div style="display: none;">
             <div
@@ -164,30 +164,29 @@
         watch: {
             data () {
                 this.list = Object.freeze(this.data.rollingTasks);
-                this.showConfirmActionPanel();
-                
-                if (this.value === '') {
-                    // 首次加载默认选中正在执行的批次
-                    this.selectBatch = this.data.runningBatchOrder;
-                } else if (this.isAutoSelectRunningBatch
-                    && this.selectBatch !== this.data.runningBatchOrder) {
-                    // 用户没有进行主动选择批次，每次自动选中正在执行的批次
-                    this.selectBatch = this.data.runningBatchOrder;
-                    this.triggerChange();
+                if (this.selectBatch !== this.data.runningBatchOrder) {
+                    // 当前执行中批次变化且用户没有进行主动选择批次，每次自动选中正在执行的批次
+                    if (this.isAutoSelectRunningBatch) {
+                        this.selectBatch = this.data.runningBatchOrder;
+                        this.triggerChange();
+                    }
                 }
+                this.showConfirmActionPanel();
             },
         },
         created () {
             this.list = Object.freeze(this.data.rollingTasks);
-            this.selectBatch = this.data.runningBatchOrder;
-            this.isAutoSelectRunningBatch = true;
+            // url 上面有 batch 参数默认选中 url 指定的批次
+            const URLQueryBatch = parseInt(this.$route.query.batch, 10);
+            this.selectBatch = URLQueryBatch > -1 ? URLQueryBatch : this.data.runningBatchOrder;
+            this.isAutoSelectRunningBatch = !(URLQueryBatch > -1);
         },
         mounted () {
             this.initRender();
+            
             setTimeout(() => {
-                this.handleLocalChange(this.data.runningBatchOrder);
-                this.isAutoSelectRunningBatch = true;
-            }, 300);
+                this.handleGoBatch(this.selectBatch);
+            });
             const resizeHandler = _.throttle(() => {
                 this.initRender();
             }, 20);
@@ -348,9 +347,16 @@
              * @desc 跳转到指定批次，选中的批次居中显示
              * @param { Number } selectBatch
              */
-            handleLocalChange (selectBatch) {
+            handleLocalBatchChange (selectBatch) {
                 this.selectBatch = selectBatch;
                 this.isAutoSelectRunningBatch = false;
+                this.handleGoBatch(selectBatch);
+                this.triggerChange();
+            },
+            /**
+             * @desc 跳转到指定批次
+             */
+            handleGoBatch (selectBatch) {
                 const $listEl = this.$refs.list;
                 const {
                     width: containerWidth,
@@ -358,8 +364,6 @@
                     right: containerEnd,
                 } = $listEl.getBoundingClientRect();
                 const $itemListEl = $listEl.querySelectorAll('.batch-item');
-                
-                this.triggerChange();
                 
                 const $locationBatchItemEl = $itemListEl[selectBatch - 1];
                 const {
@@ -398,7 +402,6 @@
                 this.isPrePageBtnDisabled = this.scrollPosition === 0;
                 this.isNextPageBtnDisabled = this.scrollPosition === maxOffset;
             },
-            
             /**
              * @desc 上一页
              */

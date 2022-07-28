@@ -31,10 +31,12 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record13;
 import org.jooq.Result;
+import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.NotifyTemplate;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -52,8 +54,15 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     private static final NotifyTemplate T_NOTIFY_TEMPLATE = NotifyTemplate.NOTIFY_TEMPLATE;
     private static final NotifyTemplate defaultTable = T_NOTIFY_TEMPLATE;
 
+    private final DSLContext dslContext;
+
+    @Autowired
+    public NotifyTemplateDAOImpl(DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
+
     @Override
-    public int insertNotifyTemplate(DSLContext dslContext, NotifyTemplateDTO notifyTemplateDTO) {
+    public int insertNotifyTemplate(NotifyTemplateDTO notifyTemplateDTO) {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.CODE,
             defaultTable.NAME,
@@ -81,7 +90,7 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
             notifyTemplateDTO.getLastModifyUser(),
             ULong.valueOf(notifyTemplateDTO.getLastModifyTime())
         );
-        val sql = query.getSQL(true);
+        val sql = query.getSQL(ParamType.INLINED);
         try {
             return query.execute();
         } catch (Exception e) {
@@ -91,7 +100,7 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     }
 
     @Override
-    public int updateNotifyTemplateById(DSLContext dslContext, NotifyTemplateDTO notifyTemplateDTO) {
+    public int updateNotifyTemplateById(NotifyTemplateDTO notifyTemplateDTO) {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.CODE, notifyTemplateDTO.getCode())
             .set(defaultTable.NAME, notifyTemplateDTO.getName())
@@ -103,20 +112,13 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
             .set(defaultTable.LAST_MODIFY_USER, notifyTemplateDTO.getLastModifyUser())
             .set(defaultTable.LAST_MODIFY_TIME, ULong.valueOf(notifyTemplateDTO.getLastModifyTime()))
             .where(defaultTable.ID.eq(notifyTemplateDTO.getId()));
-        val sql = query.getSQL(true);
+        val sql = query.getSQL(ParamType.INLINED);
         try {
             return query.execute();
         } catch (Exception e) {
             logger.error(sql);
             throw e;
         }
-    }
-
-    @Override
-    public int deleteNotifyTemplateById(DSLContext dslContext, Integer id) {
-        return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).execute();
     }
 
     private NotifyTemplateDTO convert(Record13<Integer, String, String, String, String, String, String, String,
@@ -139,35 +141,7 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     }
 
     @Override
-    public NotifyTemplateDTO getNotifyTemplateById(DSLContext dslContext, Integer id) {
-        val record = dslContext.select(
-            defaultTable.ID,
-            defaultTable.CODE,
-            defaultTable.NAME,
-            defaultTable.CHANNEL,
-            defaultTable.TITLE,
-            defaultTable.CONTENT,
-            defaultTable.TITLE_EN,
-            defaultTable.CONTENT_EN,
-            defaultTable.IS_DEFAULT,
-            defaultTable.CREATOR,
-            defaultTable.CREATE_TIME,
-            defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
-        )
-            .from(defaultTable)
-            .where(defaultTable.ID.eq(id))
-            .fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return convert(record);
-        }
-    }
-
-    @Override
-    public NotifyTemplateDTO getNotifyTemplate(DSLContext dslContext, String channelCode, String messageTypeCode,
-                                               boolean isDefault) {
+    public NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault) {
         val record = dslContext.select(
             defaultTable.ID,
             defaultTable.CODE,
@@ -196,30 +170,24 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     }
 
     @Override
-    public List<NotifyTemplateDTO> listNotifyTemplateByCode(DSLContext dslContext, String code) {
+    public List<NotifyTemplateDTO> listNotifyTemplateByCode(String code) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.CODE.eq(code));
-        return listNotifyTemplateByConditions(dslContext, conditions, null);
+        return listNotifyTemplateByConditions(conditions);
     }
 
     @Override
-    public List<NotifyTemplateDTO> listNotifyTemplate(DSLContext dslContext) {
-        return listNotifyTemplateByConditions(dslContext, null, null);
-    }
-
-    @Override
-    public boolean existsNotifyTemplate(DSLContext dslContext, String channelCode, String messageTypeCode,
-                                        boolean isDefault) {
-        val count = dslContext.selectCount().from(defaultTable)
+    public boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault) {
+        Integer count = dslContext.selectCount().from(defaultTable)
             .where(defaultTable.CHANNEL.eq(channelCode))
             .and(defaultTable.CODE.eq(messageTypeCode))
             .and(defaultTable.IS_DEFAULT.eq(isDefault))
             .fetchOne(0, Integer.class);
+        assert count != null;
         return count > 0;
     }
 
-    private List<NotifyTemplateDTO> listNotifyTemplateByConditions(DSLContext dslContext, List<Condition> conditions,
-                                                                   Long limit) {
+    private List<NotifyTemplateDTO> listNotifyTemplateByConditions(List<Condition> conditions) {
         if (conditions == null) {
             conditions = new ArrayList<>();
         }
@@ -242,12 +210,8 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
             .where(conditions);
         Result<Record13<Integer, String, String, String, String, String, String, String, Boolean, String, ULong,
             String, ULong>> records;
-        if (null != limit && limit > 0) {
-            records = baseQuery.limit(limit).fetch();
-        } else {
-            records = baseQuery.fetch();
-        }
-        if (records == null || records.isEmpty()) {
+        records = baseQuery.fetch();
+        if (records.isEmpty()) {
             return new ArrayList<>();
         } else {
             return records.map(this::convert);

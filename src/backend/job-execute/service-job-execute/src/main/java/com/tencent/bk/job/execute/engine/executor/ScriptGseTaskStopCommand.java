@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
-import com.tencent.bk.job.common.gse.model.GseTaskResponse;
-import com.tencent.bk.job.common.gse.v2.GseApiClient;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -50,7 +50,7 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
                                     GseTaskService gseTaskService,
                                     AgentTaskService agentTaskService,
                                     Tracing tracing,
-                                    GseApiClient gseApiClient,
+                                    GseClient gseClient,
                                     TaskInstanceDTO taskInstance,
                                     StepInstanceDTO stepInstance,
                                     GseTaskDTO gseTask) {
@@ -59,7 +59,7 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
             gseTaskService,
             agentTaskService,
             tracing,
-            gseApiClient,
+            gseClient,
             taskInstance,
             stepInstance,
             gseTask);
@@ -76,7 +76,7 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
 
 
         TerminateGseTaskRequest request = new TerminateGseTaskRequest(gseTask.getGseTaskId(), terminateAgentIds);
-        GseTaskResponse gseTaskResponse = gseApiClient.terminateGseScriptTask(request);
+        GseTaskResponse gseTaskResponse = gseClient.terminateGseScriptTask(request);
         if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
             log.error("Terminate gse task failed! gseTask: {}", gseTaskUniqueName);
         } else {

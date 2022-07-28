@@ -204,10 +204,8 @@ public class JobListener {
 
         // 验证作业状态，只有'正在执行'、'强制终止中'的作业可以刷新状态进入下一步或者结束
         if (RunStatusEnum.STOPPING.getValue() == taskStatus) {
-            if (RunStatusEnum.STOP_SUCCESS.getValue() == stepStatus
-                || RunStatusEnum.SUCCESS.getValue() == stepStatus
-                || RunStatusEnum.FAIL.getValue() == stepStatus) {
-
+            // 非正在执行的步骤可以直接终止
+            if (RunStatusEnum.RUNNING.getValue() != stepStatus) {
                 finishJob(taskInstance, currentStepInstance, RunStatusEnum.STOP_SUCCESS);
             } else {
                 log.error("Unsupported task instance run status for refresh task, taskInstanceId={}, taskStatus={}, " +
