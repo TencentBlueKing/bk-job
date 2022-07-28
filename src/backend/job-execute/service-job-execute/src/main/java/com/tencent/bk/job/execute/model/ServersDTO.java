@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 @Data
+@PersistenceObject
 public class ServersDTO implements Cloneable {
     /**
      * 如果目标服务器是通过全局变量-主机列表定义的，variable 表示变量 name

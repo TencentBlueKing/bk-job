@@ -27,11 +27,13 @@ package com.tencent.bk.job.common.paas.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.paas.metrics.PaaSMetricTags;
 import com.tencent.bk.job.common.paas.model.EsbListUsersResult;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.GetEsbNotifyChannelReq;
@@ -98,7 +100,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
 
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_USER_MANAGE_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(
-                Tag.of("api_name", API_GET_USER_LIST)
+                Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_USER_LIST)
             );
             EsbResp<List<EsbListUsersResult>> esbResp = getEsbRespByReq(
                 HttpGet.METHOD_NAME,
@@ -152,7 +154,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(
-                Tag.of("api_name", API_GET_NOTIFY_CHANNEL_LIST)
+                Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_NOTIFY_CHANNEL_LIST)
             );
             EsbResp<List<EsbNotifyChannelDTO>> esbResp = getEsbRespByReq(
                 HttpGet.METHOD_NAME,
@@ -177,40 +179,50 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
     ) {
         PostSendMsgReq req = buildSendMsgReq(msgType, sender, receivers, title, content);
         long start = System.nanoTime();
-        String status = "none";
+        String status = EsbMetricTags.VALUE_STATUS_NONE;
         String uri = API_POST_SEND_MSG;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
-            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            EsbResp<List<Boolean>> esbResp = getEsbRespByReq(
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of(EsbMetricTags.KEY_API_NAME, uri));
+            EsbResp<Object> esbResp = getEsbRespByReq(
                 HttpPost.METHOD_NAME,
                 uri,
                 req,
-                new TypeReference<EsbResp<List<Boolean>>>() {
+                new TypeReference<EsbResp<Object>>() {
                 }
             );
 
-            if (esbResp.getCode() != 0) {
-                Integer code = esbResp.getCode();
-                log.warn("{}|requestId={}|code={}|msg={}|esbResp.getCode() != 0",
-                    uri, esbResp.getRequestId(), esbResp.getCode(), esbResp.getMessage());
-                if (code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_STAGE)
-                    || code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_RESOURCE)) {
-                    status = "over_rate";
-                } else {
-                    status = "fail";
-                }
+            if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
+                status = checkRespAndGetStatus(uri, esbResp);
                 return false;
             }
-            status = "success";
+            status = EsbMetricTags.VALUE_STATUS_SUCCESS;
             return true;
         } catch (Exception e) {
             log.error("Fail to request {}", uri, e);
-            status = "error";
+            status = EsbMetricTags.VALUE_STATUS_ERROR;
             return false;
         } finally {
             HttpMetricUtil.clearHttpMetric();
             recordMetrics(start, status, msgType);
+        }
+    }
+
+    private String checkRespAndGetStatus(String uri, EsbResp<?> esbResp) {
+        Integer code = esbResp.getCode();
+        log.warn(
+            "{}|requestId={}|result={}|code={}|msg={}|esbResp.getCode() != 0",
+            uri,
+            esbResp.getRequestId(),
+            esbResp.getResult(),
+            esbResp.getCode(),
+            esbResp.getMessage()
+        );
+        if (code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_STAGE)
+            || code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_RESOURCE)) {
+            return EsbMetricTags.VALUE_STATUS_OVER_RATE;
+        } else {
+            return EsbMetricTags.VALUE_STATUS_FAIL;
         }
     }
 
@@ -235,9 +247,9 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         long end = System.nanoTime();
         meterRegistry.timer(
             CommonMetricNames.ESB_CMSI_API,
-            "api_name", API_POST_SEND_MSG,
-            "status", status,
-            "msg_type", msgType
+            EsbMetricTags.KEY_API_NAME, API_POST_SEND_MSG,
+            EsbMetricTags.KEY_STATUS, status,
+            PaaSMetricTags.KEY_MSG_TYPE, msgType
         ).record(end - startTimeNanos, TimeUnit.NANOSECONDS);
         String key = "today.msg." + msgType + "." + status;
         AtomicInteger valueWrapper = todayMsgStatisticsMap.computeIfAbsent(key,
