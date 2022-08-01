@@ -67,7 +67,9 @@ public interface FileSourceDAO {
     List<FileSourceDTO> listWorkTableFileSource(DSLContext dslContext, List<Long> appIdList, List<Integer> idList,
                                                 Integer start, Integer pageSize);
 
-    boolean existsCode(String code);
+    boolean existsCode(Long appId, String code);
+
+    boolean existsCodeExceptId(Long appId, String code, Integer exceptId);
 
     boolean existsFileSource(Long appId, Integer id);
 
