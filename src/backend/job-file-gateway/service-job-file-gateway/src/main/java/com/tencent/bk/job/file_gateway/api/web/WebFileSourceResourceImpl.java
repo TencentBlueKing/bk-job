@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -90,7 +91,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         if (forCreate) {
             // 创建
             if (fileSourceService.existsCode(appId, code)) {
-                throw new InvalidParamException(
+                throw new FailedPreconditionException(
                     ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS,
                     new String[]{code}
                 );
@@ -99,7 +100,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
             // 更新
             confirmIdExists(id);
             if (fileSourceService.existsCodeExceptId(appId, code, id)) {
-                throw new InvalidParamException(
+                throw new FailedPreconditionException(
                     ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS,
                     new String[]{code}
                 );

@@ -2,6 +2,7 @@ package com.tencent.bk.job.file_gateway.api.esb;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -88,7 +89,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
                 new String[]{"code"});
         }
         if (fileSourceService.existsCode(req.getAppId(), code)) {
-            throw new InvalidParamException(ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS, new String[]{code});
+            throw new FailedPreconditionException(ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS, new String[]{code});
         }
         checkCommonParam(req);
     }
@@ -103,12 +104,12 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         if (id == null) {
             id = fileSourceService.getFileSourceIdByCode(appId, code);
             if (id == null) {
-                throw new InvalidParamException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
+                throw new FailedPreconditionException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
             }
         }
         req.setId(id);
         if (!fileSourceService.existsFileSource(appId, id)) {
-            throw new InvalidParamException(
+            throw new FailedPreconditionException(
                 ErrorCode.FILE_SOURCE_ID_NOT_IN_BIZ,
                 new String[]{id.toString(), req.getScopeType(), req.getScopeId()}
             );
