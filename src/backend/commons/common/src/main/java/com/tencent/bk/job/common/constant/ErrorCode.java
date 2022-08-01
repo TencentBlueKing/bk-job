@@ -307,7 +307,7 @@ public class ErrorCode {
     public static final int FILE_SOURCE_CODE_ALREADY_EXISTS = 1260015;
     // 文件源ID与标识至少指定一个
     public static final int ID_AND_CODE_AT_LEAST_ONE = 1260016;
-    // 文件源[id={0}]不在业务[scope_type={1},scope_id={2}]下
+    // 文件源[id={0}]不在业务/业务集下
     public static final int FILE_SOURCE_ID_NOT_IN_BIZ = 1260017;
 
     // 文件网关 end

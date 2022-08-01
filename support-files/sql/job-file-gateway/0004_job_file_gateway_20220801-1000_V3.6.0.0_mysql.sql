@@ -25,7 +25,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'file_source'
                     AND INDEX_NAME = 'uniq_appId_code') THEN
-        ALTER TABLE file_source ADD UNIQUE uniq_appId_code(`app_id`,`code`);
+        ALTER TABLE file_source ADD UNIQUE INDEX uniq_appId_code(`app_id`,`code`);
     END IF;
 
 COMMIT;

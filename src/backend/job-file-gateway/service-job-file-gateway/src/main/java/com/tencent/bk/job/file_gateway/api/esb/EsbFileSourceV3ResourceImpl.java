@@ -109,10 +109,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         }
         req.setId(id);
         if (!fileSourceService.existsFileSource(appId, id)) {
-            throw new FailedPreconditionException(
-                ErrorCode.FILE_SOURCE_ID_NOT_IN_BIZ,
-                new String[]{id.toString(), req.getScopeType(), req.getScopeId()}
-            );
+            throw new FailedPreconditionException(ErrorCode.FILE_SOURCE_ID_NOT_IN_BIZ, new String[]{id.toString()});
         }
         checkCommonParam(req);
     }
