@@ -64,32 +64,33 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         Integer id = req.getId();
         checkManageFileSourcePermission(username, req.getAppResourceScope(), id);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
-        Integer fileSourceId = fileSourceService.updateFileSourceById(appId, fileSourceDTO);
-        return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(fileSourceId));
+        int affectedNum = fileSourceService.updateFileSourceById(appId, fileSourceDTO);
+        log.info("{} fileSource updated", affectedNum);
+        return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(id));
+    }
+
+    private void checkCommonParam(EsbCreateOrUpdateFileSourceV3Req req) {
+        if (StringUtils.isBlank(req.getAlias())) {
+            throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, new String[]{"alias"});
+        }
+        if (StringUtils.isBlank(req.getType())) {
+            throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, new String[]{"type"});
+        }
+        if (StringUtils.isBlank(req.getCredentialId())) {
+            throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, new String[]{"credential_id"});
+        }
     }
 
     private void checkCreateParam(EsbCreateOrUpdateFileSourceV3Req req) {
         String code = req.getCode();
         if (StringUtils.isBlank(code)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"code", "code cannot be null or blank"});
+            throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
+                new String[]{"code"});
         }
-        if (fileSourceService.existsCode(code)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"code", String.format("code [%s] already exists", code)});
+        if (fileSourceService.existsCode(req.getAppId(), code)) {
+            throw new InvalidParamException(ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS, new String[]{code});
         }
-        if (StringUtils.isBlank(req.getAlias())) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"alias", "alias cannot be null or blank"});
-        }
-        if (StringUtils.isBlank(req.getType())) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"type", "type cannot be null or blank"});
-        }
-        if (StringUtils.isBlank(req.getCredentialId())) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"credential_id", "credential_id cannot be null or blank"});
-        }
+        checkCommonParam(req);
     }
 
     private void checkUpdateParam(EsbCreateOrUpdateFileSourceV3Req req) {
@@ -97,23 +98,22 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         Integer id = req.getId();
         String code = req.getCode();
         if (id == null && StringUtils.isBlank(code)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"id/code", "id and code cannot be null/blank simultaneously"});
+            throw new InvalidParamException(ErrorCode.ID_AND_CODE_AT_LEAST_ONE);
         }
         if (id == null) {
             id = fileSourceService.getFileSourceIdByCode(appId, code);
             if (id == null) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    new String[]{"code", String.format("cannot find fileSource by code [%s]", code)});
+                throw new InvalidParamException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
             }
         }
         req.setId(id);
         if (!fileSourceService.existsFileSource(appId, id)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"bk_biz_id/id",
-                    String.format("fileSource [%s] not exists in biz [%s]", id, appId)}
+            throw new InvalidParamException(
+                ErrorCode.FILE_SOURCE_ID_NOT_IN_BIZ,
+                new String[]{id.toString(), req.getScopeType(), req.getScopeId()}
             );
         }
+        checkCommonParam(req);
     }
 
     private FileSourceDTO buildFileSourceDTO(String username, Long appId,
