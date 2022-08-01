@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
@@ -35,7 +36,7 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      */
     @ApiModelProperty(value = "文件源信息Map")
     @JsonProperty(value = "access_params")
-    private Map<String, Object> accessParams;
+    private Map<String, Object> accessParams = new HashMap<>();
     /**
      * 文件源凭证Id
      */
@@ -47,5 +48,5 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      */
     @ApiModelProperty(value = "文件前缀：后台自动生成UUID传${UUID}，自定义字符串直接传")
     @JsonProperty(value = "file_prefix")
-    private String filePrefix;
+    private String filePrefix = "";
 }
