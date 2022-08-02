@@ -164,7 +164,7 @@ public class AgentTaskDTO {
     }
 
     public void setStatus(int status) {
-        this.changed = this.status != status;
+        this.changed = true;
         this.status = status;
     }
 
@@ -194,7 +194,7 @@ public class AgentTaskDTO {
     }
 
     public void setScriptLogOffset(int scriptLogOffset) {
-        this.changed = this.scriptLogOffset != scriptLogOffset;
+        this.changed = true;
         this.scriptLogOffset = scriptLogOffset;
     }
 
