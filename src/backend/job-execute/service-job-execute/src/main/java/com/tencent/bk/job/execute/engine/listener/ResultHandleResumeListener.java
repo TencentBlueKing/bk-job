@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
@@ -63,12 +64,12 @@ import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 执行引擎事件处理-任务恢复
@@ -169,15 +170,6 @@ public class ResultHandleResumeListener {
                 return;
             }
 
-            Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-            List<AgentTaskDTO> agentTasks = new ArrayList<>();
-            if (stepInstance.isScriptStep()) {
-                agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-            } else if (stepInstance.isFileStep()) {
-                agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-            }
-            agentTasks.forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
-
             List<TaskVariableDTO> taskVariables =
                 taskInstanceVariableService.getByTaskInstanceId(stepInstance.getTaskInstanceId());
             TaskVariablesAnalyzeResult taskVariablesAnalyzeResult = new TaskVariablesAnalyzeResult(taskVariables);
@@ -201,9 +193,19 @@ public class ResultHandleResumeListener {
                                   GseTaskDTO gseTask,
                                   String requestId) {
         Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-        List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        List<AgentTaskDTO> agentTasks;
+        if (gseTask.getId() != null) {
+            agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        } else {
+            // 兼容旧的调度任务，发布完成后删除
+            agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
+                stepInstance.getExecuteCount(), null);
+            // 仅包含本次执行的主机
+            agentTasks = agentTasks.stream()
+                .filter(agentTask -> AgentTaskStatus.LAST_SUCCESS.getValue() != agentTask.getStatus())
+                .collect(Collectors.toList());
+        }
         agentTasks.forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
-
 
         ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
             taskInstanceService,
@@ -244,7 +246,18 @@ public class ResultHandleResumeListener {
 
         Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
         Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
-        List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        List<AgentTaskDTO> agentTasks;
+        if (gseTask.getId() != null) {
+            agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        } else {
+            // 兼容旧的调度任务，发布完成后删除
+            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(),
+                stepInstance.getExecuteCount(), null);
+            // 仅包含本次执行的主机
+            agentTasks = agentTasks.stream()
+                .filter(agentTask -> AgentTaskStatus.LAST_SUCCESS.getValue() != agentTask.getStatus())
+                .collect(Collectors.toList());
+        }
         agentTasks.forEach(agentTask -> {
             if (agentTask.isTarget()) {
                 targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);

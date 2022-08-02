@@ -94,25 +94,6 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
     }
 
     @Override
-    public void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks) {
-        String sql = "update gse_task_ip_log set start_time = ?,end_time = ?,status = ? where step_instance_id = ? " +
-            "and execute_count = ? and ip = ?";
-        Object[][] params = new Object[agentTasks.size()][6];
-        int batchCount = 0;
-        for (AgentTaskDTO agentTask : agentTasks) {
-            Object[] param = new Object[6];
-            param[0] = agentTask.getStartTime();
-            param[1] = agentTask.getEndTime();
-            param[2] = agentTask.getStatus();
-            param[3] = agentTask.getStepInstanceId();
-            param[4] = agentTask.getExecuteCount();
-            param[5] = agentTask.getCloudIp();
-            params[batchCount++] = param;
-        }
-        CTX.batch(sql, params).execute();
-    }
-
-    @Override
     public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
 

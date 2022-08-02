@@ -188,18 +188,21 @@ public class FileAgentTaskServiceImpl
     public AgentTaskDTO getAgentTaskByHost(StepInstanceDTO stepInstance, Integer executeCount, Integer batch,
                                            FileTaskModeEnum fileTaskMode, HostDTO host) {
         AgentTaskDTO agentTask = null;
-        Long hostId = host.getHostId();
-        if (hostId == null) {
-            // 根据ip反查hostId
-            HostDTO queryHost = getStepHostByIp(stepInstance, host.toCloudIp());
-            if (queryHost != null) {
-                hostId = queryHost.getHostId();
+        // 无损发布兼容，发布完成后删除isStepInstanceRecordExist的判断
+        if (isStepInstanceRecordExist(stepInstance.getId())) {
+            Long hostId = host.getHostId();
+            if (hostId == null) {
+                // 根据ip反查hostId
+                HostDTO queryHost = getStepHostByIp(stepInstance, host.toCloudIp());
+                if (queryHost != null) {
+                    hostId = queryHost.getHostId();
+                }
             }
-        }
 
-        if (hostId != null) {
-            agentTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch, fileTaskMode,
-                hostId);
+            if (hostId != null) {
+                agentTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch,
+                    fileTaskMode, hostId);
+            }
         } else if (StringUtils.isNotEmpty(host.getIp())) {
             // 兼容历史数据
             agentTask = gseTaskIpLogDAO.getAgentTaskByIp(stepInstance.getId(), executeCount, host.toCloudIp());
