@@ -81,7 +81,7 @@ public class ScriptAgentTaskServiceImpl
             scriptAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
         } else {
             // 兼容实现，发布之后删除
-            gseTaskIpLogDAO.batchUpdateAgentTasks(agentTasks);
+            gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
         }
     }
 
