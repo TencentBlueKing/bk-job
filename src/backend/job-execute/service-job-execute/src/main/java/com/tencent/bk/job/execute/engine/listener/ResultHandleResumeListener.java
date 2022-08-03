@@ -197,7 +197,7 @@ public class ResultHandleResumeListener {
         if (gseTask.getId() != null) {
             agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         } else {
-            // 兼容旧的调度任务，发布完成后删除
+            // TMP: 兼容旧的调度任务，发布完成后删除
             agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
                 stepInstance.getExecuteCount(), null);
             // 仅包含本次执行的主机
@@ -250,7 +250,7 @@ public class ResultHandleResumeListener {
         if (gseTask.getId() != null) {
             agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         } else {
-            // 兼容旧的调度任务，发布完成后删除
+            // TMP: 兼容旧的调度任务，发布完成后删除
             agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(),
                 stepInstance.getExecuteCount(), null);
             // 仅包含本次执行的主机

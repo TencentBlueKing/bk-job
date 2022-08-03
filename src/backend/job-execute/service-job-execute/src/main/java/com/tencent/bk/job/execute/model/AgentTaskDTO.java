@@ -98,19 +98,19 @@ public class AgentTaskDTO {
      */
     private int errorCode;
     /**
-     * 执行程序退出码， 0 脚本执行成功，非 0 脚本执行失败
+     * 脚本任务-执行程序退出码， 0 脚本执行成功，非 0 脚本执行失败
      */
     private Integer exitCode;
     /**
-     * 执行结果分组
+     * 脚本任务-用户自定义执行结果分组
      */
     private String tag = "";
     /**
-     * 脚本任务日志偏移量。Job 从 GSE 根据 scriptLogOffset 增量拉取执行日志
+     * 脚本任务-日志偏移量。Job 从 GSE 根据 scriptLogOffset 增量拉取执行日志
      */
     private int scriptLogOffset;
     /**
-     * 脚本任务执行日志
+     * 脚本任务-执行日志
      */
     private String scriptLogContent;
     /**
