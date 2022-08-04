@@ -132,7 +132,7 @@ public class EsbGetJobInstanceStatusResourceImpl
                 ipStatus.setIp(agentTask.getIp());
                 ipStatus.setCloudAreaId(agentTask.getBkCloudId());
 
-                ipStatus.setStatus(agentTask.getStatus());
+                ipStatus.setStatus(agentTask.getStatus().getValue());
                 ipResultList.add(ipStatus);
             }
             stepIpResult.put(stepInstance.getId(), ipResultList);

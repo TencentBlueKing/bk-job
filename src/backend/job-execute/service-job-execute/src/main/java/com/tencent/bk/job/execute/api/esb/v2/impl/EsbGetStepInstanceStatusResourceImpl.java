@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
@@ -164,7 +164,7 @@ public class EsbGetStepInstanceStatusResourceImpl
 
             standardStepAnalyseResult.put("result_type", resultGroup.getStatus());
             standardStepAnalyseResult.put("result_type_text",
-                i18nService.getI18n(AgentTaskStatus.valueOf(resultGroup.getStatus()).getI18nKey()));
+                i18nService.getI18n(AgentTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
 
             standardStepAnalyseResultList.add(standardStepAnalyseResult);
         }

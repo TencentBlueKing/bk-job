@@ -58,7 +58,7 @@ public class ScriptAgentTaskServiceImpl
         if (usingNewTable(stepInstanceId)) {
             scriptAgentTaskDAO.batchSaveAgentTasks(agentTasks);
         } else {
-            // 兼容实现，发布之后删除
+            // TMP: 兼容实现，发布之后删除
             gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
         }
 
@@ -80,7 +80,7 @@ public class ScriptAgentTaskServiceImpl
         if (usingNewTable(stepInstanceId)) {
             scriptAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
         } else {
-            // 兼容实现，发布之后删除
+            // TMP: 兼容实现，发布之后删除
             gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
         }
     }
@@ -115,7 +115,7 @@ public class ScriptAgentTaskServiceImpl
                                            Integer batch,
                                            HostDTO host) {
         AgentTaskDTO agentTask = null;
-        // 无损发布兼容，发布完成后删除isStepInstanceRecordExist的判断
+        // TMP: 无损发布兼容，发布完成后删除isStepInstanceRecordExist的判断
         if (isStepInstanceRecordExist(stepInstance.getId())) {
             Long hostId = host.getHostId();
             if (hostId == null) {

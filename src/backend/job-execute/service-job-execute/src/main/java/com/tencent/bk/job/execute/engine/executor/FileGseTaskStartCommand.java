@@ -33,7 +33,7 @@ import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
@@ -259,7 +259,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 sourceHost.getAgentId());
             agentTask.setCloudIp(sourceHost.getIp());
             agentTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
-            agentTask.setStatus(AgentTaskStatus.WAITING.getValue());
+            agentTask.setStatus(AgentTaskStatusEnum.WAITING);
             agentTask.setGseTaskId(gseTask.getId());
             sourceAgentTaskMap.put(sourceHost.getAgentId(), agentTask);
             fileSourceGseAgentTasks.add(agentTask);

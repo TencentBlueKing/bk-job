@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.LogServiceResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
@@ -152,7 +152,7 @@ public class LogServiceImpl implements LogService {
 
         if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
             actualExecuteCount = agentTask.getActualExecuteCount();
-        } else if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
+        } else if (agentTask.getStatus() == AgentTaskStatusEnum.LAST_SUCCESS) {
             // 兼容历史数据
             actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
         }
@@ -180,13 +180,11 @@ public class LogServiceImpl implements LogService {
         if (logDTO == null) {
             return null;
         }
-        int ipStatus = gseTaskIpLog.getStatus();
-        boolean isFinished =
-            ipStatus != AgentTaskStatus.RUNNING.getValue() && ipStatus != AgentTaskStatus.WAITING.getValue();
+        AgentTaskStatusEnum agentTaskStatus = gseTaskIpLog.getStatus();
         String scriptContent = logDTO.getScriptLog() != null ?
             logDTO.getScriptLog().getContent() : "";
         return new ScriptHostLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(), logDTO.getHostId(),
-            logDTO.getIp(), scriptContent, isFinished);
+            logDTO.getIp(), scriptContent, agentTaskStatus.isFinished());
     }
 
     @Override
@@ -263,7 +261,7 @@ public class LogServiceImpl implements LogService {
         }
         if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
             actualExecuteCount = agentTask.getActualExecuteCount();
-        } else if (agentTask.getStatus() == AgentTaskStatus.LAST_SUCCESS.getValue()) {
+        } else if (agentTask.getStatus() == AgentTaskStatusEnum.LAST_SUCCESS) {
             // 兼容历史数据
             actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
         }
@@ -286,10 +284,8 @@ public class LogServiceImpl implements LogService {
             throw new InternalException(resp.getCode());
         }
         List<ServiceFileTaskLogDTO> fileTaskLogs = (resp.getData() == null) ? null : resp.getData().getFileTaskLogs();
-        int ipStatus = agentTask.getStatus();
-        boolean isFinished =
-            (ipStatus != AgentTaskStatus.RUNNING.getValue() && ipStatus != AgentTaskStatus.WAITING.getValue()) ||
-                isAllFileTasksFinished(fileTaskLogs);
+        AgentTaskStatusEnum agentTaskStatus = agentTask.getStatus();
+        boolean isFinished = agentTaskStatus.isFinished() || isAllFileTasksFinished(fileTaskLogs);
         return new FileIpLogContent(stepInstanceId, executeCount, null, fileTaskLogs, isFinished);
     }
 

@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
@@ -47,7 +47,7 @@ import com.tencent.bk.job.execute.engine.model.ScriptTaskLog;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.engine.util.Utils;
+import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.HostVariableValuesDTO;
@@ -362,15 +362,11 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         if (GSECode.AtomicErrorCode.getErrorCode(agentResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
             // 脚本执行失败
             dealAgentFinish(agentId, agentResult, agentTask);
-            int agentTaskStatus = Utils.getStatusByGseErrorCode(agentResult.getBk_error_code());
-            if (agentTaskStatus < 0) {
-                agentTaskStatus = AgentTaskStatus.FAILED.getValue();
-            }
-            agentTask.setStatus(agentTaskStatus);
+            agentTask.setStatus(GseUtils.getStatusByGseErrorCode(agentResult.getBk_error_code()));
         } else if (GSECode.AtomicErrorCode.getErrorCode(agentResult.getBk_error_code())
             == GSECode.AtomicErrorCode.TERMINATE) {
             dealAgentFinish(agentId, agentResult, agentTask);
-            agentTask.setStatus(AgentTaskStatus.GSE_TASK_TERMINATE_SUCCESS.getValue());
+            agentTask.setStatus(AgentTaskStatusEnum.GSE_TASK_TERMINATE_SUCCESS);
             this.isTerminatedSuccess = true;
         } else {
             // 分析GSE的返回状态
@@ -382,7 +378,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                     // 1：原子任务执行中；
                     notStartedTargetAgentIds.remove(agentId);
                     runningTargetAgentIds.add(agentId);
-                    agentTask.setStatus(AgentTaskStatus.RUNNING.getValue());
+                    agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
                     break;
                 case SUCCESS:
                     if (isShellScript && isUserScriptResult) {
@@ -390,14 +386,14 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                             && (taskVariablesAnalyzeResult.isExistChangeableGlobalVar()
                             || taskVariablesAnalyzeResult.isExistNamespaceVar())) {
                             //对于包含云参或者上下文参数的任务，下发任务的时候包含了2个任务；第一个是执行用户脚本；第二个获取参数的值
-                            agentTask.setStatus(AgentTaskStatus.RUNNING.getValue());
+                            agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
                             notStartedTargetAgentIds.remove(agentId);
                             runningTargetAgentIds.add(agentId);
                             refreshPullLogProgress("", agentId, 1);
                         } else {
                             //普通任务，拉取日志，设置为成功
                             dealAgentFinish(agentId, agentResult, agentTask);
-                            agentTask.setStatus(AgentTaskStatus.SUCCESS.getValue());
+                            agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
                             if (this.targetAgentIds.contains(agentId)) {
                                 successTargetAgentIds.add(agentId);
                             }
@@ -405,7 +401,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                     } else {
                         //获取输出参数的任务执行完成，需要分析日志
                         dealAgentFinish(agentId, agentResult, agentTask);
-                        agentTask.setStatus(AgentTaskStatus.SUCCESS.getValue());
+                        agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
                         if (this.targetAgentIds.contains(agentId)) {
                             successTargetAgentIds.add(agentId);
                         }
@@ -417,11 +413,11 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                     break;
                 case TIMEOUT:
                     dealAgentFinish(agentId, agentResult, agentTask);
-                    agentTask.setStatus(AgentTaskStatus.SCRIPT_TIMEOUT.getValue());
+                    agentTask.setStatus(AgentTaskStatusEnum.SCRIPT_TIMEOUT);
                     break;
                 case DISCARD:
                     dealAgentFinish(agentId, agentResult, agentTask);
-                    agentTask.setStatus(AgentTaskStatus.SCRIPT_TERMINATE.getValue());
+                    agentTask.setStatus(AgentTaskStatusEnum.SCRIPT_TERMINATE);
                     break;
                 default:
                     dealAgentFinish(agentId, agentResult, agentTask);
@@ -429,9 +425,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                     int exitCode = getExitCode(agentResult.getExitcode());
                     if (errCode == 0) {
                         if (exitCode != 0) {
-                            agentTask.setStatus(AgentTaskStatus.SCRIPT_NOT_ZERO_EXIT_CODE.getValue());
+                            agentTask.setStatus(AgentTaskStatusEnum.SCRIPT_NOT_ZERO_EXIT_CODE);
                         } else {
-                            agentTask.setStatus(AgentTaskStatus.SCRIPT_FAILED.getValue());
+                            agentTask.setStatus(AgentTaskStatusEnum.SCRIPT_FAILED);
                         }
                         agentTask.setTag(agentResult.getTag());
                     }
@@ -623,7 +619,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     }
 
     @Override
-    protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatus status, String errorMsg) {
+    protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
         super.saveFailInfoForUnfinishedAgentTask(status, errorMsg);
         long endTime = System.currentTimeMillis();
         Set<String> unfinishedAgentIds = new HashSet<>();
@@ -634,7 +630,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                 AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
                 return logService.buildSystemScriptLog(agentTask.getHost(), errorMsg, agentTask.getScriptLogOffset(),
                     endTime);
-                }).collect(Collectors.toList());
+            }).collect(Collectors.toList());
             logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), scriptLogs);
         }

@@ -36,6 +36,7 @@ import java.util.List;
  * GseTaskIpLogDAO
  */
 @CompatibleImplementation(name = "rolling_execute", explain = "兼容老版本数据，过1-2个大版本之后删除", version = "3.7.x")
+@Deprecated
 public interface GseTaskIpLogDAO {
     /**
      * 批量保存/更新Agent任务

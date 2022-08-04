@@ -45,11 +45,37 @@ import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
+import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.tencent.bk.job.execute.model.OperationLogDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
+import com.tencent.bk.job.execute.model.StepExecutionDTO;
+import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
+import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
+import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
+import com.tencent.bk.job.execute.model.TaskExecuteResultDTO;
+import com.tencent.bk.job.execute.model.TaskExecutionDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
-import com.tencent.bk.job.execute.service.*;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskOperationLogService;
+import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +83,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.constant.Order.DESCENDING;
@@ -375,7 +408,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
         AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO();
-        resultGroup.setStatus(AgentTaskStatus.WAITING.getValue());
+        resultGroup.setStatus(AgentTaskStatusEnum.WAITING.getValue());
         resultGroup.setTag(null);
 
         List<HostDTO> targetHosts = filterTargetHostsByBatch(stepInstance, batch);
@@ -405,7 +438,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                     agentTask.setIp(targetHost.getIp());
                     agentTask.setBkCloudId(targetHost.getBkCloudId());
                     agentTask.setBkCloudName(hostService.getCloudAreaName(targetHost.getBkCloudId()));
-                    agentTask.setStatus(AgentTaskStatus.WAITING.getValue());
+                    agentTask.setStatus(AgentTaskStatusEnum.WAITING);
                     agentTask.setTag(null);
                     agentTask.setErrorCode(0);
                     agentTask.setExitCode(0);
@@ -785,13 +818,13 @@ public class TaskResultServiceImpl implements TaskResultService {
                 stepInstanceRollingTask.setStepInstanceId(stepExecutionDetail.getStepInstanceId());
                 stepInstanceRollingTask.setExecuteCount(stepInstance.getExecuteCount());
                 stepInstanceRollingTask.setBatch(batch);
-                stepInstanceRollingTask.setStatus(RunStatusEnum.BLANK.getValue());
+                stepInstanceRollingTask.setStatus(RunStatusEnum.BLANK);
                 if (RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus())
                     && stepInstance.getBatch() + 1 == batch) {
                     // 如果当前步骤状态为"等待用户"，那么需要设置下一批次的滚动任务状态为WAITING_USER
-                    stepInstanceRollingTask.setStatus(RunStatusEnum.WAITING_USER.getValue());
+                    stepInstanceRollingTask.setStatus(RunStatusEnum.WAITING_USER);
                 } else {
-                    stepInstanceRollingTask.setStatus(RunStatusEnum.BLANK.getValue());
+                    stepInstanceRollingTask.setStatus(RunStatusEnum.BLANK);
                 }
             }
             stepInstanceRollingTasks.add(stepInstanceRollingTask);

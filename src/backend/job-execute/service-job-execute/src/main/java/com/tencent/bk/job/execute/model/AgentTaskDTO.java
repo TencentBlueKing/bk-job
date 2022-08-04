@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -80,7 +80,7 @@ public class AgentTaskDTO {
     /**
      * 任务状态
      */
-    private int status = -1;
+    private AgentTaskStatusEnum status;
     /**
      * 任务开始时间
      */
@@ -98,19 +98,19 @@ public class AgentTaskDTO {
      */
     private int errorCode;
     /**
-     * 执行程序退出码， 0 脚本执行成功，非 0 脚本执行失败
+     * 脚本任务-执行程序退出码， 0 脚本执行成功，非 0 脚本执行失败
      */
     private Integer exitCode;
     /**
-     * 执行结果分组
+     * 脚本任务-用户自定义执行结果分组
      */
     private String tag = "";
     /**
-     * 脚本任务日志偏移量。Job 从 GSE 根据 scriptLogOffset 增量拉取执行日志
+     * 脚本任务-日志偏移量。Job 从 GSE 根据 scriptLogOffset 增量拉取执行日志
      */
     private int scriptLogOffset;
     /**
-     * 脚本任务执行日志
+     * 脚本任务-执行日志
      */
     private String scriptLogContent;
     /**
@@ -163,7 +163,7 @@ public class AgentTaskDTO {
         this.changed = agentTask.isChanged();
     }
 
-    public void setStatus(int status) {
+    public void setStatus(AgentTaskStatusEnum status) {
         this.changed = true;
         this.status = status;
     }
@@ -204,7 +204,7 @@ public class AgentTaskDTO {
      * @return 任务是否结束
      */
     public boolean isFinished() {
-        return status != AgentTaskStatus.WAITING.getValue() && status != AgentTaskStatus.RUNNING.getValue();
+        return status != AgentTaskStatusEnum.WAITING && status != AgentTaskStatusEnum.RUNNING;
     }
 
     /**
@@ -220,7 +220,7 @@ public class AgentTaskDTO {
      * 重置任务状态数据
      */
     public void resetTaskInitialStatus() {
-        this.status = AgentTaskStatus.WAITING.getValue();
+        this.status = AgentTaskStatusEnum.WAITING;
         this.startTime = null;
         this.endTime = null;
         this.totalTime = null;
@@ -256,7 +256,7 @@ public class AgentTaskDTO {
      * 任务是否执行成功
      */
     public boolean isSuccess() {
-        return AgentTaskStatus.isSuccess(status);
+        return AgentTaskStatusEnum.isSuccess(status);
     }
 
     public String getAgentId() {

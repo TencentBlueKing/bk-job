@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
@@ -197,12 +197,12 @@ public class ResultHandleResumeListener {
         if (gseTask.getId() != null) {
             agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         } else {
-            // 兼容旧的调度任务，发布完成后删除
+            // TMP: 兼容旧的调度任务，发布完成后删除
             agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
                 stepInstance.getExecuteCount(), null);
             // 仅包含本次执行的主机
             agentTasks = agentTasks.stream()
-                .filter(agentTask -> AgentTaskStatus.LAST_SUCCESS.getValue() != agentTask.getStatus())
+                .filter(agentTask -> AgentTaskStatusEnum.LAST_SUCCESS != agentTask.getStatus())
                 .collect(Collectors.toList());
         }
         agentTasks.forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
@@ -250,12 +250,12 @@ public class ResultHandleResumeListener {
         if (gseTask.getId() != null) {
             agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         } else {
-            // 兼容旧的调度任务，发布完成后删除
+            // TMP: 兼容旧的调度任务，发布完成后删除
             agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(),
                 stepInstance.getExecuteCount(), null);
             // 仅包含本次执行的主机
             agentTasks = agentTasks.stream()
-                .filter(agentTask -> AgentTaskStatus.LAST_SUCCESS.getValue() != agentTask.getStatus())
+                .filter(agentTask -> AgentTaskStatusEnum.LAST_SUCCESS != agentTask.getStatus())
                 .collect(Collectors.toList());
         }
         agentTasks.forEach(agentTask -> {

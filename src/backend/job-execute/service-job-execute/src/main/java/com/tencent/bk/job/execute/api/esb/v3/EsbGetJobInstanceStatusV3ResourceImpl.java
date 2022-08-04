@@ -161,7 +161,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
                         stepIpResult.setEndTime(agentTask.getEndTime());
                         stepIpResult.setTotalTime(agentTask.getTotalTime());
                         stepIpResult.setTag(agentTask.getTag());
-                        stepIpResult.setStatus(agentTask.getStatus());
+                        stepIpResult.setStatus(agentTask.getStatus().getValue());
                         stepIpResults.add(stepIpResult);
                     }
                 }

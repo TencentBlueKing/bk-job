@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,7 @@ import java.util.List;
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @NoArgsConstructor
+@PersistenceObject
 public class RollingServerBatchDO {
     /**
      * 滚动执行批次

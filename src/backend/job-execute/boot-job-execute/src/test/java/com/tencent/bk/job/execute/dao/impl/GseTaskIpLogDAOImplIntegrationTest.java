@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,7 +62,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         assertThat(agentTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(agentTask.getExecuteCount()).isEqualTo(executeCount);
         assertThat(agentTask.getCloudIp()).isEqualTo(ip);
-        assertThat(agentTask.getStatus()).isEqualTo(9);
+        assertThat(agentTask.getStatus()).isEqualTo(AgentTaskStatusEnum.SUCCESS);
         Long expectStartTime = 1565767148000L;
         Long expectEndTime = 1565767149000L;
         assertThat(agentTask.getStartTime()).isEqualTo(expectStartTime);
@@ -81,7 +82,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         agentTask1.setExecuteCount(0);
         agentTask1.setCloudIp("0:127.0.0.1");
         agentTask1.setErrorCode(99);
-        agentTask1.setStatus(1);
+        agentTask1.setStatus(AgentTaskStatusEnum.AGENT_ERROR);
         agentTask1.setExitCode(1);
         agentTasks.add(agentTask1);
 
@@ -95,7 +96,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         agentTask2.setStartTime(startTime);
         long endTime = 1572858331000L;
         agentTask2.setEndTime(endTime);
-        agentTask2.setStatus(2);
+        agentTask2.setStatus(AgentTaskStatusEnum.HOST_NOT_EXIST);
         agentTasks.add(agentTask2);
 
         gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
@@ -105,7 +106,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         assertThat(resultAgentTask1.getExecuteCount()).isEqualTo(0L);
         assertThat(resultAgentTask1.getCloudIp()).isEqualTo("0:127.0.0.1");
         assertThat(resultAgentTask1.getErrorCode()).isEqualTo(99);
-        assertThat(resultAgentTask1.getStatus()).isEqualTo(1);
+        assertThat(resultAgentTask1.getStatus()).isEqualTo(AgentTaskStatusEnum.AGENT_ERROR);
         assertThat(resultAgentTask1.getExitCode()).isEqualTo(1);
 
 
@@ -116,7 +117,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         assertThat(resultAgentTask2.getStartTime()).isEqualTo(startTime);
         assertThat(resultAgentTask2.getEndTime()).isEqualTo(endTime);
         assertThat(resultAgentTask2.getErrorCode()).isEqualTo(88);
-        assertThat(resultAgentTask2.getStatus()).isEqualTo(2);
+        assertThat(resultAgentTask2.getStatus()).isEqualTo(AgentTaskStatusEnum.HOST_NOT_EXIST);
         assertThat(resultAgentTask2.getExitCode()).isEqualTo(1);
     }
 

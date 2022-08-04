@@ -26,7 +26,6 @@ package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -51,10 +50,10 @@ public class ServiceHostLogsDTO {
 
     /**
      * 主机执行日志列表
+     * TMP: 兼容字段，发布后删除,使用hostLogs参数替代
      */
     @ApiModelProperty(value = "主机执行日志")
     @JsonProperty("ipLogs")
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，发布后删除", version = "3.6.x")
     private List<ServiceHostLogDTO> ipLogs;
 
     /**

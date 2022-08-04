@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import org.junit.jupiter.api.DisplayName;
@@ -68,7 +69,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask.getHostId()).isEqualTo(hostId);
         assertThat(agentTask.getAgentId()).isEqualTo("0:127.0.0.1");
         assertThat(agentTask.getGseTaskId()).isEqualTo(1L);
-        assertThat(agentTask.getStatus()).isEqualTo(9);
+        assertThat(agentTask.getStatus()).isEqualTo(AgentTaskStatusEnum.SUCCESS);
         Long expectStartTime = 1565767148000L;
         Long expectEndTime = 1565767149000L;
         assertThat(agentTask.getStartTime()).isEqualTo(expectStartTime);
@@ -96,7 +97,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTask1.setEndTime(1572858335000L);
         agentTask1.setTotalTime(1000L);
         agentTask1.setErrorCode(99);
-        agentTask1.setStatus(1);
+        agentTask1.setStatus(AgentTaskStatusEnum.AGENT_ERROR);
         agentTask1.setTag("aa");
         agentTask1.setExitCode(1);
         agentTaskList.add(agentTask1);
@@ -115,7 +116,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
         agentTask2.setErrorCode(88);
-        agentTask2.setStatus(2);
+        agentTask2.setStatus(AgentTaskStatusEnum.HOST_NOT_EXIST);
         agentTask2.setTag("bb");
         agentTask2.setExitCode(2);
         agentTaskList.add(agentTask2);
@@ -134,7 +135,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getEndTime()).isEqualTo(1572858335000L);
         assertThat(agentTask1Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask1Return.getErrorCode()).isEqualTo(99);
-        assertThat(agentTask1Return.getStatus()).isEqualTo(1);
+        assertThat(agentTask1Return.getStatus()).isEqualTo(AgentTaskStatusEnum.AGENT_ERROR);
         assertThat(agentTask1Return.getTag()).isEqualTo("aa");
         assertThat(agentTask1Return.getExitCode()).isEqualTo(1);
 
@@ -151,7 +152,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(agentTask2Return.getStatus()).isEqualTo(2);
+        assertThat(agentTask2Return.getStatus()).isEqualTo(AgentTaskStatusEnum.HOST_NOT_EXIST);
         assertThat(agentTask2Return.getTag()).isEqualTo("bb");
         assertThat(agentTask2Return.getExitCode()).isEqualTo(2);
     }
@@ -171,7 +172,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTask1.setEndTime(1572858335000L);
         agentTask1.setTotalTime(1000L);
         agentTask1.setErrorCode(99);
-        agentTask1.setStatus(1);
+        agentTask1.setStatus(AgentTaskStatusEnum.AGENT_ERROR);
         agentTask1.setTag("aa");
         agentTask1.setExitCode(1);
         agentTaskList.add(agentTask1);
@@ -189,7 +190,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
         agentTask2.setErrorCode(88);
-        agentTask2.setStatus(2);
+        agentTask2.setStatus(AgentTaskStatusEnum.HOST_NOT_EXIST);
         agentTask2.setTag("bb");
         agentTask2.setExitCode(2);
         agentTaskList.add(agentTask2);
@@ -207,7 +208,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getEndTime()).isEqualTo(1572858335000L);
         assertThat(agentTask1Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask1Return.getErrorCode()).isEqualTo(99);
-        assertThat(agentTask1Return.getStatus()).isEqualTo(1);
+        assertThat(agentTask1Return.getStatus()).isEqualTo(AgentTaskStatusEnum.AGENT_ERROR);
         assertThat(agentTask1Return.getTag()).isEqualTo("aa");
         assertThat(agentTask1Return.getExitCode()).isEqualTo(1);
 
@@ -223,7 +224,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(agentTask2Return.getStatus()).isEqualTo(2);
+        assertThat(agentTask2Return.getStatus()).isEqualTo(AgentTaskStatusEnum.HOST_NOT_EXIST);
         assertThat(agentTask2Return.getTag()).isEqualTo("bb");
         assertThat(agentTask2Return.getExitCode()).isEqualTo(2);
     }
@@ -272,7 +273,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTasks.get(0).getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTasks.get(0).getExecuteCount()).isEqualTo(0);
         assertThat(agentTasks.get(0).getBatch()).isEqualTo(1);
-        assertThat(agentTasks.get(0).getStatus()).isEqualTo(9);
+        assertThat(agentTasks.get(0).getStatus()).isEqualTo(AgentTaskStatusEnum.SUCCESS);
         assertThat(agentTasks.get(0).getTag()).isEqualTo("succ");
     }
 
