@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
@@ -77,7 +77,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
             param[0] = agentTask.getStepInstanceId();
             param[1] = agentTask.getExecuteCount();
             param[2] = agentTask.getCloudIp();
-            param[3] = agentTask.getStatus();
+            param[3] = agentTask.getStatus().getValue();
             param[4] = agentTask.getStartTime();
             param[5] = agentTask.getEndTime();
             param[6] = agentTask.getTotalTime();
@@ -98,7 +98,8 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
 
         return CTX.selectCount().from(t)
-            .where(t.STATUS.in(3, 9))
+            .where(t.STATUS.in(AgentTaskStatusEnum.LAST_SUCCESS.getValue(),
+                AgentTaskStatusEnum.SUCCESS.getValue()))
             .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
             .and(t.IS_TARGET.eq(Bool.TRUE.getValue()))
@@ -263,7 +264,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         agentTask.setExecuteCount(record.get(t.EXECUTE_COUNT));
         agentTask.setCloudIp(record.get(t.IP));
         agentTask.setAgentId(record.get(t.IP));
-        agentTask.setStatus(record.get(t.STATUS));
+        agentTask.setStatus(AgentTaskStatusEnum.valueOf(record.get(t.STATUS)));
         agentTask.setStartTime(record.get(t.START_TIME));
         agentTask.setEndTime(record.get(t.END_TIME));
         agentTask.setTotalTime(record.get(t.TOTAL_TIME));
@@ -294,7 +295,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
         Record record = CTX.select(t.EXECUTE_COUNT).from(t).where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.IP.eq(cloudIp))
-            .and(t.STATUS.eq(AgentTaskStatus.SUCCESS.getValue()))
+            .and(t.STATUS.eq(AgentTaskStatusEnum.SUCCESS.getValue()))
             .orderBy(t.EXECUTE_COUNT.desc())
             .limit(1)
             .fetchOne();

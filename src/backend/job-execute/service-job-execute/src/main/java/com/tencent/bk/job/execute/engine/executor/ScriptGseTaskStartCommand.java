@@ -34,7 +34,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
@@ -710,7 +710,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             agentTask.setStartTime(gseTask.getStartTime());
             agentTask.setEndTime(now);
             agentTask.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), now, null));
-            agentTask.setStatus(AgentTaskStatus.SUBMIT_FAILED.getValue());
+            agentTask.setStatus(AgentTaskStatusEnum.SUBMIT_FAILED);
         }
         logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
         scriptAgentTaskService.batchUpdateAgentTasks(targetAgentTaskMap.values());

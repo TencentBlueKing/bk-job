@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -101,7 +101,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
             param[4] = agentTask.getHostId();
             param[5] = agentTask.getAgentId();
             param[6] = agentTask.getGseTaskId();
-            param[7] = agentTask.getStatus();
+            param[7] = agentTask.getStatus().getValue();
             param[8] = agentTask.getStartTime();
             param[9] = agentTask.getEndTime();
             param[10] = agentTask.getTotalTime();
@@ -127,7 +127,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
         for (AgentTaskDTO agentTask : agentTasks) {
             Object[] param = new Object[13];
             param[0] = agentTask.getGseTaskId();
-            param[1] = agentTask.getStatus();
+            param[1] = agentTask.getStatus().getValue();
             param[2] = agentTask.getStartTime();
             param[3] = agentTask.getEndTime();
             param[4] = agentTask.getTotalTime();
@@ -148,8 +148,8 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
         Integer count = CTX.selectCount()
             .from(T_GSE_SCRIPT_AGENT_TASK)
-            .where(T_GSE_SCRIPT_AGENT_TASK.STATUS.in(AgentTaskStatus.LAST_SUCCESS.getValue(),
-                AgentTaskStatus.SUCCESS.getValue()))
+            .where(T_GSE_SCRIPT_AGENT_TASK.STATUS.in(AgentTaskStatusEnum.LAST_SUCCESS.getValue(),
+                AgentTaskStatusEnum.SUCCESS.getValue()))
             .and(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
             .fetchOne(0, Integer.class);
@@ -316,7 +316,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
         agentTask.setHostId(record.get(T_GSE_SCRIPT_AGENT_TASK.HOST_ID));
         agentTask.setAgentId(record.get(T_GSE_SCRIPT_AGENT_TASK.AGENT_ID));
         agentTask.setGseTaskId(record.get(T_GSE_SCRIPT_AGENT_TASK.GSE_TASK_ID));
-        agentTask.setStatus(record.get(T_GSE_SCRIPT_AGENT_TASK.STATUS));
+        agentTask.setStatus(AgentTaskStatusEnum.valueOf(record.get(T_GSE_SCRIPT_AGENT_TASK.STATUS)));
         agentTask.setStartTime(record.get(T_GSE_SCRIPT_AGENT_TASK.START_TIME));
         agentTask.setEndTime(record.get(T_GSE_SCRIPT_AGENT_TASK.END_TIME));
         agentTask.setTotalTime(record.get(T_GSE_SCRIPT_AGENT_TASK.TOTAL_TIME));

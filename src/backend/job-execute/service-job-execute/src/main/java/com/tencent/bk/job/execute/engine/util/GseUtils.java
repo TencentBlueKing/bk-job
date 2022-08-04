@@ -24,20 +24,60 @@
 
 package com.tencent.bk.job.execute.engine.util;
 
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.Consts;
 
-public class Utils {
+/**
+ * 处理 GSE 工具类
+ */
+public class GseUtils {
+    /**
+     * 字节转换的进制
+     */
+    private static final int SIZE_UNIT = 1024;
+
+    /**
+     * 将字节转换为 human readable format
+     *
+     * @param size 大小(单位Byte)
+     * @return 便于阅读的大小表示
+     */
+    public static String tranByteReadable(double size) {
+        if (size < SIZE_UNIT) {
+            return size + " Bytes";
+        }
+
+        size = changeUnit(size);
+        if (size < SIZE_UNIT) {
+            return size + " KB";
+        }
+
+        size = changeUnit(size);
+        if (size < SIZE_UNIT) {
+            return size + " MB";
+        }
+
+        return changeUnit(size) + " GB";
+    }
+
+    /**
+     * 转换单位
+     */
+    private static double changeUnit(double size) {
+        return (double) Math.round(size / SIZE_UNIT * 1000) / 1000;
+    }
+
     /**
      * 根据gse ErrorCode返回 Status
      */
-    public static int getStatusByGseErrorCode(int gseErrorCode) {
-        Integer status = Consts.GSE_ERROR_CODE_2_STATUS_MAP.get(gseErrorCode);
+    public static AgentTaskStatusEnum getStatusByGseErrorCode(int gseErrorCode) {
+        AgentTaskStatusEnum status = Consts.GSE_ERROR_CODE_2_STATUS_MAP.get(gseErrorCode);
         if (status == null) {
-            if (gseErrorCode > 0)
-                status = -1;
-            else
-                status = AgentTaskStatus.SUCCESS.getValue();
+            if (gseErrorCode > 0) {
+                status = AgentTaskStatusEnum.UNKNOWN_ERROR;
+            } else {
+                status = AgentTaskStatusEnum.SUCCESS;
+            }
         }
         return status;
     }

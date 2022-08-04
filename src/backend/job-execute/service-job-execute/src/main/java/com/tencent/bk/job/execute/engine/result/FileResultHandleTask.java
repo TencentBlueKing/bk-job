@@ -31,10 +31,9 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.consts.GSECode;
-import com.tencent.bk.job.execute.engine.consts.GseConstants;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
@@ -49,8 +48,8 @@ import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.FilePathUtils;
+import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
-import com.tencent.bk.job.execute.engine.util.Utils;
 import com.tencent.bk.job.execute.engine.util.WindowsHelper;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -363,7 +362,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         switch (errorCode) {
             case RUNNING:
                 parseExecutionLog(copyFileRsp, executionLogs);
-                agentTask.setStatus(AgentTaskStatus.RUNNING.getValue());
+                agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
                 if (isDownloadLog) {
                     this.notStartedTargetAgentIds.remove(agentId);
                 }
@@ -382,7 +381,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     analyseAgentTaskResult(errorCode.getValue(), agentId, fileTaskResult.getStartTime(),
                         fileTaskResult.getEndTime(), isDownloadLog);
                 } else {
-                    agentTask.setStatus(AgentTaskStatus.RUNNING.getValue());
+                    agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
                     this.notStartedTargetAgentIds.remove(agentId);
                 }
                 break;
@@ -865,18 +864,15 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         if (successNum >= fileNum) {
             // 每个文件都处理完了，才算IP完成执行
             if (isDownload && isTargetIp) {
-                agentTask.setStatus(AgentTaskStatus.SUCCESS.getValue());
+                agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
                 this.successTargetAgentIds.add(cloudIp);
             }
         } else {
-            int ipStatus = AgentTaskStatus.FAILED.getValue();
+            AgentTaskStatusEnum agentTaskStatus = AgentTaskStatusEnum.FAILED;
             if (errorCode != 0) {
-                ipStatus = Utils.getStatusByGseErrorCode(errorCode);
-                if (ipStatus < 0) {
-                    ipStatus = AgentTaskStatus.FILE_ERROR_UNCLASSIFIED.getValue();
-                }
+                agentTaskStatus = GseUtils.getStatusByGseErrorCode(errorCode);
             }
-            agentTask.setStatus(ipStatus);
+            agentTask.setStatus(agentTaskStatus);
         }
     }
 
@@ -926,7 +922,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             }
             updateFinishedIpStatusAndLog(errorCode, agentId, fileNum, successNum, isDownload, agentTask);
         } else {
-            agentTask.setStatus(AgentTaskStatus.RUNNING.getValue());
+            agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
             this.notStartedTargetAgentIds.remove(agentId);
         }
     }
@@ -945,7 +941,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         if (null != taskResult) {
             Integer mode = taskResult.getMode();
             boolean isDownloadLog = isDownloadLog(mode);
-            String agentId = isDownloadLog ? taskResult.getDestAgentId() : taskResult.getSourceAgentId();
             GSECode.AtomicErrorCode errorCode = GSECode.AtomicErrorCode.getErrorCode(copyFileRsp.getFinalErrorCode());
             String key = taskResult.getTaskId();
             Integer process = processMap.computeIfAbsent(key, k -> -1);
@@ -973,7 +968,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
             if (taskResult.getSize() != null && taskResult.getSize() > 0) {
                 // 兼容GSE不返回size的情况
-                fileSize = GseConstants.tranByteReadable(taskResult.getSize());
+                fileSize = GseUtils.tranByteReadable(taskResult.getSize());
                 logContent.append(" FileSize: ").append(fileSize);
             }
             if (StringUtils.isNotEmpty(taskResult.getStatusDesc())) {

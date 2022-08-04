@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -39,7 +39,7 @@ public class AgentTaskResultGroupBaseDTO implements Comparable<AgentTaskResultGr
     /**
      * 任务状态
      *
-     * @see AgentTaskStatus
+     * @see AgentTaskStatusEnum
      */
     private Integer status;
     /**
