@@ -28,7 +28,9 @@ import brave.ScopedSpan;
 import brave.Tracer;
 import brave.Tracing;
 import brave.propagation.TraceContext;
+import org.slf4j.MDC;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class TraceCallable<V> implements Callable<V> {
@@ -41,16 +43,19 @@ public class TraceCallable<V> implements Callable<V> {
      */
     private final TraceContext parent;
     private Callable<V> delegate;
+    private Map<String, String> mdcContextMap;
 
     public TraceCallable(Callable<V> callable, Tracing tracing) {
         this.delegate = callable;
         this.tracer = tracing.tracer();
         this.parent = tracing.currentTraceContext().get();
+        this.mdcContextMap = MDC.getCopyOfContextMap();
     }
 
     @Override
     public V call() throws Exception {
         ScopedSpan span = this.tracer.startScopedSpanWithParent("async", parent);
+        MDC.setContextMap(mdcContextMap);
         try {
             return delegate.call();
         } catch (Throwable e) {
@@ -58,6 +63,7 @@ public class TraceCallable<V> implements Callable<V> {
             throw e;
         } finally {
             span.finish();
+            MDC.clear();
         }
     }
 }
