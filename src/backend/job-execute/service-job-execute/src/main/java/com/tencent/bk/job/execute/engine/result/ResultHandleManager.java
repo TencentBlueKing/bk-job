@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.result;
 
 import brave.ScopedSpan;
 import brave.Tracing;
+import com.tencent.bk.job.common.trace.executors.TraceRunnable;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -234,7 +235,7 @@ public class ResultHandleManager implements SmartLifecycle {
             for (int workerCount = 0; workerCount < CORE_WORKERS; workerCount++) {
                 TaskWorker worker = new TaskWorker();
                 workers.add(worker);
-                taskExecutor.execute(worker);
+                taskExecutor.execute(new TraceRunnable(worker, tracing));
             }
         }
     }
@@ -296,7 +297,7 @@ public class ResultHandleManager implements SmartLifecycle {
                 if (this.lastWorkerStartedAt + this.startConsumerMinInterval < now) {
                     TaskWorker worker = new TaskWorker();
                     workers.add(worker);
-                    taskExecutor.execute(worker);
+                    taskExecutor.execute(new TraceRunnable(worker, tracing));
                     this.lastWorkerStartedAt = now;
                     log.debug("Add new worker, worker count : {}", workers.size());
                 }
