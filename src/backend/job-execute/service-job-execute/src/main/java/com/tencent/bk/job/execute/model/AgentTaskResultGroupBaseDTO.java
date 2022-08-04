@@ -43,7 +43,7 @@ public class AgentTaskResultGroupBaseDTO implements Comparable<AgentTaskResultGr
      */
     private Integer status;
     /**
-     * 用户脚本输出的分组tag
+     * 用户脚本输出的自定义分组tag
      */
     private String tag;
     /**
