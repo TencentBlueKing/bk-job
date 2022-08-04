@@ -23,5 +23,6 @@
  */
 
 truncate table rolling_config;
-insert into job_execute.rolling_config (id,task_instance_id,config_name,config) values (1,1,'config1', '{"name":"config1","includeStepInstanceIdList":[100,101,102,103],"batchRollingStepInstanceIdList":[100,102,103],"allRollingStepInstanceIdList":[101],"mode":1,"expr":"1 10% 100%","serverBatchList":[{"batch":1,"servers":[{"cloudAreaId":0,"ip":"127.0.0.1"}]},{"batch":2,"servers":[{"cloudAreaId":0,"ip":"127.0.0.2"}]},{"batch":3,"servers":[{"cloudAreaId":0,"ip":"127.0.0.3"},{"cloudAreaId":0,"ip":"127.0.0.4"}]}]}');
+insert into job_execute.rolling_config (id,task_instance_id,config_name,config) values
+(1,1,'config1', '{"name":"config1","includeStepInstanceIdList":[100,101,102,103],"stepRollingConfigs": {"100": {"batch": true},"101": {"batch": false},"102": {"batch": true},"103": {"batch": true}},"mode":1,"expr":"1 10% 100%","hostsBatchList":[{"batch":1,"hosts":[{"cloudAreaId":0,"ip":"127.0.0.1"}]},{"batch":2,"hosts":[{"cloudAreaId":0,"ip":"127.0.0.2"}]},{"batch":3,"hosts":[{"cloudAreaId":0,"ip":"127.0.0.3"},{"cloudAreaId":0,"ip":"127.0.0.4"}]}]}');
 

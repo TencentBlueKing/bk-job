@@ -46,7 +46,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.db.RollingServerBatchDO;
+import com.tencent.bk.job.execute.model.db.RollingHostsBatchDO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
@@ -265,15 +265,15 @@ public class GseStepEventHandler implements StepEventHandler {
             if (stepInstance.isRollingStep() && stepInstance.isFirstRollingBatch()) {
                 // 如果是第一批次的执行，需要初始化所有批次的agent任务（查询需要)
                 if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
-                    List<RollingServerBatchDO> serverBatchList =
-                        rollingConfig.getConfigDetail().getServerBatchList();
+                    List<RollingHostsBatchDO> serverBatchList =
+                        rollingConfig.getConfigDetail().getHostsBatchList();
                     serverBatchList.forEach(serverBatch -> {
                         Integer actualExecuteCount = serverBatch.getBatch() == 1 ? executeCount : null;
                         agentTasks.addAll(buildGseAgentTasks(stepInstanceId,
                             executeCount, actualExecuteCount, serverBatch.getBatch(), gseTaskId,
-                            serverBatch.getServers(), AgentTaskStatusEnum.WAITING));
+                            serverBatch.getHosts(), AgentTaskStatusEnum.WAITING));
                     });
-                } else if (rollingConfig.isAllRollingStep(stepInstanceId)) {
+                } else {
                     // 暂时不支持，滚动执行二期需求
                     log.warn("All rolling step is not supported!");
                     throw new NotImplementedException("All rolling step is not supported",
