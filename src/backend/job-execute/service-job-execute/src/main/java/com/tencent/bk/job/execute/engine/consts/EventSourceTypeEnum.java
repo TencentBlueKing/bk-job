@@ -26,6 +26,9 @@ package com.tencent.bk.job.execute.engine.consts;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+/**
+ * Job 执行引擎任务调度事件源类型
+ */
 public enum EventSourceTypeEnum {
     /**
      * 作业

@@ -92,23 +92,28 @@ public class JobListener {
     @StreamListener(TaskProcessor.INPUT)
     public void handleEvent(JobEvent jobEvent) {
         log.info("Handle job event, event: {}", jobEvent);
-        long taskInstanceId = jobEvent.getTaskInstanceId();
-        int action = jobEvent.getAction();
+        long jobInstanceId = jobEvent.getJobInstanceId();
+        JobActionEnum action = JobActionEnum.valueOf(jobEvent.getAction());
         try {
-            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-            if (JobActionEnum.START.getValue() == action) {
-                startJob(taskInstance);
-            } else if (JobActionEnum.STOP.getValue() == action) {
-                stopJob(taskInstance);
-            } else if (JobActionEnum.RESTART.getValue() == action) {
-                restartJob(taskInstance);
-            } else if (JobActionEnum.REFRESH.getValue() == action) {
-                refreshJob(taskInstance);
-            } else {
-                log.error("Invalid job action: {}", action);
+            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(jobInstanceId);
+            switch (action) {
+                case START:
+                    startJob(taskInstance);
+                    break;
+                case STOP:
+                    stopJob(taskInstance);
+                    break;
+                case RESTART:
+                    restartJob(taskInstance);
+                    break;
+                case REFRESH:
+                    refreshJob(taskInstance);
+                    break;
+                default:
+                    log.error("Invalid job action: {}", action);
             }
         } catch (Throwable e) {
-            String errorMsg = "Handle job event error, taskInstanceId=" + taskInstanceId;
+            String errorMsg = "Handle job event error, jobInstanceId=" + jobInstanceId;
             log.error(errorMsg, e);
         }
     }
@@ -119,20 +124,19 @@ public class JobListener {
      * @param taskInstance 作业实例
      */
     private void startJob(TaskInstanceDTO taskInstance) {
-        long taskInstanceId = taskInstance.getId();
-        log.info("Start job, taskInstanceId: {}", taskInstanceId);
+        long jobInstanceId = taskInstance.getId();
         // 首先验证作业的状态，只有状态为“未执行”的作业可以启动
-        if (RunStatusEnum.BLANK.getValue().equals(taskInstance.getStatus())) {
-            StepInstanceBaseDTO stepInstance = taskInstanceService.getFirstStepInstance(taskInstanceId);
-            taskInstanceService.updateTaskExecutionInfo(taskInstanceId, RunStatusEnum.RUNNING, stepInstance.getId(),
+        if (RunStatusEnum.BLANK == taskInstance.getStatus()) {
+            StepInstanceBaseDTO stepInstance = taskInstanceService.getFirstStepInstance(jobInstanceId);
+            taskInstanceService.updateTaskExecutionInfo(jobInstanceId, RunStatusEnum.RUNNING, stepInstance.getId(),
                 DateUtils.currentTimeMillis(), null, null);
             startStep(stepInstance);
 
             // 触发任务开始统计分析
             statisticsService.updateStartJobStatistics(taskInstance);
         } else {
-            log.error("Unsupported task instance run status for starting job, taskInstanceId={}, status={}",
-                taskInstanceId, taskInstance.getStatus());
+            log.error("Unsupported job instance run status for starting job, jobInstanceId={}, status={}",
+                jobInstanceId, taskInstance.getStatus());
         }
     }
 
@@ -142,19 +146,18 @@ public class JobListener {
      * @param taskInstance 作业实例
      */
     private void stopJob(TaskInstanceDTO taskInstance) {
-        long taskInstanceId = taskInstance.getId();
-        log.info("Stop job, taskInstanceId={}", taskInstanceId);
-        int taskStatus = taskInstance.getStatus();
+        long jobInstanceId = taskInstance.getId();
+        RunStatusEnum taskStatus = taskInstance.getStatus();
 
-        if (RunStatusEnum.RUNNING.getValue() == taskStatus) {
-            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
-        } else if (RunStatusEnum.WAITING_USER.getValue() == taskStatus) {
-            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
+        if (RunStatusEnum.RUNNING == taskStatus) {
+            taskInstanceService.updateTaskStatus(jobInstanceId, RunStatusEnum.STOPPING.getValue());
+        } else if (RunStatusEnum.WAITING_USER == taskStatus) {
+            taskInstanceService.updateTaskStatus(jobInstanceId, RunStatusEnum.STOPPING.getValue());
             long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
             taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.stopStep(currentStepInstanceId));
         } else {
-            log.warn("Unsupported task instance run status for stop task, taskInstanceId={}, status={}",
-                taskInstanceId, taskInstance.getStatus());
+            log.warn("Unsupported job instance run status for stop task, jobInstanceId={}, status={}",
+                jobInstanceId, taskInstance.getStatus());
         }
     }
 
@@ -164,27 +167,26 @@ public class JobListener {
      * @param taskInstance 作业实例
      */
     private void restartJob(TaskInstanceDTO taskInstance) {
-        long taskInstanceId = taskInstance.getId();
-        log.info("Restart job, taskInstanceId={}", taskInstanceId);
-        int taskStatus = taskInstance.getStatus();
+        long jobInstanceId = taskInstance.getId();
+        RunStatusEnum taskStatus = taskInstance.getStatus();
         // 验证作业状态，只有“执行失败”和“等待用户”的作业可以重头执行
-        if (RunStatusEnum.WAITING_USER.getValue() == taskStatus || RunStatusEnum.FAIL.getValue() == taskStatus) {
+        if (RunStatusEnum.WAITING_USER == taskStatus || RunStatusEnum.FAIL == taskStatus) {
 
             // 重置作业状态
-            taskInstanceService.resetTaskStatus(taskInstanceId);
-            taskInstanceService.addStepInstanceExecuteCount(taskInstanceId);
+            taskInstanceService.resetTaskStatus(jobInstanceId);
+            taskInstanceService.addStepInstanceExecuteCount(jobInstanceId);
 
             // 重置作业下步骤的状态、开始时间和结束时间等。
-            List<Long> stepInstanceIdList = taskInstanceService.getTaskStepIdList(taskInstanceId);
+            List<Long> stepInstanceIdList = taskInstanceService.getTaskStepIdList(jobInstanceId);
             for (long stepInstanceId : stepInstanceIdList) {
                 taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.BLANK.getValue());
                 taskInstanceService.resetStepStatus(stepInstanceId);
             }
 
-            taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.startJob(taskInstanceId));
+            taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.startJob(jobInstanceId));
         } else {
-            log.warn("Unsupported task instance run status for restart task, taskInstanceId={}, status={}",
-                taskInstanceId, taskInstance.getStatus());
+            log.warn("Unsupported job instance run status for restart task, jobInstanceId={}, status={}",
+                jobInstanceId, taskInstance.getStatus());
         }
     }
 
@@ -194,40 +196,39 @@ public class JobListener {
      * @param taskInstance 作业实例
      */
     private void refreshJob(TaskInstanceDTO taskInstance) {
-        long taskInstanceId = taskInstance.getId();
-        log.info("Refresh job, taskInstanceId={}", taskInstanceId);
-        int taskStatus = taskInstance.getStatus();
+        long jobInstanceId = taskInstance.getId();
+        RunStatusEnum taskStatus = taskInstance.getStatus();
 
         long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
         StepInstanceBaseDTO currentStepInstance = taskInstanceService.getBaseStepInstance(currentStepInstanceId);
-        int stepStatus = currentStepInstance.getStatus();
+        RunStatusEnum stepStatus = currentStepInstance.getStatus();
 
         // 验证作业状态，只有'正在执行'、'强制终止中'的作业可以刷新状态进入下一步或者结束
-        if (RunStatusEnum.STOPPING.getValue() == taskStatus) {
+        if (RunStatusEnum.STOPPING == taskStatus) {
             // 非正在执行的步骤可以直接终止
-            if (RunStatusEnum.RUNNING.getValue() != stepStatus) {
+            if (RunStatusEnum.RUNNING != stepStatus) {
                 finishJob(taskInstance, currentStepInstance, RunStatusEnum.STOP_SUCCESS);
             } else {
-                log.error("Unsupported task instance run status for refresh task, taskInstanceId={}, taskStatus={}, " +
-                    "stepStatus: {}", taskInstanceId, taskStatus, stepStatus);
+                log.error("Unsupported job instance run status for refresh task, jobInstanceId={}, taskStatus={}, " +
+                    "stepStatus: {}", jobInstanceId, taskStatus, stepStatus);
             }
-        } else if (RunStatusEnum.RUNNING.getValue() == taskStatus) {
+        } else if (RunStatusEnum.RUNNING == taskStatus) {
             // 步骤状态为成功、跳过、设为忽略错误、滚动等待，可以进入下一步
-            if (RunStatusEnum.SUCCESS.getValue() == stepStatus
-                || RunStatusEnum.SKIPPED.getValue() == stepStatus
-                || RunStatusEnum.IGNORE_ERROR.getValue() == stepStatus
-                || RunStatusEnum.ROLLING_WAITING.getValue() == stepStatus) {
+            if (RunStatusEnum.SUCCESS == stepStatus
+                || RunStatusEnum.SKIPPED == stepStatus
+                || RunStatusEnum.IGNORE_ERROR == stepStatus
+                || RunStatusEnum.ROLLING_WAITING == stepStatus) {
                 nextStep(taskInstance, currentStepInstance);
-            } else if (RunStatusEnum.FAIL.getValue() == stepStatus) {
+            } else if (RunStatusEnum.FAIL == stepStatus) {
                 // 步骤失败，任务结束
                 finishJob(taskInstance, currentStepInstance, RunStatusEnum.FAIL);
             } else {
-                log.warn("Unsupported task instance run status for refresh task, taskInstanceId={}, status={}",
-                    taskInstanceId, taskInstance.getStatus());
+                log.warn("Unsupported job instance run status for refresh task, jobInstanceId={}, status={}",
+                    jobInstanceId, taskInstance.getStatus());
             }
         } else {
-            log.warn("Unsupported task instance run status for refresh task, taskInstanceId={}, status={}",
-                taskInstanceId, taskInstance.getStatus());
+            log.warn("Unsupported job instance run status for refresh task, jobInstanceId={}, status={}",
+                jobInstanceId, taskInstance.getStatus());
         }
     }
 
@@ -268,15 +269,15 @@ public class JobListener {
     private void finishJob(TaskInstanceDTO taskInstance,
                            StepInstanceBaseDTO stepInstance,
                            RunStatusEnum jobStatus) {
-        long taskInstanceId = taskInstance.getId();
+        long jobInstanceId = taskInstance.getId();
         long stepInstanceId = stepInstance.getId();
         Long endTime = DateUtils.currentTimeMillis();
         long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
             taskInstance.getTotalTime());
         taskInstance.setEndTime(endTime);
         taskInstance.setTotalTime(totalTime);
-        taskInstance.setStatus(jobStatus.getValue());
-        taskInstanceService.updateTaskExecutionInfo(taskInstanceId, jobStatus, null, null, endTime, totalTime);
+        taskInstance.setStatus(jobStatus);
+        taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
 
         // 作业执行结果消息通知
         if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
@@ -289,7 +290,7 @@ public class JobListener {
         statisticsService.updateEndJobStatistics(taskInstance);
 
         // 作业执行完成回调
-        callback(taskInstance, taskInstanceId, jobStatus.getValue(), stepInstanceId, stepInstance.getStatus());
+        callback(taskInstance, jobInstanceId, jobStatus.getValue(), stepInstanceId, stepInstance.getStatus());
     }
 
     /**
@@ -354,17 +355,17 @@ public class JobListener {
         }
     }
 
-    private void callback(TaskInstanceDTO taskInstance, long taskInstanceId, int taskStatus, long currentStepId,
-                          int stepStatus) {
+    private void callback(TaskInstanceDTO taskInstance, long jobInstanceId, int taskStatus, long currentStepId,
+                          RunStatusEnum stepStatus) {
         if (taskInstance.getCallbackUrl() != null) {
             JobCallbackDTO callback = new JobCallbackDTO();
-            callback.setId(taskInstanceId);
+            callback.setId(jobInstanceId);
             callback.setStatus(taskStatus);
             callback.setCallbackUrl(taskInstance.getCallbackUrl());
             Collection<JobCallbackDTO.StepInstanceStatus> stepInstanceList = Lists.newArrayList();
             JobCallbackDTO.StepInstanceStatus stepInstance = new JobCallbackDTO.StepInstanceStatus();
             stepInstance.setId(currentStepId);
-            stepInstance.setStatus(stepStatus);
+            stepInstance.setStatus(stepStatus.getValue());
             stepInstanceList.add(stepInstance);
             callback.setStepInstances(stepInstanceList);
             taskExecuteMQEventDispatcher.sendCallback(callback);

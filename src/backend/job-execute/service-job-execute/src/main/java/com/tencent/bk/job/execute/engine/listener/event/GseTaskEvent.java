@@ -70,6 +70,16 @@ public class GseTaskEvent extends Event {
      */
     private String requestId;
 
+    /**
+     * 构造启动 GSE 任务 事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param batch          滚动批次
+     * @param gseTaskId      GSE任务ID
+     * @param requestId      请求ID,防止重复下发任务
+     * @return 事件
+     */
     public static GseTaskEvent startGseTask(Long stepInstanceId,
                                             Integer executeCount,
                                             Integer batch,
@@ -85,6 +95,15 @@ public class GseTaskEvent extends Event {
         return gseTaskEvent;
     }
 
+    /**
+     * 构造停止 GSE 任务 事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param batch          滚动批次
+     * @param gseTaskId      GSE任务ID
+     * @return 事件
+     */
     public static GseTaskEvent stopGseTask(Long stepInstanceId,
                                            Integer executeCount,
                                            Integer batch,
@@ -114,9 +133,9 @@ public class GseTaskEvent extends Event {
             .add("action=" + action)
             .add("actionDesc=" + GseTaskActionEnum.valueOf(action))
             .add("gseTaskId=" + gseTaskId)
-            .add("time=" + time)
             .add("requestId='" + requestId + "'")
             .add("source=" + source)
+            .add("time=" + time)
             .toString();
     }
 }

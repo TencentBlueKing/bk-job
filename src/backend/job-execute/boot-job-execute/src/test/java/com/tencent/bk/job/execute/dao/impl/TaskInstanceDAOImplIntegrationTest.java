@@ -90,7 +90,7 @@ class TaskInstanceDAOImplIntegrationTest {
         taskInstance.setOperator("user1");
         taskInstance.setType(TaskTypeEnum.NORMAL.getValue());
         taskInstance.setCreateTime(1572955200000L);
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
         taskInstance.setCallbackUrl("http://bkjob.com");
         taskInstance.setAppCode("bk_monitor");
@@ -109,7 +109,7 @@ class TaskInstanceDAOImplIntegrationTest {
         assertThat(returnTaskInstance.getCreateTime()).isEqualTo(1572955200000L);
         assertThat(returnTaskInstance.getStartTime()).isNull();
         assertThat(returnTaskInstance.getEndTime()).isNull();
-        assertThat(returnTaskInstance.getStatus()).isEqualTo(RunStatusEnum.BLANK.getValue());
+        assertThat(returnTaskInstance.getStatus()).isEqualTo(RunStatusEnum.BLANK);
         assertThat(returnTaskInstance.getStartupMode()).isEqualTo(TaskStartupModeEnum.API.getValue());
         assertThat(returnTaskInstance.getCallbackUrl()).isEqualTo("http://bkjob.com");
         assertThat(taskInstance.getAppCode()).isEqualTo("bk_monitor");

@@ -111,10 +111,6 @@ public class GseStepEventHandler implements StepEventHandler {
         long stepInstanceId = stepEvent.getStepInstanceId();
         try {
             StepActionEnum action = StepActionEnum.valueOf(stepEvent.getAction());
-            if (action == null) {
-                log.error("Invalid step action: {}, Ignore step event!", stepEvent.getAction());
-                return;
-            }
 
             switch (action) {
                 case START:
@@ -171,11 +167,11 @@ public class GseStepEventHandler implements StepEventHandler {
             log.info("Start step, stepInstanceId={}", stepInstanceId);
         }
 
-        int stepStatus = stepInstance.getStatus();
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         // 只有当步骤状态为“未执行”、“滚动等待”, "等待用户"时可以启动步骤
-        if (RunStatusEnum.BLANK.getValue() == stepStatus
-            || RunStatusEnum.ROLLING_WAITING.getValue() == stepStatus
-            || RunStatusEnum.WAITING_USER.getValue() == stepStatus) {
+        if (RunStatusEnum.BLANK == stepStatus
+            || RunStatusEnum.ROLLING_WAITING == stepStatus
+            || RunStatusEnum.WAITING_USER == stepStatus) {
 
             RollingConfigDTO rollingConfig = null;
             if (isRollingStep) {
@@ -365,9 +361,9 @@ public class GseStepEventHandler implements StepEventHandler {
 
         long taskInstanceId = stepInstance.getTaskInstanceId();
         long stepInstanceId = stepInstance.getId();
-        int stepStatus = stepInstance.getStatus();
+        RunStatusEnum stepStatus = stepInstance.getStatus();
 
-        if (RunStatusEnum.STOP_SUCCESS.getValue() == stepStatus) {
+        if (RunStatusEnum.STOP_SUCCESS == stepStatus) {
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
             long endTime = DateUtils.currentTimeMillis();
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
@@ -386,7 +382,7 @@ public class GseStepEventHandler implements StepEventHandler {
     private void ignoreError(StepInstanceDTO stepInstance) {
         log.info("Ignore step error, stepInstanceId={}", stepInstance.getId());
 
-        if (!stepInstance.getStatus().equals(RunStatusEnum.FAIL.getValue())) {
+        if (stepInstance.getStatus() != RunStatusEnum.FAIL) {
             log.warn("Current step status does not support ignore error operation! stepInstanceId:{}, status:{}",
                 stepInstance.getId(), stepInstance.getStatus());
             return;
@@ -420,7 +416,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
 
     private void skipStep(StepInstanceDTO stepInstance) {
-        int stepStatus = stepInstance.getStatus();
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         long stepInstanceId = stepInstance.getId();
         long taskInstanceId = stepInstance.getTaskInstanceId();
 
@@ -433,7 +429,7 @@ public class GseStepEventHandler implements StepEventHandler {
         log.info("Skip step, stepInstanceId={}", stepInstanceId);
 
         // 只有当步骤状态为'终止中'时可以跳过步骤
-        if (RunStatusEnum.STOPPING.getValue() == stepStatus) {
+        if (RunStatusEnum.STOPPING == stepStatus) {
             long now = DateUtils.currentTimeMillis();
             taskInstanceService.updateStepStartTimeIfNull(stepInstanceId, now);
             taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.SKIPPED.getValue());
@@ -452,8 +448,8 @@ public class GseStepEventHandler implements StepEventHandler {
         long stepInstanceId = stepInstance.getId();
         log.info("Force stop step, stepInstanceId={}", stepInstanceId);
 
-        int stepStatus = stepInstance.getStatus();
-        if (stepStatus == RunStatusEnum.WAITING_USER.getValue()) {
+        RunStatusEnum stepStatus = stepInstance.getStatus();
+        if (stepStatus == RunStatusEnum.WAITING_USER) {
             log.info("Step status is WAITING_USER, set step status stop_success directly!");
             // 等待用户的步骤可以直接结束
             long endTime = DateUtils.currentTimeMillis();
@@ -496,7 +492,7 @@ public class GseStepEventHandler implements StepEventHandler {
             log.info("Retry-fail for step, stepInstanceId={}", stepInstanceId);
         }
 
-        RunStatusEnum stepStatus = RunStatusEnum.valueOf(stepInstance.getStatus());
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         if (isStepSupportRetry(stepStatus)) {
 
             resetExecutionInfoForRetry(stepInstance);
@@ -601,7 +597,7 @@ public class GseStepEventHandler implements StepEventHandler {
             log.info("Retry-all for step, stepInstanceId={}", stepInstanceId);
         }
 
-        RunStatusEnum stepStatus = RunStatusEnum.valueOf(stepInstance.getStatus());
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         if (isStepSupportRetry(stepStatus)) {
 
             resetExecutionInfoForRetry(stepInstance);
@@ -779,9 +775,9 @@ public class GseStepEventHandler implements StepEventHandler {
         long endTime = System.currentTimeMillis();
         long startTime = stepInstance.getStartTime();
         long totalTime = endTime - startTime;
-        int stepStatus = stepInstance.getStatus();
+        RunStatusEnum stepStatus = stepInstance.getStatus();
 
-        if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
+        if (stepStatus == RunStatusEnum.STOPPING || stepStatus == RunStatusEnum.RUNNING) {
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
                 startTime, endTime, totalTime);
             if (stepInstance.isRollingStep()) {
@@ -804,7 +800,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
     private void setAbnormalStatusForStep(StepInstanceDTO stepInstance) {
         long endTime = System.currentTimeMillis();
-        if (!RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(stepInstance.getStatus()))) {
+        if (!RunStatusEnum.isFinishedStatus(stepInstance.getStatus())) {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             taskInstanceService.updateStepExecutionInfo(

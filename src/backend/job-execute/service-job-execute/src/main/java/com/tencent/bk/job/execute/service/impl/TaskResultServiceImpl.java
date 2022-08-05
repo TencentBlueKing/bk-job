@@ -188,7 +188,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
 
         TaskExecuteResultDTO taskExecuteResult = new TaskExecuteResultDTO();
-        taskExecuteResult.setFinished(RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(taskInstance.getStatus())));
+        taskExecuteResult.setFinished(RunStatusEnum.isFinishedStatus(taskInstance.getStatus()));
         taskExecuteResult.setTaskInstanceExecutionResult(taskExecution);
         taskExecuteResult.setStepInstanceExecutionResults(stepExecutionList);
 
@@ -200,7 +200,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         taskExecution.setTaskInstanceId(taskInstance.getId());
         taskExecution.setName(taskInstance.getName());
         taskExecution.setType(taskInstance.getType());
-        taskExecution.setStatus(taskInstance.getStatus());
+        taskExecution.setStatus(taskInstance.getStatus().getValue());
         taskExecution.setTotalTime(TaskCostCalculator.calculate(taskInstance.getStartTime(),
             taskInstance.getEndTime(), taskInstance.getTotalTime()));
         taskExecution.setStartTime(taskInstance.getStartTime());
@@ -217,7 +217,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         stepExecution.setStepInstanceId(stepInstance.getId());
         stepExecution.setName(stepInstance.getName());
         stepExecution.setExecuteCount(stepInstance.getExecuteCount());
-        stepExecution.setStatus(stepInstance.getStatus());
+        stepExecution.setStatus(stepInstance.getStatus().getValue());
         stepExecution.setType(StepTypeExecuteTypeConverter.convertToStepType(stepInstance.getExecuteType()));
         stepExecution.setStartTime(stepInstance.getStartTime());
         stepExecution.setEndTime(stepInstance.getEndTime());
@@ -819,7 +819,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                 stepInstanceRollingTask.setExecuteCount(stepInstance.getExecuteCount());
                 stepInstanceRollingTask.setBatch(batch);
                 stepInstanceRollingTask.setStatus(RunStatusEnum.BLANK);
-                if (RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus())
+                if (RunStatusEnum.WAITING_USER == stepInstance.getStatus()
                     && stepInstance.getBatch() + 1 == batch) {
                     // 如果当前步骤状态为"等待用户"，那么需要设置下一批次的滚动任务状态为WAITING_USER
                     stepInstanceRollingTask.setStatus(RunStatusEnum.WAITING_USER);
@@ -909,7 +909,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             CronTaskExecuteResult cronTaskExecuteResult = new CronTaskExecuteResult();
             cronTaskExecuteResult.setCronTaskId(taskInstance.getCronTaskId());
             cronTaskExecuteResult.setPlanId(taskInstance.getTaskId());
-            cronTaskExecuteResult.setStatus(taskInstance.getStatus());
+            cronTaskExecuteResult.setStatus(taskInstance.getStatus().getValue());
             cronTaskExecuteResult.setExecuteTime(taskInstance.getCreateTime());
             return cronTaskExecuteResult;
         }).collect(Collectors.toList());

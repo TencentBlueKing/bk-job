@@ -151,7 +151,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
         taskInstance.setTaskId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setDebugTask(false);
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
         taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
@@ -183,7 +183,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
         stepInstance.setTimeout(request.getTimeout() == null ?
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
-        stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
 
         stepInstance.setDbAccountId(request.getDbAccountId());

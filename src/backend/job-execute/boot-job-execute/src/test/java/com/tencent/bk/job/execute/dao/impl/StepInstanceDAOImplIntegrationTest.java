@@ -107,7 +107,7 @@ public class StepInstanceDAOImplIntegrationTest {
         servers.setIpList(ipList);
         stepInstanceDTO.setTargetServers(servers);
         stepInstanceDTO.setOperator("admin");
-        stepInstanceDTO.setStatus(RunStatusEnum.SUCCESS.getValue());
+        stepInstanceDTO.setStatus(RunStatusEnum.SUCCESS);
         stepInstanceDTO.setExecuteCount(0);
         stepInstanceDTO.setStartTime(1572868800000L);
         stepInstanceDTO.setEndTime(1572868801000L);
@@ -132,7 +132,7 @@ public class StepInstanceDAOImplIntegrationTest {
         expectedServer.add(new HostDTO(0L, "127.0.0.1"));
         assertThat(returnStepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
         assertThat(returnStepInstance.getOperator()).isEqualTo("admin");
-        assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS.getValue());
+        assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS);
         assertThat(returnStepInstance.getExecuteCount()).isEqualTo(0);
         assertThat(returnStepInstance.getStartTime()).isEqualTo(1572868800000L);
         assertThat(returnStepInstance.getEndTime()).isEqualTo(1572868801000L);

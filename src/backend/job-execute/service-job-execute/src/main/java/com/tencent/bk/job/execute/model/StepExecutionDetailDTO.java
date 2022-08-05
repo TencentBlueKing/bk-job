@@ -82,7 +82,7 @@ public class StepExecutionDetailDTO {
     /**
      * 执行状态
      */
-    private int status;
+    private RunStatusEnum status;
     /**
      * GSE TASK ID
      */
@@ -109,7 +109,7 @@ public class StepExecutionDetailDTO {
         this.stepInstanceId = stepInstance.getId();
         this.executeCount = stepInstance.getExecuteCount();
         this.name = stepInstance.getName();
-        this.setFinished(RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(stepInstance.getStatus())));
+        this.setFinished(RunStatusEnum.isFinishedStatus(stepInstance.getStatus()));
         this.status = stepInstance.getStatus();
         this.startTime = stepInstance.getStartTime();
         this.endTime = stepInstance.getEndTime();

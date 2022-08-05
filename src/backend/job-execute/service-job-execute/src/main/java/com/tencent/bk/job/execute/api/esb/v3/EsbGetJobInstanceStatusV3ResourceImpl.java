@@ -114,7 +114,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
                                                                    List<StepInstanceBaseDTO> stepInstances,
                                                                    boolean isReturnIpResult) {
         EsbJobInstanceStatusV3DTO jobInstanceStatus = new EsbJobInstanceStatusV3DTO();
-        jobInstanceStatus.setFinished(RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(taskInstance.getStatus())));
+        jobInstanceStatus.setFinished(RunStatusEnum.isFinishedStatus(taskInstance.getStatus()));
 
         EsbJobInstanceStatusV3DTO.JobInstance jobInstance = new EsbJobInstanceStatusV3DTO.JobInstance();
         EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskInstance.getAppId(), jobInstance);
@@ -123,7 +123,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
         jobInstance.setCreateTime(taskInstance.getCreateTime());
         jobInstance.setStartTime(taskInstance.getStartTime());
         jobInstance.setEndTime(taskInstance.getEndTime());
-        jobInstance.setStatus(taskInstance.getStatus());
+        jobInstance.setStatus(taskInstance.getStatus().getValue());
         jobInstance.setTotalTime(taskInstance.getTotalTime());
         jobInstanceStatus.setJobInstance(jobInstance);
 
@@ -137,7 +137,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
             stepInst.setStartTime(stepInstance.getStartTime());
             stepInst.setType(stepInstance.getExecuteType());
             stepInst.setExecuteCount(stepInstance.getExecuteCount());
-            stepInst.setStatus(stepInstance.getStatus());
+            stepInst.setStatus(stepInstance.getStatus().getValue());
             stepInst.setTotalTime(stepInstance.getTotalTime());
 
             if (isReturnIpResult) {

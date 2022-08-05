@@ -52,10 +52,16 @@ public class StepEvent extends Event {
      */
     private long stepInstanceId;
     /**
-     * 执行批次
+     * 滚动执行批次
      */
     private Integer batch;
 
+    /**
+     * 构造`忽略错误`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent ignoreError(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -64,6 +70,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`下一步`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent nextStep(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -72,6 +84,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`人工确认-重新发起确认`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent confirmStepContinue(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -80,6 +98,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`人工确认-终止流程`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent confirmStepTerminate(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -88,6 +112,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`人工确认-重新发起确认`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent confirmStepRestart(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -96,6 +126,13 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`启动步骤`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param batch          滚动执行批次
+     * @return 事件
+     */
     public static StepEvent startStep(long stepInstanceId, Integer batch) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -105,6 +142,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`跳过步骤`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent skipStep(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -113,6 +156,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`停止步骤`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent stopStep(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -121,6 +170,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`失败IP重试`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent retryStepFail(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -129,6 +184,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`全部重试`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent retryStepAll(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -137,6 +198,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`第三方文件源文件拉取完成后继续GSE分发`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent continueGseFileStep(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -145,6 +212,12 @@ public class StepEvent extends Event {
         return stepEvent;
     }
 
+    /**
+     * 构造`刷新步骤状态`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
     public static StepEvent refreshStep(long stepInstanceId, EventSource eventSource) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -161,8 +234,8 @@ public class StepEvent extends Event {
             .add("actionDesc=" + StepActionEnum.valueOf(action))
             .add("stepInstanceId=" + stepInstanceId)
             .add("batch=" + batch)
-            .add("time=" + time)
             .add("source=" + source)
+            .add("time=" + time)
             .toString();
     }
 }

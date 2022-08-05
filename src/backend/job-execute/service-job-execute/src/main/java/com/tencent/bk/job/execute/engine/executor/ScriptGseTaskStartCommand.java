@@ -36,7 +36,6 @@ import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.gse.ScriptRequestBuilder;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -115,7 +114,6 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      ExecuteMonitor executeMonitor,
                                      JobExecuteConfig jobExecuteConfig,
                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                     ExceptionStatusManager exceptionStatusManager,
                                      GseTasksExceptionCounter gseTasksExceptionCounter,
                                      JobBuildInVariableResolver jobBuildInVariableResolver,
                                      Tracing tracing,
@@ -137,7 +135,6 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeMonitor,
             jobExecuteConfig,
             taskEvictPolicyExecutor,
-            exceptionStatusManager,
             gseTasksExceptionCounter,
             tracing,
             requestId,
@@ -676,7 +673,6 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 stepInstanceVariableValueService,
                 taskExecuteMQEventDispatcher,
                 resultHandleTaskKeepaliveManager,
-                exceptionStatusManager,
                 taskEvictPolicyExecutor,
                 scriptAgentTaskService,
                 stepInstanceService,

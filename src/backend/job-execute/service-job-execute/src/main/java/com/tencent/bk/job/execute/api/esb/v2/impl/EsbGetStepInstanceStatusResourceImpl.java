@@ -120,7 +120,7 @@ public class EsbGetStepInstanceStatusResourceImpl
         stepInst.setName(stepInstance.getName());
         stepInst.setOperator(stepInstance.getOperator());
         stepInst.setExecuteCount(stepInstance.getExecuteCount());
-        stepInst.setStatus(stepInstance.getStatus());
+        stepInst.setStatus(stepInstance.getStatus().getValue());
         stepInst.setStepId(stepInstance.getStepId());
         stepInst.setTaskInstanceId(stepInstance.getTaskInstanceId());
         stepInst.setTotalTime(stepInstance.getTotalTime());
