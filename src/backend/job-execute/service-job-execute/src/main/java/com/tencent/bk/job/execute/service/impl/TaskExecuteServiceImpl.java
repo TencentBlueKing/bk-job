@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -119,6 +118,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -182,7 +182,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   HostService hostService,
                                   ServiceUserResourceClient userResource,
                                   ExecuteAuthService executeAuthService,
-                                  Tracing tracing,
+                                  Tracer tracer,
                                   DangerousScriptCheckService dangerousScriptCheckService,
                                   JobExecuteConfig jobExecuteConfig,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
@@ -200,7 +200,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.userResource = userResource;
         this.executeAuthService = executeAuthService;
         this.GET_HOSTS_BY_TOPO_EXECUTOR = new TraceableExecutorService(new ThreadPoolExecutor(50,
-            100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>()), tracing);
+            100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>()), tracer);
         this.dangerousScriptCheckService = dangerousScriptCheckService;
         this.rollingConfigService = rollingConfigService;
         this.jobExecuteConfig = jobExecuteConfig;

@@ -52,6 +52,7 @@ dependencies {
     implementation 'org.apache.commons:commons-pool2'
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation "org.hibernate.validator:hibernate-validator"
+    implementation "org.springframework.cloud:spring-cloud-sleuth-api"
     // https://mvnrepository.com/artifact/org.apache.curator/curator-framework
     api(group: 'org.apache.curator', name: 'curator-framework', version: '5.1.0')
     // https://mvnrepository.com/artifact/org.apache.curator/curator-recipes

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.web.interceptor;
 
-import brave.Tracer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
@@ -42,6 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -112,7 +113,12 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     private void addRequestId() {
-        String traceId = tracer.currentSpan().context().traceIdString();
+        Span currentSpan = tracer.currentSpan();
+        if (currentSpan == null) {
+            currentSpan = tracer.nextSpan().start();
+        }
+        log.debug("currentSpan={}", currentSpan);
+        String traceId = currentSpan.context().traceId();
         JobContextUtil.setRequestId(traceId);
     }
 

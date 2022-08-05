@@ -24,11 +24,9 @@
 
 package com.tencent.bk.job.common.trace.executors;
 
-import brave.ScopedSpan;
-import brave.Tracer;
-import brave.Tracing;
-import brave.propagation.TraceContext;
 import org.slf4j.MDC;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.Map;
 
@@ -40,29 +38,30 @@ public class TraceRunnable implements Runnable {
     /**
      * 调用链父上下文
      */
-    private final TraceContext parent;
+    private final Span parent;
     private Runnable delegate;
-    private Map<String, String> mdcContextMap;
 
-    public TraceRunnable(Runnable runnable, Tracing tracing) {
+    public TraceRunnable(Runnable runnable, Tracer tracer) {
         this.delegate = runnable;
-        this.tracer = tracing.tracer();
-        this.parent = tracing.currentTraceContext().get();
-        this.mdcContextMap = MDC.getCopyOfContextMap();
+        this.tracer = tracer;
+        this.parent = tracer.currentSpan();
     }
 
     @Override
     public void run() {
-        ScopedSpan span = this.tracer.startScopedSpanWithParent("async", parent);
-        MDC.setContextMap(mdcContextMap);
+        Span span = null;
         try {
+            span = tracer.nextSpan(parent).name("async");
             delegate.run();
         } catch (Throwable e) {
-            span.error(e);
+            if (span != null) {
+                span.error(e);
+            }
             throw e;
         } finally {
-            span.finish();
-            MDC.clear();
+            if (span != null) {
+                span.end();
+            }
         }
     }
 

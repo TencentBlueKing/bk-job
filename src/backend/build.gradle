@@ -70,6 +70,7 @@ ext {
     set("springBootVersion", "2.4.6")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
     set('springCloudVersion', "2020.0.3")
+    set('springCloudOtelVersion', "1.0.0-M2")
     // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
     set('swaggerVersion', "2.9.2")
     set('junitVersion', "5.5.2")
@@ -154,6 +155,12 @@ allprojects {
         mavenLocal()
         maven { url mavenRepoUrl }
         maven { url "https://plugins.gradle.org/m2/" }
+        maven {
+            url "https://repo.spring.io/snapshot"
+        }
+        maven {
+            url "https://repo.spring.io/milestone"
+        }
         mavenCentral()
     }
 }
@@ -198,6 +205,7 @@ subprojects {
             imports {
                 mavenBom "org.springframework.boot:spring-boot-dependencies:$springBootVersion"
                 mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+                mavenBom "org.springframework.cloud:spring-cloud-sleuth-otel-dependencies:${springCloudOtelVersion}"
             }
             dependency "org.junit.jupiter:junit-jupiter:$junitVersion"
             dependency "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
@@ -205,6 +213,7 @@ subprojects {
             dependency "org.springframework.boot:spring-boot-starter-quartz:$springBootVersion"
             dependency "org.springframework.boot:spring-boot-starter-data-redis:$springBootVersion"
             dependency "org.springframework.boot:spring-boot-starter-validation:$springBootVersion"
+            dependency "org.springframework.cloud:spring-cloud-starter-sleuth:3.0.3"
             dependency "org.springframework:spring-jdbc:$springVersion"
             dependency "org.springframework:spring-webflux:$springVersion"
             dependency "org.projectlombok:lombok:$lombokVersion"

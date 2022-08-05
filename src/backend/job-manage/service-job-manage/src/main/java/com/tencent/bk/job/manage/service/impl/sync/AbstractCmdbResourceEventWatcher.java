@@ -1,7 +1,5 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import brave.Span;
-import brave.Tracing;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -12,6 +10,8 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
      */
     private final String machineIp;
     private final RedisTemplate<String, String> redisTemplate;
-    private final Tracing tracing;
+    private final Tracer tracer;
     /**
      * 事件监听任务分布式锁KEY
      */
@@ -41,10 +41,10 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
 
     public AbstractCmdbResourceEventWatcher(String watcherResourceName,
                                             RedisTemplate<String, String> redisTemplate,
-                                            Tracing tracing) {
+                                            Tracer tracer) {
         this.machineIp = IpUtils.getFirstMachineIP();
         this.redisTemplate = redisTemplate;
-        this.tracing = tracing;
+        this.tracer = tracer;
         this.watcherResourceName = watcherResourceName;
         this.setName(watcherResourceName);
         this.redisLockKey = "watch-cmdb-" + this.watcherResourceName + "-lock";
@@ -127,7 +127,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 Span span = null;
                 try {
                     ResourceWatchResult<E> watchResult;
-                    span = this.tracing.tracer().newTrace();
+                    span = this.tracer.nextSpan();
                     if (cursor == null) {
                         // 从10分钟前开始watch
                         long startTime = System.currentTimeMillis() / 1000 - 10 * 60;

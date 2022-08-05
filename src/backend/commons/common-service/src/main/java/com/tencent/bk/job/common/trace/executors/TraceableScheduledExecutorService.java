@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.trace.executors;
 
 
-import brave.Tracing;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
@@ -33,8 +33,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class TraceableScheduledExecutorService extends TraceableExecutorService implements ScheduledExecutorService {
-    public TraceableScheduledExecutorService(final ScheduledExecutorService delegate, final Tracing tracing) {
-        super(delegate, tracing);
+    public TraceableScheduledExecutorService(final ScheduledExecutorService delegate, final Tracer tracer) {
+        super(delegate, tracer);
     }
 
     private ScheduledExecutorService getScheduledExecutorService() {
@@ -43,26 +43,26 @@ public class TraceableScheduledExecutorService extends TraceableExecutorService 
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        Runnable r = new TraceRunnable(command, tracing);
+        Runnable r = new TraceRunnable(command, tracer);
         return getScheduledExecutorService().schedule(r, delay, unit);
     }
 
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        Callable<V> c = new TraceCallable<>(callable, tracing);
+        Callable<V> c = new TraceCallable<>(callable, tracer);
         return getScheduledExecutorService().schedule(c, delay, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        Runnable r = new TraceRunnable(command, tracing);
+        Runnable r = new TraceRunnable(command, tracer);
         return getScheduledExecutorService().scheduleAtFixedRate(r, initialDelay, period, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        Runnable r = new TraceRunnable(command, tracing);
+        Runnable r = new TraceRunnable(command, tracer);
         return getScheduledExecutorService().scheduleWithFixedDelay(r, initialDelay, delay, unit);
     }
 }

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.google.common.collect.Maps;
 import com.tencent.bk.gse.taskapi.api_agent;
 import com.tencent.bk.gse.taskapi.api_script_request;
@@ -61,6 +60,7 @@ import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -134,7 +134,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                         GseTasksExceptionCounter gseTasksExceptionCounter,
                                         JobBuildInVariableResolver jobBuildInVariableResolver,
-                                        Tracing tracing,
+                                        Tracer tracer,
                                         String requestId,
                                         TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
@@ -156,7 +156,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             taskEvictPolicyExecutor,
             gseTasksExceptionCounter,
             jobBuildInVariableResolver,
-            tracing,
+            tracer,
             requestId,
             taskInstance,
             stepInstance,
