@@ -37,14 +37,17 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
-import com.tencent.bk.job.execute.model.db.RollingServerBatchDO;
+import com.tencent.bk.job.execute.model.db.RollingHostsBatchDO;
+import com.tencent.bk.job.execute.model.db.StepRollingConfigDO;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,9 +73,9 @@ public class RollingConfigServiceImpl implements RollingConfigService {
                 // 忽略滚动批次，返回当前步骤的所有目标服务器
                 return stepInstance.getTargetServers().getIpList();
             } else {
-                return rollingConfig.getConfigDetail().getServerBatchList()
+                return rollingConfig.getConfigDetail().getHostsBatchList()
                     .stream().filter(serverBatch -> serverBatch.getBatch().equals(batch))
-                    .findFirst().orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR)).getServers();
+                    .findFirst().orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR)).getHosts();
             }
         } else {
             return stepInstance.getTargetServers().getIpList();
@@ -100,16 +103,19 @@ public class RollingConfigServiceImpl implements RollingConfigService {
             new RollingBatchServersResolver(fastTask.getStepInstance().getTargetServers().getIpList(),
                 rollingConfig.getExpr());
         List<RollingServerBatch> serversBatchList = resolver.resolve();
-        rollingConfigDetailDO.setServerBatchList(
+        rollingConfigDetailDO.setHostsBatchList(
             serversBatchList.stream()
                 .map(rollingServerBatch ->
-                    new RollingServerBatchDO(rollingServerBatch.getBatch(), rollingServerBatch.getServers()))
+                    new RollingHostsBatchDO(rollingServerBatch.getBatch(), rollingServerBatch.getServers()))
                 .collect(Collectors.toList()));
-        rollingConfigDetailDO.setTotalBatch(rollingConfigDetailDO.getServerBatchList().size());
+        rollingConfigDetailDO.setTotalBatch(rollingConfigDetailDO.getHostsBatchList().size());
         taskInstanceRollingConfig.setConfigDetail(rollingConfigDetailDO);
 
         rollingConfigDetailDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
-        rollingConfigDetailDO.setBatchRollingStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
+        Map<Long, StepRollingConfigDO> stepRollingConfigs = new HashMap<>();
+        stepRollingConfigs.put(stepInstance.getId(), new StepRollingConfigDO(true));
+        rollingConfigDetailDO.setStepRollingConfigs(stepRollingConfigs);
+
         Long rollingConfigId= rollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
         taskInstanceRollingConfig.setId(rollingConfigId);
         return taskInstanceRollingConfig;

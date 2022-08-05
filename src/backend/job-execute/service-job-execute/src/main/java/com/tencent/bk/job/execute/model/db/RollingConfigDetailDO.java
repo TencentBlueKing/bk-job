@@ -28,14 +28,17 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 滚动详细配置DO
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@NoArgsConstructor
 @PersistenceObject
 public class RollingConfigDetailDO {
     /**
@@ -51,16 +54,11 @@ public class RollingConfigDetailDO {
     private List<Long> includeStepInstanceIdList;
 
     /**
-     * 分批滚动步骤实例ID列表
+     * 步骤滚动配置
      */
-    @JsonProperty("batchRollingStepInstanceIdList")
-    private List<Long> batchRollingStepInstanceIdList;
+    @JsonProperty("stepRollingConfigs")
+    private Map<Long, StepRollingConfigDO> stepRollingConfigs;
 
-    /**
-     * 全量滚动步骤实例ID列表
-     */
-    @JsonProperty("allRollingStepInstanceIdList")
-    private List<Long> allRollingStepInstanceIdList;
     /**
      * 滚动策略
      *
@@ -78,8 +76,8 @@ public class RollingConfigDetailDO {
     /**
      * 目标服务器滚动分批
      */
-    @JsonProperty("serverBatchList")
-    private List<RollingServerBatchDO> serverBatchList;
+    @JsonProperty("hostsBatchList")
+    private List<RollingHostsBatchDO> hostsBatchList;
 
     /**
      * 滚动总批次

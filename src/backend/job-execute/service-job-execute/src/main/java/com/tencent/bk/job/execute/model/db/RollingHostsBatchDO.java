@@ -33,13 +33,13 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * 滚动执行-服务器分批 DO
+ * 滚动执行-主机分批 DO
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @NoArgsConstructor
 @PersistenceObject
-public class RollingServerBatchDO {
+public class RollingHostsBatchDO {
     /**
      * 滚动执行批次
      */
@@ -47,10 +47,10 @@ public class RollingServerBatchDO {
     /**
      * 该批次的目标服务器
      */
-    private List<HostDTO> servers;
+    private List<HostDTO> hosts;
 
-    public RollingServerBatchDO(Integer batch, List<HostDTO> servers) {
+    public RollingHostsBatchDO(Integer batch, List<HostDTO> hosts) {
         this.batch = batch;
-        this.servers = servers;
+        this.hosts = hosts;
     }
 }
