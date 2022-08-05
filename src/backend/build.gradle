@@ -70,7 +70,7 @@ ext {
     set("springBootVersion", "2.4.6")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
     set('springCloudVersion', "2020.0.3")
-    set('springCloudOtelVersion', "1.0.0-M2")
+    set('springCloudOtelVersion', "1.0.0-M13")
     // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
     set('swaggerVersion', "2.9.2")
     set('junitVersion', "5.5.2")
@@ -271,6 +271,7 @@ subprojects {
     configurations {
         all*.exclude group: 'junit', module: 'junit'
         all*.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        all*.exclude group: 'org.springframework.cloud', module: 'spring-cloud-sleuth-brave'
     }
 }
 apply plugin: TaskTreePlugin

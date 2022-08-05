@@ -68,7 +68,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     /**
      * 调用链父上下文
      */
-    private Span parent;
+    private final Span parent;
 
     /**
      * ScheduledContinuousQueuedTask Constructor
@@ -96,14 +96,13 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     }
 
     private Span getChildSpan() {
-        return this.tracer.nextSpan(parent).name("execute-task").start();
+        return this.tracer.nextSpan(parent).name("execute-task");
     }
 
     @Override
     public void execute() {
-        Span span = null;
-        try {
-            span = getChildSpan();
+        Span span = getChildSpan();
+        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
             doExecute();
         } catch (Exception e) {
             span.error(e);

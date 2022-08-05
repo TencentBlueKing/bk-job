@@ -53,6 +53,9 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation "org.hibernate.validator:hibernate-validator"
     implementation "org.springframework.cloud:spring-cloud-sleuth-api"
+    implementation "org.springframework.cloud:spring-cloud-sleuth-otel"
+    implementation "org.springframework.cloud:spring-cloud-sleuth-otel-autoconfigure"
+    implementation "io.opentelemetry:opentelemetry-exporter-otlp-trace"
     // https://mvnrepository.com/artifact/org.apache.curator/curator-framework
     api(group: 'org.apache.curator', name: 'curator-framework', version: '5.1.0')
     // https://mvnrepository.com/artifact/org.apache.curator/curator-recipes
