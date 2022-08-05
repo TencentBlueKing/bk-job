@@ -67,7 +67,6 @@ import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
@@ -104,7 +103,6 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final TaskInstanceDAO taskInstanceDAO;
     private final StepInstanceDAO stepInstanceDAO;
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskService gseTaskService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
@@ -119,7 +117,6 @@ public class TaskResultServiceImpl implements TaskResultService {
     public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO,
                                  StepInstanceDAO stepInstanceDAO,
                                  TaskInstanceService taskInstanceService,
-                                 GseTaskService gseTaskService,
                                  FileSourceTaskLogDAO fileSourceTaskLogDAO,
                                  ScriptAgentTaskService scriptAgentTaskService,
                                  FileAgentTaskService fileAgentTaskService,
@@ -132,7 +129,6 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.taskInstanceDAO = taskInstanceDAO;
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceService = taskInstanceService;
-        this.gseTaskService = gseTaskService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
@@ -151,9 +147,9 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
             pageData.getData().forEach(taskInstanceDTO -> {
                 if (taskInstanceDTO.getTotalTime() == null) {
-                    if (taskInstanceDTO.getStatus().equals(RunStatusEnum.RUNNING.getValue())
-                        || taskInstanceDTO.getStatus().equals(RunStatusEnum.WAITING_USER.getValue())
-                        || taskInstanceDTO.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+                    RunStatusEnum status = taskInstanceDTO.getStatus();
+                    if (status == RunStatusEnum.RUNNING || status == RunStatusEnum.WAITING_USER
+                        || status == RunStatusEnum.STOPPING) {
                         taskInstanceDTO.setTotalTime((TaskCostCalculator.calculate(taskInstanceDTO.getStartTime(),
                             taskInstanceDTO.getEndTime(), taskInstanceDTO.getTotalTime())));
                     }
@@ -488,7 +484,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
             watch.stop();
 
-            if (stepInstance.getStatus().equals(RunStatusEnum.BLANK.getValue())) {
+            if (stepInstance.getStatus() == RunStatusEnum.BLANK) {
                 // 步骤未启动，AgentTask数据还未在DB初始化，构造初始任务结果
                 return buildNotStartStepExecutionResult(stepInstance, queryExecuteCount, query.getBatch(),
                     query.getMaxAgentTasksForResultGroup(), query.getSearchIp());
@@ -869,8 +865,8 @@ public class TaskResultServiceImpl implements TaskResultService {
             // 已执行完成任务计数
             int doneTaskCount = 0;
             for (TaskInstanceDTO taskInstance : last24HourTaskInstances) {
-                if (!taskInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue())
-                    && !taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+                if (taskInstance.getStatus() != RunStatusEnum.RUNNING
+                    && taskInstance.getStatus() != RunStatusEnum.STOPPING) {
                     doneTaskCount++;
                 }
                 if (doneTaskCount >= 10) {
@@ -947,7 +943,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
         }
 
-        if (stepInstance.getStatus().equals(RunStatusEnum.BLANK.getValue())) {
+        if (stepInstance.getStatus() == RunStatusEnum.BLANK) {
             // 步骤未启动，AgentTask数据还未在DB初始化，构造初始任务结果
             return filterTargetHostsByBatch(stepInstance, query.getBatch());
         }

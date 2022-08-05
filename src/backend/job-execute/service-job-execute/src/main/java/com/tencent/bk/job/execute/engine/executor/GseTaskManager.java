@@ -218,7 +218,7 @@ public class GseTaskManager implements SmartLifecycle {
             }
 
             // 如果任务处于“终止中”状态，直接终止,不需要下发任务给GSE
-            if (taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+            if (taskInstance.getStatus() == RunStatusEnum.STOPPING) {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
                     + "stepInstanceId:{}", taskInstance.getId(), stepInstance.getId());
                 gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());

@@ -389,7 +389,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!isGseTaskTerminating) {
             this.taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
             // 如果任务处于“终止中”状态，触发任务终止
-            if (this.taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+            if (this.taskInstance.getStatus() == RunStatusEnum.STOPPING) {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, " +
                         "stepInstanceId:{}",
                     taskInstance.getId(), stepInstance.getId());

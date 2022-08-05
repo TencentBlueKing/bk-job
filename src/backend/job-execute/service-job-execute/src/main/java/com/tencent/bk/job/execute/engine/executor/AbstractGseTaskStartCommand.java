@@ -172,7 +172,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
         // 添加执行结果处理后台任务
         watch.start("addResultHandleTask");
-        if (stepInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue())) {
+        if (stepInstance.getStatus() == RunStatusEnum.RUNNING) {
             addResultHandleTask();
         }
         watch.stop();
