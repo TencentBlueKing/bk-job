@@ -662,6 +662,7 @@ public class GseStepEventHandler implements StepEventHandler {
             gseTask = gseTaskService.getGseTask(eventSource.getGseTaskId());
         } else {
             // 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景
+            // tmp: 发布完成后可以删除
             gseTask = gseTaskService.getGseTask(eventSource.getStepInstanceId(), eventSource.getExecuteCount(),
                 eventSource.getBatch());
         }
