@@ -521,9 +521,9 @@ Return the Job Trace Env Content
 - name: OTEL_TRACE_REPORT_ENABLED
   value: {{ .Values.job.trace.report.enabled }}
 - name: OTEL_TRACE_REPORT_ENDPOINT_URL
-  value: {{ .Values.job.trace.report.pushUrl }}
+  value: {{ .Values.job.trace.report.pushUrl | quote }}
 - name: OTEL_TRACE_REPORT_BK_DATA_TOKEN
-  value: {{ .Values.job.trace.report.secureKey }}
+  value: {{ .Values.job.trace.report.secureKey | quote }}
 {{- end -}}
 
 {{/*
