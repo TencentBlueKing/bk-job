@@ -219,9 +219,9 @@ public class JobListener {
                 || RunStatusEnum.IGNORE_ERROR == stepStatus
                 || RunStatusEnum.ROLLING_WAITING == stepStatus) {
                 nextStep(taskInstance, currentStepInstance);
-            } else if (RunStatusEnum.FAIL == stepStatus) {
+            } else if (RunStatusEnum.FAIL == stepStatus || RunStatusEnum.ABNORMAL_STATE == stepStatus) {
                 // 步骤失败，任务结束
-                finishJob(taskInstance, currentStepInstance, RunStatusEnum.FAIL);
+                finishJob(taskInstance, currentStepInstance, stepStatus);
             } else {
                 log.warn("Unsupported job instance run status for refresh task, jobInstanceId={}, status={}",
                     jobInstanceId, taskInstance.getStatus());
