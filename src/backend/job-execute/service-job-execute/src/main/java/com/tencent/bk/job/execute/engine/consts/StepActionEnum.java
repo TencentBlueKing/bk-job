@@ -101,6 +101,6 @@ public enum StepActionEnum {
                 return stepAction;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No StepActionEnum constant: " + value);
     }
 }

@@ -36,7 +36,6 @@ import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileDest;
@@ -131,7 +130,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    ExecuteMonitor executeMonitor,
                                    JobExecuteConfig jobExecuteConfig,
                                    TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                   ExceptionStatusManager exceptionStatusManager,
                                    GseTasksExceptionCounter gseTasksExceptionCounter,
                                    StepInstanceService stepInstanceService,
                                    Tracing tracing,
@@ -154,7 +152,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeMonitor,
             jobExecuteConfig,
             taskEvictPolicyExecutor,
-            exceptionStatusManager,
             gseTasksExceptionCounter,
             tracing,
             requestId,
@@ -423,7 +420,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 stepInstanceVariableValueService,
                 taskExecuteMQEventDispatcher,
                 resultHandleTaskKeepaliveManager,
-                exceptionStatusManager,
                 taskEvictPolicyExecutor,
                 fileAgentTaskService,
                 stepInstanceService,

@@ -34,13 +34,42 @@ import lombok.Data;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EventSource {
+    /**
+     * Job 执行引擎任务调度事件源类型
+     */
     private EventSourceTypeEnum sourceType;
-    private Long taskInstanceId;
+
+    /**
+     * 作业实例ID
+     */
+    private Long jobInstanceId;
+
+    /**
+     * 步骤实例ID
+     */
     private Long stepInstanceId;
+
+    /**
+     * 步骤执行次数
+     */
     private Integer executeCount;
+
+    /**
+     * 滚动执行批次
+     */
     private Integer batch;
+
+    /**
+     * GSE 任务ID
+     */
     private Long gseTaskId;
 
+    /**
+     * 构造事件源 - 步骤
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 执行引擎事件源
+     */
     public static EventSource buildStepEventSource(long stepInstanceId) {
         EventSource eventSource = new EventSource();
         eventSource.setStepInstanceId(stepInstanceId);
@@ -48,6 +77,15 @@ public class EventSource {
         return eventSource;
     }
 
+    /**
+     * 构造事件源 - GSE 任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   步骤执行次数
+     * @param batch          滚动执行批次
+     * @param gseTaskId      GSE 任务ID
+     * @return 执行引擎事件源
+     */
     public static EventSource buildGseTaskEventSource(Long stepInstanceId,
                                                       Integer executeCount,
                                                       Integer batch,

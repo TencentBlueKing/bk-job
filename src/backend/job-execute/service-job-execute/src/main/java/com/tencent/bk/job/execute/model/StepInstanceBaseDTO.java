@@ -82,9 +82,8 @@ public class StepInstanceBaseDTO {
     /**
      * 执行状态
      *
-     * @see RunStatusEnum
      */
-    protected Integer status;
+    protected RunStatusEnum status;
     /**
      * 开始时间
      */

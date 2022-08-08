@@ -53,6 +53,6 @@ public enum GseTaskActionEnum {
                 return gseTaskAction;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No GseTaskActionEnum constant: " + value);
     }
 }

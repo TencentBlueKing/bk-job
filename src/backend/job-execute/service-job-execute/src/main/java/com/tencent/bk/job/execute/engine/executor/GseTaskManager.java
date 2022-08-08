@@ -35,7 +35,6 @@ import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -92,7 +91,6 @@ public class GseTaskManager implements SmartLifecycle {
     private final AgentService agentService;
     private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
-    private final ExceptionStatusManager exceptionStatusManager;
     private final Tracing tracing;
     private final ExecuteMonitor executeMonitor;
     private final StorageSystemConfig storageSystemConfig;
@@ -147,7 +145,6 @@ public class GseTaskManager implements SmartLifecycle {
                           StorageSystemConfig storageSystemConfig,
                           AgentService agentService,
                           ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                          ExceptionStatusManager exceptionStatusManager,
                           GseTasksExceptionCounter gseTasksExceptionCounter,
                           Tracing tracing,
                           ExecuteMonitor executeMonitor,
@@ -170,7 +167,6 @@ public class GseTaskManager implements SmartLifecycle {
         this.storageSystemConfig = storageSystemConfig;
         this.agentService = agentService;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.exceptionStatusManager = exceptionStatusManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.tracing = tracing;
         this.executeMonitor = executeMonitor;
@@ -222,7 +218,7 @@ public class GseTaskManager implements SmartLifecycle {
             }
 
             // 如果任务处于“终止中”状态，直接终止,不需要下发任务给GSE
-            if (taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+            if (taskInstance.getStatus() == RunStatusEnum.STOPPING) {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
                     + "stepInstanceId:{}", taskInstance.getId(), stepInstance.getId());
                 gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
@@ -328,7 +324,6 @@ public class GseTaskManager implements SmartLifecycle {
                 executeMonitor,
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
-                exceptionStatusManager,
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
                 tracing,
@@ -355,7 +350,6 @@ public class GseTaskManager implements SmartLifecycle {
                 executeMonitor,
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
-                exceptionStatusManager,
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
                 tracing,
@@ -381,7 +375,6 @@ public class GseTaskManager implements SmartLifecycle {
                 executeMonitor,
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
-                exceptionStatusManager,
                 gseTasksExceptionCounter,
                 stepInstanceServcice,
                 tracing,
@@ -417,7 +410,7 @@ public class GseTaskManager implements SmartLifecycle {
     /**
      * 停止任务
      *
-     * @param gseTask   GSE任务
+     * @param gseTask GSE任务
      */
     public void stopTask(GseTaskDTO gseTask) {
         long stepInstanceId = gseTask.getStepInstanceId();

@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * GSE 任务(脚本执行/文件分发)步骤事件处理
+ * 人工确认步骤事件处理
  */
 @Component
 @Slf4j
@@ -100,7 +100,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
         log.info("Confirm step terminate, stepInstanceId={}", stepInstanceId);
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
-        if (RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus())) {
+        if (RunStatusEnum.WAITING_USER == stepInstance.getStatus()) {
             Long endTime = DateUtils.currentTimeMillis();
             long taskTotalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
                 taskInstance.getTotalTime());
@@ -120,7 +120,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
         long stepInstanceId = stepInstance.getId();
         log.info("Confirm step restart, stepInstanceId={}", stepInstanceId);
 
-        if (RunStatusEnum.CONFIRM_TERMINATED.getValue().equals(stepInstance.getStatus())) {
+        if (RunStatusEnum.CONFIRM_TERMINATED == stepInstance.getStatus()) {
             executeConfirmStep(stepInstance);
         } else {
             log.warn("Unsupported step instance status for confirm-step-restart action, stepInstanceId:{}, status:{}"
@@ -136,8 +136,8 @@ public class ConfirmStepEventHandler implements StepEventHandler {
         long taskInstanceId = stepInstance.getTaskInstanceId();
 
         // 只有“未执行”和“确认终止”状态的，才可以重新执行人工确认步骤
-        if (RunStatusEnum.BLANK.getValue().equals(stepInstance.getStatus())
-            || RunStatusEnum.CONFIRM_TERMINATED.getValue().equals(stepInstance.getStatus())) {
+        if (RunStatusEnum.BLANK == stepInstance.getStatus()
+            || RunStatusEnum.CONFIRM_TERMINATED == stepInstance.getStatus()) {
             // 发送页面确认信息
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
             String stepOperator = stepInstance.getOperator();
@@ -162,8 +162,8 @@ public class ConfirmStepEventHandler implements StepEventHandler {
         long stepInstanceId = stepInstance.getId();
         log.info("Confirm step continue, stepInstanceId={}", stepInstanceId);
 
-        int stepStatus = stepInstance.getStatus();
-        if (RunStatusEnum.WAITING_USER.getValue() == stepStatus) {
+        RunStatusEnum stepStatus = stepInstance.getStatus();
+        if (RunStatusEnum.WAITING_USER == stepStatus) {
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
             long endTime = DateUtils.currentTimeMillis();
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,

@@ -35,7 +35,6 @@ import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.GseRequestPrinter;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -149,7 +148,6 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                                   StepInstanceVariableValueService stepInstanceVariableValueService,
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                  ExceptionStatusManager exceptionStatusManager,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   ScriptAgentTaskService scriptAgentTaskService,
                                   StepInstanceService stepInstanceService,
@@ -166,7 +164,6 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
-            exceptionStatusManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,

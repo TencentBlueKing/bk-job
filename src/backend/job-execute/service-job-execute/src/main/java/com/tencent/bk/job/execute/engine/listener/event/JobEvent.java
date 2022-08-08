@@ -50,35 +50,60 @@ public class JobEvent extends Event {
     /**
      * 作业实例ID
      */
-    private long taskInstanceId;
+    private long jobInstanceId;
 
-    public static JobEvent startJob(long taskInstanceId) {
+    /**
+     * 构造启动作业事件
+     *
+     * @param jobInstanceId 作业实例ID
+     * @return 事件
+     */
+    public static JobEvent startJob(long jobInstanceId) {
         JobEvent jobEvent = new JobEvent();
-        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setJobInstanceId(jobInstanceId);
         jobEvent.setAction(JobActionEnum.START.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
     }
 
-    public static JobEvent stopJob(long taskInstanceId) {
+    /**
+     * 构造停止作业事件
+     *
+     * @param jobInstanceId 作业实例ID
+     * @return 事件
+     */
+    public static JobEvent stopJob(long jobInstanceId) {
         JobEvent jobEvent = new JobEvent();
-        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setJobInstanceId(jobInstanceId);
         jobEvent.setAction(JobActionEnum.STOP.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
     }
 
-    public static JobEvent restartJob(long taskInstanceId) {
+    /**
+     * 构造重新执行作业事件
+     *
+     * @param jobInstanceId 作业实例ID
+     * @return 事件
+     */
+    public static JobEvent restartJob(long jobInstanceId) {
         JobEvent jobEvent = new JobEvent();
-        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setJobInstanceId(jobInstanceId);
         jobEvent.setAction(JobActionEnum.RESTART.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
     }
 
-    public static JobEvent refreshJob(long taskInstanceId, EventSource eventSource) {
+    /**
+     * 构造刷新作业事件
+     *
+     * @param jobInstanceId 作业实例ID
+     * @param eventSource   事件源
+     * @return 事件
+     */
+    public static JobEvent refreshJob(long jobInstanceId, EventSource eventSource) {
         JobEvent jobEvent = new JobEvent();
-        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setJobInstanceId(jobInstanceId);
         jobEvent.setSource(eventSource);
         jobEvent.setAction(JobActionEnum.REFRESH.getValue());
         jobEvent.setTime(LocalDateTime.now());
@@ -90,7 +115,7 @@ public class JobEvent extends Event {
         return new StringJoiner(", ", JobEvent.class.getSimpleName() + "[", "]")
             .add("action=" + action)
             .add("actionDesc=" + JobActionEnum.valueOf(action))
-            .add("taskInstanceId=" + taskInstanceId)
+            .add("jobInstanceId=" + jobInstanceId)
             .add("eventSource=" + source)
             .add("time=" + time)
             .toString();

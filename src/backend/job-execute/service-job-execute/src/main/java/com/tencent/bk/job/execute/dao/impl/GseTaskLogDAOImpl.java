@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 @Deprecated
-@CompatibleImplementation(explain = "兼容历史数据使用，建议使用GseTaskLogDAO", version = "3.6.x")
+@CompatibleImplementation(explain = "兼容历史数据使用，建议使用GseTaskDAO；后续版本移除", version = "3.7.x")
 @Repository
 public class GseTaskLogDAOImpl implements GseTaskLogDAO {
     private final DSLContext CTX;

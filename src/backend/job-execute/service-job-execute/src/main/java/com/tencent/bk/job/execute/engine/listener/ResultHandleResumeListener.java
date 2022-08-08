@@ -29,7 +29,6 @@ import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
@@ -98,8 +97,6 @@ public class ResultHandleResumeListener {
 
     private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
 
-    private final ExceptionStatusManager exceptionStatusManager;
-
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
     private final ScriptAgentTaskService scriptAgentTaskService;
@@ -119,7 +116,6 @@ public class ResultHandleResumeListener {
                                       StepInstanceVariableValueService stepInstanceVariableValueService,
                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                      ExceptionStatusManager exceptionStatusManager,
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                       ScriptAgentTaskService scriptAgentTaskService,
                                       FileAgentTaskService fileAgentTaskService,
@@ -134,7 +130,6 @@ public class ResultHandleResumeListener {
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
@@ -215,7 +210,6 @@ public class ResultHandleResumeListener {
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
-            exceptionStatusManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
@@ -274,7 +268,6 @@ public class ResultHandleResumeListener {
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
-            exceptionStatusManager,
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
@@ -299,7 +292,7 @@ public class ResultHandleResumeListener {
     }
 
     private boolean checkIsTaskResumeable(StepInstanceDTO stepInstance, GseTaskDTO gseTask) {
-        RunStatusEnum stepStatus = RunStatusEnum.valueOf(stepInstance.getStatus());
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
         return (stepStatus == RunStatusEnum.WAITING_USER || stepStatus == RunStatusEnum.RUNNING
             || stepStatus == RunStatusEnum.STOPPING) && (gseTaskStatus == RunStatusEnum.WAITING_USER

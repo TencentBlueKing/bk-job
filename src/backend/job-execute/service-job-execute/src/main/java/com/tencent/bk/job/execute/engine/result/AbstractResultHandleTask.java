@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
@@ -97,7 +96,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
     protected TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
-    protected ExceptionStatusManager exceptionStatusManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected AgentTaskService agentTaskService;
     protected StepInstanceService stepInstanceService;
@@ -212,7 +210,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        StepInstanceVariableValueService stepInstanceVariableValueService,
                                        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                        ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                       ExceptionStatusManager exceptionStatusManager,
                                        TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                        AgentTaskService agentTaskService,
                                        StepInstanceService stepInstanceService,
@@ -229,7 +226,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.agentTaskService = agentTaskService;
         this.stepInstanceService = stepInstanceService;
@@ -393,7 +389,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!isGseTaskTerminating) {
             this.taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
             // 如果任务处于“终止中”状态，触发任务终止
-            if (this.taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+            if (this.taskInstance.getStatus() == RunStatusEnum.STOPPING) {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, " +
                         "stepInstanceId:{}",
                     taskInstance.getId(), stepInstance.getId());
@@ -407,7 +403,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private boolean shouldSkipStep() {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        return stepInstance == null || RunStatusEnum.SKIPPED.getValue().equals(stepInstance.getStatus());
+        return stepInstance == null || RunStatusEnum.SKIPPED == stepInstance.getStatus();
     }
 
     private void saveStatusWhenSkip() {

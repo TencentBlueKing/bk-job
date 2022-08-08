@@ -35,7 +35,6 @@ import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.gse.model.CopyFileRsp;
 import com.tencent.bk.job.execute.engine.gse.model.GSEFileTaskResult;
@@ -173,7 +172,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                                 StepInstanceVariableValueService stepInstanceVariableValueService,
                                 TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                 ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                ExceptionStatusManager exceptionStatusManager,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 FileAgentTaskService fileAgentTaskService,
                                 StepInstanceService stepInstanceService,
@@ -195,7 +193,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
-            exceptionStatusManager,
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
