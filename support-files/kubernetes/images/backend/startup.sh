@@ -1,6 +1,7 @@
 #! /bin/sh
 
 echo "KUBERNETES_NAMESPACE=$KUBERNETES_NAMESPACE"
+echo "BK_JOB_HOME=$BK_JOB_HOME"
 echo "BK_JOB_APP_NAME=$BK_JOB_APP_NAME"
 echo "BK_JOB_STORAGE_BASE_DIR=$BK_JOB_STORAGE_BASE_DIR"
 echo "BK_JOB_STORAGE_OUTER_DIR=$BK_JOB_STORAGE_OUTER_DIR"
@@ -42,7 +43,7 @@ fi
 # OpenTelemetry相关参数
 OTEL_OPTS=""
 if [[ "$OTEL_TRACE_ENABLED" == "true" ]];then
-    OTEL_OPTS="-javaagent:/data/bkee/job/backend/opentelemetry-javaagent.jar"
+    OTEL_OPTS="-javaagent:${BK_JOB_HOME}/opentelemetry-javaagent.jar"
     if [[ "$OTEL_TRACE_REPORT_ENABLED" == "true" ]];then
         OTEL_OPTS="$OTEL_OPTS -Dotel.exporter.otlp.endpoint=$OTEL_TRACE_REPORT_ENDPOINT_URL"
         OTEL_OPTS="$OTEL_OPTS -Dotel.metrics.exporter=none"
