@@ -24,11 +24,8 @@
 
 package com.tencent.bk.job.common.trace.executors;
 
-import org.slf4j.MDC;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
-
-import java.util.Map;
 
 public class TraceRunnable implements Runnable {
     /**

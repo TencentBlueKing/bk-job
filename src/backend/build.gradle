@@ -213,7 +213,6 @@ subprojects {
             dependency "org.springframework.boot:spring-boot-starter-quartz:$springBootVersion"
             dependency "org.springframework.boot:spring-boot-starter-data-redis:$springBootVersion"
             dependency "org.springframework.boot:spring-boot-starter-validation:$springBootVersion"
-            dependency "org.springframework.cloud:spring-cloud-starter-sleuth:3.0.3"
             dependency "org.springframework:spring-jdbc:$springVersion"
             dependency "org.springframework:spring-webflux:$springVersion"
             dependency "org.projectlombok:lombok:$lombokVersion"
