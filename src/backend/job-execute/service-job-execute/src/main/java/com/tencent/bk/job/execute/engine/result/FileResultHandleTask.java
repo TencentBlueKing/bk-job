@@ -231,7 +231,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         }
 
         for (JobFile sendFile : this.sendFiles) {
-            String agentId = sendFile.getAgentId();
+            String agentId = sendFile.getHost().getAgentId();
             this.fileUploadTaskNumMap.put(agentId, this.fileUploadTaskNumMap.get(agentId) == null ? 1 :
                 (this.fileUploadTaskNumMap.get(agentId) + 1));
         }
