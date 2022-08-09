@@ -17,6 +17,9 @@ data:
           name: {{ .Values.job.security.actuator.user.name }}
           password: {{ .Values.job.security.actuator.user.password }}
           roles: ENDPOINT_ADMIN
+    logging:
+      pattern:
+        level: "%5p [${spring.zipkin.service.name:${spring.application.name:}},%X{trace_id:-},%X{span_id:-}]"
     app:
       code: {{ .Values.appCode }}
       secret: {{ .Values.appSecret }}
