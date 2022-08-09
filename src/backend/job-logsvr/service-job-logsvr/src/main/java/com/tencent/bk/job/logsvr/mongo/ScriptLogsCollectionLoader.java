@@ -41,7 +41,7 @@ import java.util.List;
 public class ScriptLogsCollectionLoader extends CollectionLoaderBase {
 
     private static final String IDX_STEP_ID_EXECUTE_COUNT_HOST_ID = "stepId_executeCount_hostId";
-    private static final String IDX_STEP_EXECUTE_COUNT_IP = "stepId_executeCount_ip";
+    private static final String IDX_STEP_EXECUTE_COUNT_IP = "stepId_1_executeCount_1_ip_1";
     private static final String IDX_STEP_ID_HASHED = "stepId_hashed";
 
     @Override
