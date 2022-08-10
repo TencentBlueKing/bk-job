@@ -147,7 +147,7 @@ public class ResultHandleResumeListener {
         if (event.getGseTaskId() != null) {
             gseTask = gseTaskService.getGseTask(event.getGseTaskId());
         } else {
-            // 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景
+            // tmp: 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景,发布完成后删除
             gseTask = gseTaskService.getGseTask(event.getStepInstanceId(), event.getExecuteCount(), event.getBatch());
         }
 
@@ -192,7 +192,7 @@ public class ResultHandleResumeListener {
         if (gseTask.getId() != null) {
             agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         } else {
-            // TMP: 兼容旧的调度任务，发布完成后删除
+            // tmp: 兼容旧的调度任务，发布完成后删除
             agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
                 stepInstance.getExecuteCount(), null);
             // 仅包含本次执行的主机

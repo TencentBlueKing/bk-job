@@ -247,14 +247,17 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         Set<HostDTO> sourceHosts = new HashSet<>();
         if (sendFiles != null) {
             for (JobFile sendFile : sendFiles) {
-                sourceHosts.add(HostDTO.fromHostIdAndAgentId(sendFile.getHostId(), sendFile.getAgentId()));
+                if (sendFile.getHost() != null) {
+                    sourceHosts.add(sendFile.getHost());
+                }
             }
         }
         List<AgentTaskDTO> fileSourceGseAgentTasks = new ArrayList<>();
         for (HostDTO sourceHost : sourceHosts) {
             AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch, sourceHost.getHostId(),
                 sourceHost.getAgentId());
-            agentTask.setCloudIp(sourceHost.getIp());
+            agentTask.setCloudIp(sourceHost.toCloudIp());
+            agentTask.setDisplayIp(sourceHost.getDisplayIp());
             agentTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
             agentTask.setStatus(AgentTaskStatusEnum.WAITING);
             agentTask.setGseTaskId(gseTask.getId());
@@ -287,8 +290,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         // 构造GSE文件分发请求
         for (JobFile file : sendFiles) {
-            FileDest fileDest = srcAndDestMap.get(file.getFileUniqueKey());
-            api_agent src = GseRequestUtils.buildAgent(file.getCloudIp(), file.getAccount(),
+            FileDest fileDest = srcAndDestMap.get(file.getUniqueKey());
+            api_agent src = GseRequestUtils.buildAgent(file.getHost().toCloudIp(), file.getAccount(),
                 file.getPassword());
             api_copy_fileinfoV2 copyFileInfo = GseRequestUtils.buildCopyFileInfo(src, file.getDir(), file.getFileName(),
                 dst, fileDest.getDestDirPath(), fileDest.getDestName(),
@@ -324,7 +327,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             Map<Long, ServiceHostLogDTO> logs = new HashMap<>();
             // 每个要分发的源文件一条上传日志
             for (JobFile file : sendFiles) {
-                Long sourceHostId = file.isLocalUploadFile() ? localAgentHost.getHostId() : file.getHostId();
+                Long sourceHostId = file.getHost().getHostId();
                 ServiceHostLogDTO hostTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                     sourceHostId);
                 hostTaskLog.addFileTaskLog(
@@ -334,8 +337,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                         null,
                         null,
                         sourceHostId,
-                        file.getCloudIp(),
-                        file.getCloudIp(),
+                        file.getHost().toCloudIp(),
+                        file.getHost().toCloudIp(),
                         file.getStandardFilePath(),
                         file.getDisplayFilePath(),
                         "--",
@@ -351,7 +354,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 ServiceHostLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                     targetAgentTask.getHostId());
                 for (JobFile file : sendFiles) {
-                    Long sourceHostId = file.isLocalUploadFile() ? localAgentHost.getHostId() : file.getHostId();
+                    Long sourceHostId = file.getHost().getHostId();
                     ipTaskLog.addFileTaskLog(
                         new ServiceFileTaskLogDTO(
                             FileDistModeEnum.DOWNLOAD.getValue(),
@@ -359,8 +362,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                             agentIdHostMap.get(targetAgentTask.getAgentId()).getIp(),
                             getDestPath(file),
                             sourceHostId,
-                            file.getIp(),
-                            file.getIp(),
+                            file.getHost().toCloudIp(),
+                            file.getHost().toCloudIp(),
                             file.getStandardFilePath(),
                             file.getDisplayFilePath(),
                             "--",
@@ -402,7 +405,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     }
 
     private String getDestPath(JobFile sourceFile) {
-        return sourceDestPathMap.get(sourceFile.getFileUniqueKey());
+        return sourceDestPathMap.get(sourceFile.getUniqueKey());
     }
 
     @Override

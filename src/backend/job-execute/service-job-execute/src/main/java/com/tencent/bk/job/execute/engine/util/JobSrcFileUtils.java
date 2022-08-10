@@ -65,8 +65,8 @@ public class JobSrcFileUtils {
         long currentTime = System.currentTimeMillis();
         for (JobFile srcFile : srcFiles) {
             // 本地文件的源ip是本机ip，展开源文件IP地址宏采用"0.0.0.0"
-            String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir, srcFile.isLocalUploadFile() ?
-                "0_0.0.0.0" : srcFile.getCloudIp());
+            String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir,
+                srcFile.getFileType() == TaskFileTypeEnum.LOCAL ? "0_0.0.0.0" : srcFile.getHost().toCloudIp());
             destDirPath = MacroUtil.resolveDate(destDirPath, currentTime);
             addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetFileName);
         }
@@ -77,7 +77,7 @@ public class JobSrcFileUtils {
                                                  JobFile sourceFile,
                                                  String destDirPath,
                                                  String destName) {
-        sourceDestPathMap.put(sourceFile.getFileUniqueKey(), buildFileDest(sourceFile, destDirPath, destName));
+        sourceDestPathMap.put(sourceFile.getUniqueKey(), buildFileDest(sourceFile, destDirPath, destName));
     }
 
     private static FileDest buildFileDest(JobFile sourceFile, String destDirPath, String destName) {
@@ -137,12 +137,12 @@ public class JobSrcFileUtils {
                         if (predicate.test(sourceHost)) {
                             // 第三方源文件的displayName不同
                             if (isThirdFile) {
-                                sendFiles.add(new JobFile(false, sourceHost,
+                                sendFiles.add(new JobFile(TaskFileTypeEnum.FILE_SOURCE, sourceHost,
                                     file.getThirdFilePathWithFileSourceName(),
                                     file.getThirdFilePathWithFileSourceName(),
                                     dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
                             } else {
-                                sendFiles.add(new JobFile(false, sourceHost, filePath, filePath, dir,
+                                sendFiles.add(new JobFile(TaskFileTypeEnum.SERVER, sourceHost, filePath, filePath, dir,
                                     fileName, stepInstance.getAppId(), accountId, accountAlias));
                             }
                         }
@@ -160,12 +160,12 @@ public class JobSrcFileUtils {
                     if (servers != null && servers.getIpList() != null && !servers.getIpList().isEmpty()) {
                         List<HostDTO> ipList = servers.getIpList();
                         for (HostDTO hostDTO : ipList) {
-                            sendFiles.add(new JobFile(fileSource.isLocalUpload(), hostDTO, file.getFilePath(), dir,
+                            sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, hostDTO, file.getFilePath(), dir,
                                 fileName, "root", null,
                                 FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                         }
                     } else {
-                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), localHost, file.getFilePath(), dir,
+                        sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, localHost, file.getFilePath(), dir,
                             fileName, "root", null,
                             FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                     }
@@ -179,7 +179,7 @@ public class JobSrcFileUtils {
                     String fileName = fileNameAndPath.getRight();
                     List<HostDTO> ipList = fileSource.getServers().getIpList();
                     for (HostDTO hostDTO : ipList) {
-                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), hostDTO, file.getFilePath(), dir,
+                        sendFiles.add(new JobFile(TaskFileTypeEnum.BASE64_FILE, hostDTO, file.getFilePath(), dir,
                             fileName, "root", null,
                             FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                     }
@@ -201,7 +201,7 @@ public class JobSrcFileUtils {
         sourceFiles.forEach(sourceFile -> {
             Pair<String, String> pair = FilePathUtils.parseDirAndFileName(sourceFile.getFilePath());
             String standardPath = FilePathUtils.standardizedDirPath(pair.getLeft()) + pair.getRight();
-            if (sourceFile.isLocalUploadFile() && !standardPath.startsWith(localUploadDir)) {
+            if (sourceFile.getFileType() == TaskFileTypeEnum.LOCAL && !standardPath.startsWith(localUploadDir)) {
                 sourceFileDisplayMap.put(PathUtil.joinFilePath(localUploadDir, standardPath),
                     sourceFile.getDisplayFilePath());
             } else {

@@ -84,8 +84,9 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
             param[7] = agentTask.getErrorCode();
             param[8] = agentTask.getExitCode();
             param[9] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
+            param[11] = StringUtils.isNotEmpty(agentTask.getDisplayIp()) ? agentTask.getDisplayIp() :
+                agentTask.getCloudIp();
             param[10] = agentTask.getScriptLogOffset();
-            param[11] = agentTask.getCloudIp();
             param[12] = agentTask.getFileTaskMode() != FileTaskModeEnum.UPLOAD ? 1 : 0;
             param[13] = agentTask.getFileTaskMode() == FileTaskModeEnum.UPLOAD ? 1 : 0;
             params[batchCount++] = param;

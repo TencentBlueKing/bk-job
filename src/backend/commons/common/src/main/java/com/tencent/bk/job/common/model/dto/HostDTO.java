@@ -224,4 +224,18 @@ public class HostDTO implements Cloneable {
             return toCloudIp();
         }
     }
+
+    /**
+     * 获取主机的唯一KEY，用于去重等操作
+     *
+     * @return 主机KEY
+     */
+    @JsonIgnore
+    public String getUniqueKey() {
+        if (hostId != null) {
+            return "HOST_ID:" + hostId;
+        } else {
+            return "HOST_IP:" + toCloudIp();
+        }
+    }
 }

@@ -231,7 +231,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         }
 
         for (JobFile sendFile : this.sendFiles) {
-            String agentId = sendFile.getAgentId();
+            String agentId = sendFile.getHost().getAgentId();
             this.fileUploadTaskNumMap.put(agentId, this.fileUploadTaskNumMap.get(agentId) == null ? 1 :
                 (this.fileUploadTaskNumMap.get(agentId) + 1));
         }
@@ -283,8 +283,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     @Override
     GseTaskExecuteResult analyseGseTaskResult(GseLog<api_map_rsp> taskDetail) {
         Set<Map.Entry<String, String>> ipResults = taskDetail.getGseLog().getResult().entrySet();
-        // 执行日志, Map<hostId, 日志>
-        Map<Long, ServiceHostLogDTO> executionLogs = new HashMap<>();
+        // 执行日志, Map<hostKey, 日志>
+        Map<String, ServiceHostLogDTO> executionLogs = new HashMap<>();
 
         StopWatch watch = new StopWatch("analyse-gse-file-task");
         watch.start("analyse");
@@ -347,7 +347,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void analyseFileResult(String agentId, CopyFileRsp copyFileRsp,
-                                   Map<Long, ServiceHostLogDTO> executionLogs,
+                                   Map<String, ServiceHostLogDTO> executionLogs,
                                    boolean isDownloadLog) {
         AgentTaskDTO agentTask = getAgentTask(isDownloadLog, agentId);
         if (agentTask.getStartTime() == null) {
@@ -637,7 +637,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void recordFinishedFileSourceAgentIds(CopyFileRsp copyFileRsp,
-                                                  Map<Long, ServiceHostLogDTO> executionLogs,
+                                                  Map<String, ServiceHostLogDTO> executionLogs,
                                                   Set<String> affectIps) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String destAgentId = taskResult.getDestAgentId();
@@ -675,7 +675,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void recordFinishedFile(CopyFileRsp copyFileRsp,
-                                    Map<Long, ServiceHostLogDTO> executionLogs,
+                                    Map<String, ServiceHostLogDTO> executionLogs,
                                     Set<String> affectIps) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String destAgentId = taskResult.getDestAgentId();
@@ -719,7 +719,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void dealIpTaskFail(CopyFileRsp copyFileRsp,
-                                Map<Long, ServiceHostLogDTO> executionLogs,
+                                Map<String, ServiceHostLogDTO> executionLogs,
                                 boolean isDownloadLog) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
 
@@ -768,7 +768,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
      * @param executionLogs          执行日志总Map
      * @param affectedTargetAgentIds 受影响的目标Agent集合
      */
-    private void dealUploadFail(CopyFileRsp copyFileRsp, Map<Long, ServiceHostLogDTO> executionLogs,
+    private void dealUploadFail(CopyFileRsp copyFileRsp, Map<String, ServiceHostLogDTO> executionLogs,
                                 Set<String> affectedTargetAgentIds) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String sourceAgentId = taskResult.getSourceAgentId();
@@ -933,7 +933,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     /*
      * 从执行结果生成执行日志
      */
-    private void parseExecutionLog(CopyFileRsp copyFileRsp, Map<Long, ServiceHostLogDTO> executionLogs) {
+    private void parseExecutionLog(CopyFileRsp copyFileRsp, Map<String, ServiceHostLogDTO> executionLogs) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         if (null != taskResult) {
             Integer mode = taskResult.getMode();
@@ -1079,23 +1079,35 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
 
-    private void addFileTaskLog(Map<Long, ServiceHostLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
+    private void addFileTaskLog(Map<String, ServiceHostLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
         boolean isDownloadLog = isDownloadLog(fileTaskLog.getMode());
-        long hostId = isDownloadLog ? fileTaskLog.getDestHostId() : fileTaskLog.getSrcHostId();
-        ServiceHostLogDTO hostLog = hostLogs.get(hostId);
+        Long hostId = isDownloadLog ? fileTaskLog.getDestHostId() : fileTaskLog.getSrcHostId();
+        // tmp: 需要兼容发布过程中只有ip，没有hostId的场景
+        String cloudIp = isDownloadLog ? fileTaskLog.getDestIp() : fileTaskLog.getSrcIp();
+        String hostKey = buildHostKey(hostId, cloudIp);
+        ServiceHostLogDTO hostLog = hostLogs.get(hostKey);
         if (hostLog == null) {
             hostLog = new ServiceHostLogDTO();
             hostLog.setStepInstanceId(stepInstanceId);
             hostLog.setHostId(hostId);
-            hostLog.setIp(isDownloadLog ? fileTaskLog.getDestIp() : fileTaskLog.getSrcIp());
+            hostLog.setIp(cloudIp);
             hostLog.setBatch(stepInstance.getBatch());
             hostLog.setExecuteCount(stepInstance.getExecuteCount());
-            hostLogs.put(hostId, hostLog);
+            hostLogs.put(hostKey, hostLog);
         }
         hostLog.addFileTaskLog(fileTaskLog);
     }
 
-    private void writeFileTaskLogContent(Map<Long, ServiceHostLogDTO> executionLogs) {
+    private String buildHostKey(Long hostId, String cloudIp) {
+        if (hostId != null) {
+            // 优先使用hostId
+            return "HOST_ID_" + hostId;
+        } else {
+            return "HOST_IP_" + cloudIp;
+        }
+    }
+
+    private void writeFileTaskLogContent(Map<String, ServiceHostLogDTO> executionLogs) {
         if (!executionLogs.isEmpty()) {
             logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
         }
