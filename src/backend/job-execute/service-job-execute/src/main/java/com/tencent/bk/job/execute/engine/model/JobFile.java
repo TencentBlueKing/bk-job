@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.model;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.util.FilePathUtils;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.Data;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
@@ -37,13 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 @ToString(exclude = {"password"})
 public class JobFile {
     /**
-     * 是否本地文件
+     * 文件类型
      */
-    private boolean localUploadFile;
-    /**
-     * 是否包含敏感信息
-     */
-    private boolean sensitive;
+    private TaskFileTypeEnum fileType;
     /**
      * 源文件主机
      */
@@ -96,16 +93,16 @@ public class JobFile {
     private String uniqueKey;
 
     /**
-     * @param isLocalUploadFile 是否本地文件
-     * @param host              源文件主机
-     * @param filePath          文件路径
-     * @param dir               目录名称
-     * @param fileName          文件名
-     * @param account           源文件账号
-     * @param password          源文件密码
-     * @param displayFilePath   要展示的文件路径
+     * @param fileType        文件类型
+     * @param host            源文件主机
+     * @param filePath        文件路径
+     * @param dir             目录名称
+     * @param fileName        文件名
+     * @param account         源文件账号
+     * @param password        源文件密码
+     * @param displayFilePath 要展示的文件路径
      */
-    public JobFile(boolean isLocalUploadFile,
+    public JobFile(TaskFileTypeEnum fileType,
                    HostDTO host,
                    String filePath,
                    String dir,
@@ -113,7 +110,7 @@ public class JobFile {
                    String account,
                    String password,
                    String displayFilePath) {
-        this.localUploadFile = isLocalUploadFile;
+        this.fileType = fileType;
         this.host = host;
         this.filePath = filePath;
         this.dir = dir;
@@ -121,10 +118,20 @@ public class JobFile {
         this.account = account;
         this.password = password;
         this.displayFilePath = displayFilePath;
-        this.sensitive = this.localUploadFile;
     }
 
-    public JobFile(boolean isLocalUploadFile,
+    /**
+     * @param fileType        文件类型
+     * @param host            源文件主机
+     * @param filePath        文件路径
+     * @param displayFilePath 要展示的文件路径
+     * @param dir             目录名称
+     * @param fileName        文件名
+     * @param appId           业务ID
+     * @param accountId       账号ID
+     * @param accountAlias    账号别名
+     */
+    public JobFile(TaskFileTypeEnum fileType,
                    HostDTO host,
                    String filePath,
                    String displayFilePath,
@@ -133,7 +140,7 @@ public class JobFile {
                    Long appId,
                    Long accountId,
                    String accountAlias) {
-        this.localUploadFile = isLocalUploadFile;
+        this.fileType = fileType;
         this.host = host;
         this.filePath = filePath;
         this.displayFilePath = displayFilePath;
@@ -142,7 +149,6 @@ public class JobFile {
         this.appId = appId;
         this.accountId = accountId;
         this.accountAlias = accountAlias;
-        this.sensitive = this.localUploadFile;
     }
 
     @Override
@@ -166,18 +172,6 @@ public class JobFile {
         return getUniqueKey().hashCode();
     }
 
-    public String getDisplayFilePath() {
-        if (!StringUtils.isEmpty(this.displayFilePath)) {
-            return this.displayFilePath;
-        }
-        if (localUploadFile) {
-            this.displayFilePath = this.fileName;
-        } else {
-            this.displayFilePath = this.filePath;
-        }
-        return this.displayFilePath;
-    }
-
     /**
      * 获取文件的唯一KEY，用于去重等操作
      *
@@ -188,13 +182,12 @@ public class JobFile {
             return this.uniqueKey;
         }
         StringBuilder sb = new StringBuilder();
-        if (localUploadFile) {
-            // 本地文件，文件名即可唯一确定文件
-            sb.append("LOCAL:").append(fileName);
-        } else {
-            // 远程服务器文件，需要主机+文件标准路径才可以唯一确定文件
-            sb.append(host.getUniqueKey()).append(":").append(getStandardFilePath());
+        sb.append(fileType.name()).append(":");
+        if (fileType == TaskFileTypeEnum.SERVER) {
+            // 远程文件分发，需要源主机信息才能唯一确定一个源文件
+            sb.append(host.getUniqueKey()).append(":");
         }
+        sb.append(getStandardFilePath());
         this.uniqueKey = sb.toString();
         return this.uniqueKey;
     }

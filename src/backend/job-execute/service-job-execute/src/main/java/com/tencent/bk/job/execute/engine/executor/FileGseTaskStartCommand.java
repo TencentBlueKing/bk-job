@@ -327,7 +327,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             Map<Long, ServiceHostLogDTO> logs = new HashMap<>();
             // 每个要分发的源文件一条上传日志
             for (JobFile file : sendFiles) {
-                Long sourceHostId = file.isLocalUploadFile() ? localAgentHost.getHostId() : file.getHost().getHostId();
+                Long sourceHostId = file.getHost().getHostId();
                 ServiceHostLogDTO hostTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                     sourceHostId);
                 hostTaskLog.addFileTaskLog(
@@ -354,8 +354,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 ServiceHostLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                     targetAgentTask.getHostId());
                 for (JobFile file : sendFiles) {
-                    Long sourceHostId = file.isLocalUploadFile() ?
-                        localAgentHost.getHostId() : file.getHost().getHostId();
+                    Long sourceHostId = file.getHost().getHostId();
                     ipTaskLog.addFileTaskLog(
                         new ServiceFileTaskLogDTO(
                             FileDistModeEnum.DOWNLOAD.getValue(),
