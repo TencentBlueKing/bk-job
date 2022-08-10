@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: job-manage
   profiles:
     active: prod
 

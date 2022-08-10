@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: job-gateway
   cloud:
     kubernetes:
       config:
@@ -9,3 +11,6 @@ spring:
             name: ${JOB_APPLICATION_CONFIGMAP_NAME}
           - namespace: ${KUBERNETES_NAMESPACE}
             name: ${JOB_COMMON_CONFIGMAP_NAME}
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"

@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: job-backup
   profiles:
     active: prod
 ribbon:
