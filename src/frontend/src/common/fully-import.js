@@ -26,7 +26,6 @@
 import Vue from 'vue';
 import bkMagicVue from 'bk-magic-vue';
 import VueProgressBar from 'vue-progressbar';
-import VueCompositionAPI from '@vue/composition-api';
 import AuthRouterLink from '@components/auth/router-link';
 import AuthButton from '@components/auth/button';
 import AuthOption from '@components/auth/option';
@@ -56,6 +55,8 @@ import ResizeableBox from '@components/resizeable-box';
 import Test from '@components/test';
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 
+import IpSelector from '@components/ip-selector';
+
 Vue.use(bkMagicVue);
 Vue.use(VueProgressBar, {
     color: '#3A84FF',
@@ -70,7 +71,6 @@ Vue.use(VueProgressBar, {
     position: 'absolute',
     autoFinish: false,
 });
-Vue.use(VueCompositionAPI);
 
 Vue.component('AuthRouterLink', AuthRouterLink);
 Vue.component('AuthButton', AuthButton);
@@ -95,6 +95,8 @@ Vue.component('ScrollFaker', ScrollFaker);
 Vue.component('SmartAction', SmartAction);
 Vue.component('ElementTeleport', ElementTeleport);
 Vue.component('ResizeableBox', ResizeableBox);
+Vue.component('IpSelector', IpSelector);
+
 Vue.use(Cursor);
 Vue.use(Request);
 Vue.use(TippyTips);

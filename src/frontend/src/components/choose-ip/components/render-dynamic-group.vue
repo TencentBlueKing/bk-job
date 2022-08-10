@@ -53,17 +53,18 @@
                         </tr>
                     </thead>
                     <tbody v-if="renderList.length > 0">
-                        <template v-for="group in renderList">
-                            <tr class="group-row" :key="group.id">
-                                <td @click="handleGroupCheck(group.id)">
-                                    <bk-checkbox :checked="checkedMap[group.id]" />
-                                </td>
-                                <td @click="handleGroupCheck(group.id)">{{ group.name }}</td>
-                                <td>
-                                    <bk-button text @click="handlePreview(group)">{{ $t('预览') }}</bk-button>
-                                </td>
-                            </tr>
-                        </template>
+                        <tr
+                            v-for="group in renderList"
+                            class="group-row"
+                            :key="group.id">
+                            <td @click="handleGroupCheck(group.id)">
+                                <bk-checkbox :checked="checkedMap[group.id]" />
+                            </td>
+                            <td @click="handleGroupCheck(group.id)">{{ group.name }}</td>
+                            <td>
+                                <bk-button text @click="handlePreview(group)">{{ $t('预览') }}</bk-button>
+                            </td>
+                        </tr>
                     </tbody>
                 </host-table>
                 <div v-if="pagination.pageSize > 0" style="padding: 16px 0;">

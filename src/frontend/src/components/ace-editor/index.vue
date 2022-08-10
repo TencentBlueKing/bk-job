@@ -37,15 +37,14 @@
                 v-if="showTabHeader"
                 class="jb-ace-title"
                 :style="{ height: `${tabHeight}px` }">
-                <template v-for="(val, key) in tabList">
-                    <div
-                        class="jb-ace-mode-item"
-                        @click="handleLangChange(key)"
-                        :key="val"
-                        :class="{ 'active': currentLang === key }">
-                        {{ key }}
-                    </div>
-                </template>
+                <div
+                    v-for="(val, key) in tabList"
+                    class="jb-ace-mode-item"
+                    @click="handleLangChange(key)"
+                    :key="val"
+                    :class="{ 'active': currentLang === key }">
+                    {{ key }}
+                </div>
             </div>
             <div class="jb-ace-main">
                 <div class="ace-edit-content">

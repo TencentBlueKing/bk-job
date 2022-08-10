@@ -49,47 +49,49 @@
                                 <span class="global-variable-tips">{{ $t('template.全局变量的 “初始值” 不会被同步到执行方案') }}</span>
                             </div>
                         </div>
-                        <template v-for="index in templateVariableList.length">
-                            <div class="sync-layout" :key="`${'variable' + index}`">
-                                <div class="sync-before">
-                                    <diff-global-variable
-                                        v-if="planVariableList[index - 1]"
-                                        :data="planVariableList[index - 1]"
-                                        :diff="beforeVariableDiff" />
-                                </div>
-                                <div class="sync-after">
-                                    <diff-global-variable
-                                        v-if="templateVariableList[index - 1]"
-                                        :data="templateVariableList[index - 1]"
-                                        :diff="variableDiff"
-                                        type="sync-after" />
-                                </div>
+                        <div
+                            v-for="index in templateVariableList.length"
+                            class="sync-layout"
+                            :key="`${'variable' + index}`">
+                            <div class="sync-before">
+                                <diff-global-variable
+                                    v-if="planVariableList[index - 1]"
+                                    :data="planVariableList[index - 1]"
+                                    :diff="beforeVariableDiff" />
                             </div>
-                        </template>
+                            <div class="sync-after">
+                                <diff-global-variable
+                                    v-if="templateVariableList[index - 1]"
+                                    :data="templateVariableList[index - 1]"
+                                    :diff="variableDiff"
+                                    type="sync-after" />
+                            </div>
+                        </div>
                         <div class="sync-layout">
                             <div class="sync-before block-title">{{ $t('template.作业步骤.label') }}</div>
                             <div class="sync-after block-title">{{ $t('template.作业步骤.label') }}</div>
                         </div>
-                        <template v-for="index in templateStepList.length">
-                            <div class="sync-layout" :key="`${'step' + index}`">
-                                <div class="sync-before">
-                                    <diff-task-step
-                                        v-if="planStepList[index - 1]"
-                                        type="sync-before"
-                                        :data="planStepList[index - 1]"
-                                        :account="accountList"
-                                        :diff="beforeStepDiff" />
-                                </div>
-                                <div class="sync-after">
-                                    <diff-task-step
-                                        v-if="templateStepList[index - 1]"
-                                        type="sync-after"
-                                        :data="templateStepList[index - 1]"
-                                        :account="accountList"
-                                        :diff="stepDiff" />
-                                </div>
+                        <div
+                            v-for="index in templateStepList.length"
+                            class="sync-layout"
+                            :key="`${'step' + index}`">
+                            <div class="sync-before">
+                                <diff-task-step
+                                    v-if="planStepList[index - 1]"
+                                    type="sync-before"
+                                    :data="planStepList[index - 1]"
+                                    :account="accountList"
+                                    :diff="beforeStepDiff" />
                             </div>
-                        </template>
+                            <div class="sync-after">
+                                <diff-task-step
+                                    v-if="templateStepList[index - 1]"
+                                    type="sync-after"
+                                    :data="templateStepList[index - 1]"
+                                    :account="accountList"
+                                    :diff="stepDiff" />
+                            </div>
+                        </div>
                     </scroll-faker>
                 </div>
             </div>

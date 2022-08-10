@@ -135,7 +135,7 @@
         props: {
             data: {
                 type: Object,
-                default: () => [],
+                default: () => ({}),
             },
             variable: {
                 type: Array,

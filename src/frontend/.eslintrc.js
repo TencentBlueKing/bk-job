@@ -40,7 +40,7 @@ module.exports = {
     // required to lint *.vue files
     plugins: ['vue'],
     globals: {
-    // value 为 true 允许被重写，为 false 不允许被重写
+        // value 为 true 允许被重写，为 false 不允许被重写
         NODE_ENV: false,
         LOCAL_DEV_URL: false,
         LOCAL_DEV_PORT: false,
@@ -281,7 +281,7 @@ module.exports = {
         'vue/mustache-interpolation-spacing': 'error',
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/no-confusing-v-for-v-if.md
-        'vue/no-confusing-v-for-v-if': 'error',
+        // 'vue/no-confusing-v-for-v-if': 'error',
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/no-multi-spaces.md
         // 删除 html 标签中连续多个不用于缩进的空格
@@ -330,53 +330,6 @@ module.exports = {
                 'renderError',
             ],
         }],
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/prop-name-casing.md
-        // 组件 props 属性名驼峰命名
-        'vue/prop-name-casing': ['error', 'camelCase'],
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/require-direct-export.md
-        // 组件必须要直接被 export。不限制
-        'vue/require-direct-export': 'error',
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/require-prop-types.md
-        // props 必须要有 type。
-        'vue/require-prop-types': 'error',
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/require-valid-default-prop.md
-        // props 默认值必须有效。不限制
-        'vue/require-valid-default-prop': 'off',
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/script-indent.md
-        'vue/script-indent': ['error', 4, {
-            baseIndent: 1,
-            switchCase: 1,
-        }],
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/singleline-html-element-content-newline.md
-        // 单行 html 元素后面必须换行。不限制
-        'vue/singleline-html-element-content-newline': 'off',
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/space-unary-ops.md
-        // new, delete, typeof, void, yield 等后面必须有空格，一元操作符 -, +, --, ++, !, !! 禁止有空格
-        'vue/space-unary-ops': ['error', { words: true, nonwords: false }],
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/this-in-template.md
-        // 不允许在 template 中使用 this
-        'vue/this-in-template': ['error', 'never'],
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/use-v-on-exact.md
-        // 强制使用精确修饰词。不限制
-        'vue/use-v-on-exact': 'off',
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/v-on-function-call.md
-        // 强制或禁止在 v-on 指令中不带参数的方法调用后使用括号。不限制
-        'vue/v-on-function-call': 'error',
-
-        // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/v-on-style.md
-        // v-on 指令的写法。限制简写
-        'vue/v-on-style': ['error', 'shorthand'],
-
     },
     overrides: [
         {

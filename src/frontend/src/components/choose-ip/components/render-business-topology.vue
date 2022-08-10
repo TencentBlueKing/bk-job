@@ -121,38 +121,37 @@
                     </tr>
                 </thead>
                 <tbody v-if="renderList.length > 0">
-                    <template v-for="(row, index) in renderList">
-                        <tr
-                            class="host-row"
-                            :key="`${row.realId}_${index}`"
-                            @click="handleHostCheck(row)">
-                            <td>
-                                <bk-checkbox :checked="!!checkedMap[row.realId]" />
-                            </td>
-                            <td>
-                                <div class="cell-text">{{ row.displayIp }}</div>
-                            </td>
-                            <td>
-                                <div class="cell-text">{{ row.cloudAreaInfo.name || '--' }}</div>
-                            </td>
-                            <td>
-                                <span v-if="row.alive">
-                                    <icon svg type="normal" style="vertical-align: middle;" />
-                                    <span style="vertical-align: middle;">{{ $t('正常') }}</span>
-                                </span>
-                                <span v-else>
-                                    <icon svg type="abnormal" style="vertical-align: middle;" />
-                                    <span style="vertical-align: middle;">{{ $t('异常') }}</span>
-                                </span>
-                            </td>
-                            <td>
-                                <div class="cell-text">{{ row.ipDesc || '--' }}</div>
-                            </td>
-                            <td>
-                                <div class="cell-text">{{ row.os || '--' }}</div>
-                            </td>
-                        </tr>
-                    </template>
+                    <tr
+                        v-for="(row, index) in renderList"
+                        class="host-row"
+                        :key="`${row.realId}_${index}`"
+                        @click="handleHostCheck(row)">
+                        <td>
+                            <bk-checkbox :checked="!!checkedMap[row.realId]" />
+                        </td>
+                        <td>
+                            <div class="cell-text">{{ row.displayIp }}</div>
+                        </td>
+                        <td>
+                            <div class="cell-text">{{ row.cloudAreaInfo.name || '--' }}</div>
+                        </td>
+                        <td>
+                            <span v-if="row.alive">
+                                <icon svg type="normal" style="vertical-align: middle;" />
+                                <span style="vertical-align: middle;">{{ $t('正常') }}</span>
+                            </span>
+                            <span v-else>
+                                <icon svg type="abnormal" style="vertical-align: middle;" />
+                                <span style="vertical-align: middle;">{{ $t('异常') }}</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="cell-text">{{ row.ipDesc || '--' }}</div>
+                        </td>
+                        <td>
+                            <div class="cell-text">{{ row.os || '--' }}</div>
+                        </td>
+                    </tr>
                 </tbody>
             </host-table>
             <div v-if="pagination.pageSize > 0" style="padding: 16px 0;">

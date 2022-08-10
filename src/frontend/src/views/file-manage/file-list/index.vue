@@ -59,16 +59,15 @@
             ref="list"
             :data-source="getBucketList"
             @on-refresh="handleListRefresh">
-            <template v-for="(column, index) in renderColumns">
-                <render-file-list-column
-                    :column="column"
-                    :key="`${path}_${index}`"
-                    :file-source-id="fileSourceId"
-                    :link-handler="handleLink"
-                    :action-handler="handleAction"
-                    @on-link="handleLink"
-                    @on-action="handleAction" />
-            </template>
+            <render-file-list-column
+                v-for="(column, index) in renderColumns"
+                :column="column"
+                :key="`${path}_${index}`"
+                :file-source-id="fileSourceId"
+                :link-handler="handleLink"
+                :action-handler="handleAction"
+                @on-link="handleLink"
+                @on-action="handleAction" />
         </render-list>
     </div>
 </template>

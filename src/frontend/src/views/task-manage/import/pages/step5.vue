@@ -39,19 +39,19 @@
         </div>
         <div class="log-container">
             <div class="log-box" ref="log">
-                <template v-for="(item, index) in log">
-                    <div :key="index">
-                        <span>[ {{ item.timestamp }} ]</span> {{ item.content }}
-                        <span v-if="item.type === 4" class="action" @click="handleLocationTemplate(item)">
-                            {{ $t('template.查看详情') }}
-                            <Icon type="jump" />
-                        </span>
-                        <span v-if="item.type === 5" class="action" @click="handleLocationPlan(item)">
-                            {{ $t('template.查看详情') }}
-                            <Icon type="jump" />
-                        </span>
-                    </div>
-                </template>
+                <div
+                    v-for="(item, index) in log"
+                    :key="index">
+                    <span>[ {{ item.timestamp }} ]</span> {{ item.content }}
+                    <span v-if="item.type === 4" class="action" @click="handleLocationTemplate(item)">
+                        {{ $t('template.查看详情') }}
+                        <Icon type="jump" />
+                    </span>
+                    <span v-if="item.type === 5" class="action" @click="handleLocationPlan(item)">
+                        {{ $t('template.查看详情') }}
+                        <Icon type="jump" />
+                    </span>
+                </div>
             </div>
             <Icon
                 class="log-copy"

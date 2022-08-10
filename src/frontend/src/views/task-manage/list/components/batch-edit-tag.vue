@@ -123,7 +123,7 @@
         computed,
         onBeforeMount,
         getCurrentInstance,
-    } from '@vue/composition-api';
+    } from 'vue';
     import _ from 'lodash';
     import TagManageService from '@service/tag-manage';
     import TaskManageService from '@service/task-manage';

@@ -246,5 +246,6 @@ entryTask.add('', (context) => {
         i18n,
         render: h => h(EntryApp),
     });
+    console.log('fpron windnadnfanf apapappapa = ', window.BKApp);
 });
 entryTask.start();

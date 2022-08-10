@@ -52,10 +52,15 @@
                 <Icon class="file-delete" type="close-big" @click="hanleFileDelete" />
             </div>
         </div>
-        <div v-if="isShowLog" class="upload-log-box" v-bkloading="{ isLoading: isLogLoading }" @click="handleLogAction">
-            <template v-for="(item, index) in importInfo.log">
-                <div :key="index" v-html="renderLogRow(item, index, importInfo.log)" />
-            </template>
+        <div
+            v-if="isShowLog"
+            class="upload-log-box"
+            v-bkloading="{ isLoading: isLogLoading }"
+            @click="handleLogAction">
+            <div
+                v-for="(item, index) in importInfo.log"
+                :key="index"
+                v-html="renderLogRow(item, index, importInfo.log)" />
         </div>
         <action-bar>
             <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>

@@ -57,15 +57,14 @@
                 :pagination="pagination"
                 :data="tableData"
                 @page-change="handlePageChange">
-                <template v-for="(column, index) in renderColumns">
-                    <render-file-list-column
-                        :column="column"
-                        :row-selection="rowSelectMemo"
-                        :render-header="renderHeader"
-                        :link-handler="handleLink"
-                        :select-handler="handleRowSelect"
-                        :key="`${path}_${index}_${isLoading}_${wholeTableRowSelect}`" />
-                </template>
+                <render-file-list-column
+                    v-for="(column, index) in renderColumns"
+                    :column="column"
+                    :row-selection="rowSelectMemo"
+                    :render-header="renderHeader"
+                    :link-handler="handleLink"
+                    :select-handler="handleRowSelect"
+                    :key="`${path}_${index}_${isLoading}_${wholeTableRowSelect}`" />
             </bk-table>
         </div>
     </div>

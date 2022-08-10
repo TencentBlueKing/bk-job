@@ -36,17 +36,16 @@
             @toggle="handleClick"
             ext-popover-cls="account-select-menu-list"
             searchable>
-            <template v-for="option in accountList">
-                <auth-option
-                    :key="option.id"
-                    :id="option.id"
-                    :name="option.alias"
-                    :permission="option.canUse"
-                    :resource-id="option.id"
-                    auth="account/use">
-                    <div>{{ option.alias }}</div>
-                </auth-option>
-            </template>
+            <auth-option
+                v-for="option in accountList"
+                :key="option.id"
+                :id="option.id"
+                :name="option.alias"
+                :permission="option.canUse"
+                :resource-id="option.id"
+                auth="account/use">
+                <div>{{ option.alias }}</div>
+            </auth-option>
             <template slot="extension">
                 <auth-component auth="account/create">
                     <div @click="handleCreate" style="cursor: pointer;">

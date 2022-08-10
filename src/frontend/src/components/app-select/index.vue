@@ -55,47 +55,46 @@
                     <i class="bk-icon icon-search app-search-flag" />
                 </div>
                 <div ref="list" class="app-list">
-                    <template v-for="(app, index) in renderList">
-                        <auth-component
-                            class="app-item"
-                            :class="{
-                                active: app.scopeType === scopeType && app.scopeId === scopeId,
-                                hover: index === activeIndex,
-                            }"
-                            :key="app.id"
-                            :permission="app.hasPermission"
-                            :resource-id="app.scopeId"
-                            :scope-type="app.scopeType"
-                            :scope-id="app.scopeId"
-                            auth="biz/access_business">
-                            <div
-                                @mouseenter.self="handleMouseenter(index)"
-                                @click="handleAppChange(app)">
-                                <div class="app-wrapper">
-                                    <span class="app-name">{{ app.name }}</span>
-                                    <span class="app-id">({{ app.scopeId }})</span>
-                                </div>
-                                <div class="app-collection">
-                                    <Icon
-                                        v-if="app.favor"
-                                        class="favor"
-                                        type="collection"
-                                        svg
-                                        @click.stop="handleFavor(app.scopeType, app.scopeId, false)" />
-                                    <Icon
-                                        v-else
-                                        class="unfavor"
-                                        type="star-line"
-                                        svg
-                                        @click.stop="handleFavor(app.scopeType, app.scopeId, true)" />
-                                </div>
-                            </div>
-                            <div slot="forbid" class="app-wrapper">
+                    <auth-component
+                        v-for="(app, index) in renderList"
+                        class="app-item"
+                        :class="{
+                            active: app.scopeType === scopeType && app.scopeId === scopeId,
+                            hover: index === activeIndex,
+                        }"
+                        :key="app.id"
+                        :permission="app.hasPermission"
+                        :resource-id="app.scopeId"
+                        :scope-type="app.scopeType"
+                        :scope-id="app.scopeId"
+                        auth="biz/access_business">
+                        <div
+                            @mouseenter.self="handleMouseenter(index)"
+                            @click="handleAppChange(app)">
+                            <div class="app-wrapper">
                                 <span class="app-name">{{ app.name }}</span>
-                                <span class="app-id">(#{{ app.scopeId }})</span>
+                                <span class="app-id">({{ app.scopeId }})</span>
                             </div>
-                        </auth-component>
-                    </template>
+                            <div class="app-collection">
+                                <Icon
+                                    v-if="app.favor"
+                                    class="favor"
+                                    type="collection"
+                                    svg
+                                    @click.stop="handleFavor(app.scopeType, app.scopeId, false)" />
+                                <Icon
+                                    v-else
+                                    class="unfavor"
+                                    type="star-line"
+                                    svg
+                                    @click.stop="handleFavor(app.scopeType, app.scopeId, true)" />
+                            </div>
+                        </div>
+                        <div slot="forbid" class="app-wrapper">
+                            <span class="app-name">{{ app.name }}</span>
+                            <span class="app-id">(#{{ app.scopeId }})</span>
+                        </div>
+                    </auth-component>
                     <div
                         v-if="renderList.length < 1"
                         class="app-list-empty">

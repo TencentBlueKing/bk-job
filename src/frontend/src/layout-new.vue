@@ -141,7 +141,7 @@
                             {{ $t('账号') }}
                         </jb-item>
                     </jb-item-group>
-                    <jb-item-group v-if="ENABLE_FEATURE_FILE_MANAGE">
+                    <jb-item-group v-if="isEnableFeatureFileManage">
                         <div slot="title">{{ $t('文件源.menuGroup') }}</div>
                         <div slot="flod-title">{{ $t('文件') }}</div>
                         <jb-item index="fileManage">
@@ -234,127 +234,96 @@
         </div>
     </site-frame>
 </template>
-<script>
+<script setup>
     import {
-        reactive,
-        toRefs,
-    } from '@vue/composition-api';
+        ref,
+        watch,
+    } from 'vue';
     import QueryGlobalSettingService from '@service/query-global-setting';
     import SiteFrame from '@components/site-frame';
     import JbMenu from '@components/jb-menu';
     import JbItem from '@components/jb-menu/item';
     import JbItemGroup from '@components/jb-menu/item-group';
     import AppSelect from '@components/app-select';
+    import {
+        useRoute,
+        useRouter,
+    } from '@/router';
 
     const TOGGLE_CACHE = 'navigation_toggle_status';
 
-    export default {
-        name: 'JobNavigation',
-        components: {
-            SiteFrame,
-            JbMenu,
-            JbItem,
-            JbItemGroup,
-            AppSelect,
-        },
-        setup () {
-            const navigationDefatulOpen = localStorage.getItem(TOGGLE_CACHE) !== null;
+    let routerName = '';
+    const routerGroup = ref('');
+    const isFrameSideFixed = ref(localStorage.getItem(TOGGLE_CACHE) !== null);
+    const isSideExpand = ref(false);
+    const isAdmin = ref(false);
+    const routerTitle = ref('');
+    const isEnableFeatureFileManage = ref(false);
 
-            const state = reactive({
-                routerGroup: 'business',
-                isFrameSideFixed: navigationDefatulOpen,
-                isSideExpand: false,
-                isAdmin: false,
-                showSubMenu: false,
-                routerTitle: '',
-                ENABLE_FEATURE_FILE_MANAGE: false,
-            });
-            
-            const methods = {
-                /**
-                 * @desc 返回首页
-                 */
-                handleBackHome () {
-                    this.$router.push({
-                        name: 'home',
-                    });
-                },
-                /**
-                 * @desc 侧导航展开收起
-                 */
-                handleSideFixedChnage () {
-                    state.isFrameSideFixed = !state.isFrameSideFixed;
-                    if (state.isFrameSideFixed) {
-                        localStorage.setItem(TOGGLE_CACHE, state.isFrameSideFixed);
-                    } else {
-                        localStorage.removeItem(TOGGLE_CACHE);
-                    }
-                },
-                handleSideExpandChange (sideExpand) {
-                    state.isSideExpand = sideExpand;
-                },
-                handleGroupChange (group) {
-                    state.routerGroup = group;
-                },
-                /**
-                 * @desc 跳转路由
-                 * @param {String} routerName 跳转的路由名
-                 */
-                handleRouterChange (routerName) {
-                    if (this.routerName === routerName) {
-                        return;
-                    }
-                    this.routerName = routerName;
-                    this.$router.push({
-                        name: routerName,
-                    });
-                },
-            };
-            /**
-             * @desc 获取是否是admin用户
-             */
-            QueryGlobalSettingService.fetchAdminIdentity()
-                .then((isAdmin) => {
-                    state.isAdmin = isAdmin;
-                });
-            /**
-             * @desc 获取系统基本配置
-             */
-            QueryGlobalSettingService.fetchJobConfig()
-                .then((data) => {
-                    state.ENABLE_FEATURE_FILE_MANAGE = data.ENABLE_FEATURE_FILE_MANAGE;
-                });
-            
-            return {
-                ...toRefs(state),
-                ...methods,
-            };
-        },
-        watch: {
-            /**
-             * @desc 页面标题
-             */
-            $route: {
-                handler (route) {
-                    this.routerTitle = (route.meta.title || route.meta.pageTitle);
-                    this.routerName = route.name;
+    const route = useRoute();
+    const router = useRouter();
 
-                    // 确认路由分组
-                    const {
-                        matched,
-                    } = route;
-                    // eslint-disable-next-line no-plusplus
-                    for (let i = matched.length - 1; i >= 0; i--) {
-                        if (matched[i].meta.group) {
-                            this.routerGroup = matched[i].meta.group;
-                            break;
-                        }
-                    }
-                },
-                immediate: true,
-            },
-        },
+    watch(route, (currentRoute) => {
+        routerTitle.value = (currentRoute.meta.title || currentRoute.meta.pageTitle);
+        routerName = currentRoute.name;
+
+        // 确认路由分组
+        const {
+            matched,
+        } = currentRoute;
+        // eslint-disable-next-line no-plusplus
+        for (let i = matched.length - 1; i >= 0; i--) {
+            if (matched[i].meta.group) {
+                routerGroup.value = matched[i].meta.group;
+                break;
+            }
+        }
+    }, {
+        immediate: true,
+    });
+    
+    /**
+     * @desc 侧导航展开收起
+     */
+    const handleSideFixedChnage = () => {
+        isFrameSideFixed.value = !isFrameSideFixed.value;
+        if (isFrameSideFixed.value) {
+            localStorage.setItem(TOGGLE_CACHE, isFrameSideFixed.value);
+        } else {
+            localStorage.removeItem(TOGGLE_CACHE);
+        }
     };
+    const handleSideExpandChange = (sideExpand) => {
+        isSideExpand.value = sideExpand;
+    };
+    /**
+     * @desc 跳转路由
+     * @param {String} routerName 跳转的路由名
+     */
+    const handleRouterChange = (localtionRouterName) => {
+        if (routerName === localtionRouterName) {
+            return;
+        }
+        routerName = localtionRouterName;
+        router.push({
+            name: routerName,
+        });
+    };
+    /**
+     * @desc 获取是否是admin用户
+     */
+    QueryGlobalSettingService.fetchAdminIdentity()
+        .then((result) => {
+            isAdmin.value = result;
+        });
+    /**
+     * @desc 获取系统基本配置
+     */
+    QueryGlobalSettingService.fetchJobConfig()
+        .then((data) => {
+            isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
+        });
+            
 </script>
 <style lang="postcss">
     #app {

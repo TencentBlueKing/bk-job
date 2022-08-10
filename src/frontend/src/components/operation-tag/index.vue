@@ -78,7 +78,7 @@
         watch,
         computed,
         getCurrentInstance,
-    } from '@vue/composition-api';
+    } from 'vue';
     import I18n from '@/i18n';
     import TagManageService from '@service/tag-manage';
     import TagModel from '@model/tag';

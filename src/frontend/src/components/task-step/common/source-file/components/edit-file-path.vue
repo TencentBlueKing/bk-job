@@ -98,7 +98,7 @@
         props: {
             value: {
                 type: Array,
-                default: '',
+                default: () => [],
             },
             mode: {
                 type: String,

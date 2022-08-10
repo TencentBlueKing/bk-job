@@ -129,7 +129,7 @@
         computed,
         onBeforeMount,
         getCurrentInstance,
-    } from '@vue/composition-api';
+    } from 'vue';
     import _ from 'lodash';
     import I18n from '@/i18n';
     import PubliceTagManageService from '@service/public-tag-manage';

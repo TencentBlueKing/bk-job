@@ -23,7 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import Vue from 'vue';
+import Vue, {
+    customRef,
+} from 'vue';
 import VueRouter from 'vue-router';
 import _ from 'lodash';
 import {
@@ -60,6 +62,7 @@ import TagManage from '@views/tag-manage/routes';
 
 Vue.use(VueRouter);
 
+let router;
 let lastRouterHrefCache = '/';
 
 const renderPageWithComponent = (route, component) => {
@@ -157,7 +160,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
         systemManageRoute.push(DetectRecords);
     }
 
-    const router = new VueRouter({
+    router = new VueRouter({
         mode: 'history',
         routes,
         scrollBehavior () {
@@ -257,3 +260,20 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     });
     return router;
 };
+
+export const useRoute = () => {
+    console.log('form user route');
+    return customRef((track, trigger) => ({
+        get () {
+            setTimeout(() => {
+                window.BKApp.$watch('$route', () => {
+                    trigger();
+                });
+            });
+            track();
+            return router.currentRoute;
+        },
+    }));
+};
+
+export const useRouter = () => router;
