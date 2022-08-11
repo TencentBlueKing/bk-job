@@ -156,6 +156,7 @@ public class AgentTaskDTO {
         this.hostId = agentTask.getHostId();
         this.agentId = agentTask.getAgentId();
         this.cloudIp = agentTask.getCloudIp();
+        this.displayIp = agentTask.getDisplayIp();
         this.status = agentTask.getStatus();
         this.startTime = agentTask.getStartTime();
         this.endTime = agentTask.getEndTime();

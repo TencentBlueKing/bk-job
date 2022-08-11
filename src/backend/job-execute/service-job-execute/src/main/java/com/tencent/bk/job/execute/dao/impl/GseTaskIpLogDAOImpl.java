@@ -84,9 +84,9 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
             param[7] = agentTask.getErrorCode();
             param[8] = agentTask.getExitCode();
             param[9] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
+            param[10] = agentTask.getScriptLogOffset();
             param[11] = StringUtils.isNotEmpty(agentTask.getDisplayIp()) ? agentTask.getDisplayIp() :
                 agentTask.getCloudIp();
-            param[10] = agentTask.getScriptLogOffset();
             param[12] = agentTask.getFileTaskMode() != FileTaskModeEnum.UPLOAD ? 1 : 0;
             param[13] = agentTask.getFileTaskMode() == FileTaskModeEnum.UPLOAD ? 1 : 0;
             params[batchCount++] = param;
@@ -264,6 +264,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         agentTask.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(t.EXECUTE_COUNT));
         agentTask.setCloudIp(record.get(t.IP));
+        agentTask.setDisplayIp(record.get(t.DISPLAY_IP));
         agentTask.setAgentId(record.get(t.IP));
         agentTask.setStatus(AgentTaskStatusEnum.valueOf(record.get(t.STATUS)));
         agentTask.setStartTime(record.get(t.START_TIME));
