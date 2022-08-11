@@ -299,17 +299,17 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                 continue;
             }
 
-            boolean isDownloadLog = fileTaskResult.isDownloadMode();
-            String agentId = isDownloadLog ?
+            boolean isDownloadResult = fileTaskResult.isDownloadMode();
+            String agentId = isDownloadResult ?
                 fileTaskResult.getDestAgentId() : fileTaskResult.getSourceAgentId();
 
-            if (isDownloadLog && this.targetAgentIds.contains(agentId)) {
+            if (isDownloadResult && this.targetAgentIds.contains(agentId)) {
                 this.runningTargetAgentIds.add(agentId);
-            } else if (!isDownloadLog && this.sourceAgentIds.contains(agentId)) {
+            } else if (!isDownloadResult && this.sourceAgentIds.contains(agentId)) {
                 this.runningFileSourceAgentIds.add(agentId);
             }
 
-            analyseFileResult(agentId, copyFileRsp, executionLogs, isDownloadLog);
+            analyseFileResult(agentId, copyFileRsp, executionLogs, isDownloadResult);
         }
         watch.stop();
 
@@ -348,8 +348,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
     private void analyseFileResult(String agentId, CopyFileRsp copyFileRsp,
                                    Map<String, ServiceHostLogDTO> executionLogs,
-                                   boolean isDownloadLog) {
-        AgentTaskDTO agentTask = getAgentTask(isDownloadLog, agentId);
+                                   boolean isDownloadResult) {
+        AgentTaskDTO agentTask = getAgentTask(isDownloadResult, agentId);
         if (agentTask.getStartTime() == null) {
             agentTask.setStartTime(System.currentTimeMillis());
         }
@@ -360,14 +360,14 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             case RUNNING:
                 parseExecutionLog(copyFileRsp, executionLogs);
                 agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
-                if (isDownloadLog) {
+                if (isDownloadResult) {
                     this.notStartedTargetAgentIds.remove(agentId);
                 }
                 break;
             case FINISHED:
                 parseExecutionLog(copyFileRsp, executionLogs);
                 if (fileTaskResult.getProcess() == 100) {
-                    if (isDownloadLog) {
+                    if (isDownloadResult) {
                         addFinishedFile(true, true,
                             fileTaskResult.getDestAgentId(), fileTaskResult.getTaskId());
                     } else {
@@ -376,7 +376,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     }
                     // 分析日志，更新successAgentIds、notStartedAgentIds等状态集合
                     analyseAgentTaskResult(errorCode.getValue(), agentId, fileTaskResult.getStartTime(),
-                        fileTaskResult.getEndTime(), isDownloadLog);
+                        fileTaskResult.getEndTime(), isDownloadResult);
                 } else {
                     agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
                     this.notStartedTargetAgentIds.remove(agentId);
@@ -384,7 +384,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                 break;
             case TERMINATE:
                 parseExecutionLog(copyFileRsp, executionLogs);
-                if (isDownloadLog) {
+                if (isDownloadResult) {
                     addFinishedFile(false, true,
                         fileTaskResult.getDestAgentId(), fileTaskResult.getTaskId());
                 } else {
@@ -392,17 +392,17 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                         fileTaskResult.getSourceAgentId(), fileTaskResult.getTaskId());
                 }
                 analyseAgentTaskResult(errorCode.getValue(), agentId, fileTaskResult.getStartTime(),
-                    fileTaskResult.getEndTime(), isDownloadLog);
+                    fileTaskResult.getEndTime(), isDownloadResult);
                 this.isTerminatedSuccess = true;
                 break;
             default:
-                dealIpTaskFail(copyFileRsp, executionLogs, isDownloadLog);
+                dealIpTaskFail(copyFileRsp, executionLogs, isDownloadResult);
                 break;
         }
     }
 
-    private AgentTaskDTO getAgentTask(boolean isDownloadLog, String agentId) {
-        if (isDownloadLog) {
+    private AgentTaskDTO getAgentTask(boolean isDownloadResult, String agentId) {
+        if (isDownloadResult) {
             return targetAgentTasks.get(agentId);
         } else {
             return sourceAgentTaskMap.get(agentId);
@@ -636,47 +636,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         return this.intSourceIpMapping.get(intIp);
     }
 
-    private void recordFinishedFileSourceAgentIds(CopyFileRsp copyFileRsp,
-                                                  Map<String, ServiceHostLogDTO> executionLogs,
-                                                  Set<String> affectIps) {
-        GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
-        String destAgentId = taskResult.getDestAgentId();
-        AgentTaskDTO targetAgentTask = targetAgentTasks.get(destAgentId);
-        log.info("Target agent down, sourceIp is null");
-        for (String sourceAgentId : this.sourceAgentIds) {
-            AgentTaskDTO sourceAgentTask = sourceAgentTaskMap.get(sourceAgentId);
-            boolean isAddSuccess = addFinishedFile(false, true, destAgentId,
-                GSEFileTaskResult.buildTaskId(taskResult.getMode(), sourceAgentId,
-                    taskResult.getStandardSourceFilePath(),
-                    destAgentId, taskResult.getStandardDestFilePath()));
-            if (isAddSuccess) {
-                addFileTaskLog(executionLogs,
-                    new ServiceFileTaskLogDTO(
-                        FileDistModeEnum.DOWNLOAD.getValue(),
-                        targetAgentTask.getHostId(),
-                        agentIdHostMap.get(targetAgentTask.getAgentId()).getIp(),
-                        taskResult.getStandardDestFilePath(),
-                        sourceAgentTask.getHostId(),
-                        agentIdHostMap.get(sourceAgentTask.getAgentId()).getIp(),
-                        agentIdHostMap.get(sourceAgentTask.getAgentId()).getDisplayIp(),
-                        taskResult.getStandardSourceFilePath(),
-                        taskResult.getStandardSourceFilePath() == null ? null :
-                            sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()),
-                        null,
-                        FileDistStatusEnum.FAILED.getValue(),
-                        FileDistStatusEnum.FAILED.getName(),
-                        null,
-                        null,
-                        copyFileRsp.getFinalErrorMsg())
-                );
-                affectIps.add(sourceAgentId);
-            }
-        }
-    }
-
-    private void recordFinishedFile(CopyFileRsp copyFileRsp,
-                                    Map<String, ServiceHostLogDTO> executionLogs,
-                                    Set<String> affectIps) {
+    private void recordDownloadFileFail(CopyFileRsp copyFileRsp,
+                                        Map<String, ServiceHostLogDTO> executionLogs) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String destAgentId = taskResult.getDestAgentId();
         String sourceAgentId = taskResult.getSourceAgentId();
@@ -704,7 +665,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     null,
                     copyFileRsp.getFinalErrorMsg())
             );
-            affectIps.add(sourceAgentId);
         }
     }
 
@@ -720,33 +680,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
     private void dealIpTaskFail(CopyFileRsp copyFileRsp,
                                 Map<String, ServiceHostLogDTO> executionLogs,
-                                boolean isDownloadLog) {
+                                boolean isDownloadResult) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
 
         GSEFileTaskResult content = copyFileRsp.getGseFileTaskResult();
         long startTime = getStartTimeOrDefault(content);
         long endTime = getEndTimeOrDefault(content);
-        if (isDownloadLog) {
-            // 被该错误影响的目标Agent
-            Set<String> affectedTargetAgentIds = new HashSet<>();
+        if (isDownloadResult) {
             String destAgentId = taskResult.getDestAgentId();
-            String sourceAgentId = taskResult.getSourceAgentId();
-            affectedTargetAgentIds.add(destAgentId);
-            if (copyFileRsp.getFinalErrorCode().equals(GSECode.AGENT_DOWN) && StringUtils.isEmpty(sourceAgentId)) {
-                // GSE BUG, agent异常场景需要特殊处理，此时，返回的源IP可能是-1
-                // GSE Server 返回的download失败日志，在多个源文件的情况下，会丢失源ip的信息，需要job补全
-                recordFinishedFileSourceAgentIds(copyFileRsp, executionLogs, affectedTargetAgentIds);
-            } else {
-                recordFinishedFile(copyFileRsp, executionLogs, affectedTargetAgentIds);
-            }
-
-            for (String affectAgentId : affectedTargetAgentIds) {
-                if (affectAgentId.equals(destAgentId)) {
-                    analyseAgentTaskResult(copyFileRsp.getFinalErrorCode(), affectAgentId, startTime, endTime, true);
-                } else {
-                    analyseAgentTaskResult(0, affectAgentId, startTime, endTime, true);
-                }
-            }
+            recordDownloadFileFail(copyFileRsp, executionLogs);
+            analyseAgentTaskResult(copyFileRsp.getFinalErrorCode(), destAgentId, startTime, endTime, true);
         } else {
             // 上传源IP本身处理
             String sourceAgentId = taskResult.getSourceAgentId();
@@ -874,50 +817,44 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     /**
-     * 分析日志，更新successAgentIds、notStartedAgentIds等状态集合，用于判定最终整体任务状态
+     * 分析结果，更新successAgentIds、notStartedAgentIds等状态集合，用于判定最终整体任务状态
      *
-     * @param errorCode  GSE错误码
-     * @param agentId    agentId
-     * @param startTime  任务起始时间
-     * @param endTime    任务终止时间
-     * @param isDownload 是否为下载过程
+     * @param errorCode        GSE错误码
+     * @param agentId          agentId
+     * @param startTime        任务起始时间
+     * @param endTime          任务终止时间
+     * @param isDownloadResult 是否为下载结果
      */
     private void analyseAgentTaskResult(int errorCode, String agentId, long startTime, long endTime,
-                                        boolean isDownload) {
+                                        boolean isDownloadResult) {
         int finishedNum;
         int fileNum;
         int successNum;
-        boolean isTargetIp = targetAgentIds.contains(agentId);
-        boolean isSourceIp = sourceAgentIds.contains(agentId);
-        if (isDownload && isTargetIp) {
+        if (isDownloadResult) {
             finishedNum = this.finishedDownloadFileMap.get(agentId) == null ? 0 :
                 this.finishedDownloadFileMap.get(agentId).size();
             fileNum = this.fileDownloadTaskNumMap.get(agentId) == null ? 0 : this.fileDownloadTaskNumMap.get(agentId);
             successNum = this.successDownloadFileMap.get(agentId) == null ? 0 :
                 this.successDownloadFileMap.get(agentId).size();
-        } else if (isSourceIp) {
+        } else {
             finishedNum = this.finishedUploadFileMap.get(agentId) == null ? 0 :
                 this.finishedUploadFileMap.get(agentId).size();
             successNum = this.successUploadFileMap.get(agentId) == null ? 0 :
                 this.successUploadFileMap.get(agentId).size();
             fileNum = this.fileUploadTaskNumMap.get(agentId) == null ? 0 : this.fileUploadTaskNumMap.get(agentId);
-        } else {
-            return;
         }
 
-        AgentTaskDTO agentTask = getAgentTask(isDownload, agentId);
+        AgentTaskDTO agentTask = getAgentTask(isDownloadResult, agentId);
         if (finishedNum >= fileNum) {
             log.info("[{}] Ip analyse finished! ip: {}, finishedTaskNum: {}, expectedTaskNum: {}",
                 stepInstanceId, agentId, finishedNum, fileNum);
-            if (isDownload && isTargetIp) {
-                // 更新IP统计状态集合，为agentTask设置任务起止时间
+            // 更新AgentTask结果
+            if (isDownloadResult) {
                 dealAgentFinish(agentId, startTime, endTime, agentTask);
-            }
-            if (isSourceIp) {
-                // 更新IP统计状态集合
+            } else {
                 dealUploadIpFinished(agentId);
             }
-            updateFinishedIpStatusAndLog(errorCode, agentId, fileNum, successNum, isDownload, agentTask);
+            updateFinishedIpStatusAndLog(errorCode, agentId, fileNum, successNum, isDownloadResult, agentTask);
         } else {
             agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
             this.notStartedTargetAgentIds.remove(agentId);
@@ -937,7 +874,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         if (null != taskResult) {
             Integer mode = taskResult.getMode();
-            boolean isDownloadLog = isDownloadLog(mode);
+            boolean isDownloadResult = isDownloadResult(mode);
             GSECode.AtomicErrorCode errorCode = GSECode.AtomicErrorCode.getErrorCode(copyFileRsp.getFinalErrorCode());
             String key = taskResult.getTaskId();
             Integer process = processMap.computeIfAbsent(key, k -> -1);
@@ -948,9 +885,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
             StringBuilder logContent = new StringBuilder();
 
-            String filePath = isDownloadLog ? taskResult.getStandardDestFilePath() :
+            String filePath = isDownloadResult ? taskResult.getStandardDestFilePath() :
                 taskResult.getStandardSourceFilePath();
-            String displayFilePath = buildDisplayFilePath(isDownloadLog, filePath);
+            String displayFilePath = buildDisplayFilePath(isDownloadResult, filePath);
             if (filePath.endsWith("/") || filePath.endsWith("\\")) {
                 // 传输的是目录，目录名以‘/’或‘\’结束
                 logContent.append("Directory: ");
@@ -987,9 +924,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             }
             String logContentStr = logContent.toString();
 
-            FileDistStatusEnum status = parseFileTaskStatus(copyFileRsp, isDownloadLog);
+            FileDistStatusEnum status = parseFileTaskStatus(copyFileRsp, isDownloadResult);
 
-            if (isDownloadLog) {
+            if (isDownloadResult) {
                 HostDTO sourceHost = agentIdHostMap.get(taskResult.getSourceAgentId());
                 HostDTO targetHost = agentIdHostMap.get(taskResult.getDestAgentId());
                 addFileTaskLog(executionLogs,
@@ -1035,26 +972,26 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         }
     }
 
-    private String buildDisplayFilePath(boolean isDownloadLog, String originFilePath) {
+    private String buildDisplayFilePath(boolean isDownloadResult, String originFilePath) {
         String displayFilePath = originFilePath;
-        if (!isDownloadLog) {
+        if (!isDownloadResult) {
             displayFilePath = sourceFileDisplayMap.get(originFilePath);
         }
         return displayFilePath;
     }
 
-    private FileDistStatusEnum parseFileTaskStatus(CopyFileRsp copyFileRsp, boolean isDownloadLog) {
+    private FileDistStatusEnum parseFileTaskStatus(CopyFileRsp copyFileRsp, boolean isDownloadResult) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         FileDistStatusEnum status;
         if (copyFileRsp.getFinalErrorCode().equals(GSECode.AtomicErrorCode.RUNNING.getValue())) {
-            if (isDownloadLog) {
+            if (isDownloadResult) {
                 status = FileDistStatusEnum.DOWNLOADING;
             } else {
                 status = FileDistStatusEnum.UPLOADING;
             }
         } else if (copyFileRsp.getFinalErrorCode().equals(GSECode.AtomicErrorCode.FINISHED.getValue())) {
             if (taskResult.getProcess() < 100) {
-                if (isDownloadLog) {
+                if (isDownloadResult) {
                     status = FileDistStatusEnum.DOWNLOADING;
                 } else {
                     status = FileDistStatusEnum.UPLOADING;
@@ -1069,7 +1006,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         return status;
     }
 
-    private boolean isDownloadLog(Integer mode) {
+    private boolean isDownloadResult(Integer mode) {
         return FileDistModeEnum.DOWNLOAD.getValue().equals(mode);
     }
 
@@ -1080,10 +1017,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
 
     private void addFileTaskLog(Map<String, ServiceHostLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
-        boolean isDownloadLog = isDownloadLog(fileTaskLog.getMode());
-        Long hostId = isDownloadLog ? fileTaskLog.getDestHostId() : fileTaskLog.getSrcHostId();
+        boolean isDownloadResult = isDownloadResult(fileTaskLog.getMode());
+        Long hostId = isDownloadResult ? fileTaskLog.getDestHostId() : fileTaskLog.getSrcHostId();
         // tmp: 需要兼容发布过程中只有ip，没有hostId的场景
-        String cloudIp = isDownloadLog ? fileTaskLog.getDestIp() : fileTaskLog.getSrcIp();
+        String cloudIp = isDownloadResult ? fileTaskLog.getDestIp() : fileTaskLog.getSrcIp();
         String hostKey = buildHostKey(hostId, cloudIp);
         ServiceHostLogDTO hostLog = hostLogs.get(hostKey);
         if (hostLog == null) {
