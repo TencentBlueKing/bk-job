@@ -1,6 +1,6 @@
 # chart values 更新日志
 
-## 0.3.0-rc.12
+## 0.3.0-rc.14
 1.增加Trace及数据上报至APM相关配置
 ```shell script
 ## Trace配置
