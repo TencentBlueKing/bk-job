@@ -26,84 +26,87 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateCreateUpdateReq;
-import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateRenderReq;
-import com.tencent.bk.job.manage.model.web.vo.customsetting.ScriptTemplateVO;
-import com.tencent.bk.job.manage.model.web.vo.customsetting.ScriptTemplateVariableVO;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.manage.model.web.request.customsetting.BatchGetCustomSettingsReq;
+import com.tencent.bk.job.manage.model.web.request.customsetting.DeleteCustomSettingsReq;
+import com.tencent.bk.job.manage.model.web.request.customsetting.SaveCustomSettingsReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.List;
+import java.util.Map;
 
-@Api(tags = {"job-manage:web:CustomSettings_ScriptTemplate"})
-@RequestMapping("/web/customSettings/scriptTemplate")
+@Api(tags = {"job-manage:web:CustomSettings"})
+@RequestMapping("/web/customSettings/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebCustomSettingsResource {
 
-    @ApiOperation(value = "获取用户自定义的脚本模板", produces = "application/json")
-    @GetMapping
-    Response<List<ScriptTemplateVO>> listUserCustomScriptTemplate(
-        @ApiParam("用户名，网关自动传入")
+    @ApiOperation(value = "保存多个配置项，返回成功保存的配置项内容", produces = "application/json")
+    @PostMapping("")
+    Response<Map<String, Map<String, Object>>> saveCustomSettings(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam("脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
-        @RequestParam(value = "scriptLanguages", required = false)
-            String scriptLanguages);
-
-    @ApiOperation(value = "获取渲染后的用户自定义的脚本模板", produces = "application/json")
-    @GetMapping("/rendered")
-    Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiParam("脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
-        @RequestParam(value = "scriptLanguages", required = false)
-            String scriptLanguages,
-        @ApiParam(value = "资源范围类型")
-        @RequestParam(value = "scopeType", required = false)
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID")
-        @RequestParam(value = "scopeId", required = false)
-            String scopeId
-    );
-
-    @ApiOperation(value = "保存用户自定义的脚本模板", produces = "application/json")
-    @PostMapping
-    Response saveScriptTemplate(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
-        @RequestHeader("username")
-            String username,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "保存配置项请求体", required = true)
         @RequestBody
-            ScriptTemplateCreateUpdateReq req
+            SaveCustomSettingsReq req
     );
 
-    @ApiOperation(value = "渲染自定义的脚本模板", produces = "application/json")
-    @PostMapping("/render")
-    Response<ScriptTemplateVO> renderScriptTemplate(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
-        @RequestHeader("username")
-            String username,
-        @ApiParam(value = "脚本模板渲染请求", required = true)
-        @RequestBody
-            ScriptTemplateRenderReq req
-    );
-
-    @ApiOperation(value = "获取用户自定义的脚本模板变量", produces = "application/json")
-    @GetMapping("/variables")
-    Response<List<ScriptTemplateVariableVO>> listScriptTemplateVariables(
+    @ApiOperation(value = "批量获取多个配置项内容，返回配置项内容Map，Key为配置模块", produces = "application/json")
+    @PostMapping("/batchGet")
+    Response<Map<String, Map<String, Object>>> batchGetCustomSettings(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
-            String username
-    );
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "批量获取配置项请求体", required = true)
+        @RequestBody
+            BatchGetCustomSettingsReq req);
+
+    @ApiOperation(value = "删除多个模块配置项内容，返回删除成功的模块配置数量", produces = "application/json")
+    @DeleteMapping("")
+    Response<Integer> deleteCustomSettings(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "删除配置项请求体", required = true)
+        @RequestBody
+            DeleteCustomSettingsReq req);
 
 }
