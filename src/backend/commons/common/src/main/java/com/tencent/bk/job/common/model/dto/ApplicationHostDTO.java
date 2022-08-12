@@ -122,6 +122,33 @@ public class ApplicationHostDTO {
      */
     private List<String> ipList = new ArrayList<>();
 
+    private static boolean isGseAgentAlive(HostInfoVO hostInfo) {
+        if (hostInfo.getAgentStatus() != null) {
+            // TODO
+//            return hostInfo.getAgentStatus()==AgentStateStat
+        } else if (hostInfo.getAlive() != null) {
+            return hostInfo.getAlive() == 1;
+        }
+        return false;
+    }
+
+    public static ApplicationHostDTO fromVO(HostInfoVO hostInfo) {
+        if (hostInfo == null) {
+            return null;
+        }
+        ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
+        hostInfoDTO.setHostId(hostInfo.getHostId());
+        hostInfoDTO.setIp(hostInfo.getIp());
+        hostInfoDTO.setDisplayIp(hostInfo.getDisplayIp());
+        hostInfoDTO.setHostName(hostInfo.getHostName());
+        hostInfoDTO.setGseAgentAlive(isGseAgentAlive(hostInfo));
+        if (hostInfo.getCloudArea() != null) {
+            hostInfoDTO.setCloudAreaId(hostInfo.getCloudArea().getId());
+        }
+        hostInfoDTO.setOsName(hostInfo.getOsName());
+        return hostInfoDTO;
+    }
+
     public HostInfoVO toVO() {
         HostInfoVO hostInfoVO = new HostInfoVO();
         hostInfoVO.setHostId(hostId);
