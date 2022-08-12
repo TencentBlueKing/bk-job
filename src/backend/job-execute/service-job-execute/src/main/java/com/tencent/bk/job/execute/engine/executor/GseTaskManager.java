@@ -97,7 +97,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
-    private final StepInstanceService stepInstanceServcice;
+    private final StepInstanceService stepInstanceService;
 
     private final Object lifecycleMonitor = new Object();
     private final RunningTaskCounter<String> counter = new RunningTaskCounter<>("GseTask-Counter");
@@ -152,7 +152,7 @@ public class GseTaskManager implements SmartLifecycle {
                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                           ScriptAgentTaskService scriptAgentTaskService,
                           FileAgentTaskService fileAgentTaskService,
-                          StepInstanceService stepInstanceServcice) {
+                          StepInstanceService stepInstanceService) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -172,7 +172,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.stepInstanceServcice = stepInstanceServcice;
+        this.stepInstanceService = stepInstanceService;
     }
 
     /**
@@ -198,9 +198,11 @@ public class GseTaskManager implements SmartLifecycle {
         try {
             watch.start("getRunningLock");
             // 可重入锁，如果任务正在执行，则放弃
-            if (!LockUtils.tryGetReentrantLock(
-                "job:running:gse:task:" + gseTask.getId(), startTaskRequestId, 30000L)) {
-                log.info("Fail to get running lock, gseTaskId: {}", gseTask.getId());
+            // tmp: 兼容GSE_TASK数据,发布完成后删除
+            String lockKey = "job:running:gse:task:" +
+                (gseTask.getId() != null ? gseTask.getId() : gseTask.getStepInstanceId());
+            if (!LockUtils.tryGetReentrantLock(lockKey, startTaskRequestId, 30000L)) {
+                log.error("Fail to get running lock, lockKey: {}", lockKey);
                 return;
             }
             watch.stop();
@@ -311,7 +313,7 @@ public class GseTaskManager implements SmartLifecycle {
             gseTaskStartCommand = new ScriptGseTaskStartCommand(
                 resultHandleManager,
                 taskInstanceService,
-                stepInstanceServcice,
+                stepInstanceService,
                 gseTaskService,
                 scriptAgentTaskService,
                 accountService,
@@ -337,7 +339,7 @@ public class GseTaskManager implements SmartLifecycle {
             gseTaskStartCommand = new SQLScriptGseTaskStartCommand(
                 resultHandleManager,
                 taskInstanceService,
-                stepInstanceServcice,
+                stepInstanceService,
                 gseTaskService,
                 scriptAgentTaskService,
                 accountService,
@@ -376,7 +378,7 @@ public class GseTaskManager implements SmartLifecycle {
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
                 gseTasksExceptionCounter,
-                stepInstanceServcice,
+                stepInstanceService,
                 tracing,
                 requestId,
                 taskInstance,
