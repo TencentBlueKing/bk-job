@@ -216,7 +216,7 @@ public class IndexServiceImpl implements IndexService {
         resultPageData.setPageSize(hostInfoVOPageData.getPageSize());
         resultPageData.setTotal(hostInfoVOPageData.getTotal());
         resultPageData.setData(hostInfoVOPageData.getData().parallelStream()
-            .map(it -> it.getCloudAreaInfo().getId() + ":" + it.getIp()).collect(Collectors.toList()));
+            .map(it -> it.getCloudArea().getId() + ":" + it.getIp()).collect(Collectors.toList()));
         return resultPageData;
     }
 

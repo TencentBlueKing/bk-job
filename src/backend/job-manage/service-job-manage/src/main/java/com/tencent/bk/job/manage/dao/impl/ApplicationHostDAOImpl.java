@@ -436,10 +436,10 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             String ip = applicationHostDTO.getIp();
             String ipv6 = applicationHostDTO.getIpv6();
             String agentId = applicationHostDTO.getAgentId();
-            String ipDesc = applicationHostDTO.getIpDesc();
+            String ipDesc = applicationHostDTO.getHostName();
             ULong cloudAreaId = JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId());
             String displayIp = applicationHostDTO.getDisplayIp();
-            String os = applicationHostDTO.getOs();
+            String os = applicationHostDTO.getOsName();
             String osType = applicationHostDTO.getOsType();
             UByte gseAgentAlive = JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue());
             String cloudIp = applicationHostDTO.getCloudIp();
@@ -562,12 +562,12 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         applicationHostDTO.getIp(),
                         applicationHostDTO.getIpv6(),
                         applicationHostDTO.getAgentId(),
-                        applicationHostDTO.getIpDesc(),
+                        applicationHostDTO.getHostName(),
                         applicationHostDTO.getSetIdsStr(),
                         applicationHostDTO.getModuleIdsStr(),
                         JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()),
                         applicationHostDTO.getDisplayIp(),
-                        applicationHostDTO.getOs(),
+                        applicationHostDTO.getOsName(),
                         applicationHostDTO.getOsType(),
                         applicationHostDTO.getModuleTypeStr(),
                         JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()),
@@ -618,8 +618,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .set(TABLE.IP, applicationHostDTO.getIp())
             .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
             .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
-            .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
-            .set(TABLE.OS, applicationHostDTO.getOs())
+            .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
+            .set(TABLE.OS, applicationHostDTO.getOsName())
             .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
             .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getAgentStatusValue()))
             .where(conditions);
@@ -661,12 +661,12 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
                 .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
                 .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
-                .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
+                .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
                 .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
                 .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
                 .set(TABLE.CLOUD_AREA_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()))
                 .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
-                .set(TABLE.OS, applicationHostDTO.getOs())
+                .set(TABLE.OS, applicationHostDTO.getOsName())
                 .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                 .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
                 .set(TABLE.IS_AGENT_ALIVE, JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()))
@@ -713,12 +713,12 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
                         .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
                         .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
-                        .set(TABLE.IP_DESC, applicationHostDTO.getIpDesc())
+                        .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
                         .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
                         .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
                         .set(TABLE.CLOUD_AREA_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()))
                         .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
-                        .set(TABLE.OS, applicationHostDTO.getOs())
+                        .set(TABLE.OS, applicationHostDTO.getOsName())
                         .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                         .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
                         .set(TABLE.IS_AGENT_ALIVE,
@@ -968,7 +968,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         applicationHostDTO.setIp(record.get(TABLE.IP));
         applicationHostDTO.setIpv6(record.get(TABLE.IP_V6));
         applicationHostDTO.setAgentId(record.get(TABLE.AGENT_ID));
-        applicationHostDTO.setIpDesc(record.get(TABLE.IP_DESC));
+        applicationHostDTO.setHostName(record.get(TABLE.IP_DESC));
         applicationHostDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue() == 1);
         List<Long> setIdList = new ArrayList<>();
         String setIdsStr = record.get(TABLE.SET_IDS);
@@ -986,7 +986,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         applicationHostDTO.setModuleId(StringUtil.strToList(record.get(TABLE.MODULE_IDS), Long.class, ","));
         applicationHostDTO.setCloudAreaId(record.get(TABLE.CLOUD_AREA_ID).longValue());
         applicationHostDTO.setDisplayIp(record.get(TABLE.DISPLAY_IP));
-        applicationHostDTO.setOs(record.get(TABLE.OS));
+        applicationHostDTO.setOsName(record.get(TABLE.OS));
         applicationHostDTO.setOsType(record.get(TABLE.OS_TYPE));
         applicationHostDTO.setModuleType(StringUtil.strToList(record.get(TABLE.MODULE_TYPE), Long.class, ","));
         applicationHostDTO.setHostId(record.get(TABLE.HOST_ID).longValue());

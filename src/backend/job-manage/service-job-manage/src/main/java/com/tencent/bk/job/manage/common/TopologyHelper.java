@@ -210,15 +210,15 @@ public class TopologyHelper {
         hostInfoVO.setHostId(hostInfo.getHostId());
         hostInfoVO.setIp(hostInfo.getIp());
         hostInfoVO.setDisplayIp(hostInfo.getDisplayIp());
-        hostInfoVO.setIpDesc(hostInfo.getIpDesc());
+        hostInfoVO.setHostName(hostInfo.getHostName());
         if (hostInfo.getGseAgentAlive() != null) {
-            hostInfoVO.setAlive(hostInfo.getGseAgentAlive() ? 1 : 0);
+            hostInfoVO.setAgentStatus(hostInfo.getGseAgentAlive() ? 1 : 0);
         } else {
-            hostInfoVO.setAlive(0);
+            hostInfoVO.setAgentStatus(0);
         }
-        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(hostInfo.getCloudAreaId(),
+        hostInfoVO.setCloudArea(new CloudAreaInfoVO(hostInfo.getCloudAreaId(),
             CloudAreaService.getCloudAreaNameFromCache(hostInfo.getCloudAreaId())));
-        hostInfoVO.setOs(hostInfo.getOs());
+        hostInfoVO.setOsName(hostInfo.getOsName());
         return hostInfoVO;
     }
 
@@ -369,9 +369,9 @@ public class TopologyHelper {
         }
         for (HostInfoVO hostInfoVO : hostInfoList) {
             if (hostInfoVO != null) {
-                if (hostInfoVO.getCloudAreaInfo() != null) {
-                    hostInfoVO.getCloudAreaInfo()
-                        .setName(cloudAreaService.getCloudAreaName(hostInfoVO.getCloudAreaInfo().getId()));
+                if (hostInfoVO.getCloudArea() != null) {
+                    hostInfoVO.getCloudArea()
+                        .setName(cloudAreaService.getCloudAreaName(hostInfoVO.getCloudArea().getId()));
                 }
             }
         }

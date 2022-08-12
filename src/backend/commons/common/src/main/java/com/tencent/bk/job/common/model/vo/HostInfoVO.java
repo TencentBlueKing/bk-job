@@ -58,19 +58,25 @@ public class HostInfoVO {
     private String displayIp;
 
     @ApiModelProperty("描述")
-    private String ipDesc;
+//    private String ipDesc;
+    private String hostName;
 
-    @ApiModelProperty("agent 状态 0-异常 1-正常")
-    private Integer alive;
+//    @ApiModelProperty("agent 状态 0-异常 1-正常")
+//    private Integer alive;
+
+    @ApiModelProperty("agent状态：-2：未找到，-1：查询失败，0：初始安装，1：启动中，2：运行中，3：有损状态，4：繁忙，5：升级中，6：停止中，7：解除安装")
+    private Integer agentStatus;
 
     @ApiModelProperty("云区域信息")
-    private CloudAreaInfoVO cloudAreaInfo;
+//    private CloudAreaInfoVO cloudAreaInfo;
+    private CloudAreaInfoVO cloudArea;
 
     /**
      * 操作系统
      */
     @ApiModelProperty("操作系统")
-    private String os;
+//    private String os;
+    private String osName;
 
     public static ApplicationHostDTO toDTO(HostInfoVO hostInfo) {
         if (hostInfo == null) {
@@ -80,17 +86,17 @@ public class HostInfoVO {
         hostInfoDTO.setHostId(hostInfo.getHostId());
         hostInfoDTO.setIp(hostInfo.getIp());
         hostInfoDTO.setDisplayIp(hostInfo.getDisplayIp());
-        hostInfoDTO.setIpDesc(hostInfo.getIpDesc());
-        if (hostInfo.getAlive() != null) {
-            hostInfoDTO.setGseAgentAlive(hostInfo.getAlive() == 1);
+        hostInfoDTO.setHostName(hostInfo.getHostName());
+        if (hostInfo.getAgentStatus() != null) {
+            hostInfoDTO.setGseAgentAlive(hostInfo.getAgentStatus() == 1);
         } else {
             hostInfoDTO.setGseAgentAlive(false);
         }
 
-        if (hostInfo.getCloudAreaInfo() != null) {
-            hostInfoDTO.setCloudAreaId(hostInfo.getCloudAreaInfo().getId());
+        if (hostInfo.getCloudArea() != null) {
+            hostInfoDTO.setCloudAreaId(hostInfo.getCloudArea().getId());
         }
-        hostInfoDTO.setOs(hostInfo.getOs());
+        hostInfoDTO.setOsName(hostInfo.getOsName());
         return hostInfoDTO;
     }
 

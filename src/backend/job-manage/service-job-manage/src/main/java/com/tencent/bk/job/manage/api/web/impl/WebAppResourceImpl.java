@@ -530,7 +530,7 @@ public class WebAppResourceImpl implements WebAppResource {
         }
         // 填充云区域名称
         hostList.forEach(hostInfoVO -> {
-            CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudAreaInfo();
+            CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudArea();
             if (cloudAreaInfo != null
                 && cloudAreaInfo.getId() != null
                 && StringUtils.isBlank(cloudAreaInfo.getName())) {

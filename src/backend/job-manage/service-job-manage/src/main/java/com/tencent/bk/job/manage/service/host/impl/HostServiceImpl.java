@@ -509,8 +509,8 @@ public class HostServiceImpl implements HostService {
                 if (appHostInfo != null) {
                     // 填充主机名称与操作系统
                     ApplicationHostDTO.setHostId(appHostInfo.getHostId());
-                    ApplicationHostDTO.setIpDesc(appHostInfo.getIpDesc());
-                    ApplicationHostDTO.setOs(appHostInfo.getOs());
+                    ApplicationHostDTO.setHostName(appHostInfo.getHostName());
+                    ApplicationHostDTO.setOsName(appHostInfo.getOsName());
                 }
             });
             group.setIpListStatus(applicationHostDTOList);
@@ -696,7 +696,7 @@ public class HostServiceImpl implements HostService {
         PageData<HostInfoVO> hostInfoVOResult = listHostByAppTopologyNodes(username, appResourceScope, req);
         List<String> data =
             hostInfoVOResult.getData().parallelStream()
-                .map(it -> it.getCloudAreaInfo().getId().toString() + ":" + it.getIp())
+                .map(it -> it.getCloudArea().getId().toString() + ":" + it.getIp())
                 .collect(Collectors.toList());
         return new PageData<>(
             hostInfoVOResult.getStart(),
@@ -1129,8 +1129,8 @@ public class HostServiceImpl implements HostService {
         // 排序
         //异常排序
         List<HostInfoVO> orderedHostInfoVOList =
-            hostInfoVOList.stream().filter(it -> it.getAlive() == 0).collect(Collectors.toList());
-        orderedHostInfoVOList.addAll(hostInfoVOList.stream().filter(it -> it.getAlive() == 1)
+            hostInfoVOList.stream().filter(it -> it.getAgentStatus() == 0).collect(Collectors.toList());
+        orderedHostInfoVOList.addAll(hostInfoVOList.stream().filter(it -> it.getAgentStatus() == 1)
             .collect(Collectors.toList()));
         hostInfoVOList = orderedHostInfoVOList;
         //重复靠前
@@ -1209,7 +1209,7 @@ public class HostServiceImpl implements HostService {
         int normalCount = 0;
         int abnormalCount = 0;
         for (HostInfoVO it : allHostsSet) {
-            if (it.getAlive() == 1) {
+            if (it.getAgentStatus() == 1) {
                 normalCount += 1;
             } else {
                 abnormalCount += 1;

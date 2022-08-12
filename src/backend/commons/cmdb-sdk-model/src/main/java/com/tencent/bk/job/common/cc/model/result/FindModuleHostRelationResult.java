@@ -62,7 +62,7 @@ public class FindModuleHostRelationResult {
         @JsonProperty("bk_host_name")
         private String hostName;
         @JsonProperty("bk_os_name")
-        private String os;
+        private String osName;
         @JsonProperty("bk_os_type")
         private String osType;
         @JsonProperty("bk_cloud_id")

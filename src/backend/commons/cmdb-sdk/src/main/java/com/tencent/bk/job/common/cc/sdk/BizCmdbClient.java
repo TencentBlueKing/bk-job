@@ -640,12 +640,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 return 0L;
             }
         }).collect(Collectors.toList()));
-        applicationHostDTO.setIpDesc(host.getHostName());
-        String os = host.getOs();
-        if (os != null && os.length() > 512) {
-            applicationHostDTO.setOs(os.substring(0, 512));
+        applicationHostDTO.setHostName(host.getHostName());
+        String osName = host.getOsName();
+        if (osName != null && osName.length() > 512) {
+            applicationHostDTO.setOsName(osName.substring(0, 512));
         } else {
-            applicationHostDTO.setOs(os);
+            applicationHostDTO.setOsName(osName);
         }
         applicationHostDTO.setOsType(host.getOsType());
         return applicationHostDTO;
@@ -685,9 +685,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         }
 
         if (hostInfo.getOs() != null && hostInfo.getOs().length() > 512) {
-            ipInfo.setOs(hostInfo.getOs().substring(0, 512));
+            ipInfo.setOsName(hostInfo.getOs().substring(0, 512));
         } else {
-            ipInfo.setOs(hostInfo.getOs());
+            ipInfo.setOsName(hostInfo.getOs());
         }
         if (hostInfo.getCloudId() != null) {
             ipInfo.setCloudAreaId(hostInfo.getCloudId());
@@ -697,7 +697,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         }
         ipInfo.setIp(hostInfo.getIp());
         ipInfo.setBizId(bizId);
-        ipInfo.setIpDesc(hostInfo.getHostName());
+        ipInfo.setHostName(hostInfo.getHostName());
 
         return ipInfo;
     }

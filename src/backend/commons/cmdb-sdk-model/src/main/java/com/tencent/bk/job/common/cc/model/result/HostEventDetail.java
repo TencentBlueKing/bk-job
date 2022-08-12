@@ -70,8 +70,8 @@ public class HostEventDetail {
         if (ipList != null && !ipList.isEmpty()) {
             hostInfoDTO.setIp(ipList.get(0));
         }
-        hostInfoDTO.setIpDesc(eventDetail.hostName);
-        hostInfoDTO.setOs(eventDetail.osName);
+        hostInfoDTO.setHostName(eventDetail.hostName);
+        hostInfoDTO.setOsName(eventDetail.osName);
         hostInfoDTO.setOsType(eventDetail.osType);
         hostInfoDTO.setCloudAreaId(Long.parseLong(eventDetail.getCloudId()));
         return hostInfoDTO;

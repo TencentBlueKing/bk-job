@@ -42,13 +42,13 @@ public class HostConverter {
     public HostInfoVO convertToHostInfoVO(ApplicationHostDTO hostDTO) {
         HostInfoVO hostInfoVO = new HostInfoVO();
         hostInfoVO.setHostId(hostDTO.getHostId());
-        hostInfoVO.setOs(hostDTO.getOs());
+        hostInfoVO.setOsName(hostDTO.getOsName());
         hostInfoVO.setIp(hostDTO.getIp());
-        hostInfoVO.setIpDesc(hostDTO.getIpDesc());
+        hostInfoVO.setHostName(hostDTO.getHostName());
         hostInfoVO.setDisplayIp(hostDTO.getDisplayIp());
-        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(hostDTO.getCloudAreaId(),
+        hostInfoVO.setCloudArea(new CloudAreaInfoVO(hostDTO.getCloudAreaId(),
             CloudAreaService.getCloudAreaNameFromCache(hostDTO.getCloudAreaId())));
-        hostInfoVO.setAlive(hostDTO.getAgentStatusValue());
+        hostInfoVO.setAgentStatus(hostDTO.getAgentStatusValue());
         return hostInfoVO;
     }
 }

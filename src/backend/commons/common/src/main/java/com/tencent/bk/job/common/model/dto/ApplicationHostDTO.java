@@ -76,9 +76,9 @@ public class ApplicationHostDTO {
      */
     private String displayIp;
     /**
-     * 主机描述
+     * 主机名称
      */
-    private String ipDesc;
+    private String hostName;
     /**
      * 主机Agent状态
      */
@@ -95,7 +95,7 @@ public class ApplicationHostDTO {
     /**
      * 操作系统
      */
-    private String os;
+    private String osName;
 
     /**
      * 操作系统类型
@@ -125,13 +125,13 @@ public class ApplicationHostDTO {
     public HostInfoVO toVO() {
         HostInfoVO hostInfoVO = new HostInfoVO();
         hostInfoVO.setHostId(hostId);
-        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(cloudAreaId, null));
+        hostInfoVO.setCloudArea(new CloudAreaInfoVO(cloudAreaId, null));
         hostInfoVO.setIp(ip);
         hostInfoVO.setIpv6(ipv6);
         hostInfoVO.setDisplayIp(displayIp);
-        hostInfoVO.setIpDesc(ipDesc);
-        hostInfoVO.setOs(os);
-        hostInfoVO.setAlive(gseAgentAlive == null ? 0 : (gseAgentAlive ? 1 : 0));
+        hostInfoVO.setHostName(hostName);
+        hostInfoVO.setOsName(osName);
+        hostInfoVO.setAgentStatus(gseAgentAlive == null ? 0 : (gseAgentAlive ? 1 : 0));
         return hostInfoVO;
     }
 

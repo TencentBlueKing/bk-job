@@ -86,7 +86,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
             serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
             serviceHostStatusDTO.setIp(hostInfoVO.getIp());
-            serviceHostStatusDTO.setAlive(hostInfoVO.getAlive());
+            serviceHostStatusDTO.setAlive(hostInfoVO.getAgentStatus());
             if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
                 hostStatusDTOList.add(serviceHostStatusDTO);
             }

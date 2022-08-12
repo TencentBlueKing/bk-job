@@ -100,7 +100,7 @@ public class TaskTargetDTO {
                 hostNode.setIp(host.getIp());
                 hostNode.setIpv6(host.getIpv6());
                 hostNode.setDisplayIp(host.getDisplayIp());
-                hostNode.setOs(host.getOs());
+                hostNode.setOsName(host.getOsName());
                 hostNode.setOsType(host.getOsType());
                 hostNode.setGseAgentAlive(host.getGseAgentAlive());
             });

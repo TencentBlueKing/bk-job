@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +33,7 @@ import lombok.Setter;
 /**
  * Redis 缓存主机DO
  */
+@PersistenceObject
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -94,8 +96,8 @@ public class CacheHostDO {
         host.setIp(this.ip);
         host.setHostId(this.hostId);
         host.setAgentId(this.agentId);
-        host.setIpDesc(this.hostDesc);
-        host.setOs(this.os);
+        host.setHostName(this.hostDesc);
+        host.setOsName(this.os);
         host.setOsType(this.osType);
         host.setGseAgentAlive(this.gseAgentAlive);
 
@@ -110,8 +112,8 @@ public class CacheHostDO {
         cacheHost.setIp(host.getIp());
         cacheHost.setHostId(host.getHostId());
         cacheHost.setAgentId(host.getAgentId());
-        cacheHost.setHostDesc(host.getIpDesc());
-        cacheHost.setOs(host.getOs());
+        cacheHost.setHostDesc(host.getHostName());
+        cacheHost.setOs(host.getOsName());
         cacheHost.setOsType(host.getOsType());
         cacheHost.setGseAgentAlive(host.getGseAgentAlive());
         return cacheHost;
