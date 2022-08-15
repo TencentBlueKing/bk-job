@@ -126,7 +126,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     }
 
     @Override
-    public Integer updateFileSourceById(Long appId, FileSourceDTO fileSourceDTO) {
+    public int updateFileSourceById(Long appId, FileSourceDTO fileSourceDTO) {
         return fileSourceDAO.updateFileSource(dslContext, fileSourceDTO);
     }
 
@@ -217,8 +217,13 @@ public class FileSourceServiceImpl implements FileSourceService {
     }
 
     @Override
-    public boolean existsCode(String code) {
-        return fileSourceDAO.existsCode(code);
+    public boolean existsCode(Long appId, String code) {
+        return fileSourceDAO.existsCode(appId, code);
+    }
+
+    @Override
+    public boolean existsCodeExceptId(Long appId, String code, Integer exceptId) {
+        return fileSourceDAO.existsCodeExceptId(appId, code, exceptId);
     }
 
     @Override

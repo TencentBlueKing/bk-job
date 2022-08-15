@@ -426,9 +426,21 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
     }
 
     @Override
-    public boolean existsCode(String code) {
+    public boolean existsCode(Long appId, String code) {
         val query = defaultContext.selectZero().from(defaultTable)
-            .where(defaultTable.CODE.eq(code)).limit(1);
+            .where(defaultTable.APP_ID.eq(appId))
+            .and(defaultTable.CODE.eq(code))
+            .limit(1);
+        return query.fetch().size() > 0;
+    }
+
+    @Override
+    public boolean existsCodeExceptId(Long appId, String code, Integer exceptId) {
+        val query = defaultContext.selectZero().from(defaultTable)
+            .where(defaultTable.APP_ID.eq(appId))
+            .and(defaultTable.CODE.eq(code))
+            .and(defaultTable.ID.notEqual(exceptId))
+            .limit(1);
         return query.fetch().size() > 0;
     }
 
