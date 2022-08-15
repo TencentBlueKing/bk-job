@@ -905,9 +905,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                 fileSize = GseUtils.tranByteReadable(taskResult.getSize());
                 logContent.append(" FileSize: ").append(fileSize);
             }
-            if (StringUtils.isNotEmpty(taskResult.getStatusDesc())) {
-                logContent.append(" State: ").append(taskResult.getStatusDesc());
-            }
             if (taskResult.getSpeed() != null) {
                 speed = formatSpeed(taskResult.getSpeed()) + " KB/s";
                 logContent.append(" Speed: ").append(speed);

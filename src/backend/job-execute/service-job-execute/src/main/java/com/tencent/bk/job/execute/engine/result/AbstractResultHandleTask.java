@@ -320,6 +320,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     public void execute() {
         StopWatch watch = new StopWatch("Result-Handle-Task-" + stepInstanceId);
+        String lockKey = buildGseTaskLockKey(gseTask);
         try {
             if (!checkTaskActiveAndSetRunningStatus()) {
                 return;
@@ -329,8 +330,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
 
             watch.start("get-lock");
-            if (!LockUtils.tryGetReentrantLock("job:result:handle:" + stepInstanceId, requestId, 30000L)) {
-                log.info("Fail to get result handle lock, stepInstanceId: {}", stepInstanceId);
+            if (!LockUtils.tryGetReentrantLock(lockKey, requestId, 30000L)) {
+                log.error("Fail to get result handle lock, lockKey: {}", lockKey);
                 this.executeResult = GseTaskExecuteResult.DISCARDED;
                 return;
             }
@@ -360,7 +361,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             handleExecuteResult(this.executeResult);
         } finally {
             this.isRunning = false;
-            LockUtils.releaseDistributedLock("job:result:handle:", String.valueOf(stepInstanceId), requestId);
+            LockUtils.releaseDistributedLock(lockKey, requestId);
             if (watch.isRunning()) {
                 watch.stop();
             }
@@ -369,6 +370,17 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                     watch.prettyPrint());
             }
         }
+    }
+
+    private String buildGseTaskLockKey(GseTaskDTO gseTask) {
+        String lockKey = "job:result:handle:";
+        if (gseTask.getId() != null) {
+            lockKey = lockKey + gseTask.getId();
+        } else {
+            // tmp: 兼容GSE_TASK数据,发布完成后删除
+            lockKey = lockKey + "step:" + gseTask.getStepInstanceId();
+        }
+        return lockKey;
     }
 
     private boolean checkTaskActiveAndSetRunningStatus() {
