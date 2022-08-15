@@ -368,9 +368,9 @@ public class WebAppResourceImpl implements WebAppResource {
         List<AppTopologyTreeNode> treeNodeList = hostService.getAppTopologyTreeNodeDetail(username,
             appResourceScope,
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
-                it.getType(),
+                it.getObjectId(),
                 "",
-                it.getId(),
+                it.getInstanceId(),
                 "",
                 null
             )).collect(Collectors.toList()));
@@ -392,8 +392,8 @@ public class WebAppResourceImpl implements WebAppResource {
             appDTO.getBizIdIfBizApp(),
             targetNodeVOList.stream().map(it -> {
                 InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
-                instanceTopologyDTO.setObjectId(it.getType());
-                instanceTopologyDTO.setInstanceId(it.getId());
+                instanceTopologyDTO.setObjectId(it.getObjectId());
+                instanceTopologyDTO.setInstanceId(it.getInstanceId());
                 return instanceTopologyDTO;
             }).collect(Collectors.toList()));
         List<List<CcTopologyNodeVO>> resultList = new ArrayList<>();
@@ -429,9 +429,9 @@ public class WebAppResourceImpl implements WebAppResource {
             username,
             appDTO.getBizIdIfBizApp(),
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
-                it.getType(),
+                it.getObjectId(),
                 "",
-                it.getId(),
+                it.getInstanceId(),
                 "",
                 null
             )).collect(Collectors.toList())

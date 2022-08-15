@@ -54,8 +54,8 @@ public class TaskNodeInfoDTO {
             return null;
         }
         TaskNodeInfoDTO nodeInfo = new TaskNodeInfoDTO();
-        nodeInfo.setId(targetNodeVO.getId());
-        nodeInfo.setType(targetNodeVO.getType());
+        nodeInfo.setId(targetNodeVO.getInstanceId());
+        nodeInfo.setType(targetNodeVO.getObjectId());
         return nodeInfo;
     }
 
@@ -71,8 +71,8 @@ public class TaskNodeInfoDTO {
 
     public TargetNodeVO toVO() {
         TargetNodeVO targetNodeVO = new TargetNodeVO();
-        targetNodeVO.setId(this.getId());
-        targetNodeVO.setType(this.getType());
+        targetNodeVO.setInstanceId(this.getId());
+        targetNodeVO.setObjectId(this.getType());
         return targetNodeVO;
     }
 

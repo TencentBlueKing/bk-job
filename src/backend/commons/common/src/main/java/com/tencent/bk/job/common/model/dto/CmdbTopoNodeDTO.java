@@ -48,8 +48,8 @@ public class CmdbTopoNodeDTO {
             return null;
         }
         TargetNodeVO targetNode = new TargetNodeVO();
-        targetNode.setId(cmdbTopoNodeDTO.getId());
-        targetNode.setType(cmdbTopoNodeDTO.getNodeType());
+        targetNode.setInstanceId(cmdbTopoNodeDTO.getId());
+        targetNode.setObjectId(cmdbTopoNodeDTO.getNodeType());
         return targetNode;
     }
 
@@ -58,8 +58,8 @@ public class CmdbTopoNodeDTO {
             return null;
         }
         CmdbTopoNodeDTO cmdbTopoNodeDTO = new CmdbTopoNodeDTO();
-        cmdbTopoNodeDTO.setId(targetNode.getId());
-        cmdbTopoNodeDTO.setNodeType(targetNode.getType());
+        cmdbTopoNodeDTO.setId(targetNode.getInstanceId());
+        cmdbTopoNodeDTO.setNodeType(targetNode.getObjectId());
         return cmdbTopoNodeDTO;
     }
 }
