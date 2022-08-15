@@ -22,38 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.model.web.vo.ipchooser;
 
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
-import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
-import com.tencent.bk.job.manage.model.web.vo.index.JobAndScriptStatistics;
-import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
-
-import java.util.List;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @Description
- * @Date 2020/3/6
- * @Version 1.0
+ * @since 13/12/2019 17:31
  */
-public interface IndexService {
-    List<GreetingVO> listGreeting(String username);
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@ApiModel("节点主机Agent状态统计信息")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class NodeHostStatisticsVO {
+    /**
+     * 云区域 ID
+     */
+    @ApiModelProperty(value = "节点信息", required = true)
+    private TargetNodeVO node;
 
-    AgentStatistics getAgentStatistics(String username, AppResourceScope appResourceScope);
-
-    PageData<HostInfoVO> listHostsByAgentStatus(String username,
-                                                Long appId,
-                                                Integer agentStatus,
-                                                Long start,
-                                                Long pageSize);
-
-    PageData<String> listIPsByAgentStatus(String username, Long appId, Integer agentStatus, Long start, Long pageSize);
-
-    JobAndScriptStatistics getJobAndScriptStatistics(String username, Long appId);
-
-    List<TaskTemplateVO> listMyFavorTasks(String username, Long appId, Long limit);
+    @ApiModelProperty(value = "主机Agent状态统计信息", required = true)
+    private AgentStatistics agentStatistics;
 
 }

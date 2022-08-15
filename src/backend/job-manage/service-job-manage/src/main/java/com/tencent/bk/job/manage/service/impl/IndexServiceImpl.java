@@ -45,7 +45,7 @@ import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
-import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
+import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
 import com.tencent.bk.job.manage.model.web.vo.index.JobAndScriptStatistics;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;

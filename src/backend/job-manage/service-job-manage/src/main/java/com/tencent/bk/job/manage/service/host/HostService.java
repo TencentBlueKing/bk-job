@@ -39,7 +39,7 @@ import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
+import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 
 import java.util.Collection;
 import java.util.List;

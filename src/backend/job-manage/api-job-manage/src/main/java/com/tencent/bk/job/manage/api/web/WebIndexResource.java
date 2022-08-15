@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
+import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
 import com.tencent.bk.job.manage.model.web.vo.index.JobAndScriptStatistics;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
