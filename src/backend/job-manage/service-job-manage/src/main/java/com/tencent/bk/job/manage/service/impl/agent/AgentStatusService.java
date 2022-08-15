@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl.agent;
 
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.LogUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -60,9 +61,9 @@ public class AgentStatusService {
         // 查出节点下主机与Agent状态
         List<String> agentIdList = ApplicationHostDTO.buildAgentIdList(hosts);
         // 批量设置agent状态
-        Map<String, Boolean> agentAliveStatusMap;
+        Map<String, AgentState> agentStateMap;
         try {
-            agentAliveStatusMap = agentStateClient.batchGetAgentAliveStatus(agentIdList);
+            agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
                 "Fail to get agentState by agentIdList:{}",
@@ -80,7 +81,12 @@ public class AgentStatusService {
                 continue;
             }
             String agentId = hostInfoDTO.getFinalAgentId();
-            hostInfoDTO.setGseAgentAlive(agentAliveStatusMap.get(agentId));
+            AgentState agentState = agentStateMap.get(agentId);
+            if (agentState == null) {
+                hostInfoDTO.setGseAgentStatus(null);
+            } else {
+                hostInfoDTO.setGseAgentStatus(agentState.getStatusCode());
+            }
         }
     }
 }

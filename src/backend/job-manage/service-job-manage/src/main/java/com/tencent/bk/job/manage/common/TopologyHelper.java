@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
@@ -390,13 +391,18 @@ public class TopologyHelper {
             return ipInfoList;
         }
 
-        Map<String, Boolean> agentAliveStatusMap = agentStateClient.batchGetAgentAliveStatus(cloudIpList);
+        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(cloudIpList);
         for (String cloudIp : cloudIpList) {
             ApplicationHostDTO ipInfo = new ApplicationHostDTO();
             ipInfo.setCloudAreaId(Long.valueOf(cloudIp.split(":")[0]));
             ipInfo.setBizId(bizId);
             ipInfo.setIp(cloudIp.split(":")[1]);
-            ipInfo.setGseAgentAlive(agentAliveStatusMap.get(cloudIp));
+            AgentState agentState = agentStateMap.get(cloudIp);
+            if (agentState != null) {
+                ipInfo.setGseAgentStatus(agentState.getStatusCode());
+            } else {
+                log.warn("Cannot find agentState by ip {}", cloudIp);
+            }
             ipInfoList.add(ipInfo);
         }
         return ipInfoList;

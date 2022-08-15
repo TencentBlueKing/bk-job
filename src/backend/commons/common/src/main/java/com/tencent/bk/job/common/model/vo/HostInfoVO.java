@@ -68,7 +68,7 @@ public class HostInfoVO {
     @ApiModelProperty("agent状态：-2：未找到，-1：查询失败，0：初始安装，1：启动中，2：运行中，3：有损状态，4：繁忙，5：升级中，6：停止中，7：解除安装")
     private Integer agentStatus;
     @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    @ApiModelProperty("agent 状态 0-异常 1-正常")
+//    @ApiModelProperty("agent 状态 0-异常 1-正常")
     private Integer alive;
 
     @ApiModelProperty("云区域信息")
@@ -99,6 +99,10 @@ public class HostInfoVO {
     public void setHostName(String hostName) {
         this.hostName = hostName;
         this.ipDesc = hostName;
+    }
+
+    private void setAlive(Integer alive) {
+        this.alive = alive;
     }
 
     @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")

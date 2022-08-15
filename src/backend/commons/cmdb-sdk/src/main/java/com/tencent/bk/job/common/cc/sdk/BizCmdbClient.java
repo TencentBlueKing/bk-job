@@ -587,7 +587,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     ) {
         String multiIp = host.getIp();
         multiIp = multiIp.trim();
-        applicationHostDTO.setGseAgentAlive(false);
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
         if (ipList.size() > 0) {

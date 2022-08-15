@@ -80,9 +80,13 @@ public class ApplicationHostDTO {
      */
     private String hostName;
     /**
-     * 主机Agent状态
+     * 主机Agent状态值
      */
-    private Boolean gseAgentAlive;
+    private Integer gseAgentStatus = null;
+    /**
+     * 主机Agent是否正常
+     */
+    private Boolean gseAgentAlive = false;
     /**
      * 云区域ID
      */
@@ -122,30 +126,46 @@ public class ApplicationHostDTO {
      */
     private List<String> ipList = new ArrayList<>();
 
-    private static boolean isGseAgentAlive(HostInfoVO hostInfo) {
-        if (hostInfo.getAgentStatus() != null) {
-            // TODO
-//            return hostInfo.getAgentStatus()==AgentStateStat
-        } else if (hostInfo.getAlive() != null) {
-            return hostInfo.getAlive() == 1;
+    public void setGseAgentStatus(Integer gseAgentStatus) {
+        this.gseAgentStatus = gseAgentStatus;
+        this.gseAgentAlive = gseAgentStatus != null && gseAgentStatus == 2;
+    }
+
+    public void setGseAgentAlive(Boolean gseAgentAlive) {
+        this.gseAgentAlive = gseAgentAlive;
+        if (gseAgentAlive != null && gseAgentAlive) {
+            // 取值参考AgentStateStatusEnum
+            this.gseAgentStatus = 2;
+        } else {
+            this.gseAgentStatus = -2;
+        }
+    }
+
+    private static boolean isGseAgentAlive(HostInfoVO hostInfoVO) {
+        if (hostInfoVO.getAlive() != null) {
+            return hostInfoVO.getAlive() == 1;
         }
         return false;
     }
 
-    public static ApplicationHostDTO fromVO(HostInfoVO hostInfo) {
-        if (hostInfo == null) {
+    public static ApplicationHostDTO fromVO(HostInfoVO hostInfoVO) {
+        if (hostInfoVO == null) {
             return null;
         }
         ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
-        hostInfoDTO.setHostId(hostInfo.getHostId());
-        hostInfoDTO.setIp(hostInfo.getIp());
-        hostInfoDTO.setDisplayIp(hostInfo.getDisplayIp());
-        hostInfoDTO.setHostName(hostInfo.getHostName());
-        hostInfoDTO.setGseAgentAlive(isGseAgentAlive(hostInfo));
-        if (hostInfo.getCloudArea() != null) {
-            hostInfoDTO.setCloudAreaId(hostInfo.getCloudArea().getId());
+        hostInfoDTO.setHostId(hostInfoVO.getHostId());
+        hostInfoDTO.setIp(hostInfoVO.getIp());
+        hostInfoDTO.setDisplayIp(hostInfoVO.getDisplayIp());
+        hostInfoDTO.setHostName(hostInfoVO.getHostName());
+        if (hostInfoVO.getAgentStatus() != null) {
+            hostInfoDTO.setGseAgentStatus(hostInfoVO.getAgentStatus());
+        } else {
+            hostInfoDTO.setGseAgentAlive(isGseAgentAlive(hostInfoVO));
         }
-        hostInfoDTO.setOsName(hostInfo.getOsName());
+        if (hostInfoVO.getCloudArea() != null) {
+            hostInfoDTO.setCloudAreaId(hostInfoVO.getCloudArea().getId());
+        }
+        hostInfoDTO.setOsName(hostInfoVO.getOsName());
         return hostInfoDTO;
     }
 

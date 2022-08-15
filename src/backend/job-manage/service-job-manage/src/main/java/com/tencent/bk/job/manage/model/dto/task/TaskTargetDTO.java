@@ -102,7 +102,7 @@ public class TaskTargetDTO {
                 hostNode.setDisplayIp(host.getDisplayIp());
                 hostNode.setOsName(host.getOsName());
                 hostNode.setOsType(host.getOsType());
-                hostNode.setGseAgentAlive(host.getGseAgentAlive());
+                hostNode.setGseAgentStatus(host.getGseAgentStatus());
             });
         }
     }
