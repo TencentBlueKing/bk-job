@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -95,6 +96,11 @@ public class ApplicationHostDTO {
      */
     private Long cloudAreaId;
     /**
+     * 云区域名称
+     */
+    @JsonIgnore
+    private String cloudAreaName;
+    /**
      * 云区域+ip
      */
     private String cloudIp;
@@ -128,6 +134,10 @@ public class ApplicationHostDTO {
      * IP 列表，搜索用参数
      */
     private List<String> ipList = new ArrayList<>();
+
+    public void setCloudAreaId(Long cloudAreaId) {
+        this.cloudAreaId = cloudAreaId;
+    }
 
     public void setGseAgentStatus(Integer gseAgentStatus) {
         this.gseAgentStatus = gseAgentStatus;
@@ -172,6 +182,7 @@ public class ApplicationHostDTO {
         }
         if (hostInfoVO.getCloudArea() != null) {
             hostInfoDTO.setCloudAreaId(hostInfoVO.getCloudArea().getId());
+            hostInfoDTO.setCloudAreaName(hostInfoVO.getCloudArea().getName());
         }
         hostInfoDTO.setOsName(hostInfoVO.getOsName());
         return hostInfoDTO;
@@ -180,7 +191,7 @@ public class ApplicationHostDTO {
     public HostInfoVO toVO() {
         HostInfoVO hostInfoVO = new HostInfoVO();
         hostInfoVO.setHostId(hostId);
-        hostInfoVO.setCloudArea(new CloudAreaInfoVO(cloudAreaId, null));
+        hostInfoVO.setCloudArea(new CloudAreaInfoVO(cloudAreaId, cloudAreaName));
         hostInfoVO.setIp(ip);
         hostInfoVO.setIpv6(ipv6);
         hostInfoVO.setDisplayIp(displayIp);

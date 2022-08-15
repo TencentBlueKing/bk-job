@@ -972,7 +972,6 @@ public class HostServiceImpl implements HostService {
         validIPList.removeIf(cloudIPDTO -> localHostCloudIPSet.contains(cloudIPDTO.getCloudIP()));
         // 查不到的再去CMDB查
         if (!validIPList.isEmpty()) {
-
             IBizCmdbClient cmdbClient = CmdbClientFactory.getCmdbClient();
             List<ApplicationHostDTO> cmdbHosts = cmdbClient.listHostsByCloudIps(
                 validIPList.parallelStream()
@@ -990,11 +989,19 @@ public class HostServiceImpl implements HostService {
 
         // 8.查询Agent状态
         agentStatusService.fillRealTimeAgentStatus(hostDTOList);
-        // 9.类型转换，返回
+        // 9.填充云区域名称
+        fillCloudAreaName(hostDTOList);
+        // 10.类型转换，返回
         return hostDTOList.stream()
             .filter(Objects::nonNull)
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList());
+    }
+
+    private void fillCloudAreaName(List<ApplicationHostDTO> hostDTOList) {
+        hostDTOList.forEach(hostDTO ->
+            hostDTO.setCloudAreaName(CloudAreaService.getCloudAreaNameFromCache(hostDTO.getCloudAreaId()))
+        );
     }
 
     private void getCustomGroupListByBizId(Long bizId,
