@@ -833,6 +833,11 @@ executeConfig:
     port: 80
   # 运行时JVM参数
   jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  gse:
+    task:
+      table:
+        route:
+          newTableEnabled: true
 
 
 ## job-crontab定时任务配置

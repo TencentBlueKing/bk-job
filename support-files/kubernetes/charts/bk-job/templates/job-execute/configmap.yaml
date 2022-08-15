@@ -184,4 +184,9 @@ data:
       storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
       artifactory:
         repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
+    gse:
+      task:
+        table:
+          route:
+            newTableEnabled: {{ .Values.executeConfig.gse.task.table.route.newTableEnabled }}
 {{- end }}
