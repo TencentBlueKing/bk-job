@@ -91,6 +91,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -990,9 +991,10 @@ public class HostServiceImpl implements HostService {
         // 8.查询Agent状态
         agentStatusService.fillRealTimeAgentStatus(hostDTOList);
         // 9.类型转换，返回
-        List<HostInfoVO> hostInfoList = new ArrayList<>();
-        hostDTOList.forEach(hostInfo -> hostInfoList.add(TopologyHelper.convertToHostInfoVO(hostInfo)));
-        return hostInfoList;
+        return hostDTOList.stream()
+            .filter(Objects::nonNull)
+            .map(ApplicationHostDTO::toVO)
+            .collect(Collectors.toList());
     }
 
     private void getCustomGroupListByBizId(Long bizId,

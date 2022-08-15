@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.model.dto.task;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
-import com.tencent.bk.job.manage.common.TopologyHelper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,6 +34,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -67,7 +67,9 @@ public class TaskHostNodeDTO {
         if (hostNode.getHostList() != null) {
             hostNodeVO
                 .setIpList(hostNode.getHostList().stream()
-                    .map(TopologyHelper::convertToHostInfoVO).collect(Collectors.toList()));
+                    .filter(Objects::nonNull)
+                    .map(ApplicationHostDTO::toVO)
+                    .collect(Collectors.toList()));
         }
         return hostNodeVO;
     }

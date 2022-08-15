@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.common;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.model.TopologyNodeInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
@@ -37,13 +36,10 @@ import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
-import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -198,52 +195,6 @@ public class TopologyHelper {
     }
 
     /**
-     * 将作业平台内部主机信息转换为展示用主机信息
-     *
-     * @param hostInfo 作业平台内主机信息
-     * @return 展示用主机信息
-     */
-    public static HostInfoVO convertToHostInfoVO(ApplicationHostDTO hostInfo) {
-        if (hostInfo == null) {
-            return null;
-        }
-        HostInfoVO hostInfoVO = new HostInfoVO();
-        hostInfoVO.setHostId(hostInfo.getHostId());
-        hostInfoVO.setIp(hostInfo.getIp());
-        hostInfoVO.setDisplayIp(hostInfo.getDisplayIp());
-        hostInfoVO.setHostName(hostInfo.getHostName());
-        if (hostInfo.getGseAgentAlive() != null) {
-            hostInfoVO.setAgentStatus(hostInfo.getGseAgentAlive() ? 1 : 0);
-        } else {
-            hostInfoVO.setAgentStatus(0);
-        }
-        hostInfoVO.setCloudArea(new CloudAreaInfoVO(hostInfo.getCloudAreaId(),
-            CloudAreaService.getCloudAreaNameFromCache(hostInfo.getCloudAreaId())));
-        hostInfoVO.setOsName(hostInfo.getOsName());
-        return hostInfoVO;
-    }
-
-    /**
-     * 将作业平台内部拓扑信息转换为展示用拓扑信息
-     *
-     * @param nodeInfo 作业平台内拓扑结构
-     * @return 展示用拓扑结构
-     */
-    public static NodeInfoVO convertToNodeInfoVO(TopologyNodeInfoDTO nodeInfo) {
-        NodeInfoVO nodeInfoVO = new NodeInfoVO();
-        nodeInfoVO.setId(nodeInfo.getId());
-        nodeInfoVO.setName(nodeInfo.getName());
-        nodeInfoVO.setNodeType(nodeInfo.getType().getType());
-        nodeInfoVO.setIpList(nodeInfo.getIpList());
-        if (CollectionUtils.isNotEmpty(nodeInfo.getIpListStatus())) {
-            nodeInfoVO.setIpListStatus(
-                nodeInfo.getIpListStatus().parallelStream()
-                    .map(TopologyHelper::convertToHostInfoVO).collect(Collectors.toList()));
-        }
-        return nodeInfoVO;
-    }
-
-    /**
      * 将作业平台内部动态分组信息转换为展示用动态分组信息
      *
      * @param dynamicGroupInfoDTO 作业平台内部动态分组信息
@@ -264,7 +215,8 @@ public class TopologyHelper {
         dynamicGroupInfoVO.setType(dynamicGroupInfoDTO.getType());
         if (dynamicGroupInfoDTO.getIpListStatus() != null) {
             dynamicGroupInfoVO.setIpListStatus(dynamicGroupInfoDTO.getIpListStatus().parallelStream()
-                .map(TopologyHelper::convertToHostInfoVO).collect(Collectors.toList()));
+                .filter(Objects::nonNull)
+                .map(ApplicationHostDTO::toVO).collect(Collectors.toList()));
         } else {
             dynamicGroupInfoVO.setIpListStatus(null);
         }
@@ -294,40 +246,6 @@ public class TopologyHelper {
         return instanceTopology;
     }
 
-    /**
-     * 根据拓扑节点 ID 和类型获取节点名称
-     *
-     * @param appId    业务 ID
-     * @param nodeId   节点 ID
-     * @param nodeType 节点类型
-     * @return 节点名称
-     */
-    public String getTopologyNodeName(Long appId, Long nodeId, String nodeType) {
-        Map<String, Map<Long, String>> nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
-        ApplicationDTO appInfo = applicationDAO.getAppById(appId);
-        if (appInfo == null) {
-            return String.valueOf(nodeId);
-        }
-        if (nodeTypeNameMap == null || nodeTypeNameMap.get(nodeType) == null) {
-            InstanceTopologyDTO topology = getTopologyTreeByApplication(appInfo);
-            processTopologyNodeName(topology, null);
-        }
-        if (CcNodeTypeEnum.BIZ.getType().equals(nodeType)) {
-            return appInfo.getName();
-        }
-        nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
-        if (nodeTypeNameMap != null) {
-            if (nodeTypeNameMap.get(nodeType) != null) {
-                String name = nodeTypeNameMap.get(nodeType).get(nodeId);
-                if (StringUtils.isBlank(name)) {
-                    name = String.valueOf(nodeId);
-                }
-                return name;
-            }
-        }
-        return String.valueOf(nodeId);
-    }
-
     public List<Long> getBizSetSubBizIds(ApplicationDTO appInfo) {
         if (appInfo.isAllBizSet()) {
             return applicationDAO.listAllBizAppBizIds();
@@ -354,27 +272,6 @@ public class TopologyHelper {
                 appInfo
             );
             throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
-        }
-    }
-
-    /**
-     * 向主机信息中填充云区域名称
-     * <p>
-     * 不可删除！
-     *
-     * @param hostInfoList 主机信息列表
-     */
-    public void fillCloudAreaName(List<HostInfoVO> hostInfoList) {
-        if (CollectionUtils.isEmpty(hostInfoList)) {
-            return;
-        }
-        for (HostInfoVO hostInfoVO : hostInfoList) {
-            if (hostInfoVO != null) {
-                if (hostInfoVO.getCloudArea() != null) {
-                    hostInfoVO.getCloudArea()
-                        .setName(cloudAreaService.getCloudAreaName(hostInfoVO.getCloudArea().getId()));
-                }
-            }
         }
     }
 

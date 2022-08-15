@@ -282,7 +282,8 @@ public class WebAppResourceImpl implements WebAppResource {
         finalHostInfoPageData.setPageSize(appHostInfoPageData.getPageSize());
         finalHostInfoPageData
             .setData(appHostInfoPageData.getData().stream()
-                .map(TopologyHelper::convertToHostInfoVO).collect(Collectors.toList()));
+                .filter(Objects::nonNull)
+                .map(ApplicationHostDTO::toVO).collect(Collectors.toList()));
         return Response.buildSuccessResp(finalHostInfoPageData);
     }
 
