@@ -31,9 +31,8 @@ import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
@@ -98,7 +97,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
     protected TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
-    protected ExceptionStatusManager exceptionStatusManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected AgentTaskService agentTaskService;
     protected StepInstanceService stepInstanceService;
@@ -214,7 +212,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        StepInstanceVariableValueService stepInstanceVariableValueService,
                                        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                        ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                       ExceptionStatusManager exceptionStatusManager,
                                        TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                        AgentTaskService agentTaskService,
                                        StepInstanceService stepInstanceService,
@@ -232,7 +229,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.agentTaskService = agentTaskService;
         this.stepInstanceService = stepInstanceService;
@@ -328,6 +324,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     public void execute() {
         StopWatch watch = new StopWatch("Result-Handle-Task-" + stepInstanceId);
+        String lockKey = buildGseTaskLockKey(gseTask);
         try {
             if (!checkTaskActiveAndSetRunningStatus()) {
                 return;
@@ -337,8 +334,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
 
             watch.start("get-lock");
-            if (!LockUtils.tryGetReentrantLock("job:result:handle:" + stepInstanceId, requestId, 30000L)) {
-                log.info("Fail to get result handle lock, stepInstanceId: {}", stepInstanceId);
+            if (!LockUtils.tryGetReentrantLock(lockKey, requestId, 30000L)) {
+                log.error("Fail to get result handle lock, lockKey: {}", lockKey);
                 this.executeResult = GseTaskExecuteResult.DISCARDED;
                 return;
             }
@@ -368,7 +365,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             handleExecuteResult(this.executeResult);
         } finally {
             this.isRunning = false;
-            LockUtils.releaseDistributedLock("job:result:handle:", String.valueOf(stepInstanceId), requestId);
+            LockUtils.releaseDistributedLock(lockKey, requestId);
             if (watch.isRunning()) {
                 watch.stop();
             }
@@ -377,6 +374,17 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                     watch.prettyPrint());
             }
         }
+    }
+
+    private String buildGseTaskLockKey(GseTaskDTO gseTask) {
+        String lockKey = "job:result:handle:";
+        if (gseTask.getId() != null) {
+            lockKey = lockKey + gseTask.getId();
+        } else {
+            // tmp: 兼容GSE_TASK数据,发布完成后删除
+            lockKey = lockKey + "step:" + gseTask.getStepInstanceId();
+        }
+        return lockKey;
     }
 
     private boolean checkTaskActiveAndSetRunningStatus() {
@@ -397,7 +405,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!isGseTaskTerminating) {
             this.taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
             // 如果任务处于“终止中”状态，触发任务终止
-            if (this.taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+            if (this.taskInstance.getStatus() == RunStatusEnum.STOPPING) {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, " +
                         "stepInstanceId:{}",
                     taskInstance.getId(), stepInstance.getId());
@@ -411,7 +419,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private boolean shouldSkipStep() {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        return stepInstance == null || RunStatusEnum.SKIPPED.getValue().equals(stepInstance.getStatus());
+        return stepInstance == null || RunStatusEnum.SKIPPED == stepInstance.getStatus();
     }
 
     private void saveStatusWhenSkip() {
@@ -419,7 +427,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             targetAgentTasks.values().stream().filter(not(AgentTaskDTO::isFinished)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(notFinishedGseAgentTasks)) {
             notFinishedGseAgentTasks.forEach(agentTask -> {
-                agentTask.setStatus(AgentTaskStatus.UNKNOWN.getValue());
+                agentTask.setStatus(AgentTaskStatusEnum.UNKNOWN);
                 agentTask.setEndTime(System.currentTimeMillis());
 
             });
@@ -445,7 +453,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.warn("[{}]: Task execution timeout! runDuration: {}ms, timeout: {}s", stepInstanceId, runDuration,
                 stepInstance.getTimeout());
             this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedAgentTask(AgentTaskStatus.LOG_ERROR,
+            saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR,
                 "Task execution may be abnormal or timeout.");
             handleExecuteResult(GseTaskExecuteResult.FAILED);
             isTimeout = true;
@@ -467,7 +475,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             if (currentTimeMillis - latestPullGseLogSuccessTimeMillis >= GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS) {
                 log.warn("[{}]: Execution result log always empty!", stepInstanceId);
                 this.executeResult = GseTaskExecuteResult.FAILED;
-                saveFailInfoForUnfinishedAgentTask(AgentTaskStatus.LOG_ERROR, "Execution result log always empty.");
+                saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR, "Execution result log always empty.");
                 handleExecuteResult(GseTaskExecuteResult.FAILED);
                 isAbnormal = true;
             }
@@ -482,7 +490,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.error("[{}] Pull gse task result error, errorMsg: {}", stepInstanceId,
                 gseLogBatchPullResult.getErrorMsg());
             this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedAgentTask(AgentTaskStatus.LOG_ERROR, gseLogBatchPullResult.getErrorMsg());
+            saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR, gseLogBatchPullResult.getErrorMsg());
             handleExecuteResult(GseTaskExecuteResult.FAILED);
             return false;
         }
@@ -564,7 +572,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
     }
 
-    protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatus status, String errorMsg) {
+    protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
         log.info("[{}]: Deal unfinished agent result| noStartJobAgentIds : {}| runningJobAgentIds : {}",
             stepInstanceId, notStartedTargetAgentIds, runningTargetAgentIds);
         Set<String> unfinishedAgentIds = new HashSet<>();
@@ -576,7 +584,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
             agentTask.setStartTime(startTime);
             agentTask.setEndTime(System.currentTimeMillis());
-            agentTask.setStatus(status.getValue());
+            agentTask.setStatus(status);
         }
         batchSaveChangedGseAgentTasks();
     }

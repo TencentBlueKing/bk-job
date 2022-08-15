@@ -86,7 +86,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
         stepInstanceRollingTask.setStepInstanceId(record.get(TABLE.STEP_INSTANCE_ID));
         stepInstanceRollingTask.setExecuteCount(record.get(TABLE.EXECUTE_COUNT).intValue());
         stepInstanceRollingTask.setBatch(record.get(TABLE.BATCH).intValue());
-        stepInstanceRollingTask.setStatus(record.get(TABLE.STATUS).intValue());
+        stepInstanceRollingTask.setStatus(RunStatusEnum.valueOf(record.get(TABLE.STATUS)));
         stepInstanceRollingTask.setStartTime(record.get(TABLE.START_TIME));
         stepInstanceRollingTask.setEndTime(record.get(TABLE.END_TIME));
         stepInstanceRollingTask.setTotalTime(record.get(TABLE.TOTAL_TIME));
@@ -131,7 +131,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                 rollingTask.getStepInstanceId(),
                 JooqDataTypeUtil.toShort(rollingTask.getExecuteCount()),
                 JooqDataTypeUtil.toShort(rollingTask.getBatch()),
-                JooqDataTypeUtil.toByte(rollingTask.getStatus()),
+                JooqDataTypeUtil.toByte(rollingTask.getStatus().getValue()),
                 rollingTask.getStartTime(),
                 rollingTask.getEndTime(),
                 rollingTask.getTotalTime())

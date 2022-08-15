@@ -116,6 +116,10 @@ public enum RunStatusEnum {
         throw new IllegalArgumentException("Invalid run status[" + status + "]");
     }
 
+    public static RunStatusEnum valueOf(byte status) {
+        return valueOf((int) status);
+    }
+
     /**
      * 是否终止态
      *

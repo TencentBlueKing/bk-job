@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -77,7 +76,6 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     protected final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected final ExecuteMonitor executeMonitor;
-    protected final ExceptionStatusManager exceptionStatusManager;
     protected final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected final JobExecuteConfig jobExecuteConfig;
     protected final StepInstanceService stepInstanceService;
@@ -126,7 +124,6 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 ExecuteMonitor executeMonitor,
                                 JobExecuteConfig jobExecuteConfig,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                ExceptionStatusManager exceptionStatusManager,
                                 GseTasksExceptionCounter gseTasksExceptionCounter,
                                 Tracing tracing,
                                 GseClient gseClient,
@@ -154,7 +151,6 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.exceptionStatusManager = exceptionStatusManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.requestId = requestId;
         this.stepInstanceService = stepInstanceService;
@@ -179,7 +175,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
         // 添加执行结果处理后台任务
         watch.start("addResultHandleTask");
-        if (stepInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue())) {
+        if (stepInstance.getStatus() == RunStatusEnum.RUNNING) {
             addResultHandleTask();
         }
         watch.stop();

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.host;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -187,11 +186,12 @@ public interface HostService {
     /**
      * 检查主机是否在业务下
      *
+     * TMP: 兼容方法，发布完成之后删除
+     *
      * @param appId Job业务ID
      * @param hosts 被检查的主机
      * @return 非法的主机
      */
-    @CompatibleImplementation(name = "rolling_execution", explain = "兼容方法，发布完成之后删除", version = "3.6.x")
     List<HostDTO> checkAppHosts(Long appId, List<HostDTO> hosts);
 
     /**

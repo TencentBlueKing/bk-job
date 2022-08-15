@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,39 +51,78 @@ public class JobEvent extends Event {
     /**
      * 作业实例ID
      */
-    private long taskInstanceId;
+    @JsonProperty("jobInstanceId")
+    private Long jobInstanceId;
+    /**
+     * tmp: 作业实例ID - 兼容字段，发布完成后删除
+     */
+    @JsonProperty("taskInstanceId")
+    private Long taskInstanceId;
 
-    public static JobEvent startJob(long taskInstanceId) {
+    /**
+     * 构造启动作业事件
+     *
+     * @param jobInstanceId 作业实例ID
+     * @return 事件
+     */
+    public static JobEvent startJob(long jobInstanceId) {
         JobEvent jobEvent = new JobEvent();
-        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setJobInstanceId(jobInstanceId);
+        jobEvent.setTaskInstanceId(jobInstanceId);
         jobEvent.setAction(JobActionEnum.START.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
     }
 
-    public static JobEvent stopJob(long taskInstanceId) {
+    /**
+     * 构造停止作业事件
+     *
+     * @param jobInstanceId 作业实例ID
+     * @return 事件
+     */
+    public static JobEvent stopJob(long jobInstanceId) {
         JobEvent jobEvent = new JobEvent();
-        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setJobInstanceId(jobInstanceId);
+        jobEvent.setTaskInstanceId(jobInstanceId);
         jobEvent.setAction(JobActionEnum.STOP.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
     }
 
-    public static JobEvent restartJob(long taskInstanceId) {
+    /**
+     * 构造重新执行作业事件
+     *
+     * @param jobInstanceId 作业实例ID
+     * @return 事件
+     */
+    public static JobEvent restartJob(long jobInstanceId) {
         JobEvent jobEvent = new JobEvent();
-        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setJobInstanceId(jobInstanceId);
+        jobEvent.setTaskInstanceId(jobInstanceId);
         jobEvent.setAction(JobActionEnum.RESTART.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
     }
 
-    public static JobEvent refreshJob(long taskInstanceId, EventSource eventSource) {
+    /**
+     * 构造刷新作业事件
+     *
+     * @param jobInstanceId 作业实例ID
+     * @param eventSource   事件源
+     * @return 事件
+     */
+    public static JobEvent refreshJob(long jobInstanceId, EventSource eventSource) {
         JobEvent jobEvent = new JobEvent();
-        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setJobInstanceId(jobInstanceId);
+        jobEvent.setTaskInstanceId(jobInstanceId);
         jobEvent.setSource(eventSource);
         jobEvent.setAction(JobActionEnum.REFRESH.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
+    }
+
+    public Long getJobInstanceId() {
+        return jobInstanceId != null ? jobInstanceId : taskInstanceId;
     }
 
     @Override
@@ -90,7 +130,7 @@ public class JobEvent extends Event {
         return new StringJoiner(", ", JobEvent.class.getSimpleName() + "[", "]")
             .add("action=" + action)
             .add("actionDesc=" + JobActionEnum.valueOf(action))
-            .add("taskInstanceId=" + taskInstanceId)
+            .add("jobInstanceId=" + jobInstanceId)
             .add("eventSource=" + source)
             .add("time=" + time)
             .toString();

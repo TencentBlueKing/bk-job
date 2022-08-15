@@ -62,7 +62,7 @@ public class FileAgentTaskServiceImpl
         if (usingNewTable(stepInstanceId)) {
             fileAgentTaskDAO.batchSaveAgentTasks(agentTasks);
         } else {
-            // 兼容实现，发布之后删除
+            // TMP: 兼容实现，发布之后删除
             gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
         }
     }
@@ -83,7 +83,7 @@ public class FileAgentTaskServiceImpl
         if (usingNewTable(stepInstanceId)) {
             fileAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
         } else {
-            // 兼容实现，发布之后删除
+            // TMP: 兼容实现，发布之后删除
             gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
         }
     }
@@ -189,20 +189,23 @@ public class FileAgentTaskServiceImpl
     public AgentTaskDTO getAgentTaskByHost(StepInstanceDTO stepInstance, Integer executeCount, Integer batch,
                                            FileTaskModeEnum fileTaskMode, HostDTO host) {
         AgentTaskDTO agentTask = null;
-        Long hostId = host.getHostId();
-        if (hostId == null) {
-            // 根据ip反查hostId
-            HostDTO queryHost = getStepHostByIp(stepInstance, host.toCloudIp());
-            if (queryHost != null) {
-                hostId = queryHost.getHostId();
-            } else {
-                throw new NotFoundException(ErrorCode.HOST_INVALID, new String[]{host.toCloudIp()});
+        // TMP: 无损发布兼容，发布完成后删除isStepInstanceRecordExist的判断
+        if (isStepInstanceRecordExist(stepInstance.getId())) {
+            Long hostId = host.getHostId();
+            if (hostId == null) {
+                // 根据ip反查hostId
+                HostDTO queryHost = getStepHostByIp(stepInstance, host.toCloudIp());
+                if (queryHost != null) {
+                    hostId = queryHost.getHostId();
+                }  else {
+                    throw new NotFoundException(ErrorCode.HOST_INVALID, new String[]{host.toCloudIp()});
+                }
             }
-        }
 
-        if (hostId != null) {
-            agentTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch, fileTaskMode,
-                hostId);
+            if (hostId != null) {
+                agentTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch,
+                    fileTaskMode, hostId);
+            }
         } else if (StringUtils.isNotEmpty(host.getIp())) {
             // 兼容历史数据
             agentTask = gseTaskIpLogDAO.getAgentTaskByIp(stepInstance.getId(), executeCount, host.toCloudIp());

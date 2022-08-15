@@ -22,33 +22,63 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.db;
+package com.tencent.bk.job.execute.engine.util;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.Consts;
 
 /**
- * 滚动执行-服务器分批 DO
+ * 处理 GSE 工具类
  */
-@Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@NoArgsConstructor
-public class RollingServerBatchDO {
+public class GseUtils {
     /**
-     * 滚动执行批次
+     * 字节转换的进制
      */
-    private Integer batch;
-    /**
-     * 该批次的目标服务器
-     */
-    private List<HostDTO> servers;
+    private static final int SIZE_UNIT = 1024;
 
-    public RollingServerBatchDO(Integer batch, List<HostDTO> servers) {
-        this.batch = batch;
-        this.servers = servers;
+    /**
+     * 将字节转换为 human readable format
+     *
+     * @param size 大小(单位Byte)
+     * @return 便于阅读的大小表示
+     */
+    public static String tranByteReadable(double size) {
+        if (size < SIZE_UNIT) {
+            return size + " Bytes";
+        }
+
+        size = changeUnit(size);
+        if (size < SIZE_UNIT) {
+            return size + " KB";
+        }
+
+        size = changeUnit(size);
+        if (size < SIZE_UNIT) {
+            return size + " MB";
+        }
+
+        return changeUnit(size) + " GB";
+    }
+
+    /**
+     * 转换单位
+     */
+    private static double changeUnit(double size) {
+        return (double) Math.round(size / SIZE_UNIT * 1000) / 1000;
+    }
+
+    /**
+     * 根据gse ErrorCode返回 Status
+     */
+    public static AgentTaskStatusEnum getStatusByGseErrorCode(int gseErrorCode) {
+        AgentTaskStatusEnum status = Consts.GSE_ERROR_CODE_2_STATUS_MAP.get(gseErrorCode);
+        if (status == null) {
+            if (gseErrorCode > 0) {
+                status = AgentTaskStatusEnum.UNKNOWN_ERROR;
+            } else {
+                status = AgentTaskStatusEnum.SUCCESS;
+            }
+        }
+        return status;
     }
 }

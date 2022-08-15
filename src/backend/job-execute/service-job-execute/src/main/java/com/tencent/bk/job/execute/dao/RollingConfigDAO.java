@@ -34,6 +34,7 @@ public interface RollingConfigDAO {
      * 保存滚动配置
      *
      * @param rollingConfig 滚动配置
+     * @return 滚动配置ID
      */
     long saveRollingConfig(RollingConfigDTO rollingConfig);
 

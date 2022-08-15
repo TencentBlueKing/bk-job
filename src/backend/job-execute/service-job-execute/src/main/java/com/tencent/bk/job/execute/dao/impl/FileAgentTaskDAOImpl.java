@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
@@ -99,7 +99,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             param[5] = agentTask.getHostId();
             param[6] = agentTask.getAgentId();
             param[7] = agentTask.getGseTaskId();
-            param[8] = agentTask.getStatus();
+            param[8] = agentTask.getStatus().getValue();
             param[9] = agentTask.getStartTime();
             param[10] = agentTask.getEndTime();
             param[11] = agentTask.getTotalTime();
@@ -122,7 +122,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
         for (AgentTaskDTO agentTask : agentTasks) {
             Object[] param = new Object[11];
             param[0] = agentTask.getGseTaskId();
-            param[1] = agentTask.getStatus();
+            param[1] = agentTask.getStatus().getValue();
             param[2] = agentTask.getStartTime();
             param[3] = agentTask.getEndTime();
             param[4] = agentTask.getTotalTime();
@@ -141,8 +141,8 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
         Integer count = CTX.selectCount()
             .from(T_GSE_FILE_AGENT_TASK)
-            .where(T_GSE_FILE_AGENT_TASK.STATUS.in(AgentTaskStatus.LAST_SUCCESS.getValue(),
-                AgentTaskStatus.SUCCESS.getValue()))
+            .where(T_GSE_FILE_AGENT_TASK.STATUS.in(AgentTaskStatusEnum.LAST_SUCCESS.getValue(),
+                AgentTaskStatusEnum.SUCCESS.getValue()))
             .and(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
             .and(T_GSE_FILE_AGENT_TASK.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()))
@@ -308,7 +308,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
         agentTask.setHostId(record.get(T_GSE_FILE_AGENT_TASK.HOST_ID));
         agentTask.setAgentId(record.get(T_GSE_FILE_AGENT_TASK.AGENT_ID));
         agentTask.setGseTaskId(record.get(T_GSE_FILE_AGENT_TASK.GSE_TASK_ID));
-        agentTask.setStatus(record.get(T_GSE_FILE_AGENT_TASK.STATUS));
+        agentTask.setStatus(AgentTaskStatusEnum.valueOf(record.get(T_GSE_FILE_AGENT_TASK.STATUS)));
         agentTask.setStartTime(record.get(T_GSE_FILE_AGENT_TASK.START_TIME));
         agentTask.setEndTime(record.get(T_GSE_FILE_AGENT_TASK.END_TIME));
         agentTask.setTotalTime(record.get(T_GSE_FILE_AGENT_TASK.TOTAL_TIME));

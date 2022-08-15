@@ -37,9 +37,8 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
@@ -115,7 +114,6 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      ExecuteMonitor executeMonitor,
                                      JobExecuteConfig jobExecuteConfig,
                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                     ExceptionStatusManager exceptionStatusManager,
                                      GseTasksExceptionCounter gseTasksExceptionCounter,
                                      JobBuildInVariableResolver jobBuildInVariableResolver,
                                      Tracing tracing,
@@ -138,7 +136,6 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeMonitor,
             jobExecuteConfig,
             taskEvictPolicyExecutor,
-            exceptionStatusManager,
             gseTasksExceptionCounter,
             tracing,
             gseClient,
@@ -643,7 +640,6 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 stepInstanceVariableValueService,
                 taskExecuteMQEventDispatcher,
                 resultHandleTaskKeepaliveManager,
-                exceptionStatusManager,
                 taskEvictPolicyExecutor,
                 scriptAgentTaskService,
                 stepInstanceService,
@@ -678,7 +674,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             agentTask.setStartTime(gseTask.getStartTime());
             agentTask.setEndTime(now);
             agentTask.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), now, null));
-            agentTask.setStatus(AgentTaskStatus.SUBMIT_FAILED.getValue());
+            agentTask.setStatus(AgentTaskStatusEnum.SUBMIT_FAILED);
         }
         logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
         scriptAgentTaskService.batchUpdateAgentTasks(targetAgentTaskMap.values());

@@ -132,7 +132,7 @@ public class EsbGetJobInstanceStatusResourceImpl
                 ipStatus.setIp(agentTask.getIp());
                 ipStatus.setCloudAreaId(agentTask.getBkCloudId());
 
-                ipStatus.setStatus(agentTask.getStatus());
+                ipStatus.setStatus(agentTask.getStatus().getValue());
                 ipResultList.add(ipStatus);
             }
             stepIpResult.put(stepInstance.getId(), ipResultList);
@@ -145,7 +145,7 @@ public class EsbGetJobInstanceStatusResourceImpl
                                                                  Map<Long, List<EsbIpStatusDTO>> stepIpResultMap) {
         EsbJobInstanceStatusDTO jobInstanceStatus = new EsbJobInstanceStatusDTO();
         jobInstanceStatus.setIsFinished(
-            RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(taskInstance.getStatus())));
+            RunStatusEnum.isFinishedStatus(taskInstance.getStatus()));
 
         EsbJobInstanceStatusDTO.JobInstance jobInstance = new EsbJobInstanceStatusDTO.JobInstance();
         EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskInstance.getAppId(), jobInstance);
@@ -157,7 +157,7 @@ public class EsbGetJobInstanceStatusResourceImpl
         jobInstance.setStartTime(taskInstance.getStartTime());
         jobInstance.setEndTime(taskInstance.getEndTime());
         jobInstance.setStartWay(taskInstance.getStartupMode());
-        jobInstance.setStatus(taskInstance.getStatus());
+        jobInstance.setStatus(taskInstance.getStatus().getValue());
         jobInstance.setTaskId(taskInstance.getTaskId());
         jobInstance.setTotalTime(taskInstance.getTotalTime());
         jobInstanceStatus.setJobInstance(jobInstance);
@@ -176,7 +176,7 @@ public class EsbGetJobInstanceStatusResourceImpl
             stepInst.setType(stepInstance.getExecuteType());
             stepInst.setOperator(stepInstance.getOperator());
             stepInst.setExecuteCount(stepInstance.getExecuteCount());
-            stepInst.setStatus(stepInstance.getStatus());
+            stepInst.setStatus(stepInstance.getStatus().getValue());
             stepInst.setStepId(stepInstance.getStepId());
             stepInst.setTotalTime(stepInstance.getTotalTime());
             List<EsbIpStatusDTO> stepIpResult = stepIpResultMap.get(stepInstance.getId());

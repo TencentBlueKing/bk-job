@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -91,7 +92,7 @@ public class TaskInstanceDTO {
     /**
      * 状态
      */
-    private Integer status;
+    private RunStatusEnum status;
 
     /**
      * 开始时间

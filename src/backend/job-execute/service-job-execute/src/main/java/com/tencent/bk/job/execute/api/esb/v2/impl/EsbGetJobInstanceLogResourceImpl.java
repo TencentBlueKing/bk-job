@@ -107,7 +107,7 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
                 stepInstResultAndLog.setFinished(false);
                 stepInstResultAndLog.setStepInstanceId(stepInstance.getId());
                 stepInstResultAndLog.setName(stepInstance.getName());
-                stepInstResultAndLog.setStatus(stepInstance.getStatus());
+                stepInstResultAndLog.setStatus(stepInstance.getStatus().getValue());
                 stepInstResultAndLog.setStepResults(Lists.newArrayList());
                 stepInstResultAndLogList.add(stepInstResultAndLog);
                 continue;
@@ -156,7 +156,7 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
 
             stepInstResultAndLog.setStepInstanceId(stepInstance.getId());
             stepInstResultAndLog.setName(stepInstance.getName());
-            stepInstResultAndLog.setStatus(stepInstance.getStatus());
+            stepInstResultAndLog.setStatus(stepInstance.getStatus().getValue());
             stepInstResultAndLog.setStepResults(stepInstResultList);
             stepInstResultAndLogList.add(stepInstResultAndLog);
         }

@@ -65,7 +65,7 @@ public enum JobActionEnum {
                 return jobAction;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No JobActionEnum constant: " + value);
     }
 
     public int getValue() {

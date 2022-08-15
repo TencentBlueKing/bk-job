@@ -54,7 +54,7 @@ public class GseTaskServiceImpl implements GseTaskService {
         if (usingNewTable(gseTask.getStepInstanceId())) {
             return gseTaskDAO.saveGseTask(gseTask);
         } else {
-            // 兼容实现，发布后删除
+            // TMP: 兼容实现，发布后删除
             gseTaskLogDAO.saveGseTaskLog(gseTask);
             return null;
         }
