@@ -70,7 +70,14 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
     @Override
     public void execute() {
         log.info("Stop gse task, gseTask:" + gseTaskUniqueName);
-        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        List<AgentTaskDTO> agentTasks;
+        if (gseTask.getId() != null) {
+            agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        } else {
+            // tmp: 兼容旧的调度任务，发布完成后删除
+            agentTasks = agentTaskService.listAgentTasks(gseTask.getStepInstanceId(),
+                gseTask.getExecuteCount(), gseTask.getBatch());
+        }
         Set<String> terminateAgentIds = agentTasks.stream()
             .map(AgentTaskDTO::getAgentId)
             .collect(Collectors.toSet());

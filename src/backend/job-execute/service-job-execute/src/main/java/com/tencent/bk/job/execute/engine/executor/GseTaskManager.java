@@ -195,12 +195,10 @@ public class GseTaskManager implements SmartLifecycle {
         }
 
         AbstractGseTaskStartCommand startCommand = null;
+        String lockKey = buildGseTaskLockKey(gseTask);
         try {
             watch.start("getRunningLock");
             // 可重入锁，如果任务正在执行，则放弃
-            // tmp: 兼容GSE_TASK数据,发布完成后删除
-            String lockKey = "job:running:gse:task:" +
-                (gseTask.getId() != null ? gseTask.getId() : gseTask.getStepInstanceId());
             if (!LockUtils.tryGetReentrantLock(lockKey, startTaskRequestId, 30000L)) {
                 log.error("Fail to get running lock, lockKey: {}", lockKey);
                 return;
@@ -246,8 +244,7 @@ public class GseTaskManager implements SmartLifecycle {
             if (!watch.isRunning()) {
                 watch.start("release-running-lock");
             }
-            LockUtils.releaseDistributedLock("job:running:gse:task:", String.valueOf(gseTask.getId()),
-                startTaskRequestId);
+            LockUtils.releaseDistributedLock(lockKey, startTaskRequestId);
             counter.release(taskName);
             watch.stop();
             if (watch.getTotalTimeMillis() > 2000L) {
@@ -257,6 +254,17 @@ public class GseTaskManager implements SmartLifecycle {
                 "task_type", getTaskTypeDesc(startCommand), "status", success ? "ok" : "error")
                 .record(watch.getTotalTimeNanos(), TimeUnit.NANOSECONDS);
         }
+    }
+
+    private String buildGseTaskLockKey(GseTaskDTO gseTask) {
+        String lockKey = "job:running:gse:task:";
+        if (gseTask.getId() != null) {
+            lockKey = lockKey + gseTask.getId();
+        } else {
+            // tmp: 兼容GSE_TASK数据,发布完成后删除
+            lockKey = lockKey + "step:" + gseTask.getStepInstanceId();
+        }
+        return lockKey;
     }
 
     /**
