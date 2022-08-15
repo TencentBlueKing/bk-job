@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 /**
  * 主机
  */
+@PersistenceObject
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor

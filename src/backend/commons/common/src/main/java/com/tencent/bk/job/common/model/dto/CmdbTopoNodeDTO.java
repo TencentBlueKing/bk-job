@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -31,6 +32,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@PersistenceObject
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

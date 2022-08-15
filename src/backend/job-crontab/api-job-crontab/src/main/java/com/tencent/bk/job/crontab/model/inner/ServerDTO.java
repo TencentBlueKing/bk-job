@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.model.inner;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@PersistenceObject
 @ApiModel("目标服务器，四个不可同时为空")
 @Data
 public class ServerDTO {

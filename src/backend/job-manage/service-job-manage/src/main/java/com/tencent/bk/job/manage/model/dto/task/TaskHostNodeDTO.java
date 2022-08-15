@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.manage.common.TopologyHelper;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 /**
  * @since 2/12/2019 21:31
  */
+@PersistenceObject
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor

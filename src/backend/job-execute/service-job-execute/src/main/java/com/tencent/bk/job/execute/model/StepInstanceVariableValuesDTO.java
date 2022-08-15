@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import lombok.Data;
 
@@ -36,6 +37,7 @@ import java.util.Map;
 /**
  * 步骤对应的变量值
  */
+@PersistenceObject
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class StepInstanceVariableValuesDTO {

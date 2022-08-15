@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskNodeInfoDTO;
@@ -35,6 +36,7 @@ import lombok.NoArgsConstructor;
 /**
  * @since 12/12/2019 22:12
  */
+@PersistenceObject
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
