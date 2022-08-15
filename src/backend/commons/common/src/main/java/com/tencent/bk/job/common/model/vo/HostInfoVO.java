@@ -101,10 +101,6 @@ public class HostInfoVO {
         this.ipDesc = hostName;
     }
 
-    private void setAlive(Integer alive) {
-        this.alive = alive;
-    }
-
     @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     public CloudAreaInfoVO getCloudArea() {
         if (cloudArea != null) {

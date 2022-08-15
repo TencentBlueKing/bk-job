@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
@@ -143,6 +144,11 @@ public class ApplicationHostDTO {
         }
     }
 
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    private Integer getAgentAliveValue() {
+        return gseAgentAlive == null ? 0 : (gseAgentAlive ? 1 : 0);
+    }
+
     private static boolean isGseAgentAlive(HostInfoVO hostInfoVO) {
         if (hostInfoVO.getAlive() != null) {
             return hostInfoVO.getAlive() == 1;
@@ -180,7 +186,8 @@ public class ApplicationHostDTO {
         hostInfoVO.setDisplayIp(displayIp);
         hostInfoVO.setHostName(hostName);
         hostInfoVO.setOsName(osName);
-        hostInfoVO.setAgentStatus(gseAgentAlive == null ? 0 : (gseAgentAlive ? 1 : 0));
+        hostInfoVO.setAgentStatus(gseAgentStatus);
+        hostInfoVO.setAlive(getAgentAliveValue());
         return hostInfoVO;
     }
 
