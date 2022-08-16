@@ -36,7 +36,6 @@ import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -133,7 +132,6 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         ExecuteMonitor executeMonitor,
                                         JobExecuteConfig jobExecuteConfig,
                                         TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                        ExceptionStatusManager exceptionStatusManager,
                                         GseTasksExceptionCounter gseTasksExceptionCounter,
                                         JobBuildInVariableResolver jobBuildInVariableResolver,
                                         Tracing tracing,
@@ -157,7 +155,6 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             executeMonitor,
             jobExecuteConfig,
             taskEvictPolicyExecutor,
-            exceptionStatusManager,
             gseTasksExceptionCounter,
             jobBuildInVariableResolver,
             tracing,

@@ -169,7 +169,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         taskInstance.setTaskId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setDebugTask(false);
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
         taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
@@ -201,7 +201,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         stepInstance.setTimeout(request.getTimeout() == null ?
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
-        stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
 

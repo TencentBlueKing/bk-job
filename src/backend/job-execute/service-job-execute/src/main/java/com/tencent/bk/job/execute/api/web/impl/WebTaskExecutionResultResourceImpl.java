@@ -55,7 +55,7 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
@@ -524,9 +524,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         stepExecutionDetailVO.setName(executionDetail.getName());
         stepExecutionDetailVO.setStepInstanceId(executionDetail.getStepInstanceId());
         stepExecutionDetailVO.setRetryCount(executionDetail.getExecuteCount());
-        stepExecutionDetailVO.setStatus(executionDetail.getStatus());
+        stepExecutionDetailVO.setStatus(executionDetail.getStatus().getValue());
         stepExecutionDetailVO.setStatusDesc(
-            i18nService.getI18n(RunStatusEnum.valueOf(executionDetail.getStatus()).getI18nKey()));
+            i18nService.getI18n(executionDetail.getStatus().getI18nKey()));
         stepExecutionDetailVO.setStartTime(executionDetail.getStartTime());
         stepExecutionDetailVO.setEndTime(executionDetail.getEndTime());
         stepExecutionDetailVO.setTotalTime(executionDetail.getTotalTime());
@@ -539,7 +539,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             ExecutionResultGroupVO executionResultGroupVO = new ExecutionResultGroupVO();
             executionResultGroupVO.setResultType(resultGroup.getStatus());
             executionResultGroupVO.setResultTypeDesc(
-                i18nService.getI18n(AgentTaskStatus.valueOf(resultGroup.getStatus()).getI18nKey()));
+                i18nService.getI18n(AgentTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
             executionResultGroupVO.setTag(resultGroup.getTag());
             executionResultGroupVO.setAgentTaskSize(resultGroup.getTotalAgentTasks());
 
@@ -552,9 +552,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                     agentTaskVO.setDisplayIp(agentTask.getDisplayIp());
                     agentTaskVO.setEndTime(agentTask.getEndTime());
                     agentTaskVO.setStartTime(agentTask.getStartTime());
-                    agentTaskVO.setStatus(agentTask.getStatus());
-                    agentTaskVO.setStatusDesc(
-                        i18nService.getI18n(AgentTaskStatus.valueOf(agentTask.getStatus()).getI18nKey()));
+                    agentTaskVO.setStatus(agentTask.getStatus().getValue());
+                    agentTaskVO.setStatusDesc(i18nService.getI18n(agentTask.getStatus().getI18nKey()));
                     agentTaskVO.setErrorCode(agentTask.getErrorCode());
                     agentTaskVO.setExitCode(agentTask.getExitCode());
                     agentTaskVO.setTag(agentTask.getTag());
@@ -585,7 +584,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         return stepInstanceRollingTasks.stream().map(stepInstanceRollingTask -> {
             RollingStepBatchTaskVO vo = new RollingStepBatchTaskVO();
             vo.setBatch(stepInstanceRollingTask.getBatch());
-            vo.setStatus(stepInstanceRollingTask.getStatus());
+            vo.setStatus(stepInstanceRollingTask.getStatus().getValue());
             vo.setLatestBatch(latestBatch.equals(stepInstanceRollingTask.getBatch()));
             return vo;
         }).collect(Collectors.toList());

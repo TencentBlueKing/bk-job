@@ -73,6 +73,7 @@ public class GseTaskListener {
             gseTask = gseTaskService.getGseTask(gseTaskEvent.getGseTaskId());
         } else {
             // 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景
+            // TMP: 发布兼容，发布完成后可以删除，仅通过gse_task_id即可
             gseTask = gseTaskService.getGseTask(gseTaskEvent.getStepInstanceId(), gseTaskEvent.getExecuteCount(),
                 gseTaskEvent.getBatch());
         }

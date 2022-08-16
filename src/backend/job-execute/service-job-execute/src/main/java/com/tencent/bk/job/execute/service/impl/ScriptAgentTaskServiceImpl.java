@@ -58,7 +58,7 @@ public class ScriptAgentTaskServiceImpl
         if (usingNewTable(stepInstanceId)) {
             scriptAgentTaskDAO.batchSaveAgentTasks(agentTasks);
         } else {
-            // 兼容实现，发布之后删除
+            // TMP: 兼容实现，发布之后删除
             gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
         }
 
@@ -80,8 +80,8 @@ public class ScriptAgentTaskServiceImpl
         if (usingNewTable(stepInstanceId)) {
             scriptAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
         } else {
-            // 兼容实现，发布之后删除
-            gseTaskIpLogDAO.batchUpdateAgentTasks(agentTasks);
+            // TMP: 兼容实现，发布之后删除
+            gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
         }
     }
 
@@ -115,26 +115,28 @@ public class ScriptAgentTaskServiceImpl
                                            Integer batch,
                                            HostDTO host) {
         AgentTaskDTO agentTask = null;
-        Long hostId = host.getHostId();
-        if (hostId == null) {
-            // 根据ip反查hostId
-            String cloudIp = host.toCloudIp();
-            HostDTO queryHost = stepInstance.getTargetServers().getIpList().stream()
-                .filter(targetHost -> cloudIp.equals(targetHost.toCloudIp()))
-                .findFirst()
-                .orElse(null);
-            if (queryHost != null) {
-                hostId = queryHost.getHostId();
+        // TMP: 无损发布兼容，发布完成后删除isStepInstanceRecordExist的判断
+        if (isStepInstanceRecordExist(stepInstance.getId())) {
+            Long hostId = host.getHostId();
+            if (hostId == null) {
+                // 根据ip反查hostId
+                String cloudIp = host.toCloudIp();
+                HostDTO queryHost = stepInstance.getTargetServers().getIpList().stream()
+                    .filter(targetHost -> cloudIp.equals(targetHost.toCloudIp()))
+                    .findFirst()
+                    .orElse(null);
+                if (queryHost != null) {
+                    hostId = queryHost.getHostId();
+                }
             }
-        }
 
-        if (hostId != null) {
-            agentTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch, hostId);
+            if (hostId != null) {
+                agentTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch, hostId);
+            }
         } else if (StringUtils.isNotEmpty(host.getIp())) {
             // 兼容历史数据
             agentTask = gseTaskIpLogDAO.getAgentTaskByIp(stepInstance.getId(), executeCount, host.toCloudIp());
         }
-
         return agentTask;
     }
 

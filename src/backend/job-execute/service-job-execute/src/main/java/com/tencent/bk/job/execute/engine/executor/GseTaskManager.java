@@ -36,7 +36,6 @@ import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -93,14 +92,13 @@ public class GseTaskManager implements SmartLifecycle {
     private final AgentService agentService;
     private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
-    private final ExceptionStatusManager exceptionStatusManager;
     private final Tracing tracing;
     private final ExecuteMonitor executeMonitor;
     private final StorageSystemConfig storageSystemConfig;
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
-    private final StepInstanceService stepInstanceServcice;
+    private final StepInstanceService stepInstanceService;
     private final GseClient gseClient;
 
     private final Object lifecycleMonitor = new Object();
@@ -149,7 +147,6 @@ public class GseTaskManager implements SmartLifecycle {
                           StorageSystemConfig storageSystemConfig,
                           AgentService agentService,
                           ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                          ExceptionStatusManager exceptionStatusManager,
                           GseTasksExceptionCounter gseTasksExceptionCounter,
                           Tracing tracing,
                           ExecuteMonitor executeMonitor,
@@ -157,7 +154,7 @@ public class GseTaskManager implements SmartLifecycle {
                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                           ScriptAgentTaskService scriptAgentTaskService,
                           FileAgentTaskService fileAgentTaskService,
-                          StepInstanceService stepInstanceServcice,
+                          StepInstanceService stepInstanceService,
                           GseClient gseClient) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
@@ -173,13 +170,12 @@ public class GseTaskManager implements SmartLifecycle {
         this.storageSystemConfig = storageSystemConfig;
         this.agentService = agentService;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.exceptionStatusManager = exceptionStatusManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.tracing = tracing;
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.stepInstanceServcice = stepInstanceServcice;
+        this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
     }
 
@@ -203,12 +199,12 @@ public class GseTaskManager implements SmartLifecycle {
         }
 
         AbstractGseTaskStartCommand startCommand = null;
+        String lockKey = buildGseTaskLockKey(gseTask);
         try {
             watch.start("getRunningLock");
             // 可重入锁，如果任务正在执行，则放弃
-            if (!LockUtils.tryGetReentrantLock(
-                "job:running:gse:task:" + gseTask.getId(), startTaskRequestId, 30000L)) {
-                log.info("Fail to get running lock, gseTaskId: {}", gseTask.getId());
+            if (!LockUtils.tryGetReentrantLock(lockKey, startTaskRequestId, 30000L)) {
+                log.error("Fail to get running lock, lockKey: {}", lockKey);
                 return;
             }
             watch.stop();
@@ -226,7 +222,7 @@ public class GseTaskManager implements SmartLifecycle {
             }
 
             // 如果任务处于“终止中”状态，直接终止,不需要下发任务给GSE
-            if (taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+            if (taskInstance.getStatus() == RunStatusEnum.STOPPING) {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
                     + "stepInstanceId:{}", taskInstance.getId(), stepInstance.getId());
                 gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
@@ -252,8 +248,7 @@ public class GseTaskManager implements SmartLifecycle {
             if (!watch.isRunning()) {
                 watch.start("release-running-lock");
             }
-            LockUtils.releaseDistributedLock("job:running:gse:task:", String.valueOf(gseTask.getId()),
-                startTaskRequestId);
+            LockUtils.releaseDistributedLock(lockKey, startTaskRequestId);
             counter.release(taskName);
             watch.stop();
             if (watch.getTotalTimeMillis() > 2000L) {
@@ -263,6 +258,17 @@ public class GseTaskManager implements SmartLifecycle {
                 "task_type", getTaskTypeDesc(startCommand), "status", success ? "ok" : "error")
                 .record(watch.getTotalTimeNanos(), TimeUnit.NANOSECONDS);
         }
+    }
+
+    private String buildGseTaskLockKey(GseTaskDTO gseTask) {
+        String lockKey = "job:running:gse:task:";
+        if (gseTask.getId() != null) {
+            lockKey = lockKey + gseTask.getId();
+        } else {
+            // tmp: 兼容GSE_TASK数据,发布完成后删除
+            lockKey = lockKey + "step:" + gseTask.getStepInstanceId();
+        }
+        return lockKey;
     }
 
     /**
@@ -319,7 +325,7 @@ public class GseTaskManager implements SmartLifecycle {
             gseTaskStartCommand = new ScriptGseTaskStartCommand(
                 resultHandleManager,
                 taskInstanceService,
-                stepInstanceServcice,
+                stepInstanceService,
                 gseTaskService,
                 scriptAgentTaskService,
                 accountService,
@@ -332,7 +338,6 @@ public class GseTaskManager implements SmartLifecycle {
                 executeMonitor,
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
-                exceptionStatusManager,
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
                 tracing,
@@ -347,7 +352,7 @@ public class GseTaskManager implements SmartLifecycle {
             gseTaskStartCommand = new SQLScriptGseTaskStartCommand(
                 resultHandleManager,
                 taskInstanceService,
-                stepInstanceServcice,
+                stepInstanceService,
                 gseTaskService,
                 scriptAgentTaskService,
                 accountService,
@@ -360,7 +365,6 @@ public class GseTaskManager implements SmartLifecycle {
                 executeMonitor,
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
-                exceptionStatusManager,
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
                 tracing,
@@ -387,9 +391,8 @@ public class GseTaskManager implements SmartLifecycle {
                 executeMonitor,
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
-                exceptionStatusManager,
                 gseTasksExceptionCounter,
-                stepInstanceServcice,
+                stepInstanceService,
                 tracing,
                 gseClient,
                 requestId,
@@ -424,7 +427,7 @@ public class GseTaskManager implements SmartLifecycle {
     /**
      * 停止任务
      *
-     * @param gseTask   GSE任务
+     * @param gseTask GSE任务
      */
     public void stopTask(GseTaskDTO gseTask) {
         long stepInstanceId = gseTask.getStepInstanceId();

@@ -140,6 +140,8 @@ public interface ScriptAgentTaskDAO {
     /**
      * 判断步骤实例的Agent Task 记录是否存在
      *
+     * TMP: 兼容实现，发布之后删除
+     *
      * @param stepInstanceId 步骤实例ID
      */
     boolean isStepInstanceRecordExist(long stepInstanceId);
@@ -152,8 +154,4 @@ public interface ScriptAgentTaskDAO {
      * @param actualExecuteCount Agent任务实际执行的步骤重试次数
      */
     void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount);
-
-
-
-
 }

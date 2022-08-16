@@ -58,10 +58,20 @@ public class ResultHandleTaskResumeEvent extends Event {
      */
     private Long gseTaskId;
     /**
-     * 请求ID
+     * 请求ID,防止重复下发任务
      */
     private String requestId;
 
+    /**
+     * 构造恢复任务事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param batch          滚动批次
+     * @param gseTaskId      GSE 任务ID
+     * @param requestId      请求ID,防止重复下发任务
+     * @return 事件
+     */
     public static ResultHandleTaskResumeEvent resume(Long stepInstanceId,
                                                      Integer executeCount,
                                                      Integer batch,

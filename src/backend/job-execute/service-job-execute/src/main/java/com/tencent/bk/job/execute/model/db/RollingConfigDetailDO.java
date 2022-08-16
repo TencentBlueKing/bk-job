@@ -25,47 +25,64 @@
 package com.tencent.bk.job.execute.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 滚动详细配置DO
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@NoArgsConstructor
+@PersistenceObject
 public class RollingConfigDetailDO {
     /**
      * 滚动配置名称
      */
+    @JsonProperty("name")
     private String name;
+
     /**
-     * 滚动配置包含的步骤实例ID
+     * 滚动区间包含的步骤实例ID列表
      */
+    @JsonProperty("includeStepInstanceIdList")
     private List<Long> includeStepInstanceIdList;
+
     /**
-     * 分批滚动步骤实例ID
+     * 步骤滚动配置
      */
-    private List<Long> batchRollingStepInstanceIdList;
-    /**
-     * 全量滚动步骤实例ID
-     */
-    private List<Long> allRollingStepInstanceIdList;
+    @JsonProperty("stepRollingConfigs")
+    private Map<Long, StepRollingConfigDO> stepRollingConfigs;
+
     /**
      * 滚动策略
+     *
+     * @see com.tencent.bk.job.common.constant.RollingModeEnum
      */
+    @JsonProperty("mode")
     private Integer mode;
+
     /**
      * 目标服务器滚动分批表达式
      */
+    @JsonProperty("expr")
     private String expr;
+
     /**
      * 目标服务器滚动分批
      */
-    private List<RollingServerBatchDO> serverBatchList;
+    @JsonProperty("hostsBatchList")
+    private List<RollingHostsBatchDO> hostsBatchList;
+
     /**
      * 滚动总批次
      */
+    @JsonProperty("totalBatch")
     private int totalBatch;
 
     /**

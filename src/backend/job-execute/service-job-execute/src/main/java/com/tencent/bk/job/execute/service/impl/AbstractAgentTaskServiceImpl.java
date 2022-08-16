@@ -67,7 +67,7 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
         List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
         agentTasks.stream()
             .collect(Collectors.groupingBy(
-                agentTask -> new AgentTaskResultGroupDTO(agentTask.getStatus(), agentTask.getTag())))
+                agentTask -> new AgentTaskResultGroupDTO(agentTask.getStatus().getValue(), agentTask.getTag())))
             .forEach((resultGroup, groupedAgentTasks) -> {
                 resultGroup.setTotalAgentTasks(groupedAgentTasks.size());
                 resultGroup.setAgentTasks(groupedAgentTasks);

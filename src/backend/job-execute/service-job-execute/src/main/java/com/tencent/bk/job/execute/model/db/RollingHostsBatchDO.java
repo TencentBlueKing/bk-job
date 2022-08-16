@@ -22,23 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.util;
+package com.tencent.bk.job.execute.model.db;
 
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
-import com.tencent.bk.job.execute.engine.consts.Consts;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public class Utils {
+import java.util.List;
+
+/**
+ * 滚动执行-主机分批 DO
+ */
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@NoArgsConstructor
+@PersistenceObject
+public class RollingHostsBatchDO {
     /**
-     * 根据gse ErrorCode返回 Status
+     * 滚动执行批次
      */
-    public static int getStatusByGseErrorCode(int gseErrorCode) {
-        Integer status = Consts.GSE_ERROR_CODE_2_STATUS_MAP.get(gseErrorCode);
-        if (status == null) {
-            if (gseErrorCode > 0)
-                status = -1;
-            else
-                status = AgentTaskStatus.SUCCESS.getValue();
-        }
-        return status;
+    private Integer batch;
+    /**
+     * 该批次的目标服务器
+     */
+    private List<HostDTO> hosts;
+
+    public RollingHostsBatchDO(Integer batch, List<HostDTO> hosts) {
+        this.batch = batch;
+        this.hosts = hosts;
     }
 }

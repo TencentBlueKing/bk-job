@@ -65,7 +65,7 @@ import java.util.List;
 @Repository
 public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     private static final TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
-    private DSLContext ctx;
+    private final DSLContext ctx;
 
     @Autowired
     public TaskInstanceDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
@@ -87,7 +87,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                 taskInstance.getOperator(),
                 JooqDataTypeUtil.toByte(taskInstance.getStartupMode()),
                 taskInstance.getCurrentStepInstanceId(),
-                JooqDataTypeUtil.toByte(taskInstance.getStatus()),
+                taskInstance.getStatus().getValue().byteValue(),
                 taskInstance.getStartTime(),
                 taskInstance.getEndTime(),
                 taskInstance.getTotalTime(),
@@ -126,7 +126,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         taskInstance.setOperator(record.get(TaskInstance.TASK_INSTANCE.OPERATOR));
         taskInstance.setStartupMode(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.STARTUP_MODE)));
         taskInstance.setCurrentStepInstanceId(record.get(TaskInstance.TASK_INSTANCE.CURRENT_STEP_ID));
-        taskInstance.setStatus(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.STATUS)));
+        taskInstance.setStatus(RunStatusEnum.valueOf(record.get(TaskInstance.TASK_INSTANCE.STATUS)));
         taskInstance.setStartTime(record.get(TaskInstance.TASK_INSTANCE.START_TIME));
         taskInstance.setEndTime(record.get(TaskInstance.TASK_INSTANCE.END_TIME));
         taskInstance.setTotalTime(record.get(TaskInstance.TASK_INSTANCE.TOTAL_TIME));

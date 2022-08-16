@@ -116,7 +116,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 stepInstance.getName(),
                 JooqDataTypeUtil.toByte(stepInstance.getExecuteType()),
                 stepInstance.getOperator(),
-                JooqDataTypeUtil.toByte(stepInstance.getStatus()),
+                stepInstance.getStatus().getValue().byteValue(),
                 stepInstance.getExecuteCount(),
                 stepInstance.getStartTime(),
                 stepInstance.getEndTime(),
@@ -340,7 +340,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setName(record.get(t.NAME));
         stepInstance.setExecuteType(JooqDataTypeUtil.toInteger(record.get(t.TYPE)));
         stepInstance.setOperator(record.get(t.OPERATOR));
-        stepInstance.setStatus(JooqDataTypeUtil.toInteger(record.get(t.STATUS)));
+        stepInstance.setStatus(RunStatusEnum.valueOf(record.get(t.STATUS)));
         stepInstance.setExecuteCount(record.get(t.EXECUTE_COUNT));
         stepInstance.setStartTime(record.get(t.START_TIME));
         stepInstance.setEndTime(record.get(t.END_TIME));
