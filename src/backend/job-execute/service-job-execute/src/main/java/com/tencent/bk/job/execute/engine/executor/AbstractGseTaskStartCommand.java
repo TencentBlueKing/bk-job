@@ -275,7 +275,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         if (totalTime != null) {
             gseTask.setTotalTime(totalTime);
         }
-        gseTaskService.saveGseTask(gseTask);
+        gseTaskService.updateGseTask(gseTask);
     }
 
     /**

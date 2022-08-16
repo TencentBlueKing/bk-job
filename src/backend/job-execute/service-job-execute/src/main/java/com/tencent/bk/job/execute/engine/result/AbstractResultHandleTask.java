@@ -542,14 +542,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         int allSuccessAgentNum = this.successTargetAgentIds.size();
         boolean isSuccess = !stepInstance.hasInvalidHost() && allSuccessAgentNum == targetAgentNum;
 
-        saveGseTaskExecutionInfo(result, isSuccess, endTime, gseTotalTime);
+        updateGseTaskExecutionInfo(result, isSuccess, endTime, gseTotalTime);
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
             EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), gseTask.getId())));
     }
 
-    private void saveGseTaskExecutionInfo(GseTaskExecuteResult result, boolean isSuccess, long endTime,
-                                          long totalTime) {
+    private void updateGseTaskExecutionInfo(GseTaskExecuteResult result, boolean isSuccess, long endTime,
+                                            long totalTime) {
         if (GseTaskExecuteResult.RESULT_CODE_STOP_SUCCESS == result.getResultCode()) {
             gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
         } else {
@@ -558,7 +558,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
         gseTask.setEndTime(endTime);
         gseTask.setTotalTime(totalTime);
-        gseTaskService.saveGseTask(gseTask);
+        gseTaskService.updateGseTask(gseTask);
     }
 
     protected void batchSaveChangedGseAgentTasks() {
