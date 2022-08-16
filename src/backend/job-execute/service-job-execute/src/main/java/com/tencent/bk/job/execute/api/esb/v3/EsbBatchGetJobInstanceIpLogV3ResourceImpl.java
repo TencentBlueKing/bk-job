@@ -166,7 +166,6 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         }
         return ValidateResult.pass();
     }
-
     private void buildScriptLogs(EsbIpLogsV3DTO ipLogs, StepInstanceBaseDTO stepInstance,
                                  List<EsbIpDTO> ipList) {
         ipLogs.setLogType(LogTypeEnum.SCRIPT.getValue());
@@ -210,11 +209,16 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
             List<ServiceFileTaskLogDTO> ipFileLogs = ipLog.getFileTaskLogs();
             EsbFileIpLogV3DTO esbFileIpLog = new EsbFileIpLogV3DTO();
             if (CollectionUtils.isNotEmpty(ipFileLogs)) {
-                HostDTO cloudIp = HostDTO.fromCloudIp(ipLog.getIp());
-                if (cloudIp != null) {
-                    esbFileIpLog.setCloudAreaId(cloudIp.getBkCloudId());
-                    esbFileIpLog.setIp(cloudIp.getIp());
+                HostDTO cloudIp;
+                try {
+                    cloudIp = HostDTO.fromCloudIp(ipLog.getIp());
+                } catch (Exception e) {
+                    log.error("Invalid cloudIp, ipLog: {}, cloudIp:{}", ipLog, ipLog.getIp());
+                    // 抛出原来的异常
+                    throw e;
                 }
+                esbFileIpLog.setCloudAreaId(cloudIp.getBkCloudId());
+                esbFileIpLog.setIp(cloudIp.getIp());
                 List<EsbFileLogV3DTO> esbFileLogs = ipFileLogs.stream()
                     .map(this::toEsbFileLogV3DTO).collect(Collectors.toList());
                 esbFileIpLog.setFileLogs(esbFileLogs);
