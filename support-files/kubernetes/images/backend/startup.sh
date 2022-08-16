@@ -44,10 +44,12 @@ fi
 OTEL_OPTS=""
 if [[ "$OTEL_TRACE_ENABLED" == "true" ]];then
     OTEL_OPTS="-javaagent:${BK_JOB_HOME}/opentelemetry-javaagent.jar"
+    OTEL_OPTS="$OTEL_OPTS -Dotel.metrics.exporter=none"
     if [[ "$OTEL_TRACE_REPORT_ENABLED" == "true" ]];then
         OTEL_OPTS="$OTEL_OPTS -Dotel.exporter.otlp.endpoint=$OTEL_TRACE_REPORT_ENDPOINT_URL"
-        OTEL_OPTS="$OTEL_OPTS -Dotel.metrics.exporter=none"
         OTEL_OPTS="$OTEL_OPTS -Dotel.resource.attributes=service.name=$BK_JOB_APP_NAME,bk.data.token=$OTEL_TRACE_REPORT_BK_DATA_TOKEN"
+    else
+        OTEL_OPTS="$OTEL_OPTS -Dotel.traces.exporter=none"
     fi
 fi
 
