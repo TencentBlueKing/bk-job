@@ -156,7 +156,7 @@ public class EsbGetStepInstanceStatusResourceImpl
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 List<EsbIpDTO> ips = new ArrayList<>();
                 for (AgentTaskDetailDTO agentTask : agentTasks) {
-                    ips.add(new EsbIpDTO(agentTask.getBkCloudId(), agentTask.getIp()));
+                    ips.add(new EsbIpDTO(agentTask.getHostId(), agentTask.getBkCloudId(), agentTask.getIp()));
                 }
                 standardStepAnalyseResult.put("ip_list", ips);
 

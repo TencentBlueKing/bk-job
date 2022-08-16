@@ -23,7 +23,11 @@ data:
     esb:
       service:
         url: {{ .Values.bkComponentApiUrl }}
+    bkApiGateway:
+      gse:
+        url: {{ .Values.bkGseApiGatewayUrl }}
     gse:
+      version: {{ .Values.gse.version }}
       cache:
         apiserver:
           host: {{ .Values.gse.cacheApiServer.host }}

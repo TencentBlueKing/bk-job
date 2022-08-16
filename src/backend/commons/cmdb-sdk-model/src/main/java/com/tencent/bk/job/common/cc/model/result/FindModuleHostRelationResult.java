@@ -55,6 +55,10 @@ public class FindModuleHostRelationResult {
         private Long hostId;
         @JsonProperty("bk_host_innerip")
         private String ip;
+        @JsonProperty("bk_host_innerip_v6")
+        private String ipv6;
+        @JsonProperty("bk_agent_id")
+        private String agentId;
         @JsonProperty("bk_host_name")
         private String hostName;
         @JsonProperty("bk_os_name")

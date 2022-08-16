@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
@@ -33,6 +34,7 @@ import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUp
 import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -48,9 +50,17 @@ public interface WhiteIPService {
      * 查找对业务生效的IP信息
      *
      * @param appId 业务Id
-     * @return
+     * @return 对业务生效的IP信息
      */
     List<CloudIPDTO> listWhiteIP(Long appId, ActionScopeEnum actionScope);
+
+    /**
+     * 查找对业务生效的IP对应的主机信息
+     *
+     * @param appId Job业务Id
+     * @return 对业务生效的白名单IP对应的主机
+     */
+    List<HostDTO> listAvailableWhiteIPHost(Long appId, ActionScopeEnum actionScope, Collection<Long> hostIds);
 
     Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq);
 

@@ -29,6 +29,7 @@ import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -270,16 +272,40 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         return listHostTopoByConditions(dslContext, conditions, start, limit);
     }
 
+    private List<Long> listHostIdByConditions(Collection<Condition> conditions) {
+        val query = defaultContext.select(
+            defaultTable.HOST_ID
+        ).from(defaultTable).where(conditions);
+        return query.fetch().map(record -> record.get(defaultTable.HOST_ID, Long.class));
+    }
+
     @Override
     public List<Long> listHostIdByBizIds(Collection<Long> bizIds) {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
             conditions.add(defaultTable.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
-        val query = defaultContext.select(
-            defaultTable.HOST_ID
-        ).from(defaultTable).where(conditions);
-        return query.fetch().map(record -> record.get(defaultTable.HOST_ID, Long.class));
+        return listHostIdByConditions(conditions);
+    }
+
+    @Override
+    public List<Long> listHostIdByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds) {
+        List<Condition> conditions = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(bizIds)) {
+            conditions.add(defaultTable.APP_ID.in(bizIds.stream()
+                .filter(Objects::nonNull)
+                .map(ULong::valueOf)
+                .collect(Collectors.toList()))
+            );
+        }
+        if (CollectionUtils.isNotEmpty(hostIds)) {
+            conditions.add(defaultTable.HOST_ID.in(hostIds.stream()
+                .filter(Objects::nonNull)
+                .map(ULong::valueOf)
+                .collect(Collectors.toList()))
+            );
+        }
+        return listHostIdByConditions(conditions);
     }
 
     private HostTopoDTO convertRecordToDto(HostTopoRecord record) {

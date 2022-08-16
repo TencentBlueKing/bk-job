@@ -24,8 +24,12 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.engine.consts.Consts;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
@@ -45,27 +49,43 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 public class AgentServiceImpl implements AgentService {
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStateClient agentStateClient;
     private final HostService hostService;
-    private volatile HostDTO agentHost;
+    private final LoadingCache<String, HostDTO> agentHostCache = CacheBuilder.newBuilder()
+        .maximumSize(1).expireAfterWrite(60, TimeUnit.SECONDS).
+            build(new CacheLoader<String, HostDTO>() {
+                      @SuppressWarnings("all")
+                      @Override
+                      public HostDTO load(String key) {
+                          HostDTO agentHost = getAgentBindHost();
+                          log.debug("load agentHost and save to cache:{}", agentHost);
+                          return agentHost;
+                      }
+                  }
+            );
 
     @Autowired
-    public AgentServiceImpl(QueryAgentStatusClient queryAgentStatusClient,
+    public AgentServiceImpl(AgentStateClient agentStateClient,
                             HostService hostService) {
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.agentStateClient = agentStateClient;
         this.hostService = hostService;
     }
 
     @Override
     public HostDTO getLocalAgentHost() {
-        if (agentHost != null) {
-            return agentHost;
+        try {
+            String CACHE_KEY_AGENT_HOST = "agentHost";
+            return agentHostCache.get(CACHE_KEY_AGENT_HOST);
+        } catch (ExecutionException e) {
+            log.warn("Fail to load agentHost from cache, try to load directly", e);
+            return getAgentBindHost();
         }
-        return getAgentBindHost();
     }
 
     @Override
@@ -81,9 +101,6 @@ public class AgentServiceImpl implements AgentService {
     private HostDTO getAgentBindHost() {
         log.info("Get local agent bind host!");
         synchronized (this) {
-            if (agentHost != null) {
-                return agentHost;
-            }
             String physicalMachineMultiIp;
             String nodeIP = System.getenv("BK_JOB_NODE_IP");
             if (StringUtils.isNotBlank(nodeIP)) {
@@ -97,14 +114,17 @@ public class AgentServiceImpl implements AgentService {
                 }
                 physicalMachineMultiIp = sj.toString();
             }
-            String agentBindIp = queryAgentStatusClient.getHostIpByAgentStatus(physicalMachineMultiIp,
-                Consts.DEFAULT_CLOUD_ID);
+            List<String> cloudIpList = IpUtils.buildCloudIpListByMultiIp(
+                (long) Consts.DEFAULT_CLOUD_ID,
+                physicalMachineMultiIp
+            );
+
+            String agentBindIp = agentStateClient.chooseOneAgentIdPreferAlive(cloudIpList);
             log.info("Local agent bind ip is {}", agentBindIp);
-            String agentBindCloudIp = Consts.DEFAULT_CLOUD_ID + ":" + agentBindIp;
-            ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindCloudIp));
-            agentHost = HostDTO.fromHostIdAndCloudIp(host.getHostId(), agentBindCloudIp);
-            agentHost.setAgentId(agentHost.getFinalAgentId());
-            return agentHost;
+            ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindIp));
+            HostDTO hostDTO = HostDTO.fromHostIdAndCloudIp(host.getHostId(), agentBindIp);
+            hostDTO.setAgentId(hostDTO.getFinalAgentId());
+            return hostDTO;
         }
     }
 

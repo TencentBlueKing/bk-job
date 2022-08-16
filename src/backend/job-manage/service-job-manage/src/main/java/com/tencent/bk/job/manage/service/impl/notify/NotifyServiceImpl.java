@@ -501,8 +501,8 @@ public class NotifyServiceImpl implements NotifyService {
         return searchNotifyPolices(
             appId,
             NotifyConsts.DEFAULT_TRIGGER_USER,
-            resourceType,
             triggerType,
+            resourceType,
             resourceExecuteStatus
         );
     }
@@ -513,8 +513,8 @@ public class NotifyServiceImpl implements NotifyService {
         List<NotifyTriggerPolicyDTO> policyList = searchNotifyPolices(
             NotifyConsts.DEFAULT_APP_ID,
             NotifyConsts.DEFAULT_TRIGGER_USER,
-            resourceType,
             triggerType,
+            resourceType,
             resourceExecuteStatus
         );
         if (CollectionUtils.isEmpty(policyList)) {

@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
@@ -40,7 +42,6 @@ import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.engine.util.FilePathUtils;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -104,6 +105,7 @@ public class ResultHandleResumeListener {
     private final FileAgentTaskService fileAgentTaskService;
 
     private final StepInstanceService stepInstanceService;
+    private final GseClient gseClient;
 
     @Autowired
     public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
@@ -119,7 +121,8 @@ public class ResultHandleResumeListener {
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                       ScriptAgentTaskService scriptAgentTaskService,
                                       FileAgentTaskService fileAgentTaskService,
-                                      StepInstanceService stepInstanceService) {
+                                      StepInstanceService stepInstanceService,
+                                      GseClient gseClient) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -134,6 +137,7 @@ public class ResultHandleResumeListener {
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.stepInstanceService = stepInstanceService;
+        this.gseClient = gseClient;
     }
 
 
@@ -147,7 +151,7 @@ public class ResultHandleResumeListener {
         if (event.getGseTaskId() != null) {
             gseTask = gseTaskService.getGseTask(event.getGseTaskId());
         } else {
-            // 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景
+            // tmp: 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景,发布完成后删除
             gseTask = gseTaskService.getGseTask(event.getStepInstanceId(), event.getExecuteCount(), event.getBatch());
         }
 
@@ -192,7 +196,7 @@ public class ResultHandleResumeListener {
         if (gseTask.getId() != null) {
             agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         } else {
-            // TMP: 兼容旧的调度任务，发布完成后删除
+            // tmp: 兼容旧的调度任务，发布完成后删除
             agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
                 stepInstance.getExecuteCount(), null);
             // 仅包含本次执行的主机
@@ -213,6 +217,7 @@ public class ResultHandleResumeListener {
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
+            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -271,6 +276,7 @@ public class ResultHandleResumeListener {
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
+            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

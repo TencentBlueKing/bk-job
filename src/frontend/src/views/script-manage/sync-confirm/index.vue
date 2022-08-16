@@ -114,9 +114,10 @@
         <script-detail
             :is-show.sync="showSideslider"
             :script-version-id="selectScriptVersionId" />
-        <jb-diff
+        <Diff
             v-if="showDiff"
-            :title="$t('script.版本对比')"
+            format="side-by-side"
+            theme="dark"
             :data="diffList"
             :old-version-id="selectScriptVersionId"
             :new-version-id="lastVersionScriptInfo.scriptVersionId"
@@ -129,13 +130,13 @@
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
     import { checkPublicScript } from '@utils/assist';
-    import JbDiff from '@components/jb-diff';
+    import Diff from '../common/diff';
     import ScriptDetail from './components/script-detail';
 
     export default {
         components: {
             ScriptDetail,
-            JbDiff,
+            Diff,
         },
         data () {
             return {

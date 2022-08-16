@@ -33,11 +33,13 @@ import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.ServiceHostResourceClient;
 import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
@@ -70,6 +72,7 @@ public class HostServiceImpl implements HostService {
     private final WhiteIpResourceClient whiteIpResourceClient;
     private final ServiceHostResourceClient hostResourceClient;
     private final AppScopeMappingService appScopeMappingService;
+    private final AgentStateClient agentStateClient;
 
     private volatile boolean isWhiteIpConfigLoaded = false;
     private final Map<String, ServiceWhiteIPInfo> whiteIpConfig = new ConcurrentHashMap<>();
@@ -100,10 +103,12 @@ public class HostServiceImpl implements HostService {
     @Autowired
     public HostServiceImpl(WhiteIpResourceClient whiteIpResourceClient,
                            ServiceHostResourceClient hostResourceClient,
-                           AppScopeMappingService appScopeMappingService) {
+                           AppScopeMappingService appScopeMappingService,
+                           AgentStateClient agentStateClient) {
         this.hostResourceClient = hostResourceClient;
         this.whiteIpResourceClient = whiteIpResourceClient;
         this.appScopeMappingService = appScopeMappingService;
+        this.agentStateClient = agentStateClient;
     }
 
     @Override
@@ -199,15 +204,21 @@ public class HostServiceImpl implements HostService {
         return response.getData();
     }
 
+    private String chooseOneIpPreferAlive(Long cloudId, String multiIp) {
+        List<String> agentIdList = IpUtils.buildCloudIpListByMultiIp(cloudId, multiIp);
+        String cloudIp = agentStateClient.chooseOneAgentIdPreferAlive(agentIdList);
+        return cloudIp.split(":")[1];
+    }
+
     @Override
-    public List<HostDTO> getIpByDynamicGroupId(long appId, String groupId) {
+    public List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         List<CcGroupHostPropDTO> cmdbGroupHostList =
             bizCmdbClient.getDynamicGroupIp(Long.parseLong(resourceScope.getId()), groupId);
-        List<HostDTO> ips = new ArrayList<>();
+        List<HostDTO> hostList = new ArrayList<>();
         if (cmdbGroupHostList == null || cmdbGroupHostList.isEmpty()) {
-            return ips;
+            return hostList;
         }
         for (CcGroupHostPropDTO hostProp : cmdbGroupHostList) {
             List<CcCloudIdDTO> hostCloudIdList = hostProp.getCloudIdList();
@@ -222,11 +233,12 @@ public class HostServiceImpl implements HostService {
                     "hostIp={}", appId, groupId, hostProp.getIp());
                 continue;
             }
-            HostDTO ip = new HostDTO(hostCloudId.getInstanceId(), hostProp.getIp());
-            ips.add(ip);
+            String singleIp = chooseOneIpPreferAlive(hostCloudId.getInstanceId(), hostProp.getIp());
+            HostDTO host = new HostDTO(hostCloudId.getInstanceId(), singleIp);
+            hostList.add(host);
         }
-        log.info("Get hosts by groupId, appId={}, groupId={}, hosts={}", appId, groupId, ips);
-        return ips;
+        log.info("Get hosts by groupId, appId={}, groupId={}, hosts={}", appId, groupId, hostList);
+        return hostList;
     }
 
     @Override

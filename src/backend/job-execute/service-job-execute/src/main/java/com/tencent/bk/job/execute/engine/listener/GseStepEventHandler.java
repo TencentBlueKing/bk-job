@@ -337,7 +337,9 @@ public class GseStepEventHandler implements StepEventHandler {
         } else {
             agentTask.setAgentId(host.getAgentId());
         }
+        // tmp: 兼容使用ip的方式，发布完成后可以删除
         agentTask.setCloudIp(host.toCloudIp());
+        agentTask.setDisplayIp(host.getDisplayIp());
         return agentTask;
     }
 

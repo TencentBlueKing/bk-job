@@ -39,6 +39,13 @@ public class EsbIpLogV3DTO {
      */
     @JsonProperty("log_type")
     private Integer logType;
+
+    /**
+     * 主机ID
+     */
+    @JsonProperty("bk_host_id")
+    private Long hostId;
+
     /**
      * 云区域ID
      */

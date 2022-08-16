@@ -26,17 +26,17 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
 import com.google.common.collect.Maps;
-import com.tencent.bk.gse.taskapi.api_agent;
-import com.tencent.bk.gse.taskapi.api_script_request;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
+import com.tencent.bk.job.common.gse.v2.model.Agent;
+import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.model.RunSQLScriptFile;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
@@ -135,6 +135,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         GseTasksExceptionCounter gseTasksExceptionCounter,
                                         JobBuildInVariableResolver jobBuildInVariableResolver,
                                         Tracing tracing,
+                                        GseClient gseClient,
                                         String requestId,
                                         TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
@@ -157,6 +158,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             gseTasksExceptionCounter,
             jobBuildInVariableResolver,
             tracing,
+            gseClient,
             requestId,
             taskInstance,
             stepInstance,
@@ -164,7 +166,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
     }
 
     @Override
-    protected api_script_request buildScriptRequest() {
+    protected ExecuteScriptRequest buildScriptRequest() {
         String sqlScriptContent = stepInstance.getScriptContent();
         String sqlScriptFileName = buildScriptFileName(stepInstance);
 
@@ -173,20 +175,30 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         String publicScriptName = this.scriptFileNamePrefix
             + ScriptTypeEnum.getExtByValue(ScriptTypeEnum.SHELL.getValue());
 
-        RunSQLScriptFile param = new RunSQLScriptFile();
-        param.setTimeout(timeout);
-        param.setDownloadPath(scriptFilePath);
-        param.setPublicScriptContent(publicScriptContent);
-        param.setPublicScriptName(publicScriptName);
-        param.setSqlScriptContent(sqlScriptContent);
-        param.setSqlScriptFileName(sqlScriptFileName);
-        StringBuilder sqlParam = new StringBuilder(255);
-        sqlParam.append(stepInstance.getDbPort());
+        ScriptRequestBuilder builder = new ScriptRequestBuilder();
+        builder.addScriptFile(scriptFilePath, publicScriptName, publicScriptContent);
+        builder.addScriptFile(scriptFilePath, sqlScriptFileName, sqlScriptContent);
+
+        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
+            stepInstance.getAppId());
+
+        List<Agent> agentList = gseClient.buildAgents(targetAgentTaskMap.keySet(),
+            accountInfo.getAccount(), accountInfo.getPassword());
+
+        builder.addScriptTask(agentList, scriptFilePath, publicScriptName, buildRunSqlShellParams(sqlScriptFileName),
+            timeout);
+
+        return builder.build();
+    }
+
+    private String buildRunSqlShellParams(String sqlScriptFileName) {
+        StringBuilder sb = new StringBuilder(255);
+        sb.append(stepInstance.getDbPort());
         if (StringUtils.isNotBlank(stepInstance.getDbAccount()) && !StringUtils.equals("null",
             stepInstance.getDbAccount())) {
-            sqlParam.append(" ").append(stepInstance.getDbAccount());
+            sb.append(" ").append(stepInstance.getDbAccount());
         } else {
-            sqlParam.append(" EMPTY");
+            sb.append(" EMPTY");
         }
         if (StringUtils.isNotBlank(stepInstance.getDbPass()) && !StringUtils.equals("null", stepInstance.getDbPass())) {
             String dbPassword;
@@ -197,18 +209,11 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                 log.error("Decrypt db password failed!", e);
                 throw new InternalException(ErrorCode.INTERNAL_ERROR);
             }
-            sqlParam.append(" ").append(dbPassword);
+            sb.append(" ").append(dbPassword);
         } else {
-            sqlParam.append(" EMPTY");
+            sb.append(" EMPTY");
         }
-        param.setParamForDBInfo(sqlParam.toString());
-
-        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
-            stepInstance.getAppId());
-
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetAgentTaskMap.keySet(),
-            accountInfo.getAccount(), accountInfo.getPassword());
-
-        return GseRequestUtils.buildScriptRequestWithSQL(agentList, param);
+        return sqlScriptFileName + " " + sb.toString();
     }
+
 }

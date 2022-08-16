@@ -163,7 +163,7 @@ public class DbRecordMapper {
         taskScriptStep.setScriptParam((String) record.get(8));
         taskScriptStep.setTimeout(((ULong) record.get(9)).longValue());
         taskScriptStep.setAccount(((ULong) record.get(10)).longValue());
-        taskScriptStep.setExecuteTarget(TaskTargetDTO.fromString((String) record.get(11)));
+        taskScriptStep.setExecuteTarget(TaskTargetDTO.fromJsonString((String) record.get(11)));
         taskScriptStep.setSecureParam(((UByte) record.get(12)).intValue() == 1);
         taskScriptStep.setStatus(((UByte) record.get(13)).intValue());
         taskScriptStep.setIgnoreError(((UByte) record.get(14)).intValue() == 1);
@@ -182,7 +182,7 @@ public class DbRecordMapper {
         taskFileStep.setOriginFileList(new ArrayList<>());
         taskFileStep.setDestinationFileLocation((String) record.get(2));
         taskFileStep.setExecuteAccount(((ULong) record.get(3)).longValue());
-        taskFileStep.setDestinationHostList(TaskTargetDTO.fromString((String) record.get(4)));
+        taskFileStep.setDestinationHostList(TaskTargetDTO.fromJsonString((String) record.get(4)));
         taskFileStep.setTimeout(((ULong) record.get(5)).longValue());
         taskFileStep.setOriginSpeedLimit(JooqDataTypeUtil.getLongFromULong((ULong) record.get(6)));
         taskFileStep.setTargetSpeedLimit(JooqDataTypeUtil.getLongFromULong((ULong) record.get(7)));
@@ -219,7 +219,7 @@ public class DbRecordMapper {
             taskFileInfo.setFileSize(null);
         }
         taskFileInfo.setFileHash((String) record.get(5));
-        taskFileInfo.setHost(TaskTargetDTO.fromString((String) record.get(6)));
+        taskFileInfo.setHost(TaskTargetDTO.fromJsonString((String) record.get(6)));
         if (record.get(7) != null) {
             taskFileInfo.setHostAccount(((ULong) record.get(7)).longValue());
         } else {

@@ -41,6 +41,12 @@ public class HostEventDetail {
     @JsonProperty("bk_host_innerip")
     private String hostInnerIp;
 
+    @JsonProperty("bk_host_innerip_v6")
+    private String innerIpv6;
+
+    @JsonProperty("bk_agent_id")
+    private String agentId;
+
     @JsonProperty("bk_host_name")
     private String hostName;
 
@@ -58,6 +64,8 @@ public class HostEventDetail {
         hostInfoDTO.setHostId(eventDetail.hostId);
         List<String> ipList = StringUtil.strToList(eventDetail.hostInnerIp, String.class, ",");
         hostInfoDTO.setDisplayIp(eventDetail.hostInnerIp);
+        hostInfoDTO.setIpv6(eventDetail.innerIpv6);
+        hostInfoDTO.setAgentId(eventDetail.agentId);
         hostInfoDTO.setIpList(ipList);
         if (ipList != null && !ipList.isEmpty()) {
             hostInfoDTO.setIp(ipList.get(0));

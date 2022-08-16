@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,7 +51,13 @@ public class JobEvent extends Event {
     /**
      * 作业实例ID
      */
-    private long jobInstanceId;
+    @JsonProperty("jobInstanceId")
+    private Long jobInstanceId;
+    /**
+     * tmp: 作业实例ID - 兼容字段，发布完成后删除
+     */
+    @JsonProperty("taskInstanceId")
+    private Long taskInstanceId;
 
     /**
      * 构造启动作业事件
@@ -61,6 +68,7 @@ public class JobEvent extends Event {
     public static JobEvent startJob(long jobInstanceId) {
         JobEvent jobEvent = new JobEvent();
         jobEvent.setJobInstanceId(jobInstanceId);
+        jobEvent.setTaskInstanceId(jobInstanceId);
         jobEvent.setAction(JobActionEnum.START.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
@@ -75,6 +83,7 @@ public class JobEvent extends Event {
     public static JobEvent stopJob(long jobInstanceId) {
         JobEvent jobEvent = new JobEvent();
         jobEvent.setJobInstanceId(jobInstanceId);
+        jobEvent.setTaskInstanceId(jobInstanceId);
         jobEvent.setAction(JobActionEnum.STOP.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
@@ -89,6 +98,7 @@ public class JobEvent extends Event {
     public static JobEvent restartJob(long jobInstanceId) {
         JobEvent jobEvent = new JobEvent();
         jobEvent.setJobInstanceId(jobInstanceId);
+        jobEvent.setTaskInstanceId(jobInstanceId);
         jobEvent.setAction(JobActionEnum.RESTART.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
@@ -104,10 +114,15 @@ public class JobEvent extends Event {
     public static JobEvent refreshJob(long jobInstanceId, EventSource eventSource) {
         JobEvent jobEvent = new JobEvent();
         jobEvent.setJobInstanceId(jobInstanceId);
+        jobEvent.setTaskInstanceId(jobInstanceId);
         jobEvent.setSource(eventSource);
         jobEvent.setAction(JobActionEnum.REFRESH.getValue());
         jobEvent.setTime(LocalDateTime.now());
         return jobEvent;
+    }
+
+    public Long getJobInstanceId() {
+        return jobInstanceId != null ? jobInstanceId : taskInstanceId;
     }
 
     @Override

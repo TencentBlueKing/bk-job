@@ -73,7 +73,7 @@ public class TaskVariableDTO {
         taskVariable.setType(variableInfo.getType().getType());
         if (TaskVariableTypeEnum.HOST_LIST == variableInfo.getType()) {
             taskVariable
-                .setDefaultTargetValue(TaskTargetDTO.toVO(TaskTargetDTO.fromString(variableInfo.getDefaultValue())));
+                .setDefaultTargetValue(TaskTargetDTO.toVO(TaskTargetDTO.fromJsonString(variableInfo.getDefaultValue())));
         } else {
             if (variableInfo.getType().needMask()) {
                 taskVariable.setDefaultValue(variableInfo.getType().getMask());
@@ -104,7 +104,7 @@ public class TaskVariableDTO {
             throw new InvalidParamException(ErrorCode.WRONG_VARIABLE_TYPE);
         }
         if (TaskVariableTypeEnum.HOST_LIST == variableInfo.getType()) {
-            variableInfo.setDefaultValue(TaskTargetDTO.fromVO(variableVO.getDefaultTargetValue()).toString());
+            variableInfo.setDefaultValue(TaskTargetDTO.fromVO(variableVO.getDefaultTargetValue()).toJsonString());
         } else {
             variableInfo.setDefaultValue(variableVO.getDefaultValue());
         }
@@ -131,7 +131,7 @@ public class TaskVariableDTO {
         serviceTaskVariable.setName(taskVariable.getName());
         serviceTaskVariable.setType(taskVariable.getType().getType());
         if (TaskVariableTypeEnum.HOST_LIST == taskVariable.getType()) {
-            TaskTargetDTO taskTarget = TaskTargetDTO.fromString(taskVariable.getDefaultValue());
+            TaskTargetDTO taskTarget = TaskTargetDTO.fromJsonString(taskVariable.getDefaultValue());
             if (taskTarget != null) {
                 serviceTaskVariable.setDefaultTargetValue(taskTarget.toServiceTaskTargetDTO());
             }
@@ -157,7 +157,7 @@ public class TaskVariableDTO {
         if (TaskVariableTypeEnum.HOST_LIST == taskVariable.getType()) {
             esbGlobalVar.setServer(
                 TaskTargetDTO.toEsbServerV3(
-                    TaskTargetDTO.fromString(
+                    TaskTargetDTO.fromJsonString(
                         taskVariable.getDefaultValue()
                     )
                 )

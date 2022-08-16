@@ -27,11 +27,17 @@
 
 <template>
     <div class="choose-ip-host-detail" ref="hostDetail">
-        <sideslider-box :value="show" @change="handleClose">
+        <sideslider-box
+            :value="show"
+            @change="handleClose">
             <div slot="title">{{ data.name }}</div>
             <div slot="desc">
-                <statistics-text slot="desc" :data="data" />
-                <action-extend :list="list" copyable />
+                <statistics-text
+                    slot="desc"
+                    :data="data" />
+                <action-extend
+                    :list="list"
+                    copyable />
             </div>
             <host-table :list="list" />
         </sideslider-box>

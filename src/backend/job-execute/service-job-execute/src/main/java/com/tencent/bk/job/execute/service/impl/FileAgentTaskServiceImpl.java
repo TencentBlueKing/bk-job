@@ -3,6 +3,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.config.GseTaskTableRouteConfig;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
@@ -196,6 +197,8 @@ public class FileAgentTaskServiceImpl
                 HostDTO queryHost = getStepHostByIp(stepInstance, host.toCloudIp());
                 if (queryHost != null) {
                     hostId = queryHost.getHostId();
+                }  else {
+                    throw new NotFoundException(ErrorCode.HOST_INVALID, new String[]{host.toCloudIp()});
                 }
             }
 

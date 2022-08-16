@@ -37,6 +37,8 @@ import lombok.NoArgsConstructor;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ExecuteHostVO {
+    @ApiModelProperty("主机ID")
+    private Long hostId;
 
     @ApiModelProperty("主机 IP")
     private String ip;

@@ -30,13 +30,12 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
-import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -101,12 +100,13 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
         EsbIpLogV3DTO ipLog = new EsbIpLogV3DTO();
         ipLog.setCloudAreaId(request.getCloudAreaId());
         ipLog.setIp(request.getIp());
+        ipLog.setHostId(request.getHostId());
         if (stepInstance.isScriptStep()) {
-            buildScriptLog(ipLog, request.getStepInstanceId(), stepInstance.getExecuteCount(), request.getCloudAreaId(),
-                request.getIp());
+            buildScriptLog(ipLog, request.getStepInstanceId(), stepInstance.getExecuteCount(),
+                request.getHostId(), request.getCloudAreaId(), request.getIp());
         } else if (stepInstance.isFileStep()) {
-            buildFileLog(ipLog, request.getStepInstanceId(), stepInstance.getExecuteCount(), request.getCloudAreaId(),
-                request.getIp());
+            buildFileLog(ipLog, request.getStepInstanceId(), stepInstance.getExecuteCount(),
+                request.getHostId(), request.getCloudAreaId(), request.getIp());
         }
         return EsbResp.buildSuccessResp(ipLog);
     }
@@ -120,37 +120,25 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
             log.warn("StepInstanceId is empty or illegal, stepInstanceId={}", request.getStepInstanceId());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "step_instance_id");
         }
-        if (request.getCloudAreaId() == null || request.getCloudAreaId() < 0) {
-            log.warn("CloudAreaId is empty or illegal, cloudAreaId={}", request.getCloudAreaId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_cloud_id");
-        }
-        if (StringUtils.isBlank(request.getIp())) {
-            log.warn("Ip is empty");
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "ip");
-        }
-        if (!IpUtils.checkIp(request.getIp())) {
-            log.warn("Ip is illegal, ip={}", request.getIp());
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "ip");
-        }
 
         return ValidateResult.pass();
     }
 
     private void buildScriptLog(EsbIpLogV3DTO ipLog, Long stepInstanceId, Integer executeCount,
-                                Long cloudAreaId, String ip) {
+                                Long hostId, Long cloudAreaId, String ip) {
         ipLog.setLogType(LogTypeEnum.SCRIPT.getValue());
         ScriptHostLogContent logContent = logService.getScriptHostLogContent(stepInstanceId,
-            executeCount, null, new HostDTO(cloudAreaId, ip));
+            executeCount, null, HostDTO.fromHostIdOrCloudIp(hostId, cloudAreaId, ip));
         if (logContent != null && StringUtils.isNotBlank(logContent.getContent())) {
             ipLog.setScriptLogContent(logContent.getContent());
         }
     }
 
     private void buildFileLog(EsbIpLogV3DTO ipLog, Long stepInstanceId, Integer executeCount,
-                              Long cloudAreaId, String ip) {
+                              Long hostId, Long cloudAreaId, String ip) {
         ipLog.setLogType(LogTypeEnum.FILE.getValue());
         FileIpLogContent downloadIpLog = logService.getFileIpLogContent(stepInstanceId, executeCount, null,
-            new HostDTO(cloudAreaId, ip), FileDistModeEnum.DOWNLOAD.getValue());
+            HostDTO.fromHostIdOrCloudIp(hostId, cloudAreaId, ip), FileDistModeEnum.DOWNLOAD.getValue());
         List<ServiceFileTaskLogDTO> uploadTaskLogs = logService.batchGetFileSourceIpLogContent(
             stepInstanceId, executeCount, null);
 
@@ -180,20 +168,32 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
     private EsbFileLogV3DTO toEsbFileLogV3DTO(ServiceFileTaskLogDTO fileTaskLog) {
         EsbFileLogV3DTO fileLog = new EsbFileLogV3DTO();
         fileLog.setMode(fileTaskLog.getMode());
+
+        // source
+        EsbIpDTO srcHost = new EsbIpDTO ();
+        srcHost.setHostId(fileTaskLog.getSrcHostId());
         if (StringUtils.isNotBlank(fileTaskLog.getDisplaySrcIp())) {
             EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDisplaySrcIp());
             if (srcIp != null) {
-                fileLog.setSrcIp(srcIp);
+                srcHost.setBkCloudId(srcIp.getBkCloudId());
+                srcHost.setIp(srcIp.getIp());
             }
         }
+        fileLog.setSrcIp(srcHost);
         fileLog.setSrcPath(fileTaskLog.getDisplaySrcFile());
+
+        // dest
         if (FileDistModeEnum.DOWNLOAD.getValue().equals(fileTaskLog.getMode())) {
+            EsbIpDTO destHost = new EsbIpDTO ();
+            destHost.setHostId(fileTaskLog.getDestHostId());
             if (StringUtils.isNotBlank(fileTaskLog.getDestIp())) {
                 EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestIp());
                 if (destIp != null) {
-                    fileLog.setDestIp(destIp);
+                    srcHost.setBkCloudId(destIp.getBkCloudId());
+                    srcHost.setIp(destIp.getIp());
                 }
             }
+            fileLog.setDestIp(destHost);
             fileLog.setDestPath(fileTaskLog.getDestFile());
         }
 
