@@ -53,7 +53,7 @@ public interface ScopeHostService {
      * @param appResourceScope 资源范围
      * @param appTopoNodeList  拓扑节点列表
      * @param searchContent    模糊搜索关键字（同时对主机IP/主机名/操作系统/云区域名称进行模糊搜索）
-     * @param agentStatus      筛选条件：agentStatus：0为异常，1为正常
+     * @param agentAlive       筛选条件：agentAlive：0为异常，1为正常
      * @param start            数据起始位置
      * @param pageSize         拉取数量
      * @return hostId列表
@@ -61,7 +61,7 @@ public interface ScopeHostService {
     PageData<Long> listHostIdByBizTopologyNodes(AppResourceScope appResourceScope,
                                                 List<AppTopologyTreeNode> appTopoNodeList,
                                                 String searchContent,
-                                                Integer agentStatus,
+                                                Integer agentAlive,
                                                 Long start,
                                                 Long pageSize);
 }

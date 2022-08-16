@@ -197,9 +197,9 @@ public class WebHostResourceImpl implements WebHostResource {
         return Response.buildSuccessResp(
             scopeHostService.listHostIdByBizTopologyNodes(
                 appResourceScope,
-                req.getAppTopoNodeList(),
+                req.getNodeList(),
                 req.getSearchContent(),
-                req.getAgentStatus(),
+                req.getAlive(),
                 pagePair.getLeft(),
                 pagePair.getRight()
             )

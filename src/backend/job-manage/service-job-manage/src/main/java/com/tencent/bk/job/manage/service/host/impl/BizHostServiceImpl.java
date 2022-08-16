@@ -87,7 +87,7 @@ public class BizHostServiceImpl implements BizHostService {
                                          Collection<Long> moduleIds,
                                          Collection<Long> cloudAreaIds,
                                          List<String> searchContents,
-                                         Integer agentStatus,
+                                         Integer agentAlive,
                                          Long start,
                                          Long limit) {
         StopWatch watch = new StopWatch("pageListHostId");
@@ -97,7 +97,7 @@ public class BizHostServiceImpl implements BizHostService {
             moduleIds,
             cloudAreaIds,
             searchContents,
-            agentStatus,
+            agentAlive,
             start,
             limit
         );
@@ -108,7 +108,7 @@ public class BizHostServiceImpl implements BizHostService {
             moduleIds,
             cloudAreaIds,
             searchContents,
-            agentStatus
+            agentAlive
         );
         watch.stop();
         return new PageData<>(start.intValue(), limit.intValue(), count, hostIdList);

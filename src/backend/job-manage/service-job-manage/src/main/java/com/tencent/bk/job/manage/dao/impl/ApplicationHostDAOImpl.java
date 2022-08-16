@@ -269,15 +269,15 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     @Override
     public List<Long> getHostIdListBySearchContents(Collection<Long> appIds, Collection<Long> moduleIds,
                                                     Collection<Long> cloudAreaIds, List<String> searchContents,
-                                                    Integer agentStatus, Long start, Long limit) {
+                                                    Integer agentAlive, Long start, Long limit) {
         Host tHost = Host.HOST;
         HostTopo tHostTopo = HostTopo.HOST_TOPO;
         List<Condition> conditions = new ArrayList<>();
         if (appIds != null) {
             conditions.add(tHostTopo.APP_ID.in(appIds));
         }
-        if (agentStatus != null) {
-            conditions.add(tHost.IS_AGENT_ALIVE.eq(JooqDataTypeUtil.buildUByte(agentStatus)));
+        if (agentAlive != null) {
+            conditions.add(tHost.IS_AGENT_ALIVE.eq(JooqDataTypeUtil.buildUByte(agentAlive)));
         }
         if (moduleIds != null) {
             conditions.add(tHostTopo.MODULE_ID.in(moduleIds));

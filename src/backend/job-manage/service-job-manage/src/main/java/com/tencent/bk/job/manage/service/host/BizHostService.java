@@ -60,7 +60,7 @@ public interface BizHostService {
      * @param moduleIds      模块ID集合
      * @param cloudAreaIds   云区域ID集合
      * @param searchContents 搜索关键字列表
-     * @param agentStatus    agent状态
+     * @param agentAlive     agent是否正常
      * @param start          数据起始位置
      * @param limit          查询数据条数
      * @return 主机列表
@@ -69,7 +69,7 @@ public interface BizHostService {
                                   Collection<Long> moduleIds,
                                   Collection<Long> cloudAreaIds,
                                   List<String> searchContents,
-                                  Integer agentStatus,
+                                  Integer agentAlive,
                                   Long start,
                                   Long limit);
 }

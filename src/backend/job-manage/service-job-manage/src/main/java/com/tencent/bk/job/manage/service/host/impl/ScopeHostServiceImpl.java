@@ -89,7 +89,7 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     public PageData<Long> listHostIdByBizTopologyNodes(AppResourceScope appResourceScope,
                                                        List<AppTopologyTreeNode> appTopoNodeList,
                                                        String searchContent,
-                                                       Integer agentStatus,
+                                                       Integer agentAlive,
                                                        Long start,
                                                        Long pageSize) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
@@ -123,7 +123,7 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             moduleIds,
             cloudAreaIds,
             searchContents,
-            agentStatus,
+            agentAlive,
             start,
             pageSize
         );

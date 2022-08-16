@@ -714,7 +714,7 @@ public class HostServiceImpl implements HostService {
         StopWatch watch = new StopWatch("listHostByBizTopologyNodes");
         watch.start("genConditions");
         String searchContent = req.getSearchContent();
-        Integer agentStatus = req.getAgentStatus();
+        Integer agentStatus = req.getAlive();
         // 查出业务
         ApplicationDTO appInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
         List<Long> moduleIds = null;
@@ -722,7 +722,7 @@ public class HostServiceImpl implements HostService {
         if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
             // 普通业务需要以moduleIds作为查询条件
             moduleIds = getBizModuleIdsByTopoNodes(
-                Long.valueOf(appInfo.getScope().getId()), req.getAppTopoNodeList()
+                Long.valueOf(appInfo.getScope().getId()), req.getNodeList()
             );
         } else if (!appInfo.isAllBizSet() && appInfo.isBizSet()) {
             // 业务集：仅根据业务查主机

@@ -59,7 +59,7 @@ public interface ApplicationHostDAO {
 
     List<Long> getHostIdListBySearchContents(Collection<Long> appIds, Collection<Long> moduleIds,
                                              Collection<Long> cloudAreaIds, List<String> searchContents,
-                                             Integer agentStatus, Long start, Long limit);
+                                             Integer agentAlive, Long start, Long limit);
 
     Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                        Collection<Long> cloudAreaIds, List<String> searchContents, Integer agentStatus);
