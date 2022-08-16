@@ -148,6 +148,13 @@ class AppManage extends ModuleBase {
             params,
         });
     }
+
+    // 获取多个节点下的主机统计信息
+    getBatchNodeAgentStatistics (params = {}) {
+        return Request.post(`${this.path}/host/agentStatistics/nodes`, {
+            params,
+        });
+    }
 }
 
 export default new AppManage();

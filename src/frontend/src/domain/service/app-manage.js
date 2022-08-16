@@ -114,4 +114,8 @@ export default {
         return AppManageSource.getHostStatistics(params)
             .then(({ data }) => data);
     },
+    fetchBatchNodeAgentStatistics (params) {
+        return AppManageSource.getBatchNodeAgentStatistics(params)
+            .then(({ data }) => data);
+    },
 };

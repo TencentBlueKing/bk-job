@@ -37,6 +37,9 @@
                     ref="execScriptForm"
                     v-test="{ type: 'form', value: 'executeScript' }"
                     :model="formData">
+                    <div>
+                        <ip-selector />
+                    </div>
                     <item-factory
                         name="scriptName"
                         field="name"
