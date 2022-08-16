@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.whiteip;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
@@ -44,27 +45,19 @@ public interface WhiteIPRecordDAO {
                                             List<String> appNameList, List<Long> actionScopeIdList, String creator,
                                             String lastModifyUser, BaseSearchCondition baseSearchCondition);
 
-    List<Long> listAllWhiteIPRecordId(DSLContext dslContext);
-
-    List<WhiteIPRecordVO> listWhiteIPRecord(DSLContext dslContext, String partIP, List<Long> appIdList,
-                                            List<Long> actionScopeIdList, BaseSearchCondition baseSearchCondition);
-
     Long countWhiteIPRecord(DSLContext dslContext, List<String> ipList, List<Long> appIdList,
                             List<String> appNameList, List<Long> actionScopeIdList, String creator,
                             String lastModifyUser, BaseSearchCondition baseSearchCondition);
-
-    Long countWhiteIPRecord(DSLContext dslContext, String partIP, List<Long> appIdList, List<Long> actionScopeIdList,
-                            BaseSearchCondition baseSearchCondition);
 
     Long countWhiteIPIP();
 
     int updateWhiteIPRecordById(DSLContext dslContext, WhiteIPRecordDTO whiteIPRecordDTO);
 
-    List<String> getWhiteIPActionScopes(DSLContext dslContext, Long appId, String ip, Long cloudAreaId);
-
     List<String> getWhiteIPActionScopes(DSLContext dslContext, Collection<Long> appIds, String ip, Long cloudAreaId);
 
     List<CloudIPDTO> listWhiteIPByAppIds(DSLContext dslContext, Collection<Long> appIds, Long actionScopeId);
+
+    List<HostDTO> listWhiteIPHost(Collection<Long> appIds, Long actionScopeId, Collection<Long> hostIds);
 
     List<WhiteIPRecordDTO> listAllWhiteIPRecord(DSLContext dslContext);
 }

@@ -153,6 +153,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
                 if (CollectionUtils.isNotEmpty(agentTaskList)) {
                     for (AgentTaskDetailDTO agentTask : agentTaskList) {
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
+                        stepIpResult.setHostId(agentTask.getHostId());
                         stepIpResult.setCloudAreaId(agentTask.getBkCloudId());
                         stepIpResult.setIp(agentTask.getIp());
                         stepIpResult.setExitCode(agentTask.getExitCode());

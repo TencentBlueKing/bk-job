@@ -137,10 +137,31 @@ public class HostDTO implements Cloneable {
         return new HostDTO(Long.valueOf(ipProps[0]), ipProps[1]);
     }
 
+    public static HostDTO fromHostIdOrCloudIp(Long hostId, String cloudIp) {
+        HostDTO host = new HostDTO();
+        host.setHostId(hostId);
+        if (StringUtils.isNotEmpty(cloudIp)) {
+            String[] ipProps = cloudIp.split(IpUtils.COLON);
+            host.setBkCloudId(Long.valueOf(ipProps[0]));
+            host.setIp(ipProps[1]);
+        }
+        return host;
+    }
+
+
+    public static HostDTO fromHostIdOrCloudIp(Long hostId, Long bkCloudId, String ip) {
+        HostDTO host = new HostDTO();
+        host.setHostId(hostId);
+        host.setBkCloudId(bkCloudId);
+        host.setIp(ip);
+        return host;
+    }
+
     public String toCloudIp() {
         return bkCloudId + ":" + ip;
     }
 
+    @JsonIgnore
     public String getDisplayIp() {
         if (StringUtils.isNotEmpty(displayIp)) {
             return displayIp;
@@ -149,30 +170,37 @@ public class HostDTO implements Cloneable {
         }
     }
 
-    public static HostInfoVO toVO(HostDTO host) {
-        if (host == null) {
+    public static HostInfoVO toVO(HostDTO hostDTO) {
+        if (hostDTO == null) {
             return null;
         }
-        HostInfoVO hostInfo = new HostInfoVO();
-        hostInfo.setIp(host.getIp());
-        hostInfo.setAlive(host.getAlive());
+        HostInfoVO hostInfoVO = new HostInfoVO();
+        hostInfoVO.setHostId(hostDTO.getHostId());
+        hostInfoVO.setIp(hostDTO.getIp());
+        hostInfoVO.setIpv6(hostDTO.getIpv6());
+        hostInfoVO.setAlive(hostDTO.getAlive());
         CloudAreaInfoVO cloudAreaInfo = new CloudAreaInfoVO();
-        cloudAreaInfo.setId(host.getBkCloudId());
-        cloudAreaInfo.setName(host.getBkCloudName());
-        hostInfo.setCloudAreaInfo(cloudAreaInfo);
-        return hostInfo;
+        cloudAreaInfo.setId(hostDTO.getBkCloudId());
+        cloudAreaInfo.setName(hostDTO.getBkCloudName());
+        hostInfoVO.setCloudAreaInfo(cloudAreaInfo);
+        return hostInfoVO;
     }
 
-    public static HostDTO fromVO(HostInfoVO hostInfo) {
-        if (hostInfo == null) {
+    public static HostDTO fromVO(HostInfoVO hostInfoVO) {
+        if (hostInfoVO == null) {
             return null;
         }
-        HostDTO host = new HostDTO();
-        host.setIp(hostInfo.getIp());
-        host.setBkCloudId(hostInfo.getCloudAreaInfo().getId());
-        host.setBkCloudName(hostInfo.getCloudAreaInfo().getName());
-        host.setAlive(hostInfo.getAlive());
-        return host;
+        HostDTO hostDTO = new HostDTO();
+        hostDTO.setHostId(hostInfoVO.getHostId());
+        hostDTO.setIp(hostInfoVO.getIp());
+        hostDTO.setIpv6(hostInfoVO.getIpv6());
+        CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudAreaInfo();
+        if (cloudAreaInfo != null) {
+            hostDTO.setBkCloudId(cloudAreaInfo.getId());
+            hostDTO.setBkCloudName(cloudAreaInfo.getName());
+        }
+        hostDTO.setAlive(hostInfoVO.getAlive());
+        return hostDTO;
     }
 
     @Override
@@ -199,6 +227,7 @@ public class HostDTO implements Cloneable {
         }
     }
 
+    @SuppressWarnings("all")
     public HostDTO clone() {
         HostDTO clone = new HostDTO();
         clone.setHostId(hostId);
@@ -222,6 +251,19 @@ public class HostDTO implements Cloneable {
             return agentId;
         } else {
             return toCloudIp();
+        }
+    }
+    /**
+     * 获取主机的唯一KEY，用于去重等操作
+     *
+     * @return 主机KEY
+     */
+    @JsonIgnore
+    public String getUniqueKey() {
+        if (hostId != null) {
+            return "HOST_ID:" + hostId;
+        } else {
+            return "HOST_IP:" + toCloudIp();
         }
     }
 }

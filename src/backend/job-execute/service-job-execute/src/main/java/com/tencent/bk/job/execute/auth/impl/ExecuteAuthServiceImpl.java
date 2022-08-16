@@ -91,6 +91,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     public AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ServersDTO servers) {
+
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         log.debug("Auth fast execute script, username:{}, appResourceScope:{}, hostInstances:{}", username,

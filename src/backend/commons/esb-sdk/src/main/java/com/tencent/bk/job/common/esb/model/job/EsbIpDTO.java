@@ -28,7 +28,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,8 +39,10 @@ import javax.validation.constraints.Pattern;
 @Setter
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class EsbIpDTO {
+
+    @JsonProperty("bk_host_id")
+    private Long hostId;
 
     @JsonProperty("bk_cloud_id")
     @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
@@ -55,6 +56,12 @@ public class EsbIpDTO {
         message = "{validation.constraints.InvalidIp.message}")
     private String ip;
 
+    public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {
+        this.hostId = hostId;
+        this.bkCloudId = bkCloudId;
+        this.ip = ip;
+    }
+
     public static EsbIpDTO fromApplicationHostInfo(ApplicationHostDTO applicationHostInfo) {
         if (applicationHostInfo == null) {
             return null;
@@ -62,6 +69,7 @@ public class EsbIpDTO {
         EsbIpDTO esbIp = new EsbIpDTO();
         esbIp.setBkCloudId(applicationHostInfo.getCloudAreaId());
         esbIp.setIp(applicationHostInfo.getIp());
+        esbIp.setHostId(applicationHostInfo.getHostId());
         return esbIp;
     }
 
@@ -72,6 +80,7 @@ public class EsbIpDTO {
         EsbIpDTO esbIp = new EsbIpDTO();
         esbIp.setBkCloudId(host.getBkCloudId());
         esbIp.setIp(host.getIp());
+        esbIp.setHostId(host.getHostId());
         return esbIp;
     }
 
@@ -80,6 +89,9 @@ public class EsbIpDTO {
             return null;
         }
         String[] ipProps = cloudIp.split(IpUtils.COLON);
-        return new EsbIpDTO(Long.valueOf(ipProps[0]), ipProps[1]);
+        EsbIpDTO host = new EsbIpDTO();
+        host.setBkCloudId(Long.valueOf(ipProps[0]));
+        host.setIp(ipProps[1]);
+        return host;
     }
 }

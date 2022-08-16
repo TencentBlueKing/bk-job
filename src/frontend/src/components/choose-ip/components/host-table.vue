@@ -40,7 +40,10 @@
                     </thead>
                     <slot name="appendBefore" />
                     <tbody v-if="renderList.length > 0" class="valid-list">
-                        <tr v-for="(row) in renderList" :key="row.realId" :class="diff[row.realId]">
+                        <tr
+                            v-for="(row) in renderList"
+                            :key="row.hostId"
+                            :class="diff[row.hostId]">
                             <td class="table-cell">
                                 <span
                                     v-if="row.repeat"
@@ -70,7 +73,11 @@
                                 <div class="cell-text">{{ row.os || '--' }}</div>
                             </td>
                             <td v-if="editable" class="action-column">
-                                <bk-button text @click="handleRemove(row.realId)">{{ $t('移除') }}</bk-button>
+                                <bk-button
+                                    text
+                                    @click="handleRemove(row)">
+                                    {{ $t('移除') }}
+                                </bk-button>
                             </td>
                         </tr>
                     </tbody>
@@ -157,8 +164,12 @@
             },
         },
         methods: {
-            handleRemove (id) {
-                this.$emit('on-change', id);
+            /**
+             * @desc 移除主机
+             * @param { Object } hostInfo
+             */
+            handleRemove (hostInfo) {
+                this.$emit('on-change', hostInfo);
             },
             handlePage () {
                 this.page += 1;

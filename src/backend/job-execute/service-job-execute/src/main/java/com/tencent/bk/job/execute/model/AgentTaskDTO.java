@@ -78,6 +78,13 @@ public class AgentTaskDTO {
         version = "3.7.x")
     private String cloudIp;
     /**
+     * 展示给用户的服务器IP
+     */
+    @Deprecated
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续AgentTask仅包含hostId,不再存储具体的IP数据",
+        version = "3.7.x")
+    private String displayIp;
+    /**
      * 任务状态
      */
     private AgentTaskStatusEnum status;
@@ -149,6 +156,7 @@ public class AgentTaskDTO {
         this.hostId = agentTask.getHostId();
         this.agentId = agentTask.getAgentId();
         this.cloudIp = agentTask.getCloudIp();
+        this.displayIp = agentTask.getDisplayIp();
         this.status = agentTask.getStatus();
         this.startTime = agentTask.getStartTime();
         this.endTime = agentTask.getEndTime();

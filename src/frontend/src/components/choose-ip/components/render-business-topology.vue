@@ -124,10 +124,10 @@
                     <tr
                         v-for="(row, index) in renderList"
                         class="host-row"
-                        :key="`${row.realId}_${index}`"
+                        :key="`${row.hostId}_${index}`"
                         @click="handleHostCheck(row)">
                         <td>
-                            <bk-checkbox :checked="!!checkedMap[row.realId]" />
+                            <bk-checkbox :checked="!!checkedMap[row.hostId]" />
                         </td>
                         <td>
                             <div class="cell-text">{{ row.displayIp }}</div>
@@ -176,7 +176,6 @@
     import { topoNodeCache } from '@utils/cache-helper';
     import Empty from '@components/empty';
     import {
-        generateHostRealId,
         parseIdInfo,
         filterTopology,
     } from './utils';
@@ -266,12 +265,12 @@
                         this.selfChange = false;
                         return;
                     }
-                    const checkedMap = {};
-                    ipList.forEach((host) => {
-                        checkedMap[host.realId] = host;
-                    });
+                    
                     this.pagination.page = 1;
-                    this.checkedMap = Object.freeze(checkedMap);
+                    this.checkedMap = Object.freeze(ipList.reduce((result, ipInfo) => {
+                        result[ipInfo.hostId] = ipInfo;
+                        return result;
+                    }, {}));
                 },
                 immediate: true,
             },
@@ -311,19 +310,18 @@
                 const { page, pageSize } = this.pagination;
                 this.isLoading = true;
                 AppManageService.fetchTopologyHost({
-                    appTopoNodeList: [{
-                        objectId,
-                        instanceId,
-                    },
+                    appTopoNodeList: [
+                        {
+                            objectId,
+                            instanceId,
+                        },
                     ],
                     agentStatus: this.agentFilter,
                     searchContent: this.searchContent,
                     pageSize,
                     start: (page - 1) * pageSize,
                 }).then((data) => {
-                    this.renderList = Object.freeze(data.data.map(host => Object.assign({
-                        realId: generateHostRealId(host),
-                    }, host)));
+                    this.renderList = Object.freeze(data.data);
                     this.pagination.total = data.total;
                 })
                     .finally(() => {
@@ -356,21 +354,13 @@
                     searchContent: this.searchContent,
                 }).then((data) => {
                     const list = data.data;
-                    list.forEach((realId) => {
-                        const [
-                            cloudAreaId,
-                            ip,
-                        ] = realId.split(':');
+                    list.forEach((hostId) => {
                         if (check) {
-                            checkedMap[realId] = {
-                                ip,
-                                cloudAreaInfo: {
-                                    id: cloudAreaId,
-                                },
-                                realId,
+                            checkedMap[hostId] = {
+                                hostId,
                             };
                         } else {
-                            delete checkedMap[realId];
+                            delete checkedMap[hostId];
                         }
                     });
                     this.checkedMap = Object.freeze(checkedMap);
@@ -518,17 +508,13 @@
              * @desc 选择单台主机
              * @param {Object} host 主机信息
              */
-            handleHostCheck (host) {
+            handleHostCheck ({ hostId }) {
                 const checkedMap = Object.assign({}, this.checkedMap);
-                if (checkedMap[host.realId]) {
-                    delete checkedMap[host.realId];
+                if (checkedMap[hostId]) {
+                    delete checkedMap[hostId];
                 } else {
-                    checkedMap[host.realId] = {
-                        ip: host.ip,
-                        cloudAreaInfo: {
-                            id: host.cloudAreaInfo.id,
-                        },
-                        realId: host.realId,
+                    checkedMap[hostId] = {
+                        hostId,
                     };
                 }
                 this.checkedMap = Object.freeze(checkedMap);

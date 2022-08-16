@@ -26,9 +26,10 @@ package com.tencent.bk.job.analysis.service.remote;
 
 import com.tencent.bk.job.analysis.client.HostResourceClient;
 import com.tencent.bk.job.analysis.service.HostService;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,9 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<ServiceHostStatusDTO> getHostStatusByIp(Long appId, List<String> ipList) {
-        return hostResourceClient.getHostStatusByIp(appId, new ServiceGetHostStatusByIpReq(ipList)).getData();
+    public List<ServiceHostStatusDTO> getHostStatusByHost(Long appId,
+                                                          List<HostDTO> hostList) {
+        return hostResourceClient.getHostStatusByHost(appId,
+            new ServiceGetHostStatusByHostReq(hostList)).getData();
     }
 }

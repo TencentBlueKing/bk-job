@@ -30,6 +30,7 @@ import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.generated.tables.WhiteIpIp;
+import org.jooq.generated.tables.records.WhiteIpIpRecord;
 import org.jooq.types.ULong;
 import org.springframework.stereotype.Repository;
 
@@ -44,7 +45,9 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
     public Long insertWhiteIPIP(DSLContext dslContext, WhiteIPIPDTO whiteIPIPDTO) {
         Record record = dslContext.insertInto(T_WHITE_IP_IP,
             T_WHITE_IP_IP.RECORD_ID,
+            T_WHITE_IP_IP.HOST_ID,
             T_WHITE_IP_IP.IP,
+            T_WHITE_IP_IP.IP_V6,
             T_WHITE_IP_IP.CLOUD_AREA_ID,
             T_WHITE_IP_IP.CREATOR,
             T_WHITE_IP_IP.CREATE_TIME,
@@ -52,7 +55,9 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
             T_WHITE_IP_IP.LAST_MODIFY_TIME
         ).values(
             whiteIPIPDTO.getRecordId(),
+            whiteIPIPDTO.getHostId(),
             whiteIPIPDTO.getIp(),
+            whiteIPIPDTO.getIpv6(),
             whiteIPIPDTO.getCloudAreaId(),
             whiteIPIPDTO.getCreator(),
             ULong.valueOf(whiteIPIPDTO.getCreateTime()),
@@ -85,16 +90,7 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
         if (record == null) {
             return null;
         } else {
-            return new WhiteIPIPDTO(
-                record.getId(),
-                record.getRecordId(),
-                record.getCloudAreaId(),
-                record.getIp(),
-                record.getCreator(),
-                record.getCreateTime().longValue(),
-                record.getLastModifyUser(),
-                record.getLastModifyTime().longValue()
-            );
+            return convert(record);
         }
     }
 
@@ -103,18 +99,7 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
         val records = dslContext.selectFrom(T_WHITE_IP_IP).where(
             T_WHITE_IP_IP.RECORD_ID.eq(recordId)
         ).fetch();
-        return records.stream().map(record ->
-            new WhiteIPIPDTO(
-                record.getId(),
-                record.getRecordId(),
-                record.getCloudAreaId(),
-                record.getIp(),
-                record.getCreator(),
-                record.getCreateTime().longValue(),
-                record.getLastModifyUser(),
-                record.getLastModifyTime().longValue()
-            )
-        ).collect(Collectors.toList());
+        return records.stream().map(this::convert).collect(Collectors.toList());
     }
 
     @Override
@@ -136,17 +121,21 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
             dslContext.selectFrom(T_WHITE_IP_IP).where(
                 T_WHITE_IP_IP.RECORD_ID.in(recordIdList)
             ).fetch();
-        return records.stream().map(record ->
-            new WhiteIPIPDTO(
-                record.getId(),
-                record.getRecordId(),
-                record.getCloudAreaId(),
-                record.getIp(),
-                record.getCreator(),
-                record.getCreateTime().longValue(),
-                record.getLastModifyUser(),
-                record.getLastModifyTime().longValue()
-            )
-        ).collect(Collectors.toList());
+        return records.stream().map(this::convert).collect(Collectors.toList());
+    }
+
+    private WhiteIPIPDTO convert(WhiteIpIpRecord record) {
+        return new WhiteIPIPDTO(
+            record.getId(),
+            record.getRecordId(),
+            record.getCloudAreaId(),
+            record.getHostId(),
+            record.getIp(),
+            record.getIpV6(),
+            record.getCreator(),
+            record.getCreateTime().longValue(),
+            record.getLastModifyUser(),
+            record.getLastModifyTime().longValue()
+        );
     }
 }

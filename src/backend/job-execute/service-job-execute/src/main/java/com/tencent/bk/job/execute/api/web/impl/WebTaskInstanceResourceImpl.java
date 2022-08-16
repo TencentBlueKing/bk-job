@@ -306,6 +306,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             for (HostDTO ip : serversDTO.getIpList()) {
                 ExecuteHostVO host = new ExecuteHostVO();
                 ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getBkCloudId(), ip.getIp());
+                host.setHostId(ip.getHostId());
                 host.setIp(ip.getIp());
                 host.setAlive(ip.getAlive());
                 host.setCloudAreaInfo(cloudAreaInfoVO);

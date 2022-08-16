@@ -483,7 +483,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         if (variable.getType() == TaskVariableTypeEnum.HOST_LIST
             && StringUtils.isNotBlank(variable.getDefaultValue())) {
             variableDTO
-                .setDefaultTargetValue(TaskTargetDTO.fromString(variable.getDefaultValue()).toServiceTaskTargetDTO());
+                .setDefaultTargetValue(TaskTargetDTO.fromJsonString(variable.getDefaultValue()).toServiceTaskTargetDTO());
         }
         return variableDTO;
     }

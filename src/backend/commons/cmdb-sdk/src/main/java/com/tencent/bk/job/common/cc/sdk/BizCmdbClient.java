@@ -81,12 +81,11 @@ import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -189,7 +188,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     protected String defaultSupplierAccount;
     protected String defaultUin = "admin";
-    private QueryAgentStatusClient queryAgentStatusClient;
     private final MeterRegistry meterRegistry;
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
@@ -201,17 +199,14 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                   }
             );
 
-    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
-                         MeterRegistry meterRegistry) {
-        this(esbConfig, cmdbConfig, null, queryAgentStatusClient, meterRegistry);
+    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, MeterRegistry meterRegistry) {
+        this(bkApiConfig, cmdbConfig, null, meterRegistry);
     }
 
-    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, String lang,
-                         QueryAgentStatusClient queryAgentStatusClient, MeterRegistry meterRegistry) {
-        super(esbConfig.getEsbUrl(), esbConfig.getAppCode(), esbConfig.getAppSecret(), lang,
-            esbConfig.isUseEsbTestEnv());
+    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, String lang, MeterRegistry meterRegistry) {
+        super(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(), bkApiConfig.getAppSecret(), lang,
+            bkApiConfig.isUseEsbTestEnv());
         this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
-        this.queryAgentStatusClient = queryAgentStatusClient;
         this.meterRegistry = meterRegistry;
     }
 
@@ -243,10 +238,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     public static void setCcConfig(CmdbConfig cmdbConfig) {
         BizCmdbClient.cmdbConfig = cmdbConfig;
-    }
-
-    public void setQueryAgentStatusClient(QueryAgentStatusClient queryAgentStatusClient) {
-        this.queryAgentStatusClient = queryAgentStatusClient;
     }
 
     @Override
@@ -596,37 +587,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     ) {
         String multiIp = host.getIp();
         multiIp = multiIp.trim();
-        if (queryAgentStatusClient != null) {
-            if (multiIp.contains(",")) {
-                Pair<String, Boolean> pair = queryAgentStatusClient.getHostIpWithAgentStatus(multiIp,
-                    host.getCloudAreaId());
-                if (pair != null) {
-                    log.debug("query agent status:{}:{}", pair.getLeft(), pair.getRight());
-                    String ipWithCloudId = pair.getLeft();
-                    applicationHostDTO.setGseAgentAlive(pair.getRight());
-                    if (ipWithCloudId.contains(":")) {
-                        String[] arr = ipWithCloudId.split(":");
-                        applicationHostDTO.setCloudAreaId(Long.parseLong(arr[0]));
-                        applicationHostDTO.setIp(arr[1]);
-                    } else {
-                        applicationHostDTO.setIp(ipWithCloudId);
-                    }
-                } else {
-                    log.warn("Fail to get agentStatus, host={}", JsonUtils.toJson(host));
-                }
-            } else {
-                applicationHostDTO.setGseAgentAlive(false);
-                applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
-                applicationHostDTO.setIp(multiIp);
-            }
+        applicationHostDTO.setGseAgentAlive(false);
+        applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
+        List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
+        if (ipList.size() > 0) {
+            applicationHostDTO.setIp(ipList.get(0));
         } else {
-            log.warn("queryAgentStatusClient==null, please check!");
-            List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
-            if (ipList.size() > 0) {
-                applicationHostDTO.setIp(ipList.get(0));
-            } else {
-                log.warn("no available ip after queryAgentStatusClient");
-            }
+            log.warn("no available ip, raw multiIp={}", multiIp);
         }
     }
 
@@ -645,6 +612,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
         applicationHostDTO.setBizId(bizId);
         applicationHostDTO.setDisplayIp(multiIp);
+        applicationHostDTO.setIpv6(host.getIpv6());
+        applicationHostDTO.setAgentId(host.getAgentId());
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         applicationHostDTO.setHostId(host.getHostId());
         fillAgentInfo(applicationHostDTO, host);
@@ -726,12 +695,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             log.warn("Host does not have cloud area id!|{}", hostInfo);
             return null;
         }
-
-        if (queryAgentStatusClient != null) {
-            ipInfo.setIp(queryAgentStatusClient.getHostIpByAgentStatus(hostInfo.getIp(), hostInfo.getCloudId()));
-        } else {
-            ipInfo.setIp(hostInfo.getIp());
-        }
+        ipInfo.setIp(hostInfo.getIp());
         ipInfo.setBizId(bizId);
         ipInfo.setIpDesc(hostInfo.getHostName());
 
@@ -922,6 +886,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ccGroupHostPropDTO.setId(ccHostInfo.getHostId());
         ccGroupHostPropDTO.setName(ccHostInfo.getHostName());
         ccGroupHostPropDTO.setIp(ccHostInfo.getIp());
+        ccGroupHostPropDTO.setIpv6(ccHostInfo.getIpv6());
+        ccGroupHostPropDTO.setAgentId(ccHostInfo.getAgentId());
         CcCloudIdDTO ccCloudIdDTO = new CcCloudIdDTO();
         // 仅使用CloudId其余属性未用到，暂不设置
         ccCloudIdDTO.setInstanceId(ccHostInfo.getCloudId());
@@ -1055,7 +1021,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostsByIps(List<String> cloudIps) {
+    public List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps) {
         ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");
@@ -1270,8 +1236,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     public ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
-        req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name", "bk_os_type",
-            "bk_cloud_id"));
+        req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_agent_id",
+            "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id"));
         req.setResource("host");
         req.setCursor(cursor);
         req.setStartTime(startTime);

@@ -95,7 +95,7 @@ class AppManage extends ModuleBase {
 
     // 根据输入 IP 获取机器信息
     getHostByHost (params) {
-        return Request.post(`${this.path}/ip/check`, {
+        return Request.post(`${this.path}/host/check`, {
             params,
         });
     }
@@ -130,7 +130,7 @@ class AppManage extends ModuleBase {
 
     // IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]
     getTopologyIPs (params = {}) {
-        return Request.post(`${this.path}/topology/IPs/nodes`, {
+        return Request.post(`${this.path}/topology/hostIds/nodes`, {
             params,
         });
     }

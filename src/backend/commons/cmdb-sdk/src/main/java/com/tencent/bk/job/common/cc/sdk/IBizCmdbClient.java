@@ -161,7 +161,7 @@ public interface IBizCmdbClient {
      * @param cloudIps 云区域+IP列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByIps(List<String> cloudIps);
+    List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps);
 
     /**
      * 根据IP批量获取主机

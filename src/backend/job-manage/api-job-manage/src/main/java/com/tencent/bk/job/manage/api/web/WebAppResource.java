@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -31,7 +32,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
-import com.tencent.bk.job.manage.model.web.request.IpCheckReq;
+import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
@@ -216,10 +217,33 @@ public interface WebAppResource {
             ListHostByBizTopologyNodesReq req
     );
 
+    @CompatibleImplementation(
+        explain = "仅用作IPv6上线发布过程中的兼容，后续切换为listHostIdByBizTopologyNodes", version = "3.7.0")
     @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]"
         , produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/IPs/nodes"})
     Response<PageData<String>> listIpByBizTopologyNodes(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "拓扑节点集合与分页信息", required = true)
+        @RequestBody
+            ListHostByBizTopologyNodesReq req
+    );
+
+    @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器hostIds"
+        , produces = "application/json")
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostIds/nodes"})
+    Response<PageData<Long>> listHostIdByBizTopologyNodes(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -354,9 +378,10 @@ public interface WebAppResource {
             List<String> dynamicGroupIds
     );
 
-    @ApiOperation(value = "根据输入 IP 获取机器信息")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/ip/check"})
-    Response<List<HostInfoVO>> listHostByIp(
+    @CompatibleImplementation(explain = "旧的/ip/check仅用于发布过程兼容", version = "3.7.0")
+    @ApiOperation(value = "根据用户选择/输入的主机信息获取真实存在的机器信息")
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/ip/check", "/scope/{scopeType}/{scopeId}/host/check"})
+    Response<List<HostInfoVO>> checkHosts(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -369,9 +394,9 @@ public interface WebAppResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "用户输入的 IP 列表", required = true)
+        @ApiParam(value = "用户选择/输入的主机信息", required = true)
         @RequestBody
-            IpCheckReq req
+            HostCheckReq req
     );
 
     @ApiOperation(value = "查询主机统计信息")

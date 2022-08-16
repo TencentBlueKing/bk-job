@@ -88,14 +88,13 @@ export const compareHost = (preHost, nextHost) => {
     if (preIPList.length !== nextIPList.length) {
         return false;
     }
-    const genHostKey = host => `${host.cloudAreaInfo.id}:${host.ip}`;
     const preIPMap = preIPList.reduce((result, host) => {
-        result[genHostKey(host)] = true;
+        result[host.hostId] = true;
         return result;
     }, {});
     // eslint-disable-next-line no-plusplus
     for (let i = 0; i < nextIPList.length; i++) {
-        if (!preIPMap[genHostKey(nextIPList[i])]) {
+        if (!preIPMap[nextIPList[i].hostId]) {
             return false;
         }
     }

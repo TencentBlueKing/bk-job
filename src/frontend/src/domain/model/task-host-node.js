@@ -27,7 +27,11 @@ import I18n from '@/i18n';
 
 export default class TaskHostNode {
     static isHostNodeInfoEmpty (hostNodeInfo) {
-        const { dynamicGroupList, ipList, topoNodeList } = hostNodeInfo;
+        const {
+            dynamicGroupList,
+            ipList,
+            topoNodeList,
+        } = hostNodeInfo;
         return dynamicGroupList.length < 1
             && ipList.length < 1
             && topoNodeList.length < 1;
@@ -39,7 +43,12 @@ export default class TaskHostNode {
     }
     
     get isEmpty () {
-        const { dynamicGroupList, ipList, topoNodeList } = this.hostNodeInfo;
+        const {
+            dynamicGroupList,
+            ipList,
+            topoNodeList,
+        } = this.hostNodeInfo;
+
         return !this.variable
             && dynamicGroupList.length < 1
             && ipList.length < 1
@@ -47,7 +56,11 @@ export default class TaskHostNode {
     }
 
     get text () {
-        const { dynamicGroupList, ipList, topoNodeList } = this.hostNodeInfo;
+        const {
+            dynamicGroupList,
+            ipList,
+            topoNodeList,
+        } = this.hostNodeInfo;
         const strs = [];
         if (ipList.length > 0) {
             strs.push(`${ipList.length} ${I18n.t('台主机.result')}`);

@@ -33,8 +33,11 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -145,7 +148,7 @@ public class IpUtils {
     }
 
     /**
-     * 将long转换为ip
+     * 将数值转换为ip
      *
      * @return ip
      */
@@ -158,13 +161,13 @@ public class IpUtils {
     }
 
     /**
-     * 将long转换为ip
+     * 将数值转换为ip
      *
      * @return ip
      */
-    public static String revertIpFromLongStr(String longStr) {
+    public static String revertIpFromNumericalStr(String numericalStr) {
         try {
-            InetAddress addr = InetAddress.getByName(longStr);
+            InetAddress addr = InetAddress.getByName(numericalStr);
             return addr.getHostAddress();
         } catch (UnknownHostException e) {
             return "";
@@ -226,5 +229,27 @@ public class IpUtils {
             ip = "no available ip";
         }
         return ip;
+    }
+
+    /**
+     * 通过含多个IP的字符串与云区域ID构造多个cloudIp
+     *
+     * @param cloudId    云区域ID
+     * @param multiIpStr 含多个IP的字符串
+     * @return cloudIp列表
+     */
+    public static List<String> buildCloudIpListByMultiIp(Long cloudId, String multiIpStr) {
+        if (StringUtils.isBlank(multiIpStr)) {
+            return Collections.emptyList();
+        }
+        if (!multiIpStr.contains(",") && !multiIpStr.contains(":")) {
+            return Collections.singletonList(cloudId + ":" + multiIpStr.trim());
+        }
+        String[] ipArr = multiIpStr.split("[,;]");
+        List<String> cloudIpList = new ArrayList<>(ipArr.length);
+        for (String ip : ipArr) {
+            cloudIpList.add(cloudId + ":" + ip.trim());
+        }
+        return cloudIpList;
     }
 }

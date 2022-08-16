@@ -78,7 +78,7 @@ public class StepInstanceServiceImpl implements StepInstanceService {
                                                 Function<? super HostDTO, K> keyMapper) {
         Map<K, HostDTO> hosts =
             stepInstance.getTargetServers().getIpList().stream()
-                .collect(Collectors.toMap(keyMapper, host -> host));
+                .collect(Collectors.toMap(keyMapper, host -> host, (k1, k2) -> k1));
         if (stepInstance.isFileStep()) {
             List<FileSourceDTO> fileSourceList;
             if (stepInstance instanceof StepInstanceDTO) {

@@ -39,6 +39,7 @@ export default class AgentTask extends Model {
         this.errorCode = payload.errorCode;
         this.exitCode = payload.exitCode;
         this.ip = payload.ip;
+        this.hostId = payload.hostId;
         this.retryCount = payload.retryCount || 0;
         this.startTime = payload.startTime;
         this.status = payload.status;
