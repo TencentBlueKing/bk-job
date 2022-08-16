@@ -22,47 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+TRUNCATE TABLE job_execute.gse_task;
 
-import com.tencent.bk.job.execute.model.GseTaskDTO;
-
-/**
- * GseTaskDAO
- */
-public interface GseTaskDAO {
-
-    /**
-     * 保存 GSE 任务
-     *
-     * @param gseTask GSE 任务
-     * @return GSE任务ID
-     */
-    long saveGseTask(GseTaskDTO gseTask);
-
-    /**
-     * 更新 GSE 任务
-     *
-     * @param gseTask GSE 任务
-     * @return 是否更新成功
-     */
-    boolean updateGseTask(GseTaskDTO gseTask);
-
-    /**
-     * 获取 GSE 任务
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @param batch          滚动执行批次
-     * @return GSE 任务
-     */
-    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch);
-
-    /**
-     * 获取 GSE 任务
-     *
-     * @param gseTaskId GSE任务ID
-     * @return GSE 任务
-     */
-    GseTaskDTO getGseTask(long gseTaskId);
-
-}
+INSERT INTO job_execute.gse_task (id,step_instance_id,execute_count,batch,status,start_time,end_time,total_time,gse_task_id)
+VALUES
+(1,1,0,0,4,1660639901000,1660639902000,1000,'GSE_TASK_1'),
+(2,2,0,1,3,1660639903000,1660639904000,1000,'GSE_TASK_2'),
+(3,2,0,2,4,1660639905000,1660639906000,1000,'GSE_TASK_3');

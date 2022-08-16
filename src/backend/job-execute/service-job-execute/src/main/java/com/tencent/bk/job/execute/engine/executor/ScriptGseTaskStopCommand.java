@@ -99,7 +99,7 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
         } else {
             log.info("Terminate gse task response success!");
             gseTask.setStatus(RunStatusEnum.STOPPING.getValue());
-            gseTaskService.saveGseTask(gseTask);
+            gseTaskService.updateGseTask(gseTask);
         }
     }
 }

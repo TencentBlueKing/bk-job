@@ -222,7 +222,7 @@ public class GseTaskManager implements SmartLifecycle {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
                     + "stepInstanceId:{}", taskInstance.getId(), stepInstance.getId());
                 gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
-                gseTaskService.saveGseTask(gseTask);
+                gseTaskService.updateGseTask(gseTask);
                 taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
                     EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
                         stepInstance.getBatch(), gseTask.getId())));

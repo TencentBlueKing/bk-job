@@ -100,7 +100,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
         } else {
             log.info("Terminate gse task response success! gseTask: {}", gseTaskUniqueName);
             gseTask.setStatus(RunStatusEnum.STOPPING.getValue());
-            gseTaskService.saveGseTask(gseTask);
+            gseTaskService.updateGseTask(gseTask);
         }
     }
 }
