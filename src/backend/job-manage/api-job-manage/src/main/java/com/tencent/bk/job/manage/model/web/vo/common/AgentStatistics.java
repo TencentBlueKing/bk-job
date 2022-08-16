@@ -42,4 +42,12 @@ public class AgentStatistics {
     private int normalNum;
     @ApiModelProperty("异常数")
     private int abnormalNum;
+    @ApiModelProperty("总数")
+    private int totalNum;
+
+    public AgentStatistics(int normalNum, int abnormalNum) {
+        this.normalNum = normalNum;
+        this.abnormalNum = abnormalNum;
+        this.totalNum = normalNum + abnormalNum;
+    }
 }
