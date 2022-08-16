@@ -45,6 +45,7 @@ import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
@@ -274,8 +275,8 @@ public class WebHostResourceImpl implements WebHostResource {
     public Response<List<NodeHostStatisticsVO>> getHostAgentStatisticsByNodes(String username,
                                                                               AppResourceScope appResourceScope,
                                                                               String scopeType, String scopeId,
-                                                                              List<TargetNodeVO> targetNodeVOList) {
-        return Response.buildSuccessResp(fakeNodeHostStatistics(targetNodeVOList));
+                                                                              GetHostAgentStatisticsByNodesReq req) {
+        return Response.buildSuccessResp(fakeNodeHostStatistics(req.getNodeList()));
     }
 
     @Override

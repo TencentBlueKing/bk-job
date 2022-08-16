@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
@@ -266,7 +267,7 @@ public interface WebHostResource {
             String scopeId,
         @ApiParam(value = "要查询主机Agent状态统计信息的拓扑节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
         @RequestBody
-            List<TargetNodeVO> targetNodeVOList
+            GetHostAgentStatisticsByNodesReq req
     );
 
     @ApiOperation(value = "根据模块获取机器列表", produces = "application/json")

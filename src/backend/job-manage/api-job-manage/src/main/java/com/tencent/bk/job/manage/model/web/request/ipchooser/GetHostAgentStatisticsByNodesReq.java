@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.ipchooser;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -33,45 +33,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/3/23
- * @Version 1.0
- */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("通过拓扑节点集合获取主机集合")
-public class ListHostByBizTopologyNodesReq {
+@ApiModel("通过拓扑节点集合获取主机Agent状态统计信息")
+public class GetHostAgentStatisticsByNodesReq {
 
     @ApiModelProperty(value = "拓扑节点列表", required = true)
-    List<AppTopologyTreeNode> nodeList;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    List<AppTopologyTreeNode> appTopoNodeList;
-
-    @ApiModelProperty(value = "搜索内容（同时对主机IP/主机名/操作系统/云区域名称进行模糊搜索）")
-    String searchContent;
-
-    @ApiModelProperty(value = "筛选条件：alive：0为Agent异常，1为Agent正常，不传则不筛选")
-    Integer alive;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    Integer agentStatus;
-
-    @ApiModelProperty(value = "数据起始位置")
-    Long start;
-
-    @ApiModelProperty(value = "拉取数量")
-    Long pageSize;
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    public void setAppTopoNodeList(List<AppTopologyTreeNode> appTopoNodeList) {
-        this.appTopoNodeList = appTopoNodeList;
-        this.nodeList = appTopoNodeList;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    public void setAgentStatus(Integer agentStatus) {
-        this.agentStatus = agentStatus;
-        this.alive = agentStatus;
-    }
+    List<TargetNodeVO> nodeList;
 }

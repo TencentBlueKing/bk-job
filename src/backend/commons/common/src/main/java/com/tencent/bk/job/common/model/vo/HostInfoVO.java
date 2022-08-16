@@ -47,7 +47,7 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class HostInfoVO {
 
-    @ApiModelProperty(value = "服务器 ID", required = true)
+    @ApiModelProperty(value = "主机ID", required = true)
     private Long hostId;
 
     @ApiModelProperty("主机 IP")
