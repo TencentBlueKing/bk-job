@@ -495,15 +495,15 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
 
     /**
-     * 设置Agent任务结束状态
+     * 设置目标gent任务结束状态
      *
      * @param agentId   agentId
      * @param startTime 起始时间
      * @param endTime   终止时间
      * @param agentTask 日志
      */
-    protected void dealAgentFinish(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
-        log.info("[{}]: Deal agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
+    protected void dealTargetAgentFinish(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
+        log.info("[{}]: Deal target agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
             stepInstanceId, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
         notStartedTargetAgentIds.remove(agentId);
