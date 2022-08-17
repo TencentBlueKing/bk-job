@@ -304,7 +304,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         watch.stop();
 
         watch.start("saveGseAgentTasks");
-        batchSaveChangedGseAgentTasks();
+        batchSaveChangedGseAgentTasks(targetAgentTasks.values());
         watch.stop();
 
         GseTaskExecuteResult rst = analyseExecuteResult();
@@ -549,7 +549,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     }
 
     private void dealAgentFinish(String agentId, api_agent_task_rst agentTaskResult, AgentTaskDTO agentTask) {
-        dealAgentFinish(agentId, agentTaskResult.getStart_time(), agentTaskResult.getEnd_time(), agentTask);
+        dealTargetAgentFinish(agentId, agentTaskResult.getStart_time(), agentTaskResult.getEnd_time(), agentTask);
         agentTask.setExitCode(getExitCode(agentTaskResult.getExitcode()));
     }
 
