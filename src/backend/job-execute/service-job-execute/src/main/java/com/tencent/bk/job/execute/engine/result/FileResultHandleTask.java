@@ -86,7 +86,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     /**
      * GSE 源 Agent 任务, Map<AgentId,AgentTask>
      */
-    private final Map<String, AgentTaskDTO> sourceAgentTaskMap;
+    private final Map<String, AgentTaskDTO> sourceAgentTasks;
     /**
      * 待分发文件，文件传输的源文件
      */
@@ -179,7 +179,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                 Map<String, AgentTaskDTO> targetAgentTaskMap,
-                                Map<String, AgentTaskDTO> sourceAgentTaskMap,
+                                Map<String, AgentTaskDTO> sourceAgentTasks,
                                 GseTaskDTO gseTask,
                                 Set<JobFile> sendFiles,
                                 String storageRootPath,
@@ -202,7 +202,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             targetAgentTaskMap,
             gseTask,
             requestId);
-        this.sourceAgentTaskMap = sourceAgentTaskMap;
+        this.sourceAgentTasks = sourceAgentTasks;
         this.sendFiles = sendFiles;
         this.localUploadDir = NFSUtils.getFileDir(storageRootPath, FileDirTypeConf.UPLOAD_FILE_DIR);
         if (sourceDestPathMap != null) {
@@ -238,7 +238,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void initSourceAgentIds() {
-        sourceAgentTaskMap.values().forEach(agentTask -> {
+        sourceAgentTasks.values().forEach(agentTask -> {
             this.notStartedFileSourceAgentIds.add(agentTask.getAgentId());
             this.sourceAgentIds.add(agentTask.getAgentId());
         });
@@ -320,7 +320,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
         // 保存任务执行结果
         watch.start("saveAgentTasks");
-        batchSaveChangedGseAgentTasks();
+        batchSaveChangedGseAgentTasks(targetAgentTasks.values());
+        batchSaveChangedGseAgentTasks(sourceAgentTasks.values());
         watch.stop();
 
         log.info("Analyse gse task log [{}] -> runningTargetAgentIds={}, " +
@@ -405,7 +406,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         if (isDownloadResult) {
             return targetAgentTasks.get(agentId);
         } else {
-            return sourceAgentTaskMap.get(agentId);
+            return sourceAgentTasks.get(agentId);
         }
     }
 
@@ -642,7 +643,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         String destAgentId = taskResult.getDestAgentId();
         String sourceAgentId = taskResult.getSourceAgentId();
         AgentTaskDTO destAgentTask = targetAgentTasks.get(destAgentId);
-        AgentTaskDTO sourceAgentTask = sourceAgentTaskMap.get(sourceAgentId);
+        AgentTaskDTO sourceAgentTask = sourceAgentTasks.get(sourceAgentId);
         boolean isAddSuccess = addFinishedFile(false, true, destAgentId,
             GSEFileTaskResult.buildTaskId(taskResult.getMode(), sourceAgentId, taskResult.getStandardSourceFilePath(),
                 destAgentId, taskResult.getStandardDestFilePath()));

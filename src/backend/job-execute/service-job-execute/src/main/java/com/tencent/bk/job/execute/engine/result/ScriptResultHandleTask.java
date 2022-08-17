@@ -304,7 +304,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         watch.stop();
 
         watch.start("saveGseAgentTasks");
-        batchSaveChangedGseAgentTasks();
+        batchSaveChangedGseAgentTasks(targetAgentTasks.values());
         watch.stop();
 
         GseTaskExecuteResult rst = analyseExecuteResult();
