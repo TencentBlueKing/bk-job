@@ -178,7 +178,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                Map<String, AgentTaskDTO> targetAgentTaskMap,
+                                Map<String, AgentTaskDTO> targetAgentTasks,
                                 Map<String, AgentTaskDTO> sourceAgentTasks,
                                 GseTaskDTO gseTask,
                                 Set<JobFile> sendFiles,
@@ -199,7 +199,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
-            targetAgentTaskMap,
+            targetAgentTasks,
             gseTask,
             requestId);
         this.sourceAgentTasks = sourceAgentTasks;
