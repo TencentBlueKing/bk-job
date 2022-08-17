@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
+import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -192,6 +193,13 @@ public class TopologyHelper {
         }
         node.setChild(children);
         return node;
+    }
+
+    public static DynamicGroupBasicVO convertToDynamicGroupBasicVO(DynamicGroupInfoDTO dynamicGroupInfoDTO) {
+        if (dynamicGroupInfoDTO == null) {
+            return null;
+        }
+        return new DynamicGroupBasicVO(dynamicGroupInfoDTO.getId(), dynamicGroupInfoDTO.getName());
     }
 
     /**

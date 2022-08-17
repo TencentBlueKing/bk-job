@@ -34,12 +34,15 @@ import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
+import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
+import com.tencent.bk.job.manage.model.web.vo.ipchooser.DynamicGroupHostStatisticsVO;
 import com.tencent.bk.job.manage.model.web.vo.ipchooser.NodeHostStatisticsVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -55,6 +58,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.ws.rs.QueryParam;
 import java.util.List;
 
 /**
@@ -292,7 +296,7 @@ public interface WebHostResource {
 
     @ApiOperation(value = "获取业务动态分组列表", produces = "application/json")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/dynamicGroup"})
-    Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(
+    Response<List<DynamicGroupBasicVO>> listAppDynamicGroup(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -305,6 +309,52 @@ public interface WebHostResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId
+    );
+
+    @ApiOperation(value = "获取多个动态分组下的主机Agent状态统计信息", produces = "application/json")
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/agentStatistics/dynamicGroups"})
+    Response<List<DynamicGroupHostStatisticsVO>> getHostAgentStatisticsByDynamicGroups(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "请求体", required = true)
+        @RequestBody
+            GetHostAgentStatisticsByDynamicGroupsReq req
+    );
+
+    @ApiOperation(value = "分页查询某个动态分组下的主机列表")
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/hosts/dynamicGroups/{dynamicGroupId}"})
+    Response<PageData<HostInfoVO>> listHostsByDynamicGroup(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "动态分组 ID", required = true)
+        @PathVariable("dynamicGroupId")
+            String dynamicGroupId,
+        @ApiParam(value = "数据起始位置，不传默认为0")
+        @QueryParam("start")
+            Integer start,
+        @ApiParam(value = "拉取的数据量，最大500，不传默认为20")
+        @QueryParam("pageSize")
+            Integer pageSize
     );
 
     @ApiOperation(value = "获取业务动态分组主机列表")

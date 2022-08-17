@@ -45,12 +45,15 @@ import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
+import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
+import com.tencent.bk.job.manage.model.web.vo.ipchooser.DynamicGroupHostStatisticsVO;
 import com.tencent.bk.job.manage.model.web.vo.ipchooser.NodeHostStatisticsVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.HostService;
@@ -305,7 +308,7 @@ public class WebHostResourceImpl implements WebHostResource {
     }
 
     @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(String username,
+    public Response<List<DynamicGroupBasicVO>> listAppDynamicGroup(String username,
                                                                   AppResourceScope appResourceScope,
                                                                   String scopeType,
                                                                   String scopeId) {
@@ -317,10 +320,64 @@ public class WebHostResourceImpl implements WebHostResource {
         List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
             username, appResourceScope
         );
-        List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
-            .map(TopologyHelper::convertToDynamicGroupInfoVO)
+        List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
+            .map(TopologyHelper::convertToDynamicGroupBasicVO)
             .collect(Collectors.toList());
         return Response.buildSuccessResp(dynamicGroupInfoList);
+    }
+
+    private List<DynamicGroupHostStatisticsVO> fakeDynamicGroupHostStatistics(List<String> idList) {
+        List<DynamicGroupHostStatisticsVO> resultList = new ArrayList<>(idList.size());
+        for (String id : idList) {
+            resultList.add(new DynamicGroupHostStatisticsVO(
+                    new DynamicGroupBasicVO(id, id),
+                    new AgentStatistics(100, 200)
+                )
+            );
+        }
+        return resultList;
+    }
+
+    @Override
+    public Response<List<DynamicGroupHostStatisticsVO>> getHostAgentStatisticsByDynamicGroups(
+        String username,
+        AppResourceScope appResourceScope,
+        String scopeType,
+        String scopeId,
+        GetHostAgentStatisticsByDynamicGroupsReq req
+    ) {
+        // TODO
+        return Response.buildSuccessResp(fakeDynamicGroupHostStatistics(req.getIdList()));
+    }
+
+    private PageData<HostInfoVO> fakeHostInfo(String dynamicGroupId,
+                                              Integer start,
+                                              Integer pageSize) {
+        List<HostInfoVO> hostList = new ArrayList<>();
+        HostInfoVO hostInfoVO = new HostInfoVO();
+        hostInfoVO.setHostId(1L);
+        hostInfoVO.setIp("1.1.1.1");
+        hostInfoVO.setCloudArea(new CloudAreaInfoVO(0L, "default"));
+        hostInfoVO.setAlive(0);
+        hostList.add(hostInfoVO);
+        PageData<HostInfoVO> pageData = new PageData<>();
+        pageData.setStart(start);
+        pageData.setPageSize(pageSize);
+        pageData.setTotal(100L);
+        pageData.setData(hostList);
+        return pageData;
+    }
+
+    @Override
+    public Response<PageData<HostInfoVO>> listHostsByDynamicGroup(String username,
+                                                                  AppResourceScope appResourceScope,
+                                                                  String scopeType,
+                                                                  String scopeId,
+                                                                  String dynamicGroupId,
+                                                                  Integer start,
+                                                                  Integer pageSize) {
+        // TODO
+        return Response.buildSuccessResp(fakeHostInfo(dynamicGroupId, start, pageSize));
     }
 
     @Override
