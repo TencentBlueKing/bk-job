@@ -249,7 +249,7 @@ public class GSEFileTaskResult {
 
     public String getTaskId() {
         if (taskId == null) {
-            this.taskId = buildTaskId(mode, sourceAgentId, getStandardSourceFilePath(), destAgentId,
+            this.taskId = buildTaskId(mode, getSourceAgentId(), getStandardSourceFilePath(), getDestAgentId(),
                 getStandardDestFilePath());
         }
         return taskId;
