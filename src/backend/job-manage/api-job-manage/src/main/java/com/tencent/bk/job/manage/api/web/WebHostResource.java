@@ -58,7 +58,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
-import javax.ws.rs.QueryParam;
 import java.util.List;
 
 /**
@@ -350,10 +349,10 @@ public interface WebHostResource {
         @PathVariable("dynamicGroupId")
             String dynamicGroupId,
         @ApiParam(value = "数据起始位置，不传默认为0")
-        @QueryParam("start")
+        @RequestParam("start")
             Integer start,
         @ApiParam(value = "拉取的数据量，最大500，不传默认为20")
-        @QueryParam("pageSize")
+        @RequestParam("pageSize")
             Integer pageSize
     );
 
