@@ -515,56 +515,49 @@ public class GseStepEventHandler implements StepEventHandler {
 
     private void saveAgentTasksForRetryFail(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
                                             Long gseTaskId) {
-        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1);
-        boolean isFileStep = stepInstance.isFileStep();
+        List<AgentTaskDTO> retryAgentTasks = listTargetAgentTasks(stepInstance, executeCount - 1);
 
-        for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
-            latestAgentTask.setExecuteCount(executeCount);
-            if (batch != null && latestAgentTask.getBatch() != batch) {
+        for (AgentTaskDTO retryAgentTask : retryAgentTasks) {
+            retryAgentTask.setExecuteCount(executeCount);
+            if (batch != null && retryAgentTask.getBatch() != batch) {
                 continue;
             }
-            if (isFileStep && latestAgentTask.getFileTaskMode() == FileTaskModeEnum.UPLOAD) {
-                // 所有文件源主机都需要重试
-                latestAgentTask.setActualExecuteCount(executeCount);
-                latestAgentTask.resetTaskInitialStatus();
-                latestAgentTask.setGseTaskId(gseTaskId);
-            } else {
-                // 只有失败的目标主机才需要参与重试
-                if (!AgentTaskStatusEnum.isSuccess(latestAgentTask.getStatus())) {
-                    latestAgentTask.setActualExecuteCount(executeCount);
-                    latestAgentTask.resetTaskInitialStatus();
-                    latestAgentTask.setGseTaskId(gseTaskId);
-                }
+            // 只有失败的目标主机才需要参与重试
+            if (!AgentTaskStatusEnum.isSuccess(retryAgentTask.getStatus())) {
+                retryAgentTask.setActualExecuteCount(executeCount);
+                retryAgentTask.resetTaskInitialStatus();
+                retryAgentTask.setGseTaskId(gseTaskId);
             }
         }
 
-        saveAgentTasks(stepInstance, latestAgentTasks);
+        saveAgentTasks(stepInstance, retryAgentTasks);
     }
 
 
     private void saveAgentTasksForRetryAll(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
                                            Long gseTaskId) {
-        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1);
+        List<AgentTaskDTO> retryAgentTasks = listTargetAgentTasks(stepInstance, executeCount - 1);
 
-        for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
-            latestAgentTask.setExecuteCount(executeCount);
-            if (batch != null && latestAgentTask.getBatch() != batch) {
+        for (AgentTaskDTO retryAgentTask : retryAgentTasks) {
+            retryAgentTask.setExecuteCount(executeCount);
+            if (batch != null && retryAgentTask.getBatch() != batch) {
                 continue;
             }
-            latestAgentTask.setActualExecuteCount(executeCount);
-            latestAgentTask.resetTaskInitialStatus();
-            latestAgentTask.setGseTaskId(gseTaskId);
+            retryAgentTask.setActualExecuteCount(executeCount);
+            retryAgentTask.resetTaskInitialStatus();
+            retryAgentTask.setGseTaskId(gseTaskId);
         }
 
-        saveAgentTasks(stepInstance, latestAgentTasks);
+        saveAgentTasks(stepInstance, retryAgentTasks);
     }
 
-    private List<AgentTaskDTO> listAgentTasks(StepInstanceBaseDTO stepInstance, int executeCount) {
+    private List<AgentTaskDTO> listTargetAgentTasks(StepInstanceBaseDTO stepInstance, int executeCount) {
         List<AgentTaskDTO> agentTasks = Collections.emptyList();
         if (stepInstance.isScriptStep()) {
             agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null);
         } else if (stepInstance.isFileStep()) {
-            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null);
+            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null,
+                FileTaskModeEnum.DOWNLOAD);
         }
         return agentTasks;
     }
