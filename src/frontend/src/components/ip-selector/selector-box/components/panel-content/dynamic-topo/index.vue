@@ -46,14 +46,16 @@
                         主机 ({{ selectedTopoNode.count }})
                     </table-tab-item>
                 </table-tab>
-                <keep-alive :key="`${selectedTopoNode.objectId}${selectedTopoNode.instanceId}`">
-                    <component
-                        :is="renderTableCom"
-                        :node="selectedTopoNode"
-                        :data="renderNodeList"
-                        :checked-map="nodeCheckedMap"
-                        @check-change="handleTableCheckChange" />
-                </keep-alive>
+                <div :key="`${selectedTopoNode.objectId}${selectedTopoNode.instanceId}`">
+                    <keep-alive>
+                        <component
+                            :is="renderTableCom"
+                            :node="selectedTopoNode"
+                            :data="renderNodeList"
+                            :checked-map="nodeCheckedMap"
+                            @check-change="handleTableCheckChange" />
+                    </keep-alive>
+                </div>
             </template>
             <div v-else>
                 请在右侧选择节点
@@ -125,12 +127,12 @@
     });
 
     const triggerChange = () => {
-        const values = Object.values(nodeCheckedMap.value).map(item => ({
-            objectId: item.objectId,
-            instanceId: item.instanceId,
-        }));
+        // const values = Object.values(nodeCheckedMap.value).map(item => ({
+        //     objectId: item.objectId,
+        //     instanceId: item.instanceId,
+        // }));
         isInnerChange = true;
-        emits('change', 'node', values);
+        emits('change', 'node', Object.values(nodeCheckedMap.value));
     };
 
     const handleFilterEmptyToggle = () => {
@@ -143,10 +145,10 @@
     };
 
     const handleCheckChange = (allCheckNodeId) => {
-        console.log('from handleCheckChangehandleCheckChange', allCheckNodeId);
+        // console.log('from handleCheckChangehandleCheckChange', allCheckNodeId);
         const allChildrenList = getDirectChildrenNodesByNodeIds(props.topoTreeData, allCheckNodeId || []);
         allNodeList.value = allChildrenList;
-        console.log('from handleCheckChange = ', allChildrenList);
+        // console.log('from handleCheckChange = ', allChildrenList);
     };
 
     const handleTableTypeChange = (type) => {

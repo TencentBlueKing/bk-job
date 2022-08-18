@@ -91,14 +91,14 @@
         console.log('from check = ', groupData, checked);
         const checkedMap = { ...groupCheckedMap.value };
         if (checked) {
-            checkedMap[groupData.id] = true;
+            checkedMap[groupData.id] = groupData;
         } else {
             delete checkedMap[groupData.id];
         }
 
         groupCheckedMap.value = checkedMap;
 
-        emits('change', 'group', Object.keys(groupCheckedMap.value));
+        emits('change', 'group', Object.values(groupCheckedMap.value));
     };
 
 </script>

@@ -80,7 +80,8 @@
 
     // 切换子节点
     const handleChildNodeChange = (instanceId) => {
-        memoNode = _.find(props.node.child, _ => _.instanceId === instanceId);
+        const selectNode = _.find(props.node.child, _ => _.instanceId === instanceId);
+        memoNode = selectNode || props.node;
         pagination.current = 1;
         fetchNodeHostList();
     };

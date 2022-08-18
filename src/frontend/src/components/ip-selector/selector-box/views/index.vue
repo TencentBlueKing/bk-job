@@ -3,11 +3,11 @@
         <search-host
             v-if="searchKey"
             :key="searchKey"
-            :data="data.host" />
+            :data="data.hostList" />
         <template v-else>
-            <render-host :data="data.host" />
-            <render-node :data="data.node" />
-            <render-group :data="data.group" />
+            <render-host :data="data.hostList || []" />
+            <render-node :data="data.nodeList || []" />
+            <render-group :data="data.groupList || []" />
         </template>
     </div>
 </template>
@@ -21,9 +21,9 @@
         data: {
             type: Object,
             default: () => ({
-                host: [],
-                node: [],
-                group: [],
+                hostList: [],
+                nodeList: [],
+                groupList: [],
             }),
         },
         searchKey: {

@@ -3,11 +3,6 @@
         <table>
             <thead>
                 <tr>
-                    <th
-                        v-if="slots.selection"
-                        style="width: 40px;">
-                        <slot name="header-selection" />
-                    </th>
                     <th style="width: 120px;">IP</th>
                     <th>IPv6</th>
                     <th>主机名称</th>
@@ -21,9 +16,7 @@
                     v-for="(item, index) in data"
                     :key="index"
                     @click="handleRowClick(item, index, $event)">
-                    <td v-if="slots.selection">
-                        <slot name="selection" v-bind:row="item" />
-                    </td>
+                    
                     <td>
                         <div class="cell">
                             {{ item.ip }}

@@ -4,7 +4,7 @@
             class="title"
             @click="handleToggle">
             <i
-                class="arrow-flag"
+                class="bk-ipselector-icon bk-ipselector-close arrow-flag"
                 :class="{ 'is-show': isShow }"
                 type="angle-line-down" />
             <slot name="title" />
@@ -45,7 +45,7 @@
 
             .arrow-flag {
                 margin-right: 4px;
-                transform: rotateZ(-90deg);
+                transform: rotateZ(90deg);
                 transition: all 0.15s;
 
                 &.is-show {
@@ -55,9 +55,6 @@
         }
 
         .content {
-            max-height: 476px;
-            padding: 0 24px;
-            overflow-y: auto;
             background: #fff;
         }
 

@@ -25,6 +25,16 @@
                     :group-list="lastGroupList" />
             </div>
         </div>
+        <template #footer>
+            <div>
+                <bk-button
+                    theme="primary"
+                    @click="handleSubmit">
+                    确定qwe
+                </bk-button>
+                <bk-button @click="handleCancle">取消</bk-button>
+            </div>
+        </template>
     </bk-dialog>
 </template>
 <script setup>
@@ -45,22 +55,27 @@
             default: false,
         },
     });
-    const lastHostList = shallowRef([]);
-    const lastNodeList = shallowRef([]);
-    const lastGroupList = shallowRef([]);
+
+    const emits = defineEmits(['change']);
+
     const panelType = ref('staticTopo');
     const topoTreeData = shallowRef([]);
 
+    const lastHostList = shallowRef([]);
+    const lastNodeList = shallowRef([]);
+    const lastGroupList = shallowRef([]);
+    
     const handleTypeChange = (type) => {
         panelType.value = type;
     };
 
+    // 获取拓扑树
     AppManageService.fetchTopologyWithCount()
         .then((data) => {
             topoTreeData.value = transformTopoTree([data]);
             console.log('fromasda = ', topoTreeData.value);
         });
-
+    // 用户操作数据
     const handleChange = (name, value) => {
         console.log('from changechange  =  ', name, value);
         switch (name) {
@@ -74,6 +89,27 @@
                 lastGroupList.value = value;
                 break;
         }
+    };
+    // 提交编辑
+    const handleSubmit = () => {
+        emits('change', {
+            hostList: lastHostList.value.map(item => ({
+                hostId: item.hostId,
+                ip: item.ip,
+                ipv6: item.ipv6,
+            })),
+            nodeList: lastNodeList.value.map(item => ({
+                objectId: item.objectId,
+                instanceId: item.instanceId,
+            })),
+            groupList: lastGroupList.value.map(item => ({
+                id: item.id,
+            })),
+        });
+    };
+    // 取消编辑
+    const handleCancle = () => {
+        
     };
 </script>
 <style lang="postcss">

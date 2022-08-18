@@ -15,18 +15,23 @@
                 </div>
             </CollapseExtendAction>
         </template>
-        <div>
+        <div v-bkloading="{ isLoading }">
             <CallapseContentItem
-                v-for="(item, index) in data"
+                v-for="(item, index) in listData"
                 :key="index"
                 @remove="handleRemove(item)">
-                {{ item.hostId }}
+                {{ item.ip }}
             </CallapseContentItem>
         </div>
     </CollapseBox>
 </template>
 <script setup>
-    import { watch } from 'vue';
+    import {
+        ref,
+        watch,
+        shallowRef,
+    } from 'vue';
+    import AppManageService from '@service/app-manage';
     import CallapseContentItem from './collapse-box/content-item.vue';
     import CollapseExtendAction from './collapse-box/extend-action.vue';
     import CollapseBox from './collapse-box/index.vue';
@@ -40,8 +45,26 @@
     });
     const emits = defineEmits(['change']);
 
+    const isLoading = ref(false);
+    const listData = shallowRef([]);
+    const fetchData = () => {
+        isLoading.value = true;
+        AppManageService.fetchHostOfHost({
+            hostIdList: props.data.map(({ hostId }) => hostId),
+        })
+        .then((data) => {
+            listData.value = data;
+        })
+        .finally(() => {
+            isLoading.value = false;
+        });
+    };
     watch(() => props.data, () => {
-        console.log('change data = ', props.data);
+        if (props.data.length > 0) {
+            fetchData();
+        } else {
+            listData.value = [];
+        }
     });
     // 移除单个IP
     const handleRemove = (removeTarget) => {

@@ -9,7 +9,7 @@
             :agent-static="nodeAgentStaticMap"
             @row-click="handleRowClick">
             <template #selection="{ row }">
-                <bk-checkbox :value="Boolean(checkedMap[getNodeKey(row)])" />
+                <bk-checkbox :value="Boolean(checkedMap[genNodeKey(row.node)])" />
             </template>
         </render-table>
     </div>
@@ -24,6 +24,7 @@
     import _ from 'lodash';
     import AppManageService from '@service/app-manage';
     import RenderTable from '../../render-table/node.vue';
+    import { genNodeKey } from '../../../utils';
 
     const props = defineProps({
         node: {
@@ -38,7 +39,7 @@
 
     const emits = defineEmits(['check-change']);
 
-    const getNodeKey = node => `#${node.objectId}#${node.instanceId}`;
+    // const genNodeKey = node => `#${node.objectId}#${node.instanceId}`;
 
     const isLoading = ref(false);
     const pagination = reactive({
@@ -62,7 +63,7 @@
                     const namePath = item.map(({ instanceName }) => instanceName).join('/');
                     const tailNode = _.last(item);
                     result.push({
-                        key: getNodeKey(tailNode),
+                        key: genNodeKey(tailNode),
                         node: tailNode,
                         namePath,
                     });
@@ -78,7 +79,7 @@
             .then((data) => {
                 const staticMap = {};
                 data.forEach((item) => {
-                    staticMap[getNodeKey(item.node)] = item.agentStatistics;
+                    staticMap[genNodeKey(item.node)] = item.agentStatistics;
                 });
                 nodeAgentStaticMap.value = staticMap;
             });
@@ -90,15 +91,17 @@
         immediate: true,
     });
 
-    const handleRowClick = (nodeData) => {
-        const nodeKey = getNodeKey(nodeData);
+    const handleRowClick = (rowData) => {
+        const nodeKey = genNodeKey(rowData.node);
         const checkedMap = { ...props.checkedMap };
         if (checkedMap[nodeKey]) {
             delete checkedMap[nodeKey];
         } else {
-            checkedMap[nodeKey] = nodeData;
+            checkedMap[nodeKey] = {
+                ...rowData.node,
+                namePath: rowData.namePath,
+            };
         }
-        console.log('row click == =', nodeData, props.checkedMap, checkedMap);
 
         emits('check-change', checkedMap);
     };

@@ -14,30 +14,30 @@
             </thead>
             <tbody>
                 <tr
-                    v-for="(item, index) in data"
+                    v-for="(row, index) in data"
                     :key="index"
-                    @click="handleRowClick(item.node, index, $event)">
+                    @click="handleRowClick(row, index, $event)">
                     <td v-if="slots.selection">
-                        <slot name="selection" v-bind:row="item.node" />
+                        <slot name="selection" v-bind:row="row" />
                     </td>
                     
                     <td>
                         <div class="cell">
-                            {{ item.namePath || '--' }}
+                            {{ row.namePath || '--' }}
                         </div>
                     </td>
                     <td>
                         <div class="cell">
-                            <span v-if="agentStatic[item.key]">
+                            <span v-if="agentStatic[row.key]">
                                 <span
-                                    v-if="agentStatic[item.key].abnormalNum"
+                                    v-if="agentStatic[row.key].abnormalNum"
                                     class="agent-statistics-box">
                                     <span class="agent-desc">异常:</span>
-                                    <span style="color: #ea3636;">{{ agentStatic[item.key].abnormalNum }}</span>
+                                    <span style="color: #ea3636;">{{ agentStatic[row.key].abnormalNum }}</span>
                                 </span>
                                 <span class="agent-statistics-box">
                                     <span class="agent-desc">总数:</span>
-                                    <span style="color: #3a84ff;">{{ agentStatic[item.key].abnormalNum + agentStatic[item.key].normalNum }}</span>
+                                    <span style="color: #3a84ff;">{{ agentStatic[row.key].abnormalNum + agentStatic[row.key].normalNum }}</span>
                                 </span>
                             </span>
                             <span v-else>--</span>

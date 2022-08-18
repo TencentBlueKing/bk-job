@@ -1,3 +1,5 @@
+export const genNodeKey = node => `#${node.objectId}#${node.instanceId}`;
+
 export const transformTopoTree = (target, level = 0) => {
     if (!target || target.length < 1) {
         return [];

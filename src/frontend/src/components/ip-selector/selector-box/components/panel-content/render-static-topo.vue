@@ -112,9 +112,7 @@
         if (checkedMap[data.hostId]) {
             delete checkedMap[data.hostId];
         } else {
-            checkedMap[data.hostId] = {
-                hostId: data.hostId,
-            };
+            checkedMap[data.hostId] = data;
         }
         hostCheckedMap.value = checkedMap;
         triggerChange();
