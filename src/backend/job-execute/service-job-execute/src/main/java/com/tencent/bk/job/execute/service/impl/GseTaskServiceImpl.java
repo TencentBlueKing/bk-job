@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
-import com.tencent.bk.job.execute.dao.GseTaskLogDAO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,12 +36,10 @@ import org.springframework.stereotype.Service;
 public class GseTaskServiceImpl implements GseTaskService {
 
     private final GseTaskDAO gseTaskDAO;
-    private final GseTaskLogDAO gseTaskLogDAO;
 
     @Autowired
-    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO, GseTaskLogDAO gseTaskLogDAO) {
+    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO) {
         this.gseTaskDAO = gseTaskDAO;
-        this.gseTaskLogDAO = gseTaskLogDAO;
     }
 
     @Override
@@ -57,12 +54,7 @@ public class GseTaskServiceImpl implements GseTaskService {
 
     @Override
     public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch) {
-        GseTaskDTO gseTask = gseTaskDAO.getGseTask(stepInstanceId, executeCount, batch);
-        if (gseTask == null) {
-            // 兼容历史数据
-            gseTask = gseTaskLogDAO.getGseTaskLog(stepInstanceId, executeCount);
-        }
-        return gseTask;
+        return gseTaskDAO.getGseTask(stepInstanceId, executeCount, batch);
     }
 
     @Override

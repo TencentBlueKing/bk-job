@@ -201,6 +201,7 @@ public class LogServiceImpl implements LogService {
         if (isQueryByHostIdCondition(stepInstance)) {
             query.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
         } else {
+            // 兼容历史数据的查询（使用ip，没有hostId)
             query.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
         }
 

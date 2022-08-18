@@ -284,7 +284,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     GseTaskExecuteResult analyseGseTaskResult(GseLog<api_map_rsp> taskDetail) {
         Set<Map.Entry<String, String>> ipResults = taskDetail.getGseLog().getResult().entrySet();
         // 执行日志, Map<hostKey, 日志>
-        Map<String, ServiceHostLogDTO> executionLogs = new HashMap<>();
+        Map<Long, ServiceHostLogDTO> executionLogs = new HashMap<>();
 
         StopWatch watch = new StopWatch("analyse-gse-file-task");
         watch.start("analyse");
@@ -348,7 +348,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void analyseFileResult(String agentId, CopyFileRsp copyFileRsp,
-                                   Map<String, ServiceHostLogDTO> executionLogs,
+                                   Map<Long, ServiceHostLogDTO> executionLogs,
                                    boolean isDownloadResult) {
         AgentTaskDTO agentTask = getAgentTask(isDownloadResult, agentId);
         if (agentTask.getStartTime() == null) {
@@ -638,7 +638,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void recordDownloadFileFail(CopyFileRsp copyFileRsp,
-                                        Map<String, ServiceHostLogDTO> executionLogs) {
+                                        Map<Long, ServiceHostLogDTO> executionLogs) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String destAgentId = taskResult.getDestAgentId();
         String sourceAgentId = taskResult.getSourceAgentId();
@@ -680,7 +680,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void dealIpTaskFail(CopyFileRsp copyFileRsp,
-                                Map<String, ServiceHostLogDTO> executionLogs,
+                                Map<Long, ServiceHostLogDTO> executionLogs,
                                 boolean isDownloadResult) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
 
@@ -712,7 +712,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
      * @param executionLogs          执行日志总Map
      * @param affectedTargetAgentIds 受影响的目标Agent集合
      */
-    private void dealUploadFail(CopyFileRsp copyFileRsp, Map<String, ServiceHostLogDTO> executionLogs,
+    private void dealUploadFail(CopyFileRsp copyFileRsp, Map<Long, ServiceHostLogDTO> executionLogs,
                                 Set<String> affectedTargetAgentIds) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String sourceAgentId = taskResult.getSourceAgentId();
@@ -888,7 +888,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     /*
      * 从执行结果生成执行日志
      */
-    private void parseExecutionLog(CopyFileRsp copyFileRsp, Map<String, ServiceHostLogDTO> executionLogs) {
+    private void parseExecutionLog(CopyFileRsp copyFileRsp, Map<Long, ServiceHostLogDTO> executionLogs) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         if (null != taskResult) {
             Integer mode = taskResult.getMode();
@@ -1031,13 +1031,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
 
-    private void addFileTaskLog(Map<String, ServiceHostLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
+    private void addFileTaskLog(Map<Long, ServiceHostLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
         boolean isDownloadResult = isDownloadResult(fileTaskLog.getMode());
         Long hostId = isDownloadResult ? fileTaskLog.getDestHostId() : fileTaskLog.getSrcHostId();
-        // tmp: 需要兼容发布过程中只有ip，没有hostId的场景
         String cloudIp = isDownloadResult ? fileTaskLog.getDestIp() : fileTaskLog.getSrcIp();
-        String hostKey = buildHostKey(hostId, cloudIp);
-        ServiceHostLogDTO hostLog = hostLogs.get(hostKey);
+        ServiceHostLogDTO hostLog = hostLogs.get(hostId);
         if (hostLog == null) {
             hostLog = new ServiceHostLogDTO();
             hostLog.setStepInstanceId(stepInstanceId);
@@ -1045,21 +1043,12 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             hostLog.setIp(cloudIp);
             hostLog.setBatch(stepInstance.getBatch());
             hostLog.setExecuteCount(stepInstance.getExecuteCount());
-            hostLogs.put(hostKey, hostLog);
+            hostLogs.put(hostId, hostLog);
         }
         hostLog.addFileTaskLog(fileTaskLog);
     }
 
-    private String buildHostKey(Long hostId, String cloudIp) {
-        if (hostId != null) {
-            // 优先使用hostId
-            return "HOST_ID_" + hostId;
-        } else {
-            return "HOST_IP_" + cloudIp;
-        }
-    }
-
-    private void writeFileTaskLogContent(Map<String, ServiceHostLogDTO> executionLogs) {
+    private void writeFileTaskLogContent(Map<Long, ServiceHostLogDTO> executionLogs) {
         if (!executionLogs.isEmpty()) {
             logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
         }

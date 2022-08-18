@@ -41,7 +41,6 @@ import java.util.List;
 public class FileLogsCollectionLoader extends CollectionLoaderBase {
 
     private static final String IDX_STEP_EXECUTE_COUNT_MODE_HOST_ID = "stepId_executeCount_mode_hostId";
-    private static final String IDX_STEP_COUNT_MODE_IP = "stepId_executeCount_mode_ip";
     private static final String IDX_STEP_EXECUTE_COUNT_TASK_ID = "stepId_executeCount_taskId";
     private static final String IDX_STEP_ID_HASHED = "stepId_hashed";
 
@@ -87,19 +86,6 @@ public class FileLogsCollectionLoader extends CollectionLoaderBase {
             collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"taskId\":1}"), indexOptions);
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_TASK_ID,
                 collectionName);
-        }
-
-        // tmp: 兼容不使用hostId使用ip的情况，发布之后可删除
-        if (!indexes.contains(IDX_STEP_COUNT_MODE_IP)) {
-            log.info("Create index {} for collection: {} start...", IDX_STEP_COUNT_MODE_IP, collectionName);
-            IndexOptions indexOptions = new IndexOptions();
-            indexOptions.background(false);
-            indexOptions.name(IDX_STEP_COUNT_MODE_IP);
-            collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"mode\":1,\"ip\":1}"),
-                indexOptions);
-            log.info("Create index {} for collection: {} successfully!", IDX_STEP_COUNT_MODE_IP,
-                collectionName);
-
         }
 
         log.info("Create index for collection : {} successfully!", collectionName);
