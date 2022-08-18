@@ -331,9 +331,6 @@ public class GseStepEventHandler implements StepEventHandler {
         } else {
             agentTask.setAgentId(host.getAgentId());
         }
-        // tmp: 兼容使用ip的方式，发布完成后可以删除
-        agentTask.setCloudIp(host.toCloudIp());
-        agentTask.setDisplayIp(host.getDisplayIp());
         return agentTask;
     }
 
@@ -638,15 +635,7 @@ public class GseStepEventHandler implements StepEventHandler {
         long stepInstanceId = stepInstance.getId();
         EventSource eventSource = stepEvent.getSource();
 
-        GseTaskDTO gseTask;
-        if (eventSource.getGseTaskId() != null) {
-            gseTask = gseTaskService.getGseTask(eventSource.getGseTaskId());
-        } else {
-            // 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景
-            // tmp: 发布完成后可以删除
-            gseTask = gseTaskService.getGseTask(eventSource.getStepInstanceId(), eventSource.getExecuteCount(),
-                eventSource.getBatch());
-        }
+        GseTaskDTO gseTask = gseTaskService.getGseTask(eventSource.getGseTaskId());
 
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
         log.info("Refresh step according to gse task status, stepInstanceId: {}, gseTaskStatus: {}",

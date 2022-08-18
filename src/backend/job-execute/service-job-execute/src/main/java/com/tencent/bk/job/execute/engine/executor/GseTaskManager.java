@@ -257,14 +257,7 @@ public class GseTaskManager implements SmartLifecycle {
     }
 
     private String buildGseTaskLockKey(GseTaskDTO gseTask) {
-        String lockKey = "job:running:gse:task:";
-        if (gseTask.getId() != null) {
-            lockKey = lockKey + gseTask.getId();
-        } else {
-            // tmp: 兼容GSE_TASK数据,发布完成后删除
-            lockKey = lockKey + "step:" + gseTask.getStepInstanceId();
-        }
-        return lockKey;
+        return "job:running:gse:task:" + gseTask.getId();
     }
 
     /**
