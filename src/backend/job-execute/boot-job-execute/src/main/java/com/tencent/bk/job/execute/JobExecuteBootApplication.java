@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import com.tencent.bk.job.execute.config.GseTaskTableRouteConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;

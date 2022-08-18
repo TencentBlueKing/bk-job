@@ -141,7 +141,6 @@ public interface FileAgentTaskDAO {
     /**
      * 判断步骤实例的Agent Task 记录是否存在
      *
-     * TMP: 兼容实现，发布之后删除
      * @param stepInstanceId 步骤实例ID
      */
     boolean isStepInstanceRecordExist(long stepInstanceId);

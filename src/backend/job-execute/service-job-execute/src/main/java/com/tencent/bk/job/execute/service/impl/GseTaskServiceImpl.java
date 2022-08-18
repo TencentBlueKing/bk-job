@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.execute.config.GseTaskTableRouteConfig;
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
 import com.tencent.bk.job.execute.dao.GseTaskLogDAO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -39,31 +38,16 @@ public class GseTaskServiceImpl implements GseTaskService {
 
     private final GseTaskDAO gseTaskDAO;
     private final GseTaskLogDAO gseTaskLogDAO;
-    private final GseTaskTableRouteConfig gseTaskTableRouteConfig;
 
     @Autowired
-    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO, GseTaskLogDAO gseTaskLogDAO,
-                              GseTaskTableRouteConfig gseTaskTableRouteConfig) {
+    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO, GseTaskLogDAO gseTaskLogDAO) {
         this.gseTaskDAO = gseTaskDAO;
         this.gseTaskLogDAO = gseTaskLogDAO;
-        this.gseTaskTableRouteConfig = gseTaskTableRouteConfig;
     }
 
     @Override
     public Long saveGseTask(GseTaskDTO gseTask) {
-        if (usingNewTable(gseTask.getStepInstanceId())) {
-            return gseTaskDAO.saveGseTask(gseTask);
-        } else {
-            // TMP: 兼容实现，发布后删除
-            gseTaskLogDAO.saveGseTaskLog(gseTask);
-            return null;
-        }
-    }
-
-    private boolean usingNewTable(long stepInstanceId) {
-        return gseTaskTableRouteConfig.isNewTableEnabled()
-            && (gseTaskTableRouteConfig.getFromStepInstanceId() == null
-            || stepInstanceId > gseTaskTableRouteConfig.getFromStepInstanceId());
+        return gseTaskDAO.saveGseTask(gseTask);
     }
 
     @Override

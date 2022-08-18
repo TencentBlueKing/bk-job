@@ -374,14 +374,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private String buildGseTaskLockKey(GseTaskDTO gseTask) {
-        String lockKey = "job:result:handle:";
-        if (gseTask.getId() != null) {
-            lockKey = lockKey + gseTask.getId();
-        } else {
-            // tmp: 兼容GSE_TASK数据,发布完成后删除
-            lockKey = lockKey + "step:" + gseTask.getStepInstanceId();
-        }
-        return lockKey;
+        return "job:result:handle:" + gseTask.getId();
     }
 
     private boolean checkTaskActiveAndSetRunningStatus() {
