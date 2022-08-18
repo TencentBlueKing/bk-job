@@ -398,6 +398,8 @@ appSecret: ""
 bkDomainScheme: "http"
 ## 蓝鲸 ESB url
 bkComponentApiUrl: "http://bkapi.paas.example.com"
+## 蓝鲸 PaaS url
+bkPaasUrl: "http://paas.example.com"
 ## 蓝鲸 Login url
 bkLoginUrl: "http://paas.example.com/login/"
 ## 蓝鲸 cmdb url
