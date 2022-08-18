@@ -256,6 +256,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         for (HostDTO sourceHost : sourceHosts) {
             AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch, sourceHost.getHostId(),
                 sourceHost.getAgentId());
+            agentTask.setActualExecuteCount(executeCount);
             agentTask.setCloudIp(sourceHost.toCloudIp());
             agentTask.setDisplayIp(sourceHost.getDisplayIp());
             agentTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
