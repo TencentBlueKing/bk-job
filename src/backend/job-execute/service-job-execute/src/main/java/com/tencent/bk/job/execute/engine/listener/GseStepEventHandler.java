@@ -211,18 +211,12 @@ public class GseStepEventHandler implements StepEventHandler {
             taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(
                 stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId, null));
         } else if (stepInstance.isFileStep()) {
-            // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
-            if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                if (filePrepareService.needToPrepareSourceFilesForGseTask(stepInstance)) {
-                    filePrepareService.prepareFileForGseTask(stepInstance);
-                } else {
-                    taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(
-                        stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId,
-                        null));
-                }
+            if (filePrepareService.needToPrepareSourceFilesForGseTask(stepInstance)) {
+                filePrepareService.prepareFileForGseTask(stepInstance);
             } else {
                 taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(
-                    stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId, null));
+                    stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId,
+                    null));
             }
         }
     }
@@ -508,15 +502,7 @@ public class GseStepEventHandler implements StepEventHandler {
             saveAgentTasksForRetryFail(stepInstance, stepInstance.getExecuteCount(), stepInstance.getBatch(),
                 gseTaskId);
 
-            if (stepInstance.isScriptStep()) {
-                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstanceId,
-                    stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId, null));
-            } else if (stepInstance.isFileStep()) {
-                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
-                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                    filePrepareService.prepareFileForGseTask(stepInstance);
-                }
-            }
+            startGseTask(stepInstance, gseTaskId);
         } else {
             log.warn("Unsupported step instance run status for retry step, stepInstanceId={}, status={}",
                 stepInstanceId, stepStatus);
@@ -621,15 +607,7 @@ public class GseStepEventHandler implements StepEventHandler {
             saveAgentTasksForRetryAll(stepInstance, stepInstance.getExecuteCount(), stepInstance.getBatch(),
                 gseTaskId);
 
-            if (stepInstance.isScriptStep()) {
-                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(
-                    stepInstanceId, stepInstance.getExecuteCount(), null, gseTaskId, null));
-            } else if (stepInstance.isFileStep()) {
-                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
-                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                    filePrepareService.prepareFileForGseTask(stepInstance);
-                }
-            }
+            startGseTask(stepInstance, gseTaskId);
         } else {
             log.warn("Unsupported step instance run status for retry step, stepInstanceId={}, status={}",
                 stepInstanceId, stepStatus);
