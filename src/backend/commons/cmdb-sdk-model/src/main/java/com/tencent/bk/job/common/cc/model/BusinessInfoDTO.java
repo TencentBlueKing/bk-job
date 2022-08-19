@@ -30,8 +30,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * @description
- * @date 2019/3/4
+ * 业务DTO
  */
 @Getter
 @Setter
@@ -49,10 +48,6 @@ public class BusinessInfoDTO {
     private Integer defaultApp;
     @JsonProperty("time_zone")
     private String timezone;
-    @JsonProperty("bk_operate_dept_id")
-    private Long operateDeptId;
-    @JsonProperty("bk_operate_dept_name")
-    private String operateDeptName;
     @JsonProperty("language")
     private String language;
 }

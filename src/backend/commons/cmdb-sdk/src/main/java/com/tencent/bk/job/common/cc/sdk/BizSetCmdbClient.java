@@ -51,6 +51,7 @@ import org.apache.http.client.methods.HttpPost;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * cmdb API Client - 业务集相关
@@ -286,5 +287,10 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         } catch (Exception e) {
             throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
+    }
+
+    @Override
+    public Set<String> listUsersByRole(Long bizId, String role) {
+        return null;
     }
 }

@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.cc.model.bizset.BizInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -180,18 +179,14 @@ public class BizSetSyncService extends BasicAppSyncService {
         ApplicationDTO appInfoDTO = new ApplicationDTO();
         appInfoDTO.setBkSupplierAccount(bizSetInfo.getSupplierAccount());
         appInfoDTO.setName(bizSetInfo.getName());
-        appInfoDTO.setMaintainers(bizSetInfo.getMaintainer());
-        appInfoDTO.setOperateDeptId(bizSetInfo.getOperateDeptId());
         appInfoDTO.setTimeZone(bizSetInfo.getTimezone());
         BizSetScope scope = bizSetInfo.getScope();
         ApplicationAttrsDO attrs = new ApplicationAttrsDO();
         if (scope != null && scope.isMatchAll()) {
             // 全业务
-            appInfoDTO.setAppType(AppTypeEnum.ALL_APP);
             attrs.setMatchAllBiz(true);
         } else {
             // 普通业务集
-            appInfoDTO.setAppType(AppTypeEnum.APP_SET);
             attrs.setMatchAllBiz(false);
             if (CollectionUtils.isNotEmpty(bizSetInfo.getBizList())) {
                 attrs.setSubBizIds(bizSetInfo.getBizList().stream().map(BizInfo::getId).collect(Collectors.toList()));

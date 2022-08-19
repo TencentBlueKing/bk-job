@@ -58,12 +58,6 @@ public class BizSetAttr {
     private String desc;
 
     /**
-     * 运维人员
-     */
-    @JsonProperty("bk_biz_maintainer")
-    private String maintainer;
-
-    /**
      * 供应商
      */
     @JsonProperty("bk_supplier_account")
