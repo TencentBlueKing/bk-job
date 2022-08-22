@@ -63,6 +63,8 @@ job:
       enabled: false
   storage:
     root-path: __BK_HOME__/public/job
+  trace:
+    enabled: true
 
 # 制品库相关配置
 artifactory:

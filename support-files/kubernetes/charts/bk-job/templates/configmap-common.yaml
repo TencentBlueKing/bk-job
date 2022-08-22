@@ -86,6 +86,8 @@ data:
           enabled: {{ .Values.job.feature.toggle.esbApiParamBkBizId.enabled }}
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
+      trace:
+        enabled: {{ .Values.job.trace.enabled }}
     cmdb:
       default:
         supplier:
