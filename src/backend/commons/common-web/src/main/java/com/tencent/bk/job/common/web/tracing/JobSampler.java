@@ -22,12 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-service')
-    api project(':commons:esb-sdk')
-    api project(':commons:common-iam')
-    api 'org.springframework.boot:spring-boot-starter-web'
-    api 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'com.google.guava:guava'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.web.tracing;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.sleuth.SamplerFunction;
+import org.springframework.cloud.sleuth.http.HttpRequest;
+import org.springframework.cloud.sleuth.instrument.web.HttpClientSampler;
+import org.springframework.stereotype.Component;
+
+/**
+ * 按概率对请求进行采样，默认对所有请求进行采样
+ */
+@Slf4j
+@ConditionalOnProperty(name = "job.trace.enabled", havingValue = "true", matchIfMissing = true)
+@Component(value = HttpClientSampler.NAME)
+public class JobSampler implements SamplerFunction<HttpRequest> {
+
+    Decider decider;
+
+    @Autowired
+    public JobSampler(Decider decider) {
+        this.decider = decider;
+    }
+
+    @Override
+    public final Boolean trySample(HttpRequest request) {
+        return decider.decide(request);
+    }
+
 }

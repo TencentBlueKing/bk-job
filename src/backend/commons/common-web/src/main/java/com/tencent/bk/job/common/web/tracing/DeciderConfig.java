@@ -22,12 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-service')
-    api project(':commons:esb-sdk')
-    api project(':commons:common-iam')
-    api 'org.springframework.boot:spring-boot-starter-web'
-    api 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'com.google.guava:guava'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.web.tracing;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class DeciderConfig {
+
+    @Value("${job.trace.sample.probability:1}")
+    private double probability;
+
+    @Bean
+    public Decider decider() {
+        Decider probabilityDecider = new ProbabilityDecider(probability);
+        return new ComposedDecider(probabilityDecider);
+    }
 }

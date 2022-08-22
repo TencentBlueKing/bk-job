@@ -22,12 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-service')
-    api project(':commons:esb-sdk')
-    api project(':commons:common-iam')
-    api 'org.springframework.boot:spring-boot-starter-web'
-    api 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'com.google.guava:guava'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.web.tracing;
+
+import org.springframework.cloud.sleuth.http.HttpRequest;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class ComposedDecider implements Decider {
+
+    private final List<Decider> deciderList = new ArrayList<>();
+
+    public ComposedDecider(Decider... deciders) {
+        deciderList.addAll(Arrays.asList(deciders));
+    }
+
+    @Override
+    public Boolean decide(HttpRequest request) {
+        for (Decider decider : deciderList) {
+            Boolean result = decider.decide(request);
+            if (result != null) {
+                return result;
+            }
+        }
+        return null;
+    }
 }
