@@ -26,9 +26,18 @@ package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
 import com.tencent.bk.job.backup.dao.impl.ExecuteArchiveDAOImpl;
-import com.tencent.bk.job.backup.dao.impl.JobExecuteDAOImpl;
+import com.tencent.bk.job.backup.dao.impl.FileSourceTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceConfirmRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceFileRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -44,12 +53,95 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 public class ArchivistAutoConfig {
 
-    @Bean(name = "execute-read-dao")
     @ConditionalOnExpression("${job.execute.archive.enabled:false} || ${job.execute.archive.delete.enabled:false}")
-    public JobExecuteDAO executeReadDAO(@Qualifier("job-execute-dsl-context") DSLContext context,
-                                        ArchiveConfig archiveConfig) {
-        log.info("Init JobExecuteDAO");
-        return new JobExecuteDAOImpl(context, archiveConfig);
+    public static class ExecuteDaoAutoConfig {
+
+        @Bean(name = "taskInstanceRecordDAO")
+        public TaskInstanceRecordDAO taskInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context,
+                                                           ArchiveConfig archiveConfig) {
+            log.info("Init TaskInstanceRecordDAO");
+            return new TaskInstanceRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "stepInstanceRecordDAO")
+        public StepInstanceRecordDAO stepInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context,
+                                                           ArchiveConfig archiveConfig) {
+            log.info("Init StepInstanceRecordDAO");
+            return new StepInstanceRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "stepInstanceScriptRecordDAO")
+        public StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init StepInstanceScriptRecordDAO");
+            return new StepInstanceScriptRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "stepInstanceFileRecordDAO")
+        public StepInstanceFileRecordDAO stepInstanceFileRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init StepInstanceFileRecordDAO");
+            return new StepInstanceFileRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "stepInstanceConfirmRecordDAO")
+        public StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init StepInstanceConfirmRecordDAO");
+            return new StepInstanceConfirmRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "stepInstanceVariableRecordDAO")
+        public StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init StepInstanceVariableRecordDAO");
+            return new StepInstanceVariableRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "taskInstanceVariableRecordDAO")
+        public TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init TaskInstanceVariableRecordDAO");
+            return new TaskInstanceVariableRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "operationLogRecordDAO")
+        public OperationLogRecordDAO operationLogRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init OperationLogRecordDAO");
+            return new OperationLogRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "gseTaskLogRecordDAO")
+        public GseTaskLogRecordDAO gseTaskLogRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init GseTaskLogRecordDAO");
+            return new GseTaskLogRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "gseTaskIpLogRecordDAO")
+        public GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init GseTaskIpLogRecordDAO");
+            return new GseTaskIpLogRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "fileSourceTaskRecordDAO")
+        public FileSourceTaskRecordDAO fileSourceTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init FileSourceTaskRecordDAO");
+            return new FileSourceTaskRecordDAO(context, archiveConfig);
+        }
+
     }
 
     @Bean(name = "execute-archive-dao")
@@ -61,11 +153,38 @@ public class ArchivistAutoConfig {
 
     @Bean
     @ConditionalOnExpression("${job.execute.archive.enabled:false} || ${job.execute.archive.delete.enabled:false}")
-    public JobExecuteArchiveManage archiveExecuteLogExecutor(@Autowired(required = false) JobExecuteDAO jobExecuteDAO,
-                                                             @Autowired(required = false) ExecuteArchiveDAO executeArchiveDAO,
-                                                             ArchiveProgressService archiveProgressService,
-                                                             ArchiveConfig archiveConfig) {
+    public JobExecuteArchiveManage jobExecuteArchiveManage(
+        @Autowired(required = false) TaskInstanceRecordDAO taskInstanceRecordDAO,
+        @Autowired(required = false) StepInstanceRecordDAO stepInstanceRecordDAO,
+        @Autowired(required = false) StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
+        @Autowired(required = false) StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
+        @Autowired(required = false) StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
+        @Autowired(required = false) StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
+        @Autowired(required = false) TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
+        @Autowired(required = false) OperationLogRecordDAO operationLogRecordDAO,
+        @Autowired(required = false) GseTaskLogRecordDAO gseTaskLogRecordDAO,
+        @Autowired(required = false) GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO,
+        @Autowired(required = false) FileSourceTaskRecordDAO fileSourceTaskRecordDAO,
+        @Autowired(required = false) ExecuteArchiveDAO executeArchiveDAO,
+        ArchiveProgressService archiveProgressService,
+        ArchiveConfig archiveConfig) {
+
         log.info("Init JobExecuteArchiveManage");
-        return new JobExecuteArchiveManage(jobExecuteDAO, executeArchiveDAO, archiveProgressService, archiveConfig);
+        return new JobExecuteArchiveManage(
+            taskInstanceRecordDAO,
+            stepInstanceRecordDAO,
+            stepInstanceScriptRecordDAO,
+            stepInstanceFileRecordDAO,
+            stepInstanceConfirmRecordDAO,
+            stepInstanceVariableRecordDAO,
+            taskInstanceVariableRecordDAO,
+            operationLogRecordDAO,
+            gseTaskLogRecordDAO,
+            gseTaskIpLogRecordDAO,
+            fileSourceTaskRecordDAO,
+            executeArchiveDAO,
+            archiveProgressService,
+            archiveConfig
+        );
     }
 }

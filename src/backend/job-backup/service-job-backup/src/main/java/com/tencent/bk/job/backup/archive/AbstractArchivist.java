@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.model.dto.ArchiveSummary;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
@@ -43,7 +43,7 @@ import java.util.concurrent.CountDownLatch;
 @Data
 @Slf4j
 public abstract class AbstractArchivist<T extends TableRecord<?>> {
-    protected JobExecuteDAO jobExecuteDAO;
+    protected ExecuteRecordDAO<T> executeRecordDAO;
     protected ExecuteArchiveDAO executeArchiveDAO;
     protected ArchiveProgressService archiveProgressService;
     /**
@@ -60,20 +60,6 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected int deleteIdStepSize = 10_000;
     protected String tableName;
     private ArchiveSummary archiveSummary;
-
-    /**
-     * 查询(start,stop]内的数据
-     * @param start 不含start本身
-     * @param stop 含stop在内
-     * @return
-     */
-    protected abstract List<T> listRecord(Long start, Long stop);
-
-    protected abstract int batchInsert(List<T> recordList) throws IOException;
-
-    protected abstract int deleteRecord(Long start, Long stop);
-
-    protected abstract long getFirstInstanceId();
 
     public void archive(ArchiveConfig archiveConfig, Long maxNeedArchiveId, CountDownLatch countDownLatch) {
         boolean isAcquireLock = false;
@@ -205,7 +191,6 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     /**
      * 获取上一次已归档完成的最后一个数据Id，后续用大于该Id选取范围数据
-     * @return
      */
     private long getLastArchivedId() {
         ArchiveProgressDTO archiveProgress = archiveProgressService.queryArchiveProgress(tableName);
@@ -319,5 +304,21 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     private void storeArchiveSummary() {
         ArchiveSummaryHolder.getInstance().addArchiveSummary(this.archiveSummary);
+    }
+
+    private List<T> listRecord(Long start, Long stop) {
+        return executeRecordDAO.listRecords(start, stop);
+    }
+
+    private int batchInsert(List<T> recordList) throws IOException {
+        return executeArchiveDAO.batchInsert(executeRecordDAO.listFields(), recordList, 1000);
+    }
+
+    private int deleteRecord(Long start, Long stop) {
+        return executeRecordDAO.deleteRecords(start, stop);
+    }
+
+    private long getFirstInstanceId() {
+        return executeRecordDAO.getFirstInstanceId();
     }
 }

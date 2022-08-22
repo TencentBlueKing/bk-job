@@ -26,47 +26,22 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.StepInstanceFile;
 import org.jooq.generated.tables.records.StepInstanceFileRecord;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
- * @since 18/3/2021 20:13
+ * step_instance_file 表归档
  */
 public class StepInstanceFileArchivist extends AbstractArchivist<StepInstanceFileRecord> {
 
-    public StepInstanceFileArchivist(JobExecuteDAO jobExecuteDAO,
+    public StepInstanceFileArchivist(ExecuteRecordDAO<StepInstanceFileRecord> executeRecordDAO,
                                      ExecuteArchiveDAO executeArchiveDAO,
                                      ArchiveProgressService archiveProgressService) {
-        this.jobExecuteDAO = jobExecuteDAO;
+        this.executeRecordDAO = executeRecordDAO;
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
         this.deleteIdStepSize = 10_000;
         this.setTableName("step_instance_file");
-    }
-
-    @Override
-    public List<StepInstanceFileRecord> listRecord(Long start, Long stop) {
-        return jobExecuteDAO.listStepInstanceFile(start, stop);
-    }
-
-    @Override
-    protected int batchInsert(List<StepInstanceFileRecord> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(jobExecuteDAO.getStepInstanceFileFields(), recordList, 500);
-    }
-
-    @Override
-    protected int deleteRecord(Long start, Long stop) {
-        return jobExecuteDAO.deleteStepInstanceFile(start, stop);
-    }
-
-    @Override
-    protected long getFirstInstanceId() {
-        return jobExecuteDAO.getFirstInstanceId(StepInstanceFile.STEP_INSTANCE_FILE,
-            StepInstanceFile.STEP_INSTANCE_FILE.STEP_INSTANCE_ID);
     }
 }

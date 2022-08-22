@@ -26,47 +26,22 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.TaskInstanceVariable;
 import org.jooq.generated.tables.records.TaskInstanceVariableRecord;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
- * @since 18/3/2021 20:13
+ * task_instance_variable 表归档
  */
 public class TaskInstanceVariableArchivist extends AbstractArchivist<TaskInstanceVariableRecord> {
 
-    public TaskInstanceVariableArchivist(JobExecuteDAO jobExecuteDAO,
+    public TaskInstanceVariableArchivist(ExecuteRecordDAO<TaskInstanceVariableRecord> executeRecordDAO,
                                          ExecuteArchiveDAO executeArchiveDAO,
                                          ArchiveProgressService archiveProgressService) {
-        this.jobExecuteDAO = jobExecuteDAO;
+        this.executeRecordDAO = executeRecordDAO;
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
         this.deleteIdStepSize = 100_000;
         this.setTableName("task_instance_variable");
-    }
-
-    @Override
-    public List<TaskInstanceVariableRecord> listRecord(Long start, Long stop) {
-        return jobExecuteDAO.listTaskInstanceVariable(start, stop);
-    }
-
-    @Override
-    protected int batchInsert(List<TaskInstanceVariableRecord> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(jobExecuteDAO.getTaskInstanceVariableFields(), recordList, 200);
-    }
-
-    @Override
-    protected int deleteRecord(Long start, Long stop) {
-        return jobExecuteDAO.deleteTaskInstanceVariable(start, stop);
-    }
-
-    @Override
-    protected long getFirstInstanceId() {
-        return jobExecuteDAO.getFirstInstanceId(TaskInstanceVariable.TASK_INSTANCE_VARIABLE,
-            TaskInstanceVariable.TASK_INSTANCE_VARIABLE.TASK_INSTANCE_ID);
     }
 }

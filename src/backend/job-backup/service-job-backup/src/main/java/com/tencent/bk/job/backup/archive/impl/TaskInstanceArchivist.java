@@ -26,43 +26,22 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.TaskInstance;
 import org.jooq.generated.tables.records.TaskInstanceRecord;
 
-import java.io.IOException;
-import java.util.List;
-
+/**
+ * task_instance 表归档
+ */
 public class TaskInstanceArchivist extends AbstractArchivist<TaskInstanceRecord> {
 
-    public TaskInstanceArchivist(JobExecuteDAO jobExecuteDAO,
+    public TaskInstanceArchivist(ExecuteRecordDAO<TaskInstanceRecord> executeRecordDAO,
                                  ExecuteArchiveDAO executeArchiveDAO,
                                  ArchiveProgressService archiveProgressService) {
-        this.jobExecuteDAO = jobExecuteDAO;
+        this.executeRecordDAO = executeRecordDAO;
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
         this.deleteIdStepSize = 10_000;
         this.setTableName("task_instance");
-    }
-
-    @Override
-    public List<TaskInstanceRecord> listRecord(Long start, Long stop) {
-        return jobExecuteDAO.listTaskInstance(start, stop);
-    }
-
-    @Override
-    protected int batchInsert(List<TaskInstanceRecord> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(jobExecuteDAO.getTaskInstanceFields(), recordList, 500);
-    }
-
-    @Override
-    protected int deleteRecord(Long start, Long stop) {
-        return jobExecuteDAO.deleteTaskInstance(start, stop);
-    }
-
-    @Override
-    protected long getFirstInstanceId() {
-        return jobExecuteDAO.getFirstInstanceId(TaskInstance.TASK_INSTANCE, TaskInstance.TASK_INSTANCE.ID);
     }
 }

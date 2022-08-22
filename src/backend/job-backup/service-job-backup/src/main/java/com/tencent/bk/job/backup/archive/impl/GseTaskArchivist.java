@@ -28,20 +28,20 @@ import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.StepInstanceRecord;
+import org.jooq.generated.tables.records.GseTaskRecord;
 
 /**
- * step_instance 表归档
+ * gse_task 表归档
  */
-public class StepInstanceArchivist extends AbstractArchivist<StepInstanceRecord> {
+public class GseTaskArchivist extends AbstractArchivist<GseTaskRecord> {
 
-    public StepInstanceArchivist(ExecuteRecordDAO<StepInstanceRecord> executeRecordDAO,
-                                 ExecuteArchiveDAO executeArchiveDAO,
-                                 ArchiveProgressService archiveProgressService) {
+    public GseTaskArchivist(ExecuteRecordDAO<GseTaskRecord> executeRecordDAO,
+                            ExecuteArchiveDAO executeArchiveDAO,
+                            ArchiveProgressService archiveProgressService) {
         this.executeRecordDAO = executeRecordDAO;
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
         this.deleteIdStepSize = 10_000;
-        this.setTableName("step_instance");
+        this.setTableName("gse_task");
     }
 }

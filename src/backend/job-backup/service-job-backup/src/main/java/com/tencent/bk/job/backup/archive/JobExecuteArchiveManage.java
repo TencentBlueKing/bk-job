@@ -38,7 +38,17 @@ import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchivist;
 import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.impl.FileSourceTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceConfirmRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceFileRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
@@ -54,7 +64,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class JobExecuteArchiveManage implements SmartLifecycle {
 
-    private final JobExecuteDAO jobExecuteDAO;
     private final ArchiveConfig archiveConfig;
 
     private static final ExecutorService ARCHIVE_THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(20, 20,
@@ -80,33 +89,47 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
      */
     private volatile boolean running = false;
 
-    public JobExecuteArchiveManage(JobExecuteDAO jobExecuteDAO,
+    public JobExecuteArchiveManage(TaskInstanceRecordDAO taskInstanceRecordDAO,
+                                   StepInstanceRecordDAO stepInstanceRecordDAO,
+                                   StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
+                                   StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
+                                   StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
+                                   StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
+                                   TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
+                                   OperationLogRecordDAO operationLogRecordDAO,
+                                   GseTaskLogRecordDAO gseTaskLogRecordDAO,
+                                   GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO,
+                                   FileSourceTaskRecordDAO fileSourceTaskRecordDAO,
                                    ExecuteArchiveDAO executeArchiveDAO,
                                    ArchiveProgressService archiveProgressService,
                                    ArchiveConfig archiveConfig) {
         log.info("Init JobExecuteArchiveManage! archiveConfig: {}", archiveConfig);
-        this.jobExecuteDAO = jobExecuteDAO;
         this.archiveConfig = archiveConfig;
-        this.fileSourceTaskLogArchivist = new FileSourceTaskLogArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.fileSourceTaskLogArchivist = new FileSourceTaskLogArchivist(fileSourceTaskRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceArchivist = new StepInstanceArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.stepInstanceArchivist = new StepInstanceArchivist(stepInstanceRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceConfirmArchivist = new StepInstanceConfirmArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.stepInstanceConfirmArchivist = new StepInstanceConfirmArchivist(stepInstanceConfirmRecordDAO,
+            executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceFileArchivist = new StepInstanceFileArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.stepInstanceFileArchivist = new StepInstanceFileArchivist(stepInstanceFileRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceScriptArchivist = new StepInstanceScriptArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.stepInstanceScriptArchivist = new StepInstanceScriptArchivist(stepInstanceScriptRecordDAO,
+            executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceVariableArchivist = new StepInstanceVariableArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.stepInstanceVariableArchivist = new StepInstanceVariableArchivist(stepInstanceVariableRecordDAO,
+            executeArchiveDAO,
             archiveProgressService);
-        this.gseTaskLogArchivist = new GseTaskLogArchivist(jobExecuteDAO, executeArchiveDAO, archiveProgressService);
-        this.gseTaskIpLogArchivist = new GseTaskIpLogArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.gseTaskLogArchivist = new GseTaskLogArchivist(gseTaskLogRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.taskInstanceArchivist = new TaskInstanceArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.gseTaskIpLogArchivist = new GseTaskIpLogArchivist(gseTaskIpLogRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.taskInstanceVariableArchivist = new TaskInstanceVariableArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.taskInstanceArchivist = new TaskInstanceArchivist(taskInstanceRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.operationLogArchivist = new OperationLogArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.taskInstanceVariableArchivist = new TaskInstanceVariableArchivist(taskInstanceVariableRecordDAO,
+            executeArchiveDAO,
+            archiveProgressService);
+        this.operationLogArchivist = new OperationLogArchivist(operationLogRecordDAO, executeArchiveDAO,
             archiveProgressService);
     }
 
@@ -143,7 +166,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
 
 
     class ArchiveThread extends Thread {
-        private ArchiveConfig archiveConfig;
+        private final ArchiveConfig archiveConfig;
 
 
         ArchiveThread(ArchiveConfig archiveConfig) {
@@ -182,9 +205,9 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             try {
                 log.info("Start job execute archive before {} at {}", endTime, System.currentTimeMillis());
 
-                long maxNeedArchiveTaskInstanceId = jobExecuteDAO.getMaxNeedArchiveTaskInstanceId(endTime);
+                long maxNeedArchiveTaskInstanceId = executeRecordDAO.getMaxNeedArchiveTaskInstanceId(endTime);
                 long maxNeedArchiveStepInstanceId =
-                    jobExecuteDAO.getMaxNeedArchiveStepInstanceId(maxNeedArchiveTaskInstanceId);
+                    executeRecordDAO.getMaxNeedArchiveStepInstanceId(maxNeedArchiveTaskInstanceId);
 
                 log.info("Compute archive instance id range, maxNeedArchiveTaskInstanceId: {}, " +
                     "maxNeedArchiveStepInstanceId: {}", maxNeedArchiveTaskInstanceId, maxNeedArchiveStepInstanceId);

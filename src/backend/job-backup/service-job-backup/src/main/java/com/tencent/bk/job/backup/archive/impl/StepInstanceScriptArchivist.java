@@ -26,47 +26,22 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.StepInstanceScript;
 import org.jooq.generated.tables.records.StepInstanceScriptRecord;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
- * @since 18/3/2021 20:13
+ * step_instance_script 表归档
  */
 public class StepInstanceScriptArchivist extends AbstractArchivist<StepInstanceScriptRecord> {
 
-    public StepInstanceScriptArchivist(JobExecuteDAO jobExecuteDAO,
+    public StepInstanceScriptArchivist(ExecuteRecordDAO<StepInstanceScriptRecord> executeRecordDAO,
                                        ExecuteArchiveDAO executeArchiveDAO,
                                        ArchiveProgressService archiveProgressService) {
-        this.jobExecuteDAO = jobExecuteDAO;
+        this.executeRecordDAO = executeRecordDAO;
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
         this.deleteIdStepSize = 10_000;
         this.setTableName("step_instance_script");
-    }
-
-    @Override
-    public List<StepInstanceScriptRecord> listRecord(Long start, Long stop) {
-        return jobExecuteDAO.listStepInstanceScript(start, stop);
-    }
-
-    @Override
-    protected int batchInsert(List<StepInstanceScriptRecord> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(jobExecuteDAO.getStepInstanceScriptFields(), recordList, 200);
-    }
-
-    @Override
-    protected int deleteRecord(Long start, Long stop) {
-        return jobExecuteDAO.deleteStepInstanceScript(start, stop);
-    }
-
-    @Override
-    protected long getFirstInstanceId() {
-        return jobExecuteDAO.getFirstInstanceId(StepInstanceScript.STEP_INSTANCE_SCRIPT,
-            StepInstanceScript.STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID);
     }
 }

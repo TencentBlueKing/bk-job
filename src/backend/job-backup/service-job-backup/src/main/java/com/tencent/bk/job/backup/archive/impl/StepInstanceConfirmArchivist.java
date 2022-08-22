@@ -26,47 +26,22 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.StepInstanceConfirm;
 import org.jooq.generated.tables.records.StepInstanceConfirmRecord;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
- * @since 18/3/2021 20:13
+ * step_instance_confirm 表归档
  */
 public class StepInstanceConfirmArchivist extends AbstractArchivist<StepInstanceConfirmRecord> {
 
-    public StepInstanceConfirmArchivist(JobExecuteDAO jobExecuteDAO,
+    public StepInstanceConfirmArchivist(ExecuteRecordDAO<StepInstanceConfirmRecord> executeRecordDAO,
                                         ExecuteArchiveDAO executeArchiveDAO,
                                         ArchiveProgressService archiveProgressService) {
-        this.jobExecuteDAO = jobExecuteDAO;
+        this.executeRecordDAO = executeRecordDAO;
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
         this.deleteIdStepSize = 100_000;
         this.setTableName("step_instance_confirm");
-    }
-
-    @Override
-    public List<StepInstanceConfirmRecord> listRecord(Long start, Long stop) {
-        return jobExecuteDAO.listStepInstanceConfirm(start, stop);
-    }
-
-    @Override
-    protected int batchInsert(List<StepInstanceConfirmRecord> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(jobExecuteDAO.getStepInstanceConfirmFields(), recordList, 1000);
-    }
-
-    @Override
-    protected int deleteRecord(Long start, Long stop) {
-        return jobExecuteDAO.deleteStepInstanceConfirm(start, stop);
-    }
-
-    @Override
-    protected long getFirstInstanceId() {
-        return jobExecuteDAO.getFirstInstanceId(StepInstanceConfirm.STEP_INSTANCE_CONFIRM,
-            StepInstanceConfirm.STEP_INSTANCE_CONFIRM.STEP_INSTANCE_ID);
     }
 }
