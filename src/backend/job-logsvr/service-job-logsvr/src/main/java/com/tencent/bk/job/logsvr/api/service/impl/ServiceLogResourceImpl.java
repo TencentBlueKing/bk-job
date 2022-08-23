@@ -305,6 +305,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
             .batch(request.getBatch())
             .mode(request.getMode())
             .ips(request.getIps())
+            .hostIds(request.getHostIds())
             .build();
 
         ServiceHostLogsDTO ipLogsResult = new ServiceHostLogsDTO();

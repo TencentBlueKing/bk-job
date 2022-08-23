@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
@@ -75,6 +74,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -135,7 +135,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                    GseTasksExceptionCounter gseTasksExceptionCounter,
                                    StepInstanceService stepInstanceService,
-                                   Tracing tracing,
+                                   Tracer tracer,
                                    GseClient gseClient,
                                    String requestId,
                                    TaskInstanceDTO taskInstance,
@@ -157,7 +157,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             jobExecuteConfig,
             taskEvictPolicyExecutor,
             gseTasksExceptionCounter,
-            tracing,
+            tracer,
             gseClient,
             requestId,
             taskInstance,
@@ -261,6 +261,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         for (HostDTO sourceHost : sourceHosts) {
             AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch, sourceHost.getHostId(),
                 sourceHost.getAgentId());
+            agentTask.setActualExecuteCount(executeCount);
             agentTask.setCloudIp(sourceHost.toCloudIp());
             agentTask.setDisplayIp(sourceHost.getDisplayIp());
             agentTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
@@ -335,7 +336,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             for (JobFile file : sendFiles) {
                 Long sourceHostId = file.getHost().getHostId();
                 ServiceHostLogDTO hostTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
-                    sourceHostId);
+                    sourceHostId, file.getHost().toCloudIp());
                 hostTaskLog.addFileTaskLog(
                     new ServiceFileTaskLogDTO(
                         FileDistModeEnum.UPLOAD.getValue(),
@@ -357,15 +358,16 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             }
             // 每个目标IP从每个要分发的源文件下载的一条下载日志
             for (AgentTaskDTO targetAgentTask : targetAgentTaskMap.values()) {
+                HostDTO targetHost = agentIdHostMap.get(targetAgentTask.getAgentId());
                 ServiceHostLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
-                    targetAgentTask.getHostId());
+                    targetHost.getHostId(), targetHost.toCloudIp());
                 for (JobFile file : sendFiles) {
                     Long sourceHostId = file.getHost().getHostId();
                     ipTaskLog.addFileTaskLog(
                         new ServiceFileTaskLogDTO(
                             FileDistModeEnum.DOWNLOAD.getValue(),
                             targetAgentTask.getHostId(),
-                            agentIdHostMap.get(targetAgentTask.getAgentId()).getIp(),
+                            targetHost.toCloudIp(),
                             getDestPath(file),
                             sourceHostId,
                             file.getHost().toCloudIp(),
@@ -389,13 +391,14 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     }
 
     private ServiceHostLogDTO initServiceLogDTOIfAbsent(Map<Long, ServiceHostLogDTO> logs, long stepInstanceId,
-                                                        int executeCount, Long hostId) {
+                                                        int executeCount, Long hostId, String cloudIp) {
         ServiceHostLogDTO hostTaskLog = logs.get(hostId);
         if (hostTaskLog == null) {
             hostTaskLog = new ServiceHostLogDTO();
             hostTaskLog.setStepInstanceId(stepInstanceId);
-            hostTaskLog.setHostId(hostId);
             hostTaskLog.setExecuteCount(executeCount);
+            hostTaskLog.setHostId(hostId);
+            hostTaskLog.setIp(cloudIp);
             logs.put(hostId, hostTaskLog);
         }
         return hostTaskLog;

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.trace.executors;
 
-import brave.Tracing;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,11 +38,11 @@ import java.util.concurrent.TimeoutException;
 public class TraceableExecutorService implements ExecutorService {
 
     protected ExecutorService delegateExecutorService;
-    protected Tracing tracing;
+    protected Tracer tracer;
 
-    public TraceableExecutorService(ExecutorService executorService, Tracing tracing) {
+    public TraceableExecutorService(ExecutorService executorService, Tracer tracer) {
         this.delegateExecutorService = executorService;
-        this.tracing = tracing;
+        this.tracer = tracer;
     }
 
     public ExecutorService getDelegateExecutorService() {
@@ -76,17 +76,17 @@ public class TraceableExecutorService implements ExecutorService {
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-        return delegateExecutorService.submit(new TraceCallable(task, tracing));
+        return delegateExecutorService.submit(new TraceCallable(task, tracer));
     }
 
     @Override
     public <T> Future<T> submit(Runnable task, T result) {
-        return delegateExecutorService.submit(new TraceRunnable(task, tracing), result);
+        return delegateExecutorService.submit(new TraceRunnable(task, tracer), result);
     }
 
     @Override
     public Future<?> submit(Runnable task) {
-        return delegateExecutorService.submit(new TraceRunnable(task, tracing));
+        return delegateExecutorService.submit(new TraceRunnable(task, tracer));
     }
 
     @Override
@@ -113,6 +113,6 @@ public class TraceableExecutorService implements ExecutorService {
 
     @Override
     public void execute(Runnable command) {
-        delegateExecutorService.execute(new TraceRunnable(command, tracing));
+        delegateExecutorService.execute(new TraceRunnable(command, tracer));
     }
 }

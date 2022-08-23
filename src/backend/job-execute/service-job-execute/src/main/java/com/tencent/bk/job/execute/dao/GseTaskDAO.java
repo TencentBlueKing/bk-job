@@ -32,12 +32,20 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 public interface GseTaskDAO {
 
     /**
-     * 保存/更新 GSE 任务
+     * 保存 GSE 任务
      *
      * @param gseTask GSE 任务
      * @return GSE任务ID
      */
     long saveGseTask(GseTaskDTO gseTask);
+
+    /**
+     * 更新 GSE 任务
+     *
+     * @param gseTask GSE 任务
+     * @return 是否更新成功
+     */
+    boolean updateGseTask(GseTaskDTO gseTask);
 
     /**
      * 获取 GSE 任务

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.crontab.timer;
 
-import brave.Tracer;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.crontab.metrics.ScheduleMeasureService;
@@ -32,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.time.Instant;
@@ -67,7 +67,7 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
     @Override
     protected void executeInternal(JobExecutionContext context) {
         scheduleMeasureService.recordCronScheduleDelay(name(), context);
-        JobContextUtil.setRequestId(tracer.currentSpan().context().traceIdString());
+        JobContextUtil.setRequestId(tracer.currentSpan().context().traceId());
         String executeId = JobContextUtil.getRequestId();
         try {
             if (log.isDebugEnabled()) {

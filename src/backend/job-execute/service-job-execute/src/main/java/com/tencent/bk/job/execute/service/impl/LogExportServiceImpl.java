@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import brave.Tracing;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -52,6 +51,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -89,7 +89,7 @@ public class LogExportServiceImpl implements LogExportService {
 
     @Autowired
     public LogExportServiceImpl(LogService logService,
-                                Tracing tracing,
+                                Tracer tracer,
                                 StringRedisTemplate redisTemplate,
                                 TaskInstanceService taskInstanceService,
                                 ArtifactoryClient artifactoryClient,
@@ -105,7 +105,7 @@ public class LogExportServiceImpl implements LogExportService {
         this.scriptAgentTaskService = scriptAgentTaskService;
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("log-export-thread-%d").build();
         this.logExportExecutor = new TraceableExecutorService(new ThreadPoolExecutor(10,
-            100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), threadFactory), tracing);
+            100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), threadFactory), tracer);
     }
 
     @Override
@@ -141,7 +141,8 @@ public class LogExportServiceImpl implements LogExportService {
                         exportJobInfo.setStatus(LogExportStatusEnum.PROCESSING);
                         saveExportInfo(exportJobInfo);
 
-                        doPackage(exportJobInfo, stepInstanceId, hostId, cloudIp, executeCount, logFileDir, logFileName);
+                        doPackage(exportJobInfo, stepInstanceId, hostId, cloudIp, executeCount, logFileDir,
+                            logFileName);
                     } else {
                         log.error("Job already running!|{}|{}|{}|{}", requestId, appId, stepInstanceId, hostId);
                     }

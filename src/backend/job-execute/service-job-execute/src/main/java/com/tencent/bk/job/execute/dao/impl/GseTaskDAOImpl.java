@@ -29,7 +29,6 @@ import com.tencent.bk.job.execute.dao.GseTaskDAO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.generated.tables.GseTask;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +68,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
 
     @Override
     public long saveGseTask(GseTaskDTO gseTask) {
-        Result<?> result = dslContext.insertInto(
+        Record record = dslContext.insertInto(
             TABLE,
             TABLE.STEP_INSTANCE_ID,
             TABLE.EXECUTE_COUNT,
@@ -88,30 +87,30 @@ public class GseTaskDAOImpl implements GseTaskDAO {
                 gseTask.getTotalTime(),
                 JooqDataTypeUtil.toByte(gseTask.getStatus()),
                 gseTask.getGseTaskId())
-            .onDuplicateKeyUpdate()
+            .returning(TABLE.ID)
+            .fetchOne();
+
+        return record == null ? 0 : record.get(TABLE.ID);
+    }
+
+    @Override
+    public boolean updateGseTask(GseTaskDTO gseTask) {
+        int affectRows = dslContext.update(TABLE)
             .set(TABLE.START_TIME, gseTask.getStartTime())
             .set(TABLE.END_TIME, gseTask.getEndTime())
             .set(TABLE.TOTAL_TIME, gseTask.getTotalTime())
-            .set(TABLE.STATUS, JooqDataTypeUtil.toByte(gseTask.getStatus()))
+            .set(TABLE.STATUS, gseTask.getStatus().byteValue())
             .set(TABLE.GSE_TASK_ID, gseTask.getGseTaskId())
-            .returning(TABLE.ID)
-            .fetch();
-        long id = 0L;
-        /*
-         * With ON DUPLICATE KEY UPDATE, the affected-rows value per row is 1 if the row is inserted as a new row, 2
-         * if an existing row is updated, and 0 if an existing row is set to its current values.
-         */
-        if (result.size() > 0) {
-            id = result.stream().map(record -> record.get(TABLE.ID)).findFirst().get();
-        }
-        return id;
+            .where(TABLE.ID.eq(gseTask.getId()))
+            .execute();
+        return affectRows > 0;
     }
 
     @Override
     public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch) {
         Record record = dslContext.select(ALL_FIELDS).from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(TABLE.EXECUTE_COUNT.eq((short)executeCount))
+            .and(TABLE.EXECUTE_COUNT.eq((short) executeCount))
             .and(TABLE.BATCH.eq(batch == null ? 0 : batch.shortValue()))
             .fetchOne();
         return extractInfo(record);

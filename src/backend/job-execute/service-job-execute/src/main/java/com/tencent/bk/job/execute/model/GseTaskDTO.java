@@ -77,6 +77,6 @@ public class GseTaskDTO {
     }
 
     public String getTaskUniqueName() {
-        return "GseTask:" + stepInstanceId + ":" + executeCount + ":" + batch;
+        return "GseTask:" + id + ":" + stepInstanceId + ":" + executeCount + ":" + batch;
     }
 }
