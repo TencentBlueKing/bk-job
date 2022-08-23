@@ -1,6 +1,5 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
@@ -12,6 +11,7 @@ import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.exception.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -27,11 +27,11 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
 
     @Autowired
     public BizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
-                              Tracing tracing,
+                              Tracer tracer,
                               ApplicationService applicationService,
                               BizSetService bizSetService,
                               BizSetCmdbClient bizSetCmdbClient) {
-        super("bizSet", redisTemplate, tracing);
+        super("bizSet", redisTemplate, tracer);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;

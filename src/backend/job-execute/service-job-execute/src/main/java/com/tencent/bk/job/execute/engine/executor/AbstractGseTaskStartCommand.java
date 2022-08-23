@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -57,6 +56,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.util.StopWatch;
 
 import java.util.HashMap;
@@ -124,7 +124,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 JobExecuteConfig jobExecuteConfig,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 GseTasksExceptionCounter gseTasksExceptionCounter,
-                                Tracing tracing,
+                                Tracer tracer,
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
@@ -134,7 +134,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             accountService,
             gseTaskService,
             agentTaskService,
-            tracing,
+            tracer,
             taskInstance,
             stepInstance,
             gseTask);

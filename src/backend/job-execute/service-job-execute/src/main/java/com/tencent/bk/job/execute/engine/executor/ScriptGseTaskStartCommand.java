@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.gse.taskapi.api_agent;
 import com.tencent.bk.gse.taskapi.api_script_request;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -74,6 +73,7 @@ import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -116,7 +116,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                      GseTasksExceptionCounter gseTasksExceptionCounter,
                                      JobBuildInVariableResolver jobBuildInVariableResolver,
-                                     Tracing tracing,
+                                     Tracer tracer,
                                      String requestId,
                                      TaskInstanceDTO taskInstance,
                                      StepInstanceDTO stepInstance,
@@ -136,7 +136,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             jobExecuteConfig,
             taskEvictPolicyExecutor,
             gseTasksExceptionCounter,
-            tracing,
+            tracer,
             requestId,
             taskInstance,
             stepInstance,

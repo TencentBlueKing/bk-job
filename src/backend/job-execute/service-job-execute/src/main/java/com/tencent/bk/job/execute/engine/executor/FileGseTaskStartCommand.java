@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.gse.taskapi.api_agent;
 import com.tencent.bk.gse.taskapi.api_copy_fileinfoV2;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
@@ -72,6 +71,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -132,7 +132,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                    GseTasksExceptionCounter gseTasksExceptionCounter,
                                    StepInstanceService stepInstanceService,
-                                   Tracing tracing,
+                                   Tracer tracer,
                                    String requestId,
                                    TaskInstanceDTO taskInstance,
                                    StepInstanceDTO stepInstance,
@@ -153,7 +153,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             jobExecuteConfig,
             taskEvictPolicyExecutor,
             gseTasksExceptionCounter,
-            tracing,
+            tracer,
             requestId,
             taskInstance,
             stepInstance,
