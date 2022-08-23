@@ -578,8 +578,6 @@ job:
       pushUrl: ""
       # 监控平台中目标APM应用的SecureKey
       secureKey: ""
-      # 上报Trace数据采样概率，取值范围为0~1，请根据负载合理设置该值，过高可能导致应用性能下降
-      probability: 0.1
 
   migration:
     iamModel:

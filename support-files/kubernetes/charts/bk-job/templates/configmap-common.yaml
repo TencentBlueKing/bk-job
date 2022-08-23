@@ -89,7 +89,6 @@ data:
       trace:
         report:
           enabled: {{ .Values.job.trace.report.enabled }}
-          probability: {{ .Values.job.trace.report.probability }}
     cmdb:
       default:
         supplier:
