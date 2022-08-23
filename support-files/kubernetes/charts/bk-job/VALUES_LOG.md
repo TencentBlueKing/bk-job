@@ -1,6 +1,6 @@
 # chart values 更新日志
 
-## 0.3.0-rc.14
+## 0.3.0-rc.24
 1.增加Trace及数据上报至APM相关配置
 ```shell script
 ## Trace配置
@@ -15,6 +15,8 @@ job:
       pushUrl: ""
       # 监控平台中目标APM应用的SecureKey
       secureKey: ""
+      # 上报Trace数据采样概率，取值范围为0~1，请根据负载合理设置该值，过高可能导致应用性能下降
+      probability: 0.1
 ```
 2.fileWorker对应的Service端口默认值设置为与pod端口一致，避免混淆
 ```shell script

@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DeciderConfig {
 
-    @Value("${job.trace.sample.probability:1}")
+    @Value("${job.trace.report.probability:1}")
     private double probability;
 
     @Bean

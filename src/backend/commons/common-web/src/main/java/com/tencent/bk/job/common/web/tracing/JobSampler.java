@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
  * 按概率对请求进行采样，默认对所有请求进行采样
  */
 @Slf4j
-@ConditionalOnProperty(name = "job.trace.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "job.trace.report.enabled", havingValue = "true", matchIfMissing = true)
 @Component(value = HttpClientSampler.NAME)
 public class JobSampler implements SamplerFunction<HttpRequest> {
 

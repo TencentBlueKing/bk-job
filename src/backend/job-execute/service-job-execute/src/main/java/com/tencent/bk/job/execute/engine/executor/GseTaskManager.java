@@ -379,7 +379,7 @@ public class GseTaskManager implements SmartLifecycle {
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
                 gseTasksExceptionCounter,
-                stepInstanceServcice,
+                stepInstanceService,
                 tracer,
                 requestId,
                 taskInstance,

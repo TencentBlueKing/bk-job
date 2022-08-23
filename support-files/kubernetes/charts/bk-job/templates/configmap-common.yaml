@@ -87,7 +87,9 @@ data:
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
       trace:
-        enabled: {{ .Values.job.trace.enabled }}
+        report:
+          enabled: {{ .Values.job.trace.report.enabled }}
+          probability: {{ .Values.job.trace.report.probability }}
     cmdb:
       default:
         supplier:

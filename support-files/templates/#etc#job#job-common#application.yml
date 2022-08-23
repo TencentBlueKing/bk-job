@@ -64,7 +64,11 @@ job:
   storage:
     root-path: __BK_HOME__/public/job
   trace:
-    enabled: true
+    report:
+      # 是否在启动命令中使用了opentelemetry-javaagent.jar上报Trace数据至监控平台APM应用
+      enabled: false
+      # 上报Trace数据采样概率，取值范围为0~1，请根据负载合理设置该值，过高可能导致应用性能下降
+      probability: 0.1
 
 # 制品库相关配置
 artifactory:
