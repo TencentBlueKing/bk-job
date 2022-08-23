@@ -45,6 +45,7 @@ import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceStatusRe
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,6 +54,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -121,6 +123,12 @@ public class EsbGetJobInstanceStatusResourceImpl
             } else if (stepInstance.isFileStep()) {
                 agentTasks = fileAgentTaskService.listAgentTaskDetail(stepInstance,
                     stepInstance.getExecuteCount(), null);
+                if (CollectionUtils.isNotEmpty(agentTasks)) {
+                    // 如果是文件分发任务，只返回目标Agent结果
+                    agentTasks = agentTasks.stream()
+                        .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
+                        .collect(Collectors.toList());
+                }
             }
             List<EsbIpStatusDTO> ipResultList = Lists.newArrayList();
             if (CollectionUtils.isEmpty(agentTasks)) {

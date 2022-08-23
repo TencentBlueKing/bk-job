@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
@@ -38,6 +37,7 @@ import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +49,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
                                   AccountService accountService,
                                   GseTaskService gseTaskService,
                                   AgentTaskService agentTaskService,
-                                  Tracing tracing,
+                                  Tracer tracer,
                                   GseClient gseClient,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
@@ -58,7 +58,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
             accountService,
             gseTaskService,
             agentTaskService,
-            tracing,
+            tracer,
             gseClient,
             taskInstance,
             stepInstance,
@@ -68,14 +68,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
     @Override
     public void execute() {
         log.info("Stop gse file task, gseTask:" + gseTaskUniqueName);
-        List<AgentTaskDTO> agentTasks;
-        if (gseTask.getId() != null) {
-            agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-        } else {
-            // tmp: 兼容旧的调度任务，发布完成后删除
-            agentTasks = agentTaskService.listAgentTasks(gseTask.getStepInstanceId(),
-                gseTask.getExecuteCount(), gseTask.getBatch());
-        }
+        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         List<String> agentIds = agentTasks.stream()
             .map(AgentTaskDTO::getAgentId)
             .distinct()
@@ -89,7 +82,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
         } else {
             log.info("Terminate gse task response success! gseTask: {}", gseTaskUniqueName);
             gseTask.setStatus(RunStatusEnum.STOPPING.getValue());
-            gseTaskService.saveGseTask(gseTask);
+            gseTaskService.updateGseTask(gseTask);
         }
     }
 }

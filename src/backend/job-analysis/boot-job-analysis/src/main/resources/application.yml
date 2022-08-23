@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: job-analysis
   profiles:
     active: prod
 

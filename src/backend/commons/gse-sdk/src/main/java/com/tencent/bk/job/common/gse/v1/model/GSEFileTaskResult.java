@@ -229,22 +229,23 @@ public class GSEFileTaskResult {
     }
 
     public String getTaskId() {
-        if (taskId != null) {
-            return taskId;
+        if (taskId == null) {
+            this.taskId = buildTaskId(mode, getSourceAgentId(), getStandardSourceFilePath(), getDestAgentId(),
+                getStandardDestFilePath());
         }
-        if (isDownloadMode()) {
-            if (StringUtils.isNotEmpty(sourceIp)) {
-                this.taskId = concat(mode.toString(), getSourceAgentId(), getStandardSourceFilePath(),
-                    getDestAgentId(), getStandardDestFilePath());
-            } else {
-                // GSE BUG, 兼容处理
-                this.taskId = concat(mode.toString(), "*", getStandardSourceFilePath(),
-                    getDestAgentId(), getStandardDestFilePath());
-            }
+        return taskId;
+    }
+
+    public String buildTaskId(Integer mode, String sourceAgentId, String sourceFilePath, String destAgentId,
+                                     String destFilePath) {
+        String taskId;
+        if (FileDistModeEnum.getFileDistMode(mode) == FileDistModeEnum.DOWNLOAD) {
+            taskId = concat(mode.toString(), sourceAgentId, FilePathUtils.standardizedGSEFilePath(sourceFilePath),
+                destAgentId, destFilePath);
         } else {
-            this.taskId = concat(mode.toString(), getSourceAgentId(), getStandardSourceFilePath());
+            taskId = concat(mode.toString(), sourceAgentId, FilePathUtils.standardizedGSEFilePath(sourceFilePath));
         }
-        return this.taskId;
+        return taskId;
     }
 
     private String concat(String... strArgs) {

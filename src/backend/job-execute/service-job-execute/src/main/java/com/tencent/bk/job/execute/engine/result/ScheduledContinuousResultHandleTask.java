@@ -24,14 +24,12 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
-import brave.ScopedSpan;
-import brave.Tracer;
-import brave.Tracing;
-import brave.propagation.TraceContext;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleLimiter;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -70,25 +68,25 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     /**
      * 调用链父上下文
      */
-    private TraceContext parent;
+    private final Span parent;
 
     /**
      * ScheduledContinuousQueuedTask Constructor
      *
      * @param sampler             采样器
-     * @param tracing             日志调用链
+     * @param tracer              日志调用链
      * @param task                任务
      * @param resultHandleManager resultHandleManager
      * @param resultHandleLimiter 限流
      */
     public ScheduledContinuousResultHandleTask(ResultHandleTaskSampler sampler,
-                                               Tracing tracing, ContinuousScheduledTask task,
+                                               Tracer tracer, ContinuousScheduledTask task,
                                                ResultHandleManager resultHandleManager,
                                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                                ResultHandleLimiter resultHandleLimiter) {
         this.sampler = sampler;
-        this.tracer = tracing.tracer();
-        this.parent = tracing.currentTraceContext().get();
+        this.tracer = tracer;
+        this.parent = tracer.currentSpan();
         this.task = task;
         this.delayedTask = new DelayedTask(this.task, this.task.getScheduleStrategy().getDelay());
         this.resultHandleManager = resultHandleManager;
@@ -97,10 +95,23 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         this.resultHandleLimiter = resultHandleLimiter;
     }
 
+    private Span getChildSpan() {
+        return this.tracer.nextSpan(parent).name("execute-task");
+    }
+
     @Override
     public void execute() {
-        ScopedSpan span = this.tracer.startScopedSpanWithParent("execute-task",
-            this.parent);
+        Span span = getChildSpan();
+        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
+            doExecute();
+        } catch (Exception e) {
+            span.error(e);
+        } finally {
+            span.end();
+        }
+    }
+
+    public void doExecute() {
         // 任务是否执行完成
         boolean isDone = false;
         // 任务是否是可执行的
@@ -131,7 +142,6 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
                 isDone = true;
             }
         } catch (Exception | Error e) {
-            span.error(e);
             status = "error";
             throw e;
         } finally {
@@ -156,8 +166,6 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
             if (!isReScheduled) {
                 resultHandleLimiter.release();
             }
-            this.parent = span.context();
-            span.finish();
         }
     }
 
@@ -201,7 +209,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         return this.delayedTask.getExpireTime();
     }
 
-    public TraceContext getTraceContext() {
+    public Span getTraceContext() {
         return this.parent;
     }
 

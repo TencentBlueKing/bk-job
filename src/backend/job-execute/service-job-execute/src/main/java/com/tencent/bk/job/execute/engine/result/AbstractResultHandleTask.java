@@ -60,6 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.util.StopWatch;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -377,14 +378,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private String buildGseTaskLockKey(GseTaskDTO gseTask) {
-        String lockKey = "job:result:handle:";
-        if (gseTask.getId() != null) {
-            lockKey = lockKey + gseTask.getId();
-        } else {
-            // tmp: 兼容GSE_TASK数据,发布完成后删除
-            lockKey = lockKey + "step:" + gseTask.getStepInstanceId();
-        }
-        return lockKey;
+        return "job:result:handle:" + gseTask.getId();
     }
 
     private boolean checkTaskActiveAndSetRunningStatus() {
@@ -499,15 +493,15 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
 
     /**
-     * 设置Agent任务结束状态
+     * 设置目标gent任务结束状态
      *
      * @param agentId   agentId
      * @param startTime 起始时间
      * @param endTime   终止时间
      * @param agentTask 日志
      */
-    protected void dealAgentFinish(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
-        log.info("[{}]: Deal agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
+    protected void dealTargetAgentFinish(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
+        log.info("[{}]: Deal target agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
             stepInstanceId, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
         notStartedTargetAgentIds.remove(agentId);
@@ -546,14 +540,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         int allSuccessAgentNum = this.successTargetAgentIds.size();
         boolean isSuccess = !stepInstance.hasInvalidHost() && allSuccessAgentNum == targetAgentNum;
 
-        saveGseTaskExecutionInfo(result, isSuccess, endTime, gseTotalTime);
+        updateGseTaskExecutionInfo(result, isSuccess, endTime, gseTotalTime);
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
             EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), gseTask.getId())));
     }
 
-    private void saveGseTaskExecutionInfo(GseTaskExecuteResult result, boolean isSuccess, long endTime,
-                                          long totalTime) {
+    private void updateGseTaskExecutionInfo(GseTaskExecuteResult result, boolean isSuccess, long endTime,
+                                            long totalTime) {
         if (GseTaskExecuteResult.RESULT_CODE_STOP_SUCCESS == result.getResultCode()) {
             gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
         } else {
@@ -562,14 +556,21 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
         gseTask.setEndTime(endTime);
         gseTask.setTotalTime(totalTime);
-        gseTaskService.saveGseTask(gseTask);
+        gseTaskService.updateGseTask(gseTask);
     }
 
-    protected void batchSaveChangedGseAgentTasks() {
-        List<AgentTaskDTO> changedGseAgentTasks =
-            this.targetAgentTasks.values().stream().filter(AgentTaskDTO::isChanged).collect(Collectors.toList());
-        agentTaskService.batchUpdateAgentTasks(changedGseAgentTasks);
-        changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
+    /**
+     * 批量更新AgentTask并重置changed标志
+     *
+     * @param agentTasks agent任务列表
+     */
+    protected void batchSaveChangedGseAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+        if (CollectionUtils.isNotEmpty(agentTasks)) {
+            List<AgentTaskDTO> changedGseAgentTasks =
+                agentTasks.stream().filter(AgentTaskDTO::isChanged).collect(Collectors.toList());
+            agentTaskService.batchUpdateAgentTasks(changedGseAgentTasks);
+            changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
+        }
     }
 
     protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
@@ -586,7 +587,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             agentTask.setEndTime(System.currentTimeMillis());
             agentTask.setStatus(status);
         }
-        batchSaveChangedGseAgentTasks();
+        batchSaveChangedGseAgentTasks(targetAgentTasks.values());
     }
 
     @Override
