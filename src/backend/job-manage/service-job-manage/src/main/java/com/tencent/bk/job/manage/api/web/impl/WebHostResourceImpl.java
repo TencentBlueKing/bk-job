@@ -45,9 +45,15 @@ import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.HostDetailReq;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.HostIdWithMeta;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.ListDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.ListTopologyHostCountTreesReq;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.PageListHostsByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
@@ -58,6 +64,7 @@ import com.tencent.bk.job.manage.model.web.vo.ipchooser.NodeHostStatisticsVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.StatefulHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +75,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -84,18 +92,21 @@ public class WebHostResourceImpl implements WebHostResource {
     private final ScopeHostService scopeHostService;
     private final WhiteIpAwareScopeHostService whiteIpAwareScopeHostService;
     private final AgentStatusService agentStatusService;
+    private final StatefulHostService statefulHostService;
 
     @Autowired
     public WebHostResourceImpl(ApplicationService applicationService,
                                HostService hostService,
                                ScopeHostService scopeHostService,
                                WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
-                               AgentStatusService agentStatusService) {
+                               AgentStatusService agentStatusService,
+                               StatefulHostService statefulHostService) {
         this.applicationService = applicationService;
         this.hostService = hostService;
         this.scopeHostService = scopeHostService;
         this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.agentStatusService = agentStatusService;
+        this.statefulHostService = statefulHostService;
     }
 
     @Override
@@ -162,6 +173,19 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                    String scopeId) {
         return Response.buildSuccessResp(hostService.listAppTopologyHostCountTree(username,
             appResourceScope));
+    }
+
+    @Override
+    public Response<List<CcTopologyNodeVO>> listTopologyHostCountTrees(String username,
+                                                                       AppResourceScope appResourceScope,
+                                                                       String scopeType,
+                                                                       String scopeId,
+                                                                       ListTopologyHostCountTreesReq req) {
+        return Response.buildSuccessResp(
+            Collections.singletonList(
+                hostService.listAppTopologyHostCountTree(username, appResourceScope)
+            )
+        );
     }
 
     @Override
@@ -308,10 +332,11 @@ public class WebHostResourceImpl implements WebHostResource {
     }
 
     @Override
-    public Response<List<DynamicGroupBasicVO>> listAppDynamicGroup(String username,
-                                                                  AppResourceScope appResourceScope,
-                                                                  String scopeType,
-                                                                  String scopeId) {
+    public Response<List<DynamicGroupBasicVO>> listDynamicGroups(String username,
+                                                                 AppResourceScope appResourceScope,
+                                                                 String scopeType,
+                                                                 String scopeId,
+                                                                 ListDynamicGroupsReq req) {
         ApplicationDTO applicationDTO = applicationService.getAppByAppId(appResourceScope.getAppId());
         // 业务集动态分组暂不支持
         if (!applicationDTO.isBiz()) {
@@ -320,17 +345,31 @@ public class WebHostResourceImpl implements WebHostResource {
         List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
             username, appResourceScope
         );
-        List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
-            .map(TopologyHelper::convertToDynamicGroupBasicVO)
-            .collect(Collectors.toList());
-        return Response.buildSuccessResp(dynamicGroupInfoList);
+        List<DynamicGroupIdWithMeta> idWithMetaList = req.getIdWithMetaList();
+        if (idWithMetaList == null) {
+            List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
+                .map(TopologyHelper::convertToDynamicGroupBasicVO)
+                .collect(Collectors.toList());
+            return Response.buildSuccessResp(dynamicGroupInfoList);
+        } else {
+            // TODO:全量拉取+按ID过滤实现，优化为部分拉取需要CMDB接口支持
+            Set<String> idSet =
+                idWithMetaList.stream().map(DynamicGroupIdWithMeta::getId).collect(Collectors.toSet());
+            List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
+                .map(TopologyHelper::convertToDynamicGroupBasicVO)
+                .filter(dynamicGroupBasicVO -> idSet.contains(dynamicGroupBasicVO.getId()))
+                .collect(Collectors.toList());
+            return Response.buildSuccessResp(dynamicGroupInfoList);
+        }
     }
 
-    private List<DynamicGroupHostStatisticsVO> fakeDynamicGroupHostStatistics(List<String> idList) {
-        List<DynamicGroupHostStatisticsVO> resultList = new ArrayList<>(idList.size());
-        for (String id : idList) {
+    private List<DynamicGroupHostStatisticsVO> fakeDynamicGroupHostStatistics(
+        List<DynamicGroupIdWithMeta> idWithMetaList
+    ) {
+        List<DynamicGroupHostStatisticsVO> resultList = new ArrayList<>(idWithMetaList.size());
+        for (DynamicGroupIdWithMeta idWithMeta : idWithMetaList) {
             resultList.add(new DynamicGroupHostStatisticsVO(
-                    new DynamicGroupBasicVO(id, id),
+                    new DynamicGroupBasicVO(idWithMeta.getId(), idWithMeta.getId()),
                     new AgentStatistics(100, 200)
                 )
             );
@@ -347,12 +386,12 @@ public class WebHostResourceImpl implements WebHostResource {
         GetHostAgentStatisticsByDynamicGroupsReq req
     ) {
         // TODO
-        return Response.buildSuccessResp(fakeDynamicGroupHostStatistics(req.getIdList()));
+        return Response.buildSuccessResp(fakeDynamicGroupHostStatistics(req.getIdWithMetaList()));
     }
 
     private PageData<HostInfoVO> fakeHostInfo(String dynamicGroupId,
-                                              Integer start,
-                                              Integer pageSize) {
+                                              Long start,
+                                              Long pageSize) {
         List<HostInfoVO> hostList = new ArrayList<>();
         HostInfoVO hostInfoVO = new HostInfoVO();
         hostInfoVO.setHostId(1L);
@@ -361,23 +400,20 @@ public class WebHostResourceImpl implements WebHostResource {
         hostInfoVO.setAlive(0);
         hostList.add(hostInfoVO);
         PageData<HostInfoVO> pageData = new PageData<>();
-        pageData.setStart(start);
-        pageData.setPageSize(pageSize);
+        pageData.setStart(start.intValue());
+        pageData.setPageSize(pageSize.intValue());
         pageData.setTotal(100L);
         pageData.setData(hostList);
         return pageData;
     }
 
     @Override
-    public Response<PageData<HostInfoVO>> listHostsByDynamicGroup(String username,
-                                                                  AppResourceScope appResourceScope,
-                                                                  String scopeType,
-                                                                  String scopeId,
-                                                                  String dynamicGroupId,
-                                                                  Integer start,
-                                                                  Integer pageSize) {
-        // TODO
-        return Response.buildSuccessResp(fakeHostInfo(dynamicGroupId, start, pageSize));
+    public Response<PageData<HostInfoVO>> pageListHostsByDynamicGroup(String username,
+                                                                      AppResourceScope appResourceScope,
+                                                                      String scopeType,
+                                                                      String scopeId,
+                                                                      PageListHostsByDynamicGroupReq req) {
+        return Response.buildSuccessResp(fakeHostInfo(req.getId(), req.getStart(), req.getPageSize()));
     }
 
     @Override
@@ -460,6 +496,22 @@ public class WebHostResourceImpl implements WebHostResource {
             }
         });
         return Response.buildSuccessResp(hostList);
+    }
+
+    @Override
+    public Response<List<HostInfoVO>> getHostDetails(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     String scopeType,
+                                                     String scopeId,
+                                                     HostDetailReq req) {
+        Collection<Long> hostIds = req.getHostIdWithMetaList().parallelStream()
+            .map(HostIdWithMeta::getHostId)
+            .collect(Collectors.toList());
+        List<ApplicationHostDTO> hostList = statefulHostService.listHostDetails(appResourceScope, hostIds);
+        List<HostInfoVO> hostInfoVOList = hostList.parallelStream()
+            .map(ApplicationHostDTO::toVO)
+            .collect(Collectors.toList());
+        return Response.buildSuccessResp(hostInfoVOList);
     }
 
     @Override

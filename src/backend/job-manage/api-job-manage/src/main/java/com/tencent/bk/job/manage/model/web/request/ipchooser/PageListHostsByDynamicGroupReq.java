@@ -22,40 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.manage.model.web.request.ipchooser;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import io.swagger.annotations.ApiParam;
+import lombok.Data;
 
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
-@Getter
-@Setter
-@ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CcTopologyNodeVO {
-    private Long instanceId;
-    private String instanceName;
-    private String objectId;
-    private String objectName;
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
-    private Boolean expanded = true;
-    private Boolean lazy = false;
-    private List<CcTopologyNodeVO> child;
+@Data
+@ApiModel("批量获取动态分组请求体")
+public class PageListHostsByDynamicGroupReq {
 
-    @ApiModelProperty("节点包含的 IP 列表")
-    private List<String> ipList;
+    @ApiModelProperty(value = "动态分组ID")
+    String id;
 
-    @ApiModelProperty("节点内主机状态信息")
-    private List<HostInfoVO> ipListStatus;
-    @JsonIgnore
-    private Set<Long> hostIdSet;
-    private int count;
+    @ApiModelProperty(value = "动态分组元数据")
+    Map<String, Object> meta;
+
+    @ApiParam(value = "数据起始位置，不传默认为0")
+    Long start;
+
+    @ApiParam(value = "拉取的数据量，最大500，不传默认为20")
+    Long pageSize;
+
 }

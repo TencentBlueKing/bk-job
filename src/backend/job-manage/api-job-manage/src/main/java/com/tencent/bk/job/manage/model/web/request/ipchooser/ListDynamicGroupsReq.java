@@ -22,40 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.manage.model.web.request.ipchooser;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 import java.util.List;
-import java.util.Set;
 
-@Getter
-@Setter
-@ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CcTopologyNodeVO {
-    private Long instanceId;
-    private String instanceName;
-    private String objectId;
-    private String objectName;
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
-    private Boolean expanded = true;
-    private Boolean lazy = false;
-    private List<CcTopologyNodeVO> child;
+@Data
+@ApiModel("批量获取动态分组请求体")
+public class ListDynamicGroupsReq {
 
-    @ApiModelProperty("节点包含的 IP 列表")
-    private List<String> ipList;
+    @ApiModelProperty(value = "要获取的动态分组ID及元数据列表，不传表示获取所有")
+    List<DynamicGroupIdWithMeta> idWithMetaList;
 
-    @ApiModelProperty("节点内主机状态信息")
-    private List<HostInfoVO> ipListStatus;
-    @JsonIgnore
-    private Set<Long> hostIdSet;
-    private int count;
 }

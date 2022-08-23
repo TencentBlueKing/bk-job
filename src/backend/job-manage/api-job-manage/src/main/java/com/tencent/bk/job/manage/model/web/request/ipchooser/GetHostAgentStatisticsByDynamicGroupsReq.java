@@ -38,6 +38,6 @@ import java.util.List;
 @ApiModel("通过动态分组列表获取主机Agent状态统计信息")
 public class GetHostAgentStatisticsByDynamicGroupsReq {
 
-    @ApiModelProperty(value = "动态分组ID列表", required = true)
-    List<String> idList;
+    @ApiModelProperty(value = "动态分组ID及元数据列表", required = true)
+    List<DynamicGroupIdWithMeta> idWithMetaList;
 }

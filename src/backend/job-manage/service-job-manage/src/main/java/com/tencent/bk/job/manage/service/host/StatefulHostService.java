@@ -22,40 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.manage.service.host;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
-@Getter
-@Setter
-@ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CcTopologyNodeVO {
-    private Long instanceId;
-    private String instanceName;
-    private String objectId;
-    private String objectName;
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
-    private Boolean expanded = true;
-    private Boolean lazy = false;
-    private List<CcTopologyNodeVO> child;
+/**
+ * 有状态的主机服务，查出的主机信息包含Agent状态，云区域名称等详情信息
+ */
+public interface StatefulHostService {
 
-    @ApiModelProperty("节点包含的 IP 列表")
-    private List<String> ipList;
+    List<ApplicationHostDTO> listHostDetails(AppResourceScope appResourceScope, Collection<Long> hostIds);
 
-    @ApiModelProperty("节点内主机状态信息")
-    private List<HostInfoVO> ipListStatus;
-    @JsonIgnore
-    private Set<Long> hostIdSet;
-    private int count;
 }
