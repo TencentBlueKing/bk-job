@@ -345,7 +345,7 @@ public class WebHostResourceImpl implements WebHostResource {
         List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
             username, appResourceScope
         );
-        List<DynamicGroupIdWithMeta> idWithMetaList = req == null ? null : req.getIdWithMetaList();
+        List<DynamicGroupIdWithMeta> idWithMetaList = req == null ? null : req.getDynamicGroupList();
         if (idWithMetaList == null) {
             List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
                 .map(TopologyHelper::convertToDynamicGroupBasicVO)
@@ -386,7 +386,7 @@ public class WebHostResourceImpl implements WebHostResource {
         GetHostAgentStatisticsByDynamicGroupsReq req
     ) {
         // TODO
-        return Response.buildSuccessResp(fakeDynamicGroupHostStatistics(req.getIdWithMetaList()));
+        return Response.buildSuccessResp(fakeDynamicGroupHostStatistics(req.getDynamicGroupList()));
     }
 
     private PageData<HostInfoVO> fakeHostInfo(String dynamicGroupId,
@@ -504,7 +504,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                      String scopeType,
                                                      String scopeId,
                                                      HostDetailReq req) {
-        Collection<Long> hostIds = req.getHostIdWithMetaList().parallelStream()
+        Collection<Long> hostIds = req.getHostList().parallelStream()
             .map(HostIdWithMeta::getHostId)
             .collect(Collectors.toList());
         List<ApplicationHostDTO> hostList = statefulHostService.listHostDetails(appResourceScope, hostIds);
