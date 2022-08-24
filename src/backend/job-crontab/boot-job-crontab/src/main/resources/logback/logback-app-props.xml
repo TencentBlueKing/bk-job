@@ -1,4 +1,5 @@
 <included>
+    <property name="APP_NAME" value="${APP_NAME:-job-crontab}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
     <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-crontab}"/>
     <property name="APP_LOG_NAME" value="crontab.log"/>

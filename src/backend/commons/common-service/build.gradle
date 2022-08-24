@@ -54,5 +54,9 @@ dependencies {
     api 'io.jsonwebtoken:jjwt'
     api 'io.prometheus:simpleclient_pushgateway'
     api 'io.micrometer:micrometer-registry-prometheus'
+    api "org.springframework.cloud:spring-cloud-sleuth-api"
+    api "org.springframework.cloud:spring-cloud-sleuth-otel"
+    api "org.springframework.cloud:spring-cloud-sleuth-otel-autoconfigure"
+    api "io.opentelemetry:opentelemetry-exporter-otlp-trace"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

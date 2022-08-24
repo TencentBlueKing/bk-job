@@ -52,6 +52,9 @@ dependencies {
     implementation "commons-io:commons-io"
     implementation "commons-codec:commons-codec"
     implementation 'joda-time:joda-time'
+    implementation "org.springframework.cloud:spring-cloud-sleuth-api"
+    implementation "org.springframework.cloud:spring-cloud-sleuth-otel-autoconfigure"
+    implementation "io.opentelemetry:opentelemetry-exporter-otlp-trace"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.commons:commons-lang3'
 }
