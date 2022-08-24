@@ -223,7 +223,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     }
 
     private void initTargetAgentTasks() {
-        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount, batch);
+        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         agentTasks.stream()
             .filter(AgentTaskDTO::isTarget)
             .forEach(agentTask -> this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask));
