@@ -224,10 +224,24 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
     private void initTargetAgentTasks() {
         List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        fillIpForAgentTasks(agentTasks);
         agentTasks.stream()
             .filter(AgentTaskDTO::isTarget)
             .forEach(agentTask -> this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask));
     }
+
+    protected void fillIpForAgentTasks(List<AgentTaskDTO> agentTasks) {
+        Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
+        agentTasks.forEach(agentTask -> {
+            if (agentTask.getHostId() != null) {
+                HostDTO host = hosts.get(agentTask.getHostId());
+                if (host != null) {
+                    agentTask.setCloudIp(host.toCloudIp());
+                }
+            }
+        });
+    }
+
 
     private void initVariables() {
         if (taskInstance.isPlanInstance()) {
