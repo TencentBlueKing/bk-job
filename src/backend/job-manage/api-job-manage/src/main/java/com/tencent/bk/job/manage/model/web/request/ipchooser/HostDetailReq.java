@@ -36,7 +36,7 @@ import java.util.List;
 public class HostDetailReq {
 
     @ApiModelProperty(value = "hostId及元数据列表", required = true)
-    List<HostIdWithMeta> hostIdWithMetaList = new ArrayList<>();
+    List<HostIdWithMeta> hostList = new ArrayList<>();
 
 }
 

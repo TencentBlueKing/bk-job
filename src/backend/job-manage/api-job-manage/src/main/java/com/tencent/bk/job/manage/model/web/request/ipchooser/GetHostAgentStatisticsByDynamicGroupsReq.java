@@ -39,5 +39,5 @@ import java.util.List;
 public class GetHostAgentStatisticsByDynamicGroupsReq {
 
     @ApiModelProperty(value = "动态分组ID及元数据列表", required = true)
-    List<DynamicGroupIdWithMeta> idWithMetaList;
+    List<DynamicGroupIdWithMeta> dynamicGroupList;
 }

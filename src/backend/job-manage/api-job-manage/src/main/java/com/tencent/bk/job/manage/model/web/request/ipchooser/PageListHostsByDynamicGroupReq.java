@@ -32,7 +32,7 @@ import lombok.Data;
 import java.util.Map;
 
 @Data
-@ApiModel("批量获取动态分组请求体")
+@ApiModel("根据动态分组分页查询主机请求体")
 public class PageListHostsByDynamicGroupReq {
 
     @ApiModelProperty(value = "动态分组ID")

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.request.ipchooser;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -36,6 +35,6 @@ import java.util.List;
 public class ListDynamicGroupsReq {
 
     @ApiModelProperty(value = "要获取的动态分组ID及元数据列表，不传表示获取所有")
-    List<DynamicGroupIdWithMeta> idWithMetaList;
+    List<DynamicGroupIdWithMeta> dynamicGroupList;
 
 }

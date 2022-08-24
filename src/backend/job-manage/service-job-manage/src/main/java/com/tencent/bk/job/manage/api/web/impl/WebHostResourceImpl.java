@@ -345,7 +345,7 @@ public class WebHostResourceImpl implements WebHostResource {
         List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
             username, appResourceScope
         );
-        List<DynamicGroupIdWithMeta> idWithMetaList = req.getIdWithMetaList();
+        List<DynamicGroupIdWithMeta> idWithMetaList = req == null ? null : req.getIdWithMetaList();
         if (idWithMetaList == null) {
             List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
                 .map(TopologyHelper::convertToDynamicGroupBasicVO)
