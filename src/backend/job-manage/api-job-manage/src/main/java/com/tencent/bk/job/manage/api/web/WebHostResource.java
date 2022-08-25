@@ -37,6 +37,7 @@ import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.HostDetailReq;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.HostIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListTopologyHostCountTreesReq;
@@ -362,7 +363,7 @@ public interface WebHostResource {
     @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器hostIds"
         , produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostIds/nodes"})
-    Response<PageData<Long>> listHostIdByBizTopologyNodes(
+    Response<PageData<HostIdWithMeta>> listHostIdByBizTopologyNodes(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

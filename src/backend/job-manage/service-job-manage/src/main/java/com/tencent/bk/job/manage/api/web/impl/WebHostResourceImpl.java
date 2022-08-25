@@ -219,26 +219,44 @@ public class WebHostResourceImpl implements WebHostResource {
     }
 
     @Override
-    public Response<PageData<Long>> listHostIdByBizTopologyNodes(String username,
-                                                                 AppResourceScope appResourceScope,
-                                                                 String scopeType,
-                                                                 String scopeId,
-                                                                 ListHostByBizTopologyNodesReq req) {
+    public Response<PageData<HostIdWithMeta>> listHostIdByBizTopologyNodes(String username,
+                                                                           AppResourceScope appResourceScope,
+                                                                           String scopeType,
+                                                                           String scopeId,
+                                                                           ListHostByBizTopologyNodesReq req) {
         // 参数标准化
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
-        return Response.buildSuccessResp(
-            scopeHostService.listHostIdByBizTopologyNodes(
-                appResourceScope,
-                req.getNodeList(),
-                req.getSearchContent(),
-                req.getAlive(),
-                pagePair.getLeft(),
-                pagePair.getRight()
-            )
+        PageData<Long> pageData = scopeHostService.listHostIdByBizTopologyNodes(
+            appResourceScope,
+            req.getNodeList(),
+            req.getSearchContent(),
+            req.getAlive(),
+            pagePair.getLeft(),
+            pagePair.getRight()
         );
+        PageData<HostIdWithMeta> finalPageData = wrapWithMeta(pageData);
+        return Response.buildSuccessResp(finalPageData);
+    }
+
+    private PageData<HostIdWithMeta> wrapWithMeta(PageData<Long> pageData) {
+        if (pageData == null) {
+            return null;
+        }
+        PageData<HostIdWithMeta> finalPageData = new PageData<>();
+        finalPageData.setStart(pageData.getStart());
+        finalPageData.setPageSize(pageData.getPageSize());
+        finalPageData.setTotal(pageData.getTotal());
+        finalPageData.setCanCreate(pageData.getCanCreate());
+        finalPageData.setExistAny(pageData.getExistAny());
+        finalPageData.setData(pageData.getData().parallelStream()
+            .map(it -> new HostIdWithMeta(it, null))
+            .collect(Collectors.toList())
+        );
+        return finalPageData;
     }
 
     @Override
+
     public Response<List<BizTopoNode>> getNodeDetail(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,

@@ -26,10 +26,12 @@ package com.tencent.bk.job.manage.model.web.request.ipchooser;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.Map;
 
+@AllArgsConstructor
 @Data
 @ApiModel("主机ID及元数据")
 public class HostIdWithMeta {
