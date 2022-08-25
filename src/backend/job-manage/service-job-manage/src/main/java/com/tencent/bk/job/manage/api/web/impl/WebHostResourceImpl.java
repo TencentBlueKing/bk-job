@@ -460,7 +460,13 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                       String scopeType,
                                                                       String scopeId,
                                                                       PageListHostsByDynamicGroupReq req) {
-        return Response.buildSuccessResp(fakeHostInfo(req.getId(), req.getStart(), req.getPageSize()));
+        PageData<ApplicationHostDTO> pageData = bizDynamicGroupHostService.pageHostByDynamicGroup(
+            Long.parseLong(scopeId),
+            req.getId(),
+            req.getStart().intValue(),
+            req.getPageSize().intValue()
+        );
+        return Response.buildSuccessResp(PageUtil.transferPageData(pageData, ApplicationHostDTO::toVO));
     }
 
     @Override

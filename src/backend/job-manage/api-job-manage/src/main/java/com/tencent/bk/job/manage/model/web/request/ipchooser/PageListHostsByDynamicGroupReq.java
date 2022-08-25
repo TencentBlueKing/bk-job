@@ -29,22 +29,24 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiParam;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 @Data
 @ApiModel("根据动态分组分页查询主机请求体")
 public class PageListHostsByDynamicGroupReq {
 
-    @ApiModelProperty(value = "动态分组ID")
+    @ApiModelProperty(value = "动态分组ID", required = true)
+    @NotNull(message = "{validation.constraints.emptyDynamicGroupId.message}")
     String id;
 
     @ApiModelProperty(value = "动态分组元数据")
     Map<String, Object> meta;
 
     @ApiParam(value = "数据起始位置，不传默认为0")
-    Long start;
+    Long start = 0L;
 
     @ApiParam(value = "拉取的数据量，最大500，不传默认为20")
-    Long pageSize;
+    Long pageSize = 20L;
 
 }

@@ -26,7 +26,9 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.util.PageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,5 +59,10 @@ public class BizDynamicGroupHostService {
             .filter(Objects::nonNull)
             .map(CcGroupHostPropDTO::toApplicationHostDTO)
             .collect(Collectors.toList());
+    }
+
+    public PageData<ApplicationHostDTO> pageHostByDynamicGroup(long bizId, String id, int start, int pageSize) {
+        List<ApplicationHostDTO> hostList = listHostByDynamicGroup(bizId, id);
+        return PageUtil.pageInMem(hostList, start, pageSize);
     }
 }
