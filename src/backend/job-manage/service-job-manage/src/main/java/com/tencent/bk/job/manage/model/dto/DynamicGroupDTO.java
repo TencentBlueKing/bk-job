@@ -22,27 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.manage.model.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.Map;
-
-@ApiModel("动态分组信息")
 @Data
+@EqualsAndHashCode
+@NoArgsConstructor
 @AllArgsConstructor
-public class DynamicGroupBasicVO {
+public class DynamicGroupDTO {
 
-    @ApiModelProperty("动态分组 ID")
+    private Long bizId;
+
     private String id;
 
-    @ApiModelProperty("动态分组名称")
     private String name;
 
-    @ApiModelProperty(value = "动态分组元数据")
-    Map<String, Object> meta;
+    public static DynamicGroupDTO fromCcGroupDTO(CcGroupDTO ccGroupDTO) {
+        if (ccGroupDTO == null) {
+            return null;
+        }
+        DynamicGroupDTO dynamicGroupDTO = new DynamicGroupDTO();
+        dynamicGroupDTO.setId(ccGroupDTO.getId());
+        dynamicGroupDTO.setBizId(ccGroupDTO.getBizId());
+        dynamicGroupDTO.setName(ccGroupDTO.getName());
+        return dynamicGroupDTO;
+    }
 
+    public DynamicGroupBasicVO toBasicVO() {
+        return new DynamicGroupBasicVO(id, name, null);
+    }
 }

@@ -22,27 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.manage.service.impl;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.manage.model.dto.DynamicGroupDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@ApiModel("动态分组信息")
-@Data
-@AllArgsConstructor
-public class DynamicGroupBasicVO {
+@Slf4j
+@Service
+public class BizDynamicGroupService {
 
-    @ApiModelProperty("动态分组 ID")
-    private String id;
+    private final BizCmdbClient bizCmdbClient;
 
-    @ApiModelProperty("动态分组名称")
-    private String name;
+    @Autowired
+    public BizDynamicGroupService(BizCmdbClient bizCmdbClient) {
+        this.bizCmdbClient = bizCmdbClient;
+    }
 
-    @ApiModelProperty(value = "动态分组元数据")
-    Map<String, Object> meta;
+    public List<DynamicGroupDTO> listDynamicGroup(Long bizId) {
+        List<CcGroupDTO> ccGroupList = bizCmdbClient.getDynamicGroupList(bizId);
+        return ccGroupList.parallelStream().map(DynamicGroupDTO::fromCcGroupDTO).collect(Collectors.toList());
+    }
 
+    public List<DynamicGroupDTO> listDynamicGroup(Long bizId, Collection<String> ids) {
+        Set<String> idSet = new HashSet<>(ids);
+        List<DynamicGroupDTO> dynamicGroupList = listDynamicGroup(bizId);
+        return dynamicGroupList.parallelStream().filter(it -> idSet.contains(it.getId())).collect(Collectors.toList());
+    }
 }

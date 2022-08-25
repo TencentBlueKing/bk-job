@@ -22,27 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.manage.service.host.impl;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-@ApiModel("动态分组信息")
-@Data
-@AllArgsConstructor
-public class DynamicGroupBasicVO {
+@Slf4j
+@Service
+public class BizDynamicGroupHostService {
 
-    @ApiModelProperty("动态分组 ID")
-    private String id;
+    private final BizCmdbClient bizCmdbClient;
 
-    @ApiModelProperty("动态分组名称")
-    private String name;
+    @Autowired
+    public BizDynamicGroupHostService(BizCmdbClient bizCmdbClient) {
+        this.bizCmdbClient = bizCmdbClient;
+    }
 
-    @ApiModelProperty(value = "动态分组元数据")
-    Map<String, Object> meta;
-
+    public List<ApplicationHostDTO> listHostByDynamicGroup(long bizId, String id) {
+        List<CcGroupHostPropDTO> ccGroupHostList = bizCmdbClient.getDynamicGroupIp(bizId, id);
+        if (CollectionUtils.isEmpty(ccGroupHostList)) {
+            return Collections.emptyList();
+        }
+        return ccGroupHostList.parallelStream()
+            .filter(Objects::nonNull)
+            .map(CcGroupHostPropDTO::toApplicationHostDTO)
+            .collect(Collectors.toList());
+    }
 }

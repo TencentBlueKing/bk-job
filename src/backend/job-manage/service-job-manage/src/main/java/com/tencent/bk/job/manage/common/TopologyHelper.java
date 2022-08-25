@@ -199,7 +199,7 @@ public class TopologyHelper {
         if (dynamicGroupInfoDTO == null) {
             return null;
         }
-        return new DynamicGroupBasicVO(dynamicGroupInfoDTO.getId(), dynamicGroupInfoDTO.getName());
+        return new DynamicGroupBasicVO(dynamicGroupInfoDTO.getId(), dynamicGroupInfoDTO.getName(), null);
     }
 
     /**

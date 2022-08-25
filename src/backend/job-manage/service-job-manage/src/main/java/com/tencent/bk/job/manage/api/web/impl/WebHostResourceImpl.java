@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.api.web.WebHostResource;
 import com.tencent.bk.job.manage.common.TopologyHelper;
+import com.tencent.bk.job.manage.model.dto.DynamicGroupDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
@@ -67,6 +68,8 @@ import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.host.StatefulHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
+import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
+import com.tencent.bk.job.manage.service.impl.BizDynamicGroupService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -95,6 +98,8 @@ public class WebHostResourceImpl implements WebHostResource {
     private final AgentStatusService agentStatusService;
     private final StatefulHostService statefulHostService;
     private final BizTopoHostService bizTopoHostService;
+    private final BizDynamicGroupService bizDynamicGroupService;
+    private final BizDynamicGroupHostService bizDynamicGroupHostService;
 
     @Autowired
     public WebHostResourceImpl(ApplicationService applicationService,
@@ -103,7 +108,9 @@ public class WebHostResourceImpl implements WebHostResource {
                                WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
                                AgentStatusService agentStatusService,
                                StatefulHostService statefulHostService,
-                               BizTopoHostService bizTopoHostService) {
+                               BizTopoHostService bizTopoHostService,
+                               BizDynamicGroupService bizDynamicGroupService,
+                               BizDynamicGroupHostService bizDynamicGroupHostService) {
         this.applicationService = applicationService;
         this.hostService = hostService;
         this.scopeHostService = scopeHostService;
@@ -111,6 +118,8 @@ public class WebHostResourceImpl implements WebHostResource {
         this.agentStatusService = agentStatusService;
         this.statefulHostService = statefulHostService;
         this.bizTopoHostService = bizTopoHostService;
+        this.bizDynamicGroupService = bizDynamicGroupService;
+        this.bizDynamicGroupHostService = bizDynamicGroupHostService;
     }
 
     @Override
@@ -394,20 +403,6 @@ public class WebHostResourceImpl implements WebHostResource {
         }
     }
 
-    private List<DynamicGroupHostStatisticsVO> fakeDynamicGroupHostStatistics(
-        List<DynamicGroupIdWithMeta> idWithMetaList
-    ) {
-        List<DynamicGroupHostStatisticsVO> resultList = new ArrayList<>(idWithMetaList.size());
-        for (DynamicGroupIdWithMeta idWithMeta : idWithMetaList) {
-            resultList.add(new DynamicGroupHostStatisticsVO(
-                    new DynamicGroupBasicVO(idWithMeta.getId(), idWithMeta.getId()),
-                    new AgentStatistics(100, 200)
-                )
-            );
-        }
-        return resultList;
-    }
-
     @Override
     public Response<List<DynamicGroupHostStatisticsVO>> getHostAgentStatisticsByDynamicGroups(
         String username,
@@ -416,8 +411,29 @@ public class WebHostResourceImpl implements WebHostResource {
         String scopeId,
         GetHostAgentStatisticsByDynamicGroupsReq req
     ) {
-        // TODO
-        return Response.buildSuccessResp(fakeDynamicGroupHostStatistics(req.getDynamicGroupList()));
+        if (ResourceScopeTypeEnum.BIZ_SET.getValue().equals(scopeType)) {
+            return Response.buildCommonFailResp(ErrorCode.NOT_SUPPORT_FEATURE_FOR_BIZ_SET);
+        }
+        List<DynamicGroupIdWithMeta> idWithMetaList = req.getDynamicGroupList();
+        if (CollectionUtils.isEmpty(idWithMetaList)) {
+            return Response.buildSuccessResp(Collections.emptyList());
+        }
+        List<String> idList = idWithMetaList.stream().map(DynamicGroupIdWithMeta::getId).collect(Collectors.toList());
+        List<DynamicGroupDTO> dynamicGroupList =
+            bizDynamicGroupService.listDynamicGroup(Long.parseLong(scopeId), idList);
+        List<DynamicGroupHostStatisticsVO> resultList = new ArrayList<>();
+        for (DynamicGroupDTO dynamicGroupDTO : dynamicGroupList) {
+            DynamicGroupHostStatisticsVO statisticsVO = new DynamicGroupHostStatisticsVO();
+            statisticsVO.setDynamicGroup(dynamicGroupDTO.toBasicVO());
+            List<ApplicationHostDTO> hostList = bizDynamicGroupHostService.listHostByDynamicGroup(
+                Long.parseLong(scopeId),
+                dynamicGroupDTO.getId()
+            );
+            AgentStatistics agentStatistics = agentStatusService.calcAgentStatistics(hostList);
+            statisticsVO.setAgentStatistics(agentStatistics);
+            resultList.add(statisticsVO);
+        }
+        return Response.buildSuccessResp(resultList);
     }
 
     private PageData<HostInfoVO> fakeHostInfo(String dynamicGroupId,
