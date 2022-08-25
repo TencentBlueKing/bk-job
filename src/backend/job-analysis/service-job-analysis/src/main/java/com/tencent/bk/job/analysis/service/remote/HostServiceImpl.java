@@ -31,7 +31,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,7 +49,7 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<AppTopologyTreeNode> treeNodeList) {
+    public List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<BizTopoNode> treeNodeList) {
         return hostResourceClient.getHostStatusByNode(appId, new ServiceGetHostStatusByNodeReq(treeNodeList)).getData();
     }
 

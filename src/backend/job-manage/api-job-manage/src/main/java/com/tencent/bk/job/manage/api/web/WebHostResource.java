@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.HostDetailReq;
@@ -160,6 +160,7 @@ public interface WebHostResource {
         @PathVariable(value = "scopeId")
             String scopeId
     );
+
     @Deprecated
     @CompatibleImplementation(
         explain = "仅用作IPv6上线发布过程中的兼容，后续切换为listHostIdByBizTopologyNodes", version = "3.7.0")
@@ -188,7 +189,7 @@ public interface WebHostResource {
     @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取节点详情", produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/detail"})
-    Response<List<AppTopologyTreeNode>> getNodeDetail(
+    Response<List<BizTopoNode>> getNodeDetail(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

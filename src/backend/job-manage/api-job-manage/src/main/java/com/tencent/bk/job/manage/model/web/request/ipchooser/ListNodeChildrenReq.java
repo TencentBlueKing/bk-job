@@ -38,7 +38,7 @@ import lombok.Data;
 public class ListNodeChildrenReq {
 
     @ApiModelProperty(value = "业务拓扑节点", required = true)
-    AppTopologyTreeNode appTopoNode;
+    BizTopoNode appTopoNode;
 
     @ApiModelProperty(value = "数据起始位置", required = false)
     Long offset;

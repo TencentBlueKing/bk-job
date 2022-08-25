@@ -51,8 +51,9 @@ public interface HostTopoDAO {
 
     List<HostTopoDTO> listHostTopoByModuleId(DSLContext dslContext, Long moduleId);
 
-    List<HostTopoDTO> listHostTopoByModuleIds(DSLContext dslContext, Collection<Long> moduleIds, Long start,
-                                              Long limit);
+    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds);
+
+    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
 
     /**
      * 根据CMDB业务IDs查询下属主机ID列表

@@ -22,20 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service;
+package com.tencent.bk.job.manage.service.host;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 
 import java.util.List;
 
-public interface HostService {
+/**
+ * 业务拓扑相关的主机服务，根据拓扑节点查主机等
+ */
+public interface BizTopoHostService {
 
-    List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<BizTopoNode> treeNodeList);
+    List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node);
 
-    List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(Long appId, List<String> dynamicGroupIdList);
-
-    List<ServiceHostStatusDTO> getHostStatusByHost(Long appId,
-                                                   List<HostDTO> hostList);
 }

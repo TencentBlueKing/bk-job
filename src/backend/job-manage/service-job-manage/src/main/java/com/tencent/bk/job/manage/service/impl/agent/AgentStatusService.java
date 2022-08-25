@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.LogUtil;
+import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.FormattingTuple;
@@ -88,5 +89,26 @@ public class AgentStatusService {
                 hostInfoDTO.setGseAgentStatus(agentState.getStatusCode());
             }
         }
+    }
+
+    /**
+     * 为主机填充实时Agent状态并给出正常/异常统计数据
+     *
+     * @param hosts 主机列表
+     * @return 主机统计数据
+     */
+    public AgentStatistics calcAgentStatistics(List<ApplicationHostDTO> hosts) {
+        fillRealTimeAgentStatus(hosts);
+        int normalNum = 0;
+        int abnormalNum = 0;
+        for (ApplicationHostDTO it : hosts) {
+            Boolean alive = it.getGseAgentAlive();
+            if (alive != null && alive) {
+                normalNum++;
+            } else {
+                abnormalNum++;
+            }
+        }
+        return new AgentStatistics(normalNum, abnormalNum);
     }
 }

@@ -22,20 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service;
+package com.tencent.bk.job.manage.service.host.impl;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
+import com.tencent.bk.job.manage.service.host.BizHostService;
+import com.tencent.bk.job.manage.service.host.BizTopoHostService;
+import com.tencent.bk.job.manage.service.impl.topo.BizTopoService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
-public interface HostService {
+@Slf4j
+@Service
+public class BizTopoHostServiceImpl implements BizTopoHostService {
 
-    List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<BizTopoNode> treeNodeList);
+    private final BizTopoService bizTopoService;
+    private final BizHostService bizHostService;
 
-    List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(Long appId, List<String> dynamicGroupIdList);
+    @Autowired
+    public BizTopoHostServiceImpl(BizTopoService bizTopoService,
+                                  BizHostService bizHostService) {
+        this.bizTopoService = bizTopoService;
+        this.bizHostService = bizHostService;
+    }
 
-    List<ServiceHostStatusDTO> getHostStatusByHost(Long appId,
-                                                   List<HostDTO> hostList);
+    @Override
+    public List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node) {
+        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, Collections.singletonList(node));
+        return bizHostService.getHostsByModuleIds(moduleIds);
+    }
 }

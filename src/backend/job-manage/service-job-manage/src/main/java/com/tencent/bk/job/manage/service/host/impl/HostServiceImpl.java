@@ -63,7 +63,7 @@ import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
@@ -329,9 +329,9 @@ public class HostServiceImpl implements HostService {
      * @return 拓扑节点详情
      */
     @Override
-    public List<AppTopologyTreeNode> getAppTopologyTreeNodeDetail(String username,
-                                                                  AppResourceScope appResourceScope,
-                                                                  List<AppTopologyTreeNode> treeNodeList) {
+    public List<BizTopoNode> getAppTopologyTreeNodeDetail(String username,
+                                                          AppResourceScope appResourceScope,
+                                                          List<BizTopoNode> treeNodeList) {
         log.info(
             "Input(username={},appResourceScope={},treeNodeList={})",
             username, appResourceScope, JsonUtils.toJson(treeNodeList)
@@ -344,14 +344,14 @@ public class HostServiceImpl implements HostService {
         InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
             Long.parseLong(appResourceScope.getId())
         );
-        List<AppTopologyTreeNode> nodeList = ConcurrencyUtil.getResultWithThreads(treeNodeList, 5, treeNode -> {
+        List<BizTopoNode> nodeList = ConcurrencyUtil.getResultWithThreads(treeNodeList, 5, treeNode -> {
             CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
             // 查拓扑节点完整信息
             InstanceTopologyDTO completeNode = TopologyUtil.findNodeFromTopo(appTopologyTree, ccInstanceDTO);
             if (completeNode == null) {
                 return Collections.emptyList();
             }
-            AppTopologyTreeNode node = new AppTopologyTreeNode();
+            BizTopoNode node = new BizTopoNode();
             node.setObjectId(completeNode.getObjectId());
             node.setInstanceId(completeNode.getInstanceId());
             node.setObjectName(completeNode.getObjectName());
@@ -359,13 +359,13 @@ public class HostServiceImpl implements HostService {
             return Collections.singletonList(node);
         });
         // 排序
-        Map<String, AppTopologyTreeNode> map = new HashMap<>();
-        for (AppTopologyTreeNode appTopologyTreeNode : nodeList) {
-            map.put(appTopologyTreeNode.getObjectId() + "_" + appTopologyTreeNode.getInstanceId(), appTopologyTreeNode);
+        Map<String, BizTopoNode> map = new HashMap<>();
+        for (BizTopoNode bizTopoNode : nodeList) {
+            map.put(bizTopoNode.getObjectId() + "_" + bizTopoNode.getInstanceId(), bizTopoNode);
         }
-        List<AppTopologyTreeNode> orderedList = new ArrayList<>();
-        for (AppTopologyTreeNode appTopologyTreeNode : treeNodeList) {
-            String key = appTopologyTreeNode.getObjectId() + "_" + appTopologyTreeNode.getInstanceId();
+        List<BizTopoNode> orderedList = new ArrayList<>();
+        for (BizTopoNode bizTopoNode : treeNodeList) {
+            String key = bizTopoNode.getObjectId() + "_" + bizTopoNode.getInstanceId();
             if (map.containsKey(key)) {
                 orderedList.add(map.get(key));
             }
@@ -395,7 +395,7 @@ public class HostServiceImpl implements HostService {
     @Override
     public List<NodeInfoVO> getBizHostsByNode(String username,
                                               Long bizId,
-                                              List<AppTopologyTreeNode> treeNodeList) {
+                                              List<BizTopoNode> treeNodeList) {
         log.info(
             "Input(username={},bizId={},treeNodeList={})",
             username, bizId, JsonUtils.toJson(treeNodeList)
@@ -529,7 +529,7 @@ public class HostServiceImpl implements HostService {
             topologyTree.setIpListStatus(
                 listHostByAppTopologyNodes(
                     username, appResourceScope.getAppId(), Collections.singletonList(
-                        new AppTopologyTreeNode(
+                        new BizTopoNode(
                             "biz",
                             "biz",
                             Long.parseLong(appResourceScope.getId()),
@@ -1041,12 +1041,12 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public List<HostInfoVO> listHostByAppTopologyNodes(String username, Long appId,
-                                                       List<AppTopologyTreeNode> appTopoNodeList) {
+                                                       List<BizTopoNode> appTopoNodeList) {
         return listHostByAppTopologyNodes(appId, appTopoNodeList, null, null);
     }
 
     private List<Long> getBizModuleIdsByTopoNodes(Long bizId,
-                                                  List<AppTopologyTreeNode> appTopoNodeList) {
+                                                  List<BizTopoNode> appTopoNodeList) {
         if (appTopoNodeList == null || appTopoNodeList.isEmpty()) {
             return Collections.emptyList();
         }
@@ -1059,7 +1059,7 @@ public class HostServiceImpl implements HostService {
             throw new InternalException("Fail to getBizTopo of bizId " + bizId + " from CMDB",
                 ErrorCode.INTERNAL_ERROR);
         }
-        for (AppTopologyTreeNode treeNode : appTopoNodeList) {
+        for (BizTopoNode treeNode : appTopoNodeList) {
             CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
             // 查拓扑节点完整信息
             InstanceTopologyDTO completeNode = TopologyUtil.findNodeFromTopo(appTopologyTree, ccInstanceDTO);
@@ -1075,7 +1075,7 @@ public class HostServiceImpl implements HostService {
     }
 
     private List<HostInfoVO> listHostByAppTopologyNodes(Long appId,
-                                                        List<AppTopologyTreeNode> appTopoNodeList,
+                                                        List<BizTopoNode> appTopoNodeList,
                                                         Long start,
                                                         Long limit) {
         if (appTopoNodeList == null || appTopoNodeList.isEmpty()) {
@@ -1092,7 +1092,7 @@ public class HostServiceImpl implements HostService {
             InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(
                 Long.parseLong(appInfo.getScope().getId())
             );
-            for (AppTopologyTreeNode treeNode : appTopoNodeList) {
+            for (BizTopoNode treeNode : appTopoNodeList) {
                 CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
                 // 查拓扑节点完整信息
                 InstanceTopologyDTO completeNode = TopologyUtil.findNodeFromTopo(appTopologyTree, ccInstanceDTO);
@@ -1104,8 +1104,7 @@ public class HostServiceImpl implements HostService {
                 moduleIds.addAll(TopologyUtil.findModuleIdsFromTopo(completeNode));
             }
             // 查所有hostIds
-            List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByModuleIds(dslContext, moduleIds, start,
-                limit);
+            List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByModuleIds(moduleIds, start, limit);
             List<Long> hostIdList =
                 hostTopoDTOList.parallelStream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
             hosts = applicationHostDAO.listHostInfoByHostIds(hostIdList);

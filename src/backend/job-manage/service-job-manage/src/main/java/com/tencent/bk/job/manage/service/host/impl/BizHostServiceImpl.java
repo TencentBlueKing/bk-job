@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.host.BizHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,6 +42,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 业务主机服务
@@ -112,5 +114,13 @@ public class BizHostServiceImpl implements BizHostService {
         );
         watch.stop();
         return new PageData<>(start.intValue(), limit.intValue(), count, hostIdList);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getHostsByModuleIds(Collection<Long> moduleIds) {
+        List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByModuleIds(moduleIds);
+        List<Long> hostIdList =
+            hostTopoDTOList.parallelStream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
+        return applicationHostDAO.listHostInfoByHostIds(hostIdList);
     }
 }

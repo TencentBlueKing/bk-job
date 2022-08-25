@@ -44,7 +44,7 @@ import com.tencent.bk.job.manage.api.web.WebHostResource;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
@@ -62,6 +62,7 @@ import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.ipchooser.DynamicGroupHostStatisticsVO;
 import com.tencent.bk.job.manage.model.web.vo.ipchooser.NodeHostStatisticsVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.host.BizTopoHostService;
 import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.host.StatefulHostService;
@@ -93,6 +94,7 @@ public class WebHostResourceImpl implements WebHostResource {
     private final WhiteIpAwareScopeHostService whiteIpAwareScopeHostService;
     private final AgentStatusService agentStatusService;
     private final StatefulHostService statefulHostService;
+    private final BizTopoHostService bizTopoHostService;
 
     @Autowired
     public WebHostResourceImpl(ApplicationService applicationService,
@@ -100,13 +102,15 @@ public class WebHostResourceImpl implements WebHostResource {
                                ScopeHostService scopeHostService,
                                WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
                                AgentStatusService agentStatusService,
-                               StatefulHostService statefulHostService) {
+                               StatefulHostService statefulHostService,
+                               BizTopoHostService bizTopoHostService) {
         this.applicationService = applicationService;
         this.hostService = hostService;
         this.scopeHostService = scopeHostService;
         this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.agentStatusService = agentStatusService;
         this.statefulHostService = statefulHostService;
+        this.bizTopoHostService = bizTopoHostService;
     }
 
     @Override
@@ -235,14 +239,14 @@ public class WebHostResourceImpl implements WebHostResource {
     }
 
     @Override
-    public Response<List<AppTopologyTreeNode>> getNodeDetail(String username,
-                                                             AppResourceScope appResourceScope,
-                                                             String scopeType,
-                                                             String scopeId,
-                                                             List<TargetNodeVO> targetNodeVOList) {
-        List<AppTopologyTreeNode> treeNodeList = hostService.getAppTopologyTreeNodeDetail(username,
+    public Response<List<BizTopoNode>> getNodeDetail(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     String scopeType,
+                                                     String scopeId,
+                                                     List<TargetNodeVO> targetNodeVOList) {
+        List<BizTopoNode> treeNodeList = hostService.getAppTopologyTreeNodeDetail(username,
             appResourceScope,
-            targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
+            targetNodeVOList.stream().map(it -> new BizTopoNode(
                 it.getObjectId(),
                 "",
                 it.getInstanceId(),
@@ -289,21 +293,30 @@ public class WebHostResourceImpl implements WebHostResource {
         return Response.buildSuccessResp(resultList);
     }
 
-    private List<NodeHostStatisticsVO> fakeNodeHostStatistics(List<TargetNodeVO> targetNodeVOList) {
-        if (targetNodeVOList == null) {
-            return null;
-        }
-        return targetNodeVOList.parallelStream().map(
-            node -> new NodeHostStatisticsVO(node, new AgentStatistics(100, 200))
-        ).collect(Collectors.toList());
-    }
-
     @Override
     public Response<List<NodeHostStatisticsVO>> getHostAgentStatisticsByNodes(String username,
                                                                               AppResourceScope appResourceScope,
-                                                                              String scopeType, String scopeId,
+                                                                              String scopeType,
+                                                                              String scopeId,
                                                                               GetHostAgentStatisticsByNodesReq req) {
-        return Response.buildSuccessResp(fakeNodeHostStatistics(req.getNodeList()));
+        if (ResourceScopeTypeEnum.BIZ_SET.getValue().equals(scopeType)) {
+            return Response.buildCommonFailResp(ErrorCode.NOT_SUPPORT_FEATURE_FOR_BIZ_SET);
+        }
+        List<TargetNodeVO> nodeList = req.getNodeList();
+        if (CollectionUtils.isEmpty(nodeList)) {
+            return Response.buildSuccessResp(Collections.emptyList());
+        }
+        List<NodeHostStatisticsVO> resultList = new ArrayList<>();
+        // TODO:性能优化
+        for (TargetNodeVO node : nodeList) {
+            List<ApplicationHostDTO> hostList = bizTopoHostService.listHostByNode(
+                Long.parseLong(scopeId),
+                BizTopoNode.fromTargetNodeVO(node)
+            );
+            AgentStatistics agentStatistics = agentStatusService.calcAgentStatistics(hostList);
+            resultList.add(new NodeHostStatisticsVO(node, agentStatistics));
+        }
+        return Response.buildSuccessResp(resultList);
     }
 
     @Override
@@ -320,7 +333,7 @@ public class WebHostResourceImpl implements WebHostResource {
         List<NodeInfoVO> moduleHostInfoList = hostService.getBizHostsByNode(
             username,
             appDTO.getBizIdIfBizApp(),
-            targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
+            targetNodeVOList.stream().map(it -> new BizTopoNode(
                 it.getObjectId(),
                 "",
                 it.getInstanceId(),
@@ -457,6 +470,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                  String scopeType,
                                                  String scopeId,
                                                  HostCheckReq req) {
+        // TODO:支持IPv6等字段搜索
         // 根据IP查资源范围内的主机详情
         List<HostInfoVO> hostListByIp = hostService.getHostsByIp(
             username,

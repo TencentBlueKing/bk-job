@@ -45,9 +45,9 @@ import java.util.List;
 public class ListHostByBizTopologyNodesReq {
 
     @ApiModelProperty(value = "拓扑节点列表", required = true)
-    List<AppTopologyTreeNode> nodeList;
+    List<BizTopoNode> nodeList;
     @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    List<AppTopologyTreeNode> appTopoNodeList;
+    List<BizTopoNode> appTopoNodeList;
 
     @ApiModelProperty(value = "搜索内容（同时对主机IP/主机名/操作系统/云区域名称进行模糊搜索）")
     String searchContent;
@@ -64,7 +64,7 @@ public class ListHostByBizTopologyNodesReq {
     Long pageSize;
 
     @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    public void setAppTopoNodeList(List<AppTopologyTreeNode> appTopoNodeList) {
+    public void setAppTopoNodeList(List<BizTopoNode> appTopoNodeList) {
         this.appTopoNodeList = appTopoNodeList;
         this.nodeList = appTopoNodeList;
     }

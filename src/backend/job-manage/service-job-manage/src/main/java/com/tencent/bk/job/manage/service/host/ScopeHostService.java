@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.host;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 
 import java.util.Collection;
 import java.util.List;
@@ -59,7 +59,7 @@ public interface ScopeHostService {
      * @return hostId列表
      */
     PageData<Long> listHostIdByBizTopologyNodes(AppResourceScope appResourceScope,
-                                                List<AppTopologyTreeNode> appTopoNodeList,
+                                                List<BizTopoNode> appTopoNodeList,
                                                 String searchContent,
                                                 Integer agentAlive,
                                                 Long start,

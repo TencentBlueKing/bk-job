@@ -72,4 +72,12 @@ public interface BizHostService {
                                   Integer agentAlive,
                                   Long start,
                                   Long limit);
+
+    /**
+     * 根据 moduleId 集合查询主机信息
+     *
+     * @param moduleIds 模块 ID集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getHostsByModuleIds(Collection<Long> moduleIds);
 }

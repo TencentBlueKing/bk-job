@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.ipchooser;
 
+import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -33,16 +34,11 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * @Description
- * @Date 2020/3/19
- * @Version 1.0
- */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @ApiModel("业务拓扑节点信息")
-public class AppTopologyTreeNode {
+public class BizTopoNode {
     @ApiModelProperty(value = "节点类型Id", required = true)
     private String objectId;
     @ApiModelProperty(value = "节点类型名称")
@@ -52,13 +48,20 @@ public class AppTopologyTreeNode {
     @ApiModelProperty(value = "节点实例名称")
     private String instanceName;
     @ApiModelProperty(value = "子节点列表")
-    private List<AppTopologyTreeNode> childs;
+    private List<BizTopoNode> childs;
+
+    public static BizTopoNode fromTargetNodeVO(TargetNodeVO targetNodeVO) {
+        BizTopoNode node = new BizTopoNode();
+        node.setObjectId(targetNodeVO.getObjectId());
+        node.setInstanceId(targetNodeVO.getInstanceId());
+        return node;
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AppTopologyTreeNode)) return false;
-        AppTopologyTreeNode that = (AppTopologyTreeNode) o;
+        if (!(o instanceof BizTopoNode)) return false;
+        BizTopoNode that = (BizTopoNode) o;
         return Objects.equals(objectId, that.objectId) &&
             Objects.equals(instanceId, that.instanceId);
     }
@@ -74,7 +77,7 @@ public class AppTopologyTreeNode {
 
     @Override
     public String toString() {
-        return "AppTopologyTreeNode{" +
+        return "BizTopoNode{" +
             "objectId='" + objectId + '\'' +
             ", instanceId=" + instanceId +
             '}';

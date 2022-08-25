@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -47,7 +47,7 @@ public class AgentStatisticsReq {
     List<String> ipList;
 
     @ApiModelProperty(value = "业务拓扑节点列表(传 objectId 与 instanceId ，其余字段置空即可)")
-    List<AppTopologyTreeNode> appTopoNodeList;
+    List<BizTopoNode> appTopoNodeList;
 
     @ApiModelProperty(value = "动态分组Id列表")
     List<String> dynamicGroupIds;
