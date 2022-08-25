@@ -531,6 +531,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             hostVariableValues.setHostId(agentTask.getHostId());
             hostVariableValues.setAgentId(entry.getKey());
             hostVariableValues.setValues(paramValues);
+            hostVariableValues.setIp(agentTask.getCloudIp());
             hostVariableValuesList.add(hostVariableValues);
         }
         return hostVariableValuesList;
