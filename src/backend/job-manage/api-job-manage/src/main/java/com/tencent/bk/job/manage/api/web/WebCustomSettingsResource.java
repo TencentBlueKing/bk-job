@@ -51,6 +51,7 @@ import java.util.Map;
 @WebAPI
 public interface WebCustomSettingsResource {
 
+    // 标准接口19
     @ApiOperation(value = "保存多个配置项，返回成功保存的配置项内容", produces = "application/json")
     @PostMapping("")
     Response<Map<String, Map<String, Object>>> saveCustomSettings(
@@ -71,6 +72,7 @@ public interface WebCustomSettingsResource {
             SaveCustomSettingsReq req
     );
 
+    // 标准接口20
     @ApiOperation(value = "批量获取多个配置项内容，返回配置项内容Map，Key为配置模块", produces = "application/json")
     @PostMapping("/batchGet")
     Response<Map<String, Map<String, Object>>> batchGetCustomSettings(
@@ -90,6 +92,7 @@ public interface WebCustomSettingsResource {
         @RequestBody
             BatchGetCustomSettingsReq req);
 
+    // 标准接口21
     @ApiOperation(value = "删除多个模块配置项内容，返回删除成功的模块配置数量", produces = "application/json")
     @DeleteMapping("")
     Response<Integer> deleteCustomSettings(
