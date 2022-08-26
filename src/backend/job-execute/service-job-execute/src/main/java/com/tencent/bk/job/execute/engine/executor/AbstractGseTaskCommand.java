@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -35,6 +34,7 @@ import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +49,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
     protected final AccountService accountService;
     protected final GseTaskService gseTaskService;
     protected final AgentTaskService agentTaskService;
-    protected final Tracing tracing;
+    protected final Tracer tracer;
 
     /**
      * 步骤实例
@@ -89,7 +89,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
                                   AccountService accountService,
                                   GseTaskService gseTaskService,
                                   AgentTaskService agentTaskService,
-                                  Tracing tracing,
+                                  Tracer tracer,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   GseTaskDTO gseTask) {
@@ -97,7 +97,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
         this.accountService = accountService;
         this.gseTaskService = gseTaskService;
         this.agentTaskService = agentTaskService;
-        this.tracing = tracing;
+        this.tracer = tracer;
         this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
         this.gseTask = gseTask;
@@ -120,8 +120,8 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
             traceInfoMap.put("STEP_ID", stepInstance.getId().toString());
             traceInfoMap.put("EXECUTE_COUNT", String.valueOf(stepInstance.getExecuteCount()));
             traceInfoMap.put("JOB_BIZ_ID", taskInstance.getAppId().toString());
-            if (tracing != null) {
-                traceInfoMap.put("REQUEST_ID", tracing.currentTraceContext().get().traceIdString());
+            if (tracer != null) {
+                traceInfoMap.put("REQUEST_ID", tracer.currentSpan().context().traceId());
             }
             if (StringUtils.isNotEmpty(taskInstance.getAppCode())) {
                 traceInfoMap.put("APP_CODE", taskInstance.getAppCode());

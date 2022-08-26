@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: job-backup
   cloud:
     kubernetes:
       config:
