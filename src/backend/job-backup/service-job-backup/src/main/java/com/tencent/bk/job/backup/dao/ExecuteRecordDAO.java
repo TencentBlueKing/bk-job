@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao;
 
-import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -20,13 +19,6 @@ public interface ExecuteRecordDAO<T extends Record> {
      * @return 表
      */
     Table<T> getTable();
-
-    /**
-     * 获取需要归档的表字段
-     *
-     * @return 表字段
-     */
-    List<Field<?>> listFields();
 
     /**
      * 获取用于查询归档记录的ID字段
