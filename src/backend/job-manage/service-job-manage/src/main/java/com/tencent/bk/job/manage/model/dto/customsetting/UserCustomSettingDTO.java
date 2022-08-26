@@ -69,6 +69,10 @@ public class UserCustomSettingDTO {
     private Long lastModifyTime;
 
     public String getKey() {
+        return getKey(username, appId, module);
+    }
+
+    public static String getKey(String username, Long appId, String module) {
         return StringUtil.concatCollection(Arrays.asList(username, appId, module), "::");
     }
 }

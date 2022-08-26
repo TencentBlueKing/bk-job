@@ -30,30 +30,23 @@ import com.tencent.bk.job.manage.api.web.WebCustomSettingsResource;
 import com.tencent.bk.job.manage.model.web.request.customsetting.BatchGetCustomSettingsReq;
 import com.tencent.bk.job.manage.model.web.request.customsetting.DeleteCustomSettingsReq;
 import com.tencent.bk.job.manage.model.web.request.customsetting.SaveCustomSettingsReq;
+import com.tencent.bk.job.manage.service.impl.CustomSettingsService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @Slf4j
 public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource {
 
-    private Map<String, Map<String, Object>> fakeConifg() {
-        Map<String, Map<String, Object>> map = new HashMap<>();
-        Map<String, Object> ipChooserConfig = new HashMap<>();
-        ipChooserConfig.put("name", "IP Chooser");
-        ipChooserConfig.put("length", 100);
-        ipChooserConfig.put("items", Arrays.asList("item1", "item2"));
-        Map<String, Object> ipChooserConfig2 = new HashMap<>();
-        ipChooserConfig2.put("name", "IP Chooser2");
-        ipChooserConfig2.put("length", 200);
-        ipChooserConfig2.put("items", Arrays.asList("item1", "item2", "item3"));
-        map.put("IP_CHOOSER", ipChooserConfig);
-        map.put("IP_CHOOSER2", ipChooserConfig2);
-        return map;
+    private final CustomSettingsService customSettingsService;
+
+    @Autowired
+    public WebCustomSettingsResourceImpl(
+        CustomSettingsService customSettingsService) {
+        this.customSettingsService = customSettingsService;
     }
 
     @Override
@@ -62,8 +55,7 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
                                                                          String scopeType,
                                                                          String scopeId,
                                                                          SaveCustomSettingsReq req) {
-        // TODO
-        return Response.buildSuccessResp(fakeConifg());
+        return Response.buildSuccessResp(customSettingsService.saveCustomSettings(username, appResourceScope, req));
     }
 
     @Override
@@ -72,8 +64,7 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
                                                                              String scopeType,
                                                                              String scopeId,
                                                                              BatchGetCustomSettingsReq req) {
-        // TODO
-        return Response.buildSuccessResp(fakeConifg());
+        return Response.buildSuccessResp(customSettingsService.batchGetCustomSettings(username, appResourceScope, req));
     }
 
     @Override
@@ -82,7 +73,6 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
                                                   String scopeType,
                                                   String scopeId,
                                                   DeleteCustomSettingsReq req) {
-        // TODO
-        return Response.buildSuccessResp(req.getModuleList().size());
+        return Response.buildSuccessResp(customSettingsService.deleteCustomSettings(username, appResourceScope, req));
     }
 }

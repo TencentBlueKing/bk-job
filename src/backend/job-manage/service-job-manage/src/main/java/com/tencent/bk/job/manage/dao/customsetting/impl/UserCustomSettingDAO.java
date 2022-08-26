@@ -42,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -72,13 +73,13 @@ public class UserCustomSettingDAO {
         return updateAffectedNum + insertAffectedNum;
     }
 
-    public int batchDelete(List<String> keyList) {
+    public int batchDelete(Collection<String> keyList) {
         return dslContext.deleteFrom(defaultTable)
             .where(defaultTable.KEY.in(keyList))
             .execute();
     }
 
-    public List<UserCustomSettingDTO> batchGet(List<String> keyList) {
+    public List<UserCustomSettingDTO> batchGet(Collection<String> keyList) {
         return dslContext.select(
             defaultTable.USERNAME, defaultTable.APP_ID, defaultTable.MODULE, defaultTable.VALUE,
             defaultTable.LAST_MODIFY_USER, defaultTable.LAST_MODIFY_TIME)
