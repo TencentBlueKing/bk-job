@@ -4,7 +4,6 @@ import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
@@ -27,7 +26,7 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
 
     @Override
     public List<T> listRecords(Long start, Long end) {
-        Result<Record> result = query(getTable(), listFields(), buildConditions(start, end));
+        Result<Record> result = query(getTable(), buildConditions(start, end));
         return result.into(getTable());
     }
 
@@ -56,8 +55,8 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
         return totalDeleteRows;
     }
 
-    private Result<Record> query(Table<?> table, List<Field<?>> fields, List<Condition> conditions) {
-        return context.select(fields)
+    private Result<Record> query(Table<?> table, List<Condition> conditions) {
+        return context.select()
             .from(table)
             .where(conditions)
             .fetch();

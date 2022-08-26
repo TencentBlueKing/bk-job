@@ -36,6 +36,7 @@ public class StepInstanceVariableRecordDAO extends AbstractExecuteRecordDAO<Step
     public List<Field<?>> listFields() {
         return FIELDS;
     }
+
     @Override
     public Table<StepInstanceVariableRecord> getTable() {
         return TABLE;
