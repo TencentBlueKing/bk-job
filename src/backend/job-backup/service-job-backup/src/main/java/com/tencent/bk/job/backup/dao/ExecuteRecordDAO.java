@@ -22,18 +22,18 @@ public interface ExecuteRecordDAO<T extends Record> {
     Table<T> getTable();
 
     /**
-     * 获取表字段
+     * 获取需要归档的表字段
      *
      * @return 表字段
      */
     List<Field<?>> listFields();
 
     /**
-     * 获取ID字段
+     * 获取用于查询归档记录的ID字段
      *
      * @return ID字段
      */
-    TableField<T, Long> getIdField();
+    TableField<T, Long> getArchiveIdField();
 
     /**
      * 根据起始/结束ID获取表记录
@@ -58,5 +58,5 @@ public interface ExecuteRecordDAO<T extends Record> {
      *
      * @return id值
      */
-    Long getFirstInstanceId();
+    Long getFirstArchiveId();
 }

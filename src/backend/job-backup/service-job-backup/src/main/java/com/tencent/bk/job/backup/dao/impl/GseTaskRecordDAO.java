@@ -5,22 +5,22 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.GseTaskLog;
-import org.jooq.generated.tables.records.GseTaskLogRecord;
+import org.jooq.generated.tables.GseTask;
+import org.jooq.generated.tables.records.GseTaskRecord;
 
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * gse_task_log DAO
- */
-public class GseTaskLogRecordDAO extends AbstractExecuteRecordDAO<GseTaskLogRecord> {
+public class GseTaskRecordDAO extends AbstractExecuteRecordDAO<GseTaskRecord> {
 
-    private static final GseTaskLog TABLE = GseTaskLog.GSE_TASK_LOG;
+    private static final GseTask TABLE = GseTask.GSE_TASK;
 
     private static final List<Field<?>> FIELDS =
-        Arrays.asList(TABLE.STEP_INSTANCE_ID,
+        Arrays.asList(
+            TABLE.ID,
+            TABLE.STEP_INSTANCE_ID,
             TABLE.EXECUTE_COUNT,
+            TABLE.BATCH,
             TABLE.START_TIME,
             TABLE.END_TIME,
             TABLE.TOTAL_TIME,
@@ -30,7 +30,7 @@ public class GseTaskLogRecordDAO extends AbstractExecuteRecordDAO<GseTaskLogReco
             TABLE.ROW_UPDATE_TIME
         );
 
-    public GseTaskLogRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
+    public GseTaskRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
         super(context, archiveConfig);
     }
 
@@ -40,12 +40,12 @@ public class GseTaskLogRecordDAO extends AbstractExecuteRecordDAO<GseTaskLogReco
     }
 
     @Override
-    public Table<GseTaskLogRecord> getTable() {
+    public Table<GseTaskRecord> getTable() {
         return TABLE;
     }
 
     @Override
-    public TableField<GseTaskLogRecord, Long> getArchiveIdField() {
+    public TableField<GseTaskRecord, Long> getArchiveIdField() {
         return TABLE.STEP_INSTANCE_ID;
     }
 }

@@ -1,17 +1,19 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Table;
+import org.jooq.TableField;
 import org.jooq.generated.tables.StepInstanceFile;
 import org.jooq.generated.tables.records.StepInstanceFileRecord;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * step_instance_file DAO
+ */
 public class StepInstanceFileRecordDAO extends AbstractExecuteRecordDAO<StepInstanceFileRecord> {
 
     private static final StepInstanceFile TABLE = StepInstanceFile.STEP_INSTANCE_FILE;
@@ -44,15 +46,12 @@ public class StepInstanceFileRecordDAO extends AbstractExecuteRecordDAO<StepInst
     }
 
     @Override
-    protected final List<Condition> buildConditions(Long start, Long end) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.STEP_INSTANCE_ID.greaterThan(start));
-        conditions.add(TABLE.STEP_INSTANCE_ID.lessOrEqual(end));
-        return conditions;
+    public Table<StepInstanceFileRecord> getTable() {
+        return TABLE;
     }
 
     @Override
-    protected Table<StepInstanceFileRecord> getTable() {
-        return TABLE;
+    public TableField<StepInstanceFileRecord, Long> getArchiveIdField() {
+        return TABLE.STEP_INSTANCE_ID;
     }
 }

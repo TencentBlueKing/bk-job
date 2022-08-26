@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import org.jooq.generated.tables.records.StepInstanceRecord;
 
@@ -35,13 +35,15 @@ import org.jooq.generated.tables.records.StepInstanceRecord;
  */
 public class StepInstanceArchivist extends AbstractArchivist<StepInstanceRecord> {
 
-    public StepInstanceArchivist(ExecuteRecordDAO<StepInstanceRecord> executeRecordDAO,
+    public StepInstanceArchivist(StepInstanceRecordDAO executeRecordDAO,
                                  ExecuteArchiveDAO executeArchiveDAO,
                                  ArchiveProgressService archiveProgressService) {
-        this.executeRecordDAO = executeRecordDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
-        this.archiveProgressService = archiveProgressService;
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
         this.deleteIdStepSize = 10_000;
-        this.setTableName("step_instance");
+    }
+
+    public Long getMaxNeedArchiveStepInstanceId(Long taskInstanceId) {
+        StepInstanceRecordDAO stepInstanceRecordDAO = (StepInstanceRecordDAO) executeArchiveDAO;
+        return stepInstanceRecordDAO.getMaxNeedArchiveStepInstanceId(taskInstanceId);
     }
 }

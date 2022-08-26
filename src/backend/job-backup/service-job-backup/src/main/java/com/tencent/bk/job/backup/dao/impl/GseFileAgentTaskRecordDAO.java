@@ -5,33 +5,40 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.FileSourceTaskLog;
-import org.jooq.generated.tables.records.FileSourceTaskLogRecord;
+import org.jooq.generated.tables.GseFileAgentTask;
+import org.jooq.generated.tables.records.GseFileAgentTaskRecord;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * file_source_task DAO
+ * gse_file_agent_task DAO
  */
-public class FileSourceTaskRecordDAO extends AbstractExecuteRecordDAO<FileSourceTaskLogRecord> {
+public class GseFileAgentTaskRecordDAO extends AbstractExecuteRecordDAO<GseFileAgentTaskRecord> {
 
-    private static final FileSourceTaskLog TABLE = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
+    private static final GseFileAgentTask TABLE = GseFileAgentTask.GSE_FILE_AGENT_TASK;
 
     private static final List<Field<?>> FIELDS =
         Arrays.asList(
+            TABLE.ID,
             TABLE.STEP_INSTANCE_ID,
             TABLE.EXECUTE_COUNT,
+            TABLE.ACTUAL_EXECUTE_COUNT,
+            TABLE.BATCH,
+            TABLE.MODE,
+            TABLE.HOST_ID,
+            TABLE.AGENT_ID,
+            TABLE.GSE_TASK_ID,
             TABLE.START_TIME,
             TABLE.END_TIME,
             TABLE.TOTAL_TIME,
             TABLE.STATUS,
-            TABLE.FILE_SOURCE_BATCH_TASK_ID,
+            TABLE.ERROR_CODE,
             TABLE.ROW_CREATE_TIME,
             TABLE.ROW_UPDATE_TIME
         );
 
-    public FileSourceTaskRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
+    public GseFileAgentTaskRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
         super(context, archiveConfig);
     }
 
@@ -41,12 +48,12 @@ public class FileSourceTaskRecordDAO extends AbstractExecuteRecordDAO<FileSource
     }
 
     @Override
-    public Table<FileSourceTaskLogRecord> getTable() {
+    public Table<GseFileAgentTaskRecord> getTable() {
         return TABLE;
     }
 
     @Override
-    public TableField<FileSourceTaskLogRecord, Long> getArchiveIdField() {
+    public TableField<GseFileAgentTaskRecord, Long> getArchiveIdField() {
         return TABLE.STEP_INSTANCE_ID;
     }
 }

@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import org.jooq.generated.tables.records.TaskInstanceVariableRecord;
 
@@ -35,13 +35,10 @@ import org.jooq.generated.tables.records.TaskInstanceVariableRecord;
  */
 public class TaskInstanceVariableArchivist extends AbstractArchivist<TaskInstanceVariableRecord> {
 
-    public TaskInstanceVariableArchivist(ExecuteRecordDAO<TaskInstanceVariableRecord> executeRecordDAO,
+    public TaskInstanceVariableArchivist(TaskInstanceVariableRecordDAO executeRecordDAO,
                                          ExecuteArchiveDAO executeArchiveDAO,
                                          ArchiveProgressService archiveProgressService) {
-        this.executeRecordDAO = executeRecordDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
-        this.archiveProgressService = archiveProgressService;
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
         this.deleteIdStepSize = 100_000;
-        this.setTableName("task_instance_variable");
     }
 }

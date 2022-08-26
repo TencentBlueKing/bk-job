@@ -10,6 +10,7 @@ import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.Table;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.jooq.impl.DSL.min;
@@ -35,9 +36,12 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
         return deleteWithLimit(getTable(), buildConditions(start, end));
     }
 
-    public abstract Table<T> getTable();
-
-    protected abstract List<Condition> buildConditions(Long start, Long end);
+    private List<Condition> buildConditions(Long start, Long end) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(getArchiveIdField().greaterThan(start));
+        conditions.add(getArchiveIdField().lessOrEqual(end));
+        return conditions;
+    }
 
     private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions) {
         int totalDeleteRows = 0;
@@ -60,11 +64,13 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
     }
 
     @Override
-    public Long getFirstInstanceId() {
-        Record1<Long> firstInstanceIdRecord = context.select(min(getIdField())).from(getTable()).fetchOne();
-        if (firstInstanceIdRecord != null && firstInstanceIdRecord.get(0) != null) {
-            return (Long) firstInstanceIdRecord.get(0);
+    public Long getFirstArchiveId() {
+        Record1<Long> firstArchiveIdRecord = context.select(min(getArchiveIdField())).from(getTable()).fetchOne();
+        if (firstArchiveIdRecord != null && firstArchiveIdRecord.get(0) != null) {
+            return (Long) firstArchiveIdRecord.get(0);
         }
         return 0L;
     }
+
+    public abstract Table<T> getTable();
 }

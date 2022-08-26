@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import org.jooq.generated.tables.records.GseTaskIpLogRecord;
 
@@ -35,13 +35,10 @@ import org.jooq.generated.tables.records.GseTaskIpLogRecord;
  */
 public class GseTaskIpLogArchivist extends AbstractArchivist<GseTaskIpLogRecord> {
 
-    public GseTaskIpLogArchivist(ExecuteRecordDAO<GseTaskIpLogRecord> executeRecordDAO,
+    public GseTaskIpLogArchivist(GseTaskIpLogRecordDAO executeRecordDAO,
                                  ExecuteArchiveDAO executeArchiveDAO,
                                  ArchiveProgressService archiveProgressService) {
-        this.executeRecordDAO = executeRecordDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
-        this.archiveProgressService = archiveProgressService;
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
         this.deleteIdStepSize = 1_000;
-        this.setTableName("gse_task_ip_log");
     }
 }

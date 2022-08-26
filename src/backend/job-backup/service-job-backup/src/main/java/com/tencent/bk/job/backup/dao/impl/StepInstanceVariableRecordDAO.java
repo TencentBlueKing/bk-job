@@ -1,17 +1,19 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Table;
+import org.jooq.TableField;
 import org.jooq.generated.tables.StepInstanceVariable;
 import org.jooq.generated.tables.records.StepInstanceVariableRecord;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * step_instance_variable DAO
+ */
 public class StepInstanceVariableRecordDAO extends AbstractExecuteRecordDAO<StepInstanceVariableRecord> {
 
     private static final StepInstanceVariable TABLE =
@@ -34,17 +36,13 @@ public class StepInstanceVariableRecordDAO extends AbstractExecuteRecordDAO<Step
     public List<Field<?>> listFields() {
         return FIELDS;
     }
-
     @Override
-    protected final List<Condition> buildConditions(Long start, Long end) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.STEP_INSTANCE_ID.greaterThan(start));
-        conditions.add(TABLE.STEP_INSTANCE_ID.lessOrEqual(end));
-        return conditions;
+    public Table<StepInstanceVariableRecord> getTable() {
+        return TABLE;
     }
 
     @Override
-    protected Table<StepInstanceVariableRecord> getTable() {
-        return TABLE;
+    public TableField<StepInstanceVariableRecord, Long> getArchiveIdField() {
+        return TABLE.STEP_INSTANCE_ID;
     }
 }

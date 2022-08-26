@@ -5,32 +5,34 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.GseTaskLog;
-import org.jooq.generated.tables.records.GseTaskLogRecord;
+import org.jooq.generated.tables.StepInstanceRollingTask;
+import org.jooq.generated.tables.records.StepInstanceRollingTaskRecord;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * gse_task_log DAO
+ * step_instance_rolling_task DAO
  */
-public class GseTaskLogRecordDAO extends AbstractExecuteRecordDAO<GseTaskLogRecord> {
+public class StepInstanceRollingTaskRecordDAO extends AbstractExecuteRecordDAO<StepInstanceRollingTaskRecord> {
 
-    private static final GseTaskLog TABLE = GseTaskLog.GSE_TASK_LOG;
+    private static final StepInstanceRollingTask TABLE = StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK;
 
     private static final List<Field<?>> FIELDS =
-        Arrays.asList(TABLE.STEP_INSTANCE_ID,
+        Arrays.asList(
+            TABLE.ID,
+            TABLE.STEP_INSTANCE_ID,
             TABLE.EXECUTE_COUNT,
+            TABLE.BATCH,
             TABLE.START_TIME,
             TABLE.END_TIME,
             TABLE.TOTAL_TIME,
             TABLE.STATUS,
-            TABLE.GSE_TASK_ID,
             TABLE.ROW_CREATE_TIME,
             TABLE.ROW_UPDATE_TIME
         );
 
-    public GseTaskLogRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
+    public StepInstanceRollingTaskRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
         super(context, archiveConfig);
     }
 
@@ -40,12 +42,12 @@ public class GseTaskLogRecordDAO extends AbstractExecuteRecordDAO<GseTaskLogReco
     }
 
     @Override
-    public Table<GseTaskLogRecord> getTable() {
+    public Table<StepInstanceRollingTaskRecord> getTable() {
         return TABLE;
     }
 
     @Override
-    public TableField<GseTaskLogRecord, Long> getArchiveIdField() {
+    public TableField<StepInstanceRollingTaskRecord, Long> getArchiveIdField() {
         return TABLE.STEP_INSTANCE_ID;
     }
 }

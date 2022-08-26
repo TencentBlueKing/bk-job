@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.FileSourceTaskRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import org.jooq.generated.tables.records.FileSourceTaskLogRecord;
 
@@ -35,13 +35,10 @@ import org.jooq.generated.tables.records.FileSourceTaskLogRecord;
  */
 public class FileSourceTaskLogArchivist extends AbstractArchivist<FileSourceTaskLogRecord> {
 
-    public FileSourceTaskLogArchivist(ExecuteRecordDAO<FileSourceTaskLogRecord> executeRecordDAO,
+    public FileSourceTaskLogArchivist(FileSourceTaskRecordDAO executeRecordDAO,
                                       ExecuteArchiveDAO executeArchiveDAO,
                                       ArchiveProgressService archiveProgressService) {
-        this.executeRecordDAO = executeRecordDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
-        this.archiveProgressService = archiveProgressService;
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
         this.deleteIdStepSize = 100_000;
-        this.setTableName("file_source_task_log");
     }
 }

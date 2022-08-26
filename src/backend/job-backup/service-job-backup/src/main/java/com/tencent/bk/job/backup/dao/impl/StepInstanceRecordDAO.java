@@ -1,20 +1,22 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Table;
+import org.jooq.TableField;
 import org.jooq.generated.tables.StepInstance;
 import org.jooq.generated.tables.records.StepInstanceRecord;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.jooq.impl.DSL.max;
 
+/**
+ * step_instance DAO
+ */
 public class StepInstanceRecordDAO extends AbstractExecuteRecordDAO<StepInstanceRecord> {
 
     private static final StepInstance TABLE = StepInstance.STEP_INSTANCE;
@@ -45,7 +47,9 @@ public class StepInstanceRecordDAO extends AbstractExecuteRecordDAO<StepInstance
             TABLE.ROW_CREATE_TIME,
             TABLE.ROW_UPDATE_TIME,
             TABLE.STEP_NUM,
-            TABLE.STEP_ORDER
+            TABLE.STEP_ORDER,
+            TABLE.BATCH,
+            TABLE.ROLLING_CONFIG_ID
         );
 
     public StepInstanceRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
@@ -58,15 +62,7 @@ public class StepInstanceRecordDAO extends AbstractExecuteRecordDAO<StepInstance
     }
 
     @Override
-    protected final List<Condition> buildConditions(Long start, Long end) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.ID.greaterThan(start));
-        conditions.add(TABLE.ID.lessOrEqual(end));
-        return conditions;
-    }
-
-    @Override
-    protected Table<StepInstanceRecord> getTable() {
+    public Table<StepInstanceRecord> getTable() {
         return TABLE;
     }
 
@@ -85,4 +81,8 @@ public class StepInstanceRecordDAO extends AbstractExecuteRecordDAO<StepInstance
         return 0L;
     }
 
+    @Override
+    public TableField<StepInstanceRecord, Long> getArchiveIdField() {
+        return TABLE.ID;
+    }
 }

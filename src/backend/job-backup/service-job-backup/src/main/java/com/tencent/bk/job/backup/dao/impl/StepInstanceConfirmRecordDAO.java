@@ -1,17 +1,19 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Table;
+import org.jooq.TableField;
 import org.jooq.generated.tables.StepInstanceConfirm;
 import org.jooq.generated.tables.records.StepInstanceConfirmRecord;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * step_instance_confirm DAO
+ */
 public class StepInstanceConfirmRecordDAO extends AbstractExecuteRecordDAO<StepInstanceConfirmRecord> {
 
 
@@ -39,15 +41,12 @@ public class StepInstanceConfirmRecordDAO extends AbstractExecuteRecordDAO<StepI
     }
 
     @Override
-    protected final List<Condition> buildConditions(Long start, Long end) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.STEP_INSTANCE_ID.greaterThan(start));
-        conditions.add(TABLE.STEP_INSTANCE_ID.lessOrEqual(end));
-        return conditions;
+    public Table<StepInstanceConfirmRecord> getTable() {
+        return TABLE;
     }
 
     @Override
-    protected Table<StepInstanceConfirmRecord> getTable() {
-        return TABLE;
+    public TableField<StepInstanceConfirmRecord, Long> getArchiveIdField() {
+        return TABLE.STEP_INSTANCE_ID;
     }
 }

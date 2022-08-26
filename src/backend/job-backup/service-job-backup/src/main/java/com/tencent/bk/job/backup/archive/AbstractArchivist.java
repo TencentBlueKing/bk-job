@@ -40,6 +40,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * 表归档基础实现
+ *
+ * @param <T> 表记录
+ */
 @Data
 @Slf4j
 public abstract class AbstractArchivist<T extends TableRecord<?>> {
@@ -60,6 +65,15 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected int deleteIdStepSize = 10_000;
     protected String tableName;
     private ArchiveSummary archiveSummary;
+
+    public AbstractArchivist(ExecuteRecordDAO<T> executeRecordDAO,
+                             ExecuteArchiveDAO executeArchiveDAO,
+                             ArchiveProgressService archiveProgressService) {
+        this.executeRecordDAO = executeRecordDAO;
+        this.executeArchiveDAO = executeArchiveDAO;
+        this.archiveProgressService = archiveProgressService;
+        this.tableName = executeRecordDAO.getTable().getName().toLowerCase();
+    }
 
     public void archive(ArchiveConfig archiveConfig, Long maxNeedArchiveId, CountDownLatch countDownLatch) {
         boolean isAcquireLock = false;
@@ -230,7 +244,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         archiveProgressService.saveDeleteProgress(archiveProgress);
     }
 
-    private boolean delete(Long maxNeedArchiveId, ArchiveConfig archiveConfig) {
+    private void delete(Long maxNeedArchiveId, ArchiveConfig archiveConfig) {
         long startTime = System.currentTimeMillis();
 
         Long maxNeedDeleteId;
@@ -250,7 +264,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             if (maxNeedDeleteId <= lastDeletedId) {
                 log.info("LastDeletedId {} is greater than or equal to maxNeedDeleteId {}, skip delete {}!",
                     lastDeletedId, maxNeedDeleteId, tableName);
-                return true;
+                return;
             }
 
             long start = minNeedDeleteId;
@@ -272,10 +286,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                     "{}, cost: {}ms",
                 tableName, minNeedDeleteId, maxNeedDeleteId, lastDeletedId, deletedRows,
                 System.currentTimeMillis() - startTime);
-            return true;
         } catch (Throwable e) {
             log.error("Error while deleting {}", tableName, e);
-            return false;
         } finally {
             archiveSummary.setDeleteCost(System.currentTimeMillis() - startTime);
             archiveSummary.setDeleteIdStart(minNeedDeleteId);
@@ -319,6 +331,6 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     private long getFirstInstanceId() {
-        return executeRecordDAO.getFirstInstanceId();
+        return executeRecordDAO.getFirstArchiveId();
     }
 }

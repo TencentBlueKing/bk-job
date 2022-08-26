@@ -5,32 +5,30 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.TaskInstanceVariable;
-import org.jooq.generated.tables.records.TaskInstanceVariableRecord;
+import org.jooq.generated.tables.RollingConfig;
+import org.jooq.generated.tables.records.RollingConfigRecord;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * task_instance_variable DAO
+ * rolling_config DAO
  */
-public class TaskInstanceVariableRecordDAO extends AbstractExecuteRecordDAO<TaskInstanceVariableRecord> {
+public class RollingConfigRecordDAO extends AbstractExecuteRecordDAO<RollingConfigRecord> {
 
-    private static final TaskInstanceVariable TABLE = TaskInstanceVariable.TASK_INSTANCE_VARIABLE;
+    private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
 
     private static final List<Field<?>> FIELDS =
         Arrays.asList(
             TABLE.ID,
             TABLE.TASK_INSTANCE_ID,
-            TABLE.NAME,
-            TABLE.TYPE,
-            TABLE.VALUE,
-            TABLE.IS_CHANGEABLE,
+            TABLE.CONFIG_NAME,
+            TABLE.CONFIG,
             TABLE.ROW_CREATE_TIME,
             TABLE.ROW_UPDATE_TIME
         );
 
-    public TaskInstanceVariableRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
+    public RollingConfigRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
         super(context, archiveConfig);
     }
 
@@ -40,12 +38,12 @@ public class TaskInstanceVariableRecordDAO extends AbstractExecuteRecordDAO<Task
     }
 
     @Override
-    public Table<TaskInstanceVariableRecord> getTable() {
+    public Table<RollingConfigRecord> getTable() {
         return TABLE;
     }
 
     @Override
-    public TableField<TaskInstanceVariableRecord, Long> getArchiveIdField() {
+    public TableField<RollingConfigRecord, Long> getArchiveIdField() {
         return TABLE.TASK_INSTANCE_ID;
     }
 }
