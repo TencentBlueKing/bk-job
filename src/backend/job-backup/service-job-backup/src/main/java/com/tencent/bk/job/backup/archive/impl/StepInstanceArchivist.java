@@ -43,7 +43,7 @@ public class StepInstanceArchivist extends AbstractArchivist<StepInstanceRecord>
     }
 
     public Long getMaxNeedArchiveStepInstanceId(Long taskInstanceId) {
-        StepInstanceRecordDAO stepInstanceRecordDAO = (StepInstanceRecordDAO) executeArchiveDAO;
+        StepInstanceRecordDAO stepInstanceRecordDAO = (StepInstanceRecordDAO) executeRecordDAO;
         return stepInstanceRecordDAO.getMaxNeedArchiveStepInstanceId(taskInstanceId);
     }
 }
