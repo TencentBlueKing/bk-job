@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.gse.taskapi.api_agent;
 import com.tencent.bk.gse.taskapi.api_stop_task_request;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -41,6 +40,7 @@ import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.List;
 import java.util.Set;
@@ -53,7 +53,7 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
                                     AccountService accountService,
                                     GseTaskService gseTaskService,
                                     AgentTaskService agentTaskService,
-                                    Tracing tracing,
+                                    Tracer tracer,
                                     TaskInstanceDTO taskInstance,
                                     StepInstanceDTO stepInstance,
                                     GseTaskDTO gseTask) {
@@ -61,7 +61,7 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
             accountService,
             gseTaskService,
             agentTaskService,
-            tracing,
+            tracer,
             taskInstance,
             stepInstance,
             gseTask);

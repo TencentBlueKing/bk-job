@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: job-execute
   profiles:
     active: prod
 

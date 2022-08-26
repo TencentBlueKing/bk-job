@@ -66,7 +66,7 @@ spec:
           image: {{ include "job-analysis.image" . }}
           imagePullPolicy: {{ .Values.analysisConfig.image.pullPolicy }}
           env:
-            {{- include "job.storage.env" . | nindent 12 }}
+            {{- include "job.common.env" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-analysis"
             - name: BK_JOB_JVM_OPTION
