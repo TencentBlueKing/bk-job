@@ -130,16 +130,13 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         this.stepInstanceArchivist = new StepInstanceArchivist(stepInstanceRecordDAO, executeArchiveDAO,
             archiveProgressService);
         this.stepInstanceConfirmArchivist = new StepInstanceConfirmArchivist(stepInstanceConfirmRecordDAO,
-            executeArchiveDAO,
-            archiveProgressService);
+            executeArchiveDAO, archiveProgressService);
         this.stepInstanceFileArchivist = new StepInstanceFileArchivist(stepInstanceFileRecordDAO, executeArchiveDAO,
             archiveProgressService);
         this.stepInstanceScriptArchivist = new StepInstanceScriptArchivist(stepInstanceScriptRecordDAO,
-            executeArchiveDAO,
-            archiveProgressService);
+            executeArchiveDAO, archiveProgressService);
         this.stepInstanceVariableArchivist = new StepInstanceVariableArchivist(stepInstanceVariableRecordDAO,
-            executeArchiveDAO,
-            archiveProgressService);
+            executeArchiveDAO, archiveProgressService);
         this.gseTaskLogArchivist = new GseTaskLogArchivist(gseTaskLogRecordDAO, executeArchiveDAO,
             archiveProgressService);
         this.gseTaskIpLogArchivist = new GseTaskIpLogArchivist(gseTaskIpLogRecordDAO, executeArchiveDAO,
@@ -147,8 +144,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         this.taskInstanceArchivist = new TaskInstanceArchivist(taskInstanceRecordDAO, executeArchiveDAO,
             archiveProgressService);
         this.taskInstanceVariableArchivist = new TaskInstanceVariableArchivist(taskInstanceVariableRecordDAO,
-            executeArchiveDAO,
-            archiveProgressService);
+            executeArchiveDAO, archiveProgressService);
         this.operationLogArchivist = new OperationLogArchivist(operationLogRecordDAO, executeArchiveDAO,
             archiveProgressService);
         this.gseTaskArchivist = new GseTaskArchivist(gseTaskRecordDAO, executeArchiveDAO, archiveProgressService);
