@@ -28,12 +28,17 @@ import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.ExecuteArchiveDAOImpl;
 import com.tencent.bk.job.backup.dao.impl.FileSourceTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseFileAgentTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseTaskLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.RollingConfigRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceConfirmRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceFileRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceRollingTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
@@ -142,6 +147,46 @@ public class ArchivistAutoConfig {
             return new FileSourceTaskRecordDAO(context, archiveConfig);
         }
 
+        @Bean(name = "gseTaskRecordDAO")
+        public GseTaskRecordDAO gseTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init GseTaskRecordDAO");
+            return new GseTaskRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "gseScriptAgentTaskRecordDAO")
+        public GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init GseScriptAgentTaskRecordDAO");
+            return new GseScriptAgentTaskRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "gseFileAgentTaskRecordDAO")
+        public GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init GseFileAgentTaskRecordDAO");
+            return new GseFileAgentTaskRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "stepInstanceRollingTaskRecordDAO")
+        public StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init StepInstanceRollingTaskRecordDAO");
+            return new StepInstanceRollingTaskRecordDAO(context, archiveConfig);
+        }
+
+        @Bean(name = "rollingConfigRecordDAO")
+        public RollingConfigRecordDAO rollingConfigRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init RollingConfigRecordDAO");
+            return new RollingConfigRecordDAO(context, archiveConfig);
+        }
+
     }
 
     @Bean(name = "execute-archive-dao")
@@ -165,6 +210,11 @@ public class ArchivistAutoConfig {
         @Autowired(required = false) GseTaskLogRecordDAO gseTaskLogRecordDAO,
         @Autowired(required = false) GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO,
         @Autowired(required = false) FileSourceTaskRecordDAO fileSourceTaskRecordDAO,
+        @Autowired(required = false) GseTaskRecordDAO gseTaskRecordDAO,
+        @Autowired(required = false) GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
+        @Autowired(required = false) GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
+        @Autowired(required = false) StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
+        @Autowired(required = false) RollingConfigRecordDAO rollingConfigRecordDAO,
         @Autowired(required = false) ExecuteArchiveDAO executeArchiveDAO,
         ArchiveProgressService archiveProgressService,
         ArchiveConfig archiveConfig) {
@@ -182,6 +232,11 @@ public class ArchivistAutoConfig {
             gseTaskLogRecordDAO,
             gseTaskIpLogRecordDAO,
             fileSourceTaskRecordDAO,
+            gseTaskRecordDAO,
+            gseScriptAgentTaskRecordDAO,
+            gseFileAgentTaskRecordDAO,
+            stepInstanceRollingTaskRecordDAO,
+            rollingConfigRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
             archiveConfig
