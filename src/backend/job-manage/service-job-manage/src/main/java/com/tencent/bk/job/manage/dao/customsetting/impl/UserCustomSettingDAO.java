@@ -123,8 +123,9 @@ public class UserCustomSettingDAO {
             defaultTable.MODULE,
             defaultTable.KEY,
             defaultTable.VALUE,
-            defaultTable.LAST_MODIFY_USER
-        ).values((String) null, null, null, null, null, null);
+            defaultTable.LAST_MODIFY_USER,
+            defaultTable.LAST_MODIFY_TIME
+        ).values((String) null, null, null, null, null, null, null);
         BatchBindStep batchQuery = dslContext.batch(insertQuery);
         for (UserCustomSettingDTO userCustomSettingDTO : customSettingList) {
             batchQuery = batchQuery.bind(
@@ -133,7 +134,8 @@ public class UserCustomSettingDAO {
                 userCustomSettingDTO.getModule(),
                 userCustomSettingDTO.getKey(),
                 userCustomSettingDTO.getValue(),
-                userCustomSettingDTO.getLastModifyUser()
+                userCustomSettingDTO.getLastModifyUser(),
+                System.currentTimeMillis()
             );
         }
         int[] results = batchQuery.execute();
@@ -157,6 +159,7 @@ public class UserCustomSettingDAO {
             record.set(defaultTable.KEY, userCustomSettingDTO.getKey());
             record.set(defaultTable.VALUE, userCustomSettingDTO.getValue());
             record.set(defaultTable.LAST_MODIFY_USER, userCustomSettingDTO.getLastModifyUser());
+            record.set(defaultTable.LAST_MODIFY_TIME, System.currentTimeMillis());
             records.add(record);
         }
         Batch batchQuery = dslContext.batchUpdate(records);
