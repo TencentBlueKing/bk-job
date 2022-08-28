@@ -74,12 +74,18 @@ public class UserCustomSettingDAO {
     }
 
     public int batchDelete(Collection<String> keyList) {
+        if (CollectionUtils.isEmpty(keyList)) {
+            return 0;
+        }
         return dslContext.deleteFrom(defaultTable)
             .where(defaultTable.KEY.in(keyList))
             .execute();
     }
 
     public List<UserCustomSettingDTO> batchGet(Collection<String> keyList) {
+        if (CollectionUtils.isEmpty(keyList)) {
+            return Collections.emptyList();
+        }
         return dslContext.select(
             defaultTable.USERNAME, defaultTable.APP_ID, defaultTable.MODULE, defaultTable.VALUE,
             defaultTable.LAST_MODIFY_USER, defaultTable.LAST_MODIFY_TIME)
@@ -97,6 +103,9 @@ public class UserCustomSettingDAO {
     }
 
     private List<String> listExistKeys(List<String> keyList) {
+        if (CollectionUtils.isEmpty(keyList)) {
+            return Collections.emptyList();
+        }
         return Arrays.asList(dslContext.select(defaultTable.KEY).from(defaultTable)
             .where(defaultTable.KEY.in(keyList))
             .fetch()
@@ -104,6 +113,9 @@ public class UserCustomSettingDAO {
     }
 
     private int batchInsert(List<UserCustomSettingDTO> customSettingList) {
+        if (CollectionUtils.isEmpty(customSettingList)) {
+            return 0;
+        }
         int affectedNum = 0;
         val insertQuery = dslContext.insertInto(defaultTable,
             defaultTable.USERNAME,
@@ -132,6 +144,9 @@ public class UserCustomSettingDAO {
     }
 
     private int batchUpdate(List<UserCustomSettingDTO> customSettingList) {
+        if (CollectionUtils.isEmpty(customSettingList)) {
+            return 0;
+        }
         int affectedNum = 0;
         List<UserCustomSettingRecord> records = new ArrayList<>();
         for (UserCustomSettingDTO userCustomSettingDTO : customSettingList) {
