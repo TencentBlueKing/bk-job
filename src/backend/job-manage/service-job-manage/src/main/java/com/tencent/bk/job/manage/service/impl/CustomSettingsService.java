@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +64,8 @@ public class CustomSettingsService {
             buildCustomSettingDTOs(username, appResourceScope.getAppId(), req.getSettingsMap())
         );
         log.info("{}|{}|{} records saved", username, appResourceScope.toBasicStr(), affectedNum);
-        return buildCustomSettingMap(userCustomSettingDAO.batchGet(req.getSettingsMap().keySet()));
+        List<String> keyList = buildKeyList(username, appResourceScope.getAppId(), req.getSettingsMap().keySet());
+        return buildCustomSettingMap(userCustomSettingDAO.batchGet(keyList));
     }
 
     public Map<String, Map<String, Object>> batchGetCustomSettings(String username,
@@ -82,11 +84,11 @@ public class CustomSettingsService {
 
     private List<String> buildKeyList(String username,
                                       Long appId,
-                                      List<String> moduleList) {
-        if (CollectionUtils.isEmpty(moduleList)) {
+                                      Collection<String> modules) {
+        if (CollectionUtils.isEmpty(modules)) {
             return Collections.emptyList();
         }
-        return moduleList.parallelStream()
+        return modules.parallelStream()
             .map(module -> UserCustomSettingDTO.getKey(username, appId, module))
             .collect(Collectors.toList());
     }
