@@ -26,10 +26,17 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.model.web.req.ipchooser.DynamicGroupIdWithMeta;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -38,14 +45,66 @@ import java.util.List;
 public class ExecuteServersVO {
 
     @ApiModelProperty("静态 IP 列表")
+    @JsonProperty("hostList")
+    private List<ExecuteHostVO> hostList;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     @JsonProperty("ipList")
     private List<ExecuteHostVO> ipList;
 
     @ApiModelProperty("拓扑节点")
+    @JsonProperty("nodeList")
+    private List<ExecuteTopoNodeVO> nodeList;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     @JsonProperty("topoNodeList")
     private List<ExecuteTopoNodeVO> topoNodeList;
 
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本修改为具体类型", version = "3.8.0")
     @ApiModelProperty("动态分组 ID")
     @JsonProperty("dynamicGroupList")
-    private List<String> dynamicGroupList;
+    private List<Object> dynamicGroupList;
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setIpList(List<ExecuteHostVO> ipList) {
+        this.ipList = ipList;
+        this.hostList = ipList;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setHostList(List<ExecuteHostVO> hostList) {
+        this.hostList = hostList;
+        this.ipList = hostList;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setNodeList(List<ExecuteTopoNodeVO> nodeList) {
+        this.nodeList = nodeList;
+        this.topoNodeList = nodeList;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setTopoNodeList(List<ExecuteTopoNodeVO> topoNodeList) {
+        this.topoNodeList = topoNodeList;
+        this.nodeList = topoNodeList;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改实现", version = "3.8.0")
+    public List<String> getDynamicGroupIdList() {
+        if (CollectionUtils.isEmpty(dynamicGroupList)) {
+            return Collections.emptyList();
+        }
+        List<String> dynamicGroupIdList = new ArrayList<>();
+        for (Object dynamicGroup : dynamicGroupList) {
+            if (dynamicGroup instanceof String) {
+                dynamicGroupIdList.add((String) dynamicGroup);
+            } else {
+                DynamicGroupIdWithMeta dynamicGroupIdWithMeta = JsonUtils.fromJson(
+                    JsonUtils.toJson(dynamicGroup),
+                    new TypeReference<DynamicGroupIdWithMeta>() {
+                    }
+                );
+                dynamicGroupIdList.add(dynamicGroupIdWithMeta.getId());
+            }
+        }
+        return dynamicGroupIdList;
+    }
 }

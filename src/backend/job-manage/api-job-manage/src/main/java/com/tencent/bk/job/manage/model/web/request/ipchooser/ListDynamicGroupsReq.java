@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.ipchooser;
 
+import com.tencent.bk.job.common.model.web.req.ipchooser.DynamicGroupIdWithMeta;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

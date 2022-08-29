@@ -305,15 +305,14 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             List<ExecuteHostVO> hosts = new ArrayList<>();
             for (HostDTO ip : serversDTO.getIpList()) {
                 ExecuteHostVO host = new ExecuteHostVO();
-                ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getBkCloudId(), ip.getIp());
                 host.setHostId(ip.getHostId());
                 host.setIp(ip.getIp());
                 host.setAlive(ip.getAlive());
-                host.setCloudAreaInfo(cloudAreaInfoVO);
+                host.setCloudId(ip.getBkCloudId());
                 hosts.add(host);
             }
-            taskHostNodeVO.setIpList(hosts);
-            targetServer.setHostNodeInfo(taskHostNodeVO);
+            taskHostNodeVO.setHostList(hosts);
+            targetServer.setSelectedServers(taskHostNodeVO);
         }
         return targetServer;
     }
@@ -363,13 +362,11 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                     ExecuteHostVO host = new ExecuteHostVO();
                     host.setIp(ip.getIp());
                     host.setAlive(ip.getAlive());
-                    ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getBkCloudId(),
-                        hostService.getCloudAreaName(ip.getBkCloudId()));
-                    host.setCloudAreaInfo(cloudAreaInfoVO);
+                    host.setCloudId(ip.getBkCloudId());
                     hosts.add(host);
                 }
-                taskHostNodeVO.setIpList(hosts);
-                taskTargetVO.setHostNodeInfo(taskHostNodeVO);
+                taskHostNodeVO.setHostList(hosts);
+                taskTargetVO.setSelectedServers(taskHostNodeVO);
             }
             vo.setTargetValue(taskTargetVO);
         } else if (variable.getType().equals(TaskVariableTypeEnum.CIPHER.getType())) {
