@@ -26,18 +26,18 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.OperationLogRecord;
+import org.jooq.generated.tables.records.GseTaskRecord;
 
 /**
- * operation_log 表归档
+ * gse_task 表归档
  */
-public class OperationLogArchivist extends AbstractArchivist<OperationLogRecord> {
+public class GseTaskArchivist extends AbstractArchivist<GseTaskRecord> {
 
-    public OperationLogArchivist(OperationLogRecordDAO executeRecordDAO,
-                                 ExecuteArchiveDAO executeArchiveDAO,
-                                 ArchiveProgressService archiveProgressService) {
+    public GseTaskArchivist(GseTaskRecordDAO executeRecordDAO,
+                            ExecuteArchiveDAO executeArchiveDAO,
+                            ArchiveProgressService archiveProgressService) {
         super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
         this.deleteIdStepSize = 10_000;
     }

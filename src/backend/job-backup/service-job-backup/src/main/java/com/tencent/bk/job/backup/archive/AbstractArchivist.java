@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.model.dto.ArchiveSummary;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
@@ -40,10 +40,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * 表归档基础实现
+ *
+ * @param <T> 表记录
+ */
 @Data
 @Slf4j
 public abstract class AbstractArchivist<T extends TableRecord<?>> {
-    protected JobExecuteDAO jobExecuteDAO;
+    protected ExecuteRecordDAO<T> executeRecordDAO;
     protected ExecuteArchiveDAO executeArchiveDAO;
     protected ArchiveProgressService archiveProgressService;
     /**
@@ -61,19 +66,14 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected String tableName;
     private ArchiveSummary archiveSummary;
 
-    /**
-     * 查询(start,stop]内的数据
-     * @param start 不含start本身
-     * @param stop 含stop在内
-     * @return
-     */
-    protected abstract List<T> listRecord(Long start, Long stop);
-
-    protected abstract int batchInsert(List<T> recordList) throws IOException;
-
-    protected abstract int deleteRecord(Long start, Long stop);
-
-    protected abstract long getFirstInstanceId();
+    public AbstractArchivist(ExecuteRecordDAO<T> executeRecordDAO,
+                             ExecuteArchiveDAO executeArchiveDAO,
+                             ArchiveProgressService archiveProgressService) {
+        this.executeRecordDAO = executeRecordDAO;
+        this.executeArchiveDAO = executeArchiveDAO;
+        this.archiveProgressService = archiveProgressService;
+        this.tableName = executeRecordDAO.getTable().getName().toLowerCase();
+    }
 
     public void archive(ArchiveConfig archiveConfig, Long maxNeedArchiveId, CountDownLatch countDownLatch) {
         boolean isAcquireLock = false;
@@ -205,7 +205,6 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     /**
      * 获取上一次已归档完成的最后一个数据Id，后续用大于该Id选取范围数据
-     * @return
      */
     private long getLastArchivedId() {
         ArchiveProgressDTO archiveProgress = archiveProgressService.queryArchiveProgress(tableName);
@@ -245,7 +244,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         archiveProgressService.saveDeleteProgress(archiveProgress);
     }
 
-    private boolean delete(Long maxNeedArchiveId, ArchiveConfig archiveConfig) {
+    private void delete(Long maxNeedArchiveId, ArchiveConfig archiveConfig) {
         long startTime = System.currentTimeMillis();
 
         Long maxNeedDeleteId;
@@ -265,7 +264,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             if (maxNeedDeleteId <= lastDeletedId) {
                 log.info("LastDeletedId {} is greater than or equal to maxNeedDeleteId {}, skip delete {}!",
                     lastDeletedId, maxNeedDeleteId, tableName);
-                return true;
+                return;
             }
 
             long start = minNeedDeleteId;
@@ -287,10 +286,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                     "{}, cost: {}ms",
                 tableName, minNeedDeleteId, maxNeedDeleteId, lastDeletedId, deletedRows,
                 System.currentTimeMillis() - startTime);
-            return true;
         } catch (Throwable e) {
             log.error("Error while deleting {}", tableName, e);
-            return false;
         } finally {
             archiveSummary.setDeleteCost(System.currentTimeMillis() - startTime);
             archiveSummary.setDeleteIdStart(minNeedDeleteId);
@@ -319,5 +316,21 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     private void storeArchiveSummary() {
         ArchiveSummaryHolder.getInstance().addArchiveSummary(this.archiveSummary);
+    }
+
+    private List<T> listRecord(Long start, Long stop) {
+        return executeRecordDAO.listRecords(start, stop);
+    }
+
+    private int batchInsert(List<T> recordList) throws IOException {
+        return executeArchiveDAO.batchInsert(recordList, 1000);
+    }
+
+    private int deleteRecord(Long start, Long stop) {
+        return executeRecordDAO.deleteRecords(start, stop);
+    }
+
+    private long getFirstInstanceId() {
+        return executeRecordDAO.getFirstArchiveId();
     }
 }
