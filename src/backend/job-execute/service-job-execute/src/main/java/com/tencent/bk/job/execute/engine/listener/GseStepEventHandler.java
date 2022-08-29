@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatus;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
@@ -46,7 +46,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.db.RollingServerBatchDO;
+import com.tencent.bk.job.execute.model.db.RollingHostsBatchDO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
@@ -111,10 +111,6 @@ public class GseStepEventHandler implements StepEventHandler {
         long stepInstanceId = stepEvent.getStepInstanceId();
         try {
             StepActionEnum action = StepActionEnum.valueOf(stepEvent.getAction());
-            if (action == null) {
-                log.error("Invalid step action: {}, Ignore step event!", stepEvent.getAction());
-                return;
-            }
 
             switch (action) {
                 case START:
@@ -171,11 +167,11 @@ public class GseStepEventHandler implements StepEventHandler {
             log.info("Start step, stepInstanceId={}", stepInstanceId);
         }
 
-        int stepStatus = stepInstance.getStatus();
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         // 只有当步骤状态为“未执行”、“滚动等待”, "等待用户"时可以启动步骤
-        if (RunStatusEnum.BLANK.getValue() == stepStatus
-            || RunStatusEnum.ROLLING_WAITING.getValue() == stepStatus
-            || RunStatusEnum.WAITING_USER.getValue() == stepStatus) {
+        if (RunStatusEnum.BLANK == stepStatus
+            || RunStatusEnum.ROLLING_WAITING == stepStatus
+            || RunStatusEnum.WAITING_USER == stepStatus) {
 
             RollingConfigDTO rollingConfig = null;
             if (isRollingStep) {
@@ -215,18 +211,12 @@ public class GseStepEventHandler implements StepEventHandler {
             taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(
                 stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId, null));
         } else if (stepInstance.isFileStep()) {
-            // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
-            if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                if (filePrepareService.needToPrepareSourceFilesForGseTask(stepInstance)) {
-                    filePrepareService.prepareFileForGseTask(stepInstance);
-                } else {
-                    taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(
-                        stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId,
-                        null));
-                }
+            if (filePrepareService.needToPrepareSourceFilesForGseTask(stepInstance)) {
+                filePrepareService.prepareFileForGseTask(stepInstance);
             } else {
                 taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(
-                    stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId, null));
+                    stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId,
+                    null));
             }
         }
     }
@@ -265,15 +255,15 @@ public class GseStepEventHandler implements StepEventHandler {
             if (stepInstance.isRollingStep() && stepInstance.isFirstRollingBatch()) {
                 // 如果是第一批次的执行，需要初始化所有批次的agent任务（查询需要)
                 if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
-                    List<RollingServerBatchDO> serverBatchList =
-                        rollingConfig.getConfigDetail().getServerBatchList();
+                    List<RollingHostsBatchDO> serverBatchList =
+                        rollingConfig.getConfigDetail().getHostsBatchList();
                     serverBatchList.forEach(serverBatch -> {
                         Integer actualExecuteCount = serverBatch.getBatch() == 1 ? executeCount : null;
                         agentTasks.addAll(buildGseAgentTasks(stepInstanceId,
                             executeCount, actualExecuteCount, serverBatch.getBatch(), gseTaskId,
-                            serverBatch.getServers(), AgentTaskStatus.WAITING));
+                            serverBatch.getHosts(), AgentTaskStatusEnum.WAITING));
                     });
-                } else if (rollingConfig.isAllRollingStep(stepInstanceId)) {
+                } else {
                     // 暂时不支持，滚动执行二期需求
                     log.warn("All rolling step is not supported!");
                     throw new NotImplementedException("All rolling step is not supported",
@@ -281,13 +271,13 @@ public class GseStepEventHandler implements StepEventHandler {
                 }
             } else {
                 agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
-                    gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatus.WAITING));
+                    gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatusEnum.WAITING));
             }
 
             // 无效主机
             if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getInvalidIpList())) {
                 agentTasks.addAll(buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
-                    0L, stepInstance.getTargetServers().getInvalidIpList(), AgentTaskStatus.HOST_NOT_EXIST));
+                    0L, stepInstance.getTargetServers().getInvalidIpList(), AgentTaskStatusEnum.HOST_NOT_EXIST));
             }
             saveAgentTasks(stepInstance, agentTasks);
         } else {
@@ -312,7 +302,7 @@ public class GseStepEventHandler implements StepEventHandler {
                                                   int batch,
                                                   Long gseTaskId,
                                                   List<HostDTO> hosts,
-                                                  AgentTaskStatus status) {
+                                                  AgentTaskStatusEnum status) {
         return hosts.stream()
             .map(host -> buildGseAgentTask(stepInstanceId, executeCount, actualExecuteCount,
                 batch, gseTaskId, host, status))
@@ -325,14 +315,14 @@ public class GseStepEventHandler implements StepEventHandler {
                                              int batch,
                                              Long gseTaskId,
                                              HostDTO host,
-                                             AgentTaskStatus status) {
+                                             AgentTaskStatusEnum status) {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(stepInstanceId);
         agentTask.setExecuteCount(executeCount);
         agentTask.setActualExecuteCount(actualExecuteCount);
         agentTask.setBatch(batch);
         agentTask.setGseTaskId(gseTaskId);
-        agentTask.setStatus(status.getValue());
+        agentTask.setStatus(status);
         agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
         agentTask.setHostId(host.getHostId());
         if (StringUtils.isEmpty(host.getAgentId())) {
@@ -341,7 +331,6 @@ public class GseStepEventHandler implements StepEventHandler {
         } else {
             agentTask.setAgentId(host.getAgentId());
         }
-        agentTask.setCloudIp(host.toCloudIp());
         return agentTask;
     }
 
@@ -355,7 +344,7 @@ public class GseStepEventHandler implements StepEventHandler {
         stepInstanceRollingTask.setStepInstanceId(stepInstance.getId());
         stepInstanceRollingTask.setBatch(stepInstance.getBatch());
         stepInstanceRollingTask.setExecuteCount(stepInstance.getExecuteCount());
-        stepInstanceRollingTask.setStatus(RunStatusEnum.RUNNING.getValue());
+        stepInstanceRollingTask.setStatus(RunStatusEnum.RUNNING);
         stepInstanceRollingTask.setStartTime(System.currentTimeMillis());
         stepInstanceRollingTaskService.saveRollingTask(stepInstanceRollingTask);
     }
@@ -365,9 +354,9 @@ public class GseStepEventHandler implements StepEventHandler {
 
         long taskInstanceId = stepInstance.getTaskInstanceId();
         long stepInstanceId = stepInstance.getId();
-        int stepStatus = stepInstance.getStatus();
+        RunStatusEnum stepStatus = stepInstance.getStatus();
 
-        if (RunStatusEnum.STOP_SUCCESS.getValue() == stepStatus) {
+        if (RunStatusEnum.STOP_SUCCESS == stepStatus) {
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
             long endTime = DateUtils.currentTimeMillis();
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
@@ -386,7 +375,7 @@ public class GseStepEventHandler implements StepEventHandler {
     private void ignoreError(StepInstanceDTO stepInstance) {
         log.info("Ignore step error, stepInstanceId={}", stepInstance.getId());
 
-        if (!stepInstance.getStatus().equals(RunStatusEnum.FAIL.getValue())) {
+        if (stepInstance.getStatus() != RunStatusEnum.FAIL) {
             log.warn("Current step status does not support ignore error operation! stepInstanceId:{}, status:{}",
                 stepInstance.getId(), stepInstance.getStatus());
             return;
@@ -420,7 +409,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
 
     private void skipStep(StepInstanceDTO stepInstance) {
-        int stepStatus = stepInstance.getStatus();
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         long stepInstanceId = stepInstance.getId();
         long taskInstanceId = stepInstance.getTaskInstanceId();
 
@@ -433,7 +422,7 @@ public class GseStepEventHandler implements StepEventHandler {
         log.info("Skip step, stepInstanceId={}", stepInstanceId);
 
         // 只有当步骤状态为'终止中'时可以跳过步骤
-        if (RunStatusEnum.STOPPING.getValue() == stepStatus) {
+        if (RunStatusEnum.STOPPING == stepStatus) {
             long now = DateUtils.currentTimeMillis();
             taskInstanceService.updateStepStartTimeIfNull(stepInstanceId, now);
             taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.SKIPPED.getValue());
@@ -452,8 +441,8 @@ public class GseStepEventHandler implements StepEventHandler {
         long stepInstanceId = stepInstance.getId();
         log.info("Force stop step, stepInstanceId={}", stepInstanceId);
 
-        int stepStatus = stepInstance.getStatus();
-        if (stepStatus == RunStatusEnum.WAITING_USER.getValue()) {
+        RunStatusEnum stepStatus = stepInstance.getStatus();
+        if (stepStatus == RunStatusEnum.WAITING_USER) {
             log.info("Step status is WAITING_USER, set step status stop_success directly!");
             // 等待用户的步骤可以直接结束
             long endTime = DateUtils.currentTimeMillis();
@@ -496,7 +485,7 @@ public class GseStepEventHandler implements StepEventHandler {
             log.info("Retry-fail for step, stepInstanceId={}", stepInstanceId);
         }
 
-        RunStatusEnum stepStatus = RunStatusEnum.valueOf(stepInstance.getStatus());
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         if (isStepSupportRetry(stepStatus)) {
 
             resetExecutionInfoForRetry(stepInstance);
@@ -510,15 +499,7 @@ public class GseStepEventHandler implements StepEventHandler {
             saveAgentTasksForRetryFail(stepInstance, stepInstance.getExecuteCount(), stepInstance.getBatch(),
                 gseTaskId);
 
-            if (stepInstance.isScriptStep()) {
-                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstanceId,
-                    stepInstance.getExecuteCount(), stepInstance.getBatch(), gseTaskId, null));
-            } else if (stepInstance.isFileStep()) {
-                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
-                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                    filePrepareService.prepareFileForGseTask(stepInstance);
-                }
-            }
+            startGseTask(stepInstance, gseTaskId);
         } else {
             log.warn("Unsupported step instance run status for retry step, stepInstanceId={}, status={}",
                 stepInstanceId, stepStatus);
@@ -531,47 +512,49 @@ public class GseStepEventHandler implements StepEventHandler {
 
     private void saveAgentTasksForRetryFail(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
                                             Long gseTaskId) {
-        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1);
+        List<AgentTaskDTO> retryAgentTasks = listTargetAgentTasks(stepInstance, executeCount - 1);
 
-        for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
-            latestAgentTask.setExecuteCount(executeCount);
-            if (!AgentTaskStatus.isSuccess(latestAgentTask.getStatus())) {
-                if (batch != null && latestAgentTask.getBatch() != batch) {
-                    continue;
-                }
-                latestAgentTask.setActualExecuteCount(executeCount);
-                latestAgentTask.resetTaskInitialStatus();
-                latestAgentTask.setGseTaskId(gseTaskId);
+        for (AgentTaskDTO retryAgentTask : retryAgentTasks) {
+            retryAgentTask.setExecuteCount(executeCount);
+            if (batch != null && retryAgentTask.getBatch() != batch) {
+                continue;
+            }
+            // 只有失败的目标主机才需要参与重试
+            if (!AgentTaskStatusEnum.isSuccess(retryAgentTask.getStatus())) {
+                retryAgentTask.setActualExecuteCount(executeCount);
+                retryAgentTask.resetTaskInitialStatus();
+                retryAgentTask.setGseTaskId(gseTaskId);
             }
         }
 
-        saveAgentTasks(stepInstance, latestAgentTasks);
+        saveAgentTasks(stepInstance, retryAgentTasks);
     }
 
 
     private void saveAgentTasksForRetryAll(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
                                            Long gseTaskId) {
-        List<AgentTaskDTO> latestAgentTasks = listAgentTasks(stepInstance, executeCount - 1);
+        List<AgentTaskDTO> retryAgentTasks = listTargetAgentTasks(stepInstance, executeCount - 1);
 
-        for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
-            latestAgentTask.setExecuteCount(executeCount);
-            if (batch != null && latestAgentTask.getBatch() != batch) {
+        for (AgentTaskDTO retryAgentTask : retryAgentTasks) {
+            retryAgentTask.setExecuteCount(executeCount);
+            if (batch != null && retryAgentTask.getBatch() != batch) {
                 continue;
             }
-            latestAgentTask.setActualExecuteCount(executeCount);
-            latestAgentTask.resetTaskInitialStatus();
-            latestAgentTask.setGseTaskId(gseTaskId);
+            retryAgentTask.setActualExecuteCount(executeCount);
+            retryAgentTask.resetTaskInitialStatus();
+            retryAgentTask.setGseTaskId(gseTaskId);
         }
 
-        saveAgentTasks(stepInstance, latestAgentTasks);
+        saveAgentTasks(stepInstance, retryAgentTasks);
     }
 
-    private List<AgentTaskDTO> listAgentTasks(StepInstanceBaseDTO stepInstance, int executeCount) {
+    private List<AgentTaskDTO> listTargetAgentTasks(StepInstanceBaseDTO stepInstance, int executeCount) {
         List<AgentTaskDTO> agentTasks = Collections.emptyList();
         if (stepInstance.isScriptStep()) {
             agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null);
         } else if (stepInstance.isFileStep()) {
-            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null);
+            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null,
+                FileTaskModeEnum.DOWNLOAD);
         }
         return agentTasks;
     }
@@ -581,7 +564,6 @@ public class GseStepEventHandler implements StepEventHandler {
             if (stepInstance.isScriptStep()) {
                 scriptAgentTaskService.batchSaveAgentTasks(agentTasks);
             } else if (stepInstance.isFileStep()) {
-                agentTasks.forEach(agentTask -> agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD));
                 fileAgentTaskService.batchSaveAgentTasks(agentTasks);
             }
         }
@@ -601,7 +583,7 @@ public class GseStepEventHandler implements StepEventHandler {
             log.info("Retry-all for step, stepInstanceId={}", stepInstanceId);
         }
 
-        RunStatusEnum stepStatus = RunStatusEnum.valueOf(stepInstance.getStatus());
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         if (isStepSupportRetry(stepStatus)) {
 
             resetExecutionInfoForRetry(stepInstance);
@@ -615,15 +597,7 @@ public class GseStepEventHandler implements StepEventHandler {
             saveAgentTasksForRetryAll(stepInstance, stepInstance.getExecuteCount(), stepInstance.getBatch(),
                 gseTaskId);
 
-            if (stepInstance.isScriptStep()) {
-                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(
-                    stepInstanceId, stepInstance.getExecuteCount(), null, gseTaskId, null));
-            } else if (stepInstance.isFileStep()) {
-                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
-                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                    filePrepareService.prepareFileForGseTask(stepInstance);
-                }
-            }
+            startGseTask(stepInstance, gseTaskId);
         } else {
             log.warn("Unsupported step instance run status for retry step, stepInstanceId={}, status={}",
                 stepInstanceId, stepStatus);
@@ -661,14 +635,7 @@ public class GseStepEventHandler implements StepEventHandler {
         long stepInstanceId = stepInstance.getId();
         EventSource eventSource = stepEvent.getSource();
 
-        GseTaskDTO gseTask;
-        if (eventSource.getGseTaskId() != null) {
-            gseTask = gseTaskService.getGseTask(eventSource.getGseTaskId());
-        } else {
-            // 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景
-            gseTask = gseTaskService.getGseTask(eventSource.getStepInstanceId(), eventSource.getExecuteCount(),
-                eventSource.getBatch());
-        }
+        GseTaskDTO gseTask = gseTaskService.getGseTask(eventSource.getGseTaskId());
 
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
         log.info("Refresh step according to gse task status, stepInstanceId: {}, gseTaskStatus: {}",
@@ -779,9 +746,9 @@ public class GseStepEventHandler implements StepEventHandler {
         long endTime = System.currentTimeMillis();
         long startTime = stepInstance.getStartTime();
         long totalTime = endTime - startTime;
-        int stepStatus = stepInstance.getStatus();
+        RunStatusEnum stepStatus = stepInstance.getStatus();
 
-        if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
+        if (stepStatus == RunStatusEnum.STOPPING || stepStatus == RunStatusEnum.RUNNING) {
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
                 startTime, endTime, totalTime);
             if (stepInstance.isRollingStep()) {
@@ -804,7 +771,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
     private void setAbnormalStatusForStep(StepInstanceDTO stepInstance) {
         long endTime = System.currentTimeMillis();
-        if (!RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(stepInstance.getStatus()))) {
+        if (!RunStatusEnum.isFinishedStatus(stepInstance.getStatus())) {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             taskInstanceService.updateStepExecutionInfo(

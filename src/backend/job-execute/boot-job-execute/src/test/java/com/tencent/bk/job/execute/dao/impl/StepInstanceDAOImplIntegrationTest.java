@@ -80,7 +80,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(stepInstance.getExecuteType()).isEqualTo(1);
         assertThat(stepInstance.getIpList()).isEqualTo("0:127.0.0.1");
         assertThat(stepInstance.getOperator()).isEqualTo("admin");
-        assertThat(stepInstance.getStatus()).isEqualTo(3);
+        assertThat(stepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS);
         assertThat(stepInstance.getExecuteCount()).isEqualTo(0);
         assertThat(stepInstance.getStartTime()).isEqualTo(1572868800000L);
         assertThat(stepInstance.getEndTime()).isEqualTo(1572868801000L);
@@ -107,7 +107,7 @@ public class StepInstanceDAOImplIntegrationTest {
         servers.setIpList(ipList);
         stepInstanceDTO.setTargetServers(servers);
         stepInstanceDTO.setOperator("admin");
-        stepInstanceDTO.setStatus(RunStatusEnum.SUCCESS.getValue());
+        stepInstanceDTO.setStatus(RunStatusEnum.SUCCESS);
         stepInstanceDTO.setExecuteCount(0);
         stepInstanceDTO.setStartTime(1572868800000L);
         stepInstanceDTO.setEndTime(1572868801000L);
@@ -132,7 +132,7 @@ public class StepInstanceDAOImplIntegrationTest {
         expectedServer.add(new HostDTO(0L, "127.0.0.1"));
         assertThat(returnStepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
         assertThat(returnStepInstance.getOperator()).isEqualTo("admin");
-        assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS.getValue());
+        assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS);
         assertThat(returnStepInstance.getExecuteCount()).isEqualTo(0);
         assertThat(returnStepInstance.getStartTime()).isEqualTo(1572868800000L);
         assertThat(returnStepInstance.getEndTime()).isEqualTo(1572868801000L);
@@ -182,14 +182,12 @@ public class StepInstanceDAOImplIntegrationTest {
     @Test
     public void testUpdateStepStatus() {
         long stepInstanceId = 1L;
-        int status = RunStatusEnum.RUNNING.getValue();
-
-        stepInstanceDAO.updateStepStatus(stepInstanceId, status);
+        stepInstanceDAO.updateStepStatus(stepInstanceId, RunStatusEnum.RUNNING.getValue());
 
         StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
 
         assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
-        assertThat(returnStepInstance.getStatus()).isEqualTo(status);
+        assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.RUNNING);
     }
 
     @Test
@@ -257,7 +255,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance).isNotNull();
         assertThat(returnStepInstance.getStartTime()).isNotNull();
         assertThat(returnStepInstance.getEndTime()).isNull();
-        assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.RUNNING.getValue());
+        assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.RUNNING);
         assertThat(returnStepInstance.getTotalTime()).isNull();
     }
 

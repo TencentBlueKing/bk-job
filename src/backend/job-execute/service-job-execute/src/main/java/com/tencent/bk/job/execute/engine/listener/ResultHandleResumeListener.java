@@ -30,7 +30,6 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
@@ -64,7 +63,6 @@ import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,8 +96,6 @@ public class ResultHandleResumeListener {
 
     private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
 
-    private final ExceptionStatusManager exceptionStatusManager;
-
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
     private final ScriptAgentTaskService scriptAgentTaskService;
@@ -120,7 +116,6 @@ public class ResultHandleResumeListener {
                                       StepInstanceVariableValueService stepInstanceVariableValueService,
                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                      ExceptionStatusManager exceptionStatusManager,
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                       ScriptAgentTaskService scriptAgentTaskService,
                                       FileAgentTaskService fileAgentTaskService,
@@ -136,7 +131,6 @@ public class ResultHandleResumeListener {
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
@@ -151,18 +145,11 @@ public class ResultHandleResumeListener {
     @StreamListener(TaskResultHandleResumeProcessor.INPUT)
     public void handleEvent(ResultHandleTaskResumeEvent event) {
         log.info("Receive gse task result handle task resume event: {}", event);
-        GseTaskDTO gseTask;
-        if (event.getGseTaskId() != null) {
-            gseTask = gseTaskService.getGseTask(event.getGseTaskId());
-        } else {
-            // 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景
-            gseTask = gseTaskService.getGseTask(event.getStepInstanceId(), event.getExecuteCount(), event.getBatch());
-        }
-
+        GseTaskDTO gseTask = gseTaskService.getGseTask(event.getGseTaskId());
         long stepInstanceId = gseTask.getStepInstanceId();
-
         String requestId = StringUtils.isNotEmpty(event.getRequestId()) ? event.getRequestId()
             : UUID.randomUUID().toString();
+
         try {
             StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
@@ -172,15 +159,6 @@ public class ResultHandleResumeListener {
                     stepInstance.getStatus(), gseTask.getStatus());
                 return;
             }
-
-            Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-            List<AgentTaskDTO> agentTasks = new ArrayList<>();
-            if (stepInstance.isScriptStep()) {
-                agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-            } else if (stepInstance.isFileStep()) {
-                agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-            }
-            agentTasks.forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
 
             List<TaskVariableDTO> taskVariables =
                 taskInstanceVariableService.getByTaskInstanceId(stepInstance.getTaskInstanceId());
@@ -208,7 +186,6 @@ public class ResultHandleResumeListener {
         List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         agentTasks.forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
 
-
         ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
             taskInstanceService,
             gseTaskService,
@@ -217,7 +194,6 @@ public class ResultHandleResumeListener {
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
-            exceptionStatusManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
@@ -249,7 +225,7 @@ public class ResultHandleResumeListener {
 
         Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
         Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
-        List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        List<AgentTaskDTO> agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         agentTasks.forEach(agentTask -> {
             if (agentTask.isTarget()) {
                 targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);
@@ -266,7 +242,6 @@ public class ResultHandleResumeListener {
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
-            exceptionStatusManager,
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
@@ -292,7 +267,7 @@ public class ResultHandleResumeListener {
     }
 
     private boolean checkIsTaskResumeable(StepInstanceDTO stepInstance, GseTaskDTO gseTask) {
-        RunStatusEnum stepStatus = RunStatusEnum.valueOf(stepInstance.getStatus());
+        RunStatusEnum stepStatus = stepInstance.getStatus();
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
         return (stepStatus == RunStatusEnum.WAITING_USER || stepStatus == RunStatusEnum.RUNNING
             || stepStatus == RunStatusEnum.STOPPING) && (gseTaskStatus == RunStatusEnum.WAITING_USER

@@ -24,9 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.execute.config.GseTaskTableRouteConfig;
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
-import com.tencent.bk.job.execute.dao.GseTaskLogDAO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
@@ -38,42 +36,25 @@ import org.springframework.stereotype.Service;
 public class GseTaskServiceImpl implements GseTaskService {
 
     private final GseTaskDAO gseTaskDAO;
-    private final GseTaskLogDAO gseTaskLogDAO;
-    private final GseTaskTableRouteConfig gseTaskTableRouteConfig;
 
     @Autowired
-    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO, GseTaskLogDAO gseTaskLogDAO,
-                              GseTaskTableRouteConfig gseTaskTableRouteConfig) {
+    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO) {
         this.gseTaskDAO = gseTaskDAO;
-        this.gseTaskLogDAO = gseTaskLogDAO;
-        this.gseTaskTableRouteConfig = gseTaskTableRouteConfig;
     }
 
     @Override
     public Long saveGseTask(GseTaskDTO gseTask) {
-        if (usingNewTable(gseTask.getStepInstanceId())) {
-            return gseTaskDAO.saveGseTask(gseTask);
-        } else {
-            // 兼容实现，发布后删除
-            gseTaskLogDAO.saveGseTaskLog(gseTask);
-            return null;
-        }
+        return gseTaskDAO.saveGseTask(gseTask);
     }
 
-    private boolean usingNewTable(long stepInstanceId) {
-        return gseTaskTableRouteConfig.isNewTableEnabled()
-            && (gseTaskTableRouteConfig.getFromStepInstanceId() == null
-            || stepInstanceId > gseTaskTableRouteConfig.getFromStepInstanceId());
+    @Override
+    public boolean updateGseTask(GseTaskDTO gseTask) {
+        return gseTaskDAO.updateGseTask(gseTask);
     }
 
     @Override
     public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch) {
-        GseTaskDTO gseTask = gseTaskDAO.getGseTask(stepInstanceId, executeCount, batch);
-        if (gseTask == null) {
-            // 兼容历史数据
-            gseTask = gseTaskLogDAO.getGseTaskLog(stepInstanceId, executeCount);
-        }
-        return gseTask;
+        return gseTaskDAO.getGseTask(stepInstanceId, executeCount, batch);
     }
 
     @Override

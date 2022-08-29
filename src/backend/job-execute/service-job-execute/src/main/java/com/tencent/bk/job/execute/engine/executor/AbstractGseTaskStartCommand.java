@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
@@ -32,7 +31,6 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -59,6 +57,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.util.StopWatch;
 
 import java.util.HashMap;
@@ -77,7 +76,6 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     protected final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected final ExecuteMonitor executeMonitor;
-    protected final ExceptionStatusManager exceptionStatusManager;
     protected final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected final JobExecuteConfig jobExecuteConfig;
     protected final StepInstanceService stepInstanceService;
@@ -126,9 +124,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 ExecuteMonitor executeMonitor,
                                 JobExecuteConfig jobExecuteConfig,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                ExceptionStatusManager exceptionStatusManager,
                                 GseTasksExceptionCounter gseTasksExceptionCounter,
-                                Tracing tracing,
+                                Tracer tracer,
                                 GseClient gseClient,
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
@@ -139,7 +136,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             accountService,
             gseTaskService,
             agentTaskService,
-            tracing,
+            tracer,
             gseClient,
             taskInstance,
             stepInstance,
@@ -154,7 +151,6 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.exceptionStatusManager = exceptionStatusManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.requestId = requestId;
         this.stepInstanceService = stepInstanceService;
@@ -179,7 +175,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
         // 添加执行结果处理后台任务
         watch.start("addResultHandleTask");
-        if (stepInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue())) {
+        if (stepInstance.getStatus() == RunStatusEnum.RUNNING) {
             addResultHandleTask();
         }
         watch.stop();
@@ -282,7 +278,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         if (totalTime != null) {
             gseTask.setTotalTime(totalTime);
         }
-        gseTaskService.saveGseTask(gseTask);
+        gseTaskService.updateGseTask(gseTask);
     }
 
     /**

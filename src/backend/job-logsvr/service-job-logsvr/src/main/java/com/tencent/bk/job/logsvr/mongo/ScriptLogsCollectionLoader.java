@@ -57,25 +57,23 @@ public class ScriptLogsCollectionLoader extends CollectionLoaderBase {
         log.info("Create index for collection: {} start...", collectionName);
         if (!indexes.contains(IDX_STEP_ID_HASHED)) {
             log.info("Create index {} for collection: {}start...", IDX_STEP_ID_HASHED, collectionName);
-            IndexOptions indexOptions1 = new IndexOptions();
-            indexOptions1.background(false);
-            indexOptions1.name(IDX_STEP_ID_HASHED);
-            collection.createIndex(Document.parse("{\"stepId\":\"hashed\"}"), indexOptions1);
+            IndexOptions indexOptions = new IndexOptions();
+            indexOptions.background(false);
+            indexOptions.name(IDX_STEP_ID_HASHED);
+            collection.createIndex(Document.parse("{\"stepId\":\"hashed\"}"), indexOptions);
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_ID_HASHED, collectionName);
         }
 
         if (!indexes.contains(IDX_STEP_ID_EXECUTE_COUNT_HOST_ID)) {
             log.info("Create index {} for collection: {} start...", IDX_STEP_ID_EXECUTE_COUNT_HOST_ID, collectionName);
-            IndexOptions indexOption2 = new IndexOptions();
-            indexOption2.background(false);
-            indexOption2.name(IDX_STEP_ID_EXECUTE_COUNT_HOST_ID);
+            IndexOptions indexOptions = new IndexOptions();
+            indexOptions.background(false);
+            indexOptions.name(IDX_STEP_ID_EXECUTE_COUNT_HOST_ID);
             collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"hostId\":1}"),
-                indexOption2);
+                indexOptions);
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_ID_EXECUTE_COUNT_HOST_ID,
                 collectionName);
         }
-
         log.info("Create index for collection : {} successfully!", collectionName);
-
     }
 }

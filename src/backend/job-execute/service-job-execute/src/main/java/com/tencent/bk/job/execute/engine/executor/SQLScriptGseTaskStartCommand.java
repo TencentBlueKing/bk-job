@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.google.common.collect.Maps;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -36,7 +35,6 @@ import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -62,6 +60,7 @@ import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -133,10 +132,9 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         ExecuteMonitor executeMonitor,
                                         JobExecuteConfig jobExecuteConfig,
                                         TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                        ExceptionStatusManager exceptionStatusManager,
                                         GseTasksExceptionCounter gseTasksExceptionCounter,
                                         JobBuildInVariableResolver jobBuildInVariableResolver,
-                                        Tracing tracing,
+                                        Tracer tracer,
                                         GseClient gseClient,
                                         String requestId,
                                         TaskInstanceDTO taskInstance,
@@ -157,10 +155,9 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             executeMonitor,
             jobExecuteConfig,
             taskEvictPolicyExecutor,
-            exceptionStatusManager,
             gseTasksExceptionCounter,
             jobBuildInVariableResolver,
-            tracing,
+            tracer,
             gseClient,
             requestId,
             taskInstance,

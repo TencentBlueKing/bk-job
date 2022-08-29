@@ -87,6 +87,7 @@ public class FileLogsCollectionLoader extends CollectionLoaderBase {
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_TASK_ID,
                 collectionName);
         }
+
         log.info("Create index for collection : {} successfully!", collectionName);
     }
 }

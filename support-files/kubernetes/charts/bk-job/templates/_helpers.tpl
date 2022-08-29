@@ -513,6 +513,28 @@ Return the Job Storage Env Content
 {{- end -}}
 
 {{/*
+Return the Job Trace Env Content
+*/}}
+{{- define "job.trace.env" -}}
+- name: OTEL_TRACE_ENABLED
+  value: {{ .Values.job.trace.enabled | quote }}
+- name: OTEL_TRACE_REPORT_ENABLED
+  value: {{ .Values.job.trace.report.enabled | quote }}
+- name: OTEL_TRACE_REPORT_ENDPOINT_URL
+  value: {{ .Values.job.trace.report.pushUrl | quote }}
+- name: OTEL_TRACE_REPORT_BK_DATA_TOKEN
+  value: {{ .Values.job.trace.report.secureKey | quote }}
+{{- end -}}
+
+{{/*
+Return the Job Common Env Content
+*/}}
+{{- define "job.common.env" -}}
+{{ include "job.storage.env" . }}
+{{ include "job.trace.env" . }}
+{{- end -}}
+
+{{/*
 Return the Job Ingress Frontend TLS Config
 */}}
 {{- define "job.ingress.frontend.tls" -}}

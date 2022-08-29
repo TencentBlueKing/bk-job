@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -34,6 +33,7 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -57,7 +57,7 @@ public class NotifySendService {
     @Autowired
     public NotifySendService(WatchableSendMsgService watchableSendMsgService,
                              EsbUserInfoDAO esbUserInfoDAO,
-                             Tracing tracing,
+                             Tracer tracer,
                              MeterRegistry meterRegistry) {
         this.watchableSendMsgService = watchableSendMsgService;
         this.esbUserInfoDAO = esbUserInfoDAO;
@@ -69,7 +69,7 @@ public class NotifySendService {
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(10)
             ),
-            tracing
+            tracer
         );
         measureNotifySendExecutor(meterRegistry);
     }

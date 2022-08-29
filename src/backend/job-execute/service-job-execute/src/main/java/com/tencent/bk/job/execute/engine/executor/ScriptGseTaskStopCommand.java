@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
@@ -38,6 +37,7 @@ import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +49,7 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
                                     AccountService accountService,
                                     GseTaskService gseTaskService,
                                     AgentTaskService agentTaskService,
-                                    Tracing tracing,
+                                    Tracer tracer,
                                     GseClient gseClient,
                                     TaskInstanceDTO taskInstance,
                                     StepInstanceDTO stepInstance,
@@ -58,7 +58,7 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
             accountService,
             gseTaskService,
             agentTaskService,
-            tracing,
+            tracer,
             gseClient,
             taskInstance,
             stepInstance,
@@ -82,7 +82,7 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
         } else {
             log.info("Terminate gse task response success!");
             gseTask.setStatus(RunStatusEnum.STOPPING.getValue());
-            gseTaskService.saveGseTask(gseTask);
+            gseTaskService.updateGseTask(gseTask);
         }
     }
 }

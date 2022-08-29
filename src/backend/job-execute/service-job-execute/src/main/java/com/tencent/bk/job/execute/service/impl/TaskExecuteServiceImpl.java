@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -120,6 +119,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -183,7 +183,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   HostService hostService,
                                   ServiceUserResourceClient userResource,
                                   ExecuteAuthService executeAuthService,
-                                  Tracing tracing,
+                                  Tracer tracer,
                                   DangerousScriptCheckService dangerousScriptCheckService,
                                   JobExecuteConfig jobExecuteConfig,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
@@ -201,7 +201,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.userResource = userResource;
         this.executeAuthService = executeAuthService;
         this.GET_HOSTS_BY_TOPO_EXECUTOR = new TraceableExecutorService(new ThreadPoolExecutor(50,
-            100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>()), tracing);
+            100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>()), tracer);
         this.dangerousScriptCheckService = dangerousScriptCheckService;
         this.rollingConfigService = rollingConfigService;
         this.jobExecuteConfig = jobExecuteConfig;
@@ -1251,7 +1251,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         } else {
             taskInstance.setCronTaskId(-1L);
         }
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setOperator(executeParam.getOperator());
         String taskName = StringUtils.isBlank(executeParam.getTaskName()) ? taskPlan.getName() :
@@ -1272,7 +1272,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setStepId(stepId);
         stepInstance.setName(stepName);
         stepInstance.setExecuteType(stepType.getValue());
-        stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setOperator(operator);
         stepInstance.setAppId(appId);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
@@ -1351,7 +1351,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstance.setType(originTaskInstance.getType());
         taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
         taskInstance.setCronTaskId(-1L);
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setOperator(operator);
         taskInstance.setName(originTaskInstance.getName());
@@ -1922,7 +1922,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void continueRolling(StepInstanceDTO stepInstance, String operator) {
         // 只有“等待用户”的滚动步骤可以继续滚动
-        if (!(stepInstance.getStatus().equals(RunStatusEnum.WAITING_USER.getValue()))) {
+        if (stepInstance.getStatus() != RunStatusEnum.WAITING_USER) {
             log.warn("StepInstance:{} status is not fail, Unsupported Operation:{}", stepInstance.getId(),
                 "rolling-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -1942,7 +1942,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void confirmTerminate(StepInstanceDTO stepInstance, String operator, String reason) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         // 只有人工确认等待中的任务，可以进行“终止流程”操作
-        if (!RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus())) {
+        if (RunStatusEnum.WAITING_USER != stepInstance.getStatus()) {
             log.warn("StepInstance:{} status is not waiting, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-terminate");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -1967,7 +1967,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void confirmRestart(StepInstanceDTO stepInstance, String operator) {
         // 只有“确认终止”状态的任务，可以进行“重新发起确认”操作
-        if (!RunStatusEnum.CONFIRM_TERMINATED.getValue().equals(stepInstance.getStatus())) {
+        if (RunStatusEnum.CONFIRM_TERMINATED != stepInstance.getStatus()) {
             log.warn("StepInstance:{} status is not confirm_terminated, Unsupported Operation:{}",
                 stepInstance.getId(), "confirm-restart");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2017,7 +2017,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 "-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (!(RunStatusEnum.WAITING_USER.getValue().equals(stepInstance.getStatus()))) {
+        if (RunStatusEnum.WAITING_USER != stepInstance.getStatus()) {
             log.warn("StepInstance:{} status is not waiting, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2043,7 +2043,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void nextStep(StepInstanceDTO stepInstance, String operator) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         // 只有"终止成功"状态的任务，可以直接进入下一步
-        if (!RunStatusEnum.STOP_SUCCESS.getValue().equals(stepInstance.getStatus())) {
+        if (RunStatusEnum.STOP_SUCCESS != stepInstance.getStatus()) {
             log.warn("StepInstance:{} status is not stop-success, Unsupported Operation:{}", stepInstance.getId(),
                 "next-step");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2058,7 +2058,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void retryStepFail(StepInstanceDTO stepInstance, String operator) {
         // 只有“执行失败”的作业可以失败重试
-        if (!stepInstance.getStatus().equals(RunStatusEnum.FAIL.getValue())) {
+        if (stepInstance.getStatus() != RunStatusEnum.FAIL) {
             log.warn("StepInstance:{} status is not fail, Unsupported Operation:{}", stepInstance.getId(), "retry" +
                 "-fail");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2074,8 +2074,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void retryStepAll(StepInstanceDTO stepInstance, String operator) {
         // 只有“执行失败”,"终止成功"的作业可以全部重试
-        if (!(stepInstance.getStatus().equals(RunStatusEnum.FAIL.getValue())
-            || stepInstance.getStatus().equals(RunStatusEnum.STOP_SUCCESS.getValue()))) {
+        if (stepInstance.getStatus() != RunStatusEnum.FAIL
+            && stepInstance.getStatus() != RunStatusEnum.STOP_SUCCESS) {
             log.warn("StepInstance:{} status is not fail, Unsupported Operation:{}", stepInstance.getId(), "retry-all");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
@@ -2090,8 +2090,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void ignoreError(StepInstanceDTO stepInstance, String operator) {
         // 只有“执行失败”的作业可以忽略错误进入下一步
-        if (!stepInstance.getStatus().equals(RunStatusEnum.FAIL.getValue()) &&
-            !stepInstance.getStatus().equals(RunStatusEnum.ABNORMAL_STATE.getValue())) {
+        if (stepInstance.getStatus() != RunStatusEnum.FAIL &&
+            stepInstance.getStatus() != RunStatusEnum.ABNORMAL_STATE) {
             log.warn("StepInstance:{} status is {}, Unsupported Operation:{}", stepInstance.getId(),
                 stepInstance.getStatus(), "ignore-error");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2106,7 +2106,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void skipStep(StepInstanceDTO stepInstance, String operator) {
         // 只有“强制终止中”的作业可以跳过
-        if (!stepInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+        if (stepInstance.getStatus() != RunStatusEnum.STOPPING) {
             log.warn("StepInstance:{} status is not stopping, Unsupported Operation:{}", stepInstance.getId(), "skip");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
@@ -2155,12 +2155,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
-        if (!RunStatusEnum.RUNNING.getValue().equals(taskInstance.getStatus())
-            && !RunStatusEnum.WAITING_USER.getValue().equals(taskInstance.getStatus())) {
+        if (RunStatusEnum.RUNNING != taskInstance.getStatus()
+            && RunStatusEnum.WAITING_USER != taskInstance.getStatus()) {
             log.warn("TaskInstance:{} status is not running/waiting, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (RunStatusEnum.STOPPING.getValue().equals(taskInstance.getStatus())) {
+        if (RunStatusEnum.STOPPING == taskInstance.getStatus()) {
             log.warn("TaskInstance:{} status is stopping now, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.TASK_STOPPING_DO_NOT_REPEAT);
         }

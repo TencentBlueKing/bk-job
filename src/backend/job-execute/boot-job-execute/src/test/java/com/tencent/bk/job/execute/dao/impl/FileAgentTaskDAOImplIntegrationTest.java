@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
@@ -71,7 +72,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask.getHostId()).isEqualTo(hostId);
         assertThat(agentTask.getAgentId()).isEqualTo("0:127.0.0.1");
         assertThat(agentTask.getGseTaskId()).isEqualTo(1L);
-        assertThat(agentTask.getStatus()).isEqualTo(9);
+        assertThat(agentTask.getStatus()).isEqualTo(AgentTaskStatusEnum.SUCCESS);
         assertThat(agentTask.getStartTime()).isEqualTo(1565767148000L);
         assertThat(agentTask.getEndTime()).isEqualTo(1565767149000L);
         assertThat(agentTask.getTotalTime()).isEqualTo(1000L);
@@ -95,7 +96,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask1.setEndTime(1572858335000L);
         agentTask1.setTotalTime(1000L);
         agentTask1.setErrorCode(99);
-        agentTask1.setStatus(1);
+        agentTask1.setStatus(AgentTaskStatusEnum.AGENT_ERROR);
         agentTaskList.add(agentTask1);
 
         AgentTaskDTO agentTask2 = new AgentTaskDTO();
@@ -112,7 +113,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
         agentTask2.setErrorCode(88);
-        agentTask2.setStatus(2);
+        agentTask2.setStatus(AgentTaskStatusEnum.HOST_NOT_EXIST);
         agentTaskList.add(agentTask2);
 
         fileAgentTaskDAO.batchSaveAgentTasks(agentTaskList);
@@ -131,7 +132,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getEndTime()).isEqualTo(1572858335000L);
         assertThat(agentTask1Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask1Return.getErrorCode()).isEqualTo(99);
-        assertThat(agentTask1Return.getStatus()).isEqualTo(1);
+        assertThat(agentTask1Return.getStatus()).isEqualTo(AgentTaskStatusEnum.AGENT_ERROR);
 
 
         AgentTaskDTO agentTask2Return = fileAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1,
@@ -148,7 +149,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(agentTask2Return.getStatus()).isEqualTo(2);
+        assertThat(agentTask2Return.getStatus()).isEqualTo(AgentTaskStatusEnum.HOST_NOT_EXIST);
     }
 
     @Test
@@ -167,7 +168,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask1.setEndTime(1572858335000L);
         agentTask1.setTotalTime(1000L);
         agentTask1.setErrorCode(99);
-        agentTask1.setStatus(1);
+        agentTask1.setStatus(AgentTaskStatusEnum.AGENT_ERROR);
         agentTaskList.add(agentTask1);
 
         AgentTaskDTO agentTask2 = new AgentTaskDTO();
@@ -183,7 +184,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
         agentTask2.setErrorCode(88);
-        agentTask2.setStatus(2);
+        agentTask2.setStatus(AgentTaskStatusEnum.HOST_NOT_EXIST);
         agentTaskList.add(agentTask2);
 
         fileAgentTaskDAO.batchUpdateAgentTasks(agentTaskList);
@@ -200,7 +201,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getEndTime()).isEqualTo(1572858335000L);
         assertThat(agentTask1Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask1Return.getErrorCode()).isEqualTo(99);
-        assertThat(agentTask1Return.getStatus()).isEqualTo(1);
+        assertThat(agentTask1Return.getStatus()).isEqualTo(AgentTaskStatusEnum.AGENT_ERROR);
 
 
         AgentTaskDTO agentTask2Return = fileAgentTaskDAO.getAgentTaskByHostId(1L, 0, 2,
@@ -215,7 +216,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(agentTask2Return.getStatus()).isEqualTo(2);
+        assertThat(agentTask2Return.getStatus()).isEqualTo(AgentTaskStatusEnum.HOST_NOT_EXIST);
     }
 
     @Test
@@ -254,7 +255,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTasks.get(0).getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTasks.get(0).getExecuteCount()).isEqualTo(0);
         assertThat(agentTasks.get(0).getBatch()).isEqualTo(2);
-        assertThat(agentTasks.get(0).getStatus()).isEqualTo(9);
+        assertThat(agentTasks.get(0).getStatus()).isEqualTo(AgentTaskStatusEnum.SUCCESS);
         assertThat(agentTasks).extracting("hostId").containsOnly(103L);
     }
 

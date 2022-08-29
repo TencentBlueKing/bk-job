@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +37,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,7 +61,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         assertThat(agentTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(agentTask.getExecuteCount()).isEqualTo(executeCount);
         assertThat(agentTask.getCloudIp()).isEqualTo(ip);
-        assertThat(agentTask.getStatus()).isEqualTo(9);
+        assertThat(agentTask.getStatus()).isEqualTo(AgentTaskStatusEnum.SUCCESS);
         Long expectStartTime = 1565767148000L;
         Long expectEndTime = 1565767149000L;
         assertThat(agentTask.getStartTime()).isEqualTo(expectStartTime);
@@ -71,53 +71,6 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         assertThat(agentTask.getExitCode()).isEqualTo(0);
         assertThat(agentTask.getTag()).isEqualTo("succ");
         assertThat(agentTask.getScriptLogOffset()).isEqualTo(0);
-    }
-
-    @Test
-    public void testBatchSaveAgentTasks() {
-        List<AgentTaskDTO> agentTasks = new ArrayList<>();
-        AgentTaskDTO agentTask1 = new AgentTaskDTO();
-        agentTask1.setStepInstanceId(1L);
-        agentTask1.setExecuteCount(0);
-        agentTask1.setCloudIp("0:127.0.0.1");
-        agentTask1.setErrorCode(99);
-        agentTask1.setStatus(1);
-        agentTask1.setExitCode(1);
-        agentTasks.add(agentTask1);
-
-        AgentTaskDTO agentTask2 = new AgentTaskDTO();
-        agentTask2.setStepInstanceId(3L);
-        agentTask2.setExecuteCount(0);
-        agentTask2.setCloudIp("0:127.0.0.1");
-        agentTask2.setErrorCode(88);
-        agentTask2.setExitCode(1);
-        long startTime = 1572858330000L;
-        agentTask2.setStartTime(startTime);
-        long endTime = 1572858331000L;
-        agentTask2.setEndTime(endTime);
-        agentTask2.setStatus(2);
-        agentTasks.add(agentTask2);
-
-        gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
-
-        AgentTaskDTO resultAgentTask1 = gseTaskIpLogDAO.getAgentTaskByIp(1L, 0, "0:127.0.0.1");
-        assertThat(resultAgentTask1.getStepInstanceId()).isEqualTo(1L);
-        assertThat(resultAgentTask1.getExecuteCount()).isEqualTo(0L);
-        assertThat(resultAgentTask1.getCloudIp()).isEqualTo("0:127.0.0.1");
-        assertThat(resultAgentTask1.getErrorCode()).isEqualTo(99);
-        assertThat(resultAgentTask1.getStatus()).isEqualTo(1);
-        assertThat(resultAgentTask1.getExitCode()).isEqualTo(1);
-
-
-        AgentTaskDTO resultAgentTask2 = gseTaskIpLogDAO.getAgentTaskByIp(3L, 0, "0:127.0.0.1");
-        assertThat(resultAgentTask2.getStepInstanceId()).isEqualTo(3L);
-        assertThat(resultAgentTask2.getExecuteCount()).isEqualTo(0L);
-        assertThat(resultAgentTask2.getCloudIp()).isEqualTo("0:127.0.0.1");
-        assertThat(resultAgentTask2.getStartTime()).isEqualTo(startTime);
-        assertThat(resultAgentTask2.getEndTime()).isEqualTo(endTime);
-        assertThat(resultAgentTask2.getErrorCode()).isEqualTo(88);
-        assertThat(resultAgentTask2.getStatus()).isEqualTo(2);
-        assertThat(resultAgentTask2.getExitCode()).isEqualTo(1);
     }
 
     @Test

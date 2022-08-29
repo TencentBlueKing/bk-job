@@ -1,11 +1,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.config.GseTaskTableRouteConfig;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -38,18 +34,15 @@ public class FileAgentTaskServiceImpl
 
     private final FileAgentTaskDAO fileAgentTaskDAO;
     private final GseTaskIpLogDAO gseTaskIpLogDAO;
-    private final GseTaskTableRouteConfig gseTaskTableRouteConfig;
 
     @Autowired
     public FileAgentTaskServiceImpl(FileAgentTaskDAO fileAgentTaskDAO,
                                     StepInstanceService stepInstanceService,
                                     HostService hostService,
-                                    GseTaskIpLogDAO gseTaskIpLogDAO,
-                                    GseTaskTableRouteConfig gseTaskTableRouteConfig) {
+                                    GseTaskIpLogDAO gseTaskIpLogDAO) {
         super(stepInstanceService, hostService);
         this.fileAgentTaskDAO = fileAgentTaskDAO;
         this.gseTaskIpLogDAO = gseTaskIpLogDAO;
-        this.gseTaskTableRouteConfig = gseTaskTableRouteConfig;
     }
 
     @Override
@@ -57,20 +50,7 @@ public class FileAgentTaskServiceImpl
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }
-        long stepInstanceId = agentTasks.stream().findAny().map(AgentTaskDTO::getStepInstanceId)
-            .orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR));
-        if (usingNewTable(stepInstanceId)) {
-            fileAgentTaskDAO.batchSaveAgentTasks(agentTasks);
-        } else {
-            // 兼容实现，发布之后删除
-            gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
-        }
-    }
-
-    private boolean usingNewTable(long stepInstanceId) {
-        return gseTaskTableRouteConfig.isNewTableEnabled()
-            && (gseTaskTableRouteConfig.getFromStepInstanceId() == null
-            || stepInstanceId > gseTaskTableRouteConfig.getFromStepInstanceId());
+        fileAgentTaskDAO.batchSaveAgentTasks(agentTasks);
     }
 
     @Override
@@ -78,14 +58,7 @@ public class FileAgentTaskServiceImpl
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }
-        long stepInstanceId = agentTasks.stream().findAny().map(AgentTaskDTO::getStepInstanceId)
-            .orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR));
-        if (usingNewTable(stepInstanceId)) {
-            fileAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
-        } else {
-            // 兼容实现，发布之后删除
-            gseTaskIpLogDAO.batchSaveAgentTasks(agentTasks);
-        }
+        fileAgentTaskDAO.batchUpdateAgentTasks(agentTasks);
     }
 
     @Override
@@ -190,24 +163,21 @@ public class FileAgentTaskServiceImpl
                                            FileTaskModeEnum fileTaskMode, HostDTO host) {
         AgentTaskDTO agentTask = null;
         Long hostId = host.getHostId();
-        if (hostId == null) {
-            // 根据ip反查hostId
+        if (hostId != null) {
+            // 根据hostId查询
+            agentTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch,
+                fileTaskMode, hostId);
+        } else if (StringUtils.isNotEmpty(host.toCloudIp())) {
+            // 根据ip查询的模式，有两种情况，数据可能在gse_file_agent_task/gse_task_ip_log表中，优先查询gse_file_agent_task
             HostDTO queryHost = getStepHostByIp(stepInstance, host.toCloudIp());
             if (queryHost != null) {
-                hostId = queryHost.getHostId();
+                agentTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch,
+                    fileTaskMode, queryHost.getHostId());
             } else {
-                throw new NotFoundException(ErrorCode.HOST_INVALID, new String[]{host.toCloudIp()});
+                // 根据ip查询gse_task_ip_log表中的数据
+                agentTask = gseTaskIpLogDAO.getAgentTaskByIp(stepInstance.getId(), executeCount, host.toCloudIp());
             }
         }
-
-        if (hostId != null) {
-            agentTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch, fileTaskMode,
-                hostId);
-        } else if (StringUtils.isNotEmpty(host.getIp())) {
-            // 兼容历史数据
-            agentTask = gseTaskIpLogDAO.getAgentTaskByIp(stepInstance.getId(), executeCount, host.toCloudIp());
-        }
-
         return agentTask;
     }
 

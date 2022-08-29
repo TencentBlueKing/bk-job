@@ -68,14 +68,7 @@ public class GseTaskListener {
     @StreamListener(GseTaskProcessor.INPUT)
     public void handleEvent(@Payload GseTaskEvent gseTaskEvent) {
         log.info("Handel gse task event: {}", gseTaskEvent);
-        GseTaskDTO gseTask;
-        if (gseTaskEvent.getGseTaskId() != null) {
-            gseTask = gseTaskService.getGseTask(gseTaskEvent.getGseTaskId());
-        } else {
-            // 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景
-            gseTask = gseTaskService.getGseTask(gseTaskEvent.getStepInstanceId(), gseTaskEvent.getExecuteCount(),
-                gseTaskEvent.getBatch());
-        }
+        GseTaskDTO gseTask = gseTaskService.getGseTask(gseTaskEvent.getGseTaskId());
         String requestId = gseTaskEvent.getRequestId();
         try {
             int action = gseTaskEvent.getAction();

@@ -27,6 +27,7 @@ package com.tencent.bk.job.logsvr.model;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.StringJoiner;
@@ -84,15 +85,13 @@ public class TaskHostLog {
     @Override
     public String toString() {
         return new StringJoiner(", ", TaskHostLog.class.getSimpleName() + "[", "]")
-            .add("fileTaskLogs=" + fileTaskLogs)
             .add("jobCreateDate='" + jobCreateDate + "'")
             .add("stepInstanceId=" + stepInstanceId)
             .add("hostId='" + hostId + "'")
             .add("ip='" + ip + "'")
             .add("executeCount=" + executeCount)
             .add("batch=" + batch)
-            .add("scriptTaskLog=" + scriptTaskLog)
-            .add("scriptContent='" + scriptContent + "'")
+            .add("scriptContentLength=" + (StringUtils.isEmpty(scriptContent) ? 0 : scriptContent.length()))
             .add("logType=" + logType)
             .toString();
     }

@@ -53,10 +53,8 @@ public class StepInstanceRollingTaskDTO {
     private Integer batch;
     /**
      * 执行状态
-     *
-     * @see RunStatusEnum
      */
-    protected Integer status;
+    protected RunStatusEnum status;
     /**
      * 开始时间
      */
