@@ -120,7 +120,7 @@ public class ApplicationDTO {
 
     public List<Long> getSubBizIds() {
         if (attrs != null) {
-            return attrs.getSubBizIds();
+            return attrs.getSubBizIds() == null ? Collections.emptyList() : attrs.getSubBizIds();
         } else {
             return Collections.emptyList();
         }
