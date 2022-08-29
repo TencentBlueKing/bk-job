@@ -1,24 +1,53 @@
 <template>
-    <div class="content-item">
-        <div class="content-text">
+    <div class="result-preview-item">
+        <div class="item-text">
             <slot />
         </div>
-        <div
-            class="item-remove"
-            @click="handleRemove">
-            <i type="close" />
+        <div>
+            <slot name="append" />
+        </div>
+        <div class="item-action">
+            <div
+                v-if="content"
+                class="item-btn"
+                @click="handleCopy">
+                <i class="bk-ipselector-icon bk-ipselector-copy" />
+            </div>
+            <div
+                v-if="removable"
+                class="item-btn"
+                @click="handleRemove">
+                <i class="bk-ipselector-icon bk-ipselector-close-line-2" />
+            </div>
         </div>
     </div>
 </template>
-<script lang="ts" setup>
-  const emits = defineEmits(['remove']);
+<script setup>
+    import { execCopy } from '../../../../utils';
 
-  const handleRemove = () => {
-    emits('remove');
-  };
+    const props = defineProps({
+        content: {
+            type: String,
+        },
+        removable: {
+            type: Boolean,
+            default: true,
+        },
+    });
+    const emits = defineEmits(['remove']);
+
+    // 复制 content
+    const handleCopy = () => {
+        execCopy(props.content);
+    };
+
+    // 删除
+    const handleRemove = () => {
+        emits('remove');
+    };
 </script>
 <style lang="postcss" scoped>
-    .content-item {
+    .result-preview-item {
         display: flex;
         height: 32px;
         padding-left: 12px;
@@ -38,17 +67,16 @@
         &:hover {
             box-shadow: 0 1px 2px 0 rgb(0 0 0 / 6%);
 
-            .content-text {
+            .item-text {
                 max-width: calc(100% - 56px);
             }
 
-            .item-remove {
-                width: 32px;
-                opacity: 100%;
+            .item-action {
+                display: flex;
             }
         }
 
-        .content-text {
+        .item-text {
             margin-right: 12px;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -58,20 +86,24 @@
             align-items: center;
         }
 
-        .item-remove {
-            display: flex;
-            width: 0;
-            height: 100%;
+        .item-action {
+            display: none;
+            padding: 0 5px;
             margin-left: auto;
-            overflow: hidden;
-            cursor: pointer;
-            opacity: 0%;
-            transition: all 0.15s;
-            align-items: center;
-            justify-content: center;
 
-            &:hover {
-                color: #3a84ff;
+            .item-btn {
+                display: flex;
+                height: 100%;
+                padding: 0 5px;
+                margin-left: auto;
+                overflow: hidden;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+
+                &:hover {
+                    color: #3a84ff;
+                }
             }
         }
     }

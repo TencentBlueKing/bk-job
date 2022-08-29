@@ -99,8 +99,8 @@ export default {
             .then(({ data }) => data);
     },
 
-    fetchTopogyIPs (params) {
-        return AppManageSource.getTopologyIPs(params)
+    fetchTopogyHostIdList (params) {
+        return AppManageSource.getTopologyNodeAllHostId(params)
             .then(({ data }) => data);
     },
     
@@ -116,6 +116,18 @@ export default {
     },
     fetchBatchNodeAgentStatistics (params) {
         return AppManageSource.getBatchNodeAgentStatistics(params)
+            .then(({ data }) => data);
+    },
+    fetchDynamicGroupHost (params) {
+        return AppManageSource.getDynamicGroupHost(params)
+            .then(({ data }) => data);
+    },
+    fetchBatchGroupAgentStatistics (params) {
+        return AppManageSource.getBatchGroupAgentStatistics(params)
+            .then(({ data }) => data);
+    },
+    fetchInputParseHostList (params) {
+        return AppManageSource.getInputParseHostList(params)
             .then(({ data }) => data);
     },
 };

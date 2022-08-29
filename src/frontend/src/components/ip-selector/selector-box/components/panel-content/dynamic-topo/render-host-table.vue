@@ -12,10 +12,13 @@
                     :id="item.instanceId"
                     :key="item.instanceId" />
             </bk-select>
-            <bk-input class="flex: 1" />
+            <bk-input
+                v-model="nodeHostListSearch"
+                @keyup="handleEnterKeyUp" />
         </div>
-        <render-table
+        <render-host-table
             :data="tableData"
+            :height="renderTableHeight"
             :pagination="pagination"
             @pagination-change="handlePaginationChange" />
     </div>
@@ -29,7 +32,10 @@
     } from 'vue';
     import _ from 'lodash';
     import AppManageService from '@service/app-manage';
-    import RenderTable from '../../render-table/host.vue';
+    import useDialogSize from '../../../../hooks/use-dialog-size';
+    import useInputEnter from '../../../../hooks/use-input-enter';
+    import RenderHostTable from '../../../../common/render-table/host.vue';
+    import { getPaginationDefault } from '../../../../utils';
 
     const props = defineProps({
         node: {
@@ -40,12 +46,16 @@
 
     let memoNode;
 
-    const pagination = reactive({
-        count: 0,
-        current: 1,
-        limit: 10,
-    });
+    const tableOffetTop = 115;
+    const {
+        contentHeight: dialogContentHeight,
+    } = useDialogSize();
+    const renderTableHeight = dialogContentHeight.value - tableOffetTop;
+
+    const pagination = reactive(getPaginationDefault(renderTableHeight));
+
     const isLoading = ref(false);
+    const nodeHostListSearch = ref('');
 
     const tableData = shallowRef([]);
 
@@ -60,6 +70,7 @@
             ],
             pageSize: pagination.limit,
             start: (pagination.current - 1) * pagination.limit,
+            searchContent: nodeHostListSearch.value,
         }).then((data) => {
             tableData.value = data.data;
             pagination.count = data.total;
@@ -76,6 +87,10 @@
         fetchNodeHostList();
     }, {
         immediate: true,
+    });
+
+    const handleEnterKeyUp = useInputEnter(() => {
+        fetchNodeHostList();
     });
 
     // 切换子节点

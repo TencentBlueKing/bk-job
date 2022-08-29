@@ -11,11 +11,11 @@
         computed,
         useListeners,
     } from 'vue';
-    import RenderCustomInput from './render-custom-input.vue';
+    import RenderCustomInput from './custom-input.vue';
     import RenderDynamicTopo from './dynamic-topo/index.vue';
-    import RenderServiceTemplate from './render-service-template.vue';
-    import RenderSetTemplate from './render-set-template.vue';
-    import RenderStaticTopo from './render-static-topo.vue';
+    import RenderServiceTemplate from './service-template.vue';
+    import RenderSetTemplate from './set-template.vue';
+    import RenderStaticTopo from './static-topo.vue';
     import RenderDynamicGroup from './dynamic-group.vue';
 
     const props = defineProps({
@@ -40,7 +40,7 @@
 </script>
 <style lang="postcss">
     .ip-selector-panel-content {
-        height: 527px;
+        height: 100%;
         padding: 16px 24px 0 16px;
     }
 </style>

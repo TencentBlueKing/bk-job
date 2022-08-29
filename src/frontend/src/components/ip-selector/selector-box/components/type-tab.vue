@@ -88,9 +88,9 @@
         user-select: none;
 
         .tab-item {
-            width: 105px;
-            height: 42px;
-            line-height: 42px;
+            flex: 1;
+            height: 40px;
+            line-height: 40px;
             color: #63656e;
             text-align: center;
             cursor: pointer;
@@ -116,6 +116,10 @@
             &.disabled {
                 color: #c4c6cc;
                 cursor: not-allowed;
+            }
+
+            &:last-child {
+                border-right: none;
             }
         }
     }

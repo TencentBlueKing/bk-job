@@ -35,7 +35,6 @@
         registerItem,
         unRegisterItem,
         change (name) {
-            console.log('from talbe cahnge name', name);
             emits('change', name);
             emits('update:modelValue', name);
         },

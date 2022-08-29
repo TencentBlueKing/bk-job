@@ -1,26 +1,38 @@
 <template>
     <CollapseBox v-if="data.length > 0">
         <template #title>
-            <div>
-                <span>【动态拓扑】- 共</span>
-                <span class="number">{{ data.length }}</span>
-                <span>个，</span>
-                <span>新增 1  个</span>
-            </div>
+            动态拓扑】
+            <span>
+                - 共
+                <span class="bk-ip-selector-number">{{ listData.length }}</span>
+                个
+            </span>
+            <span v-if="newNodeNum">
+                ，新增
+                <span class="bk-ip-selector-number-success">{{ newNodeNum }}</span>
+                个
+            </span>
+            <span v-if="removedNodeList.length">
+                ，删除
+                <span class="bk-ip-selector-number-error">{{ removedNodeList.length }}</span>
+                台
+            </span>
         </template>
         <template #action>
-            <CollapseExtendAction>
-                <div @click="handlRemoveAll">
-                    移除所有
-                </div>
-            </CollapseExtendAction>
+            <div @click="handlRemoveAll">
+                <i class="bk-ipselector-icon bk-ipselector-delete" />
+            </div>
         </template>
         <div v-bkloading="{ isLoading }">
             <CallapseContentItem
                 v-for="(item, index) in listData"
                 :key="index"
+                :removable="diffMap[genNodeKey(item)]!== 'remove'"
                 @remove="handleRemove(item)">
-                {{ item.namePath }}
+                {{ listDataNamePathMap[genNodeKey(item)] || `#${item.instanceId}` }}
+                <template #append>
+                    <diff-tag :value="diffMap[genNodeKey(item)]" />
+                </template>
             </CallapseContentItem>
         </div>
     </CollapseBox>
@@ -33,8 +45,17 @@
         watch,
     } from 'vue';
     import AppManageService from '@service/app-manage';
+    import {
+        genNodeKey,
+        getNodeDiffMap,
+        getInvalidNodeList,
+        getRemoveNodeList,
+        getDiffNewNum,
+        groupNodeList,
+    } from '../../../utils';
+    import useIpSelector from '../../../hooks/use-ip-selector';
+    import DiffTag from '../../../common/diff-tag.vue';
     import CallapseContentItem from './collapse-box/content-item.vue';
-    import CollapseExtendAction from './collapse-box/extend-action.vue';
     import CollapseBox from './collapse-box/index.vue';
 
     const props = defineProps({
@@ -45,22 +66,32 @@
     });
     const emits = defineEmits(['change']);
 
+    const context = useIpSelector();
+
     const isLoading = ref(false);
     const listData = shallowRef([]);
+    const listDataNamePathMap = shallowRef({});
 
+    const validNodeList = shallowRef([]);
+    const removedNodeList = shallowRef([]);
+    const invalidNodeList = shallowRef([]);
+    const diffMap = shallowRef({});
+    const newNodeNum = ref(0);
+
+    // 通过节点的 id 查询节点的完整层级名字
     const fetchData = () => {
         isLoading.value = true;
         AppManageService.fetchNodePath(props.data)
             .then((data) => {
-                listData.value = data.reduce((result, item) => {
-                    const namePath = item.map(({ instanceName }) => instanceName).join('/');
+                const validData = [];
+                const nodeNamePathMap = {};
+                data.forEach((item) => {
                     const tailNode = _.last(item);
-                    result.push({
-                        node: tailNode,
-                        namePath,
-                    });
-                    return result;
-                }, []);
+                    validData.push(tailNode);
+                    nodeNamePathMap[genNodeKey(tailNode)] = item.map(({ instanceName }) => instanceName).join('/');
+                });
+                listDataNamePathMap.value = nodeNamePathMap;
+                validNodeList.value = validData;
             })
             .finally(() => {
                 isLoading.value = false;
@@ -69,26 +100,52 @@
 
     watch(() => props.data, () => {
         if (props.data.length > 0) {
-            fetchData();
+            const needFetchNodeDetail = _.find(props.data, item => !item.namePath);
+            if (needFetchNodeDetail) {
+                fetchData();
+            } else {
+                validNodeList.value = [...props.data];
+            }
         } else {
-            listData.value = [];
+            validNodeList.value = [];
         }
     }, {
         immediate: true,
     });
 
+    watch(validNodeList, () => {
+        invalidNodeList.value = getInvalidNodeList(props.data, validNodeList.value);
+        removedNodeList.value = getRemoveNodeList(props.data, context.orinigalValue);
+        diffMap.value = getNodeDiffMap(props.data, context.orinigalValue, invalidNodeList.value);
+        newNodeNum.value = getDiffNewNum(diffMap.value);
+
+        const {
+            newList,
+            originalList,
+        } = groupNodeList(validNodeList.value, diffMap.value);
+
+        listData.value = [
+            ...invalidNodeList.value,
+            ...newList,
+            ...removedNodeList.value,
+            ...originalList,
+        ];
+    });
+
+    // 移除指定节点
     const handleRemove = (removeTarget) => {
         const result = props.data.reduce((result, item) => {
-            if (removeTarget !== item) {
-            result.push(item);
+            if (genNodeKey(removeTarget) !== genNodeKey(item)) {
+                result.push(item);
             }
             return result;
         }, []);
 
-        emits('change', 'node', result);
+        emits('change', 'nodeList', result);
     };
 
+    // 移除所有
     const handlRemoveAll = () => {
-        emits('change', 'node', []);
+        emits('change', 'nodeList', []);
     };
 </script>

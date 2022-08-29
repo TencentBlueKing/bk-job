@@ -344,7 +344,7 @@
                     ...this.checkedMap,
                 };
                 this.isLoading = true;
-                AppManageService.fetchTopogyIPs({
+                AppManageService.fetchTopogyHostIdList({
                     appTopoNodeList: [{
                         objectId,
                         instanceId,

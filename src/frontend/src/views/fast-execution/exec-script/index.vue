@@ -38,7 +38,10 @@
                     v-test="{ type: 'form', value: 'executeScript' }"
                     :model="formData">
                     <div>
-                        <ip-selector />
+                        <ip-selector
+                            v-model="ipSelectorData"
+                            :original-value="ipSelectorData"
+                            @change="handleIpChange" />
                     </div>
                     <item-factory
                         name="scriptName"
@@ -202,6 +205,7 @@
                 historyList: [],
                 isSubmiting: false,
                 isShowHistory: false,
+                ipSelectorData: {},
             };
         },
         created () {
@@ -220,6 +224,10 @@
             debugScriptCache.clearItem();
         },
         methods: {
+            handleIpChange (value) {
+                console.log('from ip chage = ', value);
+                this.ipSelectorData = value;
+            },
             /**
              * @desc 重做时获取任务详细信息
              */

@@ -1,28 +1,35 @@
 <template>
     <bk-dialog
         :value="isShow"
-        width="1140"
+        :width="dialogWidth"
         :close-icon="false"
         :draggable="false"
-        class="ip-selector-dialog">
+        class="bk-ip-selector-dialog">
         <div class="container-layout">
-            <div class="layout-left">
+            <div
+                class="layout-left"
+                v-bkloading="{ isLoading: isTopoDataLoading } ">
                 <type-tab
                     :value="panelType"
                     @change="handleTypeChange" />
-                <panel-content
-                    :topo-tree-data="topoTreeData"
-                    :type="panelType"
-                    :last-host-list="lastHostList"
-                    :last-node-list="lastNodeList"
-                    :last-group-list="lastGroupList"
-                    @change="handleChange" />
+                <div :style="contentStyles">
+                    <panel-content
+                        v-if="!isTopoDataLoading"
+                        :topo-tree-data="topoTreeData"
+                        :type="panelType"
+                        :last-host-list="lastHostList"
+                        :last-node-list="lastNodeList"
+                        :last-dynamic-group-list="lastDynamicGroupList"
+                        @change="handleChange" />
+                </div>
             </div>
             <div class="layout-right">
                 <result-preview
+                    v-if="isShow"
                     :host-list="lastHostList"
                     :node-list="lastNodeList"
-                    :group-list="lastGroupList" />
+                    :dynamic-group-list="lastDynamicGroupList"
+                    @change="handleChange" />
             </div>
         </div>
         <template #footer>
@@ -30,9 +37,11 @@
                 <bk-button
                     theme="primary"
                     @click="handleSubmit">
-                    确定qwe
+                    确定
                 </bk-button>
-                <bk-button @click="handleCancle">取消</bk-button>
+                <bk-button @click="handleCancel">
+                    取消
+                </bk-button>
             </div>
         </template>
     </bk-dialog>
@@ -41,79 +50,124 @@
     import {
         ref,
         shallowRef,
+        computed,
+        watch,
     } from 'vue';
     import TypeTab from './components/type-tab';
     import PanelContent from './components/panel-content';
     import ResultPreview from './components/result-preview';
-    import { transformTopoTree } from './utils/index';
+    import {
+        transformTopoTree,
+        mergeCustomInputHost,
+        formatOutput,
+    } from '../utils/index';
+    import useDialogSize from '../hooks/use-dialog-size';
 
     import AppManageService from '@service/app-manage';
 
-    defineProps({
+    const props = defineProps({
         isShow: {
             type: Boolean,
             default: false,
         },
+        value: {
+            type: Object,
+            default: () => ({
+                hostList: [],
+                nodeList: [],
+                dynamicGroupList: [],
+            }),
+        },
     });
 
-    const emits = defineEmits(['change']);
+    const emits = defineEmits([
+        'change',
+        'cancel',
+    ]);
 
+    const isTopoDataLoading = ref(true);
     const panelType = ref('staticTopo');
+
     const topoTreeData = shallowRef([]);
 
     const lastHostList = shallowRef([]);
     const lastNodeList = shallowRef([]);
-    const lastGroupList = shallowRef([]);
+    const lastDynamicGroupList = shallowRef([]);
+
+    const {
+        width: dialogWidth,
+        contentHeight: dialogContentHeight,
+    } = useDialogSize();
+
+    const contentStyles = computed(() => ({
+        height: `${dialogContentHeight.value}px`,
+    }));
+
+    const fetchTopoData = () => {
+        isTopoDataLoading.value = true;
+        // 获取拓扑树
+        AppManageService.fetchTopologyWithCount()
+            .then((data) => {
+                topoTreeData.value = transformTopoTree([data]);
+            })
+            .finally(() => {
+                isTopoDataLoading.value = false;
+            });
+    };
+
+    watch(() => props.isShow, () => {
+        if (props.isShow) {
+            panelType.value = 'staticTopo';
+            fetchTopoData();
+            const {
+                hostList = [],
+                nodeList = [],
+                dynamicGroupList = [],
+            } = props.value || {};
+
+            lastHostList.value = hostList;
+            lastNodeList.value = nodeList;
+            lastDynamicGroupList.value = dynamicGroupList;
+        }
+    });
     
+    // 面板类型切换
     const handleTypeChange = (type) => {
         panelType.value = type;
     };
-
-    // 获取拓扑树
-    AppManageService.fetchTopologyWithCount()
-        .then((data) => {
-            topoTreeData.value = transformTopoTree([data]);
-            console.log('fromasda = ', topoTreeData.value);
-        });
+    
     // 用户操作数据
     const handleChange = (name, value) => {
         console.log('from changechange  =  ', name, value);
         switch (name) {
-            case 'host':
+            case 'hostList':
                 lastHostList.value = value;
                 break;
-            case 'node':
+            case 'nodeList':
                 lastNodeList.value = value;
                 break;
-            case 'group':
-                lastGroupList.value = value;
+            case 'dynamicGroupList':
+                lastDynamicGroupList.value = value;
                 break;
+            case 'customInputHostList':
+                lastHostList.value = mergeCustomInputHost(lastHostList.value, value);
         }
     };
     // 提交编辑
     const handleSubmit = () => {
-        emits('change', {
-            hostList: lastHostList.value.map(item => ({
-                hostId: item.hostId,
-                ip: item.ip,
-                ipv6: item.ipv6,
-            })),
-            nodeList: lastNodeList.value.map(item => ({
-                objectId: item.objectId,
-                instanceId: item.instanceId,
-            })),
-            groupList: lastGroupList.value.map(item => ({
-                id: item.id,
-            })),
-        });
+        emits('change', formatOutput({
+            hostList: lastHostList.value,
+            nodeList: lastNodeList.value,
+            dynamicGroupList: lastDynamicGroupList.value,
+        }));
     };
     // 取消编辑
-    const handleCancle = () => {
-        
+    const handleCancel = () => {
+        emits('cancel');
     };
 </script>
 <style lang="postcss">
-    .ip-selector-dialog {
+    .bk-ip-selector-dialog {
         .bk-dialog {
             .bk-dialog-tool {
                 display: none;

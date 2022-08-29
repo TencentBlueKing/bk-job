@@ -62,7 +62,7 @@ class AppManage extends ModuleBase {
 
     // 获取动态分组
     getAllDynamicGroup () {
-        return Request.get(`${this.path}/dynamicGroup`, {
+        return Request.post(`${this.path}/dynamicGroups`, {
             cache: 2000,
         });
     }
@@ -129,7 +129,7 @@ class AppManage extends ModuleBase {
     }
 
     // IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]
-    getTopologyIPs (params = {}) {
+    getTopologyNodeAllHostId (params = {}) {
         return Request.post(`${this.path}/topology/hostIds/nodes`, {
             params,
         });
@@ -152,6 +152,33 @@ class AppManage extends ModuleBase {
     // 获取多个节点下的主机统计信息
     getBatchNodeAgentStatistics (params = {}) {
         return Request.post(`${this.path}/host/agentStatistics/nodes`, {
+            params,
+        });
+    }
+
+    // 分页查询某个动态分组下的主机列表
+    getDynamicGroupHost (params = {}) {
+        return Request.post(`${this.path}/hosts/dynamicGroup`, {
+            params,
+        });
+    }
+
+    // 通过分组ID获取多个动态分组的详情信息
+    getBatchGroupInfo (params = {}) {
+        return Request.post(`${this.path}/hosts/dynamicGroup`, {
+            params,
+        });
+    }
+
+    // 获取多个动态分组下的主机Agent状态统计信息
+    getBatchGroupAgentStatistics (params = {}) {
+        return Request.post(`${this.path}/host/agentStatistics/dynamicGroups`, {
+            params,
+        });
+    }
+
+    getInputParseHostList (params = {}) {
+        return Request.post(`${this.path}/host/check`, {
             params,
         });
     }
