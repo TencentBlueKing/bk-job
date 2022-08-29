@@ -80,7 +80,7 @@ public class BizSetSyncService extends BasicAppSyncService {
             return;
         }
         log.info("[{}] Begin to sync bizSet from cmdb", Thread.currentThread().getName());
-        List<BizSetInfo> ccBizSets = bizSetCmdbClient.getAllBizSetApps();
+        List<BizSetInfo> ccBizSets = bizSetCmdbClient.listAllBizSets();
         if (log.isInfoEnabled()) {
             log.info("Sync cmdb bizSet result: {}", JsonUtils.toJson(ccBizSets));
         }

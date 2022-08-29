@@ -38,11 +38,19 @@ import java.util.Set;
 public interface IBizSetCmdbClient {
 
     /**
+     * 查询业务集
+     *
+     * @param bizSetId 业务集ID
+     * @return 业务集
+     */
+    BizSetInfo queryBizSet(Long bizSetId);
+
+    /**
      * 从CC获取所有业务集信息
      *
      * @return 业务集列表
      */
-    List<BizSetInfo> getAllBizSetApps();
+    List<BizSetInfo> listAllBizSets();
 
     /**
      * 根据游标获取业务集事件
