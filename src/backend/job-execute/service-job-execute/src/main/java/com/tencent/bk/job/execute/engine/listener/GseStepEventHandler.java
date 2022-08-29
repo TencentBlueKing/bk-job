@@ -451,10 +451,9 @@ public class GseStepEventHandler implements StepEventHandler {
                     stepInstance.getTotalTime()));
             taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
                 EventSource.buildStepEventSource(stepInstanceId)));
-        } else {
-            // 正在运行中的任务无法立即结束，需要等待任务调度引擎检测到停止状态
-            long taskInstanceId = stepInstance.getTaskInstanceId();
-            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
+        } else if (stepStatus == RunStatusEnum.RUNNING) {
+            // 正在运行中的任务无法立即结束，需要等待任务调度引擎检测到停止状态;这里只需要处理设置步骤状态即可
+            taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.STOPPING.getValue());
         }
     }
 
@@ -507,7 +506,8 @@ public class GseStepEventHandler implements StepEventHandler {
     }
 
     private boolean isStepSupportRetry(RunStatusEnum stepStatus) {
-        return RunStatusEnum.FAIL == stepStatus || RunStatusEnum.ABNORMAL_STATE == stepStatus;
+        return RunStatusEnum.FAIL == stepStatus || RunStatusEnum.ABNORMAL_STATE == stepStatus
+            || RunStatusEnum.STOP_SUCCESS == stepStatus;
     }
 
     private void saveAgentTasksForRetryFail(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
