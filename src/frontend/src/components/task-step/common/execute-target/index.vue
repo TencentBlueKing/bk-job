@@ -111,10 +111,8 @@
                     right-icon="bk-icon icon-search"
                     @change="handleHostSearch" />
             </div>
-            <lower-component
-                level="custom"
-                :custom="isShowServerPanel">
-                <server-panel
+            
+            <!-- <server-panel
                     v-show="isShowServerPanel"
                     ref="serverPanel"
                     class="view-server-panel"
@@ -122,13 +120,18 @@
                     :search-mode="Boolean(searchText)"
                     :search-data="searchData"
                     editable
-                    @on-change="handleHostChange" />
-            </lower-component>
+                    @on-change="handleHostChange" /> -->
+            <ip-selector
+                :show-dialog="isShowChooseIp"
+                show-view
+                :value="localHost"
+                @close-dialog="handleCloseIpSelector"
+                @change="handleHostChange" />
         </jb-form-item>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="localHost"
-            @on-change="handleHostChange" />
+            @on-change="handleHostChange" /> -->
     </div>
 </template>
 <script>
@@ -137,14 +140,14 @@
     import I18n from '@/i18n';
     import { execCopy } from '@utils/assist';
     import ComposeFormItem from '@components/compose-form-item';
-    import ChooseIp from '@components/choose-ip';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ChooseIp from '@components/choose-ip';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
         components: {
             ComposeFormItem,
-            ChooseIp,
-            ServerPanel,
+            // ChooseIp,
+            // ServerPanel,
         },
         inheritAttrs: false,
         props: {
@@ -317,6 +320,7 @@
             handleShowChooseIp () {
                 this.isShowChooseIp = true;
                 this.searchText = '';
+                console.log('asdadadad');
             },
             /**
              * @desc 选择全局变量
@@ -336,6 +340,9 @@
                 setTimeout(() => {
                     this.$refs.actionBox.scrollIntoView();
                 }, 500);
+            },
+            handleCloseIpSelector () {
+                this.isShowChooseIp = false;
             },
             /**
              * @desc 复制所有主机

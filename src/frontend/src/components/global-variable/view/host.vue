@@ -28,18 +28,21 @@
 <template>
     <div>
         <div v-if="data.isEmpty">--</div>
-        <server-panel
+        <!-- <server-panel
             v-else
             :host-node-info="data.defaultTargetValue.hostNodeInfo"
-            detail-fullscreen />
+            detail-fullscreen /> -->
+        <ip-selector
+            show-view
+            :value="data.defaultTargetValue.hostNodeInfo" />
     </div>
 </template>
 <script>
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
         components: {
-            ServerPanel,
+            // ServerPanel,
         },
         props: {
             data: {

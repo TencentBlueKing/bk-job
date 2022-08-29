@@ -48,20 +48,25 @@
                 <Icon class="host-edit" type="edit-2" />
             </div>
         </div>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="hostNodeInfo"
-            @on-change="handleChange" />
+            @on-change="handleChange" /> -->
+        <ip-selector
+            :show-dialog="isShowChooseIp"
+            :value="hostNodeInfo"
+            @change="handleHostChange"
+            @close-dialog="handleCloseIpSelector" />
     </div>
 </template>
 <script>
     import TaskHostNodeModel from '@model/task-host-node';
-    import ChooseIp from '@components/choose-ip';
+    // import ChooseIp from '@components/choose-ip';
 
     export default {
-        components: {
-            ChooseIp,
-        },
+        // components: {
+        //     ChooseIp,
+        // },
         props: {
             data: {
                 type: Object,
@@ -94,6 +99,9 @@
             handleChooseIp () {
                 this.isShowChooseIp = true;
                 this.hostNodeInfo = this.value.hostNodeInfo;
+            },
+            handleCloseIpSelector () {
+                this.isShowChooseIp = false;
             },
             handleClear () {
                 this.$emit('on-change', new TaskHostNodeModel({}));

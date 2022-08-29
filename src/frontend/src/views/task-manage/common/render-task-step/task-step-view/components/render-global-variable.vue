@@ -46,9 +46,12 @@
             <div class="content-wraper">
                 <Empty v-if="isEmpty" :title="$t('template.变量值为空')" style="height: 100%;" />
                 <scroll-faker v-else>
-                    <server-panel
+                    <!-- <server-panel
                         detail-mode="dialog"
-                        :host-node-info="hostNodeInfo" />
+                        :host-node-info="hostNodeInfo" /> -->
+                    <ip-selector
+                        show-view
+                        :value="hostNodeInfo" />
                 </scroll-faker>
             </div>
         </jb-dialog>
@@ -58,14 +61,14 @@
     import I18n from '@/i18n';
     import TaskHostNodeModel from '@model/task-host-node';
     import ScrollFaker from '@components/scroll-faker';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ServerPanel from '@components/choose-ip/server-panel';
     import Empty from '@components/empty';
 
     export default {
         name: 'StepViewGlobalVariable',
         components: {
             ScrollFaker,
-            ServerPanel,
+            // ServerPanel,
             Empty,
         },
         props: {

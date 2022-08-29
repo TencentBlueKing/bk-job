@@ -59,9 +59,12 @@
                 </template>
                 <div class="content-wraper">
                     <scroll-faker>
-                        <server-panel
+                        <!-- <server-panel
                             detail-mode="dialog"
-                            :host-node-info="hostNodeInfo" />
+                            :host-node-info="hostNodeInfo" /> -->
+                        <ip-selector
+                            show-view
+                            :value="hostNodeInfo" />
                     </scroll-faker>
                 </div>
             </jb-dialog>
@@ -71,12 +74,12 @@
 <script>
     import AppManageService from '@service/app-manage';
     import TaskHostNodeModel from '@model/task-host-node';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ServerPanel from '@components/choose-ip/server-panel';
     
     export default {
         name: '',
         components: {
-            ServerPanel,
+            // ServerPanel,
         },
         props: {
             title: {

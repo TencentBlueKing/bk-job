@@ -40,12 +40,18 @@
                     {{ $t('template.清空') }}
                 </bk-button>
             </section>
-            <server-panel
+            <ip-selector
+                :show-dialog="isShowChooseIp"
+                show-view
+                :value="formData.defaultTargetValue.hostNodeInfo"
+                @change="handleHostChange"
+                @close-dialog="handleCloseIPSelector" />
+            <!-- <server-panel
                 class="view-server-panel"
                 :host-node-info="formData.defaultTargetValue.hostNodeInfo"
                 editable
                 detail-fullscreen
-                @on-change="handleHostChange" />
+                @on-change="handleHostChange" /> -->
         </jb-form-item>
         <jb-form-item :label="$t('template.变量描述')">
             <bk-input v-model="formData.description" disabled type="textarea" :row="5" maxlength="100" />
@@ -53,17 +59,18 @@
         <jb-form-item>
             <bk-checkbox v-model="formData.required" disabled :true-value="1" :false-value="0">{{ $t('template.必填') }}</bk-checkbox>
         </jb-form-item>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-            @on-change="handleHostChange" />
+            @on-change="handleHostChange" /> -->
+        
     </jb-form>
 </template>
 <script>
     import TaskGlobalVariableModel from '@model/task/global-variable';
     import TaskHostNodeModel from '@model/task-host-node';
-    import ChooseIp from '@components/choose-ip';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ChooseIp from '@components/choose-ip';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     const getDefaultData = () => ({
         id: 0,
@@ -84,8 +91,8 @@
     export default {
         name: 'VarHost',
         components: {
-            ChooseIp,
-            ServerPanel,
+            // ChooseIp,
+            // ServerPanel,
         },
         props: {
             data: {
@@ -118,6 +125,9 @@
             },
             handleShowChooseIp () {
                 this.isShowChooseIp = true;
+            },
+            handleCloseIPSelector () {
+                this.isShowChooseIp = false;
             },
 
             handleClear () {

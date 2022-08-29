@@ -1,21 +1,18 @@
 <template>
     <div class="bk-ip-selector">
-        <bk-button @click="handleShowDialog">
-            添加服务器
-        </bk-button>
         <selector-box
-            :is-show="isShow"
+            :is-show="showDialog"
             :value="selectorValue"
             @change="handleValueChange"
             @cancel="handleCancel" />
         <selector-view
+            v-if="showView"
             :value="selectorValue"
             @change="handleValueChange" />
     </div>
 </template>
 <script setup>
     import {
-        ref,
         shallowRef,
         provide,
         toRefs,
@@ -49,30 +46,30 @@
         },
     });
 
-    const emits = defineEmits(['change']);
+    const emits = defineEmits([
+        'change',
+        'close-dialog',
+    ]);
+
+    const selectorValue = shallowRef({});
 
     watch(() => props.value, () => {
         console.log('from ip-selector watch value = ', props.value);
+        selectorValue.value = props.value;
+    }, {
+        immediate: true,
     });
 
-    const isShow = ref(false);
-    const selectorValue = shallowRef({});
-
-    const handleShowDialog = () => {
-        isShow.value = true;
-    };
-
     const handleValueChange = (value) => {
-        console.log('fom handleValueChangehandleValueChange = ', value);
         selectorValue.value = value;
-        isShow.value = false;
         emits('change', value);
         emits('update:value', value);
         emits('update:modelValue', value);
+        emits('close-dialog');
     };
 
     const handleCancel = () => {
-        isShow.value = false;
+        emits('close-dialog');
     };
 
     provide('BKIPSELECTOR', reactive({

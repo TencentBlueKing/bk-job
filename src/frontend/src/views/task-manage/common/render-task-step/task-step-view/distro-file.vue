@@ -48,16 +48,19 @@
                 :name="stepInfo.fileDestination.server.variable" />
         </detail-item>
         <detail-item v-else :label="$t('template.执行目标：')" layout="vertical">
-            <server-panel
+            <!-- <server-panel
                 detail-fullscreen
-                :host-node-info="stepInfo.fileDestination.server.hostNodeInfo" />
+                :host-node-info="stepInfo.fileDestination.server.hostNodeInfo" /> -->
+            <ip-selector
+                show-view
+                :value="stepInfo.fileDestination.server.hostNodeInfo" />
         </detail-item>
         <slot />
     </div>
 </template>
 <script>
     import AccountManageService from '@service/account-manage';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ServerPanel from '@components/choose-ip/server-panel';
     import RenderSourceFile from './components/render-source-file';
     import DetailItem from '@components/detail-layout/item';
     import RenderGlobalVariable from './components/render-global-variable';
@@ -65,7 +68,7 @@
     export default {
         name: '',
         components: {
-            ServerPanel,
+            // ServerPanel,
             RenderSourceFile,
             RenderGlobalVariable,
             DetailItem,

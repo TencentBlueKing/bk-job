@@ -48,13 +48,19 @@
                         {{ $t('template.清空') }}
                     </bk-button>
                 </div>
-                <server-panel
+                <!-- <server-panel
                     v-if="isShowClear"
                     class="view-server-panel"
                     :host-node-info="formData.defaultTargetValue.hostNodeInfo"
                     editable
                     detail-fullscreen
-                    @on-change="handleHostChange" />
+                    @on-change="handleHostChange" /> -->
+                <ip-selector
+                    :show-dialog="isShowChooseIp"
+                    show-view
+                    :value="formData.defaultTargetValue.hostNodeInfo"
+                    @change="handleHostChange"
+                    @close-dialog="handleCloseIPSelector" />
             </jb-form-item>
             <jb-form-item :label="$t('template.变量描述')">
                 <bk-input
@@ -69,10 +75,10 @@
                 </bk-checkbox>
             </jb-form-item>
         </jb-form>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-            @on-change="handleHostChange" />
+            @on-change="handleHostChange" /> -->
     </div>
 </template>
 <script>
@@ -83,15 +89,15 @@
         globalVariableNameRule,
     } from '@utils/validator';
     import JbInput from '@components/jb-input';
-    import ChooseIp from '@components/choose-ip';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ChooseIp from '@components/choose-ip';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
         name: 'VarHost',
         components: {
             JbInput,
-            ChooseIp,
-            ServerPanel,
+            // ChooseIp,
+            // ServerPanel,
         },
         props: {
             variable: {
@@ -152,6 +158,9 @@
              */
             handleOpenChooseIp () {
                 this.isShowChooseIp = true;
+            },
+            handleCloseIPSelector () {
+                this.isShowChooseIp = false;
             },
             /**
              * @desc 清空主机信息

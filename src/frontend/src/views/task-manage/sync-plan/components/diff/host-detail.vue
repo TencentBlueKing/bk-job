@@ -57,12 +57,15 @@
             </template>
             <div class="content-wraper">
                 <scroll-faker>
-                    <server-panel
+                    <!-- <server-panel
                         detail-mode="dialog"
                         :host-node-info="hostNodeInfo"
                         :node-diff="nodeDiff"
                         :host-diff="hostDiff"
-                        :group-diff="groupDiff" />
+                        :group-diff="groupDiff" /> -->
+                    <ip-selector
+                        show-view
+                        :value="hostNodeInfo" />
                 </scroll-faker>
             </div>
         </jb-dialog>
@@ -76,13 +79,13 @@
         findParent,
     } from '@utils/vdom';
     import ScrollFaker from '@components/scroll-faker';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
         name: 'StepViewGlobalVariable',
         components: {
             ScrollFaker,
-            ServerPanel,
+            // ServerPanel,
         },
         props: {
             type: {

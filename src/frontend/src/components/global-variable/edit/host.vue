@@ -44,32 +44,37 @@
                     {{ $t('清空') }}
                 </bk-button>
             </div>
-            <server-panel
+            <ip-selector
+                :show-dialog="isShowChooseIp"
+                :value="hostNodeInfo"
+                @change="handleChange"
+                @close-dialog="handleCloseIpSelector" />
+            <!-- <server-panel
                 v-show="isNotEmpty"
                 ref="choostIP"
                 class="host-value-panel"
                 :host-node-info="hostNodeInfo"
                 detail-fullscreen
                 :editable="!readonly"
-                @on-change="handleChange" />
+                @on-change="handleChange" /> -->
             <p v-if="isError" class="variable-error">{{ $t('该变量的值必填') }}</p>
         </div>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="hostNodeInfo"
-            @on-change="handleChange" />
+            @on-change="handleChange" /> -->
     </div>
 </template>
 <script>
     import TaskHostNodeModel from '@model/task-host-node';
-    import ChooseIp from '@components/choose-ip';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ChooseIp from '@components/choose-ip';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
-        components: {
-            ChooseIp,
-            ServerPanel,
-        },
+        // components: {
+        //     ChooseIp,
+        //     ServerPanel,
+        // },
         props: {
             data: {
                 type: Object,
@@ -133,6 +138,9 @@
              */
             handleChooseIp () {
                 this.isShowChooseIp = true;
+            },
+            handleCloseIpSelector () {
+                this.isShowChooseIp = false;
             },
             /**
              * @desc 清空主机列表

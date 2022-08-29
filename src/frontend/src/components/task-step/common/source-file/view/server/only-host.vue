@@ -77,10 +77,14 @@
                 <bk-button text @click="handlerCancel">{{ $t('取消') }}</bk-button>
             </td>
         </tr>
-        <choose-ip
+        <!-- <choose-ip
             ref="chooseIp"
             v-model="isShowChooseIp"
-            @on-change="handleHostChange" />
+            @on-change="handleHostChange" /> -->
+        <ip-selector
+            :show-dialog="isShowChooseIp"
+            @change="handleHostChange"
+            @close-dialog="handleCloseIpSelector" />
     </tbody>
 </template>
 <script>
@@ -92,7 +96,7 @@
     import {
         findParent,
     } from '@utils/vdom';
-    import ChooseIp from '@components/choose-ip';
+    // import ChooseIp from '@components/choose-ip';
     import AccountSelect from '@components/account-select';
     import EditFilePath from '../../components/edit-file-path';
 
@@ -105,7 +109,7 @@
     export default {
         name: '',
         components: {
-            ChooseIp,
+            // ChooseIp,
             AccountSelect,
             EditFilePath,
         },
@@ -157,6 +161,9 @@
              */
             handleShowChooseIp () {
                 this.isShowChooseIp = true;
+            },
+            handleCloseIpSelector () {
+                this.isShowChooseIp = false;
             },
             /**
              * @desc 服务器账号更新

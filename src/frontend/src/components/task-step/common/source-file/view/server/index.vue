@@ -114,13 +114,18 @@
                 @on-change="handleAddSave"
                 @on-cancel="handleAddCancel" />
         </table>
-        <lower-component level="custom" :custom="isShowChooseIp">
+        <!-- <lower-component level="custom" :custom="isShowChooseIp">
             <choose-ip
                 v-model="isShowChooseIp"
                 required
                 :host-node-info="currentHost"
                 @on-change="handleHostChange" />
-        </lower-component>
+        </lower-component> -->
+        <ip-selector
+            :show-dialog="isShowChooseIp"
+            :value="currentHost"
+            @change="handleHostChange"
+            @close-dialog="handleCloseIpSelector" />
     </div>
 </template>
 <script>
@@ -259,6 +264,9 @@
                 this.isShowChooseIp = true;
                 this.currentIndex = index;
                 this.currentHost = this.data[index].host.hostNodeInfo;
+            },
+            handleCloseIpSelector () {
+                this.isShowChooseIp = false;
             },
             /**
              * @desc 更新编辑服务器文件的主机

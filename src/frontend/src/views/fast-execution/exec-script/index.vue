@@ -37,12 +37,12 @@
                     ref="execScriptForm"
                     v-test="{ type: 'form', value: 'executeScript' }"
                     :model="formData">
-                    <div>
+                    <!-- <div>
                         <ip-selector
                             v-model="ipSelectorData"
                             :original-value="ipSelectorData"
                             @change="handleIpChange" />
-                    </div>
+                    </div> -->
                     <item-factory
                         name="scriptName"
                         field="name"

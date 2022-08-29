@@ -104,10 +104,15 @@
             <Icon type="add-fill" @click="handleCreate" class="action-btn" />
             <Icon type="reduce-fill" @click="handleDelete" class="action-btn" />
         </td>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-            @on-change="handleHostChange" />
+            @on-change="handleHostChange" /> -->
+        <ip-selector
+            :show-dialog="isShowChooseIp"
+            :value="formData.defaultTargetValue.hostNodeInfo"
+            @change="handleHostChange"
+            @close-dialog="handleCloseIPSelector" />
     </tr>
 </template>
 <script>
@@ -115,14 +120,14 @@
     import I18n from '@/i18n';
     import { globalVariableNameRule } from '@utils/validator';
     import GlobalVariableModel from '@model/task/global-variable';
-    import ChooseIp from '@components/choose-ip';
+    // import ChooseIp from '@components/choose-ip';
     import JbEditHost from '@components/jb-edit/host';
     import { createVariable } from '../util';
 
     export default {
         name: '',
         components: {
-            ChooseIp,
+            // ChooseIp,
             JbEditHost,
         },
         props: {
@@ -237,6 +242,9 @@
              */
             handleShowChooseIp () {
                 this.isShowChooseIp = true;
+            },
+            handleCloseIPSelector () {
+                this.isShowChooseIp = false;
             },
             /**
              * @desc 更新主机变量

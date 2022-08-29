@@ -74,9 +74,12 @@
                 :data="variable" />
         </detail-item>
         <detail-item v-else :label="$t('template.执行目标：')" layout="vertical">
-            <server-panel
+            <!-- <server-panel
                 detail-fullscreen
-                :host-node-info="stepInfo.executeTarget.hostNodeInfo" />
+                :host-node-info="stepInfo.executeTarget.hostNodeInfo" /> -->
+            <ip-selector
+                show-view
+                :value="stepInfo.executeTarget.hostNodeInfo" />
         </detail-item>
         <slot />
     </div>
@@ -85,7 +88,7 @@
     import ScriptService from '@service/script-manage';
     import AccountManageService from '@service/account-manage';
     import AceEditor from '@components/ace-editor';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ServerPanel from '@components/choose-ip/server-panel';
     import DetailItem from '@components/detail-layout/item';
     import JbEditTextarea from '@components/jb-edit/textarea';
     import RenderGlobalVariable from './components/render-global-variable';
@@ -97,7 +100,7 @@
         name: '',
         components: {
             AceEditor,
-            ServerPanel,
+            // ServerPanel,
             DetailItem,
             JbEditTextarea,
             RenderGlobalVariable,
