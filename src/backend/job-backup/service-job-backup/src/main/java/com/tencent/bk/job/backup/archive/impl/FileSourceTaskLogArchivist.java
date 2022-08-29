@@ -26,47 +26,19 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.impl.FileSourceTaskRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.FileSourceTaskLog;
 import org.jooq.generated.tables.records.FileSourceTaskLogRecord;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
- * @since 18/3/2021 20:13
+ * file_source_task_log 表归档
  */
 public class FileSourceTaskLogArchivist extends AbstractArchivist<FileSourceTaskLogRecord> {
 
-    public FileSourceTaskLogArchivist(JobExecuteDAO jobExecuteDAO,
+    public FileSourceTaskLogArchivist(FileSourceTaskRecordDAO executeRecordDAO,
                                       ExecuteArchiveDAO executeArchiveDAO,
                                       ArchiveProgressService archiveProgressService) {
-        this.jobExecuteDAO = jobExecuteDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
-        this.archiveProgressService = archiveProgressService;
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
         this.deleteIdStepSize = 100_000;
-        this.setTableName("file_source_task_log");
-    }
-
-    @Override
-    public List<FileSourceTaskLogRecord> listRecord(Long start, Long stop) {
-        return jobExecuteDAO.listFileSourceTaskLog(start, stop);
-    }
-
-    @Override
-    protected int batchInsert(List<FileSourceTaskLogRecord> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(jobExecuteDAO.getFileSourceTaskLogFields(), recordList, 1000);
-    }
-
-    @Override
-    protected int deleteRecord(Long start, Long stop) {
-        return jobExecuteDAO.deleteFileSourceTaskLog(start, stop);
-    }
-
-    @Override
-    protected long getFirstInstanceId() {
-        return jobExecuteDAO.getFirstInstanceId(FileSourceTaskLog.FILE_SOURCE_TASK_LOG,
-            FileSourceTaskLog.FILE_SOURCE_TASK_LOG.STEP_INSTANCE_ID);
     }
 }
