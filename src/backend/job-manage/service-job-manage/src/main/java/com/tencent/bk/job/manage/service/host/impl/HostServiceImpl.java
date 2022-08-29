@@ -1180,7 +1180,7 @@ public class HostServiceImpl implements HostService {
             allHostsSet.addAll(hostsByIp);
         }
         List<HostInfoVO> hostsByNodes = listHostByAppTopologyNodes(username, appId,
-            agentStatisticsReq.getAppTopoNodeList());
+            agentStatisticsReq.getNodeList());
         log.debug("hostsByNodes={}", hostsByNodes);
         allHostsSet.addAll(hostsByNodes);
         // 只有普通业务才查动态分组

@@ -30,6 +30,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +43,7 @@ public class HostCheckReq {
     ActionScopeEnum actionScope;
 
     @ApiModelProperty(value = "应用场景：脚本执行/文件分发")
-    Map<String, Object> meta;
+    Map<String, Object> meta = new HashMap<>();
 
     @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip或ip")
     List<String> ipList = new ArrayList<>();
@@ -57,6 +58,20 @@ public class HostCheckReq {
     @ApiModelProperty(value = "hostId列表", required = true)
     List<Long> hostIdList = new ArrayList<>();
 
+    public ActionScopeEnum getActionScope() {
+        String actionScopeName = (String) meta.get("actionScope");
+        if (actionScopeName == null) {
+            return null;
+        }
+        return ActionScopeEnum.valueOf(actionScopeName);
+    }
+
+    public void setActionScope(ActionScopeEnum actionScope) {
+        this.actionScope = actionScope;
+        if (actionScope != null) {
+            this.meta.put("actionScope", actionScope.name());
+        }
+    }
 }
 
 
