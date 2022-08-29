@@ -42,6 +42,7 @@ import com.tencent.bk.job.manage.model.web.request.ipchooser.ListDynamicGroupsRe
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListTopologyHostCountTreesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.PageListHostsByDynamicGroupReq;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.QueryNodesPathReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
@@ -297,6 +298,28 @@ public interface WebHostResource {
             AgentStatisticsReq agentStatisticsReq
     );
 
+    @Deprecated
+    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @ApiOperation(value = "获取节点拓扑路径", produces = "application/json")
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/queryPath"})
+    Response<List<List<CcTopologyNodeVO>>> queryNodePath(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "需要查询拓扑路径的节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
+        @RequestBody
+            List<TargetNodeVO> targetNodeVOList
+    );
+
     // 标准接口1
     @ApiOperation(value = "获取拓扑树（含各节点主机数）", produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostCount"})
@@ -319,8 +342,8 @@ public interface WebHostResource {
     );
 
     // 标准接口2
-    @ApiOperation(value = "获取节点拓扑路径", produces = "application/json")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/queryPath"})
+    @ApiOperation(value = "获取多个节点的拓扑路径", produces = "application/json")
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/nodes/queryPath"})
     Response<List<List<CcTopologyNodeVO>>> queryNodePaths(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -334,9 +357,9 @@ public interface WebHostResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "需要查询拓扑路径的节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
+        @ApiParam(value = "获取多个节点的拓扑路径请求体", required = true)
         @RequestBody
-            List<TargetNodeVO> targetNodeVOList
+            QueryNodesPathReq req
     );
 
     // 标准接口3

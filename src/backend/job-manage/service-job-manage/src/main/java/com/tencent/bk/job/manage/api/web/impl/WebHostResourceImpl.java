@@ -55,6 +55,7 @@ import com.tencent.bk.job.manage.model.web.request.ipchooser.ListDynamicGroupsRe
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListTopologyHostCountTreesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.PageListHostsByDynamicGroupReq;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.QueryNodesPathReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
@@ -269,10 +270,25 @@ public class WebHostResourceImpl implements WebHostResource {
     }
 
     @Override
+    public Response<List<List<CcTopologyNodeVO>>> queryNodePath(String username,
+                                                                AppResourceScope appResourceScope,
+                                                                String scopeType,
+                                                                String scopeId,
+                                                                List<TargetNodeVO> targetNodeVOList) {
+        return queryNodePaths(username, appResourceScope, targetNodeVOList);
+    }
+
+    @Override
     public Response<List<List<CcTopologyNodeVO>>> queryNodePaths(String username,
                                                                  AppResourceScope appResourceScope,
                                                                  String scopeType,
                                                                  String scopeId,
+                                                                 QueryNodesPathReq req) {
+        return queryNodePaths(username, appResourceScope, req.getNodeList());
+    }
+
+    public Response<List<List<CcTopologyNodeVO>>> queryNodePaths(String username,
+                                                                 AppResourceScope appResourceScope,
                                                                  List<TargetNodeVO> targetNodeVOList) {
         ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
         if (appDTO.isBizSet()) {
@@ -419,24 +435,6 @@ public class WebHostResourceImpl implements WebHostResource {
             resultList.add(statisticsVO);
         }
         return Response.buildSuccessResp(resultList);
-    }
-
-    private PageData<HostInfoVO> fakeHostInfo(String dynamicGroupId,
-                                              Long start,
-                                              Long pageSize) {
-        List<HostInfoVO> hostList = new ArrayList<>();
-        HostInfoVO hostInfoVO = new HostInfoVO();
-        hostInfoVO.setHostId(1L);
-        hostInfoVO.setIp("1.1.1.1");
-        hostInfoVO.setCloudArea(new CloudAreaInfoVO(0L, "default"));
-        hostInfoVO.setAlive(0);
-        hostList.add(hostInfoVO);
-        PageData<HostInfoVO> pageData = new PageData<>();
-        pageData.setStart(start.intValue());
-        pageData.setPageSize(pageSize.intValue());
-        pageData.setTotal(100L);
-        pageData.setData(hostList);
-        return pageData;
     }
 
     @Override
