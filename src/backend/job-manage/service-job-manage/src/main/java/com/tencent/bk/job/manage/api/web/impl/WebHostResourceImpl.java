@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
+import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.util.PageUtil;
@@ -46,7 +47,6 @@ import com.tencent.bk.job.manage.model.dto.DynamicGroupDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
-import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.HostDetailReq;
@@ -243,29 +243,14 @@ public class WebHostResourceImpl implements WebHostResource {
             pagePair.getLeft(),
             pagePair.getRight()
         );
-        PageData<HostIdWithMeta> finalPageData = wrapWithMeta(pageData);
+        PageData<HostIdWithMeta> finalPageData = PageUtil.transferPageData(
+            pageData,
+            hostId -> new HostIdWithMeta(hostId, null)
+        );
         return Response.buildSuccessResp(finalPageData);
     }
 
-    private PageData<HostIdWithMeta> wrapWithMeta(PageData<Long> pageData) {
-        if (pageData == null) {
-            return null;
-        }
-        PageData<HostIdWithMeta> finalPageData = new PageData<>();
-        finalPageData.setStart(pageData.getStart());
-        finalPageData.setPageSize(pageData.getPageSize());
-        finalPageData.setTotal(pageData.getTotal());
-        finalPageData.setCanCreate(pageData.getCanCreate());
-        finalPageData.setExistAny(pageData.getExistAny());
-        finalPageData.setData(pageData.getData().parallelStream()
-            .map(it -> new HostIdWithMeta(it, null))
-            .collect(Collectors.toList())
-        );
-        return finalPageData;
-    }
-
     @Override
-
     public Response<List<BizTopoNode>> getNodeDetail(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,

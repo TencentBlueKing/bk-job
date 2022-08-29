@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
@@ -118,6 +119,7 @@ public class TaskHostNodeVO {
     }
 
     @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改实现", version = "3.8.0")
+    @JsonIgnore
     public List<String> getDynamicGroupIdList() {
         if (org.springframework.util.CollectionUtils.isEmpty(dynamicGroupList)) {
             return Collections.emptyList();
@@ -140,6 +142,9 @@ public class TaskHostNodeVO {
 
     @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改实现", version = "3.8.0")
     public void setDynamicGroupIdList(List<String> dynamicGroupIdList) {
+        if (dynamicGroupIdList == null) {
+            return;
+        }
         List<Object> dynamicGroupList = new ArrayList<>();
         for (String id : dynamicGroupIdList) {
             dynamicGroupList.add(new DynamicGroupIdWithMeta(id, null));
