@@ -75,13 +75,13 @@ export const compareHost = (preHost, nextHost) => {
     }
     // 全都手动添加对比值
     const {
-        ipList: preIPList,
-        topoNodeList: preNodeList,
+        hostList: preIPList,
+        nodeList: preNodeList,
         dynamicGroupList: preGroupList,
     } = preHost.hostNodeInfo;
     const {
-        ipList: nextIPList,
-        topoNodeList: nextNodeList,
+        hostList: nextIPList,
+        nodeList: nextNodeList,
         dynamicGroupList: nextGroupList,
     } = nextHost.hostNodeInfo;
     // 对比主机

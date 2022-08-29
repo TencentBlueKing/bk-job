@@ -108,8 +108,8 @@
                 isShowDiff: false,
                 hostNodeInfo: {
                     dynamicGroupList: [],
-                    ipList: [],
-                    topoNodeList: [],
+                    hostList: [],
+                    nodeList: [],
                 },
                 nodeDiff: {},
                 hostDiff: {},
@@ -160,40 +160,40 @@
                 
                 // 对比节点
                 const nodeDiffMap = {};
-                const topoNodeList = [];
+                const nodeList = [];
                 const genNodeId = node => `${node.type}_${node.id}`;
-                templateValue.topoNodeList.forEach((node) => {
+                templateValue.nodeList.forEach((node) => {
                     nodeDiffMap[genNodeId(node)] = 'new';
-                    topoNodeList.push(node);
+                    nodeList.push(node);
                 });
-                planValue.topoNodeList.forEach((node) => {
+                planValue.nodeList.forEach((node) => {
                     if (nodeDiffMap[genNodeId(node)]) {
                         nodeDiffMap[genNodeId(node)] = 'normal';
                     } else {
                         nodeDiffMap[genNodeId(node)] = 'delete';
-                        topoNodeList.push(node);
+                        nodeList.push(node);
                     }
                 });
-                this.composeNode = Object.freeze(topoNodeList);
+                this.composeNode = Object.freeze(nodeList);
                 this.diffNodeMemo = Object.freeze(nodeDiffMap);
                 
                 // 对比主机
                 const hostDiffMap = {};
-                const ipList = [];
+                const hostList = [];
                 const genHostId = host => `${host.cloudAreaInfo.id}_${host.ip}`;
-                templateValue.ipList.forEach((host) => {
+                templateValue.hostList.forEach((host) => {
                     hostDiffMap[genHostId(host)] = 'new';
-                    ipList.push(host);
+                    hostList.push(host);
                 });
-                planValue.ipList.forEach((host) => {
+                planValue.hostList.forEach((host) => {
                     if (hostDiffMap[genHostId(host)]) {
                         hostDiffMap[genHostId(host)] = 'normal';
                     } else {
                         hostDiffMap[genHostId(host)] = 'delete';
-                        ipList.push(host);
+                        hostList.push(host);
                     }
                 });
-                this.composeHost = Object.freeze(ipList);
+                this.composeHost = Object.freeze(hostList);
                 this.diffHostMemo = Object.freeze(hostDiffMap);
 
                 // 对比分组
@@ -218,11 +218,11 @@
             handlerView () {
                 // const {
                 //     dynamicGroupList,
-                //     ipList,
-                //     topoNodeList
+                //     hostList,
+                //     nodeList
                 // } = this.data.hostNodeInfo
-                // this.node = Object.freeze(topoNodeList)
-                // this.host = Object.freeze(ipList)
+                // this.node = Object.freeze(nodeList)
+                // this.host = Object.freeze(hostList)
                 // this.dynamicGroup = Object.freeze(dynamicGroupList)
                 this.hostNodeInfo = Object.freeze(this.data.hostNodeInfo);
                 this.nodeDiff = {};
@@ -234,8 +234,8 @@
                 if (value) {
                     this.hostNodeInfo = Object.freeze({
                         dynamicGroupList: this.composeGroup,
-                        ipList: this.composeHost,
-                        topoNodeList: this.composeNode,
+                        hostList: this.composeHost,
+                        nodeList: this.composeNode,
                     });
                     // this.node = this.composeNode
                     this.nodeDiff = this.diffNodeMemo;

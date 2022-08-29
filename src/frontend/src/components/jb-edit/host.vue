@@ -120,15 +120,15 @@
                 }
                 const {
                     dynamicGroupList,
-                    ipList,
-                    topoNodeList,
+                    hostList,
+                    nodeList,
                 } = this.localValue.hostNodeInfo || {};
                 const strs = [];
-                if (ipList.length > 0) {
-                    strs.push(`<span class="number strong">${ipList.length}</span>${I18n.t('台主机.result')}`);
+                if (hostList.length > 0) {
+                    strs.push(`<span class="number strong">${hostList.length}</span>${I18n.t('台主机.result')}`);
                 }
-                if (topoNodeList.length > 0) {
-                    strs.push(`<span class="number strong">${topoNodeList.length}</span>${I18n.t('个节点.result')}`);
+                if (nodeList.length > 0) {
+                    strs.push(`<span class="number strong">${nodeList.length}</span>${I18n.t('个节点.result')}`);
                 }
                 if (dynamicGroupList.length > 0) {
                     strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组.result')}`);

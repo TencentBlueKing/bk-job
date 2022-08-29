@@ -208,7 +208,7 @@
              * @returns {Boolean}
              */
             isClearFailDisabled () {
-                return this.localHost.ipList.length < 1;
+                return this.localHost.hostList.length < 1;
             },
             /**
              * @desc 选择的主机才显示主机搜索框
@@ -218,7 +218,7 @@
                 if (this.isGolbalVariableType) {
                     return false;
                 }
-                return this.localHost.ipList.length > 0;
+                return this.localHost.hostList.length > 0;
             },
             /**
              * @desc 切换执行目标选择的展示样式

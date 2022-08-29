@@ -30,11 +30,11 @@ import VariableModel from '@model/task/global-variable';
 
 export const ipStatistics = (hostNodeList) => {
     const stack = [];
-    if (hostNodeList.ipList.length > 0) {
-        stack.push(`${hostNodeList.ipList.length}${I18n.t('template.个主机')}`);
+    if (hostNodeList.hostList.length > 0) {
+        stack.push(`${hostNodeList.hostList.length}${I18n.t('template.个主机')}`);
     }
-    if (hostNodeList.topoNodeList.length > 0) {
-        stack.push(`${hostNodeList.topoNodeList.length}${I18n.t('template.个节点')}`);
+    if (hostNodeList.nodeList.length > 0) {
+        stack.push(`${hostNodeList.nodeList.length}${I18n.t('template.个节点')}`);
     }
     if (hostNodeList.dynamicGroupList.length > 0) {
         stack.push(`${hostNodeList.dynamicGroupList.length}${I18n.t('template.个分组')}`);

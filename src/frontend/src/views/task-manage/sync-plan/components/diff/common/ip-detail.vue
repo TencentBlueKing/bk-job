@@ -92,10 +92,10 @@
         if (taskHostNode.variable) {
             return false;
         }
-        if (taskHostNode.hostNodeInfo.topoNodeList.length > 0) {
+        if (taskHostNode.hostNodeInfo.nodeList.length > 0) {
             return false;
         }
-        if (taskHostNode.hostNodeInfo.ipList.length > 0) {
+        if (taskHostNode.hostNodeInfo.hostList.length > 0) {
             return false;
         }
         if (taskHostNode.hostNodeInfo.dynamicGroupList.length > 0) {
@@ -200,22 +200,22 @@
                 
                 // 对比节点
                 const nodeDiffMap = {};
-                const topoNodeList = [];
+                const nodeList = [];
                 const genNodeId = node => `#${node.type}#${node.id}`;
-                lastValue.topoNodeList.forEach((node) => {
+                lastValue.nodeList.forEach((node) => {
                     nodeDiffMap[genNodeId(node)] = 'new';
-                    topoNodeList.push(node);
+                    nodeList.push(node);
                 });
-                preValue.topoNodeList.forEach((node) => {
+                preValue.nodeList.forEach((node) => {
                     const realNodeId = genNodeId(node);
                     if (nodeDiffMap[realNodeId]) {
                         nodeDiffMap[realNodeId] = 'same';
                     } else {
                         nodeDiffMap[realNodeId] = 'delete';
-                        topoNodeList.push(node);
+                        nodeList.push(node);
                     }
                 });
-                this.composeNode = Object.freeze(topoNodeList);
+                this.composeNode = Object.freeze(nodeList);
                 this.diffNodeMemo = Object.freeze(nodeDiffMap);
                 Object.values(this.diffNodeMemo).forEach((value) => {
                     if (value !== 'same') {
@@ -225,22 +225,22 @@
                 
                 // 对比主机
                 const hostDiffMap = {};
-                const ipList = [];
+                const hostList = [];
                 const genHostId = host => `${host.cloudAreaInfo.id}:${host.ip}`;
-                lastValue.ipList.forEach((host) => {
+                lastValue.hostList.forEach((host) => {
                     hostDiffMap[genHostId(host)] = 'new';
-                    ipList.push(host);
+                    hostList.push(host);
                 });
-                preValue.ipList.forEach((host) => {
+                preValue.hostList.forEach((host) => {
                     const realHostId = genHostId(host);
                     if (hostDiffMap[realHostId]) {
                         hostDiffMap[realHostId] = 'same';
                     } else {
                         hostDiffMap[realHostId] = 'delete';
-                        ipList.push(host);
+                        hostList.push(host);
                     }
                 });
-                this.composeHost = Object.freeze(ipList);
+                this.composeHost = Object.freeze(hostList);
                 this.diffHostMemo = Object.freeze(hostDiffMap);
                 Object.values(this.diffHostMemo).forEach((value) => {
                     if (value !== 'same') {
@@ -284,8 +284,8 @@
                 if (value) {
                     this.hostNodeInfo = Object.freeze({
                         dynamicGroupList: this.composeGroup,
-                        ipList: this.composeHost,
-                        topoNodeList: this.composeNode,
+                        hostList: this.composeHost,
+                        nodeList: this.composeNode,
                     });
                     this.nodeDiff = this.diffNodeMemo;
                     this.hostDiff = this.diffHostMemo;
