@@ -125,14 +125,11 @@
                     return;
                 }
                 this.isLoading = true;
-                const { dynamicGroupList, ipList, topoNodeList } = this.hostNodeInfo;
+                const { dynamicGroupList, hostList, nodeList } = this.hostNodeInfo;
                 AppManageService.fetchHostStatistics({
-                    appTopoNodeList: topoNodeList.map(topo => ({
-                        objectId: topo.type,
-                        instanceId: topo.id,
-                    })),
-                    dynamicGroupIds: dynamicGroupList,
-                    hostIdList: ipList.map(hostInfo => hostInfo.hostId),
+                    nodeList,
+                    dynamicGroupList,
+                    hostList,
                 }).then((data) => {
                     this.data = data;
                 })
