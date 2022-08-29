@@ -59,14 +59,14 @@ public class TaskHostNodeDTO {
         }
         TaskHostNodeVO hostNodeVO = new TaskHostNodeVO();
         if (CollectionUtils.isNotEmpty(hostNode.getNodeInfoList())) {
-            hostNodeVO.setTopoNodeList(
+            hostNodeVO.setNodeList(
                 hostNode.getNodeInfoList().parallelStream()
                     .map(TaskNodeInfoDTO::toVO).collect(Collectors.toList()));
         }
-        hostNodeVO.setDynamicGroupList(hostNode.getDynamicGroupId());
+        hostNodeVO.setDynamicGroupIdList(hostNode.getDynamicGroupId());
         if (hostNode.getHostList() != null) {
             hostNodeVO
-                .setIpList(hostNode.getHostList().stream()
+                .setHostList(hostNode.getHostList().stream()
                     .filter(Objects::nonNull)
                     .map(ApplicationHostDTO::toVO)
                     .collect(Collectors.toList()));
@@ -79,17 +79,17 @@ public class TaskHostNodeDTO {
             return null;
         }
         TaskHostNodeDTO taskHostNodeDTO = new TaskHostNodeDTO();
-        if (CollectionUtils.isNotEmpty(hostNode.getTopoNodeList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
             taskHostNodeDTO.setNodeInfoList(
-                hostNode.getTopoNodeList().parallelStream()
+                hostNode.getNodeList().parallelStream()
                     .map(TaskNodeInfoDTO::fromVO).collect(Collectors.toList()));
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupList())) {
-            taskHostNodeDTO.setDynamicGroupId(hostNode.getDynamicGroupList());
+        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
+            taskHostNodeDTO.setDynamicGroupId(hostNode.getDynamicGroupIdList());
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getIpList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
             taskHostNodeDTO
-                .setHostList(hostNode.getIpList().stream()
+                .setHostList(hostNode.getHostList().stream()
                     .map(ApplicationHostDTO::fromVO).collect(Collectors.toList()));
         }
         return taskHostNodeDTO;

@@ -72,7 +72,7 @@ public class TaskTargetDTO {
         }
         TaskTargetVO taskTargetVO = new TaskTargetVO();
         taskTargetVO.setVariable(executeTarget.getVariable());
-        taskTargetVO.setHostNodeInfo(TaskHostNodeDTO.toVO(executeTarget.getHostNodeList()));
+        taskTargetVO.setSelectedServers(TaskHostNodeDTO.toVO(executeTarget.getHostNodeList()));
         return taskTargetVO;
     }
 
@@ -84,7 +84,7 @@ public class TaskTargetDTO {
         if (StringUtils.isNotBlank(taskTargetVO.getVariable())) {
             taskTargetDTO.setVariable(taskTargetVO.getVariable());
         }
-        taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getHostNodeInfo()));
+        taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getSelectedServers()));
         fillHostDetail(taskTargetDTO);
         return taskTargetDTO;
     }

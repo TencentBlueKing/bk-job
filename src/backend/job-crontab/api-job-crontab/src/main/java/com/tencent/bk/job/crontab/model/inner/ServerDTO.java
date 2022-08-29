@@ -88,16 +88,16 @@ public class ServerDTO {
             hostInfoVOList.addAll(server.getIps().parallelStream().map(HostDTO::toVO).collect(Collectors.toList()));
         }
         if (!hostInfoVOList.isEmpty()) {
-            taskHostNode.setIpList(hostInfoVOList);
+            taskHostNode.setHostList(hostInfoVOList);
         }
         if (CollectionUtils.isNotEmpty(server.getDynamicGroupIds())) {
-            taskHostNode.setDynamicGroupList(server.getDynamicGroupIds());
+            taskHostNode.setDynamicGroupIdList(server.getDynamicGroupIds());
         }
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
-            taskHostNode.setTopoNodeList(server.getTopoNodes().parallelStream()
+            taskHostNode.setNodeList(server.getTopoNodes().parallelStream()
                 .map(CmdbTopoNodeDTO::toVO).collect(Collectors.toList()));
         }
-        taskTarget.setHostNodeInfo(taskHostNode);
+        taskTarget.setSelectedServers(taskHostNode);
         return taskTarget;
     }
 
@@ -107,17 +107,17 @@ public class ServerDTO {
         }
         ServerDTO server = new ServerDTO();
         server.setVariable(taskTarget.getVariable());
-        if (taskTarget.getHostNodeInfo() != null) {
-            TaskHostNodeVO hostNodeInfo = taskTarget.getHostNodeInfo();
-            if (CollectionUtils.isNotEmpty(hostNodeInfo.getIpList())) {
-                server.setIps(hostNodeInfo.getIpList().parallelStream()
+        if (taskTarget.getSelectedServers() != null) {
+            TaskHostNodeVO selectedServers = taskTarget.getSelectedServers();
+            if (CollectionUtils.isNotEmpty(selectedServers.getHostList())) {
+                server.setIps(selectedServers.getHostList().parallelStream()
                     .map(HostDTO::fromVO).collect(Collectors.toList()));
             }
-            if (CollectionUtils.isNotEmpty(hostNodeInfo.getDynamicGroupList())) {
-                server.setDynamicGroupIds(hostNodeInfo.getDynamicGroupList());
+            if (CollectionUtils.isNotEmpty(selectedServers.getDynamicGroupIdList())) {
+                server.setDynamicGroupIds(selectedServers.getDynamicGroupIdList());
             }
-            if (CollectionUtils.isNotEmpty(hostNodeInfo.getTopoNodeList())) {
-                server.setTopoNodes(hostNodeInfo.getTopoNodeList().parallelStream()
+            if (CollectionUtils.isNotEmpty(selectedServers.getNodeList())) {
+                server.setTopoNodes(selectedServers.getNodeList().parallelStream()
                     .map(CmdbTopoNodeDTO::fromVO).collect(Collectors.toList()));
             }
         }

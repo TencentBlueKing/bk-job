@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.model.web.req.ipchooser.DynamicGroupIdWithMeta;
+import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
