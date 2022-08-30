@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -44,33 +43,19 @@ public class TaskTargetVO {
     private String variable;
 
     @ApiModelProperty(value = "主机节点列表")
-    private TaskHostNodeVO selectedServers;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    @ApiModelProperty(value = "主机节点列表")
     private TaskHostNodeVO hostNodeInfo;
 
     public boolean validate(boolean isCreate) {
         if (StringUtils.isNoneBlank(variable)) {
-            selectedServers = null;
+            hostNodeInfo = null;
             return true;
         }
-        if (selectedServers != null) {
-            return selectedServers.validate(isCreate);
+        if (hostNodeInfo != null) {
+            return hostNodeInfo.validate(isCreate);
         } else {
             JobContextUtil.addDebugMessage("Empty target info!");
             return false;
         }
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    public void setSelectedServers(TaskHostNodeVO selectedServers) {
-        this.selectedServers = selectedServers;
-        this.hostNodeInfo = selectedServers;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    public void setHostNodeInfo(TaskHostNodeVO hostNodeInfo) {
-        this.hostNodeInfo = hostNodeInfo;
-        this.selectedServers = hostNodeInfo;
-    }
 }

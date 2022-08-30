@@ -54,7 +54,6 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.converter.TaskInstanceConverter;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteApprovalStepVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteCloudAreaInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileStepVO;
@@ -312,7 +311,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 hosts.add(host);
             }
             taskHostNodeVO.setHostList(hosts);
-            targetServer.setSelectedServers(taskHostNodeVO);
+            targetServer.setHostNodeInfo(taskHostNodeVO);
         }
         return targetServer;
     }
@@ -366,7 +365,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                     hosts.add(host);
                 }
                 taskHostNodeVO.setHostList(hosts);
-                taskTargetVO.setSelectedServers(taskHostNodeVO);
+                taskTargetVO.setHostNodeInfo(taskHostNodeVO);
             }
             vo.setTargetValue(taskTargetVO);
         } else if (variable.getType().equals(TaskVariableTypeEnum.CIPHER.getType())) {

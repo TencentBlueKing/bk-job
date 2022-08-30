@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -64,11 +65,11 @@ public class HostInfoVO {
     @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     private String ipDesc;
 
-
-    @ApiModelProperty("agent状态：-2：未找到，-1：查询失败，0：初始安装，1：启动中，2：运行中，3：有损状态，4：繁忙，5：升级中，6：停止中，7：解除安装")
+    // agent状态：-2：未找到，-1：查询失败，0：初始安装，1：启动中，2：运行中，3：有损状态，4：繁忙，5：升级中，6：停止中，7：解除安装
+    @JsonIgnore
     private Integer agentStatus;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-//    @ApiModelProperty("agent 状态 0-异常 1-正常")
+
+    @ApiModelProperty("agent 状态 0-异常 1-正常")
     private Integer alive;
 
     @ApiModelProperty("云区域信息")

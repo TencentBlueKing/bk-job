@@ -270,13 +270,13 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             return false;
         }
         ExecuteTargetVO targetServers = request.getTargetServers();
-        if (targetServers == null || targetServers.getSelectedServers() == null) {
+        if (targetServers == null || targetServers.getHostNodeInfo() == null) {
             log.warn("Fast execute script, target server is null!");
             return false;
         }
-        if (CollectionUtils.isEmpty(targetServers.getSelectedServers().getHostList()) &&
-            CollectionUtils.isEmpty(targetServers.getSelectedServers().getNodeList())
-            && CollectionUtils.isEmpty(targetServers.getSelectedServers().getDynamicGroupIdList())) {
+        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getHostList()) &&
+            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getNodeList())
+            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupIdList())) {
             log.warn("Fast execute script, target server is null!");
             return false;
         }
@@ -402,13 +402,13 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             return false;
         }
         ExecuteTargetVO targetServers = fileDestination.getServer();
-        if (targetServers == null || targetServers.getSelectedServers() == null) {
+        if (targetServers == null || targetServers.getHostNodeInfo() == null) {
             log.warn("Fast send file, target server is null!");
             return false;
         }
-        if (CollectionUtils.isEmpty(targetServers.getSelectedServers().getHostList()) &&
-            CollectionUtils.isEmpty(targetServers.getSelectedServers().getNodeList())
-            && CollectionUtils.isEmpty(targetServers.getSelectedServers().getDynamicGroupIdList())) {
+        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getHostList()) &&
+            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getNodeList())
+            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupIdList())) {
             log.warn("Fast send file, target server is null!");
             return false;
         }
@@ -489,10 +489,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
     @CompatibleImplementation(name = "ipv6", explain = "兼容IP，发布完成之后使用hostId，不再使用IP", version = "3.6.x")
     private ServersDTO convertToServersDTO(ExecuteTargetVO target) {
-        if (target == null || target.getSelectedServers() == null) {
+        if (target == null || target.getHostNodeInfo() == null) {
             return null;
         }
-        ExecuteServersVO hostNode = target.getSelectedServers();
+        ExecuteServersVO hostNode = target.getHostNodeInfo();
         ServersDTO serversDTO = new ServersDTO();
         if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
             List<HostDTO> staticIpList = new ArrayList<>();

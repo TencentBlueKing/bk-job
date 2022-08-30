@@ -46,7 +46,7 @@ public class PageListHostsByDynamicGroupReq {
     @ApiParam(value = "数据起始位置，不传默认为0")
     Long start = 0L;
 
-    @ApiParam(value = "拉取的数据量，最大500，不传默认为20")
-    Long pageSize = 20L;
+    @ApiParam(value = "拉取的数据量，不传默认拉取全量")
+    Long pageSize = -1L;
 
 }

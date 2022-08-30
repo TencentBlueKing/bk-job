@@ -278,28 +278,6 @@ public interface WebHostResource {
 
     @Deprecated
     @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "查询主机统计信息")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/statistics"})
-    Response<AgentStatistics> agentStatistics(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "请求体", required = true)
-        @RequestBody
-            AgentStatisticsReq agentStatisticsReq
-    );
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取节点拓扑路径", produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/queryPath"})
     Response<List<List<CcTopologyNodeVO>>> queryNodePath(
@@ -318,6 +296,26 @@ public interface WebHostResource {
         @ApiParam(value = "需要查询拓扑路径的节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
         @RequestBody
             List<TargetNodeVO> targetNodeVOList
+    );
+
+    @ApiOperation(value = "查询主机统计信息")
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/statistics"})
+    Response<AgentStatistics> agentStatistics(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "请求体", required = true)
+        @RequestBody
+            AgentStatisticsReq agentStatisticsReq
     );
 
     // 标准接口1

@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -40,21 +39,7 @@ public class ExecuteTargetVO {
     private String variable;
 
     @ApiModelProperty(value = "主机节点列表")
-    @JsonProperty("selectedServers")
-    private ExecuteServersVO selectedServers;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     @JsonProperty("hostNodeInfo")
     private ExecuteServersVO hostNodeInfo;
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    public void setHostNodeInfo(ExecuteServersVO hostNodeInfo) {
-        this.hostNodeInfo = hostNodeInfo;
-        this.selectedServers = hostNodeInfo;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    public void setSelectedServers(ExecuteServersVO selectedServers) {
-        this.selectedServers = selectedServers;
-        this.hostNodeInfo = selectedServers;
-    }
 }

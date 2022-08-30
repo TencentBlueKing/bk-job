@@ -97,7 +97,7 @@ public class ServerDTO {
             taskHostNode.setNodeList(server.getTopoNodes().parallelStream()
                 .map(CmdbTopoNodeDTO::toVO).collect(Collectors.toList()));
         }
-        taskTarget.setSelectedServers(taskHostNode);
+        taskTarget.setHostNodeInfo(taskHostNode);
         return taskTarget;
     }
 
@@ -107,17 +107,17 @@ public class ServerDTO {
         }
         ServerDTO server = new ServerDTO();
         server.setVariable(taskTarget.getVariable());
-        if (taskTarget.getSelectedServers() != null) {
-            TaskHostNodeVO selectedServers = taskTarget.getSelectedServers();
-            if (CollectionUtils.isNotEmpty(selectedServers.getHostList())) {
-                server.setIps(selectedServers.getHostList().parallelStream()
+        if (taskTarget.getHostNodeInfo() != null) {
+            TaskHostNodeVO hostNodeInfo = taskTarget.getHostNodeInfo();
+            if (CollectionUtils.isNotEmpty(hostNodeInfo.getHostList())) {
+                server.setIps(hostNodeInfo.getHostList().parallelStream()
                     .map(HostDTO::fromVO).collect(Collectors.toList()));
             }
-            if (CollectionUtils.isNotEmpty(selectedServers.getDynamicGroupIdList())) {
-                server.setDynamicGroupIds(selectedServers.getDynamicGroupIdList());
+            if (CollectionUtils.isNotEmpty(hostNodeInfo.getDynamicGroupIdList())) {
+                server.setDynamicGroupIds(hostNodeInfo.getDynamicGroupIdList());
             }
-            if (CollectionUtils.isNotEmpty(selectedServers.getNodeList())) {
-                server.setTopoNodes(selectedServers.getNodeList().parallelStream()
+            if (CollectionUtils.isNotEmpty(hostNodeInfo.getNodeList())) {
+                server.setTopoNodes(hostNodeInfo.getNodeList().parallelStream()
                     .map(CmdbTopoNodeDTO::fromVO).collect(Collectors.toList()));
             }
         }
