@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.customsetting.impl.UserCustomSettingDAO;
@@ -61,10 +62,18 @@ public class CustomSettingsService {
                                                                AppResourceScope appResourceScope,
                                                                SaveCustomSettingsReq req) {
         int affectedNum = userCustomSettingDAO.batchSave(
-            buildCustomSettingDTOs(username, appResourceScope.getAppId(), req.getSettingsMap())
+            buildCustomSettingDTOs(
+                username,
+                decidePersistedAppId(appResourceScope.getAppId()),
+                req.getSettingsMap()
+            )
         );
         log.info("{}|{}|{} records saved", username, appResourceScope.toBasicStr(), affectedNum);
-        List<String> keyList = buildKeyList(username, appResourceScope.getAppId(), req.getSettingsMap().keySet());
+        List<String> keyList = buildKeysWithCurrentAppId(
+            username,
+            appResourceScope.getAppId(),
+            req.getSettingsMap().keySet()
+        );
         return buildCustomSettingMap(userCustomSettingDAO.batchGet(keyList));
     }
 
@@ -74,20 +83,40 @@ public class CustomSettingsService {
         if (req == null || req.getModuleList() == null) {
             return buildCustomSettingMap(userCustomSettingDAO.listAll());
         }
-        List<String> keyList = buildKeyList(username, appResourceScope.getAppId(), req.getModuleList());
+        List<String> keyList = buildKeysWithCurrentAppId(username, appResourceScope.getAppId(), req.getModuleList());
         return buildCustomSettingMap(userCustomSettingDAO.batchGet(keyList));
     }
 
     public Integer deleteCustomSettings(String username,
                                         AppResourceScope appResourceScope,
                                         DeleteCustomSettingsReq req) {
-        List<String> keyList = buildKeyList(username, appResourceScope.getAppId(), req.getModuleList());
+        List<String> keyList = buildKeysWithCurrentAppId(username, appResourceScope.getAppId(), req.getModuleList());
         return userCustomSettingDAO.batchDelete(keyList);
     }
 
-    private List<String> buildKeyList(String username,
-                                      Long appId,
-                                      Collection<String> modules) {
+    private Long decidePersistedAppId(Long currentAppId) {
+        Long persistedAppId = JobConstants.PUBLIC_APP_ID;
+        log.debug(
+            "currentAppId={},use appId={} to save/query customSettings",
+            currentAppId,
+            persistedAppId
+        );
+        return persistedAppId;
+    }
+
+    private List<String> buildKeysWithCurrentAppId(String username,
+                                                   Long appId,
+                                                   Collection<String> modules) {
+        return buildKeys(
+            username,
+            decidePersistedAppId(appId),
+            modules
+        );
+    }
+
+    private List<String> buildKeys(String username,
+                                   Long appId,
+                                   Collection<String> modules) {
         if (CollectionUtils.isEmpty(modules)) {
             return Collections.emptyList();
         }
