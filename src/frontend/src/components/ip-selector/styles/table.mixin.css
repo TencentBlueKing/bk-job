@@ -11,6 +11,13 @@
             height: 40px;
             padding: 0 10px;
             border-bottom: 1px solid #dcdee5;
+            .cell {
+                height: 20px;
+                overflow: hidden;
+                line-height: 20px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
         }
     
         th {
@@ -27,14 +34,6 @@
         td {
             color: #63656e;
             cursor: pointer;
-    
-            .cell {
-                height: 20px;
-                overflow: hidden;
-                line-height: 20px;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
         }
     
         tr {

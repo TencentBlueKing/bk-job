@@ -19,7 +19,9 @@
                                 :style="{
                                     width: columnWidthCallback ? columnWidthCallback(columnKeyRenderList.indexOf(columnKey)) : tableColumnConfig[columnKey].width,
                                 }">
-                                {{ tableColumnConfig[columnKey].name }}
+                                <div class="cell">
+                                    {{ tableColumnConfig[columnKey].name }}
+                                </div>
                             </th>
                         </template>
                         <th
