@@ -71,6 +71,13 @@
             <node-host-list
                 v-if="selectedNode"
                 :node="selectedNode" />
+            <template #footer>
+                <bk-button
+                    theme="primary"
+                    @click="handleHideHostList">
+                    关闭
+                </bk-button>
+            </template>
         </bk-dialog>
     </div>
 </template>
@@ -142,7 +149,9 @@
 
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchNodePath(props.data)
+        AppManageService.fetchNodePath({
+            nodeList: props.data,
+        })
             .then((data) => {
                 const validData = [];
                 const nodeNamePathMap = {};
@@ -242,6 +251,10 @@
     const handleShowHostList = (node) => {
         isShowNodeHostList.value = true;
         selectedNode.value = node;
+    };
+
+    const handleHideHostList = () => {
+        isShowNodeHostList.value = false;
     };
 </script>
 <style lang="postcss">

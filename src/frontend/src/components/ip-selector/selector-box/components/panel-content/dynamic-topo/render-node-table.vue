@@ -100,11 +100,13 @@
     // 获取分组路径、agent状态
     const fetchData = () => {
         isLoading.value = true;
-        const params = props.node.child.map(item => ({
+        const nodeList = props.node.child.map(item => ({
             objectId: item.objectId,
             instanceId: item.instanceId,
         }));
-        AppManageService.fetchNodePath(params)
+        AppManageService.fetchNodePath({
+            nodeList,
+        })
             .then((data) => {
                 tableData.value = data.reduce((result, item) => {
                     const namePath = item.map(({ instanceName }) => instanceName).join('/');
@@ -123,7 +125,7 @@
                 isLoading.value = false;
             });
         AppManageService.fetchBatchNodeAgentStatistics({
-            nodeList: params,
+            nodeList,
         }).then((data) => {
             agentStaticMap.value = data.reduce((result, item) => {
                 result[genNodeKey(item.node)] = item.agentStatistics;

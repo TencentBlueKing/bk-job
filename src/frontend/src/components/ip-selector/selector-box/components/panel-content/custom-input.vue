@@ -1,22 +1,28 @@
 <template>
     <div class="ip-selector-custom-input">
-        <div class="custom-input">
+        <div
+            ref="inputRef"
+            class="custom-input">
             <bk-input
                 v-model="customInputText"
                 type="textarea"
+                :native-attributes="{ spellcheck: false }"
                 :style="customInputStyles" />
             <div class="custom-input-parse-error">
                 <span v-if="errorInputStack.length > 0">
                     {{ errorInputStack.length }}处格式有误
                     <span
+                        v-bk-tooltips="$t('标识错误')"
                         class="parse-error-btn"
                         @click="handleHighlightError">
                         <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
                     </span>
                 </span>
                 <span v-if="invalidInputStack.length > 0">
+                    <span v-if="errorInputStack.length > 0"> ;</span>
                     {{ invalidInputStack.length }}处 IP 不存在
                     <span
+                        v-bk-tooltips="$t('标识错误')"
                         class="parse-error-btn"
                         @click="handleHighlightInvalid">
                         <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
@@ -27,12 +33,16 @@
                 <bk-button
                     size="small"
                     theme="primary"
+                    :loading="isLoading"
+                    outline
+                    class="parse-btn"
                     @click="handleParseCustomInput">
                     点击解析
                 </bk-button>
                 <bk-button
                     size="small"
-                    style="width: 88px; margin-left: 8px;">
+                    class="clear-btn"
+                    @click="handleClearCustomInput">
                     清空
                 </bk-button>
             </div>
@@ -105,6 +115,7 @@
     const emits = defineEmits(['change']);
 
     const isLoading = ref(false);
+    const inputRef = ref();
     const customInputText = ref('');
     const hostTableData = shallowRef([]);
     const hostCheckedMap = shallowRef({});
@@ -128,6 +139,7 @@
         isShowPagination,
         pagination,
         data: renderData,
+        serachList: searchWholeData,
         handlePaginationCurrentChange,
         handlePaginationLimitChange,
     } = useLocalPagination(hostTableData, getPaginationDefault(renderTableHeight));
@@ -168,7 +180,24 @@
         const itemList = inputText.split(/[;,；，\n|]+/).filter(_ => !!_);
 
         const ipRegex = /(((\d+:)?)(?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d))))/;
-        const ipv6Regex = /(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))/;
+        const ipv6RegexList = [
+            '(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))',
+            '(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}',
+            '((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))',
+            '(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})',
+            ':((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))',
+            '(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})',
+            '((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))',
+            '(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})',
+            '((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))',
+            '(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})',
+            '((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))',
+            '(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})',
+            '((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))',
+            '(:(((:[0-9A-Fa-f]{1,4}){1,7})',
+            '((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))',
+        ];
+        const ipv6Regex = new RegExp(`^\\s*(${ipv6RegexList.join('|')})(%.+)?\\s*$`);
         const keyRegex = /^[1-9a-z][0-9a-z]*$/;
 
         const errorInput = [];
@@ -197,8 +226,8 @@
             }
             const ipv6Match = itemText.match(ipv6Regex);
             if (ipv6Match) {
-                const [ipStr] = ipMatch;
-                ipv6List.push(ipStr);
+                const [ipv6Str] = ipv6Match;
+                ipv6List.push(ipv6Str);
                 return;
             }
             const keyMatch = itemText.match(keyRegex);
@@ -259,18 +288,36 @@
         });
     };
 
+    // 清空输入框
+    const handleClearCustomInput = () => {
+        invalidInputStack.value = [];
+        errorInputStack.value = [];
+        customInputText.value = '';
+    };
+
     // 高亮错误的输入
     const handleHighlightError = () => {
-
+        const $inputEl = inputRef.value.querySelector('textarea');
+        const errorText = errorInputStack.value.join('\n');
+        $inputEl.focus();
+        $inputEl.selectionStart = 0;
+        $inputEl.selectionEnd = errorText.length;
     };
     // 高亮无效的输入（eq：IP 格式正确，但是不在指定的业务下面）
     const handleHighlightInvalid = () => {
+        const $inputEl = inputRef.value.querySelector('textarea');
+        $inputEl.focus();
+        const errorText = errorInputStack.value.join('\n');
+        const invalidText = invalidInputStack.value.join('\n');
         
+        const startIndex = errorText.length > 0 ? errorText.length + 1 : 0;
+        $inputEl.selectionStart = startIndex;
+        $inputEl.selectionEnd = startIndex + invalidText.length;
     };
     
     // 本页全选、跨页全选
     const handlePageCheck = (checkValue) => {
-        let checkedMap = { ...hostCheckedMap.value };
+        const checkedMap = { ...hostCheckedMap.value };
         
         if (checkValue === 'page') {
             renderData.value.forEach((hostItem) => {
@@ -281,7 +328,9 @@
                 delete checkedMap[hostItem.hostId];
             });
         } else if (checkValue === 'allCancle') {
-            checkedMap = {};
+            searchWholeData.value.forEach((hostItem) => {
+                delete checkedMap[hostItem.hostId];
+            });
         } else if (checkValue === 'all') {
             hostTableData.value.forEach((hostItem) => {
                 checkedMap[hostItem.hostId] = hostItem;
@@ -333,6 +382,22 @@
             .bk-textarea-wrapper,
             .bk-form-textarea {
                 height: 100%;
+            }
+
+            textarea {
+                &::selection {
+                    color: #63656e;
+                    background: #fdd;
+                }
+            }
+
+            .parse-btn {
+                flex: 1;
+            }
+
+            .clear-btn {
+                width: 88px;
+                margin-left: 8px;
             }
         }
 

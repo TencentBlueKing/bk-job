@@ -81,7 +81,9 @@
     // 通过节点的 id 查询节点的完整层级名字
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchNodePath(props.data)
+        AppManageService.fetchNodePath({
+            nodeList: props.data,
+        })
             .then((data) => {
                 const validData = [];
                 const nodeNamePathMap = {};

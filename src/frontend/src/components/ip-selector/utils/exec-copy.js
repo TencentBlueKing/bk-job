@@ -1,3 +1,4 @@
+import { messageSuccess } from '@/common/bkmagic';
 /**
  * @desc 复制文本
  * @param { String } value
@@ -11,7 +12,7 @@ export const execCopy = (value, message = '复制成功') => {
     textarea.select();
     if (document.execCommand('copy')) {
         document.execCommand('copy');
-        alert(message);
+        messageSuccess(message);
     }
     document.body.removeChild(textarea);
 };

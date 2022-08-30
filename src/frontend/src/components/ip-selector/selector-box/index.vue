@@ -108,7 +108,7 @@
         // 获取拓扑树
         AppManageService.fetchTopologyWithCount()
             .then((data) => {
-                topoTreeData.value = transformTopoTree([data]);
+                topoTreeData.value = transformTopoTree(data);
             })
             .finally(() => {
                 isTopoDataLoading.value = false;

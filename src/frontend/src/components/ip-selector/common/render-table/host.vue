@@ -4,7 +4,7 @@
             class="host-talbe-wrapper"
             :class="{ 'not-empty': data.length > 0 }"
             :style="styles">
-            <table>
+            <table v-if="!isLoadingCustom">
                 <thead>
                     <tr>
                         <th
@@ -12,24 +12,24 @@
                             style="width: 60px;">
                             <slot name="header-selection" />
                         </th>
-                        <template v-for="columnName in sortColumnList">
+                        <template v-for="columnKey in columnKeySortList">
                             <th
-                                v-if="renderColumnMap[columnName]"
-                                :key="columnName">
-                                {{ columnConfig[columnName].name }}
+                                v-if="columnKeyRenderMap[columnKey]"
+                                :key="columnKey"
+                                :style="{
+                                    width: columnWidthCallback ? columnWidthCallback(columnKeyRenderList.indexOf(columnKey)) : tableColumnConfig[columnKey].width,
+                                }">
+                                {{ tableColumnConfig[columnKey].name }}
                             </th>
                         </template>
-                        
-                        <!-- <th style="width: 120px;">IP</th>
-                        <th style="width: 160px;">IPv6</th>
-                        <th>主机名称</th>
-                        <th style="width: 120px;">Agent 状态</th>
-                        <th>云区域</th>
-                        <th>系统</th> -->
-                        <th style="width: 40px;">
-                            <div
-                                class="table-column-setting-btn"
-                                @click="handleShowSetting">
+                        <th
+                            v-if="slots.action"
+                            style="width: 100px;" />
+                        <th
+                            v-if="showSetting"
+                            style="width: 40px;"
+                            @click="handleShowSetting">
+                            <div class="table-column-setting-btn">
                                 <i class="bk-ipselector-icon bk-ipselector-set-fill" />
                             </div>
                         </th>
@@ -43,49 +43,29 @@
                         <td v-if="slots.selection">
                             <slot name="selection" v-bind:row="item" />
                         </td>
-                        <template v-for="(columnKey) in sortColumnList">
+                        <template v-for="(columnKey) in columnKeySortList">
                             <td
-                                v-if="renderColumnMap[columnKey]"
+                                v-if="columnKeyRenderMap[columnKey]"
                                 :key="columnKey">
-                                <agent-status
-                                    v-if="columnKey === 'alive'"
-                                    :data="item.alive" />
-                                <span v-else>
-                                    {{ item[columnKey] || '--' }}
-                                </span>
+                                <template v-if="columnKey === 'alive'">
+                                    <agent-status :data="item.alive" />
+                                </template>
+                                <template v-else>
+                                    <div class="cell">
+                                        {{ item[columnKey] || '--' }}
+                                        <template v-if="columnKey === 'ip'">
+                                            <slot name="ip" v-bind:row="item" />
+                                        </template>
+                                    </div>
+                                </template>
                             </td>
                         </template>
-                        <td key="settting" />
-                        <!-- <td>
-                            <div class="cell">
-                                {{ item.ip }}
-                            </div>
+                        <td v-if="slots.action">
+                            <slot name="action" v-bind:row="item" />
                         </td>
-                        <td>
-                            <div class="cell">
-                                {{ item.ipv6 || '--' }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell">
-                                {{ item.hostName || '--' }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell">
-                                <agent-status :data="item.alive" />
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell">
-                                {{ item.cloudArea.name || '--' }}
-                            </div>
-                        </td>
-                        <td colspan="2">
-                            <div class="cell">
-                                {{ item.osName || '--' }}
-                            </div>
-                        </td> -->
+                        <td
+                            v-if="showSetting"
+                            key="settting" />
                     </tr>
                 </tbody>
             </table>
@@ -110,17 +90,33 @@
             <div class="setting-header">
                 表格设置
             </div>
-            <bk-checkbox-group v-model="renderColumnList">
+            <bk-checkbox-group v-model="columnKeyRenderList">
                 <vuedraggable
-                    :list="columnSettingList"
+                    :list="columnConfigList"
                     class="column-list">
                     <div
-                        v-for="item in columnSettingList"
+                        v-for="item in columnConfigList"
                         class="column-item"
                         :key="item.name">
-                        <bk-checkbox :value="item.key">
-                            {{ item.name }}
-                        </bk-checkbox>
+                        <template v-if="item.key === 'ip'">
+                            <bk-checkbox
+                                :value="item.key"
+                                :disabled="!columnKeyRenderList.includes('ipv6')">
+                                {{ item.name }}
+                            </bk-checkbox>
+                        </template>
+                        <template v-else-if="item.key === 'ipv6'">
+                            <bk-checkbox
+                                :value="item.key"
+                                :disabled="!columnKeyRenderList.includes('ip')">
+                                {{ item.name }}
+                            </bk-checkbox>
+                        </template>
+                        <template v-else>
+                            <bk-checkbox :value="item.key">
+                                {{ item.name }}
+                            </bk-checkbox>
+                        </template>
                         <div class="column-item-drag">
                             <i class="bk-ipselector-icon bk-ipselector-ketuodong" />
                         </div>
@@ -148,6 +144,7 @@
         computed,
         shallowRef,
     } from 'vue';
+    import CustomSettingsService from '@service/custom-settings';
     import vuedraggable from 'vuedraggable';
     import { makeMap } from '../../utils';
     import AgentStatus from '../agent-status.vue';
@@ -165,6 +162,13 @@
         height: {
             type: Number,
         },
+        showSetting: {
+            type: Boolean,
+            default: true,
+        },
+        columnWidthCallback: {
+            type: Function,
+        },
     });
 
     const emits = defineEmits([
@@ -172,15 +176,19 @@
         'pagination-change',
     ]);
 
+    const CUSTOM_SETTINGS_MODULE = 'ip_selector';
+
     // 表格列的完整配置
-    const columnConfig = {
+    const tableColumnConfig = {
         ip: {
             name: 'IP',
             key: 'ip',
+            width: '120px',
         },
         ipv6: {
             name: 'IPv6',
             key: 'ipv6',
+            width: '180px',
         },
         coludArea: {
             name: '云区域',
@@ -209,24 +217,23 @@
         hostId: {
             name: 'Host ID',
             key: 'hostId',
+            width: '100px',
         },
         agentId: {
             name: 'Agent ID',
             key: 'agentId',
         },
     };
-    // 需要显示的列
-    const renderColumnMap = shallowRef({
-        ip: true,
-        ipv6: true,
-        osName: true,
-    });
+    
+    const isLoadingCustom = ref(true);
+    // 表格列配置(数组格式，交互上支持拖拽排序)
+    const columnConfigList = ref(Object.values(tableColumnConfig));
     // 列的显示顺序
-    const sortColumnList = ref(Object.keys(columnConfig));
-    // 表格列的配置列表
-    const columnSettingList = ref(Object.values(columnConfig));
+    const columnKeySortList = ref(Object.keys(tableColumnConfig));
     // 需要显示的列 checkbox-group 的值
-    const renderColumnList = ref([]);
+    const columnKeyRenderList = ref(['ip', 'ipv6', 'alive', 'osName']);
+    // 需要显示的列
+    const columnKeyRenderMap = shallowRef(makeMap(columnKeyRenderList.value));
     const isShowSetting = ref(false);
 
     const styles = computed(() => {
@@ -247,17 +254,49 @@
         return true;
     });
 
-    // 表格列显示设置
+    isLoadingCustom.value = true;
+    // 获取用户自定义配置
+    CustomSettingsService.fetchAll({
+        moduleList: [CUSTOM_SETTINGS_MODULE],
+    })
+        .then((data) => {
+            if (!data[CUSTOM_SETTINGS_MODULE]) {
+                return;
+            }
+            const {
+                hostListColumn = [],
+                hostListColumnSort = [],
+            } = data[CUSTOM_SETTINGS_MODULE];
+            columnConfigList.value = hostListColumnSort.reduce((result, columnKey) => {
+                result.push(tableColumnConfig[columnKey]);
+                return result;
+            }, []);
+            columnKeySortList.value = hostListColumnSort;
+            columnKeyRenderList.value = hostListColumn;
+            columnKeyRenderMap.value = makeMap(hostListColumn);
+        })
+        .finally(() => {
+            isLoadingCustom.value = false;
+        });
+
+    // 显示设置弹框
     const handleShowSetting = () => {
         isShowSetting.value = true;
-        renderColumnList.value = Object.keys(renderColumnMap.value);
     };
 
     // 提交表格列设置
     const handleSubmitSetting = () => {
-        renderColumnMap.value = makeMap(renderColumnList.value);
         isShowSetting.value = false;
-        sortColumnList.value = columnSettingList.value.map(item => item.key);
+        columnKeySortList.value = columnConfigList.value.map(item => item.key);
+        columnKeyRenderMap.value = makeMap(columnKeyRenderList.value);
+        CustomSettingsService.update({
+            settingsMap: {
+                [CUSTOM_SETTINGS_MODULE]: {
+                    hostListColumn: columnKeyRenderList.value,
+                    hostListColumnSort: columnKeySortList.value,
+                },
+            },
+        });
     };
 
     // 取消表格列设置
