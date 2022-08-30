@@ -331,7 +331,7 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         Rule bizSetIdRule = new Rule();
         bizSetIdRule.setField("bk_biz_set_id");
         bizSetIdRule.setOperator("equal");
-        bizSetIdRule.setValue(String.valueOf(bizSetId));
+        bizSetIdRule.setValue(bizSetId);
         filter.setRules(Collections.singletonList(bizSetIdRule));
         List<BizSetInfo> results = searchBizSet(filter, 0, 1);
         return CollectionUtils.isEmpty(results) ? null : results.get(0);
