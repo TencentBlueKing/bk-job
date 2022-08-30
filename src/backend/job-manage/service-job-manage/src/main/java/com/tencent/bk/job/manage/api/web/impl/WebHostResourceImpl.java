@@ -493,7 +493,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                  String scopeType,
                                                  String scopeId,
                                                  HostCheckReq req) {
-        // TODO:支持IPv6等字段搜索
+        // TODO:支持keyList字段搜索
         // 根据IP查资源范围内的主机详情
         List<HostInfoVO> hostListByIp = hostService.getHostsByIp(
             username,
@@ -508,21 +508,30 @@ public class WebHostResourceImpl implements WebHostResource {
         Set<Long> hostIdSet = new HashSet<>(req.getHostIdList());
         hostIdSet.removeIf(Objects::isNull);
         hostListByIp.forEach(host -> hostIdSet.remove(host.getHostId()));
-        if (!hostIdSet.isEmpty()) {
+        List<ApplicationHostDTO> hostDTOList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(hostIdSet)) {
             // 根据hostId查资源范围及白名单内的主机详情
-            List<ApplicationHostDTO> hostDTOList = whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIP(
+            hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIP(
                 appResourceScope,
                 req.getActionScope(),
                 hostIdSet
-            );
-
-            // 填充实时agent状态
-            agentStatusService.fillRealTimeAgentStatus(hostDTOList);
-            hostList.addAll(hostDTOList.parallelStream()
-                .map(ApplicationHostDTO::toVO)
-                .collect(Collectors.toList())
-            );
+            ));
         }
+        List<String> ipv6List = req.getIpv6List();
+        if (CollectionUtils.isNotEmpty(ipv6List)) {
+            // 根据ipv6地址查资源范围及白名单内的主机详情
+            hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByIpv6(
+                appResourceScope,
+                req.getActionScope(),
+                ipv6List
+            ));
+        }
+        // 填充实时agent状态
+        agentStatusService.fillRealTimeAgentStatus(hostDTOList);
+        hostList.addAll(hostDTOList.parallelStream()
+            .map(ApplicationHostDTO::toVO)
+            .collect(Collectors.toList())
+        );
         // 填充云区域名称
         hostList.forEach(hostInfoVO -> {
             CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudArea();

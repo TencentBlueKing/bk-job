@@ -59,5 +59,7 @@ public interface WhiteIPRecordDAO {
 
     List<HostDTO> listWhiteIPHost(Collection<Long> appIds, Long actionScopeId, Collection<Long> hostIds);
 
+    List<HostDTO> listWhiteIPHostByIpv6s(Collection<Long> appIds, Long actionScopeId, Collection<String> ipv6s);
+
     List<WhiteIPRecordDTO> listAllWhiteIPRecord(DSLContext dslContext);
 }

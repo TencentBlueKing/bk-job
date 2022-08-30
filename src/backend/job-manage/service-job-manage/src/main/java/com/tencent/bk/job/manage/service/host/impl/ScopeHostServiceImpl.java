@@ -86,6 +86,23 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     }
 
     @Override
+    public List<ApplicationHostDTO> getScopeHostsByIpv6s(AppResourceScope appResourceScope, Collection<String> ipv6s) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            return bizHostService.getHostsByIpv6s(ipv6s);
+        } else if (applicationDTO.isBizSet()) {
+            // 业务集
+            List<Long> bizIds = applicationDTO.getSubBizIds();
+            return bizHostService.getHostsByBizAndIpv6s(bizIds, ipv6s);
+        } else {
+            // 普通业务
+            Long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            return bizHostService.getHostsByBizAndIpv6s(Collections.singletonList(bizId), ipv6s);
+        }
+    }
+
+    @Override
     public PageData<Long> listHostIdByBizTopologyNodes(AppResourceScope appResourceScope,
                                                        List<BizTopoNode> appTopoNodeList,
                                                        String searchContent,

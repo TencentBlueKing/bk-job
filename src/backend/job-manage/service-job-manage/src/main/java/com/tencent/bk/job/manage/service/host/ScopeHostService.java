@@ -48,6 +48,16 @@ public interface ScopeHostService {
                                                 Collection<Long> hostIds);
 
     /**
+     * 根据 HostId 列表查询主机信息
+     *
+     * @param appResourceScope 资源范围
+     * @param ipv6s            主机Ipv6地址集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getScopeHostsByIpv6s(AppResourceScope appResourceScope,
+                                                  Collection<String> ipv6s);
+
+    /**
      * 根据拓扑节点、模糊搜索关键字、agent状态分页查询查询资源范围下的主机
      *
      * @param appResourceScope 资源范围

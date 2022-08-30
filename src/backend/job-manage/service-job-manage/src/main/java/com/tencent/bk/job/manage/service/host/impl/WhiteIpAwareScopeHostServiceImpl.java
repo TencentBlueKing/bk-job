@@ -119,4 +119,23 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
         recordNotFoundWhiteIP(hostIdSet, whiteIpHostDTOList, whiteIpHostList);
         return finalHostList;
     }
+
+    @Override
+    public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByIpv6(AppResourceScope appResourceScope,
+                                                                        ActionScopeEnum actionScope,
+                                                                        Collection<String> ipv6s) {
+        List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIpv6s(appResourceScope, ipv6s);
+        List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
+        List<HostDTO> whiteIpHostDTOList = whiteIPService.listAvailableWhiteIPHostByIpv6s(
+            appResourceScope.getAppId(),
+            actionScope,
+            ipv6s
+        );
+        List<ApplicationHostDTO> whiteIpHostList = hostService.listHosts(whiteIpHostDTOList);
+        log.info("{} white ips added", whiteIpHostList.size());
+        if (CollectionUtils.isNotEmpty(whiteIpHostList)) {
+            finalHostList.addAll(whiteIpHostList);
+        }
+        return finalHostList;
+    }
 }

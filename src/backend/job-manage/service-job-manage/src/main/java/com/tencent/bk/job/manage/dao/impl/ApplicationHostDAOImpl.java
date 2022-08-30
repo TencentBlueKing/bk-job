@@ -219,6 +219,16 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<ApplicationHostDTO> listHostInfoByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s) {
+        List<Condition> conditions = new ArrayList<>();
+        if (bizIds != null) {
+            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        }
+        conditions.add(TABLE.IP_V6.in(ipv6s));
+        return listHostInfoByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoByBizIds(Collection<Long> bizIds, Long start, Long limit) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
@@ -229,6 +239,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.HOST_ID.in(hostIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        return listHostInfoByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostInfoByIpv6s(Collection<String> ipv6s) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.IP_V6.in(ipv6s));
         return listHostInfoByConditions(conditions);
     }
 

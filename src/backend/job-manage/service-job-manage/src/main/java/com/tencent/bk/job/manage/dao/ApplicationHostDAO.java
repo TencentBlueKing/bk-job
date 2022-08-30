@@ -52,6 +52,8 @@ public interface ApplicationHostDAO {
 
     List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds);
 
+    List<ApplicationHostDTO> listHostInfoByIpv6s(Collection<String> ipv6s);
+
     List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                                           Collection<Long> cloudAreaIds,
                                                           List<String> searchContents, Integer agentStatus,
@@ -76,6 +78,8 @@ public interface ApplicationHostDAO {
     List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips);
 
     List<ApplicationHostDTO> listHostInfoByBizAndCloudIPs(Collection<Long> bizIds, Collection<String> cloudIPs);
+
+    List<ApplicationHostDTO> listHostInfoByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s);
 
     List<ApplicationHostDTO> listHostInfoBySourceAndIps(long cloudAreaId, Set<String> ips);
 

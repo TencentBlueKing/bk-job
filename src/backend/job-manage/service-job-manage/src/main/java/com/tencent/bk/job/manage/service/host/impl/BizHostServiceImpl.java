@@ -67,6 +67,11 @@ public class BizHostServiceImpl implements BizHostService {
     }
 
     @Override
+    public List<ApplicationHostDTO> getHostsByIpv6s(Collection<String> ipv6s) {
+        return applicationHostDAO.listHostInfoByIpv6s(ipv6s);
+    }
+
+    @Override
     public List<ApplicationHostDTO> getHostsByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds) {
         if (CollectionUtils.isEmpty(bizIds) || CollectionUtils.isEmpty(hostIds)) {
             return Collections.emptyList();
@@ -82,6 +87,11 @@ public class BizHostServiceImpl implements BizHostService {
             );
         }
         return applicationHostDAO.listHostInfoByHostIds(hostIdsInBiz);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getHostsByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s) {
+        return applicationHostDAO.listHostInfoByBizAndIpv6s(bizIds, ipv6s);
     }
 
     @Override

@@ -48,4 +48,16 @@ public interface WhiteIpAwareScopeHostService {
                                                            ActionScopeEnum actionScope,
                                                            Collection<Long> hostIds);
 
+    /**
+     * 根据 HostId 列表查询主机信息
+     *
+     * @param appResourceScope 资源范围
+     * @param actionScope      生效场景
+     * @param ipv6s            主机Ipv6集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByIpv6(AppResourceScope appResourceScope,
+                                                                 ActionScopeEnum actionScope,
+                                                                 Collection<String> ipv6s);
+
 }
