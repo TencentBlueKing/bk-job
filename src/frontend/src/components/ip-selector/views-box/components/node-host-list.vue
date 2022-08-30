@@ -31,6 +31,7 @@
     } from 'vue';
     import AppManageService from '@service/app-manage';
     import useDialogSize from '../../hooks/use-dialog-size';
+    import useHostRenderKey from '../../hooks/use-host-render-key';
     import RenderHostTable from '../../common/render-table/host';
     import {
         getPaginationDefault,
@@ -47,6 +48,10 @@
      const {
         contentHeight,
     } = useDialogSize();
+
+    const {
+        key: hostRenderKey,
+    } = useHostRenderKey();
 
     const pagination = reactive(getPaginationDefault(contentHeight.value));
     
@@ -89,7 +94,7 @@
             alive: 0,
         })
         .then((data) => {
-            const IPList = data.data.map(({ ip }) => ip);
+            const IPList = data.data.map(item => item[hostRenderKey.value]);
             execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
         })
         .finally(() => {
@@ -103,7 +108,7 @@
             alive: 0,
         })
         .then((data) => {
-            const IPList = data.data.map(({ ip }) => ip);
+            const IPList = data.data.map(item => item[hostRenderKey.value]);
             execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
         })
         .finally(() => {

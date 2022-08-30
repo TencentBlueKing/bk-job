@@ -97,7 +97,7 @@
                 :data="renderData"
                 :show-setting="false"
                 :column-width-callback="columnWidthCallback">
-                <template #ip="{ row }">
+                <template #[hostRenderKey]="{ row }">
                     <diff-tag :value="diffMap[row.hostId]" />
                 </template>
                 <template #action="{ row }">
@@ -130,6 +130,7 @@
     import AppManageService from '@service/app-manage';
     import useLocalPagination from '../hooks/use-local-pagination';
     import useIpSelector from '../hooks/use-ip-selector';
+    import useHostRenderKey from '../hooks/use-host-render-key';
     import ExtendAction from '../common/extend-action.vue';
     import DiffTag from '../common/diff-tag.vue';
     import RenderHostTable from '../common/render-table/host.vue';
@@ -169,6 +170,9 @@
     let isInnerChange = false;
 
     const context = useIpSelector();
+    const {
+        key: hostRenderKey,
+    } = useHostRenderKey();
 
     const {
         isShowPagination,
@@ -260,7 +264,7 @@
 
     // 复制所有 IP
     const handleCopyAllIP = () => {
-        const IPList = tableData.value.map(({ ip }) => ip);
+        const IPList = tableData.value.map(item => item[hostRenderKey.value]);
         execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
     };
     

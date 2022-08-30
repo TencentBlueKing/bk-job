@@ -56,6 +56,9 @@
                                         <template v-if="columnKey === 'ip'">
                                             <slot name="ip" v-bind:row="item" />
                                         </template>
+                                        <template v-if="columnKey === 'ipv6'">
+                                            <slot name="ipv6" v-bind:row="item" />
+                                        </template>
                                     </div>
                                 </template>
                             </td>
@@ -146,6 +149,7 @@
     } from 'vue';
     import CustomSettingsService from '@service/custom-settings';
     import vuedraggable from 'vuedraggable';
+    import useHostRenderKey from '../../hooks/use-host-render-key';
     import { makeMap } from '../../utils';
     import AgentStatus from '../agent-status.vue';
 
@@ -254,6 +258,21 @@
         return true;
     });
 
+    const { setKey } = useHostRenderKey();
+
+    const setHostListRenderPrimaryKey = () => {
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < columnKeySortList.value.length; i++) {
+            const curColumnKey = columnKeySortList.value[i];
+            if (['ip', 'ipv6'].includes(curColumnKey)
+                & columnKeyRenderList.value.includes(curColumnKey)) {
+                setKey(curColumnKey);
+                return;
+            }
+        }
+        setKey('ip');
+    };
+
     isLoadingCustom.value = true;
     // 获取用户自定义配置
     CustomSettingsService.fetchAll({
@@ -274,11 +293,12 @@
             columnKeySortList.value = hostListColumnSort;
             columnKeyRenderList.value = hostListColumn;
             columnKeyRenderMap.value = makeMap(hostListColumn);
+            setHostListRenderPrimaryKey();
         })
         .finally(() => {
             isLoadingCustom.value = false;
         });
-
+    
     // 显示设置弹框
     const handleShowSetting = () => {
         isShowSetting.value = true;
@@ -289,6 +309,7 @@
         isShowSetting.value = false;
         columnKeySortList.value = columnConfigList.value.map(item => item.key);
         columnKeyRenderMap.value = makeMap(columnKeyRenderList.value);
+        setHostListRenderPrimaryKey();
         CustomSettingsService.update({
             settingsMap: {
                 [CUSTOM_SETTINGS_MODULE]: {
