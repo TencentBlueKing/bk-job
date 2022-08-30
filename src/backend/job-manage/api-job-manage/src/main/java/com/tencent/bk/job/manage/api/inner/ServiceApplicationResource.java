@@ -97,10 +97,6 @@ public interface ServiceApplicationResource {
                                           @ApiParam(value = "资源范围ID", required = true)
                                           @PathVariable("scopeId") String scopeId);
 
-    @GetMapping("/app/{appId}/permission")
-    InternalResponse<Boolean> checkAppPermission(@PathVariable("appId") Long appId,
-                                                 @RequestParam("username") String username);
-
     @ApiOperation(value = "获取业务列表", produces = "application/json")
     @GetMapping("/app/list")
     InternalResponse<List<ServiceApplicationDTO>> listApps(
