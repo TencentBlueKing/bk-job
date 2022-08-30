@@ -88,7 +88,7 @@ class AppManage extends ModuleBase {
 
     // 获取节点拓扑路径
     getNodePath (params = {}) {
-        return Request.post(`${this.path}/node/queryPath`, {
+        return Request.post(`${this.path}/nodes/queryPath`, {
             params,
         });
     }
@@ -109,7 +109,7 @@ class AppManage extends ModuleBase {
 
     // 获取业务拓扑列表（含各节点主机数）
     getAllTopologyWithCount () {
-        return Request.get(`${this.path}/topology/hostCount`, {
+        return Request.post(`${this.path}/topology/hostCount`, {
             cache: 2000,
         });
     }
@@ -179,6 +179,13 @@ class AppManage extends ModuleBase {
 
     getInputParseHostList (params = {}) {
         return Request.post(`${this.path}/host/check`, {
+            params,
+        });
+    }
+
+    // 根据hostId批量查询主机详情信息
+    getHostInfoByHostId (params = {}) {
+        return Request.post(`${this.path}/hosts/details`, {
             params,
         });
     }

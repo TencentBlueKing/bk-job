@@ -64,6 +64,7 @@ export default (
     return {
         data,
         searchKey,
+        serachList,
         isShowPagination,
         pagination,
         handlePaginationCurrentChange,

@@ -130,4 +130,8 @@ export default {
         return AppManageSource.getInputParseHostList(params)
             .then(({ data }) => data);
     },
+    fetchHostInfoByHostId (params) {
+        return AppManageSource.getHostInfoByHostId(params)
+            .then(({ data }) => data);
+    },
 };

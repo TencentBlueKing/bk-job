@@ -31,7 +31,7 @@
                     <div>清除异常 IP</div>
                 </extend-action>
             </template>
-            <table>
+            <!-- <table>
                 <thead>
                     <tr>
                         <th style="width: 12%;">IP</th>
@@ -92,7 +92,23 @@
                         </td>
                     </tr>
                 </tbody>
-            </table>
+            </table> -->
+            <render-host-table
+                :data="renderData"
+                :show-setting="false"
+                :column-width-callback="columnWidthCallback">
+                <template #ip="{ row }">
+                    <diff-tag :value="diffMap[row.hostId]" />
+                </template>
+                <template #action="{ row }">
+                    <bk-button
+                        text
+                        theme="primary"
+                        @click="handleRemove(row)">
+                        删除
+                    </bk-button>
+                </template>
+            </render-host-table>
             <div
                 v-if="isShowPagination"
                 style="padding: 0 10px 8px 0;">
@@ -114,9 +130,9 @@
     import AppManageService from '@service/app-manage';
     import useLocalPagination from '../hooks/use-local-pagination';
     import useIpSelector from '../hooks/use-ip-selector';
-    import AgentStatus from '../common/agent-status.vue';
     import ExtendAction from '../common/extend-action.vue';
     import DiffTag from '../common/diff-tag.vue';
+    import RenderHostTable from '../common/render-table/host.vue';
     import {
         execCopy,
         getInvalidHostList,
@@ -165,8 +181,8 @@
     // 通过 hostId 获取主机详情
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchHostOfHost({
-            hostIdList: props.data.map(({ hostId }) => hostId),
+        AppManageService.fetchHostInfoByHostId({
+            hostList: props.data,
         })
         .then((data) => {
             validHostList.value = data;
@@ -174,6 +190,13 @@
         .finally(() => {
             isLoading.value = false;
         });
+    };
+
+    const columnWidthCallback = (index) => {
+        if (index <= 1) {
+            return '15%';
+        }
+        return '';
     };
 
     watch(() => props.data, () => {

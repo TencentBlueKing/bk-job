@@ -71,6 +71,13 @@
             <host-list
                 v-if="selectedGroup"
                 :dynamic-group="selectedGroup" />
+            <template #footer>
+                <bk-button
+                    theme="primary"
+                    @click="handleHideHostList">
+                    关闭
+                </bk-button>
+            </template>
         </bk-dialog>
     </div>
 </template>
@@ -231,6 +238,10 @@
     const handleShowHostList = (group) => {
         isShowHostList.value = true;
         selectedGroup.value = group;
+    };
+
+    const handleHideHostList = () => {
+        isShowHostList.value = false;
     };
 </script>
 <style lang="postcss">
