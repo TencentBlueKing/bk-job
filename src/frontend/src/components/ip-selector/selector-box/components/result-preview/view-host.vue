@@ -30,7 +30,7 @@
             <CallapseContentItem
                 v-for="(item, index) in listData"
                 :key="index"
-                :content="item.ip"
+                :content="item[hostRenderKey]"
                 :removable="diffMap[item.hostId]!== 'remove'"
                 @remove="handleRemove(item)">
                 <span
@@ -38,7 +38,7 @@
                     style="color: #c4c6cc;">
                     (Host ID: {{ item.hostId }})
                 </span>
-                {{ item.ip }}
+                {{ item[hostRenderKey] || '--' }}
                 <template #append>
                     <diff-tag :value="diffMap[item.hostId]" />
                 </template>
@@ -63,6 +63,8 @@
         groupHostList,
     } from '../../../utils';
     import useIpSelector from '../../../hooks/use-ip-selector';
+    import useHostRenderKey from '../../../hooks/use-host-render-key';
+
     import DiffTag from '../../../common/diff-tag.vue';
     import CallapseContentItem from './collapse-box/content-item.vue';
     import CollapseBox from './collapse-box/index.vue';
@@ -77,7 +79,9 @@
     const emits = defineEmits(['change']);
 
     const context = useIpSelector();
-
+    const {
+        key: hostRenderKey,
+    } = useHostRenderKey();
     const isLoading = ref(false);
     const listData = shallowRef([]);
 
@@ -152,7 +156,8 @@
 
     // 复制IP
     const handleCopyIP = () => {
-        execCopy(listData.value.map(({ ip }) => ip).join('\n'), `复制成功 ${listData.value.length} 个 IP`);
+        const IPList = listData.value.map(item => item[hostRenderKey.value]);
+        execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
     };
     
     // 移除所有IP

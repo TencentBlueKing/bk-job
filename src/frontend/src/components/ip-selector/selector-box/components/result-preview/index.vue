@@ -41,6 +41,7 @@
         useListeners,
     } from 'vue';
     import useDialogSize from '../../../hooks/use-dialog-size';
+    import useHostRenderKey from '../../../hooks/use-host-render-key';
     import ExtendAction from '../../../common/extend-action.vue';
     import { execCopy } from '../../../utils';
     import ViewHost from './view-host.vue';
@@ -87,6 +88,9 @@
     const {
         contentHeight: dialogContentHeight,
     } = useDialogSize();
+    const {
+        key: hostRenderKey,
+    } = useHostRenderKey();
 
     const styles = computed(() => ({
         height: `${dialogContentHeight.value - 68}px`,
@@ -106,15 +110,14 @@
         emits('change', 'hostList', hostList);
     };
     const handleCopyAllIP = () => {
-        const IPList = props.hostList.map(({ ip }) => ip);
+        const IPList = props.hostList.map(item => item[hostRenderKey.value]);
         execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
     };
 
     const handleCopeFailedAIP = () => {
-        console.log('handleCopeFailedAIP = ', props.hostList);
         const IPList = props.hostList.reduce((result, item) => {
             if (item.alive !== 1) {
-                result.push(item.ip);
+                result.push(item[hostRenderKey.value]);
             }
             return result;
         }, []);

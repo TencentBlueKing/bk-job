@@ -23,9 +23,9 @@
 
     const statusText = computed(() => {
         if (props.data === 1) {
-            return '成功';
+            return '正常';
         } else if (props.data === 0) {
-            return '失败';
+            return '异常';
         }
         return '未知';
     });
