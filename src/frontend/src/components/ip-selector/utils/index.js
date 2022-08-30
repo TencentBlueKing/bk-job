@@ -5,6 +5,7 @@ export * from './format-output';
 export * from './gen-node-key';
 export * from './get-diff-new-num';
 export * from './get-direct-children-nodes-by-node-ids';
+export * from './get-object-value-by-path';
 export * from './get-pagination-default';
 export * from './get-repeat-ip-host-map';
 export * from './group-result-list';

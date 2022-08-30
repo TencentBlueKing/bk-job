@@ -150,7 +150,9 @@
     import CustomSettingsService from '@service/custom-settings';
     import vuedraggable from 'vuedraggable';
     import useHostRenderKey from '../../hooks/use-host-render-key';
-    import { makeMap } from '../../utils';
+    import {
+        makeMap,
+     } from '../../utils';
     import AgentStatus from '../agent-status.vue';
 
     const slots = useSlots();
