@@ -91,11 +91,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         app.setScopeType(appInfo.getScope().getType().getValue());
         app.setScopeId(appInfo.getScope().getId());
         app.setName(appInfo.getName());
-        app.setAppType(appInfo.getAppType().getValue());
-        app.setSubBizIds(appInfo.getSubBizIds());
-        app.setMaintainers(appInfo.getMaintainers());
         app.setOwner(appInfo.getBkSupplierAccount());
-        app.setOperateDeptId(appInfo.getOperateDeptId());
         app.setTimeZone(appInfo.getTimeZone());
         app.setLanguage(appInfo.getLanguage());
         if (appInfo.getAttrs() != null) {
@@ -134,14 +130,6 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
             throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
         }
         return applications.stream().map(this::convertToServiceApp).collect(Collectors.toList());
-    }
-
-    @Override
-    public InternalResponse<Boolean> checkAppPermission(Long appId, String username) {
-        if (appId == null || appId < 0) {
-            return InternalResponse.buildSuccessResp(false);
-        }
-        return InternalResponse.buildSuccessResp(applicationService.checkAppPermission(appId, username));
     }
 
     @Override

@@ -68,7 +68,6 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
                     if (cacheApplication == null || cacheApplication.isDeleted()) {
                         return;
                     }
-                    cacheApplication.setSubBizIds(latestSubBizIds);
                     ApplicationAttrsDO attrs = cacheApplication.getAttrs();
                     if (attrs != null) {
                         attrs.setSubBizIds(latestSubBizIds);

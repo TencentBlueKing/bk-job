@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * CMDB业务集相关接口
@@ -37,11 +38,19 @@ import java.util.List;
 public interface IBizSetCmdbClient {
 
     /**
+     * 查询业务集
+     *
+     * @param bizSetId 业务集ID
+     * @return 业务集
+     */
+    BizSetInfo queryBizSet(Long bizSetId);
+
+    /**
      * 从CC获取所有业务集信息
      *
      * @return 业务集列表
      */
-    List<BizSetInfo> getAllBizSetApps();
+    List<BizSetInfo> listAllBizSets();
 
     /**
      * 根据游标获取业务集事件
@@ -60,4 +69,12 @@ public interface IBizSetCmdbClient {
      * @return 事件
      */
     ResourceWatchResult<BizSetRelationEventDetail> getBizSetRelationEvents(Long startTime, String cursor);
+
+    /**
+     * 根据cmdb业务角色获取人员
+     *
+     * @param bizId cmdb业务ID
+     * @param role  业务角色
+     */
+    Set<String> listUsersByRole(Long bizId, String role);
 }

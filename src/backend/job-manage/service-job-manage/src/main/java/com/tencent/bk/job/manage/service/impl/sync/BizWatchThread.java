@@ -237,7 +237,6 @@ public class BizWatchThread extends Thread {
         originApp.setName(updateApp.getName());
         originApp.setBkSupplierAccount(updateApp.getBkSupplierAccount());
         originApp.setLanguage(updateApp.getLanguage());
-        originApp.setMaintainers(updateApp.getMaintainers());
         originApp.setTimeZone(updateApp.getTimeZone());
     }
 }

@@ -35,7 +35,6 @@ import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -226,40 +225,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public List<ApplicationDTO> listAllApps() {
         return applicationDAO.listAllApps();
-    }
-
-    @Override
-    public boolean checkAppPermission(long appId, String username) {
-        if (StringUtils.isBlank(username)) {
-            return false;
-        }
-        username = username.trim();
-        ApplicationDTO appInfo = getAppByAppId(appId);
-        if (log.isDebugEnabled()) {
-            log.debug("Get app info for {}|{}", appId, appInfo);
-        }
-        if (appInfo == null) {
-            log.warn("Check app permission, app[{}] is not exist!", appId);
-            return false;
-        }
-        String maintainers = appInfo.getMaintainers();
-        if (log.isDebugEnabled()) {
-            log.debug("Checking app {} user {}|{}", appId, username, maintainers);
-        }
-        if (StringUtils.isNotBlank(maintainers)) {
-            for (String maintainer : maintainers.split("[,;]")) {
-                if (StringUtils.isBlank(maintainer)) {
-                    continue;
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Checking...|{}|{}|{}", appId, username, maintainer);
-                }
-                if (username.equals(maintainer.trim())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     @Override
