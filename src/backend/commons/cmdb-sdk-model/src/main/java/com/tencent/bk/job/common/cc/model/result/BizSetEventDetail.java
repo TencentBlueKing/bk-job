@@ -26,8 +26,6 @@ package com.tencent.bk.job.common.cc.model.result;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -79,10 +77,8 @@ public class BizSetEventDetail {
         ApplicationDTO applicationDTO = new ApplicationDTO();
         ResourceScope resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, String.valueOf(bizSetId));
         applicationDTO.setScope(resourceScope);
-        applicationDTO.setAppType(AppTypeEnum.APP_SET);
         applicationDTO.setName(bizSetName);
         applicationDTO.setBkSupplierAccount(supplierAccount);
-        applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(maintainers));
         applicationDTO.setTimeZone(timezone);
         applicationDTO.setLanguage(language);
         return applicationDTO;

@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
 
-    private JobExecuteArchiveManage jobExecuteArchiveManage;
+    private final JobExecuteArchiveManage jobExecuteArchiveManage;
 
     public ServiceArchiveResourceImpl(@Autowired(required = false) JobExecuteArchiveManage jobExecuteArchiveManage) {
         this.jobExecuteArchiveManage = jobExecuteArchiveManage;

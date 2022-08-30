@@ -30,29 +30,45 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * @description
- * @date 2019/3/4
+ * 业务DTO
  */
 @Getter
 @Setter
 @ToString
 public class BusinessInfoDTO {
+    /**
+     * 业务ID
+     */
     @JsonProperty("bk_biz_id")
     private Long bizId;
+    /**
+     * 业务名称
+     */
     @JsonProperty("bk_biz_name")
     private String bizName;
+    /**
+     * 业务运维
+     */
     @JsonProperty("bk_biz_maintainer")
     private String maintainers;
+    /**
+     * 开发商账号
+     */
     @JsonProperty("bk_supplier_account")
     private String supplierAccount;
+    /**
+     * 表示业务类型
+     */
     @JsonProperty("default")
     private Integer defaultApp;
+    /**
+     * 业务所在时区
+     */
     @JsonProperty("time_zone")
     private String timezone;
-    @JsonProperty("bk_operate_dept_id")
-    private Long operateDeptId;
-    @JsonProperty("bk_operate_dept_name")
-    private String operateDeptName;
+    /**
+     * 业务语言
+     */
     @JsonProperty("language")
     private String language;
 }

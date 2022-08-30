@@ -22,32 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.util;
+package com.tencent.bk.job.backup.archive.impl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceRollingTaskRecordDAO;
+import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import org.jooq.generated.tables.records.StepInstanceRollingTaskRecord;
 
-@Slf4j
-public class VersionCompatUtil {
+/**
+ * step_instance_rolling_task 表归档
+ */
+public class StepInstanceRollingTaskArchivist extends AbstractArchivist<StepInstanceRollingTaskRecord> {
 
-    /*
-     * 转换maintainers，对接CC3.0之后maintainer用","分隔，CC2.0使用";"分隔；需要兼容
-     */
-    public static String convertMaintainers(String maintainers) {
-        if (StringUtils.isBlank(maintainers)) {
-            return "";
-        }
-        String[] maintainerArray = maintainers.split("[,;]");
-        StringBuilder sb = new StringBuilder();
-        for (String maintainer : maintainerArray) {
-            if (StringUtils.isNotBlank(maintainer)) {
-                sb.append(maintainer).append(";");
-            } else {
-                log.info("ignore an empty maintainer:{}", maintainer);
-            }
-        }
-        String newMaintainers = sb.toString();
-        newMaintainers = newMaintainers.substring(0, newMaintainers.length() - 1);
-        return newMaintainers;
+    public StepInstanceRollingTaskArchivist(StepInstanceRollingTaskRecordDAO executeRecordDAO,
+                                            ExecuteArchiveDAO executeArchiveDAO,
+                                            ArchiveProgressService archiveProgressService) {
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
+        this.deleteIdStepSize = 100_000;
     }
 }

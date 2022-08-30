@@ -26,46 +26,24 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.StepInstance;
 import org.jooq.generated.tables.records.StepInstanceRecord;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
- * @since 18/3/2021 20:13
+ * step_instance 表归档
  */
 public class StepInstanceArchivist extends AbstractArchivist<StepInstanceRecord> {
 
-    public StepInstanceArchivist(JobExecuteDAO jobExecuteDAO,
+    public StepInstanceArchivist(StepInstanceRecordDAO executeRecordDAO,
                                  ExecuteArchiveDAO executeArchiveDAO,
                                  ArchiveProgressService archiveProgressService) {
-        this.jobExecuteDAO = jobExecuteDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
-        this.archiveProgressService = archiveProgressService;
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
         this.deleteIdStepSize = 10_000;
-        this.setTableName("step_instance");
     }
 
-    @Override
-    public List<StepInstanceRecord> listRecord(Long start, Long stop) {
-        return jobExecuteDAO.listStepInstance(start, stop);
-    }
-
-    @Override
-    protected int batchInsert(List<StepInstanceRecord> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(jobExecuteDAO.getStepInstanceFields(), recordList, 200);
-    }
-
-    @Override
-    protected int deleteRecord(Long start, Long stop) {
-        return jobExecuteDAO.deleteStepInstance(start, stop);
-    }
-
-    @Override
-    protected long getFirstInstanceId() {
-        return jobExecuteDAO.getFirstInstanceId(StepInstance.STEP_INSTANCE, StepInstance.STEP_INSTANCE.ID);
+    public Long getMaxNeedArchiveStepInstanceId(Long taskInstanceId) {
+        StepInstanceRecordDAO stepInstanceRecordDAO = (StepInstanceRecordDAO) executeRecordDAO;
+        return stepInstanceRecordDAO.getMaxNeedArchiveStepInstanceId(taskInstanceId);
     }
 }

@@ -22,31 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.bizset;
+package com.tencent.bk.job.backup.archive.impl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
+import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
+import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import org.jooq.generated.tables.records.GseScriptAgentTaskRecord;
 
 /**
- * CMDB接口请求实体类，用于批量更新业务集
+ * gse_script_agent_task 表归档
  */
-@Setter
-@Getter
-@ToString
-public class BatchUpdateBizSetData {
+public class GseScriptAgentTaskArchivist extends AbstractArchivist<GseScriptAgentTaskRecord> {
 
-    /**
-     * 业务集字段集合
-     */
-    @JsonProperty("bk_biz_set_attr")
-    private BizSetAttr attr;
-
-    /**
-     * 业务集的业务选择范围
-     */
-    @JsonProperty("bk_scope")
-    private BizSetScope scope;
-
+    public GseScriptAgentTaskArchivist(GseScriptAgentTaskRecordDAO executeRecordDAO,
+                                       ExecuteArchiveDAO executeArchiveDAO,
+                                       ArchiveProgressService archiveProgressService) {
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
+        this.deleteIdStepSize = 1_000;
+    }
 }

@@ -187,14 +187,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
             List<ServiceFileTaskLogDTO> ipFileLogs = ipLog.getFileTaskLogs();
             EsbFileIpLogV3DTO esbFileIpLog = new EsbFileIpLogV3DTO();
             if (CollectionUtils.isNotEmpty(ipFileLogs)) {
-                HostDTO cloudIp;
-                try {
-                    cloudIp = HostDTO.fromCloudIp(ipLog.getIp());
-                } catch (Exception e) {
-                    log.error("Invalid cloudIp, ipLog: {}, cloudIp:{}", ipLog, ipLog.getIp());
-                    // 抛出原来的异常
-                    throw e;
-                }
+                HostDTO cloudIp = HostDTO.fromCloudIp(ipLog.getIp());
                 esbFileIpLog.setCloudAreaId(cloudIp.getBkCloudId());
                 esbFileIpLog.setIp(cloudIp.getIp());
                 List<EsbFileLogV3DTO> esbFileLogs = ipFileLogs.stream()

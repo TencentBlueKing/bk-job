@@ -22,43 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.tmp;
+package com.tencent.bk.job.backup.archive.impl;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
+import com.tencent.bk.job.backup.dao.impl.GseFileAgentTaskRecordDAO;
+import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import org.jooq.generated.tables.records.GseFileAgentTaskRecord;
 
 /**
- * 更新业务集请求
+ * gse_file_agent_task 表归档
  */
-@Data
-@ApiModel("更新业务集请求")
-public class TmpUpdateAppSetRequest {
+public class GseFileAgentTaskArchivist extends AbstractArchivist<GseFileAgentTaskRecord> {
 
-    @ApiModelProperty("业务集ID")
-    private Long appId;
-
-    /**
-     * 新增运维
-     */
-    @ApiModelProperty("新增运维")
-    private String addMaintainers;
-
-    /**
-     * 删除运维
-     */
-    @ApiModelProperty("删除运维")
-    private String delMaintainers;
-
-    /**
-     * 新增子业务
-     */
-    @ApiModelProperty("新增子业务")
-    private String addSubBizIds;
-
-    /**
-     * 删除子业务
-     */
-    @ApiModelProperty("删除子业务")
-    private String delSubBizIds;
+    public GseFileAgentTaskArchivist(GseFileAgentTaskRecordDAO executeRecordDAO,
+                                     ExecuteArchiveDAO executeArchiveDAO,
+                                     ArchiveProgressService archiveProgressService) {
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
+        this.deleteIdStepSize = 1_000;
+    }
 }
