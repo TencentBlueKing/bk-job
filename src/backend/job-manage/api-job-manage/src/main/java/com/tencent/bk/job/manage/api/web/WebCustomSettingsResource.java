@@ -89,7 +89,7 @@ public interface WebCustomSettingsResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "批量获取配置项请求体", required = true)
-        @RequestBody
+        @RequestBody(required = false)
             BatchGetCustomSettingsReq req);
 
     // 标准接口21

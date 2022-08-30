@@ -336,8 +336,8 @@ public interface WebHostResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "资源范围信息", required = true)
-        @RequestBody
+        @ApiParam(value = "资源范围信息")
+        @RequestBody(required = false)
             ListTopologyHostCountTreesReq req
     );
 

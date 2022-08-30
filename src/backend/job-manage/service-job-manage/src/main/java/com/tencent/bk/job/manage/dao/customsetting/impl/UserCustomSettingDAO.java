@@ -82,6 +82,15 @@ public class UserCustomSettingDAO {
             .execute();
     }
 
+    public List<UserCustomSettingDTO> listAll() {
+        return dslContext.select(
+            defaultTable.USERNAME, defaultTable.APP_ID, defaultTable.MODULE, defaultTable.VALUE,
+            defaultTable.LAST_MODIFY_USER, defaultTable.LAST_MODIFY_TIME)
+            .from(defaultTable)
+            .fetch()
+            .map(this::convert);
+    }
+
     public List<UserCustomSettingDTO> batchGet(Collection<String> keyList) {
         if (CollectionUtils.isEmpty(keyList)) {
             return Collections.emptyList();

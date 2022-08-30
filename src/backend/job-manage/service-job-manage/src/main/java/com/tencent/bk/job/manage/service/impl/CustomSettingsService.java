@@ -71,6 +71,9 @@ public class CustomSettingsService {
     public Map<String, Map<String, Object>> batchGetCustomSettings(String username,
                                                                    AppResourceScope appResourceScope,
                                                                    BatchGetCustomSettingsReq req) {
+        if (req == null || req.getModuleList() == null) {
+            return buildCustomSettingMap(userCustomSettingDAO.listAll());
+        }
         List<String> keyList = buildKeyList(username, appResourceScope.getAppId(), req.getModuleList());
         return buildCustomSettingMap(userCustomSettingDAO.batchGet(keyList));
     }
