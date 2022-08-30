@@ -29,7 +29,8 @@
                     :host-list="lastHostList"
                     :node-list="lastNodeList"
                     :dynamic-group-list="lastDynamicGroupList"
-                    @change="handleChange" />
+                    @change="handleChange"
+                    @clear="handleClearChange" />
             </div>
         </div>
         <template #footer>
@@ -138,7 +139,6 @@
     
     // 用户操作数据
     const handleChange = (name, value) => {
-        console.log('from changechange  =  ', name, value);
         switch (name) {
             case 'hostList':
                 lastHostList.value = value;
@@ -152,6 +152,11 @@
             case 'customInputHostList':
                 lastHostList.value = mergeCustomInputHost(lastHostList.value, value);
         }
+    };
+    const handleClearChange = () => {
+        lastHostList.value = [];
+        lastNodeList.value = [];
+        lastDynamicGroupList.value = [];
     };
     // 提交编辑
     const handleSubmit = () => {

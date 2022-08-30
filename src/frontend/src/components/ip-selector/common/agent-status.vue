@@ -15,7 +15,7 @@
     const statusIcon = computed(() => {
         if (props.data === 1) {
             return '<svg style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;"><use xlink:href="#bk-ipselector-normal" /></svg>';
-        } else if (props.data === 2) {
+        } else if (props.data === 0) {
             return '<svg style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;"><use xlink:href="#bk-ipselector-abnormal" /></svg>';
         }
         return '<svg style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;"><use xlink:href="#bk-ipselector-unknown" /></svg>';
@@ -24,7 +24,7 @@
     const statusText = computed(() => {
         if (props.data === 1) {
             return '成功';
-        } else if (props.data === 2) {
+        } else if (props.data === 0) {
             return '失败';
         }
         return '未知';

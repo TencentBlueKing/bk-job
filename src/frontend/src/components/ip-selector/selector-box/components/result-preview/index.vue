@@ -27,10 +27,10 @@
         </div>
         <div class="extend-action">
             <extend-action>
-                <div>清除所有</div>
-                <div>清除异常 IP</div>
-                <div>复制所有 IP</div>
-                <div>复制异常 IP</div>
+                <div @click="handleClear">清除所有</div>
+                <div @click="handleRemoveFailedIP">清除异常 IP</div>
+                <div @click="handleCopyAllIP">复制所有 IP</div>
+                <div @click="handleCopeFailedAIP">复制异常 IP</div>
             </extend-action>
         </div>
     </div>
@@ -42,6 +42,7 @@
     } from 'vue';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import ExtendAction from '../../../common/extend-action.vue';
+    import { execCopy } from '../../../utils';
     import ViewHost from './view-host.vue';
     import ViewNode from './view-node.vue';
     import ViewDynamicGroup from './view-dynamic-group.vue';
@@ -60,6 +61,11 @@
             default: () => [],
         },
     });
+
+    const emits = defineEmits([
+        'change',
+        'clear',
+    ]);
 
     const listeners = useListeners();
 
@@ -85,6 +91,35 @@
     const styles = computed(() => ({
         height: `${dialogContentHeight.value - 68}px`,
     }));
+
+    const handleClear = () => {
+        emits('clear');
+    };
+    const handleRemoveFailedIP = () => {
+        const hostList = props.hostList.reduce((result, item) => {
+            if (item.alive !== 1) {
+                result.push(item);
+            }
+            return result;
+        }, []);
+
+        emits('change', 'hostList', hostList);
+    };
+    const handleCopyAllIP = () => {
+        const IPList = props.hostList.map(({ ip }) => ip);
+        execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
+    };
+
+    const handleCopeFailedAIP = () => {
+        console.log('handleCopeFailedAIP = ', props.hostList);
+        const IPList = props.hostList.reduce((result, item) => {
+            if (item.alive !== 1) {
+                result.push(item.ip);
+            }
+            return result;
+        }, []);
+        execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
+    };
 </script>
 <style lang="postcss">
     .ip-selector-result-preview {
