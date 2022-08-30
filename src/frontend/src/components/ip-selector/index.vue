@@ -40,9 +40,12 @@
         originalValue: {
             type: Object,
         },
-        showDiff: {
+        showViewDiff: {
             type: Boolean,
             default: false,
+        },
+        viewSearchKey: {
+            type: String,
         },
     });
 
@@ -75,6 +78,12 @@
     provide('BKIPSELECTOR', reactive({
         ...toRefs(props),
     }));
+
+    defineExpose({
+        refresh () {
+            console.log('asdasd');
+        },
+    });
 </script>
 <style lang="postcss">
     @keyframes bk-ip-selector-rotate-loading {
