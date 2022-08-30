@@ -49,8 +49,20 @@ public class ListHostByBizTopologyNodesReq {
     @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     List<BizTopoNode> appTopoNodeList;
 
-    @ApiModelProperty(value = "搜索内容（同时对主机IP/主机名/操作系统/云区域名称进行模糊搜索）")
+    @ApiModelProperty(value = "搜索内容（同时对主机IP/IPv6/主机名称/操作系统名称/云区域名称进行模糊搜索）")
     String searchContent;
+
+    @ApiModelProperty(value = "筛选条件：ip关键字列表，ip与列表中任意一个关键字相似即命中")
+    List<String> ipKeyList;
+
+    @ApiModelProperty(value = "筛选条件：ipv6关键字列表，ipv6与列表中任意一个关键字相似即命中")
+    List<String> ipv6KeyList;
+
+    @ApiModelProperty(value = "筛选条件：主机名称关键字列表，主机名称与列表中任意一个关键字相似即命中")
+    List<String> hostNameKeyList;
+
+    @ApiModelProperty(value = "筛选条件：操作系统名称关键字列表，操作系统名称与列表中任意一个关键字相似即命中")
+    List<String> osNameKeyList;
 
     @ApiModelProperty(value = "筛选条件：alive：0为Agent异常，1为Agent正常，不传则不筛选")
     Integer alive;

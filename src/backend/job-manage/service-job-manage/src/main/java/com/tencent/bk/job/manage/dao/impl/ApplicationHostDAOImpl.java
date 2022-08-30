@@ -306,6 +306,10 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             for (int i = 1; i < searchContents.size(); i++) {
                 condition = condition.or(tHost.IP.like("%" + searchContents.get(i) + "%"));
             }
+            condition = tHost.IP_V6.like("%" + firstContent + "%");
+            for (int i = 1; i < searchContents.size(); i++) {
+                condition = condition.or(tHost.IP_V6.like("%" + searchContents.get(i) + "%"));
+            }
             condition = condition.or(tHost.IP_DESC.like("%" + firstContent + "%"));
             for (int i = 1; i < searchContents.size(); i++) {
                 condition = condition.or(tHost.IP_DESC.like("%" + searchContents.get(i) + "%"));
