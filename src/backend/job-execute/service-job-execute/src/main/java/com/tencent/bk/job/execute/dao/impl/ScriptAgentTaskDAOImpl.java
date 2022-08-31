@@ -52,6 +52,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.tencent.bk.job.common.constant.Order.DESCENDING;
@@ -331,6 +332,10 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     @Override
     public List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId) {
+        if (gseTaskId == null || gseTaskId <= 0) {
+            return Collections.emptyList();
+        }
+
         List<AgentTaskDTO> agentTaskList = new ArrayList<>();
 
         Result<?> result = CTX.select(ALL_FIELDS)

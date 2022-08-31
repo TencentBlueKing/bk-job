@@ -287,7 +287,7 @@ public class GseStepEventHandler implements StepEventHandler {
                             executeCount,
                             serverBatch.getBatch() == 1 ? executeCount : null,
                             serverBatch.getBatch(),
-                            serverBatch.getBatch() == 1 ? gseTaskId : null,
+                            serverBatch.getBatch() == 1 ? gseTaskId : 0,
                             serverBatch.getHosts(),
                             AgentTaskStatusEnum.WAITING)
                     );
