@@ -518,9 +518,19 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return conditions;
     }
 
+    private Collection<Condition> buildIpsConditions(Collection<Long> appIds,
+                                                     Long actionScopeId,
+                                                     Collection<String> ips) {
+        Collection<Condition> conditions = buildConditions(appIds, actionScopeId);
+        if (ips != null) {
+            conditions.add(tWhiteIPIP.IP.in(ips));
+        }
+        return conditions;
+    }
+
     private Collection<Condition> buildIpv6sConditions(Collection<Long> appIds,
-                                                         Long actionScopeId,
-                                                         Collection<String> ipv6s) {
+                                                       Long actionScopeId,
+                                                       Collection<String> ipv6s) {
         Collection<Condition> conditions = buildConditions(appIds, actionScopeId);
         if (ipv6s != null) {
             conditions.add(tWhiteIPIP.IP_V6.in(ipv6s));
@@ -558,6 +568,12 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     @Override
     public List<HostDTO> listWhiteIPHost(Collection<Long> appIds, Long actionScopeId, Collection<Long> hostIds) {
         Collection<Condition> conditions = buildHostIdsConditions(appIds, actionScopeId, hostIds);
+        return listWhiteIPHostByConditions(conditions);
+    }
+
+    @Override
+    public List<HostDTO> listWhiteIPHostByIps(Collection<Long> appIds, Long actionScopeId, Collection<String> ips) {
+        Collection<Condition> conditions = buildIpsConditions(appIds, actionScopeId, ips);
         return listWhiteIPHostByConditions(conditions);
     }
 

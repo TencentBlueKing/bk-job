@@ -45,6 +45,9 @@ public class HostCheckReq {
     @ApiModelProperty(value = "应用场景：脚本执行/文件分发")
     Map<String, Object> meta = new HashMap<>();
 
+    @ApiModelProperty(value = "hostId列表", required = true)
+    List<Long> hostIdList = new ArrayList<>();
+
     @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip或ip")
     List<String> ipList = new ArrayList<>();
 
@@ -53,10 +56,6 @@ public class HostCheckReq {
 
     @ApiModelProperty(value = "关键字列表，可匹配主机名称")
     List<String> keyList = new ArrayList<>();
-
-    @Deprecated
-    @ApiModelProperty(value = "hostId列表", required = true)
-    List<Long> hostIdList = new ArrayList<>();
 
     public ActionScopeEnum getActionScope() {
         String actionScopeName = (String) meta.get("actionScope");

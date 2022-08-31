@@ -86,6 +86,23 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     }
 
     @Override
+    public List<ApplicationHostDTO> getScopeHostsByIps(AppResourceScope appResourceScope, Collection<String> ips) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            return bizHostService.getHostsByIps(ips);
+        } else if (applicationDTO.isBizSet()) {
+            // 业务集
+            List<Long> bizIds = applicationDTO.getSubBizIds();
+            return bizHostService.getHostsByBizAndIps(bizIds, ips);
+        } else {
+            // 普通业务
+            Long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            return bizHostService.getHostsByBizAndIps(Collections.singletonList(bizId), ips);
+        }
+    }
+
+    @Override
     public List<ApplicationHostDTO> getScopeHostsByIpv6s(AppResourceScope appResourceScope, Collection<String> ipv6s) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO.isAllBizSet()) {
@@ -99,6 +116,24 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
             return bizHostService.getHostsByBizAndIpv6s(Collections.singletonList(bizId), ipv6s);
+        }
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getScopeHostsByHostNames(AppResourceScope appResourceScope,
+                                                             Collection<String> hostNames) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            return bizHostService.getHostsByHostNames(hostNames);
+        } else if (applicationDTO.isBizSet()) {
+            // 业务集
+            List<Long> bizIds = applicationDTO.getSubBizIds();
+            return bizHostService.getHostsByBizAndHostNames(bizIds, hostNames);
+        } else {
+            // 普通业务
+            Long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            return bizHostService.getHostsByBizAndHostNames(Collections.singletonList(bizId), hostNames);
         }
     }
 

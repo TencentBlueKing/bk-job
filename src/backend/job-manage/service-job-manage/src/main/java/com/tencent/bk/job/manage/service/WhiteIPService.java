@@ -62,6 +62,8 @@ public interface WhiteIPService {
      */
     List<HostDTO> listAvailableWhiteIPHost(Long appId, ActionScopeEnum actionScope, Collection<Long> hostIds);
 
+    List<HostDTO> listAvailableWhiteIPHostByIps(Long appId, ActionScopeEnum actionScope, Collection<String> ips);
+
     List<HostDTO> listAvailableWhiteIPHostByIpv6s(Long appId, ActionScopeEnum actionScope, Collection<String> ipv6s);
 
     Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq);

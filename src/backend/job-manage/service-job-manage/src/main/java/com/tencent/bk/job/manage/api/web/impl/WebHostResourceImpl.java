@@ -83,6 +83,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -493,28 +494,43 @@ public class WebHostResourceImpl implements WebHostResource {
                                                  String scopeType,
                                                  String scopeId,
                                                  HostCheckReq req) {
-        // TODO:支持keyList字段搜索
-        // 根据IP查资源范围内的主机详情
-        List<HostInfoVO> hostListByIp = hostService.getHostsByIp(
-            username,
-            appResourceScope.getAppId(),
-            req.getActionScope(),
-            req.getIpList()
-        );
-        if (CollectionUtils.isEmpty(req.getHostIdList())) {
-            return Response.buildSuccessResp(hostListByIp);
-        }
-        List<HostInfoVO> hostList = new ArrayList<>(hostListByIp);
-        Set<Long> hostIdSet = new HashSet<>(req.getHostIdList());
-        hostIdSet.removeIf(Objects::isNull);
-        hostListByIp.forEach(host -> hostIdSet.remove(host.getHostId()));
+        // 查出所有主机
+        List<ApplicationHostDTO> hostDTOList = findHosts(appResourceScope, req);
+        // 填充实时agent状态
+        agentStatusService.fillRealTimeAgentStatus(hostDTOList);
+        List<HostInfoVO> hostList = hostDTOList.parallelStream()
+            .map(ApplicationHostDTO::toVO)
+            .collect(Collectors.toList());
+        // 填充云区域名称
+        hostList.forEach(hostInfoVO -> {
+            CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudArea();
+            if (cloudAreaInfo != null
+                && cloudAreaInfo.getId() != null
+                && StringUtils.isBlank(cloudAreaInfo.getName())) {
+                cloudAreaInfo.setName(CloudAreaService.getCloudAreaNameFromCache(cloudAreaInfo.getId()));
+            }
+        });
+        return Response.buildSuccessResp(hostList);
+    }
+
+    private List<ApplicationHostDTO> findHosts(AppResourceScope appResourceScope, HostCheckReq req) {
         List<ApplicationHostDTO> hostDTOList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(hostIdSet)) {
+        List<Long> hostIdList = req.getHostIdList();
+        if (CollectionUtils.isNotEmpty(hostIdList)) {
             // 根据hostId查资源范围及白名单内的主机详情
-            hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIP(
+            hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByHostId(
                 appResourceScope,
                 req.getActionScope(),
-                hostIdSet
+                hostIdList
+            ));
+        }
+        List<String> ipList = req.getIpList();
+        if (CollectionUtils.isNotEmpty(ipList)) {
+            // 根据ip地址查资源范围及白名单内的主机详情
+            hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByIp(
+                appResourceScope,
+                req.getActionScope(),
+                ipList
             ));
         }
         List<String> ipv6List = req.getIpv6List();
@@ -526,22 +542,27 @@ public class WebHostResourceImpl implements WebHostResource {
                 ipv6List
             ));
         }
-        // 填充实时agent状态
-        agentStatusService.fillRealTimeAgentStatus(hostDTOList);
-        hostList.addAll(hostDTOList.parallelStream()
-            .map(ApplicationHostDTO::toVO)
-            .collect(Collectors.toList())
-        );
-        // 填充云区域名称
-        hostList.forEach(hostInfoVO -> {
-            CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudArea();
-            if (cloudAreaInfo != null
-                && cloudAreaInfo.getId() != null
-                && StringUtils.isBlank(cloudAreaInfo.getName())) {
-                cloudAreaInfo.setName(CloudAreaService.getCloudAreaNameFromCache(cloudAreaInfo.getId()));
+        List<String> keyList = req.getIpv6List();
+        if (CollectionUtils.isNotEmpty(keyList)) {
+            // 根据关键字（主机名称）查资源范围及白名单内的主机详情
+            hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByKey(
+                appResourceScope,
+                req.getActionScope(),
+                keyList
+            ));
+        }
+        // 去重
+        Set<Long> hostIdSet = new HashSet<>();
+        Iterator<ApplicationHostDTO> iterator = hostDTOList.iterator();
+        while (iterator.hasNext()) {
+            ApplicationHostDTO hostDTO = iterator.next();
+            if (hostIdSet.contains(hostDTO.getHostId())) {
+                iterator.remove();
+            } else {
+                hostIdSet.add(hostDTO.getHostId());
             }
-        });
-        return Response.buildSuccessResp(hostList);
+        }
+        return hostDTOList;
     }
 
     @Override

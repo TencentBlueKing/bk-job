@@ -40,9 +40,9 @@ import java.util.Set;
 public interface ApplicationHostDAO {
     ApplicationHostDTO getHostById(Long hostId);
 
-    List<ApplicationHostDTO> listHostInfoByIps(List<String> ips);
+    List<ApplicationHostDTO> listHostInfoByIps(Collection<String> ips);
 
-    List<ApplicationHostDTO> listHostInfoByIps(Long bizId, List<String> ips);
+    List<ApplicationHostDTO> listHostInfoByIps(Long bizId, Collection<String> ips);
 
     List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
 
@@ -53,6 +53,8 @@ public interface ApplicationHostDAO {
     List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds);
 
     List<ApplicationHostDTO> listHostInfoByIpv6s(Collection<String> ipv6s);
+
+    List<ApplicationHostDTO> listHostInfoByHostNames(Collection<String> hostNames);
 
     List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
                                                           Collection<Long> cloudAreaIds,
@@ -79,7 +81,11 @@ public interface ApplicationHostDAO {
 
     List<ApplicationHostDTO> listHostInfoByBizAndCloudIPs(Collection<Long> bizIds, Collection<String> cloudIPs);
 
+    List<ApplicationHostDTO> listHostInfoByBizAndIps(Collection<Long> bizIds, Collection<String> ips);
+
     List<ApplicationHostDTO> listHostInfoByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s);
+
+    List<ApplicationHostDTO> listHostInfoByBizAndHostNames(Collection<Long> bizIds, Collection<String> hostNames);
 
     List<ApplicationHostDTO> listHostInfoBySourceAndIps(long cloudAreaId, Set<String> ips);
 

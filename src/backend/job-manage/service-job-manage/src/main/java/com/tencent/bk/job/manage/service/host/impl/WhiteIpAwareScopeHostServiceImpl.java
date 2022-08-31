@@ -93,9 +93,9 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
     }
 
     @Override
-    public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIP(AppResourceScope appResourceScope,
-                                                                  ActionScopeEnum actionScope,
-                                                                  Collection<Long> hostIds) {
+    public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByHostId(AppResourceScope appResourceScope,
+                                                                          ActionScopeEnum actionScope,
+                                                                          Collection<Long> hostIds) {
         Set<Long> hostIdSet = new HashSet<>(hostIds);
         List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIds(appResourceScope, hostIdSet);
         List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
@@ -121,6 +121,25 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
     }
 
     @Override
+    public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByIp(AppResourceScope appResourceScope,
+                                                                      ActionScopeEnum actionScope,
+                                                                      Collection<String> ips) {
+        List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIps(appResourceScope, ips);
+        List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
+        List<HostDTO> whiteIpHostDTOList = whiteIPService.listAvailableWhiteIPHostByIps(
+            appResourceScope.getAppId(),
+            actionScope,
+            ips
+        );
+        List<ApplicationHostDTO> whiteIpHostList = hostService.listHosts(whiteIpHostDTOList);
+        log.info("{} white ips added", whiteIpHostList.size());
+        if (CollectionUtils.isNotEmpty(whiteIpHostList)) {
+            finalHostList.addAll(whiteIpHostList);
+        }
+        return finalHostList;
+    }
+
+    @Override
     public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByIpv6(AppResourceScope appResourceScope,
                                                                         ActionScopeEnum actionScope,
                                                                         Collection<String> ipv6s) {
@@ -137,5 +156,13 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             finalHostList.addAll(whiteIpHostList);
         }
         return finalHostList;
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByKey(AppResourceScope appResourceScope,
+                                                                       ActionScopeEnum actionScope,
+                                                                       Collection<String> keys) {
+        // 当前关键字仅支持主机名称匹配
+        return scopeHostService.getScopeHostsByHostNames(appResourceScope, keys);
     }
 }

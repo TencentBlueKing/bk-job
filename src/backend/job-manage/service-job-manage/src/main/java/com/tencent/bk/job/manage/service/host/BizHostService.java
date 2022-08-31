@@ -44,12 +44,28 @@ public interface BizHostService {
     List<ApplicationHostDTO> getHostsByHostIds(Collection<Long> hostIds);
 
     /**
+     * 根据IP地址集合查询主机信息
+     *
+     * @param ips 主机 IP地址集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getHostsByIps(Collection<String> ips);
+
+    /**
      * 根据Ipv6地址集合查询主机信息
      *
      * @param ipv6s 主机 Ipv6地址集合
      * @return 主机信息列表
      */
     List<ApplicationHostDTO> getHostsByIpv6s(Collection<String> ipv6s);
+
+    /**
+     * 根据主机名称集合查询主机信息
+     *
+     * @param hostNames 主机名称集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getHostsByHostNames(Collection<String> hostNames);
 
     /**
      * 根据 bizId、hostId集合查询主机信息
@@ -62,6 +78,16 @@ public interface BizHostService {
                                                      Collection<Long> hostIds);
 
     /**
+     * 根据 bizId、ip集合查询主机信息
+     *
+     * @param bizIds 业务 ID集合
+     * @param ips    主机IP地址集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getHostsByBizAndIps(Collection<Long> bizIds,
+                                                 Collection<String> ips);
+
+    /**
      * 根据 bizId、ipv6集合查询主机信息
      *
      * @param bizIds 业务 ID集合
@@ -70,6 +96,16 @@ public interface BizHostService {
      */
     List<ApplicationHostDTO> getHostsByBizAndIpv6s(Collection<Long> bizIds,
                                                    Collection<String> ipv6s);
+
+    /**
+     * 根据 bizId、hostName集合查询主机信息
+     *
+     * @param bizIds    业务 ID集合
+     * @param hostNames 主机名称集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getHostsByBizAndHostNames(Collection<Long> bizIds,
+                                                       Collection<String> hostNames);
 
     /**
      * 根据条件查询主机ID

@@ -44,12 +44,24 @@ public interface WhiteIpAwareScopeHostService {
      * @param hostIds          主机ID集合
      * @return 主机信息列表
      */
-    List<ApplicationHostDTO> getScopeHostsIncludingWhiteIP(AppResourceScope appResourceScope,
-                                                           ActionScopeEnum actionScope,
-                                                           Collection<Long> hostIds);
+    List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByHostId(AppResourceScope appResourceScope,
+                                                                   ActionScopeEnum actionScope,
+                                                                   Collection<Long> hostIds);
 
     /**
-     * 根据 HostId 列表查询主机信息
+     * 根据 IP 列表查询主机信息
+     *
+     * @param appResourceScope 资源范围
+     * @param actionScope      生效场景
+     * @param ips              IP集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByIp(AppResourceScope appResourceScope,
+                                                               ActionScopeEnum actionScope,
+                                                               Collection<String> ips);
+
+    /**
+     * 根据 ipv6 集合查询主机信息
      *
      * @param appResourceScope 资源范围
      * @param actionScope      生效场景
@@ -59,5 +71,17 @@ public interface WhiteIpAwareScopeHostService {
     List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByIpv6(AppResourceScope appResourceScope,
                                                                  ActionScopeEnum actionScope,
                                                                  Collection<String> ipv6s);
+
+    /**
+     * 根据 关键字 集合查询主机信息
+     *
+     * @param appResourceScope 资源范围
+     * @param actionScope      生效场景
+     * @param keys             关键字集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByKey(AppResourceScope appResourceScope,
+                                                                ActionScopeEnum actionScope,
+                                                                Collection<String> keys);
 
 }
