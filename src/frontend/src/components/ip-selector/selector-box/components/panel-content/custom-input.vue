@@ -198,7 +198,7 @@
             '((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))',
         ];
         const ipv6Regex = new RegExp(`^\\s*(${ipv6RegexList.join('|')})(%.+)?\\s*$`);
-        const keyRegex = /^[1-9a-z][0-9a-z_-]*$/;
+        const keyRegex = /^[1-9a-z]\w{0, 255}$/;
 
         const errorInput = [];
         const ipList = [];
