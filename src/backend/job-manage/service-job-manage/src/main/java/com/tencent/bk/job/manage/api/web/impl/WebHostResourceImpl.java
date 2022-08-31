@@ -542,7 +542,7 @@ public class WebHostResourceImpl implements WebHostResource {
                 ipv6List
             ));
         }
-        List<String> keyList = req.getIpv6List();
+        List<String> keyList = req.getKeyList();
         if (CollectionUtils.isNotEmpty(keyList)) {
             // 根据关键字（主机名称）查资源范围及白名单内的主机详情
             hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByKey(
