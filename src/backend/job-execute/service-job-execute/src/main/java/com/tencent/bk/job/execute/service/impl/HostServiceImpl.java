@@ -235,6 +235,9 @@ public class HostServiceImpl implements HostService {
             }
             String singleIp = chooseOneIpPreferAlive(hostCloudId.getInstanceId(), hostProp.getIp());
             HostDTO host = new HostDTO(hostCloudId.getInstanceId(), singleIp);
+            host.setHostId(hostProp.getId());
+            host.setIpv6(hostProp.getIpv6());
+            host.setAgentId(hostProp.getAgentId());
             hostList.add(host);
         }
         log.info("Get hosts by groupId, appId={}, groupId={}, hosts={}", appId, groupId, hostList);
@@ -252,8 +255,11 @@ public class HostServiceImpl implements HostService {
             return ips;
         }
         for (ApplicationHostDTO hostProp : appHosts) {
-            HostDTO ip = new HostDTO(hostProp.getCloudAreaId(), hostProp.getIp());
-            ips.add(ip);
+            HostDTO host = new HostDTO(hostProp.getCloudAreaId(), hostProp.getIp());
+            host.setHostId(hostProp.getHostId());
+            host.setIpv6(hostProp.getIpv6());
+            host.setAgentId(hostProp.getAgentId());
+            ips.add(host);
         }
         log.info("Get hosts by cc topo nodes, appId={}, nodes={}, hosts={}", appId, ccInstances, ips);
         return ips;
