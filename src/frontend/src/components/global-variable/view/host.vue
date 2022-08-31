@@ -34,6 +34,7 @@
             detail-fullscreen /> -->
         <ip-selector
             show-view
+            readonly
             :value="data.defaultTargetValue.hostNodeInfo" />
     </div>
 </template>

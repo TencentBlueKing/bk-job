@@ -122,9 +122,11 @@
                     editable
                     @on-change="handleHostChange" /> -->
             <ip-selector
+                ref="ipSelector"
                 :show-dialog="isShowChooseIp"
                 show-view
                 :value="localHost"
+                :view-search-key="searchText"
                 @close-dialog="handleCloseIpSelector"
                 @change="handleHostChange" />
         </jb-form-item>
@@ -348,7 +350,7 @@
              * @desc 复制所有主机
              */
             handleCopyAll () {
-                const allIP = this.$refs.serverPanel.getAllIP();
+                const allIP = this.$refs.ipSelector.getHostIpList();
                 if (allIP.length < 1) {
                     this.messageWarn(I18n.t('你还未选择主机'));
                     return;
@@ -360,13 +362,13 @@
              * @desc 复制所有异常主机
              */
             handleCopyFail () {
-                const allFailIP = this.$refs.serverPanel.getAllIP(true);
-                if (allFailIP.length < 1) {
+                const abnormalHostIpList = this.$refs.ipSelector.getAbnormalHostIpList();
+                if (abnormalHostIpList.length < 1) {
                     this.messageWarn(I18n.t('暂无异常主机'));
                     return;
                 }
                 
-                execCopy(allFailIP.join('\n'), `${I18n.t('复制成功')}（${allFailIP.length}${I18n.t('个IP')}）`);
+                execCopy(abnormalHostIpList.join('\n'), `${I18n.t('复制成功')}（${abnormalHostIpList.length}${I18n.t('个IP')}）`);
             },
             /**
              * @desc 复制所有主机数据
@@ -381,7 +383,7 @@
              * @desc 刷新所有主机的状态信息
              */
             handleRefreshHost () {
-                this.$refs.serverPanel.refresh();
+                this.$refs.ipSelector.refresh();
             },
             /**
              * @desc 筛选主机
@@ -389,7 +391,7 @@
              */
             handleHostSearch (search) {
                 this.searchText = _.trim(search);
-                this.searchData = Object.freeze(this.$refs.serverPanel.getAllHost(search));
+                // this.searchData = Object.freeze(this.$refs.serverPanel.getAllHost(search));
             },
         },
     };

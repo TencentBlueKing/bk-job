@@ -26,73 +26,13 @@
             <template #action>
                 <extend-action>
                     <div @click="handleCopyAllIP">复制所有 IP</div>
-                    <div>复制异常 IP</div>
-                    <div @click="handleRemoveAll">清除所有</div>
-                    <div>清除异常 IP</div>
+                    <div @click="handleCopyFaidedIP">复制异常 IP</div>
+                    <template v-if="!context.readonly">
+                        <div @click="handleRemoveAll">清除所有</div>
+                        <div @click="handleRemoveFailedIP">清除异常 IP</div>
+                    </template>
                 </extend-action>
             </template>
-            <!-- <table>
-                <thead>
-                    <tr>
-                        <th style="width: 12%;">IP</th>
-                        <th style="width: 18%;">IPv6</th>
-                        <th>主机名称</th>
-                        <th style="width: 120px;">Agent 状态</th>
-                        <th>云区域</th>
-                        <th>系统</th>
-                        <th style="width: 100px;" />
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="(item, index) in renderData"
-                        :key="index"
-                        :class="diffMap[item.hostId]">
-                        <td>
-                            <div class="cell">
-                                {{ item.ip }}
-                                <span v-if="hostIpRepeatMap[item.hostId]">
-                                    {{ item.hostId }}
-                                </span>
-                                <diff-tag :value="diffMap[item.hostId]" />
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell">
-                                {{ item.ipv6 || '--' }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell">
-                                {{ item.ipDesc || '--' }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell">
-                                <agent-status :data="item.agentStatus" />
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell">
-                                {{ item.cloudArea.name || '--' }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell">
-                                {{ item.osName || '--' }}
-                            </div>
-                        </td>
-                        <td>
-                            <bk-button
-                                text
-                                theme="primary"
-                                @click="handleRemove(item)">
-                                删除
-                            </bk-button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table> -->
             <render-host-table
                 :data="renderData"
                 :show-setting="false"
@@ -100,7 +40,9 @@
                 <template #[hostRenderKey]="{ row }">
                     <diff-tag :value="diffMap[row.hostId]" />
                 </template>
-                <template #action="{ row }">
+                <template
+                    v-if="!context.readonly"
+                    #action="{ row }">
                     <bk-button
                         text
                         theme="primary"
@@ -267,6 +209,37 @@
         const IPList = tableData.value.map(item => item[hostRenderKey.value]);
         execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
     };
+
+    // 复制异常 IP
+    const handleCopyFaidedIP = () => {
+        const IPList = tableData.value.reduce((result, item) => {
+            if (item.alive !== 1) {
+                result.push(item[hostRenderKey.value]);
+            }
+            return result;
+        }, []);
+        execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
+    };
+
+    // 清除异常 IP
+    const handleRemoveFailedIP = () => {
+        const newValidHostList = [];
+        const newValidHostIdMap = {};
+        validHostList.value.forEach((hostData) => {
+            if (hostData.alive === 1) {
+                newValidHostList.push(hostData);
+                newValidHostIdMap[hostData.hostId] = true;
+            }
+        });
+        resultList.value = props.data.reduce((result, item) => {
+            if (newValidHostIdMap[item.hostId]) {
+                result.push(item);
+            }
+            return result;
+        }, []);
+        validHostList.value = newValidHostList;
+        triggerChange();
+    };
     
     // 清除所有主机
     const handleRemoveAll = () => {
@@ -274,6 +247,31 @@
         validHostList.value = [];
         triggerChange();
     };
+
+    defineExpose({
+        // 所有 IP 列表
+        getHostIpList () {
+            return validHostList.value.map(item => item[hostRenderKey.value]);
+        },
+        // 异常 IP 列表
+        getAbnormalHostIpList () {
+            const result = validHostList.value.reduce((result, item) => {
+                if (item.alive !== 1) {
+                    result.push(item[hostRenderKey.value]);
+                }
+                return result;
+            }, []);
+            invalidHostList.value.forEach((hostData) => {
+                if (hostData[hostRenderKey.value]) {
+                    result.push(hostData[hostRenderKey.value]);
+                }
+            });
+            return result;
+        },
+        refresh () {
+            fetchData();
+        },
+    });
 </script>
 <style lang="postcss">
     @import "../styles/table.mixin.css";

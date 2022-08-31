@@ -21,7 +21,9 @@
                     个
                 </span>
             </template>
-            <template #action>
+            <template
+                v-if="!context.readonly"
+                #action>
                 <extend-action>
                     <div @click="handleRemoveAll">清除所有</div>
                 </extend-action>
@@ -32,8 +34,12 @@
                     :key="row.id"
                     :class="diffMap[row.id]">
                     <td style="width: 30%;">
-                        {{ row.name || `#${row.id}` }}
-                        <diff-tag :value="diffMap[row.id]" />
+                        <div class="cell">
+                            <div class="cell-text">
+                                {{ row.name || `#${row.id}` }}
+                            </div>
+                            <diff-tag :value="diffMap[row.id]" />
+                        </div>
                     </td>
                     <td>
                         <render-agent-statistics
@@ -41,7 +47,9 @@
                             :data="agentStaticMap[row.id]"
                             @select="handleShowHostList(row)" />
                     </td>
-                    <td style="width: 100px;">
+                    <td
+                        v-if="!context.readonly"
+                        style="width: 100px;">
                         <bk-button
                             v-if="diffMap[row.id] !== 'remove'"
                             text
@@ -243,6 +251,12 @@
     const handleHideHostList = () => {
         isShowHostList.value = false;
     };
+
+    defineExpose({
+        refresh () {
+            fetchData();
+        },
+    });
 </script>
 <style lang="postcss">
     @import "../styles/table.mixin.css";

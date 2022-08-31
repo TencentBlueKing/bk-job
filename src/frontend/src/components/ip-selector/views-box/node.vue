@@ -21,7 +21,9 @@
                     个
                 </span>
             </template>
-            <template #action>
+            <template
+                v-if="!context.readonly"
+                #action>
                 <extend-action>
                     <div @click="handleRemoveAll">清除所有</div>
                 </extend-action>
@@ -32,9 +34,12 @@
                     :key="row.id"
                     :class="diffMap[genNodeKey(row)]">
                     <td style="width: 30%;">
-                        
-                        {{ tableDataNamePathMap[genNodeKey(row)] || `#${row.instanceId}` }}
-                        <diff-tag :value="diffMap[genNodeKey(row)]" />
+                        <div class="cell">
+                            <div class="cell-text">
+                                {{ tableDataNamePathMap[genNodeKey(row)] || `#${row.instanceId}` }}
+                            </div>
+                            <diff-tag :value="diffMap[genNodeKey(row)]" />
+                        </div>
                     </td>
                     <td>
                         <render-agent-statistics
@@ -42,7 +47,9 @@
                             :data="nodeAgentStaticMap[genNodeKey(row)]"
                             @select="handleShowHostList(row)" />
                     </td>
-                    <td style="width: 100px;">
+                    <td
+                        v-if="!context.readonly"
+                        style="width: 100px;">
                         <bk-button
                             text
                             theme="primary"
@@ -256,6 +263,12 @@
     const handleHideHostList = () => {
         isShowNodeHostList.value = false;
     };
+
+    defineExpose({
+        refresh () {
+            fetchData();
+        },
+    });
 </script>
 <style lang="postcss">
     @import "../styles/table.mixin.css";

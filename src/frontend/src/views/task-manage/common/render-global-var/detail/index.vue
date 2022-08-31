@@ -45,6 +45,7 @@
                 :host-node-info="data.defaultTargetValue.hostNodeInfo" /> -->
             <ip-selector
                 show-view
+                readonly
                 :value="data.defaultTargetValue.hostNodeInfo" />
         </template>
     </div>

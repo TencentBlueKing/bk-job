@@ -11,12 +11,22 @@
             height: 40px;
             padding: 0 10px;
             border-bottom: 1px solid #dcdee5;
-            .cell {
+            .cell{
+                display: flex;
+                align-items: center;
+            }
+            .cell-text {
                 height: 20px;
                 overflow: hidden;
                 line-height: 20px;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+            }
+            .cell-append{
+                display: flex;
+                height: 20px;
+                line-height: 20px;
+                align-items: center;
             }
         }
     

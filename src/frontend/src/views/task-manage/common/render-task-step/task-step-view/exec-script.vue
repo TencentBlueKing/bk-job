@@ -79,6 +79,7 @@
                 :host-node-info="stepInfo.executeTarget.hostNodeInfo" /> -->
             <ip-selector
                 show-view
+                readonly
                 :value="stepInfo.executeTarget.hostNodeInfo" />
         </detail-item>
         <slot />

@@ -45,7 +45,9 @@
             </td>
             <template v-if="serverFile.isHostEmpty">
                 <td>
-                    <div class="server-add-only-host-btn" @click="handleShowChooseIp">
+                    <div
+                        class="server-add-only-host-btn"
+                        @click="handleShowChooseIp">
                         <Icon type="plus" class="add-flag" />
                         {{ $t('添加服务器') }}
                     </div>
@@ -54,7 +56,9 @@
             </template>
             <template v-else>
                 <td>
-                    <div class="server-edit-btn" @click="handleShowChooseIp">
+                    <div
+                        class="server-edit-btn"
+                        @click="handleShowChooseIp">
                         <div v-html="serverFile.serverDesc" />
                     </div>
                 </td>
@@ -82,6 +86,7 @@
             v-model="isShowChooseIp"
             @on-change="handleHostChange" /> -->
         <ip-selector
+            ref="ipSelector"
             :show-dialog="isShowChooseIp"
             @change="handleHostChange"
             @close-dialog="handleCloseIpSelector" />
@@ -203,7 +208,7 @@
             handlerCancel () {
                 this.$emit('on-cancel');
                 this.serverFile = generatorDefault();
-                this.$refs.chooseIp.reset();
+                this.$refs.ipSelector.resetValue();
                 this.hasSaved = true;
                 setTimeout(() => {
                     this.editNewSourceFile(false);

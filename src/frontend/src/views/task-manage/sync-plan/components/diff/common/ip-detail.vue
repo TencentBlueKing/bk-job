@@ -71,6 +71,7 @@
                         :group-diff="groupDiff" /> -->
                     <ip-selector
                         show-view
+                        readonly
                         :value="hostNodeInfo" />
                 </scroll-faker>
             </div>

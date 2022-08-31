@@ -95,8 +95,8 @@
     // 通过 hostId 查询主机详情
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchHostOfHost({
-            hostIdList: props.data.map(({ hostId }) => hostId),
+        AppManageService.fetchHostInfoByHostId({
+            hostList: props.data,
         })
         .then((data) => {
             validHostList.value = data;

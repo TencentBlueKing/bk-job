@@ -108,6 +108,7 @@
             </td>
         </tr>
         <ip-selector
+            ref="ipSelector"
             :show-dialog="isShowChooseIp"
             @change="handleHostChange"
             @close-dialog="handleCloseIpSelector" />
@@ -274,7 +275,7 @@
                 this.$emit('on-cancel');
                 this.serverFile = generatorDefault();
                 this.sourceFileType = 'globalVar';
-                this.$refs.chooseIp.reset();
+                this.$refs.ipSelector.resetValue();
                 this.reset += 1;
                 this.hasSaved = true;
                 setTimeout(() => {

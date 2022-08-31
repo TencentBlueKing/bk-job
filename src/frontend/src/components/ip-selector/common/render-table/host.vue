@@ -19,7 +19,7 @@
                                 :style="{
                                     width: columnWidthCallback ? columnWidthCallback(columnKeyRenderList.indexOf(columnKey)) : tableColumnConfig[columnKey].width,
                                 }">
-                                <div class="cell">
+                                <div class="cell-text">
                                     {{ tableColumnConfig[columnKey].name }}
                                 </div>
                             </th>
@@ -54,13 +54,17 @@
                                 </template>
                                 <template v-else>
                                     <div class="cell">
-                                        {{ item[columnKey] || '--' }}
-                                        <template v-if="columnKey === 'ip'">
-                                            <slot name="ip" v-bind:row="item" />
-                                        </template>
-                                        <template v-if="columnKey === 'ipv6'">
-                                            <slot name="ipv6" v-bind:row="item" />
-                                        </template>
+                                        <div class="cell-text">
+                                            {{ item[columnKey] || '--' }}
+                                        </div>
+                                        <div class="cell-append">
+                                            <template v-if="columnKey === 'ip'">
+                                                <slot name="ip" v-bind:row="item" />
+                                            </template>
+                                            <template v-if="columnKey === 'ipv6'">
+                                                <slot name="ipv6" v-bind:row="item" />
+                                            </template>
+                                        </div>
                                     </div>
                                 </template>
                             </td>
@@ -373,8 +377,10 @@
             }
 
             .table-empty {
-                margin-top: 75px;
+                padding-top: 75px;
+                padding-bottom: 25px;
                 font-size: 12px;
+                line-height: 20px;
                 color: #63656e;
                 text-align: center;
             }

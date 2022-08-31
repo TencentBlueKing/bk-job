@@ -53,6 +53,7 @@
                 :host-node-info="stepInfo.fileDestination.server.hostNodeInfo" /> -->
             <ip-selector
                 show-view
+                readonly
                 :value="stepInfo.fileDestination.server.hostNodeInfo" />
         </detail-item>
         <slot />

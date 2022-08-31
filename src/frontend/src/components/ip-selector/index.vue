@@ -7,12 +7,15 @@
             @cancel="handleCancel" />
         <selector-view
             v-if="showView"
+            ref="viewsRef"
             :value="selectorValue"
+            :search-key="viewSearchKey"
             @change="handleValueChange" />
     </div>
 </template>
 <script setup>
     import {
+        ref,
         shallowRef,
         provide,
         toRefs,
@@ -47,6 +50,10 @@
         viewSearchKey: {
             type: String,
         },
+        readonly: {
+            type: Boolean,
+            default: false,
+        },
     });
 
     const emits = defineEmits([
@@ -55,6 +62,7 @@
     ]);
 
     const selectorValue = shallowRef({});
+    const viewsRef = ref();
 
     watch(() => props.value, () => {
         console.log('from ip-selector watch value = ', props.value);
@@ -80,8 +88,26 @@
     }));
 
     defineExpose({
+        getHostIpList () {
+            if (!viewsRef.value) {
+                return [];
+            }
+            return viewsRef.value.getHostIpList();
+        },
+        getAbnormalHostIpList () {
+            if (!viewsRef.value) {
+                return [];
+            }
+            return viewsRef.value.getAbnormalHostIpList();
+        },
+        resetValue () {
+            if (props.value) {
+                return;
+            }
+            selectorValue.value = {};
+        },
         refresh () {
-            console.log('asdasd');
+            viewsRef.value && viewsRef.value.refresh();
         },
     });
 </script>
