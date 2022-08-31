@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -144,18 +143,6 @@ public interface ApplicationService {
      * @return 业务列表
      */
     List<ApplicationDTO> listAllApps();
-
-    /**
-     * 判断用户是否有业务权限
-     * <p>
-     * 接入权限中心后不应使用本接口
-     *
-     * @param appId    业务 ID
-     * @param username 用户名
-     * @return 是否有业务权限
-     */
-    @CompatibleImplementation(explain = "兼容方法，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    boolean checkAppPermission(long appId, String username);
 
     /**
      * 创建业务

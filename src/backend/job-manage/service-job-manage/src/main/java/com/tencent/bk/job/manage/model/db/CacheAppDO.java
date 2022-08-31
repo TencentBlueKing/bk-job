@@ -24,16 +24,13 @@
 
 package com.tencent.bk.job.manage.model.db;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 /**
  * Redis 缓存业务DO
@@ -41,6 +38,7 @@ import java.util.List;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CacheAppDO {
     /**
      * 业务ID
@@ -63,30 +61,6 @@ public class CacheAppDO {
     private String name;
 
     /**
-     * 业务类型
-     */
-    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    private Integer appType;
-
-    /**
-     * 子业务
-     */
-    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    private List<Long> subBizIds;
-
-    /**
-     * 业务运维
-     */
-    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    private String maintainers;
-
-    /**
-     * 临时字段-业务初始部门ID
-     */
-    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    private Long operateDeptId;
-
-    /**
      * 业务属性
      */
     private ApplicationAttrsDO attrs;
@@ -100,10 +74,6 @@ public class CacheAppDO {
         cacheAppDO.setScopeType(application.getScope().getType().getValue());
         cacheAppDO.setScopeId(application.getScope().getId());
         cacheAppDO.setName(application.getName());
-        cacheAppDO.setAppType(application.getAppType().getValue());
-        cacheAppDO.setMaintainers(application.getMaintainers());
-        cacheAppDO.setSubBizIds(application.getSubBizIds());
-        cacheAppDO.setOperateDeptId(application.getOperateDeptId());
         cacheAppDO.setAttrs(application.getAttrs());
         return cacheAppDO;
     }
@@ -116,10 +86,6 @@ public class CacheAppDO {
         application.setId(cacheAppDO.getId());
         application.setScope(new ResourceScope(cacheAppDO.getScopeType(), cacheAppDO.getScopeId()));
         application.setName(cacheAppDO.getName());
-        application.setAppType(AppTypeEnum.valueOf(cacheAppDO.getAppType()));
-        application.setMaintainers(cacheAppDO.getMaintainers());
-        application.setSubBizIds(cacheAppDO.getSubBizIds());
-        application.setOperateDeptId(cacheAppDO.getOperateDeptId());
         application.setAttrs(cacheAppDO.getAttrs());
         return application;
     }

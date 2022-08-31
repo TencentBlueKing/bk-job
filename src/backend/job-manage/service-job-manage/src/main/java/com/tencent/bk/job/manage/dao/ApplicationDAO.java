@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.dao;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -43,8 +41,6 @@ public interface ApplicationDAO {
 
     ApplicationDTO getAppById(long appId);
 
-    List<Long> getBizIdsByOptDeptId(Long optDeptId);
-
     List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
 
     List<ApplicationDTO> listBizAppsByBizIds(Collection<Long> bizIdList);
@@ -59,14 +55,9 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAllBizSetAppsWithDeleted();
 
-    @CompatibleImplementation(explain = "兼容方法，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
-
     List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
 
     Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    Long insertAppWithSpecifiedAppId(DSLContext dslContext, ApplicationDTO applicationDTO);
 
     int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
 
@@ -87,10 +78,6 @@ public interface ApplicationDAO {
      * @return 受影响数据行数
      */
     int deleteAppByIdSoftly(DSLContext dslContext, long appId);
-
-    int updateMaintainers(long appId, String maintainers);
-
-    int updateSubBizIds(long appId, String subBizIds);
 
     Integer countApps();
 

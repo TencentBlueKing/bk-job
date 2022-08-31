@@ -77,8 +77,6 @@ import com.tencent.bk.job.common.cc.model.result.SearchAppResult;
 import com.tencent.bk.job.common.cc.model.result.SearchCloudAreaResult;
 import com.tencent.bk.job.common.cc.model.result.SearchDynamicGroupResult;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
-import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.config.BkApiConfig;
@@ -741,12 +739,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
         ApplicationDTO appInfo = new ApplicationDTO();
         appInfo.setName(businessInfo.getBizName());
-        appInfo.setMaintainers(VersionCompatUtil.convertMaintainers(businessInfo.getMaintainers()));
         appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
-        appInfo.setAppType(AppTypeEnum.NORMAL);
-        appInfo.setOperateDeptId(businessInfo.getOperateDeptId());
         appInfo.setLanguage(businessInfo.getLanguage());
         return appInfo;
     }
@@ -1123,7 +1118,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public Set<String> getAppUsersByRole(Long bizId, String role) {
+    public Set<String> listUsersByRole(Long bizId, String role) {
         CcCountInfo searchResult;
         GetAppReq req = makeBaseReqByWeb(GetAppReq.class, null, defaultUin, defaultSupplierAccount);
         Map<String, Object> condition = new HashMap<>();
@@ -1167,7 +1162,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<AppRoleDTO> getAppRoleList() {
+    public List<AppRoleDTO> listRoles() {
         List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("biz");
         return esbObjAttributeDTO.stream().filter(it ->
             it.getBkPropertyGroup().equals("role")
@@ -1265,8 +1260,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     public ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
-        req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_biz_maintainer", "bk_supplier_account",
-            "time_zone", "bk_operate_dept_id", "bk_operate_dept_name", "language"));
+        req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
+            "time_zone", "language"));
         req.setResource("biz");
         req.setCursor(cursor);
         req.setStartTime(startTime);
