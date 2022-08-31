@@ -56,17 +56,58 @@ public interface ApplicationHostDAO {
 
     List<ApplicationHostDTO> listHostInfoByHostNames(Collection<String> hostNames);
 
-    List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
+    List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,
+                                                          Collection<Long> moduleIds,
                                                           Collection<Long> cloudAreaIds,
-                                                          List<String> searchContents, Integer agentStatus,
-                                                          Long start, Long limit);
+                                                          List<String> searchContents,
+                                                          Integer agentStatus,
+                                                          Long start,
+                                                          Long limit);
 
-    List<Long> getHostIdListBySearchContents(Collection<Long> appIds, Collection<Long> moduleIds,
-                                             Collection<Long> cloudAreaIds, List<String> searchContents,
-                                             Integer agentAlive, Long start, Long limit);
+    List<Long> getHostIdListBySearchContents(Collection<Long> appIds,
+                                             Collection<Long> moduleIds,
+                                             Collection<Long> cloudAreaIds,
+                                             List<String> searchContents,
+                                             Integer agentAlive,
+                                             Long start,
+                                             Long limit);
 
-    Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
-                                       Collection<Long> cloudAreaIds, List<String> searchContents, Integer agentStatus);
+    Long countHostInfoBySearchContents(Collection<Long> bizIds,
+                                       Collection<Long> moduleIds,
+                                       Collection<Long> cloudAreaIds,
+                                       List<String> searchContents,
+                                       Integer agentStatus);
+
+    List<ApplicationHostDTO> listHostInfoByMultiKeys(Collection<Long> bizIds,
+                                                     Collection<Long> moduleIds,
+                                                     Collection<Long> cloudAreaIds,
+                                                     Collection<String> ipKeys,
+                                                     Collection<String> ipv6Keys,
+                                                     Collection<String> hostNameKeys,
+                                                     Collection<String> osNameKeys,
+                                                     Integer agentAlive,
+                                                     Long start,
+                                                     Long limit);
+
+    List<Long> getHostIdListByMultiKeys(Collection<Long> bizIds,
+                                        Collection<Long> moduleIds,
+                                        Collection<Long> cloudAreaIds,
+                                        Collection<String> ipKeys,
+                                        Collection<String> ipv6Keys,
+                                        Collection<String> hostNameKeys,
+                                        Collection<String> osNameKeys,
+                                        Integer agentAlive,
+                                        Long start,
+                                        Long limit);
+
+    Long countHostInfoByMultiKeys(Collection<Long> bizIds,
+                                  Collection<Long> moduleIds,
+                                  Collection<Long> cloudAreaIds,
+                                  Collection<String> ipKeys,
+                                  Collection<String> ipv6Keys,
+                                  Collection<String> hostNameKeys,
+                                  Collection<String> osNameKeys,
+                                  Integer agentAlive);
 
     /**
      * 根据ID与Agent状态查询主机数量

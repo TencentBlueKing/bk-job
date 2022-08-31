@@ -749,14 +749,59 @@ public class HostServiceImpl implements HostService {
         watch.stop();
         //分页
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
-        watch.start("listHostInfoBySearchContents");
-        List<ApplicationHostDTO> hosts = applicationHostDAO.listHostInfoBySearchContents(bizIds, moduleIds,
-            cloudAreaIds, searchContents, agentStatus, pagePair.getLeft(), pagePair.getRight());
-        watch.stop();
-        watch.start("countHostInfoBySearchContents");
-        Long count = applicationHostDAO.countHostInfoBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents
-            , agentStatus);
-        watch.stop();
+
+        List<ApplicationHostDTO> hosts;
+        Long count;
+        if (searchContents != null) {
+            watch.start("listHostInfoBySearchContents");
+            hosts = applicationHostDAO.listHostInfoBySearchContents(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                searchContents,
+                agentStatus,
+                pagePair.getLeft(),
+                pagePair.getRight()
+            );
+            watch.stop();
+            watch.start("countHostInfoBySearchContents");
+            count = applicationHostDAO.countHostInfoBySearchContents(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                searchContents,
+                agentStatus
+            );
+            watch.stop();
+        } else {
+            watch.start("listHostInfoByMultiKeys");
+            hosts = applicationHostDAO.listHostInfoByMultiKeys(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                req.getIpKeyList(),
+                req.getIpv6KeyList(),
+                req.getHostNameKeyList(),
+                req.getOsNameKeyList(),
+                agentStatus,
+                pagePair.getLeft(),
+                pagePair.getRight()
+            );
+            watch.stop();
+            watch.start("countHostInfoByMultiKeys");
+            count = applicationHostDAO.countHostInfoByMultiKeys(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                req.getIpKeyList(),
+                req.getIpv6KeyList(),
+                req.getHostNameKeyList(),
+                req.getOsNameKeyList(),
+                agentStatus
+            );
+            watch.stop();
+        }
+
         watch.start("getHostInfoVOsByHostInfoDTOs");
         List<HostInfoVO> finalHostInfoVOList = fillCloudAreaNameAndConvertToVOList(hosts);
         watch.stop();
