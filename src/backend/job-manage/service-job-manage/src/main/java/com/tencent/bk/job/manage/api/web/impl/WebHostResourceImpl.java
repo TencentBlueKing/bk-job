@@ -587,7 +587,46 @@ public class WebHostResourceImpl implements WebHostResource {
                                                      String scopeType,
                                                      String scopeId,
                                                      AgentStatisticsReq agentStatisticsReq) {
-        return Response.buildSuccessResp(hostService.getAgentStatistics(username, appResourceScope.getAppId(),
-            agentStatisticsReq));
+        List<ApplicationHostDTO> allHostList = new ArrayList<>();
+        List<String> ipList = agentStatisticsReq.getIpList();
+        if (CollectionUtils.isNotEmpty(ipList)) {
+            List<ApplicationHostDTO> hostsByIp = scopeHostService.getScopeHostsByIps(
+                appResourceScope,
+                ipList
+            );
+            log.debug("hostsByIp={}", hostsByIp);
+            allHostList.addAll(hostsByIp);
+        }
+        List<HostIdWithMeta> hostList = agentStatisticsReq.getHostList();
+        if (CollectionUtils.isNotEmpty(hostList)) {
+            List<ApplicationHostDTO> hostsById = scopeHostService.getScopeHostsByIds(
+                appResourceScope,
+                hostList.stream().map(HostIdWithMeta::getHostId).collect(Collectors.toList())
+            );
+            log.debug("hostsById={}", hostsById);
+            allHostList.addAll(hostsById);
+        }
+        List<BizTopoNode> nodeList = agentStatisticsReq.getNodeList();
+        if (CollectionUtils.isNotEmpty(nodeList)) {
+            long bizId = Long.parseLong(scopeId);
+            List<ApplicationHostDTO> hostsByNode = new ArrayList<>();
+            for (BizTopoNode node : nodeList) {
+                hostsByNode.addAll(bizTopoHostService.listHostByNode(bizId, node));
+            }
+            log.debug("hostsByNode={}", hostsByNode);
+            allHostList.addAll(hostsByNode);
+        }
+        List<String> dynamicGroupIdList = agentStatisticsReq.getDynamicGroupIds();
+        if (CollectionUtils.isNotEmpty(dynamicGroupIdList)) {
+            long bizId = Long.parseLong(scopeId);
+            List<ApplicationHostDTO> hostsByDynamicGroup = new ArrayList<>();
+            for (String id : dynamicGroupIdList) {
+                hostsByDynamicGroup.addAll(bizDynamicGroupHostService.listHostByDynamicGroup(bizId, id));
+            }
+            log.debug("hostsByDynamicGroup={}", hostsByDynamicGroup);
+            allHostList.addAll(hostsByDynamicGroup);
+        }
+        AgentStatistics agentStatistics = agentStatusService.calcAgentStatistics(allHostList);
+        return Response.buildSuccessResp(agentStatistics);
     }
 }
