@@ -1,8 +1,8 @@
-import Component from './index.vue';
+import Entry from './entry.vue';
 import { merge } from './manager';
 
 export default (options) => {
     merge(options);
 
-    return Component;
+    return Entry;
 };

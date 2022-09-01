@@ -63,7 +63,7 @@ import createIpSelector from '@components/ip-selector/index.js';
 
 const IpSelector = createIpSelector({
     panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'customInput'],
-    unqiuePanelValue: true,
+    unqiuePanelValue: false,
     fetchTopologyHostCount: AppManageService.fetchTopologyWithCount,
     fetchTopologyHostsNodes: AppManageService.fetchTopologyHost,
     fetchTopologyHostIdsNodes: AppManageService.fetchTopogyHostIdList,
