@@ -24,10 +24,8 @@
 
 package com.tencent.bk.job.gateway.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerProperties;
 import org.springframework.cloud.gateway.config.GatewayLoadBalancerProperties;
-import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledGlobalFilter;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
@@ -37,11 +35,11 @@ import org.springframework.context.annotation.Configuration;
 public class JobReactiveLoadBalancerClientConfiguration {
 
     @Bean
-    @ConditionalOnBean(LoadBalancerClientFactory.class)
-    @ConditionalOnEnabledGlobalFilter
-    public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
-                                                                            GatewayLoadBalancerProperties properties,
-                                                                            LoadBalancerProperties loadBalancerProperties) {
+    public ReactiveLoadBalancerClientFilter ipv6GatewayLoadBalancerClientFilter(
+        LoadBalancerClientFactory clientFactory,
+        GatewayLoadBalancerProperties properties,
+        LoadBalancerProperties loadBalancerProperties
+    ) {
         return new Ipv6ReactiveLoadBalancerClientFilter(clientFactory, properties, loadBalancerProperties);
     }
 
