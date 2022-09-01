@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.backup.dao;
 
-import org.jooq.Field;
 import org.jooq.TableRecord;
 
 import java.io.IOException;
 import java.util.List;
 
 public interface ExecuteArchiveDAO {
-    Integer batchInsert(List<Field<?>> fieldList, List<? extends TableRecord<?>> recordList, int bulkSize)
+    Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize)
         throws IOException;
 }

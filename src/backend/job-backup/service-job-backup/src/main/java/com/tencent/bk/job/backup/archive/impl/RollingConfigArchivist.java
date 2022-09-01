@@ -22,32 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.bizset;
+package com.tencent.bk.job.backup.archive.impl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
+import com.tencent.bk.job.backup.dao.impl.RollingConfigRecordDAO;
+import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import org.jooq.generated.tables.records.RollingConfigRecord;
 
 /**
- * CMDB接口请求实体类，用于创建业务集
+ * rolling_config 表归档
  */
-@Setter
-@Getter
-@ToString
-public class CreateBizSetReq extends EsbReq {
+public class RollingConfigArchivist extends AbstractArchivist<RollingConfigRecord> {
 
-    /**
-     * 业务集字段集合
-     */
-    @JsonProperty("bk_biz_set_attr")
-    private BizSetAttr attr;
-
-    /**
-     * 业务集的业务选择范围
-     */
-    @JsonProperty("bk_scope")
-    private BizSetScope scope;
-
+    public RollingConfigArchivist(RollingConfigRecordDAO executeRecordDAO,
+                                  ExecuteArchiveDAO executeArchiveDAO,
+                                  ArchiveProgressService archiveProgressService) {
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
+        this.deleteIdStepSize = 100_000;
+    }
 }

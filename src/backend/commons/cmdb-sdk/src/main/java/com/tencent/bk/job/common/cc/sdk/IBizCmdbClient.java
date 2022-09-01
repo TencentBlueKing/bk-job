@@ -192,15 +192,15 @@ public interface IBizCmdbClient {
     /**
      * 根据cmdb业务角色获取人员
      *
-     * @param appId 业务ID
+     * @param bizId cmdb业务ID
      * @param role  业务角色
      */
-    Set<String> getAppUsersByRole(Long appId, String role);
+    Set<String> listUsersByRole(Long bizId, String role);
 
     /**
      * 获取CMDB业务角色列表
      */
-    List<AppRoleDTO> getAppRoleList();
+    List<AppRoleDTO> listRoles();
 
     /**
      * 批量获取topo节点层级

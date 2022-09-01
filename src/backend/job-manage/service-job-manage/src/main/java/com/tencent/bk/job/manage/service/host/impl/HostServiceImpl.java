@@ -645,11 +645,6 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public Boolean existsHost(Long bizId, String ip) {
-        return applicationHostDAO.existsHost(dslContext, bizId, ip);
-    }
-
-    @Override
     public CcTopologyNodeVO listAppTopologyHostCountTree(String username,
                                                          AppResourceScope appResourceScope) {
         StopWatch watch = new StopWatch("listAppTopologyHostCountTree");
@@ -1258,51 +1253,6 @@ public class HostServiceImpl implements HostService {
             }
         }
         return new AgentStatistics(normalCount, abnormalCount);
-    }
-
-    @Override
-    public List<HostDTO> checkAppHosts(Long appId,
-                                       List<HostDTO> hosts) {
-        ApplicationDTO application = applicationService.getAppByAppId(appId);
-
-        if (application.isAllBizSet()) {
-            // cmdb全业务包含了所有业务下的主机，不需要再判断
-            return Collections.emptyList();
-        }
-
-        List<Long> includeBizIds = buildIncludeBizIdList(application);
-        if (CollectionUtils.isEmpty(includeBizIds)) {
-            log.warn("App do not contains any biz, appId:{}", appId);
-            return hosts;
-        }
-
-        List<ApplicationHostDTO> hostsInOtherApp = new ArrayList<>();
-        List<String> notExistHosts = new ArrayList<>();
-
-        // 从缓存中查询主机信息，并判断主机是否在业务下
-        checkCachedHosts(hosts, includeBizIds, hostsInOtherApp, notExistHosts);
-
-        // 如果主机不在缓存中，那么从已同步到Job的主机中查询
-        if (CollectionUtils.isNotEmpty(notExistHosts)) {
-            log.info("Hosts not in cached, check hosts by synced hosts. notCacheHosts: {}", notExistHosts);
-            checkSyncHosts(includeBizIds, hostsInOtherApp, notExistHosts);
-        }
-
-        // 如果主机不在已同步到Job的主机中, 那么从cmdb直接查询
-        if (CollectionUtils.isNotEmpty(notExistHosts)) {
-            log.info("Hosts not synced, check hosts by cmdb. notSyncedHosts: {}", notExistHosts);
-            checkHostsFromCmdb(includeBizIds, hostsInOtherApp, notExistHosts);
-        }
-
-        List<HostDTO> invalidHosts = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(notExistHosts) || CollectionUtils.isNotEmpty(hostsInOtherApp)) {
-            invalidHosts.addAll(notExistHosts.stream().map(HostDTO::fromCloudIp).collect(Collectors.toList()));
-            invalidHosts.addAll(hostsInOtherApp.stream()
-                .map(host -> new HostDTO(host.getCloudAreaId(), host.getIp())).collect(Collectors.toList()));
-            log.info("Contains invalid hosts, appId: {}, notExistHosts: {}, hostsInOtherApp: {}",
-                appId, notExistHosts, hostsInOtherApp);
-        }
-        return invalidHosts;
     }
 
     private List<Long> buildIncludeBizIdList(ApplicationDTO application) {

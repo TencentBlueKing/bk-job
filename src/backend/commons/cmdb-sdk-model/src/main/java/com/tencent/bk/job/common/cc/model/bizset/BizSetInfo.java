@@ -82,12 +82,6 @@ public class BizSetInfo {
     private String supplierAccount;
 
     /**
-     * 运维部门ID
-     */
-    @JsonProperty("bk_operate_dept_id")
-    private Long operateDeptId;
-
-    /**
      * 时区
      */
     private String timezone;
