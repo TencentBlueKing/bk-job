@@ -235,7 +235,11 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
-        fileAgentTaskDAO.updateActualExecuteCount(stepInstanceId, batch, actualExecuteCount);
+    public void updateAgentTaskFields(long stepInstanceId,
+                                      int executeCount,
+                                      Integer batch,
+                                      Integer actualExecuteCount,
+                                      Long gseTaskId) {
+        fileAgentTaskDAO.updateAgentTaskFields(stepInstanceId, executeCount, batch, actualExecuteCount, gseTaskId);
     }
 }
