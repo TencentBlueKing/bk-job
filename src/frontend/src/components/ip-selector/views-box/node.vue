@@ -96,6 +96,7 @@
         watch,
     } from 'vue';
     import AppManageService from '@service/app-manage';
+    import Manager from '../manager';
     import {
         genNodeKey,
         getNodeDiffMap,
@@ -156,7 +157,7 @@
 
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchNodePath({
+        Manager.service.fetchNodesQueryPath({
             nodeList: props.data,
         })
             .then((data) => {

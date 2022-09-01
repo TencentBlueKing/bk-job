@@ -53,7 +53,7 @@
         shallowRef,
     } from 'vue';
     import _ from 'lodash';
-    import AppManageService from '@service/app-manage';
+    import Manager from '../../../manager';
     import {
         execCopy,
         getInvalidHostList,
@@ -95,7 +95,7 @@
     // 通过 hostId 查询主机详情
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchHostInfoByHostId({
+        Manager.service.fetchHostsDetails({
             hostList: props.data,
         })
         .then((data) => {

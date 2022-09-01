@@ -29,7 +29,7 @@
         shallowRef,
         onMounted,
     } from 'vue';
-    import AppManageService from '@service/app-manage';
+    import Manager from '../../manager';
     import useDialogSize from '../../hooks/use-dialog-size';
     import useHostRenderKey from '../../hooks/use-host-render-key';
     import RenderHostTable from '../../common/render-table/host';
@@ -64,7 +64,7 @@
         height: `${contentHeight.value}px`,
     }));
 
-    const requestHandler = (params = {}) => AppManageService.fetchTopologyHost({
+    const requestHandler = (params = {}) => Manager.service.fetchTopologyHostsNodes({
         appTopoNodeList: [{
             objectId: props.node.objectId,
             instanceId: props.node.instanceId,

@@ -44,7 +44,7 @@
         watch,
         shallowRef,
     } from 'vue';
-    import AppManageService from '@service/app-manage';
+    import Manager from '../../../manager';
     import {
         getDiffNewNum,
         getDynamicGroupDiffMap,
@@ -80,7 +80,7 @@
     // 根据 ID 获取分组详情
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchDynamicGroup({
+        Manager.service.fetchDynamicGroups({
             dynamicGroupList: props.data,
         })
         .then((data) => {

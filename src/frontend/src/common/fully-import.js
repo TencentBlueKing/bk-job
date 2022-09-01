@@ -26,6 +26,10 @@
 import Vue from 'vue';
 import bkMagicVue from 'bk-magic-vue';
 import VueProgressBar from 'vue-progressbar';
+
+import AppManageService from '@service/app-manage';
+import CustomSettingsService from '@service/custom-settings';
+
 import AuthRouterLink from '@components/auth/router-link';
 import AuthButton from '@components/auth/button';
 import AuthOption from '@components/auth/option';
@@ -55,7 +59,24 @@ import ResizeableBox from '@components/resizeable-box';
 import Test from '@components/test';
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 
-import IpSelector from '@components/ip-selector';
+import createIpSelector from '@components/ip-selector/index.js';
+
+const IpSelector = createIpSelector({
+    panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'customInput'],
+    unqiuePanelValue: true,
+    fetchTopologyHostCount: AppManageService.fetchTopologyWithCount,
+    fetchTopologyHostsNodes: AppManageService.fetchTopologyHost,
+    fetchTopologyHostIdsNodes: AppManageService.fetchTopogyHostIdList,
+    fetchHostsDetails: AppManageService.fetchHostInfoByHostId,
+    fetchHostCheck: AppManageService.fetchInputParseHostList,
+    fetchNodesQueryPath: AppManageService.fetchNodePath,
+    fetchHostAgentStatisticsNodes: AppManageService.fetchBatchNodeAgentStatistics,
+    fetchDynamicGroups: AppManageService.fetchDynamicGroup,
+    fetchHostsDynamicGroup: AppManageService.fetchDynamicGroupHost,
+    fetchHostAgentStatisticsDynamicGroups: AppManageService.fetchBatchGroupAgentStatistics,
+    fetchCustomSettings: CustomSettingsService.fetchAll,
+    updateCustomSettings: CustomSettingsService.update,
+});
 
 Vue.use(bkMagicVue);
 Vue.use(VueProgressBar, {

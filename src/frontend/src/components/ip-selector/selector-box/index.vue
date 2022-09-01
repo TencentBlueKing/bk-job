@@ -9,8 +9,9 @@
             <div
                 class="layout-left"
                 v-bkloading="{ isLoading: isTopoDataLoading } ">
-                <type-tab
+                <panel-tab
                     :value="panelType"
+                    :unique-type="panelTableUniqueType"
                     @change="handleTypeChange" />
                 <div :style="contentStyles">
                     <panel-content
@@ -48,23 +49,23 @@
     </bk-dialog>
 </template>
 <script setup>
+    import _ from 'lodash';
     import {
         ref,
         shallowRef,
         computed,
         watch,
     } from 'vue';
-    import TypeTab from './components/type-tab';
-    import PanelContent from './components/panel-content';
-    import ResultPreview from './components/result-preview';
+    import Manager from '../manager';
     import {
         transformTopoTree,
         mergeCustomInputHost,
         formatOutput,
     } from '../utils/index';
     import useDialogSize from '../hooks/use-dialog-size';
-
-    import AppManageService from '@service/app-manage';
+    import PanelTab from './components/panel-tab';
+    import PanelContent from './components/panel-content';
+    import ResultPreview from './components/result-preview';
 
     const props = defineProps({
         isShow: {
@@ -88,6 +89,21 @@
 
     const isTopoDataLoading = ref(true);
     const panelType = ref('staticTopo');
+    const panelTableUniqueType = computed(() => {
+        if (!Manager.config.unqiuePanelValue) {
+            return '';
+        }
+        if (!_.isEmpty(lastHostList.value)) {
+            return 'staticTopo';
+        }
+        if (!_.isEmpty(lastNodeList.value)) {
+            return 'dynamicTopo';
+        }
+        if (!_.isEmpty(lastDynamicGroupList.value)) {
+            return 'dynamicGroup';
+        }
+        return '';
+    });
 
     const topoTreeData = shallowRef([]);
 
@@ -107,7 +123,7 @@
     const fetchTopoData = () => {
         isTopoDataLoading.value = true;
         // 获取拓扑树
-        AppManageService.fetchTopologyWithCount()
+        Manager.service.fetchTopologyHostCount()
             .then((data) => {
                 topoTreeData.value = transformTopoTree(data);
             })

@@ -44,7 +44,7 @@
         reactive,
     } from 'vue';
 
-    import AppManageService from '@service/app-manage';
+    import Manager from '../../../manager';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import { getPaginationDefault } from '../../../utils';
     import RenderHostTable from '../../../common/render-table/host.vue';
@@ -91,9 +91,9 @@
     });
     
     // 获取分组列表
-    const fetchDynamicGroup = () => {
+    const fetchDynamicGroups = () => {
         isDynamicGroupLoading.value = true;
-        AppManageService.fetchDynamicGroup()
+        Manager.service.fetchDynamicGroups()
             .then((data) => {
                 groupList.value = Object.freeze(data);
                 if (data.length > 0) {
@@ -105,12 +105,12 @@
             });
     };
 
-    fetchDynamicGroup();
+    fetchDynamicGroups();
 
     // 获取选中分组的主机列表
     const fetchDynamicGroupHostList = () => {
         isHostListLoading.value = true;
-        AppManageService.fetchDynamicGroupHost({
+        Manager.service.fetchHostsDynamicGroup({
             id: selectGroupId.value,
             pageSize: pagination.limit,
             start: (pagination.current - 1) * pagination.limit,

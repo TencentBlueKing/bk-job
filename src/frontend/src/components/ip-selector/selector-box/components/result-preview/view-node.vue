@@ -44,7 +44,7 @@
         shallowRef,
         watch,
     } from 'vue';
-    import AppManageService from '@service/app-manage';
+    import Manager from '../../../manager';
     import {
         genNodeKey,
         getNodeDiffMap,
@@ -81,7 +81,7 @@
     // 通过节点的 id 查询节点的完整层级名字
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchNodePath({
+        Manager.service.fetchNodesQueryPath({
             nodeList: props.data,
         })
             .then((data) => {

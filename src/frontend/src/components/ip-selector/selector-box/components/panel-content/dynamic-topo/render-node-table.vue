@@ -33,8 +33,11 @@
         watch,
     } from 'vue';
     import _ from 'lodash';
-    import AppManageService from '@service/app-manage';
-    import { genNodeKey, getPaginationDefault } from '../../../../utils';
+    import Manager from '../../../../manager';
+    import {
+        genNodeKey,
+        getPaginationDefault,
+    } from '../../../../utils';
     import useLocalPagination from '../../../../hooks/use-local-pagination';
     import useDialogSize from '../../../../hooks/use-dialog-size';
     import RenderNodeTable from '../../../../common/render-table/node.vue';
@@ -104,7 +107,7 @@
             objectId: item.objectId,
             instanceId: item.instanceId,
         }));
-        AppManageService.fetchNodePath({
+        Manager.service.fetchNodesQueryPath({
             nodeList,
         })
             .then((data) => {
@@ -124,7 +127,7 @@
             .finally(() => {
                 isLoading.value = false;
             });
-        AppManageService.fetchBatchNodeAgentStatistics({
+        Manager.service.fetchHostAgentStatisticsNodes({
             nodeList,
         }).then((data) => {
             agentStaticMap.value = data.reduce((result, item) => {

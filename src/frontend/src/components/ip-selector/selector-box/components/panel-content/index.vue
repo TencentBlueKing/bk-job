@@ -28,12 +28,12 @@
     const listeners = useListeners();
 
     const comMap = {
-        dynamicTopo: RenderDynamicTopo,
         staticTopo: RenderStaticTopo,
+        dynamicTopo: RenderDynamicTopo,
+        dynamicGroup: RenderDynamicGroup,
         serviceTemplate: RenderServiceTemplate,
         setTemplate: RenderSetTemplate,
         customInput: RenderCustomInput,
-        group: RenderDynamicGroup,
     };
 
     const renderCom = computed(() => comMap[props.type]);

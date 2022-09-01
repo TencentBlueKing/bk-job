@@ -69,7 +69,7 @@
         watch,
         shallowRef,
     } from 'vue';
-    import AppManageService from '@service/app-manage';
+    import Manager from '../manager';
     import useLocalPagination from '../hooks/use-local-pagination';
     import useIpSelector from '../hooks/use-ip-selector';
     import useHostRenderKey from '../hooks/use-host-render-key';
@@ -127,7 +127,7 @@
     // 通过 hostId 获取主机详情
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchHostInfoByHostId({
+        Manager.service.fetchHostsDetails({
             hostList: props.data,
         })
         .then((data) => {

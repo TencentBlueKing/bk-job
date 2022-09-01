@@ -80,8 +80,7 @@
         nextTick,
     } from 'vue';
 
-    import AppManageService from '@service/app-manage';
-
+    import Manager from '../../../manager';
     import { getPaginationDefault } from '../../../utils';
     import RenderHostTable from '../../../common/render-table/host.vue';
     import useDialogSize from '../../../hooks/use-dialog-size';
@@ -202,7 +201,7 @@
             return;
         }
         isHostLoading.value = true;
-        AppManageService.fetchTopologyHost({
+        Manager.service.fetchTopologyHostsNodes({
             nodeList: [
                 {
                     objectId: selectedTopoNode.objectId,
@@ -227,7 +226,7 @@
     });
 
     // 获取选中节点的完整主机列表
-    const fetchNodeAllHostId = () => AppManageService.fetchTopogyHostIdList({
+    const fetchNodeAllHostId = () => Manager.service.fetchTopologyHostIdsNodes({
             nodeList: [
                 {
                     objectId: selectedTopoNode.objectId,

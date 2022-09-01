@@ -31,7 +31,7 @@
         ref,
     } from 'vue';
     import _ from 'lodash';
-    import AppManageService from '@service/app-manage';
+    import Manager from '../../../../manager';
     import useDialogSize from '../../../../hooks/use-dialog-size';
     import useInputEnter from '../../../../hooks/use-input-enter';
     import RenderHostTable from '../../../../common/render-table/host.vue';
@@ -62,8 +62,8 @@
     // 获取节点的主机列表
     const fetchNodeHostList = () => {
         isLoading.value = true;
-        AppManageService.fetchTopologyHost({
-            appTopoNodeList: [{
+        Manager.service.fetchTopologyHostsNodes({
+            nodeList: [{
                 objectId: memoNode.objectId,
                 instanceId: memoNode.instanceId,
             },

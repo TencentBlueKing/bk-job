@@ -101,7 +101,7 @@
     };
     const handleRemoveFailedIP = () => {
         const hostList = props.hostList.reduce((result, item) => {
-            if (item.alive !== 1) {
+            if (item.alive === 1) {
                 result.push(item);
             }
             return result;

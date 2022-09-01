@@ -26,12 +26,13 @@
 import Vue from 'vue';
 import createRouter from '@/router';
 import store from '@/store';
-import AppService from '@service/app-manage';
+import AppManageService from '@service/app-manage';
 import QueryGlobalSettingService from '@service/query-global-setting';
 import TaskExecuteService from '@service/task-execute';
 import TaskPlanService from '@service/task-plan';
 import EntryTask from '@/utils/entry-task';
 import { scopeCache } from '@/utils/cache-helper';
+
 import '@/common/bkmagic';
 import '@/css/reset.css';
 import '@/css/app.css';
@@ -131,7 +132,7 @@ entryTask.add((context) => {
 /**
  * @desc 完整的业务列表
  */
-entryTask.add(context => AppService.fetchWholeAppList().then((data) => {
+entryTask.add(context => AppManageService.fetchWholeAppList().then((data) => {
     context.appList = data.data;
     if (!context.scopeType || !context.scopeId) {
         const [

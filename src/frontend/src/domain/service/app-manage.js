@@ -84,8 +84,8 @@ export default {
             .then(({ data }) => data);
     },
     // 获取动态分列表
-    fetchDynamicGroup () {
-        return AppManageSource.getAllDynamicGroup()
+    fetchDynamicGroup (params) {
+        return AppManageSource.getAllDynamicGroup(params)
             .then(({ data }) => data);
     },
     // 获取动态分组的主机列表

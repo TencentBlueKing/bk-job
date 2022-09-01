@@ -61,8 +61,9 @@ class AppManage extends ModuleBase {
     }
 
     // 获取动态分组
-    getAllDynamicGroup () {
+    getAllDynamicGroup (params = {}) {
         return Request.post(`${this.path}/dynamicGroups`, {
+            params,
             cache: 2000,
         });
     }

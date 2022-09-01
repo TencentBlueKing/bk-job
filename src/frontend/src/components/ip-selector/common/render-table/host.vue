@@ -153,8 +153,8 @@
         computed,
         shallowRef,
     } from 'vue';
-    import CustomSettingsService from '@service/custom-settings';
     import vuedraggable from 'vuedraggable';
+    import Manager from '../../manager';
     import useHostRenderKey from '../../hooks/use-host-render-key';
     import {
         makeMap,
@@ -283,7 +283,7 @@
 
     isLoadingCustom.value = true;
     // 获取用户自定义配置
-    CustomSettingsService.fetchAll({
+    Manager.service.fetchCustomSettings({
         moduleList: [CUSTOM_SETTINGS_MODULE],
     })
         .then((data) => {
@@ -318,7 +318,7 @@
         columnKeySortList.value = columnConfigList.value.map(item => item.key);
         columnKeyRenderMap.value = makeMap(columnKeyRenderList.value);
         setHostListRenderPrimaryKey();
-        CustomSettingsService.update({
+        Manager.service.updateCustomSettings({
             settingsMap: {
                 [CUSTOM_SETTINGS_MODULE]: {
                     hostListColumn: columnKeyRenderList.value,

@@ -93,7 +93,7 @@
         watch,
     } from 'vue';
     import _ from 'lodash';
-    import AppManageService from '@service/app-manage';
+    import Manager from '../../../manager';
     import RenderHostTable from '../../../common/render-table/host.vue';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import useDebounceRef from '../../../hooks/use-debounced-ref';
@@ -241,7 +241,7 @@
         });
 
         isLoading.value = true;
-        AppManageService.fetchInputParseHostList({
+        Manager.service.fetchHostCheck({
             ipList,
             ipv6List,
             keyList,

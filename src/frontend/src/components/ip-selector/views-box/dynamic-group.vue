@@ -95,7 +95,7 @@
         watch,
         shallowRef,
     } from 'vue';
-    import AppManageService from '@service/app-manage';
+    import Manager from '../manager';
     import useLocalPagination from '../hooks/use-local-pagination';
     import useDialogSize from '../hooks/use-dialog-size';
     import useIpSelector from '../hooks/use-ip-selector';
@@ -154,7 +154,7 @@
     // 根据 ID 获取组件详情
     const fetchData = () => {
         isLoading.value = true;
-        AppManageService.fetchDynamicGroup({
+        Manager.service.fetchDynamicGroups({
             dynamicGroupList: props.data,
         }).then((data) => {
             validDynamicGroupList.value = data;
@@ -163,7 +163,7 @@
             isLoading.value = false;
         });
         isAgentStatisticsLoading.value = true;
-        AppManageService.fetchBatchGroupAgentStatistics({
+        Manager.service.fetchHostAgentStatisticsDynamicGroups({
             dynamicGroupList: props.data,
         })
         .then((data) => {

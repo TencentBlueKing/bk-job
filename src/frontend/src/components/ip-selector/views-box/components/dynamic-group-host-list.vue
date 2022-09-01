@@ -29,7 +29,7 @@
         shallowRef,
         onMounted,
     } from 'vue';
-    import AppManageService from '@service/app-manage';
+    import Manager from '../../manager';
     import RenderHostTable from '../../common/render-table/host';
     import useDialogSize from '../../hooks/use-dialog-size';
     import useHostRenderKey from '../../hooks/use-host-render-key';
@@ -64,7 +64,7 @@
         height: `${contentHeight.value}px`,
     }));
 
-    const requestHandler = (params = {}) => AppManageService.fetchDynamicGroupHost({
+    const requestHandler = (params = {}) => Manager.service.fetchHostsDynamicGroup({
             id: props.dynamicGroup.id,
             pageSize: pagination.limit,
             start: (pagination.current - 1) * pagination.limit,
