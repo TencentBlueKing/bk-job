@@ -183,19 +183,6 @@ public interface HostService {
     void fillAgentStatus(List<ApplicationHostDTO> hosts);
 
 
-    Boolean existsHost(Long bizId, String ip);
-
-    /**
-     * 检查主机是否在业务下
-     *
-     * TMP: 兼容方法，发布完成之后删除
-     *
-     * @param appId Job业务ID
-     * @param hosts 被检查的主机
-     * @return 非法的主机
-     */
-    List<HostDTO> checkAppHosts(Long appId, List<HostDTO> hosts);
-
     /**
      * 获取业务下的主机
      *

@@ -95,7 +95,7 @@ public class ScriptAgentTaskServiceImpl
         } else if (StringUtils.isNotEmpty(host.toCloudIp())) {
             // 根据ip查询的模式，有两种情况，数据可能在gse_script_agent_task/gse_task_ip_log表中，优先查询gse_script_agent_task
             HostDTO queryHost = getStepHostByIp(stepInstance, host.toCloudIp());
-            if (queryHost != null) {
+            if (queryHost != null && queryHost.getHostId() != null) {
                 agentTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstance.getId(), executeCount, batch,
                     queryHost.getHostId());
             } else {
@@ -196,7 +196,11 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
-        scriptAgentTaskDAO.updateActualExecuteCount(stepInstanceId, batch, actualExecuteCount);
+    public void updateAgentTaskFields(long stepInstanceId,
+                                      int executeCount,
+                                      Integer batch,
+                                      Integer actualExecuteCount,
+                                      Long gseTaskId) {
+        scriptAgentTaskDAO.updateAgentTaskFields(stepInstanceId, executeCount, batch, actualExecuteCount, gseTaskId);
     }
 }
