@@ -450,6 +450,10 @@ public class WebHostResourceImpl implements WebHostResource {
             req.getStart().intValue(),
             req.getPageSize().intValue()
         );
+        // 填充Agent状态数据
+        if (CollectionUtils.isNotEmpty(pageData.getData())) {
+            agentStatusService.fillRealTimeAgentStatus(pageData.getData());
+        }
         return Response.buildSuccessResp(PageUtil.transferPageData(pageData, ApplicationHostDTO::toVO));
     }
 
