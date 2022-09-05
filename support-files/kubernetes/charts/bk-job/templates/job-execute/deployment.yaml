@@ -65,7 +65,6 @@ spec:
           {{- end }}
           image: {{ include "job-execute.image" . }}
           imagePullPolicy: {{ .Values.executeConfig.image.pullPolicy }}
-          terminationGracePeriodSeconds: 120
           env:
             {{- include "job.common.env" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
@@ -136,6 +135,7 @@ spec:
             - name: job-gse-tls-password
               mountPath: /etc/secrets
               readOnly: true
+      terminationGracePeriodSeconds: 120
       volumes:
         - name: job-storage
           persistentVolumeClaim:
