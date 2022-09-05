@@ -59,6 +59,9 @@ public class HostEventDetail {
     @JsonProperty("bk_cloud_id")
     private String cloudId;
 
+    @JsonProperty("bk_cloud_vendor")
+    private String cloudVendorId;
+
     public static ApplicationHostDTO toHostInfoDTO(HostEventDetail eventDetail) {
         ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
         hostInfoDTO.setHostId(eventDetail.hostId);
@@ -74,6 +77,7 @@ public class HostEventDetail {
         hostInfoDTO.setOsName(eventDetail.osName);
         hostInfoDTO.setOsType(eventDetail.osType);
         hostInfoDTO.setCloudAreaId(Long.parseLong(eventDetail.getCloudId()));
+        hostInfoDTO.setCloudVendorId(eventDetail.cloudVendorId);
         return hostInfoDTO;
     }
 }

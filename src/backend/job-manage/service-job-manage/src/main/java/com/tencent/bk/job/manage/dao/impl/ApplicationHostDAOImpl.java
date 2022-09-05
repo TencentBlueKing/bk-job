@@ -97,7 +97,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.OS_TYPE,
         TABLE.MODULE_TYPE,
         TABLE.IS_AGENT_ALIVE,
-        TABLE.CLOUD_IP
+        TABLE.CLOUD_IP,
+        TABLE.CLOUD_VENDOR_ID
     };
 
     private final DSLContext context;
@@ -648,6 +649,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             String osType = applicationHostDTO.getOsType();
             UByte gseAgentAlive = JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue());
             String cloudIp = applicationHostDTO.getCloudIp();
+            String cloudVendor = applicationHostDTO.getCloudVendorId();
             var query = context.insertInto(TABLE,
                 TABLE.HOST_ID,
                 TABLE.APP_ID,
@@ -663,7 +665,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.OS_TYPE,
                 TABLE.MODULE_TYPE,
                 TABLE.IS_AGENT_ALIVE,
-                TABLE.CLOUD_IP
+                TABLE.CLOUD_IP,
+                TABLE.CLOUD_VENDOR_ID
             ).values(
                 JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId()),
                 bizId,
@@ -679,7 +682,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 osType,
                 finalModuleTypeStr,
                 gseAgentAlive,
-                cloudIp
+                cloudIp,
+                cloudVendor
             );
             try {
                 result[0] = query.onDuplicateKeyUpdate()
@@ -697,6 +701,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     .set(TABLE.MODULE_TYPE, finalModuleTypeStr)
                     .set(TABLE.IS_AGENT_ALIVE, gseAgentAlive)
                     .set(TABLE.CLOUD_IP, cloudIp)
+                    .set(TABLE.CLOUD_VENDOR_ID, cloudVendor)
                     .execute();
             } catch (Throwable t) {
                 log.info("SQL=" + query.getSQL(ParamType.INLINED));
@@ -740,9 +745,11 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     TABLE.OS_TYPE,
                     TABLE.MODULE_TYPE,
                     TABLE.IS_AGENT_ALIVE,
-                    TABLE.CLOUD_IP
+                    TABLE.CLOUD_IP,
+                    TABLE.CLOUD_VENDOR_ID
                 ).values(
                     (ULong) null,
+                    null,
                     null,
                     null,
                     null,
@@ -776,7 +783,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         applicationHostDTO.getOsType(),
                         applicationHostDTO.getModuleTypeStr(),
                         JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()),
-                        applicationHostDTO.getCloudIp()
+                        applicationHostDTO.getCloudIp(),
+                        applicationHostDTO.getCloudVendorId()
                     );
                     hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
                 }
@@ -827,6 +835,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .set(TABLE.OS, applicationHostDTO.getOsName())
             .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
             .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getAgentStatusValue()))
+            .set(TABLE.CLOUD_VENDOR_ID, applicationHostDTO.getCloudVendorId())
             .where(conditions);
         try {
             return query.execute();
@@ -875,6 +884,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                 .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
                 .set(TABLE.IS_AGENT_ALIVE, JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()))
+                .set(TABLE.CLOUD_VENDOR_ID, applicationHostDTO.getCloudVendorId())
                 .where(conditions);
             try {
                 affectedNum[0] = query.execute();
@@ -928,6 +938,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
                         .set(TABLE.IS_AGENT_ALIVE,
                             JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()))
+                        .set(TABLE.CLOUD_VENDOR_ID, applicationHostDTO.getCloudVendorId())
                         .where(TABLE.HOST_ID.eq(JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId())))
                         .and(TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId())))
                     );
@@ -1196,6 +1207,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         applicationHostDTO.setModuleType(StringUtil.strToList(record.get(TABLE.MODULE_TYPE), Long.class, ","));
         applicationHostDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
         applicationHostDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
+        applicationHostDTO.setCloudVendorId(record.get(TABLE.CLOUD_VENDOR_ID));
         return applicationHostDTO;
     }
 }

@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
@@ -84,6 +85,13 @@ public class HostInfoVO {
     private String osName;
     @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     private String os;
+
+    @ApiModelProperty("AgentId")
+    private String agentId;
+
+    @ApiModelProperty("所属云厂商")
+    @JsonProperty("cloudVendor")
+    private String cloudVendorName;
 
     @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     public String getHostName() {

@@ -31,10 +31,17 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 有状态的主机服务，查出的主机信息包含Agent状态，云区域名称等详情信息
+ * 主机详情服务，查出的主机信息包含Agent状态，云区域名称，云厂商等详情信息
  */
-public interface StatefulHostService {
+public interface HostDetailService {
 
     List<ApplicationHostDTO> listHostDetails(AppResourceScope appResourceScope, Collection<Long> hostIds);
+
+    /**
+     * 为主机填充云区域与云厂商信息
+     *
+     * @param hostList 主机列表
+     */
+    void fillCloudInfoForHosts(List<ApplicationHostDTO> hostList);
 
 }

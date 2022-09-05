@@ -65,9 +65,9 @@ import com.tencent.bk.job.manage.model.web.vo.ipchooser.DynamicGroupHostStatisti
 import com.tencent.bk.job.manage.model.web.vo.ipchooser.NodeHostStatisticsVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizTopoHostService;
+import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
-import com.tencent.bk.job.manage.service.host.StatefulHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
 import com.tencent.bk.job.manage.service.impl.BizDynamicGroupService;
@@ -98,7 +98,7 @@ public class WebHostResourceImpl implements WebHostResource {
     private final ScopeHostService scopeHostService;
     private final WhiteIpAwareScopeHostService whiteIpAwareScopeHostService;
     private final AgentStatusService agentStatusService;
-    private final StatefulHostService statefulHostService;
+    private final HostDetailService hostDetailService;
     private final BizTopoHostService bizTopoHostService;
     private final BizDynamicGroupService bizDynamicGroupService;
     private final BizDynamicGroupHostService bizDynamicGroupHostService;
@@ -109,7 +109,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                ScopeHostService scopeHostService,
                                WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
                                AgentStatusService agentStatusService,
-                               StatefulHostService statefulHostService,
+                               HostDetailService hostDetailService,
                                BizTopoHostService bizTopoHostService,
                                BizDynamicGroupService bizDynamicGroupService,
                                BizDynamicGroupHostService bizDynamicGroupHostService) {
@@ -118,7 +118,7 @@ public class WebHostResourceImpl implements WebHostResource {
         this.scopeHostService = scopeHostService;
         this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.agentStatusService = agentStatusService;
-        this.statefulHostService = statefulHostService;
+        this.hostDetailService = hostDetailService;
         this.bizTopoHostService = bizTopoHostService;
         this.bizDynamicGroupService = bizDynamicGroupService;
         this.bizDynamicGroupHostService = bizDynamicGroupHostService;
@@ -190,6 +190,7 @@ public class WebHostResourceImpl implements WebHostResource {
             appResourceScope));
     }
 
+    // 标准接口1
     @Override
     public Response<List<CcTopologyNodeVO>> listTopologyHostCountTrees(String username,
                                                                        AppResourceScope appResourceScope,
@@ -203,17 +204,31 @@ public class WebHostResourceImpl implements WebHostResource {
         );
     }
 
+    // 标准接口3
     @Override
     public Response<PageData<HostInfoVO>> listHostByBizTopologyNodes(String username,
                                                                      AppResourceScope appResourceScope,
                                                                      String scopeType,
                                                                      String scopeId,
                                                                      ListHostByBizTopologyNodesReq req) {
-        return Response.buildSuccessResp(
-            hostService.listHostByAppTopologyNodes(
-                username, appResourceScope, req
-            )
+        Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
+        PageData<ApplicationHostDTO> pageHostList = scopeHostService.searchHost(
+            appResourceScope,
+            req.getNodeList(),
+            req.getAlive(),
+            req.getSearchContent(),
+            req.getIpKeyList(),
+            req.getIpv6KeyList(),
+            req.getHostNameKeyList(),
+            req.getOsNameKeyList(),
+            pagePair.getLeft(),
+            pagePair.getRight()
         );
+        hostDetailService.fillCloudInfoForHosts(pageHostList.getData());
+        return Response.buildSuccessResp(PageUtil.transferPageData(
+            pageHostList,
+            ApplicationHostDTO::toVO
+        ));
     }
 
     @Override
@@ -229,6 +244,7 @@ public class WebHostResourceImpl implements WebHostResource {
         );
     }
 
+    // 标准接口4
     @Override
     public Response<PageData<HostIdWithMeta>> listHostIdByBizTopologyNodes(String username,
                                                                            AppResourceScope appResourceScope,
@@ -279,6 +295,7 @@ public class WebHostResourceImpl implements WebHostResource {
         return queryNodePaths(username, appResourceScope, targetNodeVOList);
     }
 
+    // 标准接口2
     @Override
     public Response<List<List<CcTopologyNodeVO>>> queryNodePaths(String username,
                                                                  AppResourceScope appResourceScope,
@@ -322,6 +339,7 @@ public class WebHostResourceImpl implements WebHostResource {
         return Response.buildSuccessResp(resultList);
     }
 
+    // 标准接口5
     @Override
     public Response<List<NodeHostStatisticsVO>> getHostAgentStatisticsByNodes(String username,
                                                                               AppResourceScope appResourceScope,
@@ -373,6 +391,7 @@ public class WebHostResourceImpl implements WebHostResource {
         return Response.buildSuccessResp(moduleHostInfoList);
     }
 
+    // 标准接口6
     @Override
     public Response<List<DynamicGroupBasicVO>> listDynamicGroups(String username,
                                                                  AppResourceScope appResourceScope,
@@ -405,6 +424,7 @@ public class WebHostResourceImpl implements WebHostResource {
         }
     }
 
+    // 标准接口7
     @Override
     public Response<List<DynamicGroupHostStatisticsVO>> getHostAgentStatisticsByDynamicGroups(
         String username,
@@ -438,6 +458,7 @@ public class WebHostResourceImpl implements WebHostResource {
         return Response.buildSuccessResp(resultList);
     }
 
+    // 标准接口8
     @Override
     public Response<PageData<HostInfoVO>> pageListHostsByDynamicGroup(String username,
                                                                       AppResourceScope appResourceScope,
@@ -492,6 +513,7 @@ public class WebHostResourceImpl implements WebHostResource {
         return Response.buildSuccessResp(dynamicGroupInfoList);
     }
 
+    // 标准接口9
     @Override
     public Response<List<HostInfoVO>> checkHosts(String username,
                                                  AppResourceScope appResourceScope,
@@ -569,6 +591,7 @@ public class WebHostResourceImpl implements WebHostResource {
         return hostDTOList;
     }
 
+    // 标准接口10
     @Override
     public Response<List<HostInfoVO>> getHostDetails(String username,
                                                      AppResourceScope appResourceScope,
@@ -578,7 +601,7 @@ public class WebHostResourceImpl implements WebHostResource {
         Collection<Long> hostIds = req.getHostList().parallelStream()
             .map(HostIdWithMeta::getHostId)
             .collect(Collectors.toList());
-        List<ApplicationHostDTO> hostList = statefulHostService.listHostDetails(appResourceScope, hostIds);
+        List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(appResourceScope, hostIds);
         List<HostInfoVO> hostInfoVOList = hostList.parallelStream()
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList());

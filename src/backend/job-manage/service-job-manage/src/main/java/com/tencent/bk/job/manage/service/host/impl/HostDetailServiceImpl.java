@@ -27,8 +27,8 @@ package com.tencent.bk.job.manage.service.host.impl;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
-import com.tencent.bk.job.manage.service.host.StatefulHostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,16 +39,19 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class StatefulHostServiceImpl implements StatefulHostService {
+public class HostDetailServiceImpl implements HostDetailService {
 
     private final ScopeHostService scopeHostService;
     private final AgentStatusService agentStatusService;
+    private final CloudVendorService cloudVendorService;
 
     @Autowired
-    public StatefulHostServiceImpl(ScopeHostService scopeHostService,
-                                   AgentStatusService agentStatusService) {
+    public HostDetailServiceImpl(ScopeHostService scopeHostService,
+                                 AgentStatusService agentStatusService,
+                                 CloudVendorService cloudVendorService) {
         this.scopeHostService = scopeHostService;
         this.agentStatusService = agentStatusService;
+        this.cloudVendorService = cloudVendorService;
     }
 
     @Override
@@ -56,9 +59,20 @@ public class StatefulHostServiceImpl implements StatefulHostService {
         List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIds(appResourceScope, hostIds);
         // 填充实时agent状态
         agentStatusService.fillRealTimeAgentStatus(scopeHostList);
-        scopeHostList.forEach(
-            host -> host.setCloudAreaName(CloudAreaService.getCloudAreaNameFromCache(host.getCloudAreaId()))
-        );
+        fillCloudInfoForHosts(scopeHostList);
         return scopeHostList;
+    }
+
+    @Override
+    public void fillCloudInfoForHosts(List<ApplicationHostDTO> hostList) {
+        for (ApplicationHostDTO host : hostList) {
+            String cloudVendorId = host.getCloudVendorId();
+            host.setCloudAreaName(CloudAreaService.getCloudAreaNameFromCache(host.getCloudAreaId()));
+            host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
+                cloudVendorId,
+                cloudVendorId == null ? null : "ID=" + host.getCloudVendorId()
+                )
+            );
+        }
     }
 }

@@ -67,6 +67,8 @@ public class FindModuleHostRelationResult {
         private String osType;
         @JsonProperty("bk_cloud_id")
         private Long cloudAreaId = 0L;
+        @JsonProperty("bk_cloud_vendor")
+        private String cloudVendorId;
     }
 
     @Getter

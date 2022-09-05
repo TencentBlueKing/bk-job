@@ -94,4 +94,30 @@ public interface ScopeHostService {
                                                 Integer agentAlive,
                                                 Long start,
                                                 Long pageSize);
+
+    /**
+     * 根据拓扑节点、模糊搜索关键字、agent状态分页查询查询资源范围下的主机
+     *
+     * @param appResourceScope 资源范围
+     * @param appTopoNodeList  拓扑节点列表
+     * @param agentAlive       筛选条件：agentAlive：0为异常，1为正常
+     * @param searchContent    模糊搜索关键字（同时对主机IP/主机名/操作系统/云区域名称进行模糊搜索）
+     * @param ipKeyList        IP关键字列表
+     * @param ipv6KeyList      IPv6关键字列表
+     * @param hostNameKeyList  主机名称关键字列表
+     * @param osNameKeyList    操作系统名称关键字列表
+     * @param start            数据起始位置
+     * @param pageSize         拉取数量
+     * @return hostId列表
+     */
+    PageData<ApplicationHostDTO> searchHost(AppResourceScope appResourceScope,
+                                            List<BizTopoNode> appTopoNodeList,
+                                            Integer agentAlive,
+                                            String searchContent,
+                                            List<String> ipKeyList,
+                                            List<String> ipv6KeyList,
+                                            List<String> hostNameKeyList,
+                                            List<String> osNameKeyList,
+                                            Long start,
+                                            Long pageSize);
 }

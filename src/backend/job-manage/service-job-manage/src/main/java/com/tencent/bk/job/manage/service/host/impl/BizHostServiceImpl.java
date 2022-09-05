@@ -148,6 +148,64 @@ public class BizHostServiceImpl implements BizHostService {
     }
 
     @Override
+    public PageData<ApplicationHostDTO> pageListHost(Collection<Long> bizIds,
+                                                     Collection<Long> moduleIds,
+                                                     Collection<Long> cloudAreaIds,
+                                                     List<String> searchContents,
+                                                     Integer agentAlive,
+                                                     List<String> ipKeyList,
+                                                     List<String> ipv6KeyList,
+                                                     List<String> hostNameKeyList,
+                                                     List<String> osNameKeyList,
+                                                     Long start,
+                                                     Long limit) {
+        List<ApplicationHostDTO> hostList;
+        Long count;
+        if (searchContents != null) {
+            hostList = applicationHostDAO.listHostInfoBySearchContents(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                searchContents,
+                agentAlive,
+                start,
+                limit
+            );
+            count = applicationHostDAO.countHostInfoBySearchContents(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                searchContents,
+                agentAlive
+            );
+        } else {
+            hostList = applicationHostDAO.listHostInfoByMultiKeys(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                ipKeyList,
+                ipv6KeyList,
+                hostNameKeyList,
+                osNameKeyList,
+                agentAlive,
+                start,
+                limit
+            );
+            count = applicationHostDAO.countHostInfoByMultiKeys(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                ipKeyList,
+                ipv6KeyList,
+                hostNameKeyList,
+                osNameKeyList,
+                agentAlive
+            );
+        }
+        return new PageData<>(start.intValue(), limit.intValue(), count, hostList);
+    }
+
+    @Override
     public List<ApplicationHostDTO> getHostsByModuleIds(Collection<Long> moduleIds) {
         List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByModuleIds(moduleIds);
         List<Long> hostIdList =

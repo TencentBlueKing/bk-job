@@ -116,6 +116,16 @@ public class ApplicationHostDTO {
     private String osType;
 
     /**
+     * 所属云厂商ID
+     */
+    private String cloudVendorId;
+
+    /**
+     * 所属云厂商名称
+     */
+    private String cloudVendorName;
+
+    /**
      * 集群ID
      */
     private List<Long> setId = new ArrayList<>();
@@ -137,6 +147,13 @@ public class ApplicationHostDTO {
 
     public void setCloudAreaId(Long cloudAreaId) {
         this.cloudAreaId = cloudAreaId;
+    }
+
+    public String getCloudVendorId() {
+        if (cloudVendorId != null && cloudVendorId.length() > 64) {
+            return cloudVendorId.substring(0, 64);
+        }
+        return cloudVendorId;
     }
 
     public void setGseAgentStatus(Integer gseAgentStatus) {
@@ -185,6 +202,8 @@ public class ApplicationHostDTO {
             hostInfoDTO.setCloudAreaName(hostInfoVO.getCloudArea().getName());
         }
         hostInfoDTO.setOsName(hostInfoVO.getOsName());
+        hostInfoDTO.setAgentId(hostInfoVO.getAgentId());
+        hostInfoDTO.setCloudVendorName(hostInfoVO.getCloudVendorName());
         return hostInfoDTO;
     }
 
@@ -199,6 +218,8 @@ public class ApplicationHostDTO {
         hostInfoVO.setOsName(osName);
         hostInfoVO.setAgentStatus(gseAgentStatus);
         hostInfoVO.setAlive(getAgentAliveValue());
+        hostInfoVO.setAgentId(agentId);
+        hostInfoVO.setCloudVendorName(cloudVendorName);
         return hostInfoVO;
     }
 

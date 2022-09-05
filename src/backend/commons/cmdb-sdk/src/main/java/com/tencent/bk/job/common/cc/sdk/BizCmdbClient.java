@@ -613,6 +613,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         applicationHostDTO.setAgentId(host.getAgentId());
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         applicationHostDTO.setHostId(host.getHostId());
+        applicationHostDTO.setCloudVendorId(host.getCloudVendorId());
         fillAgentInfo(applicationHostDTO, host);
         List<FindModuleHostRelationResult.ModuleProp> modules = hostWithModules.getModules();
         for (FindModuleHostRelationResult.ModuleProp module : modules) {
@@ -1174,6 +1175,28 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
+    public Map<String, String> getCloudVendorIdNameMap() {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("host");
+        List<CcObjAttributeDTO> cloudVendorAttrList = esbObjAttributeDTO.stream().filter(it ->
+            it.getBkPropertyId().equals("bk_cloud_vendor")
+        ).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(cloudVendorAttrList)) {
+            return Collections.emptyMap();
+        }
+        List<CcObjAttributeDTO.Option> optionList = parseOptionList(cloudVendorAttrList.get(0).getOption());
+        Map<String, String> map = new HashMap<>();
+        for (CcObjAttributeDTO.Option option : optionList) {
+            map.put(option.getId(), option.getName());
+        }
+        return map;
+    }
+
+    private List<CcObjAttributeDTO.Option> parseOptionList(Object option) {
+        return JsonUtils.fromJson(JsonUtils.toJson(option), new TypeReference<List<CcObjAttributeDTO.Option>>() {
+        });
+    }
+
+    @Override
     public List<InstanceTopologyDTO> getTopoInstancePath(GetTopoNodePathReq getTopoNodePathReq) {
         GetTopoNodePathReq req = makeBaseReq(GetTopoNodePathReq.class, defaultUin, defaultSupplierAccount);
 
@@ -1232,7 +1255,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
         req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_agent_id",
-            "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id"));
+            "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id", "bk_cloud_vendor"));
         req.setResource("host");
         req.setCursor(cursor);
         req.setStartTime(startTime);
