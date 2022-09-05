@@ -7,7 +7,7 @@ ENV BK_JOB_HOME=/data/job/exec
 COPY ./ /data/job/exec/
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
-    chmod +x /data/job/exec/startup.sh \
+    chmod +x /data/job/exec/startup.sh && \
     chmod +x /data/job/exec/tini
 
 
