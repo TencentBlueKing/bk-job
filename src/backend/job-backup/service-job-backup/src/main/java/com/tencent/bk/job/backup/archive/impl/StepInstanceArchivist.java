@@ -42,8 +42,14 @@ public class StepInstanceArchivist extends AbstractArchivist<StepInstanceRecord>
         this.deleteIdStepSize = 10_000;
     }
 
-    public Long getMaxNeedArchiveStepInstanceId(Long taskInstanceId) {
+    /**
+     * 获取作业实例ID范围内的步骤实例ID最大值
+     *
+     * @param taskInstanceId 作业实例ID
+     * @return 步骤实例ID 最大值
+     */
+    public Long getMaxId(Long taskInstanceId) {
         StepInstanceRecordDAO stepInstanceRecordDAO = (StepInstanceRecordDAO) executeRecordDAO;
-        return stepInstanceRecordDAO.getMaxNeedArchiveStepInstanceId(taskInstanceId);
+        return stepInstanceRecordDAO.getMaxId(taskInstanceId);
     }
 }
