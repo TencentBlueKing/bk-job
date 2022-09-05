@@ -27,11 +27,13 @@ package com.tencent.bk.job.common.paas.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.paas.metrics.PaaSMetricTags;
 import com.tencent.bk.job.common.paas.model.EsbListUsersResult;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.GetEsbNotifyChannelReq;
@@ -44,8 +46,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -86,51 +90,17 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         todayMsgStatisticsMap.forEach((key, value) -> value.set(0));
     }
 
-    /**
-     * 获取用户列表
-     *
-     * @param lookupField
-     * @param exactLookups
-     * @param fuzzyLookups
-     * @param page
-     * @param pageSize
-     * @param uin
-     * @return
-     */
     @Override
-    public List<BkUserDTO> getUserList(String fields, String lookupField,
-                                       String exactLookups, String fuzzyLookups,
-                                       long page, long pageSize, boolean noPage,
-                                       String bkToken, String uin) {
-        List<EsbListUsersResult> oriUsers;
+    public List<BkUserDTO> getUserList(String fields,
+                                       String bkToken,
+                                       String uin) {
+        List<EsbListUsersResult> esbUserList;
         try {
-            GetUserListReq req = makeBaseReqByWeb(GetUserListReq.class, null, uin, null);
-
-            if (StringUtils.isNotBlank(fields)) {
-                req.setFields(fields);
-            }
-
-            if (page > 0) {
-                req.setPage(page);
-            }
-            if (pageSize > 0) {
-                req.setPageSize(pageSize);
-            }
-            if (StringUtils.isNotBlank(lookupField)) {
-                req.setLookupField(lookupField);
-                if (StringUtils.isNotBlank(exactLookups)) {
-                    req.setExactLookups(exactLookups);
-                } else if (StringUtils.isNotBlank(fuzzyLookups)) {
-                    req.setFuzzyLookups(fuzzyLookups);
-                } else {
-                    return null;
-                }
-            }
-            req.setNoPage(noPage);
+            GetUserListReq req = buildGetUserListReq(uin, fields);
 
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_USER_MANAGE_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(
-                Tag.of("api_name", API_GET_USER_LIST)
+                Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_USER_LIST)
             );
             EsbResp<List<EsbListUsersResult>> esbResp = getEsbRespByReq(
                 HttpGet.METHOD_NAME,
@@ -139,7 +109,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
                 new TypeReference<EsbResp<List<EsbListUsersResult>>>() {
                 }
             );
-            oriUsers = esbResp.getData();
+            esbUserList = esbResp.getData();
         } catch (Exception e) {
             String errorMsg = "Get " + API_GET_USER_LIST + " error";
             log.error(errorMsg, e);
@@ -147,20 +117,35 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
-        if (oriUsers == null || oriUsers.isEmpty()) {
-            return null;
+        return convert(esbUserList);
+    }
+
+    private GetUserListReq buildGetUserListReq(String uin, String fields) {
+        GetUserListReq req = makeBaseReqByWeb(GetUserListReq.class, null, uin, null);
+        if (StringUtils.isNotBlank(fields)) {
+            req.setFields(fields);
         }
-        List<BkUserDTO> users = new ArrayList<>();
-        for (EsbListUsersResult oriUser : oriUsers) {
+        req.setPage(0L);
+        req.setPageSize(0L);
+        req.setNoPage(true);
+        return req;
+    }
+
+    private List<BkUserDTO> convert(List<EsbListUsersResult> esbUserList) {
+        if (CollectionUtils.isEmpty(esbUserList)) {
+            return Collections.emptyList();
+        }
+        List<BkUserDTO> userList = new ArrayList<>();
+        for (EsbListUsersResult esbUser : esbUserList) {
             BkUserDTO user = new BkUserDTO();
-            user.setId(oriUser.getId());
-            user.setUsername(oriUser.getUsername());
-            user.setDisplayName(oriUser.getDisplayName());
-            user.setLogo(oriUser.getLogo());
-            user.setUid(oriUser.getUid());
-            users.add(user);
+            user.setId(esbUser.getId());
+            user.setUsername(esbUser.getUsername());
+            user.setDisplayName(esbUser.getDisplayName());
+            user.setLogo(esbUser.getLogo());
+            user.setUid(esbUser.getUid());
+            userList.add(user);
         }
-        return users;
+        return userList;
     }
 
     @Override
@@ -169,7 +154,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(
-                Tag.of("api_name", API_GET_NOTIFY_CHANNEL_LIST)
+                Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_NOTIFY_CHANNEL_LIST)
             );
             EsbResp<List<EsbNotifyChannelDTO>> esbResp = getEsbRespByReq(
                 HttpGet.METHOD_NAME,
@@ -185,69 +170,92 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
     }
 
     @Override
-    public Boolean sendMsg(
+    public boolean sendMsg(
         String msgType,
         String sender,
-        Set<String> receiverList,
+        Set<String> receivers,
         String title,
         String content
-    ) throws Exception {
+    ) {
+        PostSendMsgReq req = buildSendMsgReq(msgType, sender, receivers, title, content);
+        long start = System.nanoTime();
+        String status = EsbMetricTags.VALUE_STATUS_NONE;
+        String uri = API_POST_SEND_MSG;
+        try {
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of(EsbMetricTags.KEY_API_NAME, uri));
+            EsbResp<Object> esbResp = getEsbRespByReq(
+                HttpPost.METHOD_NAME,
+                uri,
+                req,
+                new TypeReference<EsbResp<Object>>() {
+                }
+            );
+
+            if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
+                status = checkRespAndGetStatus(uri, esbResp);
+                return false;
+            }
+            status = EsbMetricTags.VALUE_STATUS_SUCCESS;
+            return true;
+        } catch (Exception e) {
+            log.error("Fail to request {}", uri, e);
+            status = EsbMetricTags.VALUE_STATUS_ERROR;
+            return false;
+        } finally {
+            HttpMetricUtil.clearHttpMetric();
+            recordMetrics(start, status, msgType);
+        }
+    }
+
+    private String checkRespAndGetStatus(String uri, EsbResp<?> esbResp) {
+        Integer code = esbResp.getCode();
+        log.warn(
+            "{}|requestId={}|result={}|code={}|msg={}|esbResp.getCode() != 0",
+            uri,
+            esbResp.getRequestId(),
+            esbResp.getResult(),
+            esbResp.getCode(),
+            esbResp.getMessage()
+        );
+        if (code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_STAGE)
+            || code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_RESOURCE)) {
+            return EsbMetricTags.VALUE_STATUS_OVER_RATE;
+        } else {
+            return EsbMetricTags.VALUE_STATUS_FAIL;
+        }
+    }
+
+    private PostSendMsgReq buildSendMsgReq(String msgType,
+                                           String sender,
+                                           Set<String> receivers,
+                                           String title,
+                                           String content) {
         PostSendMsgReq req = makeBaseReqByWeb(PostSendMsgReq.class, null, "admin", "superadmin");
         if (title == null || title.isEmpty()) {
             title = "Default Title";
         }
         req.setMsgType(msgType);
         req.setSender(sender);
-        req.setReceiverUsername(String.join(",", receiverList));
+        req.setReceiverUsername(String.join(",", receivers));
         req.setTitle(title);
         req.setContent(content);
-        long start = System.nanoTime();
-        String status = "none";
-        String uri = API_POST_SEND_MSG;
-        try {
-            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
-            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            EsbResp<List<Boolean>> esbResp = getEsbRespByReq(
-                HttpPost.METHOD_NAME,
-                uri,
-                req,
-                new TypeReference<EsbResp<List<Boolean>>>() {
-                }
-            );
+        return req;
+    }
 
-            if (esbResp.getCode() != 0) {
-                Integer code = esbResp.getCode();
-                log.warn("{}|requestId={}|code={}|msg={}|esbResp.getCode() != 0",
-                    uri, esbResp.getRequestId(), esbResp.getCode(), esbResp.getMessage());
-                if (code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_STAGE)
-                    || code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_RESOURCE)) {
-                    status = "over_rate";
-                } else {
-                    status = "fail";
-                }
-                return false;
-            }
-            status = "success";
-            return true;
-        } catch (Exception e) {
-            log.error("Fail to request {}", uri, e);
-            status = "error";
-            return false;
-        } finally {
-            HttpMetricUtil.clearHttpMetric();
-            long end = System.nanoTime();
-            meterRegistry.timer(
-                CommonMetricNames.ESB_CMSI_API,
-                "api_name", API_POST_SEND_MSG,
-                "status", status,
-                "msg_type", msgType
-            ).record(end - start, TimeUnit.NANOSECONDS);
-            String key = "today.msg." + msgType + "." + status;
-            AtomicInteger valueWrapper = todayMsgStatisticsMap.computeIfAbsent(key,
-                str -> new AtomicInteger(0));
-            Integer value = valueWrapper.incrementAndGet();
-            log.debug("statistics:{}->{}", key, value);
-            meterRegistry.gauge(key, valueWrapper);
-        }
+    private void recordMetrics(long startTimeNanos, String status, String msgType) {
+        long end = System.nanoTime();
+        meterRegistry.timer(
+            CommonMetricNames.ESB_CMSI_API,
+            EsbMetricTags.KEY_API_NAME, API_POST_SEND_MSG,
+            EsbMetricTags.KEY_STATUS, status,
+            PaaSMetricTags.KEY_MSG_TYPE, msgType
+        ).record(end - startTimeNanos, TimeUnit.NANOSECONDS);
+        String key = "today.msg." + msgType + "." + status;
+        AtomicInteger valueWrapper = todayMsgStatisticsMap.computeIfAbsent(key,
+            str -> new AtomicInteger(0));
+        Integer value = valueWrapper.incrementAndGet();
+        log.debug("statistics:{}->{}", key, value);
+        meterRegistry.gauge(key, valueWrapper);
     }
 }

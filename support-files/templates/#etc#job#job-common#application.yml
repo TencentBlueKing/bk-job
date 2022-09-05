@@ -41,6 +41,8 @@ iam:
   base-url: __BK_IAM_PRIVATE_URL__
   system-id: bk_job
 paas:
+  server:
+    url: __BK_PAAS_PUBLIC_URL__
   login:
     url: __BK_PAAS_PUBLIC_URL__/login/
 job:

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.trace.executors;
+package com.tencent.bk.job.common.trace.executors;
 
 
 import brave.Tracing;

@@ -129,7 +129,7 @@ public interface WebNotifyResource {
 
     @ApiOperation(value = "后台自测调试用接口：发送消息通知", produces = "application/json")
     @PostMapping("/notifications/send")
-    Response sendNotification(
+    Response<?> sendNotification(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

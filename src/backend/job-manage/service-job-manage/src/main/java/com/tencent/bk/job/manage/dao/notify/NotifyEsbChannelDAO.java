@@ -30,7 +30,7 @@ import org.jooq.DSLContext;
 import java.util.List;
 
 public interface NotifyEsbChannelDAO {
-    NotifyEsbChannelDTO getNotifyEsbChannelByType(DSLContext dslContext, String type);
 
     List<NotifyEsbChannelDTO> listNotifyEsbChannel(DSLContext dslContext);
+
 }

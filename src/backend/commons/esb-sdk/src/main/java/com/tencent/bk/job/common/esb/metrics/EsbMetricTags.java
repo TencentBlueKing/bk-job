@@ -22,42 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.trace.executors;
+package com.tencent.bk.job.common.esb.metrics;
 
-import brave.ScopedSpan;
-import brave.Tracer;
-import brave.Tracing;
-import brave.propagation.TraceContext;
-
-import java.util.concurrent.Callable;
-
-public class TraceCallable<V> implements Callable<V> {
+public class EsbMetricTags {
     /**
-     * 日志调用链tracer
+     * API名称
      */
-    private final Tracer tracer;
+    public static final String KEY_API_NAME = "api_name";
     /**
-     * 调用链父上下文
+     * 接口调用状态
      */
-    private final TraceContext parent;
-    private Callable<V> delegate;
-
-    public TraceCallable(Callable<V> callable, Tracing tracing) {
-        this.delegate = callable;
-        this.tracer = tracing.tracer();
-        this.parent = tracing.currentTraceContext().get();
-    }
-
-    @Override
-    public V call() throws Exception {
-        ScopedSpan span = this.tracer.startScopedSpanWithParent("async", parent);
-        try {
-            return delegate.call();
-        } catch (Throwable e) {
-            span.error(e);
-            throw e;
-        } finally {
-            span.finish();
-        }
-    }
+    public static final String KEY_STATUS = "status";
+    /**
+     * 接口调用状态：初始值
+     */
+    public static final String VALUE_STATUS_NONE = "none";
+    /**
+     * 接口调用状态：成功
+     */
+    public static final String VALUE_STATUS_SUCCESS = "success";
+    /**
+     * 接口调用状态：失败
+     */
+    public static final String VALUE_STATUS_FAIL = "fail";
+    /**
+     * 接口调用状态：超频
+     */
+    public static final String VALUE_STATUS_OVER_RATE = "over_rate";
+    /**
+     * 接口调用状态：错误
+     */
+    public static final String VALUE_STATUS_ERROR = "error";
 }

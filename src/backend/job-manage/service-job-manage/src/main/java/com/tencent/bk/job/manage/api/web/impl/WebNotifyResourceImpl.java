@@ -38,6 +38,7 @@ import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.LocalPermissionService;
 import com.tencent.bk.job.manage.service.NotifyService;
+import com.tencent.bk.job.manage.service.impl.notify.NotifyUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,14 +52,17 @@ import static com.tencent.bk.job.common.constant.ErrorCode.PERMISSION_DENIED;
 public class WebNotifyResourceImpl implements WebNotifyResource {
 
     private final NotifyService notifyService;
+    private final NotifyUserService notifyUserService;
     private final LocalPermissionService localPermissionService;
     private final NotificationAuthService notificationAuthService;
 
     @Autowired
     public WebNotifyResourceImpl(NotifyService notifyService,
+                                 NotifyUserService notifyUserService,
                                  LocalPermissionService localPermissionService,
                                  NotificationAuthService notificationAuthService) {
         this.notifyService = notifyService;
+        this.notifyUserService = notifyUserService;
         this.localPermissionService = localPermissionService;
         this.notificationAuthService = notificationAuthService;
     }
@@ -101,11 +105,11 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
                                             String prefixStr,
                                             Long offset,
                                             Long limit) {
-        return Response.buildSuccessResp(notifyService.listUsers(username, prefixStr, offset, limit, true));
+        return Response.buildSuccessResp(notifyUserService.listUsers(prefixStr, offset, limit, true));
     }
 
     @Override
-    public Response sendNotification(String username, ServiceNotificationDTO notification) {
+    public Response<?> sendNotification(String username, ServiceNotificationDTO notification) {
         if (localPermissionService.isAdmin(username)) {
             return Response.buildSuccessResp(notifyService.sendSimpleNotification(notification));
         } else {

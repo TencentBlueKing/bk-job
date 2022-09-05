@@ -31,8 +31,6 @@ import java.util.List;
 
 public interface EsbAppRoleDAO {
 
-    AppRoleDTO getEsbAppRoleById(DSLContext dslContext, String id);
-
     List<AppRoleDTO> listEsbAppRole(DSLContext dslContext);
 
 }
