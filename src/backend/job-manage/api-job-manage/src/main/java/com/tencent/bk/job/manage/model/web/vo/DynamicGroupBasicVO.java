@@ -42,6 +42,9 @@ public class DynamicGroupBasicVO {
     @ApiModelProperty("动态分组名称")
     private String name;
 
+    @ApiModelProperty("最后修改时间")
+    private String lastTime;
+
     @ApiModelProperty(value = "动态分组元数据")
     Map<String, Object> meta;
 

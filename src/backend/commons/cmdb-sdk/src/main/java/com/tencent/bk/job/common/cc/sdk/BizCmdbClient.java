@@ -809,6 +809,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ccGroupDTO.setBizId(ccDynamicGroupDTO.getBizId());
         ccGroupDTO.setId(ccDynamicGroupDTO.getId());
         ccGroupDTO.setName(ccDynamicGroupDTO.getName());
+        ccGroupDTO.setLastTime(ccDynamicGroupDTO.getLastTime());
         return ccGroupDTO;
     }
 

@@ -43,6 +43,8 @@ public class DynamicGroupDTO {
 
     private String name;
 
+    private String lastTime;
+
     public static DynamicGroupDTO fromCcGroupDTO(CcGroupDTO ccGroupDTO) {
         if (ccGroupDTO == null) {
             return null;
@@ -51,10 +53,11 @@ public class DynamicGroupDTO {
         dynamicGroupDTO.setId(ccGroupDTO.getId());
         dynamicGroupDTO.setBizId(ccGroupDTO.getBizId());
         dynamicGroupDTO.setName(ccGroupDTO.getName());
+        dynamicGroupDTO.setLastTime(ccGroupDTO.getLastTime());
         return dynamicGroupDTO;
     }
 
     public DynamicGroupBasicVO toBasicVO() {
-        return new DynamicGroupBasicVO(id, name, null);
+        return new DynamicGroupBasicVO(id, name, lastTime, null);
     }
 }
