@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.common;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -38,16 +39,32 @@ import lombok.NoArgsConstructor;
 @ApiModel("Agent统计数据")
 @Data
 public class AgentStatistics {
+
+    @ApiModelProperty("正常数")
+    private int aliveCount;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     @ApiModelProperty("正常数")
     private int normalNum;
+
+    @ApiModelProperty("异常数")
+    private int notAliveCount;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     @ApiModelProperty("异常数")
     private int abnormalNum;
+
+    @ApiModelProperty("总数")
+    private int totalCount;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     @ApiModelProperty("总数")
     private int totalNum;
 
-    public AgentStatistics(int normalNum, int abnormalNum) {
-        this.normalNum = normalNum;
-        this.abnormalNum = abnormalNum;
-        this.totalNum = normalNum + abnormalNum;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改", version = "3.8.0")
+    public AgentStatistics(int aliveCount, int notAliveCount) {
+        this.aliveCount = aliveCount;
+        this.notAliveCount = notAliveCount;
+        this.totalCount = aliveCount + notAliveCount;
+        this.normalNum = aliveCount;
+        this.abnormalNum = notAliveCount;
+        this.totalNum = totalCount;
     }
 }
