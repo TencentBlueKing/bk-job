@@ -135,6 +135,7 @@ spec:
             - name: job-gse-tls-password
               mountPath: /etc/secrets
               readOnly: true
+      terminationGracePeriodSeconds: 120
       volumes:
         - name: job-storage
           persistentVolumeClaim:

@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class ArchiveTaskLock {
     private final String ARCHIVE_LOCK_KEY_PREFIX = "JOB_EXECUTE_LOG_ARCHIVE_LOCK";
-    private final Long LOCK_TIME = 12 * 3600 * 1000L;
+    private final Long LOCK_TIME = 24 * 3600 * 1000L;
     /**
      * 最小获取锁间隔时间；为了保证在分布式系统中多个节点都能均匀获取到任务，会优先让空闲的节点获取到任务
      */

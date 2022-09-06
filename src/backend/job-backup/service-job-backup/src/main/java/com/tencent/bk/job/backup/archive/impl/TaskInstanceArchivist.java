@@ -42,8 +42,8 @@ public class TaskInstanceArchivist extends AbstractArchivist<TaskInstanceRecord>
         this.deleteIdStepSize = 10_000;
     }
 
-    public Long getMaxNeedArchiveTaskInstanceId(Long endTime) {
+    public Long getMaxId(Long endTime) {
         TaskInstanceRecordDAO taskInstanceRecordDAO = (TaskInstanceRecordDAO) executeRecordDAO;
-        return taskInstanceRecordDAO.getMaxNeedArchiveTaskInstanceId(endTime);
+        return taskInstanceRecordDAO.getMaxId(endTime);
     }
 }

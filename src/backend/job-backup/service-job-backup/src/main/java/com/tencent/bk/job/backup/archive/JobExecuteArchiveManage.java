@@ -59,6 +59,7 @@ import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
@@ -97,6 +98,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
     private final GseFileAgentTaskArchivist gseFileAgentTaskArchivist;
     private final StepInstanceRollingTaskArchivist stepInstanceRollingTaskArchivist;
     private final RollingConfigArchivist rollingConfigArchivist;
+    private final ArchiveProgressService archiveProgressService;
 
 
     /**
@@ -125,6 +127,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                                    ArchiveConfig archiveConfig) {
         log.info("Init JobExecuteArchiveManage! archiveConfig: {}", archiveConfig);
         this.archiveConfig = archiveConfig;
+        this.archiveProgressService = archiveProgressService;
         this.fileSourceTaskLogArchivist = new FileSourceTaskLogArchivist(fileSourceTaskRecordDAO, executeArchiveDAO,
             archiveProgressService);
         this.stepInstanceArchivist = new StepInstanceArchivist(stepInstanceRecordDAO, executeArchiveDAO,
@@ -230,9 +233,8 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             try {
                 log.info("Start job execute archive before {} at {}", endTime, System.currentTimeMillis());
 
-                long maxNeedArchiveTaskInstanceId = taskInstanceArchivist.getMaxNeedArchiveTaskInstanceId(endTime);
-                long maxNeedArchiveStepInstanceId =
-                    stepInstanceArchivist.getMaxNeedArchiveStepInstanceId(maxNeedArchiveTaskInstanceId);
+                long maxNeedArchiveTaskInstanceId = computeMaxNeedArchiveTaskInstanceId(endTime);
+                long maxNeedArchiveStepInstanceId = computeMaxNeedArchiveStepInstanceId(maxNeedArchiveTaskInstanceId);
 
                 log.info("Compute archive instance id range, maxNeedArchiveTaskInstanceId: {}, " +
                     "maxNeedArchiveStepInstanceId: {}", maxNeedArchiveTaskInstanceId, maxNeedArchiveStepInstanceId);
@@ -247,6 +249,22 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             } catch (Throwable e) {
                 log.error("Error while do archive!|{}", endTime, e);
             }
+        }
+
+        public long computeMaxNeedArchiveTaskInstanceId(Long endTime) {
+            ArchiveProgressDTO archiveProgress =
+                archiveProgressService.queryArchiveProgress(taskInstanceArchivist.getTableName());
+            long lastArchivedId = archiveProgress != null ? archiveProgress.getLastArchivedId() : 0L;
+            long maxId = taskInstanceArchivist.getMaxId(endTime);
+            return Math.max(lastArchivedId, maxId);
+        }
+
+        public long computeMaxNeedArchiveStepInstanceId(Long taskInstanceId) {
+            ArchiveProgressDTO archiveProgress =
+                archiveProgressService.queryArchiveProgress(stepInstanceArchivist.getTableName());
+            long lastArchivedId = archiveProgress != null ? archiveProgress.getLastArchivedId() : 0L;
+            long maxId = stepInstanceArchivist.getMaxId(taskInstanceId);
+            return Math.max(lastArchivedId, maxId);
         }
 
         private void archive(long maxNeedArchiveTaskInstanceId, long maxNeedArchiveStepInstanceId)

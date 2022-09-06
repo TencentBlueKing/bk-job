@@ -680,6 +680,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                     .filter(agentTask -> matchHostIds.contains(agentTask.getHostId()))
                     .collect(Collectors.toList());
                 resultGroup.setAgentTasks(agentTasks);
+                resultGroup.setTotalAgentTasks(agentTasks.size());
             }
         }
     }
