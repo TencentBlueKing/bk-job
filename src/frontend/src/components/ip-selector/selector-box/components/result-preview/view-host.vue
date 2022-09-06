@@ -19,10 +19,14 @@
             </span>
         </template>
         <template #action>
-            <div @click="handleCopyIP">
+            <div
+                v-bk-tooltips="'复制所有 IP'"
+                @click="handleCopyIP">
                 <i class="bk-ipselector-icon bk-ipselector-copy" />
             </div>
-            <div @click="handlRemoveAll">
+            <div
+                v-bk-tooltips="'清空'"
+                @click="handlRemoveAll">
                 <i class="bk-ipselector-icon bk-ipselector-delete" />
             </div>
         </template>
@@ -31,16 +35,16 @@
                 v-for="(item, index) in listData"
                 :key="index"
                 :content="item[hostRenderKey]"
-                :removable="diffMap[item.hostId]!== 'remove'"
+                :removable="diffMap[item.host_id]!== 'remove'"
                 @remove="handleRemove(item)">
                 <span
-                    v-if="diffMap[item.hostId] === 'repeat'"
+                    v-if="diffMap[item.host_id] === 'repeat'"
                     style="color: #c4c6cc;">
-                    (Host ID: {{ item.hostId }})
+                    (Host ID: {{ item.host_id }})
                 </span>
                 {{ item[hostRenderKey] || '--' }}
                 <template #append>
-                    <diff-tag :value="diffMap[item.hostId]" />
+                    <diff-tag :value="diffMap[item.host_id]" />
                 </template>
             </CallapseContentItem>
         </div>
@@ -92,11 +96,14 @@
 
     const newHostNum = ref(0);
 
-    // 通过 hostId 查询主机详情
+    // 通过 host_id 查询主机详情
     const fetchData = () => {
         isLoading.value = true;
         Manager.service.fetchHostsDetails({
-            hostList: props.data,
+            [Manager.nameStyle('hostList')]: props.data.map(item => ({
+                [Manager.nameStyle('hostId')]: item.host_id,
+                [Manager.nameStyle('meta')]: item.meta,
+            })),
         })
         .then((data) => {
             validHostList.value = data;

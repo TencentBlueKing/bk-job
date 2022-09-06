@@ -3,4 +3,4 @@
  * @param { Object } node
  * @returns { string }
  */
-export const genNodeKey = node => `#${node.objectId}#${node.instanceId}`;
+export const genNodeKey = node => `#${node.object_id}#${node.instance_id}`;

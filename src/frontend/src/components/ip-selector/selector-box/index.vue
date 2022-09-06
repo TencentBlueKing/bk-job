@@ -59,13 +59,13 @@
     import Manager from '../manager';
     import {
         transformTopoTree,
-        mergeCustomInputHost,
+        formatInput,
         formatOutput,
     } from '../utils/index';
     import useDialogSize from '../hooks/use-dialog-size';
-    import PanelTab from './components/panel-tab';
-    import PanelContent from './components/panel-content';
-    import ResultPreview from './components/result-preview';
+    import PanelTab from './components/panel-tab/index.vue';
+    import PanelContent from './components/panel-content/index.vue';
+    import ResultPreview from './components/result-preview/index.vue';
 
     const props = defineProps({
         isShow: {
@@ -137,10 +137,10 @@
             panelType.value = 'staticTopo';
             fetchTopoData();
             const {
-                hostList = [],
-                nodeList = [],
-                dynamicGroupList = [],
-            } = props.value || {};
+                host_list: hostList,
+                node_list: nodeList,
+                dynamic_group_list: dynamicGroupList,
+            } = formatInput(props.value || {});
 
             lastHostList.value = hostList;
             lastNodeList.value = nodeList;
@@ -165,8 +165,6 @@
             case 'dynamicGroupList':
                 lastDynamicGroupList.value = value;
                 break;
-            case 'customInputHostList':
-                lastHostList.value = mergeCustomInputHost(lastHostList.value, value);
         }
     };
     const handleClearChange = () => {

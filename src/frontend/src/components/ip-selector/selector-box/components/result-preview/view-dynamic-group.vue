@@ -19,7 +19,9 @@
             </span>
         </template>
         <template #action>
-            <div @click="handlRemoveAll">
+            <div
+                v-bk-tooltips="'清空'"
+                @click="handlRemoveAll">
                 <i class="bk-ipselector-icon bk-ipselector-delete" />
             </div>
         </template>
@@ -81,7 +83,10 @@
     const fetchData = () => {
         isLoading.value = true;
         Manager.service.fetchDynamicGroups({
-            dynamicGroupList: props.data,
+            [Manager.nameStyle('dynamicGroupList')]: props.data.map(item => ({
+                [Manager.nameStyle('id')]: item.id,
+                [Manager.nameStyle('meta')]: item.meta,
+            })),
         })
         .then((data) => {
             validDynamicGroupList.value = data;

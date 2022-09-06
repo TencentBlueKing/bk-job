@@ -4,13 +4,18 @@
             ref="inputRef"
             class="custom-input">
             <bk-input
-                v-model="customInputText"
+                v-model="manualInputText"
                 type="textarea"
+                placeholder="请输入 IP / Ipv6 或主机名称，如（192.168.1.112 或 ebd4:3e1::e13），带云区域请使用冒号分隔，如：0:192.168.9.10
+多个可使用换行，空格或；，｜ ”分隔"
                 :native-attributes="{ spellcheck: false }"
-                :style="customInputStyles" />
+                :style="manualInputStyles" />
             <div class="custom-input-parse-error">
                 <span v-if="errorInputStack.length > 0">
-                    {{ errorInputStack.length }}处格式有误
+                    <span style="padding-right: 2px; font-weight: bold;">
+                        {{ errorInputStack.length }}
+                    </span>
+                    处格式有误
                     <span
                         v-bk-tooltips="$t('标识错误')"
                         class="parse-error-btn"
@@ -20,7 +25,10 @@
                 </span>
                 <span v-if="invalidInputStack.length > 0">
                     <span v-if="errorInputStack.length > 0"> ;</span>
-                    {{ invalidInputStack.length }}处 IP 不存在
+                    <span style="padding-right: 2px; font-weight: bold;">
+                        {{ invalidInputStack.length }}
+                    </span>
+                    处 IP 不存在
                     <span
                         v-bk-tooltips="$t('标识错误')"
                         class="parse-error-btn"
@@ -36,13 +44,13 @@
                     :loading="isLoading"
                     outline
                     class="parse-btn"
-                    @click="handleParseCustomInput">
+                    @click="handleParseManualInput">
                     点击解析
                 </bk-button>
                 <bk-button
                     size="small"
                     class="clear-btn"
-                    @click="handleClearCustomInput">
+                    @click="handleClearManualInput">
                     清空
                 </bk-button>
             </div>
@@ -64,7 +72,7 @@
                         @change="handlePageCheck" />
                 </template>
                 <template #selection="{ row }">
-                    <bk-checkbox :value="Boolean(hostCheckedMap[row.hostId])" />
+                    <bk-checkbox :value="Boolean(hostCheckedMap[row.host_id])" />
                 </template>
                 <template
                     v-if="hostTableData.length < 1"
@@ -85,6 +93,11 @@
         </div>
     </div>
 </template>
+<script>
+    export default {
+        inheritAttrs: false,
+    };
+</script>
 <script setup>
     import {
         ref,
@@ -94,7 +107,7 @@
     } from 'vue';
     import _ from 'lodash';
     import Manager from '../../../manager';
-    import RenderHostTable from '../../../common/render-table/host.vue';
+    import RenderHostTable from '../../../common/render-table/host/index.vue';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import useDebounceRef from '../../../hooks/use-debounced-ref';
     import useLocalPagination from '../../../hooks/use-local-pagination';
@@ -116,7 +129,7 @@
 
     const isLoading = ref(false);
     const inputRef = ref();
-    const customInputText = ref('');
+    const manualInputText = ref('');
     const hostTableData = shallowRef([]);
     const hostCheckedMap = shallowRef({});
     const errorInputStack = shallowRef([]);
@@ -131,7 +144,7 @@
     const serachKey = useDebounceRef('');
     const pageCheckValue = ref('');
 
-    const customInputStyles = computed(() => ({
+    const manualInputStyles = computed(() => ({
         height: `${dialogContentHeight.value - 94}px`,
     }));
 
@@ -144,21 +157,12 @@
         handlePaginationLimitChange,
     } = useLocalPagination(hostTableData, getPaginationDefault(renderTableHeight));
 
-    watch(() => props.lastHostList, (lastHostList) => {
-        hostCheckedMap.value = lastHostList.reduce((result, hostItem) => {
-            result[hostItem.hostId] = hostItem;
-            return result;
-        }, {});
-    }, {
-        immediate: true,
-    });
-
     // 判断 page-check 的状态
     const syncPageCheckValue = () => {
         if (hostTableData.value.length > 0) {
             pageCheckValue.value = 'page';
-            hostTableData.value.forEach((hostItem) => {
-                if (!hostCheckedMap.value[hostItem.hostId]) {
+            hostTableData.value.forEach((hostDataItem) => {
+                if (!hostCheckedMap.value[hostDataItem.host_id]) {
                     pageCheckValue.value = '';
                 }
             });
@@ -167,13 +171,30 @@
         }
     };
 
+    let isInnerChange = false;
+
+    watch(() => props.lastHostList, (lastHostList) => {
+        if (isInnerChange) {
+            isInnerChange = false;
+            return;
+        }
+        hostCheckedMap.value = lastHostList.reduce((result, hostDataItem) => {
+            result[hostDataItem.host_id] = hostDataItem;
+            return result;
+        }, {});
+        syncPageCheckValue();
+    }, {
+        immediate: true,
+    });
+
     const triggerChange = () => {
-        emits('change', 'customInputHostList', Object.values(hostCheckedMap.value));
+        isInnerChange = true;
+        emits('change', 'hostList', Object.values(hostCheckedMap.value));
     };
 
     // 解析输入
-    const handleParseCustomInput = () => {
-        const inputText = _.trim(customInputText.value);
+    const handleParseManualInput = () => {
+        const inputText = _.trim(manualInputText.value);
         if (!inputText) {
             return;
         }
@@ -242,9 +263,9 @@
 
         isLoading.value = true;
         Manager.service.fetchHostCheck({
-            ipList,
-            ipv6List,
-            keyList,
+            [Manager.nameStyle('ipList')]: ipList,
+            [Manager.nameStyle('ipv6List')]: ipv6List,
+            [Manager.nameStyle('keyList')]: keyList,
         })
         .then((data) => {
             hostTableData.value = data;
@@ -257,17 +278,17 @@
                 if (ipMap[hostData.ip]) {
                     delete ipMap[hostData.ip];
                 }
-                if (ipMap[`${hostData.cloudArea.id}:${hostData.ip}`]) {
-                    delete ipMap[`${hostData.cloudArea.id}:${hostData.ip}`];
+                if (ipMap[`${hostData.cloud_area.id}:${hostData.ip}`]) {
+                    delete ipMap[`${hostData.cloud_area.id}:${hostData.ip}`];
                 }
                 if (ipv6Map[hostData.ipv6]) {
                     delete ipv6Map[hostData.ipv6];
                 }
-                if (keyMap[hostData.hostId]) {
-                    delete keyMap[hostData.hostId];
+                if (keyMap[hostData.host_id]) {
+                    delete keyMap[hostData.host_id];
                 }
-                if (keyMap[hostData.hostName]) {
-                    delete keyMap[hostData.hostName];
+                if (keyMap[hostData.host_name]) {
+                    delete keyMap[hostData.host_name];
                 }
             });
             errorInputStack.value = [
@@ -278,10 +299,10 @@
                 ...Object.keys(ipMap),
                 ...Object.keys(ipv6Map),
             ];
-            customInputText.value = [
+            manualInputText.value = _.filter([
                 errorInputStack.value.join('\n'),
                 invalidInputStack.value.join('\n'),
-            ].join('\n');
+            ], _ => _).join('\n');
         })
         .finally(() => {
             isLoading.value = false;
@@ -289,10 +310,10 @@
     };
 
     // 清空输入框
-    const handleClearCustomInput = () => {
+    const handleClearManualInput = () => {
         invalidInputStack.value = [];
         errorInputStack.value = [];
-        customInputText.value = '';
+        manualInputText.value = '';
     };
 
     // 高亮错误的输入
@@ -318,22 +339,24 @@
     // 本页全选、跨页全选
     const handlePageCheck = (checkValue) => {
         const checkedMap = { ...hostCheckedMap.value };
+
+        console.log(checkValue, checkedMap, renderData.value);
         
         if (checkValue === 'page') {
-            renderData.value.forEach((hostItem) => {
-                checkedMap[hostItem.hostId] = hostItem;
+            renderData.value.forEach((hostDataItem) => {
+                checkedMap[hostDataItem.host_id] = hostDataItem;
             });
         } else if (checkValue === 'pageCancle') {
-            renderData.value.forEach((hostItem) => {
-                delete checkedMap[hostItem.hostId];
+            renderData.value.forEach((hostDataItem) => {
+                delete checkedMap[hostDataItem.host_id];
             });
         } else if (checkValue === 'allCancle') {
-            searchWholeData.value.forEach((hostItem) => {
-                delete checkedMap[hostItem.hostId];
+            searchWholeData.value.forEach((hostDataItem) => {
+                delete checkedMap[hostDataItem.host_id];
             });
         } else if (checkValue === 'all') {
-            hostTableData.value.forEach((hostItem) => {
-                checkedMap[hostItem.hostId] = hostItem;
+            hostTableData.value.forEach((hostDataItem) => {
+                checkedMap[hostDataItem.host_id] = hostDataItem;
             });
         }
         pageCheckValue.value = checkValue;
@@ -344,10 +367,10 @@
     // 选中指定主机
     const handleRowClick = (data) => {
         const checkedMap = { ...hostCheckedMap.value };
-        if (checkedMap[data.hostId]) {
-            delete checkedMap[data.hostId];
+        if (checkedMap[data.host_id]) {
+            delete checkedMap[data.host_id];
         } else {
-            checkedMap[data.hostId] = data;
+            checkedMap[data.host_id] = data;
         }
         hostCheckedMap.value = checkedMap;
         triggerChange();
@@ -402,7 +425,8 @@
         }
 
         .host-table {
-            padding: 0 24px 0 16px;
+            flex: 1;
+            padding-left: 16px;
         }
     }
 </style>

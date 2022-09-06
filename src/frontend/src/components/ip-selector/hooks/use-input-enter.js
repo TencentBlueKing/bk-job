@@ -8,8 +8,7 @@ export default callback => (value, event) => {
     
     // 输入框的值被清空直接触发搜索
     // enter键开始搜索
-    if (value === ''
-     || event.keyCode === 13
+    if (event.keyCode === 13
      || event.type === 'click') {
         nextTick(() => {
             callback();

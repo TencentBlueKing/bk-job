@@ -28,6 +28,7 @@
 import DynamicGroupInfoVO from '@domain/variable-object/dynamic-group-info';
 import NodeInfoVO from '@domain/variable-object/node-info';
 import AppManageSource from '../source/app-manage';
+import * as IpSelectrAdapter from '@components/ip-selector/adapter';
 
 export default {
     fetchAppList () {
@@ -51,11 +52,7 @@ export default {
         return AppManageSource.getAllTopology()
             .then(({ data }) => data);
     },
-    // 获取业务拓扑主机列表（包含主机）
-    fetchTopologyWithCount () {
-        return AppManageSource.getAllTopologyWithCount()
-            .then(({ data }) => data);
-    },
+    
     // 获取拓扑节点数包含主机
     fetchAllTopologyHost () {
         return AppManageSource.getAllTopologyWithHost()
@@ -71,36 +68,10 @@ export default {
         return AppManageSource.getNodeInfo(params)
             .then(({ data }) => data);
     },
-
-    // 获取节点拓扑路径
-    fetchNodePath (params) {
-        return AppManageSource.getNodePath(params)
-            .then(({ data }) => data);
-    },
     
     // ip输入获取主机列表
     fetchHostOfHost (params) {
         return AppManageSource.getHostByHost(params)
-            .then(({ data }) => data);
-    },
-    // 获取动态分列表
-    fetchDynamicGroup (params) {
-        return AppManageSource.getAllDynamicGroup(params)
-            .then(({ data }) => data);
-    },
-    // 获取动态分组的主机列表
-    fetchHostOfDynamicGroup (params) {
-        return AppManageSource.getHostByDynamicGroupId(params)
-            .then(({ data }) => data.map(item => new DynamicGroupInfoVO(item)));
-    },
-    
-    fetchTopologyHost (params) {
-        return AppManageSource.getTopologyHost(params)
-            .then(({ data }) => data);
-    },
-
-    fetchTopogyHostIdList (params) {
-        return AppManageSource.getTopologyNodeAllHostId(params)
             .then(({ data }) => data);
     },
     
@@ -109,29 +80,59 @@ export default {
         return AppManageSource.getChildOfNode(params)
             .then(({ data }) => data);
     },
-    
     fetchHostStatistics (params) {
         return AppManageSource.getHostStatistics(params)
             .then(({ data }) => data);
     },
+    // 获取业务拓扑主机列表（包含主机）
+    fetchTopologyWithCount () {
+        return AppManageSource.getAllTopologyWithCount()
+            .then(({ data }) => IpSelectrAdapter.topologyHostCount(data));
+    },
+    // 获取节点拓扑路径
+    fetchNodePath (params) {
+        return AppManageSource.getNodePath(params)
+            .then(({ data }) => IpSelectrAdapter.topologyQueryPath(data));
+    },
+    // 获取动态分列表
+    fetchDynamicGroup (params) {
+        return AppManageSource.getAllDynamicGroup(params)
+            .then(({ data }) => IpSelectrAdapter.dynamicGroups(data));
+    },
+    // 获取动态分组的主机列表
+    fetchHostOfDynamicGroup (params) {
+        return AppManageSource.getHostByDynamicGroupId(params)
+            .then(({ data }) => data.map(item => new DynamicGroupInfoVO(item)));
+    },
+    
+    fetchTopologyHost (params) {
+        console.log('asdasd = ', params);
+        return AppManageSource.getTopologyHost(params)
+            .then(({ data }) => IpSelectrAdapter.topolopyHostsNodes(data));
+    },
+    fetchTopogyHostIdList (params) {
+        return AppManageSource.getTopologyNodeAllHostId(params)
+            .then(({ data }) => IpSelectrAdapter.topolopyHostIdsNodes(data));
+    },
+    
     fetchBatchNodeAgentStatistics (params) {
         return AppManageSource.getBatchNodeAgentStatistics(params)
-            .then(({ data }) => data);
+            .then(({ data }) => IpSelectrAdapter.hostAgentStatisticsNodes(data));
     },
     fetchDynamicGroupHost (params) {
         return AppManageSource.getDynamicGroupHost(params)
-            .then(({ data }) => data);
+            .then(({ data }) => IpSelectrAdapter.hostsDynamicGroup(data));
     },
     fetchBatchGroupAgentStatistics (params) {
         return AppManageSource.getBatchGroupAgentStatistics(params)
-            .then(({ data }) => data);
+            .then(({ data }) => IpSelectrAdapter.hostAgentStatisticsDynamicGroups(data));
     },
     fetchInputParseHostList (params) {
         return AppManageSource.getInputParseHostList(params)
-            .then(({ data }) => data);
+            .then(({ data }) => IpSelectrAdapter.hostCheck(data));
     },
     fetchHostInfoByHostId (params) {
         return AppManageSource.getHostInfoByHostId(params)
-            .then(({ data }) => data);
+            .then(({ data }) => IpSelectrAdapter.hostsDetails(data));
     },
 };

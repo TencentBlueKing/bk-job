@@ -38,7 +38,7 @@
                 :show-setting="false"
                 :column-width-callback="columnWidthCallback">
                 <template #[hostRenderKey]="{ row }">
-                    <diff-tag :value="diffMap[row.hostId]" />
+                    <diff-tag :value="diffMap[row.host_id]" />
                 </template>
                 <template
                     v-if="!context.readonly"
@@ -75,7 +75,7 @@
     import useHostRenderKey from '../hooks/use-host-render-key';
     import ExtendAction from '../common/extend-action.vue';
     import DiffTag from '../common/diff-tag.vue';
-    import RenderHostTable from '../common/render-table/host.vue';
+    import RenderHostTable from '../common/render-table/host/index.vue';
     import {
         execCopy,
         getInvalidHostList,
@@ -124,11 +124,14 @@
         handlePaginationLimitChange,
     } = useLocalPagination(tableData);
 
-    // 通过 hostId 获取主机详情
+    // 通过 host_id 获取主机详情
     const fetchData = () => {
         isLoading.value = true;
         Manager.service.fetchHostsDetails({
-            hostList: props.data,
+            [Manager.nameStyle('hostList')]: props.data.map(item => ({
+                [Manager.nameStyle('hostId')]: item.host_id,
+                [Manager.nameStyle('meta')]: item.meta,
+            })),
         })
         .then((data) => {
             validHostList.value = data;
@@ -188,14 +191,14 @@
     // 删除指定主机
     const handleRemove = (hostData) => {
         resultList.value = props.data.reduce((result, item) => {
-            if (item.hostId !== hostData.hostId) {
+            if (item.host_id !== hostData.host_id) {
                 result.push(item);
             }
             return result;
         }, []);
-        if (diffMap.value[hostData.hostId] === 'new') {
+        if (diffMap.value[hostData.host_id] === 'new') {
             validHostList.value = validHostList.value.reduce((result, item) => {
-                if (item.hostId !== hostData.hostId) {
+                if (item.host_id !== hostData.host_id) {
                     result.push(item);
                 }
                 return result;
@@ -206,19 +209,19 @@
 
     // 复制所有 IP
     const handleCopyAllIP = () => {
-        const IPList = tableData.value.map(item => item[hostRenderKey.value]);
-        execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
+        const ipList = tableData.value.map(item => item[hostRenderKey.value]);
+        execCopy(ipList.join('\n'), `复制成功 ${ipList.length} 个 IP`);
     };
 
     // 复制异常 IP
     const handleCopyFaidedIP = () => {
-        const IPList = tableData.value.reduce((result, item) => {
+        const ipList = tableData.value.reduce((result, item) => {
             if (item.alive !== 1) {
                 result.push(item[hostRenderKey.value]);
             }
             return result;
         }, []);
-        execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
+        execCopy(ipList.join('\n'), `复制成功 ${ipList.length} 个 IP`);
     };
 
     // 清除异常 IP
@@ -228,11 +231,11 @@
         validHostList.value.forEach((hostData) => {
             if (hostData.alive === 1) {
                 newValidHostList.push(hostData);
-                newValidHostIdMap[hostData.hostId] = true;
+                newValidHostIdMap[hostData.host_id] = true;
             }
         });
         resultList.value = props.data.reduce((result, item) => {
-            if (newValidHostIdMap[item.hostId]) {
+            if (newValidHostIdMap[item.host_id]) {
                 result.push(item);
             }
             return result;

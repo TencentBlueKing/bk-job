@@ -8,9 +8,9 @@
                 style="width: 264px; margin-right: 8px;">
                 <bk-option
                     v-for="item in node.child"
-                    :name="item.instanceName"
-                    :id="item.instanceId"
-                    :key="item.instanceId" />
+                    :name="item.instance_name"
+                    :id="item.instance_id"
+                    :key="item.instance_id" />
             </bk-select>
             <bk-input
                 v-model="nodeHostListSearch"
@@ -23,6 +23,11 @@
             @pagination-change="handlePaginationChange" />
     </div>
 </template>
+<script>
+    export default {
+        inheritAttrs: false,
+    };
+</script>
 <script setup>
     import {
         shallowRef,
@@ -34,7 +39,7 @@
     import Manager from '../../../../manager';
     import useDialogSize from '../../../../hooks/use-dialog-size';
     import useInputEnter from '../../../../hooks/use-input-enter';
-    import RenderHostTable from '../../../../common/render-table/host.vue';
+    import RenderHostTable from '../../../../common/render-table/host/index.vue';
     import { getPaginationDefault } from '../../../../utils';
 
     const props = defineProps({
@@ -63,14 +68,14 @@
     const fetchNodeHostList = () => {
         isLoading.value = true;
         Manager.service.fetchTopologyHostsNodes({
-            nodeList: [{
-                objectId: memoNode.objectId,
-                instanceId: memoNode.instanceId,
+            [Manager.nameStyle('nodeList')]: [{
+                [Manager.nameStyle('objectId')]: memoNode.object_id,
+                [Manager.nameStyle('instanceId')]: memoNode.instance_id,
             },
             ],
-            pageSize: pagination.limit,
-            start: (pagination.current - 1) * pagination.limit,
-            searchContent: nodeHostListSearch.value,
+            [Manager.nameStyle('pageSize')]: pagination.limit,
+            [Manager.nameStyle('start')]: (pagination.current - 1) * pagination.limit,
+            [Manager.nameStyle('searchContent')]: nodeHostListSearch.value,
         }).then((data) => {
             tableData.value = data.data;
             pagination.count = data.total;
@@ -95,7 +100,7 @@
 
     // 切换子节点
     const handleChildNodeChange = (instanceId) => {
-        const selectNode = _.find(props.node.child, _ => _.instanceId === instanceId);
+        const selectNode = _.find(props.node.child, _ => _.instance_id === instanceId);
         memoNode = selectNode || props.node;
         pagination.current = 1;
         fetchNodeHostList();

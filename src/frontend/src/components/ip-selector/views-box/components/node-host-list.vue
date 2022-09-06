@@ -65,13 +65,13 @@
     }));
 
     const requestHandler = (params = {}) => Manager.service.fetchTopologyHostsNodes({
-        appTopoNodeList: [{
-            objectId: props.node.objectId,
-            instanceId: props.node.instanceId,
+        [Manager.nameStyle('nodeList')]: [{
+            [Manager.nameStyle('objectId')]: props.node.object_id,
+            [Manager.nameStyle('instanceId')]: props.node.instance_id,
         },
         ],
-        pageSize: pagination.limit,
-        start: (pagination.current - 1) * pagination.limit,
+        [Manager.nameStyle('pageSize')]: pagination.limit,
+        [Manager.nameStyle('start')]: (pagination.current - 1) * pagination.limit,
         ...params,
     });
 
@@ -91,11 +91,13 @@
     const handeCopeAllFailedIP = () => {
         isCopyFaildLoading.value = true;
         requestHandler({
-            alive: 0,
+            [Manager.nameStyle('alive')]: 0,
+            [Manager.nameStyle('pageSize')]: -1,
+            [Manager.nameStyle('start')]: 0,
         })
         .then((data) => {
-            const IPList = data.data.map(item => item[hostRenderKey.value]);
-            execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
+            const ipList = data.data.map(item => item[hostRenderKey.value]);
+            execCopy(ipList.join('\n'), `复制成功 ${ipList.length} 个 IP`);
         })
         .finally(() => {
             isCopyFaildLoading.value = false;
@@ -105,11 +107,12 @@
     const handleCopeAllIP = () => {
         isCopyAllLoading.value = true;
         requestHandler({
-            alive: 0,
+            [Manager.nameStyle('pageSize')]: -1,
+            [Manager.nameStyle('start')]: 0,
         })
         .then((data) => {
-            const IPList = data.data.map(item => item[hostRenderKey.value]);
-            execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
+            const ipList = data.data.map(item => item[hostRenderKey.value]);
+            execCopy(ipList.join('\n'), `复制成功 ${ipList.length} 个 IP`);
         })
         .finally(() => {
             isCopyAllLoading.value = false;

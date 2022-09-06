@@ -1,5 +1,7 @@
 <template>
-    <span v-if="value" style="font-size: 20px;">
+    <span
+        v-if="value"
+        style="margin-left: 4px; font-size: 20px;">
         <svg style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;">
             <use
                 v-if="value === 'new'"

@@ -1,17 +1,20 @@
 import { genNodeKey } from './gen-node-key';
 
-export const getRemoveHostList = (lastHostList, originalValue = {}) => {
+export const getRemoveHostList = (lastHostList, originalValue) => {
+    if (!originalValue) {
+        return [];
+    }
     const {
-        hostList: originalHostList = [],
+        host_list: originalHostList = [],
     } = originalValue;
 
     const lastHostMap = lastHostList.reduce((result, item) => ({
         ...result,
-        [item.hostId]: true,
+        [item.host_id]: true,
     }), {});
 
     return originalHostList.reduce((result, item) => {
-        if (!lastHostMap[item.hostId]) {
+        if (!lastHostMap[item.host_id]) {
             result.push(item);
         }
 
@@ -19,9 +22,12 @@ export const getRemoveHostList = (lastHostList, originalValue = {}) => {
     }, []);
 };
 
-export const getRemoveNodeList = (lastNodeList, originalValue = {}) => {
+export const getRemoveNodeList = (lastNodeList, originalValue) => {
+    if (!originalValue) {
+        return [];
+    }
     const {
-        nodeList: originalNodeList = [],
+        node_list: originalNodeList = [],
     } = originalValue;
 
     const lastNodeMap = lastNodeList.reduce((result, item) => ({
@@ -38,9 +44,12 @@ export const getRemoveNodeList = (lastNodeList, originalValue = {}) => {
     }, []);
 };
 
-export const getRemoveDynamicGroupList = (lastDynamicGroupList, originalValue = {}) => {
+export const getRemoveDynamicGroupList = (lastDynamicGroupList, originalValue) => {
+    if (!originalValue) {
+        return [];
+    }
     const {
-        dynamicList: originalDynamicGroupList = [],
+        dynamic_group_list: originalDynamicGroupList = [],
     } = originalValue;
 
     const lastDynamicGroupMap = lastDynamicGroupList.reduce((result, item) => ({

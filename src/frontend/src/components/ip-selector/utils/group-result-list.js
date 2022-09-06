@@ -4,7 +4,7 @@ export const groupHostList = (validHostList, diffMap) => {
     const originalList = [];
     const newList = [];
     validHostList.forEach((hostData) => {
-        if (diffMap[hostData.hostId] === 'new') {
+        if (diffMap[hostData.host_id] === 'new') {
             newList.push(hostData);
         } else {
             originalList.push(hostData);

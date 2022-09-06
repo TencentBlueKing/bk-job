@@ -1,7 +1,7 @@
 <template>
     <CollapseBox v-if="data.length > 0">
         <template #title>
-            动态拓扑】
+            【动态拓扑】
             <span>
                 - 共
                 <span class="bk-ip-selector-number">{{ listData.length }}</span>
@@ -19,7 +19,9 @@
             </span>
         </template>
         <template #action>
-            <div @click="handlRemoveAll">
+            <div
+                v-bk-tooltips="'清空'"
+                @click="handlRemoveAll">
                 <i class="bk-ipselector-icon bk-ipselector-delete" />
             </div>
         </template>
@@ -29,7 +31,7 @@
                 :key="index"
                 :removable="diffMap[genNodeKey(item)]!== 'remove'"
                 @remove="handleRemove(item)">
-                {{ listDataNamePathMap[genNodeKey(item)] || `#${item.instanceId}` }}
+                {{ listDataNamePathMap[genNodeKey(item)] || `#${item.instance_id}` }}
                 <template #append>
                     <diff-tag :value="diffMap[genNodeKey(item)]" />
                 </template>
@@ -82,7 +84,11 @@
     const fetchData = () => {
         isLoading.value = true;
         Manager.service.fetchNodesQueryPath({
-            nodeList: props.data,
+            [Manager.nameStyle('nodeList')]: props.data.map(item => ({
+                [Manager.nameStyle('objectId')]: item.object_id,
+                [Manager.nameStyle('instanceId')]: item.instance_id,
+                [Manager.nameStyle('meta')]: item.meta,
+            })),
         })
             .then((data) => {
                 const validData = [];
@@ -90,7 +96,7 @@
                 data.forEach((item) => {
                     const tailNode = _.last(item);
                     validData.push(tailNode);
-                    nodeNamePathMap[genNodeKey(tailNode)] = item.map(({ instanceName }) => instanceName).join('/');
+                    nodeNamePathMap[genNodeKey(tailNode)] = item.map(nodeData => nodeData.instance_name).join('/');
                 });
                 listDataNamePathMap.value = nodeNamePathMap;
                 validNodeList.value = validData;

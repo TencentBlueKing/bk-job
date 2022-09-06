@@ -44,11 +44,12 @@
 
         .collspan-header {
             display: flex;
-            height: 34px;
+            height: 32px;
             margin: 0 24px;
             font-size: 12px;
             color: #63656e;
             align-items: center;
+            border-radius: 2px;
 
             .arrow-flag {
                 font-size: 18px;
@@ -61,6 +62,8 @@
             }
 
             &:hover {
+                background: #e1ecff;
+
                 .collspan-action {
                     display: flex;
                 }
@@ -72,6 +75,10 @@
             padding: 0 5px;
             margin-left: auto;
             color: #3a84ff;
+
+            &:hover {
+                color: #1768ef;
+            }
 
             & > * {
                 padding: 0 5px;

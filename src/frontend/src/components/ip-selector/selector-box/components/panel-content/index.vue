@@ -6,17 +6,22 @@
             v-on="listeners" />
     </div>
 </template>
+<script>
+    export default {
+        inheritAttrs: false,
+    };
+</script>
 <script setup>
     import {
         computed,
         useListeners,
     } from 'vue';
-    import RenderCustomInput from './custom-input.vue';
+    import RenderStaticTopo from './static-topo.vue';
+    import RenderDynamicGroup from './dynamic-group.vue';
     import RenderDynamicTopo from './dynamic-topo/index.vue';
     import RenderServiceTemplate from './service-template.vue';
     import RenderSetTemplate from './set-template.vue';
-    import RenderStaticTopo from './static-topo.vue';
-    import RenderDynamicGroup from './dynamic-group.vue';
+    import RenderManualInput from './manual-input.vue';
 
     const props = defineProps({
         type: {
@@ -33,7 +38,7 @@
         dynamicGroup: RenderDynamicGroup,
         serviceTemplate: RenderServiceTemplate,
         setTemplate: RenderSetTemplate,
-        customInput: RenderCustomInput,
+        manualInput: RenderManualInput,
     };
 
     const renderCom = computed(() => comMap[props.type]);

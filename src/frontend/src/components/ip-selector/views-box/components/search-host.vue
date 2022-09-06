@@ -28,7 +28,7 @@
                 :show-setting="false"
                 :column-width-callback="columnWidthCallback">
                 <template #[hostRenderKey]="{ row }">
-                    <diff-tag :value="diffMap[row.hostId]" />
+                    <diff-tag :value="diffMap[row.host_id]" />
                 </template>
                 <template
                     v-if="!context.readonly"
@@ -71,7 +71,7 @@
     import useIpSelector from '../../hooks/use-ip-selector';
     import ExtendAction from '../../common/extend-action.vue';
     import DiffTag from '../../common/diff-tag.vue';
-    import RenderHostTable from '../../common/render-table/host.vue';
+    import RenderHostTable from '../../common/render-table/host/index.vue';
     import {
         execCopy,
         getInvalidHostList,
@@ -123,11 +123,11 @@
         (hostData, rule) => rule.test(hostData.ip) || rule.test(hostData.ipv6),
     );
 
-    // 通过 hostId 获取主机详情
+    // 通过 host_id 获取主机详情
     const fetchData = () => {
         isLoading.value = true;
         Manager.service.fetchHostsDetails({
-            hostList: props.data,
+            [Manager.nameStyle('hostList')]: props.data,
         })
         .then((data) => {
             validHostList.value = data;
@@ -186,7 +186,7 @@
     // 删除指定主机
     const handleRemove = (hostData) => {
         tableData.value = tableData.value.reduce((result, item) => {
-            if (item.hostId !== hostData.hostId) {
+            if (item.host_id !== hostData.host_id) {
                 result.push(item);
             }
             return result;
@@ -196,18 +196,18 @@
 
     // 复制所有 IP
     const handleCopyAllIP = () => {
-        const IPList = serachList.value.map(item => item[hostRenderKey.value]);
-        execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
+        const ipList = serachList.value.map(item => item[hostRenderKey.value]);
+        execCopy(ipList.join('\n'), `复制成功 ${ipList.length} 个 IP`);
     };
     // 复制异常 IP
     const handleCopyFaidedIP = () => {
-        const IPList = serachList.value.reduce((result, item) => {
+        const ipList = serachList.value.reduce((result, item) => {
             if (item.alive !== 1) {
                 result.push(item[hostRenderKey.value]);
             }
             return result;
         }, []);
-        execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
+        execCopy(ipList.join('\n'), `复制成功 ${ipList.length} 个 IP`);
     };
     const handleRemoveFailedIP = () => {
         tableData.value = tableData.value.reduce((result, item) => {

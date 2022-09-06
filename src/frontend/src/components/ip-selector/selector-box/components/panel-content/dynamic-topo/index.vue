@@ -1,82 +1,98 @@
 <template>
     <div class="ip-selector-dynamic-topo">
-        <div class="tree-box">
-            <bk-input
-                v-model="filterKey"
-                placeholder="搜索拓扑节点"
-                style="margin-bottom: 12px;" />
-            <bk-big-tree
-                ref="treeRef"
-                :data="topoTreeData"
-                show-link-line
-                show-checkbox
-                selectable
-                :filter-method="filterMethod"
-                :check-strictly="false"
-                :expand-on-click="false"
-                @select-change="handleNodeSelect"
-                @check-change="handleNodeCheckChange">
-                <template #default="{ node: nodeItem, data }">
-                    <div class="topo-node-box">
-                        <div class="topo-node-name">{{ data.name }}</div>
-                        <template v-if="nodeItem.level === 0">
+        <template v-if="topoTreeData.length > 0">
+            <div class="tree-box">
+                <bk-input
+                    v-model="filterKey"
+                    placeholder="搜索拓扑节点"
+                    style="margin-bottom: 12px;" />
+                <bk-big-tree
+                    ref="treeRef"
+                    :data="topoTreeData"
+                    show-link-line
+                    show-checkbox
+                    selectable
+                    :filter-method="filterMethod"
+                    :check-strictly="false"
+                    :expand-on-click="false"
+                    @select-change="handleNodeSelect"
+                    @check-change="handleNodeCheckChange">
+                    <template #default="{ node: nodeItem, data }">
+                        <div class="topo-node-box">
+                            <div class="topo-node-name">{{ data.name }}</div>
+                            <template v-if="nodeItem.level === 0">
+                                <div
+                                    v-bk-tooltips="'隐藏没有主机的节点'"
+                                    class="topo-node-filter"
+                                    :style="{
+                                        display: isShowEmptyNode ? 'block' : 'none',
+                                    }"
+                                    @click.stop="handleToggleFilterWithCount">
+                                    <i
+                                        class="bk-ipselector-icon"
+                                        :class="{
+                                            'bk-ipselector-invisible1': isShowEmptyNode,
+                                            'bk-ipselector-visible1': !isShowEmptyNode,
+                                        }" />
+                                </div>
+                            </template>
                             <div
-                                class="topo-node-filter"
-                                @click="handleToggleFilterWithCount">
-                                <i
-                                    v-if="isShowEmptyNode"
-                                    class="bk-ipselector-icon bk-ipselector-invisible1" />
-                                <i
-                                    v-else
-                                    class="bk-ipselector-icon bk-ipselector-visible1" />
-                            </div>
-                            <div
+                                v-if="!nodeItem.isLeaf"
+                                v-bk-tooltips="'展开所有节点'"
                                 class="topo-node-expand"
-                                @click="handleToggleTopoTreeExpanded">
-                                <i
-                                    v-if="isTopoTreeExpanded"
-                                    class="bk-ipselector-icon bk-ipselector-shangxiachengkai" />
-                                <i
-                                    v-else
-                                    class="bk-ipselector-icon bk-ipselector-shangxiachengkai-2" />
+                                @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
+                                <i class="bk-ipselector-icon bk-ipselector-shangxiachengkai" />
                             </div>
-                        </template>
-                        <div class="topo-node-count">
-                            {{ data.payload.count }}
+                            <div class="topo-node-count">
+                                {{ data.payload.count }}
+                            </div>
                         </div>
+                    </template>
+                </bk-big-tree>
+            </div>
+            <div class="table-box">
+                <template v-if="selectedTopoNode.instance_name">
+                    <table-tab
+                        :model-value="renderTableType"
+                        @change="handleTableTypeChange">
+                        <table-tab-item name="node">
+                            {{ selectedTopoNode.instance_name }} ({{ selectedTopoNode.child.length }})
+                        </table-tab-item>
+                        <table-tab-item name="host">
+                            主机 ({{ selectedTopoNode.count }})
+                        </table-tab-item>
+                    </table-tab>
+                    <div :key="`${selectedTopoNode.object_id}${selectedTopoNode.instance_id}`">
+                        <keep-alive>
+                            <component
+                                :is="renderTableCom"
+                                :node="selectedTopoNode"
+                                :data="renderNodeList"
+                                :checked-map="nodeCheckedMap"
+                                style="min-height: 200px;"
+                                @check-change="handleTableNodeCheckChange" />
+                        </keep-alive>
                     </div>
                 </template>
-            </bk-big-tree>
-        </div>
-        <div class="ip-table">
-            <template v-if="selectedTopoNode.instanceName">
-                <table-tab
-                    :model-value="renderTableType"
-                    @change="handleTableTypeChange">
-                    <table-tab-item name="node">
-                        {{ selectedTopoNode.instanceName }} ({{ selectedTopoNode.child.length }})
-                    </table-tab-item>
-                    <table-tab-item name="host">
-                        主机 ({{ selectedTopoNode.count }})
-                    </table-tab-item>
-                </table-tab>
-                <div :key="`${selectedTopoNode.objectId}${selectedTopoNode.instanceId}`">
-                    <keep-alive>
-                        <component
-                            :is="renderTableCom"
-                            :node="selectedTopoNode"
-                            :data="renderNodeList"
-                            :checked-map="nodeCheckedMap"
-                            @check-change="handleTableNodeCheckChange" />
-                    </keep-alive>
+                <div v-else>
+                    请在右侧选择节点
                 </div>
-            </template>
-            <div v-else>
-                请在右侧选择节点
             </div>
+        </template>
+        <div
+            v-else
+            v-bkloading="{ isLoading: isConfigLoading }"
+            class="create-static-topo">
+            <span>无数据，</span>
+            <a :href="config.bk_cmdb_static_topo_url" target="_blank">{{ $t('去创建') }}</a>
         </div>
     </div>
 </template>
+<script>
+    export default {
+        inheritAttrs: false,
+    };
+</script>
 <script setup>
     import {
         computed,
@@ -88,6 +104,7 @@
     import useDebounceRef from '../../../../hooks/use-debounced-ref';
     import useTreeExpanded from '../../../../hooks/use-tree-expanded';
     import useTreeFilter from '../../../../hooks/use-tree-filter';
+    import useFetchConfig from '../../../../hooks/use-fetch-config';
     import { genNodeKey } from '../../../../utils';
     import TableTab from '../../table-tab';
     import TableTabItem from '../../table-tab/item.vue';
@@ -135,9 +152,13 @@
     } = useTreeFilter(treeRef);
 
     const {
-        expanded: isTopoTreeExpanded,
         toggleExpanded: handleToggleTopoTreeExpanded,
     } = useTreeExpanded(treeRef);
+
+    const {
+        loading: isConfigLoading,
+        config,
+    } = useFetchConfig();
 
     // 同步拓扑树节点的选中状态
     const syncTopoTreeNodeCheckStatus = () => {
@@ -242,21 +263,15 @@
             @include tree;
         }
 
-        .ip-table {
+        .table-box {
             flex: 1;
             padding-left: 24px;
+        }
 
-            .table-type-tab {
-                display: flex;
-                height: 40px;
-                align-items: center;
-                font-size: 14px;
-                color: #63656e;
-
-                .tab-item {
-                    padding: 0 10px;
-                }
-            }
+        .create-static-topo {
+            width: 100%;
+            padding-top: 120px;
+            text-align: center;
         }
     }
 </style>

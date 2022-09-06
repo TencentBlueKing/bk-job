@@ -3,26 +3,26 @@
         <search-host
             v-if="isShowHostSearch"
             :search-key="searchKey"
-            :data="value.hostList"
+            :data="lastHostList"
             class="view-host-serach"
             @change="handleChange" />
         <div
             v-show="!searchKey"
             class="views-container">
             <render-host
-                v-if="value.hostList && value.hostList.length > 0"
+                v-if="lastHostList && lastHostList.length > 0"
                 ref="hostRef"
-                :data="value.hostList"
+                :data="lastHostList"
                 @change="handleChange" />
             <render-node
-                v-if="value.nodeList && value.nodeList.length > 0"
+                v-if="lastNodeList && lastNodeList.length > 0"
                 ref="nodeRef"
-                :data="value.nodeList"
+                :data="lastNodeList"
                 @change="handleChange" />
             <render-dynamic-group
-                v-if="value.dynamicGroupList && value.dynamicGroupList.length > 0"
+                v-if="lastDynamicGroupList && lastDynamicGroupList.length > 0"
                 ref="dynamicGroupRef"
-                :data="value.dynamicGroupList"
+                :data="lastDynamicGroupList"
                 @change="handleChange" />
         </div>
     </div>
@@ -30,11 +30,16 @@
 <script setup>
     import {
         ref,
+        watch,
+        shallowRef,
         computed,
     } from 'vue';
     import RenderHost from './host.vue';
     import RenderNode from './node.vue';
-    import { formatOutput } from '../utils';
+    import {
+        formatInput,
+        formatOutput,
+     } from '../utils';
     import RenderDynamicGroup from './dynamic-group.vue';
     import SearchHost from './components/search-host.vue';
 
@@ -54,6 +59,10 @@
 
     const emits = defineEmits(['change']);
 
+    const lastHostList = shallowRef([]);
+    const lastNodeList = shallowRef([]);
+    const lastDynamicGroupList = shallowRef([]);
+
     const hostRef = ref();
     const nodeRef = ref();
     const dynamicGroupRef = ref();
@@ -65,6 +74,27 @@
         return Boolean(props.searchKey);
     });
 
+    let isInnerChange = false;
+
+    watch(() => props.value, () => {
+        if (isInnerChange) {
+            isInnerChange = false;
+            return;
+        }
+        
+        const {
+            host_list: hostList,
+            node_list: nodeList,
+            dynamic_group_list: dynamicGroupList,
+        } = formatInput(props.value || {});
+
+        lastHostList.value = hostList;
+        lastNodeList.value = nodeList;
+        lastDynamicGroupList.value = dynamicGroupList;
+    }, {
+        immediate: true,
+    });
+
     const handleChange = (name, value) => {
         const result = {
             ...props.value,
@@ -72,7 +102,7 @@
                 [name]: value,
             }),
         };
-
+        isInnerChange = true;
         emits('change', result);
     };
 

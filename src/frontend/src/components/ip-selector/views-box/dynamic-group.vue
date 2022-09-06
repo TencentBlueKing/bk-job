@@ -154,21 +154,24 @@
     // 根据 ID 获取组件详情
     const fetchData = () => {
         isLoading.value = true;
-        Manager.service.fetchDynamicGroups({
-            dynamicGroupList: props.data,
-        }).then((data) => {
+        const params = {
+            [Manager.nameStyle('dynamicGroupList')]: props.data.map(item => ({
+                [Manager.nameStyle('id')]: item.id,
+                [Manager.nameStyle('meta')]: item.meta,
+            })),
+        };
+        Manager.service.fetchDynamicGroups(params)
+        .then((data) => {
             validDynamicGroupList.value = data;
         })
         .finally(() => {
             isLoading.value = false;
         });
         isAgentStatisticsLoading.value = true;
-        Manager.service.fetchHostAgentStatisticsDynamicGroups({
-            dynamicGroupList: props.data,
-        })
+        Manager.service.fetchHostAgentStatisticsDynamicGroups(params)
         .then((data) => {
             agentStaticMap.value = data.reduce((result, item) => {
-                result[item.dynamicGroup.id] = item.agentStatistics;
+                result[item.dynamic_group.id] = item.agent_statistics;
                 return result;
             }, {});
         })

@@ -12,19 +12,19 @@
                 <div
                     class="statistics-item"
                     @click="handleClick('')">
-                    共<span class="bk-ip-selector-number">{{ data.totalNum }}</span>台主机
+                    共<span class="bk-ip-selector-number">{{ data.total_count }}</span>台主机
                 </div>
                 <div
-                    v-if="data.normalNum"
+                    v-if="data.alive_count"
                     class="statistics-item"
                     @click="handleClick('normal')">
-                    正常：<span class="bk-ip-selector-number-success">{{ data.normalNum }}</span>台
+                    正常：<span class="bk-ip-selector-number-success">{{ data.alive_count }}</span>台
                 </div>
                 <div
-                    v-if="data.abnormalNum"
+                    v-if="data.not_alive_count"
                     class="statistics-item"
                     @click="handleClick('abnormal')">
-                    异常：<span class="bk-ip-selector-number-error">{{ data.abnormalNum }}</span>台
+                    异常：<span class="bk-ip-selector-number-error">{{ data.not_alive_count }}</span>台
                 </div>
             </template>
             <span v-else>--</span>

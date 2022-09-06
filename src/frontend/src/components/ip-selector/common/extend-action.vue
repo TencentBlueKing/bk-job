@@ -11,7 +11,7 @@
 </script>
 <style lang="postcss">
     .ip-selector-extend-action {
-        position: reactive;
+        position: relative;
         display: inline-flex;
         width: 20px;
         height: 20px;
@@ -22,7 +22,7 @@
         align-items: center;
 
         &:hover {
-            background: #dcdee5;
+            background: #e1ecff;
 
             .action-menu {
                 display: block;
@@ -36,6 +36,7 @@
             display: none;
             font-size: 12px;
             line-height: 32px;
+            color: #63656e;
             background: #fff;
             border: 1px solid #dcdee5;
             border-radius: 2px;

@@ -64,8 +64,11 @@
 
         .box-action {
             position: absolute;
-            top: 12px;
+            top: 0;
             right: 12px;
+            display: flex;
+            align-items: center;
+            height: 42px;
             margin-left: auto;
             cursor: pointer;
         }

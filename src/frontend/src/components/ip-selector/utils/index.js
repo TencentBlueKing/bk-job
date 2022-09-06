@@ -1,7 +1,7 @@
 export * from './diff-map';
 export * from './encode-regexp';
 export * from './exec-copy';
-export * from './format-output';
+export * from './format-input-output';
 export * from './gen-node-key';
 export * from './get-diff-new-num';
 export * from './get-direct-children-nodes-by-node-ids';
@@ -11,6 +11,5 @@ export * from './get-repeat-ip-host-map';
 export * from './group-result-list';
 export * from './invalid-list';
 export * from './make-map';
-export * from './merge-custom-input-host';
 export * from './remove-list';
 export * from './transform-topo-tree';

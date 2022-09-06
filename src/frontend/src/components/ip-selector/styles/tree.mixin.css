@@ -4,6 +4,12 @@
         padding-right: 3px;
         font-size: 12px;
         align-items: center;
+        &:hover{
+            .topo-node-filter,
+            .topo-node-expand{
+                display: block !important;
+            }
+        }
     }
 
     .topo-node-name {
@@ -12,6 +18,7 @@
 
     .topo-node-filter,
     .topo-node-expand {
+        display: none;
         padding: 0 3px;
         color: #979ba5;
 

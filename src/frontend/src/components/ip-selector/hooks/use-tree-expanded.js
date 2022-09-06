@@ -1,22 +1,25 @@
-import { ref } from 'vue';
+const getChildrenIdList = (node) => {
+    const result = [];
+    node.children.forEach((child) => {
+        result.push(child.id);
+        result.push(...getChildrenIdList(child));
+    });
+
+    return result;
+};
 
 export default (treeRef) => {
-    const expanded = ref(false);
-
-    const toggleExpanded = () => {
-        expanded.value = !expanded.value;
-        treeRef.value.nodes.forEach((node) => {
-            if (!node.isLeaf) {
-                treeRef.value.setExpanded(node.id, {
-                    expanded: expanded.value,
-                    emitEvent: false,
-                });
-            }
+    const toggleExpanded = (node) => {
+        const childIdList = getChildrenIdList(node);
+        childIdList.forEach((nodeId) => {
+            treeRef.value.setExpanded(nodeId, {
+                expanded: true,
+                emitEvent: false,
+            });
         });
     };
 
     return {
-        expanded,
         toggleExpanded,
     };
 };

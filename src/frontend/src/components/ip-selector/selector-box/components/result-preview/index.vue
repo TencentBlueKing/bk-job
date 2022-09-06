@@ -155,6 +155,10 @@
 
         .result-wrapper {
             overflow-y: auto;
+
+            & > * {
+                margin-top: 8px;
+            }
         }
 
         .result-empty {

@@ -3,11 +3,11 @@ import { genNodeKey } from './gen-node-key';
 export const getInvalidHostList = (lastHostList, validHostList) => {
     const validHostMap = validHostList.reduce((result, item) => ({
         ...result,
-        [item.hostId]: true,
+        [item.host_id]: true,
     }), {});
 
     return lastHostList.reduce((result, item) => {
-        if (!validHostMap[item.hostId]) {
+        if (!validHostMap[item.host_id]) {
             result.push(item);
         }
 

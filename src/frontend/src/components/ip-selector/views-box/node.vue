@@ -36,7 +36,7 @@
                     <td style="width: 30%;">
                         <div class="cell">
                             <div class="cell-text">
-                                {{ tableDataNamePathMap[genNodeKey(row)] || `#${row.instanceId}` }}
+                                {{ tableDataNamePathMap[genNodeKey(row)] || `#${row.instance_id}` }}
                             </div>
                             <diff-tag :value="diffMap[genNodeKey(row)]" />
                         </div>
@@ -95,7 +95,6 @@
         shallowRef,
         watch,
     } from 'vue';
-    import AppManageService from '@service/app-manage';
     import Manager from '../manager';
     import {
         genNodeKey,
@@ -157,16 +156,22 @@
 
     const fetchData = () => {
         isLoading.value = true;
-        Manager.service.fetchNodesQueryPath({
-            nodeList: props.data,
-        })
+        console.log('frin view node  = ', props.data);
+        const params = {
+            [Manager.nameStyle('nodeList')]: props.data.map(item => ({
+                [Manager.nameStyle('objectId')]: item.object_id,
+                [Manager.nameStyle('instanceId')]: item.instance_id,
+                [Manager.nameStyle('meta')]: item.meta,
+            })),
+        };
+        Manager.service.fetchNodesQueryPath(params)
             .then((data) => {
                 const validData = [];
                 const nodeNamePathMap = {};
                 data.forEach((item) => {
                     const tailNode = _.last(item);
                     validData.push(tailNode);
-                    nodeNamePathMap[genNodeKey(tailNode)] = item.map(({ instanceName }) => instanceName).join('/');
+                    nodeNamePathMap[genNodeKey(tailNode)] = item.map(nodeData => nodeData.instance_name).join('/');
                 });
                 tableDataNamePathMap.value = nodeNamePathMap;
                 validNodeList.value = validData;
@@ -175,19 +180,17 @@
                 isLoading.value = false;
             });
         isAgentStatisticsLoading.value = true;
-        AppManageService.fetchBatchNodeAgentStatistics({
-            nodeList: props.data,
-        })
-        .then((data) => {
-            const staticMap = {};
-            data.forEach((item) => {
-                staticMap[genNodeKey(item.node)] = item.agentStatistics;
+        Manager.service.fetchHostAgentStatisticsNodes(params)
+            .then((data) => {
+                const staticMap = {};
+                data.forEach((item) => {
+                    staticMap[genNodeKey(item.node)] = item.agent_statistics;
+                });
+                nodeAgentStaticMap.value = staticMap;
+            })
+            .finally(() => {
+                isAgentStatisticsLoading.value = false;
             });
-            nodeAgentStaticMap.value = staticMap;
-        })
-        .finally(() => {
-            isAgentStatisticsLoading.value = false;
-        });
     };
 
     watch(() => props.data, () => {

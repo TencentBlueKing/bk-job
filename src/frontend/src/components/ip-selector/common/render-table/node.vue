@@ -34,14 +34,17 @@
                             <div class="cell">
                                 <span v-if="agentStatic[row.key]">
                                     <span
-                                        v-if="agentStatic[row.key].abnormalNum"
-                                        class="agent-statistics-box">
+                                        v-if="agentStatic[row.key].not_alive_count"
+                                        class="agent-statistics-box"
+                                        @click.stop="handleChooseAbnormal">
                                         <span class="agent-desc">异常:</span>
-                                        <span style="color: #ea3636;">{{ agentStatic[row.key].abnormalNum }}</span>
+                                        <span style="color: #ea3636;">{{ agentStatic[row.key].not_alive_count }}</span>
                                     </span>
-                                    <span class="agent-statistics-box">
+                                    <span
+                                        class="agent-statistics-box"
+                                        @click.stop="handleChooseAll">
                                         <span class="agent-desc">总数:</span>
-                                        <span style="color: #3a84ff;">{{ agentStatic[row.key].totalNum }}</span>
+                                        <span style="color: #3a84ff;">{{ agentStatic[row.key].total_count }}</span>
                                     </span>
                                 </span>
                                 <div
@@ -96,6 +99,14 @@
     const handleRowClick = (rowData, rowIndex, event) => {
         emits('row-click', rowData, rowIndex, event);
     };
+
+    const handleChooseAbnormal = () => {
+        
+    };
+
+    const handleChooseAll = () => {
+        
+    };
 </script>
 <style lang="postcss">
     @import "../../styles/table.mixin.css";
@@ -132,7 +143,7 @@
             align-items: center;
 
             &:hover {
-                background: #eaebf0;
+                /* background: #eaebf0; */
             }
 
             .agent-desc {

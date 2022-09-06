@@ -29,6 +29,7 @@ import VueProgressBar from 'vue-progressbar';
 
 import AppManageService from '@service/app-manage';
 import CustomSettingsService from '@service/custom-settings';
+import QueryGlobalSettingService from '@service/query-global-setting';
 
 import AuthRouterLink from '@components/auth/router-link';
 import AuthButton from '@components/auth/button';
@@ -62,7 +63,7 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 import createIpSelector from '@components/ip-selector/index.js';
 
 const IpSelector = createIpSelector({
-    panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'customInput'],
+    panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
     unqiuePanelValue: false,
     fetchTopologyHostCount: AppManageService.fetchTopologyWithCount,
     fetchTopologyHostsNodes: AppManageService.fetchTopologyHost,
@@ -76,6 +77,13 @@ const IpSelector = createIpSelector({
     fetchHostAgentStatisticsDynamicGroups: AppManageService.fetchBatchGroupAgentStatistics,
     fetchCustomSettings: CustomSettingsService.fetchAll,
     updateCustomSettings: CustomSettingsService.update,
+    fetchConfig: () => QueryGlobalSettingService.fetchRelatedSystemUrls()
+        .then(data => ({
+            // eslint-disable-next-line max-len
+            bk_cmdb_dynamic_group_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
+            // eslint-disable-next-line max-len
+            bk_cmdb_static_topo_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
+        })),
 });
 
 Vue.use(bkMagicVue);

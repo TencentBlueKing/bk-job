@@ -337,6 +337,7 @@ module.exports = {
             rules: {
                 indent: 'off',
                 'max-len': 'off',
+                'import/first': 'off',
             },
         },
     ],

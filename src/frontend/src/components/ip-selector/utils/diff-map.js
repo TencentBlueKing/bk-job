@@ -1,25 +1,27 @@
 import { genNodeKey } from './gen-node-key';
 
-export const getHostDiffMap = (lastHostList, originalValue = {}, invalidList = []) => {
+export const getHostDiffMap = (lastHostList, originalValue, invalidList = []) => {
+    const isShowOriginalValueDiff = Boolean(originalValue);
+
     const {
-        hostList: originalHostList = [],
-    } = originalValue;
+        host_list: originalHostList = [],
+    } = originalValue || {};
     
     const diffMap = {};
     const lastHostIPMemo = {};
 
     originalHostList.forEach((item) => {
-        diffMap[item.hostId] = 'remove';
+        diffMap[item.host_id] = isShowOriginalValueDiff ? 'remove' : '';
     });
     
     lastHostList.forEach((item) => {
-        if (diffMap[item.hostId]) {
-            diffMap[item.hostId] = '';
+        if (diffMap[item.host_id]) {
+            diffMap[item.host_id] = '';
         } else {
-            diffMap[item.hostId] = 'new';
+            diffMap[item.host_id] = isShowOriginalValueDiff ? 'new' : '';
             if (item.ip) {
                 if (lastHostIPMemo[item.ip]) {
-                    diffMap[item.hostId] = 'repeat';
+                    diffMap[item.host_id] = 'repeat';
                 } else {
                     lastHostIPMemo[item.ip] = true;
                 }
@@ -28,19 +30,21 @@ export const getHostDiffMap = (lastHostList, originalValue = {}, invalidList = [
     });
 
     invalidList.forEach((item) => {
-        diffMap[item.hostId] = 'invalid';
+        diffMap[item.host_id] = 'invalid';
     });
     return diffMap;
 };
 
-export const getNodeDiffMap = (lastNodeList, originalValue = {}, invalidList = []) => {
+export const getNodeDiffMap = (lastNodeList, originalValue, invalidList = []) => {
+    const isShowOriginalValueDiff = Boolean(originalValue);
+
     const {
-        nodeList: originalNodeList = [],
-    } = originalValue;
+        node_list: originalNodeList = [],
+    } = originalValue || {};
 
     const diffMap = lastNodeList.reduce((result, item) => ({
         ...result,
-        [genNodeKey(item)]: 'new',
+        [genNodeKey(item)]: isShowOriginalValueDiff ? 'new' : '',
     }), {});
 
     originalNodeList.forEach((item) => {
@@ -48,33 +52,37 @@ export const getNodeDiffMap = (lastNodeList, originalValue = {}, invalidList = [
         if (diffMap[nodeKey]) {
             diffMap[nodeKey] = '';
         } else {
-            diffMap[nodeKey] = 'remove';
+            diffMap[nodeKey] = isShowOriginalValueDiff ? 'remove' : '';
         }
     });
     invalidList.forEach((item) => {
-        diffMap[item.hostId] = 'invalid';
+        diffMap[item.host_id] = 'invalid';
     });
     return diffMap;
 };
 
-export const getDynamicGroupDiffMap = (lastDynamicGroupList, originalValue = {}, invalidList = []) => {
+export const getDynamicGroupDiffMap = (lastDynamicGroupList, originalValue, invalidList = []) => {
+    const isShowOriginalValueDiff = Boolean(originalValue);
+
     const {
-        dynamicList: originalDynamicGroupList = [],
-    } = originalValue;
+        dynamic_group_list: originalDynamicGroupList = [],
+    } = originalValue || {};
+
     const diffMap = lastDynamicGroupList.reduce((result, item) => ({
         ...result,
-        [item.id]: 'new',
+        [item.id]: isShowOriginalValueDiff ? 'new' : '',
     }), {});
 
     originalDynamicGroupList.forEach((item) => {
         if (diffMap[item.id]) {
             diffMap[item.id] = '';
         } else {
-            diffMap[item.id] = 'remove';
+            diffMap[item.id] = isShowOriginalValueDiff ? 'remove' : '';
         }
     });
+
     invalidList.forEach((item) => {
-        diffMap[item.hostId] = 'invalid';
+        diffMap[item.host_id] = 'invalid';
     });
     return diffMap;
 };

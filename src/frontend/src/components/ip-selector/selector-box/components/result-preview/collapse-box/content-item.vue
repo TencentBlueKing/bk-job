@@ -10,12 +10,14 @@
             <div
                 v-if="content"
                 class="item-btn"
+                v-bk-tooltips="'复制'"
                 @click="handleCopy">
                 <i class="bk-ipselector-icon bk-ipselector-copy" />
             </div>
             <div
                 v-if="removable"
                 class="item-btn"
+                v-bk-tooltips="'删除'"
                 @click="handleRemove">
                 <i class="bk-ipselector-icon bk-ipselector-close-line-2" />
             </div>
@@ -65,11 +67,7 @@
         }
 
         &:hover {
-            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 6%);
-
-            .item-text {
-                max-width: calc(100% - 56px);
-            }
+            background: #e1ecff;
 
             .item-action {
                 display: flex;
@@ -97,12 +95,13 @@
                 padding: 0 5px;
                 margin-left: auto;
                 overflow: hidden;
+                color: #3a84ff;
                 cursor: pointer;
                 align-items: center;
                 justify-content: center;
 
                 &:hover {
-                    color: #3a84ff;
+                    color: #1768ef;
                 }
             }
         }

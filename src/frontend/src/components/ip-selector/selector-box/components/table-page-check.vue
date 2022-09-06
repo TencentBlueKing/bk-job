@@ -1,6 +1,6 @@
 <template>
     <div
-        class="ip-selector-table-pagination-check"
+        class="ip-selector-table-page-check"
         :class="{ disabled }">
         <span
             v-if="value==='all'"
@@ -11,7 +11,7 @@
             :checked="value === 'page'"
             @change="handlePageChange" />
         <i
-            class="bk-ipselector-icon bk-ipselector-jiantou"
+            class="menu-flag bk-ipselector-icon bk-ipselector-jiantou"
             style="font-size: 18px;" />
         <div class="pagination-check-menu">
             <div class="pop-menu">
@@ -44,6 +44,9 @@
     const emits = defineEmits(['change']);
 
     const triggerChange = (actionType) => {
+        if (props.disabled) {
+            return;
+        }
         emits('change', actionType);
     };
     // 取消跨页全选
@@ -70,7 +73,7 @@
     };
 </script>
 <style lang="postcss" scoped>
-    .ip-selector-table-pagination-check {
+    .ip-selector-table-page-check {
         position: relative;
         z-index: 9999999;
         display: inline-flex;
@@ -88,6 +91,10 @@
             .pagination-check-menu {
                 display: block;
             }
+
+            /* .menu-flag {
+                transform: rotateZ(-90deg);
+            } */
         }
 
         .all-checked {
@@ -113,6 +120,11 @@
                 transform: rotate(45deg) scaleY(1);
                 transform-origin: center;
             }
+        }
+
+        .menu-flag {
+            margin-left: 2px;
+            transition: all 0.15s;
         }
 
         .bk-ipselector-open-line {

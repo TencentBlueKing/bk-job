@@ -1,31 +1,45 @@
 <template>
     <div v-bkloading="{ isLoading }">
-        <bk-input
-            v-model="searchKey"
-            placeholder="请输入节点名称搜索"
-            style="margin: 12px 0;" />
-        <render-node-table
-            :data="renderTableData"
-            :agent-static="agentStaticMap"
-            :height="renderTableHeight"
-            @row-click="handleRowClick">
-            <template #header-selection>
-                <page-check
-                    :value="pageCheckValue"
-                    @change="handlePageCheck" />
-            </template>
-            <template #selection="{ row }">
-                <bk-checkbox :value="Boolean(checkedMap[genNodeKey(row.node)])" />
-            </template>
-        </render-node-table>
-        <bk-pagination
-            v-if="isShowPagination"
-            :show-limit="false"
-            v-bind="pagination"
-            @change="handlePaginationCurrentChange"
-            @limit-change="handlePaginationLimitChange" />
+        <template v-if="props.node.child.length > 0">
+            <bk-input
+                v-model="searchKey"
+                placeholder="请输入节点名称搜索"
+                style="margin: 12px 0;" />
+            <render-node-table
+                :data="renderTableData"
+                :agent-static="agentStaticMap"
+                :height="renderTableHeight"
+                @row-click="handleRowClick">
+                <template #header-selection>
+                    <table-page-check
+                        :disabled="renderTableData.length < 1"
+                        :value="pageCheckValue"
+                        @change="handlePageCheck" />
+                </template>
+                <template #selection="{ row }">
+                    <bk-checkbox :value="Boolean(checkedMap[genNodeKey(row.node)])" />
+                </template>
+            </render-node-table>
+            <bk-pagination
+                v-if="isShowPagination"
+                :show-limit="false"
+                v-bind="pagination"
+                @change="handlePaginationCurrentChange"
+                @limit-change="handlePaginationLimitChange" />
+        </template>
+        <div
+            v-else-if="!isLoading"
+            style="padding-top: 120px; text-align: center;">
+            <img src="../../../../images/empty.svg">
+            <div>没有子节点</div>
+        </div>
     </div>
 </template>
+<script>
+    export default {
+        inheritAttrs: false,
+    };
+</script>
 <script setup>
     import {
         ref,
@@ -41,7 +55,7 @@
     import useLocalPagination from '../../../../hooks/use-local-pagination';
     import useDialogSize from '../../../../hooks/use-dialog-size';
     import RenderNodeTable from '../../../../common/render-table/node.vue';
-    import PageCheck from '../../table-page-check.vue';
+    import TablePageCheck from '../../table-page-check.vue';
 
     const props = defineProps({
         node: {
@@ -56,7 +70,7 @@
 
     const emits = defineEmits(['check-change']);
 
-    const isLoading = ref(true);
+    const isLoading = ref(false);
     const pageCheckValue = ref('');
 
     const tableData = shallowRef([]);
@@ -103,17 +117,18 @@
     // 获取分组路径、agent状态
     const fetchData = () => {
         isLoading.value = true;
-        const nodeList = props.node.child.map(item => ({
-            objectId: item.objectId,
-            instanceId: item.instanceId,
-        }));
-        Manager.service.fetchNodesQueryPath({
-            nodeList,
-        })
+        const params = {
+            [Manager.nameStyle('nodeList')]: props.node.child.map(item => ({
+                [Manager.nameStyle('objectId')]: item.object_id,
+                [Manager.nameStyle('instanceId')]: item.instance_id,
+            })),
+        };
+        // 查询节点路径
+        Manager.service.fetchNodesQueryPath(params)
             .then((data) => {
-                tableData.value = data.reduce((result, item) => {
-                    const namePath = item.map(({ instanceName }) => instanceName).join('/');
-                    const tailNode = _.last(item);
+                tableData.value = data.reduce((result, nodeStack) => {
+                    const namePath = nodeStack.map(nodeData => nodeData.instance_name).join('/');
+                    const tailNode = _.last(nodeStack);
                     result.push({
                         key: genNodeKey(tailNode),
                         node: tailNode,
@@ -127,14 +142,14 @@
             .finally(() => {
                 isLoading.value = false;
             });
-        Manager.service.fetchHostAgentStatisticsNodes({
-            nodeList,
-        }).then((data) => {
-            agentStaticMap.value = data.reduce((result, item) => {
-                result[genNodeKey(item.node)] = item.agentStatistics;
-                return result;
-            }, {});
-        });
+        // 查询节点的 agent 状态
+        Manager.service.fetchHostAgentStatisticsNodes(params)
+            .then((data) => {
+                agentStaticMap.value = data.reduce((result, item) => {
+                    result[genNodeKey(item.node)] = item.agent_statistics;
+                    return result;
+                }, {});
+            });
     };
 
     watch(() => props.data, () => {

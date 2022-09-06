@@ -10,7 +10,12 @@ export const transformTopoTree = (target, level = 0) => {
     }
                 
     return target.map((item) => {
-        const { instanceId, instanceName, child, objectId } = item;
+        const {
+            instance_id: instanceId,
+            instance_name: instanceName,
+            child,
+            object_id: objectId,
+        } = item;
         
         const children = transformTopoTree(child, level + 1);
 

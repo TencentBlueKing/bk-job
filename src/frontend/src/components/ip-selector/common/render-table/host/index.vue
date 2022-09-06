@@ -2,7 +2,9 @@
     <div class="ip-selector-host-table">
         <div
             class="host-talbe-wrapper"
-            :class="{ 'not-empty': data.length > 0 }"
+            :class="{
+                'not-empty': data.length > 0,
+            }"
             :style="styles">
             <table v-if="!isLoadingCustom">
                 <thead>
@@ -17,10 +19,17 @@
                                 v-if="columnKeyRenderMap[columnKey]"
                                 :key="columnKey"
                                 :style="{
-                                    width: columnWidthCallback ? columnWidthCallback(columnKeyRenderList.indexOf(columnKey)) : tableColumnConfig[columnKey].width,
+                                    width: columnWidthCallback ?
+                                        columnWidthCallback(columnKeyRenderList.indexOf(columnKey))
+                                        : tableColumnConfig[columnKey].width,
                                 }">
-                                <div class="cell-text">
-                                    {{ tableColumnConfig[columnKey].name }}
+                                <div class="cell">
+                                    <div class="cell-text">
+                                        {{ tableColumnConfig[columnKey].name }}
+                                    </div>
+                                    <render-filter
+                                        v-if="tableColumnConfig[columnKey].filter"
+                                        :data="tableColumnConfig[columnKey].filter" />
                                 </div>
                             </th>
                         </template>
@@ -39,30 +48,36 @@
                 </thead>
                 <tbody>
                     <tr
-                        v-for="(item, index) in data"
+                        v-for="(hostDataItem, index) in data"
                         :key="index"
-                        @click="handleRowClick(item, index, $event)">
+                        @click="handleRowClick(hostDataItem, index, $event)">
                         <td v-if="slots.selection">
-                            <slot name="selection" v-bind:row="item" />
+                            <slot
+                                name="selection"
+                                v-bind:row="hostDataItem" />
                         </td>
                         <template v-for="(columnKey) in columnKeySortList">
                             <td
                                 v-if="columnKeyRenderMap[columnKey]"
                                 :key="columnKey">
                                 <template v-if="columnKey === 'alive'">
-                                    <agent-status :data="item.alive" />
+                                    <agent-status :data="hostDataItem.alive" />
                                 </template>
                                 <template v-else>
                                     <div class="cell">
                                         <div class="cell-text">
-                                            {{ item[columnKey] || '--' }}
+                                            {{ getObjectValueByPath(hostDataItem, tableColumnConfig[columnKey].field) || '--' }}
                                         </div>
                                         <div class="cell-append">
                                             <template v-if="columnKey === 'ip'">
-                                                <slot name="ip" v-bind:row="item" />
+                                                <slot
+                                                    name="ip"
+                                                    v-bind:row="hostDataItem" />
                                             </template>
                                             <template v-if="columnKey === 'ipv6'">
-                                                <slot name="ipv6" v-bind:row="item" />
+                                                <slot
+                                                    name="ipv6"
+                                                    v-bind:row="hostDataItem" />
                                             </template>
                                         </div>
                                     </div>
@@ -70,7 +85,9 @@
                             </td>
                         </template>
                         <td v-if="slots.action">
-                            <slot name="action" v-bind:row="item" />
+                            <slot
+                                name="action"
+                                v-bind:row="item" />
                         </td>
                         <td
                             v-if="showSetting"
@@ -79,9 +96,12 @@
                 </tbody>
             </table>
             <div
-                v-if="slots.empty"
+                v-if="data.length < 1"
                 class="table-empty">
-                <slot name="empty" />
+                <slot name="empty">
+                    <img src="../../../images/empty.svg">
+                    <div>暂无数据</div>
+                </slot>
             </div>
         </div>
         <bk-pagination
@@ -93,57 +113,12 @@
             v-bind="pagination"
             @change="handlePaginationChange"
             @limit-change="handlePaginationLimitChange" />
-        <div
+        <column-setting
             v-if="isShowSetting"
-            class="table-column-setting">
-            <div class="setting-header">
-                表格设置
-            </div>
-            <bk-checkbox-group v-model="columnKeyRenderList">
-                <vuedraggable
-                    :list="columnConfigList"
-                    class="column-list">
-                    <div
-                        v-for="item in columnConfigList"
-                        class="column-item"
-                        :key="item.name">
-                        <template v-if="item.key === 'ip'">
-                            <bk-checkbox
-                                :value="item.key"
-                                :disabled="!columnKeyRenderList.includes('ipv6')">
-                                {{ item.name }}
-                            </bk-checkbox>
-                        </template>
-                        <template v-else-if="item.key === 'ipv6'">
-                            <bk-checkbox
-                                :value="item.key"
-                                :disabled="!columnKeyRenderList.includes('ip')">
-                                {{ item.name }}
-                            </bk-checkbox>
-                        </template>
-                        <template v-else>
-                            <bk-checkbox :value="item.key">
-                                {{ item.name }}
-                            </bk-checkbox>
-                        </template>
-                        <div class="column-item-drag">
-                            <i class="bk-ipselector-icon bk-ipselector-ketuodong" />
-                        </div>
-                    </div>
-                </vuedraggable>
-            </bk-checkbox-group>
-            <div class="setting-footer">
-                <bk-button
-                    theme="primary"
-                    @click="handleSubmitSetting"
-                    style="margin-right: 8px;">
-                    确定
-                </bk-button>
-                <bk-button @click="handleHideSetting">
-                    取消
-                </bk-button>
-            </div>
-        </div>
+            :selected-list="columnKeyRenderList"
+            :sort-list="columnKeySortList"
+            @change="handleSettingChange"
+            @close="handleSettingClose" />
     </div>
 </template>
 <script setup>
@@ -153,13 +128,16 @@
         computed,
         shallowRef,
     } from 'vue';
-    import vuedraggable from 'vuedraggable';
-    import Manager from '../../manager';
-    import useHostRenderKey from '../../hooks/use-host-render-key';
+    import Manager from '../../../manager';
+    import useHostRenderKey from '../../../hooks/use-host-render-key';
     import {
         makeMap,
-     } from '../../utils';
-    import AgentStatus from '../agent-status.vue';
+        getObjectValueByPath,
+     } from '../../../utils';
+    import AgentStatus from '../../agent-status.vue';
+    import ColumnSetting from './column-setting.vue';
+    import tableColumnConfig from './column-config';
+    import RenderFilter from './render-filter.vue';
 
     const slots = useSlots();
 
@@ -188,64 +166,15 @@
         'pagination-change',
     ]);
 
-    const CUSTOM_SETTINGS_MODULE = 'ip_selector';
+    const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorHostList');
 
-    // 表格列的完整配置
-    const tableColumnConfig = {
-        ip: {
-            name: 'IP',
-            key: 'ip',
-            width: '120px',
-        },
-        ipv6: {
-            name: 'IPv6',
-            key: 'ipv6',
-            width: '180px',
-        },
-        coludArea: {
-            name: '云区域',
-            key: 'coludArea',
-        },
-        alive: {
-            name: 'Agent 状态',
-            key: 'alive',
-        },
-        hostName: {
-            name: '主机名称',
-            key: 'hostName',
-        },
-        osName: {
-            name: 'OS 名称',
-            key: 'osName',
-        },
-        coludName: {
-            name: '所属云厂商',
-            key: 'coludName',
-        },
-        osType: {
-            name: 'OS 类型',
-            key: 'osType',
-        },
-        hostId: {
-            name: 'Host ID',
-            key: 'hostId',
-            width: '100px',
-        },
-        agentId: {
-            name: 'Agent ID',
-            key: 'agentId',
-        },
-    };
-    
     const isLoadingCustom = ref(true);
-    // 表格列配置(数组格式，交互上支持拖拽排序)
-    const columnConfigList = ref(Object.values(tableColumnConfig));
     // 列的显示顺序
-    const columnKeySortList = ref(Object.keys(tableColumnConfig));
-    // 需要显示的列 checkbox-group 的值
-    const columnKeyRenderList = ref(['ip', 'ipv6', 'alive', 'osName']);
+    const columnKeySortList = shallowRef(Object.keys(tableColumnConfig));
     // 需要显示的列
-    const columnKeyRenderMap = shallowRef(makeMap(columnKeyRenderList.value));
+    const columnKeyRenderList = shallowRef(['ip', 'ipv6', 'alive', 'osName']);
+    // 需要显示的列
+    const columnKeyRenderMap = computed(() => makeMap(columnKeyRenderList.value));
     const isShowSetting = ref(false);
 
     const styles = computed(() => {
@@ -284,7 +213,7 @@
     isLoadingCustom.value = true;
     // 获取用户自定义配置
     Manager.service.fetchCustomSettings({
-        moduleList: [CUSTOM_SETTINGS_MODULE],
+        [Manager.nameStyle('moduleList')]: [CUSTOM_SETTINGS_MODULE],
     })
         .then((data) => {
             if (!data[CUSTOM_SETTINGS_MODULE]) {
@@ -294,13 +223,8 @@
                 hostListColumn = [],
                 hostListColumnSort = [],
             } = data[CUSTOM_SETTINGS_MODULE];
-            columnConfigList.value = hostListColumnSort.reduce((result, columnKey) => {
-                result.push(tableColumnConfig[columnKey]);
-                return result;
-            }, []);
             columnKeySortList.value = hostListColumnSort;
             columnKeyRenderList.value = hostListColumn;
-            columnKeyRenderMap.value = makeMap(hostListColumn);
             setHostListRenderPrimaryKey();
         })
         .finally(() => {
@@ -312,24 +236,23 @@
         isShowSetting.value = true;
     };
 
-    // 提交表格列设置
-    const handleSubmitSetting = () => {
-        isShowSetting.value = false;
-        columnKeySortList.value = columnConfigList.value.map(item => item.key);
-        columnKeyRenderMap.value = makeMap(columnKeyRenderList.value);
-        setHostListRenderPrimaryKey();
+    // 提交表格列表配置
+    const handleSettingChange = (selectedList, sortList) => {
+        columnKeyRenderList.value = selectedList;
+        columnKeySortList.value = sortList;
         Manager.service.updateCustomSettings({
-            settingsMap: {
+            [Manager.nameStyle('settingsMap')]: {
                 [CUSTOM_SETTINGS_MODULE]: {
                     hostListColumn: columnKeyRenderList.value,
                     hostListColumnSort: columnKeySortList.value,
                 },
             },
         });
+        isShowSetting.value = false;
     };
 
-    // 取消表格列设置
-    const handleHideSetting = () => {
+    // 取消表格列配置
+    const handleSettingClose = () => {
         isShowSetting.value = false;
     };
 
@@ -355,7 +278,7 @@
     };
 </script>
 <style lang="postcss">
-    @import "../../styles/table.mixin.css";
+    @import "../../../styles/table.mixin.css";
 
     .ip-selector-host-table {
         position: relative;
@@ -391,76 +314,6 @@
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-            }
-        }
-
-        .table-column-setting {
-            position: absolute;
-            top: 40px;
-            right: 0;
-            z-index: 9;
-            width: 545px;
-            padding-top: 24px;
-            background: #fff;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
-            transform: translateX(25%);
-            box-shadow: 0 2px 6px 0 rgb(0 0 0 / 10%);
-
-            .setting-header {
-                padding: 0 24px;
-                font-size: 20px;
-                line-height: 20px;
-                color: #313238;
-            }
-
-            .column-list {
-                display: flex;
-                flex-wrap: wrap;
-                padding: 0 24px 36px;
-            }
-
-            .column-item {
-                display: flex;
-                align-items: center;
-                width: 120px;
-                height: 32px;
-                padding: 0 8px;
-                margin-top: 16px;
-                border-radius: 2px;
-
-                &:hover {
-                    background: #f5f7fa;
-
-                    .column-item-drag {
-                        display: flex;
-                    }
-                }
-
-                .bk-checkbox-text {
-                    font-size: 12px;
-                }
-            }
-
-            .column-item-drag {
-                display: none;
-                width: 16px;
-                height: 16px;
-                margin-left: auto;
-                font-size: 12px;
-                color: #979ba5;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .setting-footer {
-                display: flex;
-                height: 50px;
-                padding-right: 24px;
-                background: #fafbfd;
-                border-top: 1px solid #dcdee5;
-                justify-content: flex-end;
-                align-items: center;
             }
         }
 
