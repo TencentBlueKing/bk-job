@@ -86,6 +86,10 @@ public class HostInfoVO {
     @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     private String os;
 
+    @ApiModelProperty("系统类型")
+    @JsonProperty("osType")
+    private String osTypeName;
+
     @ApiModelProperty("AgentId")
     private String agentId;
 

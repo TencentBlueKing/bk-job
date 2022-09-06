@@ -209,6 +209,11 @@ public interface IBizCmdbClient {
     Map<String, String> getCloudVendorIdNameMap();
 
     /**
+     * 获取主机类型枚举值，key:id，value:名称
+     */
+    Map<String, String> getOsTypeIdNameMap();
+
+    /**
      * 批量获取topo节点层级
      *
      * @param getTopoNodePathReq 请求

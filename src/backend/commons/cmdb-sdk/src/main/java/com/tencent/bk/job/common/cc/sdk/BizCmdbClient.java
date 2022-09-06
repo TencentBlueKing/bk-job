@@ -1197,6 +1197,23 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
+    public Map<String, String> getOsTypeIdNameMap() {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("host");
+        List<CcObjAttributeDTO> osTypeAttrList = esbObjAttributeDTO.stream().filter(it ->
+            it.getBkPropertyId().equals("bk_os_type")
+        ).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(osTypeAttrList)) {
+            return Collections.emptyMap();
+        }
+        List<CcObjAttributeDTO.Option> optionList = parseOptionList(osTypeAttrList.get(0).getOption());
+        Map<String, String> map = new HashMap<>();
+        for (CcObjAttributeDTO.Option option : optionList) {
+            map.put(option.getId(), option.getName());
+        }
+        return map;
+    }
+
+    @Override
     public List<InstanceTopologyDTO> getTopoInstancePath(GetTopoNodePathReq getTopoNodePathReq) {
         GetTopoNodePathReq req = makeBaseReq(GetTopoNodePathReq.class, defaultUin, defaultSupplierAccount);
 
