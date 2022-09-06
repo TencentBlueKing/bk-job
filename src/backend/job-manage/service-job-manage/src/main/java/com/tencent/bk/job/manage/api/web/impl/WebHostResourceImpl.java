@@ -656,4 +656,12 @@ public class WebHostResourceImpl implements WebHostResource {
         AgentStatistics agentStatistics = agentStatusService.calcAgentStatistics(allHostList);
         return Response.buildSuccessResp(agentStatistics);
     }
+
+    @Override
+    public Response<List<DynamicGroupBasicVO>> listAllDynamicGroups(String username,
+                                                                    AppResourceScope appResourceScope,
+                                                                    String scopeType,
+                                                                    String scopeId) {
+        return listDynamicGroups(username, appResourceScope, scopeType, scopeId, null);
+    }
 }
