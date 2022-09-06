@@ -2,6 +2,10 @@
     <vuedraggable
         class="ip-selector-panel-tab"
         :list="panelSortList"
+        :animation="200"
+        group="description"
+        :disabled="false"
+        ghost-class="ghost"
         @change="handleSortChange">
         <template v-for="(panelName) in panelSortList">
             <tab-item
@@ -87,17 +91,17 @@
         panelList,
     } = Manager.config;
 
-    const supPanelList = [
-        'staticTopo',
-        'dynamicTopo',
-        'dynamicGroup',
-        'serviceTemplate',
-        'setTemplate',
-        'manualInput',
-    ];
+    // const supPanelList = [
+    //     'staticTopo',
+    //     'dynamicTopo',
+    //     'dynamicGroup',
+    //     'serviceTemplate',
+    //     'setTemplate',
+    //     'manualInput',
+    // ];
 
     const panelSortList = ref([...panelList]);
-    console.log(supPanelList);
+    console.log(panelSortList.value);
 
     const isUnqiuePanelValue = computed(() => Boolean(props.uniqueType) && unqiuePanelValue);
 
@@ -187,6 +191,11 @@
             &:last-child {
                 border-right: none;
             }
+        }
+
+        .ghost {
+            background: #c8ebfb;
+            opacity: 50%;
         }
     }
 </style>

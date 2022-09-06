@@ -95,6 +95,7 @@
     });
 
     const handleEnterKeyUp = useInputEnter(() => {
+        pagination.current = 1;
         fetchNodeHostList();
     });
 
