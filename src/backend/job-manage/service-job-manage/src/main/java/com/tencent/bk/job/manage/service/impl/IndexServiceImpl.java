@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
@@ -44,7 +45,7 @@ import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
-import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
+import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
 import com.tencent.bk.job.manage.model.web.vo.index.JobAndScriptStatistics;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
@@ -60,6 +61,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -203,7 +205,10 @@ public class IndexServiceImpl implements IndexService {
             bizIds, null, null, null, status, start, pageSize);
         Long count = applicationHostDAO.countHostInfoBySearchContents(
             bizIds, null, null, null, status);
-        hostInfoVOList = hosts.parallelStream().map(TopologyHelper::convertToHostInfoVO).collect(Collectors.toList());
+        hostInfoVOList = hosts.parallelStream()
+            .filter(Objects::nonNull)
+            .map(ApplicationHostDTO::toVO)
+            .collect(Collectors.toList());
         return new PageData<>(start.intValue(), pageSize.intValue(), count, hostInfoVOList);
     }
 
@@ -216,7 +221,7 @@ public class IndexServiceImpl implements IndexService {
         resultPageData.setPageSize(hostInfoVOPageData.getPageSize());
         resultPageData.setTotal(hostInfoVOPageData.getTotal());
         resultPageData.setData(hostInfoVOPageData.getData().parallelStream()
-            .map(it -> it.getCloudAreaInfo().getId() + ":" + it.getIp()).collect(Collectors.toList()));
+            .map(it -> it.getCloudArea().getId() + ":" + it.getIp()).collect(Collectors.toList()));
         return resultPageData;
     }
 

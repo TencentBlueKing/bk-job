@@ -22,33 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.convert;
+package com.tencent.bk.job.manage.service.host.impl;
 
-import com.tencent.bk.job.common.cc.service.CloudAreaService;
+import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.util.PageUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
-public class HostConverter {
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-    /**
-     * 将服务层主机对象转换为展示层对象
-     *
-     * @param hostDTO 服务层主机对象
-     * @return 展示层主机对象
-     */
-    public HostInfoVO convertToHostInfoVO(ApplicationHostDTO hostDTO) {
-        HostInfoVO hostInfoVO = new HostInfoVO();
-        hostInfoVO.setHostId(hostDTO.getHostId());
-        hostInfoVO.setOs(hostDTO.getOs());
-        hostInfoVO.setIp(hostDTO.getIp());
-        hostInfoVO.setIpDesc(hostDTO.getIpDesc());
-        hostInfoVO.setDisplayIp(hostDTO.getDisplayIp());
-        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(hostDTO.getCloudAreaId(),
-            CloudAreaService.getCloudAreaNameFromCache(hostDTO.getCloudAreaId())));
-        hostInfoVO.setAlive(hostDTO.getAgentStatusValue());
-        return hostInfoVO;
+@Slf4j
+@Service
+public class BizDynamicGroupHostService {
+
+    private final BizCmdbClient bizCmdbClient;
+
+    @Autowired
+    public BizDynamicGroupHostService(BizCmdbClient bizCmdbClient) {
+        this.bizCmdbClient = bizCmdbClient;
+    }
+
+    public List<ApplicationHostDTO> listHostByDynamicGroup(long bizId, String id) {
+        List<CcGroupHostPropDTO> ccGroupHostList = bizCmdbClient.getDynamicGroupIp(bizId, id);
+        if (CollectionUtils.isEmpty(ccGroupHostList)) {
+            return Collections.emptyList();
+        }
+        return ccGroupHostList.parallelStream()
+            .filter(Objects::nonNull)
+            .map(CcGroupHostPropDTO::toApplicationHostDTO)
+            .collect(Collectors.toList());
+    }
+
+    public PageData<ApplicationHostDTO> pageHostByDynamicGroup(long bizId, String id, int start, int pageSize) {
+        List<ApplicationHostDTO> hostList = listHostByDynamicGroup(bizId, id);
+        return PageUtil.pageInMem(hostList, start, pageSize);
     }
 }

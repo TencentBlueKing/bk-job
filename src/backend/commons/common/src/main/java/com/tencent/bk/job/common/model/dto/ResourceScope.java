@@ -63,6 +63,9 @@ public class ResourceScope {
         this.id = id;
     }
 
+    public String toBasicStr() {
+        return "(" + type + "," + id + ")";
+    }
 
     @Override
     public String toString() {

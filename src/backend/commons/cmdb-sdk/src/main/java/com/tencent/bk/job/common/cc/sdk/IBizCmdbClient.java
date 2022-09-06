@@ -44,6 +44,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -201,6 +202,11 @@ public interface IBizCmdbClient {
      * 获取CMDB业务角色列表
      */
     List<AppRoleDTO> listRoles();
+
+    /**
+     * 获取主机所属云厂商枚举值，key:id，value:名称
+     */
+    Map<String, String> getCloudVendorIdNameMap();
 
     /**
      * 批量获取topo节点层级

@@ -30,11 +30,13 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.impl.topo.BizTopoService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -86,15 +88,119 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     }
 
     @Override
+    public List<ApplicationHostDTO> getScopeHostsByIps(AppResourceScope appResourceScope, Collection<String> ips) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            return bizHostService.getHostsByIps(ips);
+        } else if (applicationDTO.isBizSet()) {
+            // 业务集
+            List<Long> bizIds = applicationDTO.getSubBizIds();
+            return bizHostService.getHostsByBizAndIps(bizIds, ips);
+        } else {
+            // 普通业务
+            Long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            return bizHostService.getHostsByBizAndIps(Collections.singletonList(bizId), ips);
+        }
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getScopeHostsByIpv6s(AppResourceScope appResourceScope, Collection<String> ipv6s) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            return bizHostService.getHostsByIpv6s(ipv6s);
+        } else if (applicationDTO.isBizSet()) {
+            // 业务集
+            List<Long> bizIds = applicationDTO.getSubBizIds();
+            return bizHostService.getHostsByBizAndIpv6s(bizIds, ipv6s);
+        } else {
+            // 普通业务
+            Long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            return bizHostService.getHostsByBizAndIpv6s(Collections.singletonList(bizId), ipv6s);
+        }
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getScopeHostsByHostNames(AppResourceScope appResourceScope,
+                                                             Collection<String> hostNames) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            return bizHostService.getHostsByHostNames(hostNames);
+        } else if (applicationDTO.isBizSet()) {
+            // 业务集
+            List<Long> bizIds = applicationDTO.getSubBizIds();
+            return bizHostService.getHostsByBizAndHostNames(bizIds, hostNames);
+        } else {
+            // 普通业务
+            Long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            return bizHostService.getHostsByBizAndHostNames(Collections.singletonList(bizId), hostNames);
+        }
+    }
+
+    @Override
     public PageData<Long> listHostIdByBizTopologyNodes(AppResourceScope appResourceScope,
-                                                       List<AppTopologyTreeNode> appTopoNodeList,
+                                                       List<BizTopoNode> appTopoNodeList,
                                                        String searchContent,
-                                                       Integer agentStatus,
+                                                       Integer agentAlive,
                                                        Long start,
                                                        Long pageSize) {
-        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         StopWatch watch = new StopWatch("listHostByBizTopologyNodes");
         watch.start("genConditions");
+        BasicParsedSearchConditions basicConditions = buildSearchConditions(
+            appResourceScope,
+            appTopoNodeList,
+            searchContent
+        );
+        watch.stop();
+
+        return bizHostService.pageListHostId(
+            basicConditions.getBizIds(),
+            basicConditions.getModuleIds(),
+            basicConditions.getCloudAreaIds(),
+            basicConditions.getSearchContents(),
+            agentAlive,
+            start,
+            pageSize
+        );
+    }
+
+    @Override
+    public PageData<ApplicationHostDTO> searchHost(AppResourceScope appResourceScope,
+                                                   List<BizTopoNode> appTopoNodeList,
+                                                   Integer agentAlive,
+                                                   String searchContent,
+                                                   List<String> ipKeyList,
+                                                   List<String> ipv6KeyList,
+                                                   List<String> hostNameKeyList,
+                                                   List<String> osNameKeyList,
+                                                   Long start,
+                                                   Long pageSize) {
+        BasicParsedSearchConditions basicConditions = buildSearchConditions(
+            appResourceScope,
+            appTopoNodeList,
+            searchContent
+        );
+        return bizHostService.pageListHost(
+            basicConditions.getBizIds(),
+            basicConditions.getModuleIds(),
+            basicConditions.getCloudAreaIds(),
+            basicConditions.getSearchContents(),
+            agentAlive,
+            ipKeyList,
+            ipv6KeyList,
+            hostNameKeyList,
+            osNameKeyList,
+            start,
+            pageSize
+        );
+    }
+
+    private BasicParsedSearchConditions buildSearchConditions(AppResourceScope appResourceScope,
+                                                              List<BizTopoNode> appTopoNodeList,
+                                                              String searchContent) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         List<Long> moduleIds = null;
         List<Long> bizIds = null;
         if (applicationDTO.isAllBizSet()) {
@@ -108,7 +214,6 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
             moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, appTopoNodeList);
         }
-        watch.stop();
 
         List<String> searchContents = null;
         if (searchContent != null) {
@@ -117,15 +222,15 @@ public class ScopeHostServiceImpl implements ScopeHostService {
 
         //获取所有云区域，找出名称符合条件的所有CloudAreaId
         List<Long> cloudAreaIds = cloudAreaService.getAnyNameMatchedCloudAreaIds(searchContents);
+        return new BasicParsedSearchConditions(bizIds, moduleIds, cloudAreaIds, searchContents);
+    }
 
-        return bizHostService.pageListHostId(
-            bizIds,
-            moduleIds,
-            cloudAreaIds,
-            searchContents,
-            agentStatus,
-            start,
-            pageSize
-        );
+    @Getter
+    @AllArgsConstructor
+    static class BasicParsedSearchConditions {
+        List<Long> bizIds;
+        List<Long> moduleIds;
+        List<Long> cloudAreaIds;
+        List<String> searchContents;
     }
 }

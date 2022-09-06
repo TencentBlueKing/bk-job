@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.host.BizHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,6 +42,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 业务主机服务
@@ -65,6 +67,21 @@ public class BizHostServiceImpl implements BizHostService {
     }
 
     @Override
+    public List<ApplicationHostDTO> getHostsByIps(Collection<String> ips) {
+        return applicationHostDAO.listHostInfoByIps(ips);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getHostsByIpv6s(Collection<String> ipv6s) {
+        return applicationHostDAO.listHostInfoByIpv6s(ipv6s);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getHostsByHostNames(Collection<String> hostNames) {
+        return applicationHostDAO.listHostInfoByHostNames(hostNames);
+    }
+
+    @Override
     public List<ApplicationHostDTO> getHostsByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds) {
         if (CollectionUtils.isEmpty(bizIds) || CollectionUtils.isEmpty(hostIds)) {
             return Collections.emptyList();
@@ -83,11 +100,27 @@ public class BizHostServiceImpl implements BizHostService {
     }
 
     @Override
+    public List<ApplicationHostDTO> getHostsByBizAndIps(Collection<Long> bizIds, Collection<String> ips) {
+        return applicationHostDAO.listHostInfoByBizAndIps(bizIds, ips);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getHostsByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s) {
+        return applicationHostDAO.listHostInfoByBizAndIpv6s(bizIds, ipv6s);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getHostsByBizAndHostNames(Collection<Long> bizIds,
+                                                              Collection<String> hostNames) {
+        return applicationHostDAO.listHostInfoByBizAndHostNames(bizIds, hostNames);
+    }
+
+    @Override
     public PageData<Long> pageListHostId(Collection<Long> bizIds,
                                          Collection<Long> moduleIds,
                                          Collection<Long> cloudAreaIds,
                                          List<String> searchContents,
-                                         Integer agentStatus,
+                                         Integer agentAlive,
                                          Long start,
                                          Long limit) {
         StopWatch watch = new StopWatch("pageListHostId");
@@ -97,7 +130,7 @@ public class BizHostServiceImpl implements BizHostService {
             moduleIds,
             cloudAreaIds,
             searchContents,
-            agentStatus,
+            agentAlive,
             start,
             limit
         );
@@ -108,9 +141,75 @@ public class BizHostServiceImpl implements BizHostService {
             moduleIds,
             cloudAreaIds,
             searchContents,
-            agentStatus
+            agentAlive
         );
         watch.stop();
         return new PageData<>(start.intValue(), limit.intValue(), count, hostIdList);
+    }
+
+    @Override
+    public PageData<ApplicationHostDTO> pageListHost(Collection<Long> bizIds,
+                                                     Collection<Long> moduleIds,
+                                                     Collection<Long> cloudAreaIds,
+                                                     List<String> searchContents,
+                                                     Integer agentAlive,
+                                                     List<String> ipKeyList,
+                                                     List<String> ipv6KeyList,
+                                                     List<String> hostNameKeyList,
+                                                     List<String> osNameKeyList,
+                                                     Long start,
+                                                     Long limit) {
+        List<ApplicationHostDTO> hostList;
+        Long count;
+        if (searchContents != null) {
+            hostList = applicationHostDAO.listHostInfoBySearchContents(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                searchContents,
+                agentAlive,
+                start,
+                limit
+            );
+            count = applicationHostDAO.countHostInfoBySearchContents(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                searchContents,
+                agentAlive
+            );
+        } else {
+            hostList = applicationHostDAO.listHostInfoByMultiKeys(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                ipKeyList,
+                ipv6KeyList,
+                hostNameKeyList,
+                osNameKeyList,
+                agentAlive,
+                start,
+                limit
+            );
+            count = applicationHostDAO.countHostInfoByMultiKeys(
+                bizIds,
+                moduleIds,
+                cloudAreaIds,
+                ipKeyList,
+                ipv6KeyList,
+                hostNameKeyList,
+                osNameKeyList,
+                agentAlive
+            );
+        }
+        return new PageData<>(start.intValue(), limit.intValue(), count, hostList);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getHostsByModuleIds(Collection<Long> moduleIds) {
+        List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByModuleIds(moduleIds);
+        List<Long> hostIdList =
+            hostTopoDTOList.parallelStream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
+        return applicationHostDAO.listHostInfoByHostIds(hostIdList);
     }
 }

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.model.dto;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
@@ -39,6 +40,7 @@ import lombok.NoArgsConstructor;
 /**
  * @since 3/10/2019 17:14
  */
+@PersistenceObject
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor

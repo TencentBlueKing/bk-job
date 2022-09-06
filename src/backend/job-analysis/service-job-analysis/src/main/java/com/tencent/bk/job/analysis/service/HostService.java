@@ -26,13 +26,13 @@ package com.tencent.bk.job.analysis.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 
 import java.util.List;
 
 public interface HostService {
 
-    List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<AppTopologyTreeNode> treeNodeList);
+    List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<BizTopoNode> treeNodeList);
 
     List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(Long appId, List<String> dynamicGroupIdList);
 

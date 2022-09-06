@@ -274,9 +274,9 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast execute script, target server is null!");
             return false;
         }
-        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getIpList()) &&
-            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getTopoNodeList())
-            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupList())) {
+        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getHostList()) &&
+            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getNodeList())
+            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupIdList())) {
             log.warn("Fast execute script, target server is null!");
             return false;
         }
@@ -406,9 +406,9 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast send file, target server is null!");
             return false;
         }
-        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getIpList()) &&
-            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getTopoNodeList())
-            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupList())) {
+        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getHostList()) &&
+            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getNodeList())
+            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupIdList())) {
             log.warn("Fast send file, target server is null!");
             return false;
         }
@@ -494,31 +494,31 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         }
         ExecuteServersVO hostNode = target.getHostNodeInfo();
         ServersDTO serversDTO = new ServersDTO();
-        if (CollectionUtils.isNotEmpty(hostNode.getIpList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
             List<HostDTO> staticIpList = new ArrayList<>();
-            hostNode.getIpList().forEach(host -> {
+            hostNode.getHostList().forEach(host -> {
                 HostDTO targetHost = new HostDTO();
                 if (host.getHostId() != null) {
                     targetHost.setHostId(host.getHostId());
                 } else {
                     // 兼容IP，发布完成后删除
-                    targetHost.setBkCloudId(host.getCloudAreaInfo().getId());
+                    targetHost.setBkCloudId(host.getCloudId());
                     targetHost.setIp(host.getIp());
                 }
                 staticIpList.add(targetHost);
             });
             serversDTO.setStaticIpList(staticIpList);
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
-            hostNode.getDynamicGroupList().forEach(
+            hostNode.getDynamicGroupIdList().forEach(
                 groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
             serversDTO.setDynamicServerGroups(dynamicServerGroups);
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getTopoNodeList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
             List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
-            hostNode.getTopoNodeList().forEach(
-                topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(), topoNode.getType())));
+            hostNode.getNodeList().forEach(
+                topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getInstanceId(), topoNode.getObjectId())));
             serversDTO.setTopoNodes(topoNodes);
         }
         return serversDTO;

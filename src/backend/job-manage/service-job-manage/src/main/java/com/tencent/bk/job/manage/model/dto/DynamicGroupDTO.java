@@ -22,24 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.index;
+package com.tencent.bk.job.manage.model.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-/**
- * Agent统计数据VO
- */
+@Data
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Agent统计数据")
-@Data
-public class AgentStatistics {
-    @ApiModelProperty("正常数")
-    private int normalNum;
-    @ApiModelProperty("异常数")
-    private int abnormalNum;
+public class DynamicGroupDTO {
+
+    private Long bizId;
+
+    private String id;
+
+    private String name;
+
+    private String lastTime;
+
+    public static DynamicGroupDTO fromCcGroupDTO(CcGroupDTO ccGroupDTO) {
+        if (ccGroupDTO == null) {
+            return null;
+        }
+        DynamicGroupDTO dynamicGroupDTO = new DynamicGroupDTO();
+        dynamicGroupDTO.setId(ccGroupDTO.getId());
+        dynamicGroupDTO.setBizId(ccGroupDTO.getBizId());
+        dynamicGroupDTO.setName(ccGroupDTO.getName());
+        dynamicGroupDTO.setLastTime(ccGroupDTO.getLastTime());
+        return dynamicGroupDTO;
+    }
+
+    public DynamicGroupBasicVO toBasicVO() {
+        return new DynamicGroupBasicVO(id, name, lastTime, null);
+    }
 }

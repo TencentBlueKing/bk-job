@@ -25,7 +25,11 @@
 package com.tencent.bk.job.common.cc.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * CMDB 对象模型属性
@@ -59,4 +63,24 @@ public class CcObjAttributeDTO {
      */
     @JsonProperty("creator")
     private String creator;
+
+    private Object option;
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @ToString
+    public static class Option {
+
+        private String id;
+
+        @JsonProperty("is_default")
+        private Boolean default_;
+
+        private String name;
+
+        private String type;
+
+    }
 }
