@@ -55,7 +55,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -297,7 +297,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         List<ServiceTaskNodeInfoDTO> targetNodeVOList = serviceTaskHostNodeDTO.getNodeInfoList();
         if (targetNodeVOList != null && !targetNodeVOList.isEmpty()) {
             hostStatusDTOList.addAll(hostService.getHostStatusByNode(appId,
-                targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
+                targetNodeVOList.stream().map(it -> new BizTopoNode(
                     it.getType(),
                     "",
                     it.getId(),

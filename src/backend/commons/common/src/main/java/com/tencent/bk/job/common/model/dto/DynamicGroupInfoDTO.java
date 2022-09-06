@@ -53,6 +53,8 @@ public class DynamicGroupInfoDTO {
 
     private String name;
 
+    private String lastTime;
+
     private String type;
 
     private List<String> ipList;

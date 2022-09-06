@@ -24,10 +24,9 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
-import com.tencent.bk.job.manage.common.TopologyHelper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,11 +34,13 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * @since 2/12/2019 21:31
  */
+@PersistenceObject
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -58,15 +59,17 @@ public class TaskHostNodeDTO {
         }
         TaskHostNodeVO hostNodeVO = new TaskHostNodeVO();
         if (CollectionUtils.isNotEmpty(hostNode.getNodeInfoList())) {
-            hostNodeVO.setTopoNodeList(
+            hostNodeVO.setNodeList(
                 hostNode.getNodeInfoList().parallelStream()
                     .map(TaskNodeInfoDTO::toVO).collect(Collectors.toList()));
         }
-        hostNodeVO.setDynamicGroupList(hostNode.getDynamicGroupId());
+        hostNodeVO.setDynamicGroupIdList(hostNode.getDynamicGroupId());
         if (hostNode.getHostList() != null) {
             hostNodeVO
-                .setIpList(hostNode.getHostList().stream()
-                    .map(TopologyHelper::convertToHostInfoVO).collect(Collectors.toList()));
+                .setHostList(hostNode.getHostList().stream()
+                    .filter(Objects::nonNull)
+                    .map(ApplicationHostDTO::toVO)
+                    .collect(Collectors.toList()));
         }
         return hostNodeVO;
     }
@@ -76,18 +79,18 @@ public class TaskHostNodeDTO {
             return null;
         }
         TaskHostNodeDTO taskHostNodeDTO = new TaskHostNodeDTO();
-        if (CollectionUtils.isNotEmpty(hostNode.getTopoNodeList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
             taskHostNodeDTO.setNodeInfoList(
-                hostNode.getTopoNodeList().parallelStream()
+                hostNode.getNodeList().parallelStream()
                     .map(TaskNodeInfoDTO::fromVO).collect(Collectors.toList()));
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupList())) {
-            taskHostNodeDTO.setDynamicGroupId(hostNode.getDynamicGroupList());
+        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
+            taskHostNodeDTO.setDynamicGroupId(hostNode.getDynamicGroupIdList());
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getIpList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
             taskHostNodeDTO
-                .setHostList(hostNode.getIpList().stream()
-                    .map(HostInfoVO::toDTO).collect(Collectors.toList()));
+                .setHostList(hostNode.getHostList().stream()
+                    .map(ApplicationHostDTO::fromVO).collect(Collectors.toList()));
         }
         return taskHostNodeDTO;
     }

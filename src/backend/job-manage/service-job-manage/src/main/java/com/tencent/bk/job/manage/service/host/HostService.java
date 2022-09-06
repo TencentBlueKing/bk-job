@@ -35,11 +35,11 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
+import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 
 import java.util.Collection;
 import java.util.List;
@@ -127,9 +127,9 @@ public interface HostService {
                                               AppResourceScope appResourceScope,
                                               ListHostByBizTopologyNodesReq req);
 
-    List<AppTopologyTreeNode> getAppTopologyTreeNodeDetail(String username,
-                                                           AppResourceScope appResourceScope,
-                                                           List<AppTopologyTreeNode> treeNodeList);
+    List<BizTopoNode> getAppTopologyTreeNodeDetail(String username,
+                                                   AppResourceScope appResourceScope,
+                                                   List<BizTopoNode> treeNodeList);
 
     List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
                                                       Long bizId,
@@ -137,7 +137,7 @@ public interface HostService {
 
     List<NodeInfoVO> getBizHostsByNode(String username,
                                        Long bizId,
-                                       List<AppTopologyTreeNode> treeNodeList);
+                                       List<BizTopoNode> treeNodeList);
 
     /**
      * 获取业务下动态分组列表
@@ -175,7 +175,7 @@ public interface HostService {
 
     List<HostInfoVO> listHostByAppTopologyNodes(String username,
                                                 Long appId,
-                                                List<AppTopologyTreeNode> appTopoNodeList);
+                                                List<BizTopoNode> appTopoNodeList);
 
     AgentStatistics getAgentStatistics(String username,
                                        Long appId,

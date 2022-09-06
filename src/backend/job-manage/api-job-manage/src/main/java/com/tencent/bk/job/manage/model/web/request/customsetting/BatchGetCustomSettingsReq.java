@@ -22,61 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.ipchooser;
+package com.tencent.bk.job.manage.model.web.request.customsetting;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
- * @Description
- * @Date 2020/3/19
- * @Version 1.0
+ * 批量获取用户自定义配置项请求
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-@ApiModel("业务拓扑节点信息")
-public class AppTopologyTreeNode {
-    @ApiModelProperty(value = "节点类型Id", required = true)
-    private String objectId;
-    @ApiModelProperty(value = "节点类型名称")
-    private String objectName;
-    @ApiModelProperty(value = "节点实例Id", required = true)
-    private Long instanceId;
-    @ApiModelProperty(value = "节点实例名称")
-    private String instanceName;
-    @ApiModelProperty(value = "子节点列表")
-    private List<AppTopologyTreeNode> childs;
+@ApiModel("批量获取用户自定义配置项请求")
+public class BatchGetCustomSettingsReq {
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AppTopologyTreeNode)) return false;
-        AppTopologyTreeNode that = (AppTopologyTreeNode) o;
-        return Objects.equals(objectId, that.objectId) &&
-            Objects.equals(instanceId, that.instanceId);
-    }
+    @ApiModelProperty(value = "要批量获取配置项的模块列表，不传表示获取所有模块配置项")
+    private List<String> moduleList;
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(objectId, instanceId);
-    }
-
-    public String getSimpleDesc() {
-        return "(" + objectId + "," + instanceId + ")";
-    }
-
-    @Override
-    public String toString() {
-        return "AppTopologyTreeNode{" +
-            "objectId='" + objectId + '\'' +
-            ", instanceId=" + instanceId +
-            '}';
-    }
 }

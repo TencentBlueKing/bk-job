@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.host;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,20 +48,76 @@ public interface ScopeHostService {
                                                 Collection<Long> hostIds);
 
     /**
+     * 根据 IP 列表查询主机信息
+     *
+     * @param appResourceScope 资源范围
+     * @param ips              主机IP地址集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getScopeHostsByIps(AppResourceScope appResourceScope,
+                                                Collection<String> ips);
+
+    /**
+     * 根据 Ipv6 列表查询主机信息
+     *
+     * @param appResourceScope 资源范围
+     * @param ipv6s            主机Ipv6地址集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getScopeHostsByIpv6s(AppResourceScope appResourceScope,
+                                                  Collection<String> ipv6s);
+
+    /**
+     * 根据 关键字 列表查询主机信息
+     *
+     * @param appResourceScope 资源范围
+     * @param keys             关键字集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getScopeHostsByHostNames(AppResourceScope appResourceScope,
+                                                      Collection<String> keys);
+
+    /**
      * 根据拓扑节点、模糊搜索关键字、agent状态分页查询查询资源范围下的主机
      *
      * @param appResourceScope 资源范围
      * @param appTopoNodeList  拓扑节点列表
      * @param searchContent    模糊搜索关键字（同时对主机IP/主机名/操作系统/云区域名称进行模糊搜索）
-     * @param agentStatus      筛选条件：agentStatus：0为异常，1为正常
+     * @param agentAlive       筛选条件：agentAlive：0为异常，1为正常
      * @param start            数据起始位置
      * @param pageSize         拉取数量
      * @return hostId列表
      */
     PageData<Long> listHostIdByBizTopologyNodes(AppResourceScope appResourceScope,
-                                                List<AppTopologyTreeNode> appTopoNodeList,
+                                                List<BizTopoNode> appTopoNodeList,
                                                 String searchContent,
-                                                Integer agentStatus,
+                                                Integer agentAlive,
                                                 Long start,
                                                 Long pageSize);
+
+    /**
+     * 根据拓扑节点、模糊搜索关键字、agent状态分页查询查询资源范围下的主机
+     *
+     * @param appResourceScope 资源范围
+     * @param appTopoNodeList  拓扑节点列表
+     * @param agentAlive       筛选条件：agentAlive：0为异常，1为正常
+     * @param searchContent    模糊搜索关键字（同时对主机IP/主机名/操作系统/云区域名称进行模糊搜索）
+     * @param ipKeyList        IP关键字列表
+     * @param ipv6KeyList      IPv6关键字列表
+     * @param hostNameKeyList  主机名称关键字列表
+     * @param osNameKeyList    操作系统名称关键字列表
+     * @param start            数据起始位置
+     * @param pageSize         拉取数量
+     * @return hostId列表
+     */
+    PageData<ApplicationHostDTO> searchHost(AppResourceScope appResourceScope,
+                                            List<BizTopoNode> appTopoNodeList,
+                                            Integer agentAlive,
+                                            String searchContent,
+                                            List<String> ipKeyList,
+                                            List<String> ipv6KeyList,
+                                            List<String> hostNameKeyList,
+                                            List<String> osNameKeyList,
+                                            Long start,
+                                            Long pageSize);
 }
