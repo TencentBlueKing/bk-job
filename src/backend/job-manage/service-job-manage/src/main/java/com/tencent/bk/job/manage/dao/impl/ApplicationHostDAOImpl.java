@@ -226,7 +226,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (bizIds != null) {
             conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
         }
-        conditions.add(TABLE.IP.in(ips));
+        conditions.add(TABLE.IP.in(ips).or(TABLE.CLOUD_IP.in(ips)));
         return listHostInfoByConditions(conditions);
     }
 
