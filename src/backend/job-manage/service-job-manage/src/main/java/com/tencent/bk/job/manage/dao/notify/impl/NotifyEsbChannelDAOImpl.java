@@ -96,7 +96,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
         } catch (ExecutionException e) {
             String errorMsg = "Fail to load EsbChannel from cache";
             logger.error(errorMsg, e);
-            throw new InternalException(errorMsg, e, ErrorCode.PAAS_MSG_CHANNEL_DATA_ERROR);
+            throw new InternalException(errorMsg, e, ErrorCode.CMSI_MSG_CHANNEL_DATA_ERROR);
         }
     }
 }
