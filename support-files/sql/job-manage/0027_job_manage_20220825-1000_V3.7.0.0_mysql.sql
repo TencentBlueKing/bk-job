@@ -37,10 +37,38 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'host'
                     AND COLUMN_NAME = 'cloud_vendor_id') THEN
-        ALTER TABLE host ADD COLUMN cloud_vendor_id VARCHAR(20) DEFAULT NULL COMMENT '云厂商ID';
+        ALTER TABLE `host`
+            ADD COLUMN `cloud_vendor_id` VARCHAR(20) DEFAULT NULL COMMENT '云厂商ID';
     END IF;
 
-COMMIT;
+    IF EXISTS(SELECT 1
+              FROM information_schema.columns
+              WHERE TABLE_SCHEMA = db
+                AND TABLE_NAME = 'host'
+                AND COLUMN_NAME = 'ip') THEN
+        ALTER TABLE `host`
+            MODIFY COLUMN `ip` VARCHAR(15) NULL COMMENT '主机IPv4地址';
+    END IF;
+
+    IF EXISTS(SELECT 1
+              FROM information_schema.columns
+              WHERE TABLE_SCHEMA = db
+                AND TABLE_NAME = 'host'
+                AND COLUMN_NAME = 'display_ip') THEN
+        ALTER TABLE `host`
+            MODIFY COLUMN `display_ip` text NULL COMMENT '主机展示用的IPv4地址，可能存在多个IP';
+    END IF;
+
+    IF EXISTS(SELECT 1
+              FROM information_schema.columns
+              WHERE TABLE_SCHEMA = db
+                AND TABLE_NAME = 'host'
+                AND COLUMN_NAME = 'cloud_ip') THEN
+        ALTER TABLE `host`
+            MODIFY COLUMN `cloud_ip` VARCHAR(65) NULL COMMENT '云区域ID:主机IP地址';
+    END IF;
+
+    COMMIT;
 END <JOB_UBF>
 DELIMITER ;
 CALL job_schema_update();
