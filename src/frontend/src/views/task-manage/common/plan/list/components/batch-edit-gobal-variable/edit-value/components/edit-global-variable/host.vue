@@ -34,7 +34,11 @@
             </span>
         </div>
         <div>
-            <bk-button v-if="isValueEmpty" @click="handleChooseIp" style="width: 160px;">
+            <bk-button
+                v-if="isValueEmpty"
+                @click="handleChooseIp"
+                style="width: 160px;"
+                v-bk-tooltips="descPopover">
                 <Icon type="plus" />
                 {{ $t('template.添加服务器') }}
             </bk-button>
@@ -84,6 +88,17 @@
             },
             valueText  () {
                 return new TaskHostNodeModel(this.value).text;
+            },
+            descPopover () {
+                return {
+                    theme: 'light',
+                    extCls: 'variable-desc-tippy',
+                    trigger: 'click mouseenter',
+                    placement: 'left',
+                    hideOnClick: false,
+                    content: this.data.description,
+                    disabled: !this.data.description,
+                };
             },
         },
         

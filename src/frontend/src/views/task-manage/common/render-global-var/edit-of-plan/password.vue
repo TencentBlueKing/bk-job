@@ -46,7 +46,7 @@
                 disabled
                 :true-value="1"
                 :false-value="0">
-                {{ $t('template.必填') }}
+                {{ $t('template.执行时必填') }}
             </bk-checkbox>
         </jb-form-item>
     </jb-form>

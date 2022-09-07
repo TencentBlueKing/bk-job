@@ -61,7 +61,7 @@ bk:
   {% if job_edition == "ce" -%}
   doc:
     # 首页右上角产品文档根地址
-    root: https://bk.tencent.com
+    root: https://bk.tencent.com/docs
   {% endif -%}
   feedback:
     # 首页右上角问题反馈链接
