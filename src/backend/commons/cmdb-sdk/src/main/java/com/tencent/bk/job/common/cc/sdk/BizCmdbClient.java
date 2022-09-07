@@ -651,7 +651,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     private List<ApplicationHostDTO> convertToHostInfoDTOList(
         long bizId,
-        List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList) {
+        List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList
+    ) {
         List<ApplicationHostDTO> applicationHostDTOList = new ArrayList<>();
         Set<String> ipSet = new HashSet<>();
         for (FindModuleHostRelationResult.HostWithModules hostWithModules : hostWithModulesList) {
@@ -661,13 +662,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 continue;
             }
             ipSet.add(host.getCloudAreaId() + ":" + host.getIp());
-            String multiIp = host.getIp();
-            if (!StringUtils.isBlank(multiIp)) {
+            Long hostId = host.getHostId();
+            if (hostId != null) {
                 ApplicationHostDTO applicationHostDTO = convertToHostInfoDTO(bizId, hostWithModules);
                 applicationHostDTOList.add(applicationHostDTO);
             } else {
-                log.info("bk_host_innerip is blank, ignore, hostId={},host={}", host.getHostId(),
-                    JsonUtils.toJson(host));
+                log.info("bk_host_id is null, ignore, host={}", JsonUtils.toJson(host));
             }
         }
         log.info("ipSet.size=" + ipSet.size());
