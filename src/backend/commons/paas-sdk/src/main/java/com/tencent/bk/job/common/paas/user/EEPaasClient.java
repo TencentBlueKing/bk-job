@@ -210,7 +210,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         } catch (Exception e) {
             log.error("Fail to request {}", uri, e);
             status = EsbMetricTags.VALUE_STATUS_ERROR;
-            throw new PaasException(e, ErrorType.FAILED_PRECONDITION, ErrorCode.CMSI_API_ACCESS_ERROR, new Object[]{});
+            throw new PaasException(e, ErrorType.INTERNAL, ErrorCode.CMSI_API_ACCESS_ERROR, new Object[]{});
         } finally {
             HttpMetricUtil.clearHttpMetric();
             recordMetrics(start, status, msgType);
