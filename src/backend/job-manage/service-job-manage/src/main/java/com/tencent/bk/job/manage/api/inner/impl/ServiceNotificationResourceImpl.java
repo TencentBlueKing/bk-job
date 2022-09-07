@@ -58,7 +58,7 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     @Override
     public InternalResponse<Integer> sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
         log.info(String.format("Input:%s", JsonUtils.toJson(serviceUserNotificationDTO)));
-        return InternalResponse.buildSuccessResp(notifyService.sendNotificationsToUsers(serviceUserNotificationDTO));
+        return InternalResponse.buildSuccessResp(notifyService.asyncSendNotificationsToUsers(serviceUserNotificationDTO));
     }
 
     @Override
@@ -67,7 +67,7 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     ) {
         log.info(String.format("Input:%s", JsonUtils.toJson(serviceNotificationMessage)));
         return InternalResponse.buildSuccessResp(
-            notifyService.sendNotificationsToAdministrators(serviceNotificationMessage)
+            notifyService.asyncSendNotificationsToAdministrators(serviceNotificationMessage)
         );
     }
 

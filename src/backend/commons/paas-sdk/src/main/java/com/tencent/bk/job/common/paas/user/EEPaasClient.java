@@ -33,6 +33,8 @@ import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.metrics.PaaSMetricTags;
 import com.tencent.bk.job.common.paas.model.EsbListUsersResult;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
@@ -113,7 +115,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         } catch (Exception e) {
             String errorMsg = "Get " + API_GET_USER_LIST + " error";
             log.error(errorMsg, e);
-            throw new InternalException(errorMsg, e, ErrorCode.PAAS_API_DATA_ERROR);
+            throw new InternalException(errorMsg, e, ErrorCode.USER_MANAGE_API_ACCESS_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
@@ -170,7 +172,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
     }
 
     @Override
-    public boolean sendMsg(
+    public void sendMsg(
         String msgType,
         String sender,
         Set<String> receivers,
@@ -194,14 +196,21 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
 
             if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
                 status = checkRespAndGetStatus(uri, esbResp);
-                return false;
+                throw new PaasException(
+                    ErrorType.INTERNAL,
+                    ErrorCode.CMSI_FAIL_TO_SEND_MSG,
+                    new Object[]{
+                        esbResp.getCode().toString(),
+                        esbResp.getMessage()
+                    });
             }
             status = EsbMetricTags.VALUE_STATUS_SUCCESS;
-            return true;
+        } catch (PaasException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Fail to request {}", uri, e);
             status = EsbMetricTags.VALUE_STATUS_ERROR;
-            return false;
+            throw new PaasException(e, ErrorType.INTERNAL, ErrorCode.CMSI_API_ACCESS_ERROR, new Object[]{});
         } finally {
             HttpMetricUtil.clearHttpMetric();
             recordMetrics(start, status, msgType);
