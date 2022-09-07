@@ -256,7 +256,6 @@
              * @param {Object} payload 脚本语言列表哦
              */
             handleUpdate (rule, payload) {
-                console.log('from handleUpdate = ', rule, payload);
                 return DangerousRuleService.update({
                     ...rule,
                     ...payload,

@@ -33,13 +33,21 @@
                     <bk-checkbox :value="enabled" @change="handleEnableChange">
                         {{ $t('启用限速') }}
                     </bk-checkbox>
-                    <bk-input v-show="enabled" class="speed-limit-input" @change="handleChange" :value="formData[field]">
+                    <bk-input
+                        v-show="enabled"
+                        class="speed-limit-input"
+                        @change="handleChange"
+                        :value="formData[field]">
                         <template slot="append">
                             <div class="group-text">MB/s</div>
                         </template>
                     </bk-input>
                 </div>
-                <Icon v-show="enabled" type="info" class="tips-flag" v-bk-tooltips="speedLimitTipsConfig" />
+                <Icon
+                    v-show="enabled"
+                    type="info"
+                    class="tips-flag"
+                    v-bk-tooltips="speedLimitTipsConfig" />
             </div>
         </jb-form-item>
         <div id="targetPathTips" class="speed-limit-tips">
@@ -90,7 +98,6 @@
                 trigger: 'mouseenter',
                 content: '#targetPathTips',
                 placement: 'right-start',
-                delay: [0, 10000000],
             };
         },
         methods: {
@@ -151,7 +158,7 @@
                 left: 0;
                 width: 4px;
                 height: 4px;
-                background: currentColor;
+                background: currentcolor;
                 border-radius: 50%;
                 content: "";
             }
