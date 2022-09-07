@@ -95,7 +95,7 @@ export default {
         '上线后，之前的线上版本将被置为「已下线」状态，但不影响作业使用': 'After going Online, the previous online version will be set to "Offline", but it still can be execute.',
         上线: 'On',
         '确定禁用该版本？': 'Are you sure to ban it ?',
-        '一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！': 'IMPORTANT! once the version is banned, the job steps that quote to this version will fail to execute, please be careful!',
+        '一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！': 'IMPORTANT! Once the version is banned, it cannot be restored! And the job steps that reference to this version will not be able to execute, so please be careful!',
         禁用: 'Ban',
         '确定删除该版本？': 'Are you sure to delete it ?',
         '删除后不可恢复，请谨慎操作！': 'Caution! It cannot be restored after deletion.',
