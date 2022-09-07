@@ -55,8 +55,6 @@ import com.tencent.bk.job.manage.model.dto.globalsetting.UploadFileRestrictDTO;
 import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
-import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
@@ -80,6 +78,7 @@ import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.NotifyService;
+import com.tencent.bk.job.manage.service.impl.notify.NotifySendService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifyUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -94,7 +93,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -121,6 +119,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final NotifyEsbChannelDAO notifyEsbChannelDAO;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyService notifyService;
+    private final NotifySendService notifySendService;
     private final NotifyUserService notifyUserService;
     private final GlobalSettingDAO globalSettingDAO;
     private final NotifyTemplateDAO notifyTemplateDAO;
@@ -140,7 +139,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         , NotifyEsbChannelDAO notifyEsbChannelDAO
         , AvailableEsbChannelDAO availableEsbChannelDAO
         , NotifyService notifyService
-        , NotifyUserService notifyUserService,
+        , NotifySendService notifySendService,
+        NotifyUserService notifyUserService,
         GlobalSettingDAO globalSettingDAO
         , NotifyTemplateDAO notifyTemplateDAO,
         MessageI18nService i18nService,
@@ -152,6 +152,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyService = notifyService;
+        this.notifySendService = notifySendService;
         this.notifyUserService = notifyUserService;
         this.globalSettingDAO = globalSettingDAO;
         this.notifyTemplateDAO = notifyTemplateDAO;
@@ -632,12 +633,15 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     public Integer sendChannelTemplate(String username, ChannelTemplatePreviewReq req) {
         List<String> receiverList = StringUtil.strToList(req.getReceiverStr(), String.class,
             NotifyConsts.SEPERATOR_COMMA);
-        return notifyService.sendNotificationsToUsersByChannel(
-            new ServiceUserNotificationDTO(
-                new HashSet<>(receiverList),
-                new ServiceNotificationMessage(
-                    req.getTitle(), req.getContent())),
-            Collections.singletonList(req.getChannelCode()));
+        Set<String> receiverSet = new HashSet<>(receiverList);
+        notifySendService.sendUserChannelNotify(
+            null,
+            receiverSet,
+            req.getChannelCode(),
+            req.getTitle(),
+            req.getContent()
+        );
+        return receiverSet.size();
     }
 
     @Override

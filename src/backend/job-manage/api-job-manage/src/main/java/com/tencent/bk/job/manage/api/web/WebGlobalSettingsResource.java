@@ -110,10 +110,10 @@ public interface WebGlobalSettingsResource {
         @RequestHeader("username")
             String username,
         @ApiParam("渠道Code")
-        @RequestParam(value = "channelCode", required = true)
+        @RequestParam(value = "channelCode")
             String channelCode,
         @ApiParam("消息类型Code")
-        @RequestParam(value = "messageTypeCode", required = true)
+        @RequestParam(value = "messageTypeCode")
             String messageTypeCode
     );
 

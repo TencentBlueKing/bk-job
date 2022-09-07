@@ -418,7 +418,7 @@ public class NotifyServiceImpl implements NotifyService {
         }
         ServiceNotificationMessage notificationMessage =
             notifyMessageMap.get(new ArrayList<>(notifyMessageMap.keySet()).get(0));
-        notifySendService.sendNotifyMessages(
+        notifySendService.asyncSendNotifyMessages(
             notification.getTriggerDTO().getAppId(),
             channelUsersMap,
             notificationMessage.getTitle(),
@@ -635,22 +635,22 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    public Integer sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
+    public Integer asyncSendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
         // 获取所有可用渠道
         List<String> availableChannelTypeList = getAvailableChannelTypeList();
-        return sendNotificationsToUsersByChannel(serviceUserNotificationDTO, availableChannelTypeList);
+        return asyncSendNotificationsByChannel(serviceUserNotificationDTO, availableChannelTypeList);
     }
 
     @Override
-    public Integer sendNotificationsToUsersByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
-                                                     List<String> channelTypeList) {
+    public Integer asyncSendNotificationsByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
+                                                   List<String> channelTypeList) {
         // 组装通知map
         Map<String, Set<String>> channelUsersMap = new HashMap<>();
         for (String channelType : channelTypeList) {
             channelUsersMap.put(channelType, serviceUserNotificationDTO.getReceivers());
         }
         ServiceNotificationMessage notificationMessage = serviceUserNotificationDTO.getNotificationMessage();
-        notifySendService.sendNotifyMessages(
+        notifySendService.asyncSendNotifyMessages(
             null,
             channelUsersMap,
             notificationMessage.getTitle(),
@@ -660,9 +660,9 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    public Integer sendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage) {
+    public Integer asyncSendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage) {
         List<String> administrators = localPermissionService.getAdministrators();
-        return sendNotificationsToUsers(new ServiceUserNotificationDTO(new HashSet<>(administrators),
+        return asyncSendNotificationsToUsers(new ServiceUserNotificationDTO(new HashSet<>(administrators),
             serviceNotificationMessage));
     }
 
@@ -714,7 +714,7 @@ public class NotifyServiceImpl implements NotifyService {
                 );
                 //发送消息通知
                 if (notifyMsg != null) {
-                    notifySendService.sendUserChannelNotify(
+                    notifySendService.asyncSendUserChannelNotify(
                         appId,
                         userSet,
                         channel,
@@ -771,7 +771,7 @@ public class NotifyServiceImpl implements NotifyService {
                     log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());
                 }
                 if (notificationMessage != null) {
-                    notifySendService.sendUserChannelNotify(
+                    notifySendService.asyncSendUserChannelNotify(
                         appId,
                         userSet,
                         channel,

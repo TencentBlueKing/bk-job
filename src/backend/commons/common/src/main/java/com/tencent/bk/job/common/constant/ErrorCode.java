@@ -388,12 +388,16 @@ public class ErrorCode {
     public static final int FAIL_TO_FIND_DYNAMIC_GROUP_BY_BIZ = 1211004;
 
     // PaaS异常
-    // PAAS服务不可达 - 地址配置错误或者地址无法正确解析
-    public static final int PAAS_UNREACHABLE_SERVER = 1213001;
-    // paas接口返回数据结构异常-一般是被网关防火墙重定向返回统一登录页面
-    public static final int PAAS_API_DATA_ERROR = 1213002;
-    // paas通知渠道接口数据获取异常
-    public static final int PAAS_MSG_CHANNEL_DATA_ERROR = 1213003;
+    // CMSI接口访问异常
+    public static final int CMSI_API_ACCESS_ERROR = 1213001;
+    // 用户管理接口访问异常
+    public static final int USER_MANAGE_API_ACCESS_ERROR = 1213002;
+    // 调用CMSI接口获取通知渠道数据异常
+    public static final int CMSI_MSG_CHANNEL_DATA_ERROR = 1213003;
+    // 调用CMSI接口发送通知失败，原因：{0}
+    public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
+
+    // 制品库异常
     // Artifactory接口返回数据结构异常
     public static final int ARTIFACTORY_API_DATA_ERROR = 1214001;
     // 制品库中找不到节点:{0}，请到制品库核实
