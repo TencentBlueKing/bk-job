@@ -48,6 +48,7 @@
             },
         },
         data () {
+            console.log('from asdasda = ', this.data);
             return {};
         },
         computed: {
@@ -73,18 +74,6 @@
             margin-bottom: 0;
         }
 
-        .remove-flag {
-            display: none;
-            padding: 10px 10px 10px 4px;
-            font-size: 14px;
-            color: #c4c6cc;
-            cursor: pointer;
-
-            &:hover {
-                color: #ea3636;
-            }
-        }
-
         &:hover {
             .remove-flag {
                 display: inline;
@@ -92,10 +81,26 @@
         }
 
         .name {
+            position: relative;
             margin-bottom: 10px;
             font-size: 14px;
             line-height: 19px;
             color: #63656e;
+        }
+
+        .remove-flag {
+            position: absolute;
+            top: 0;
+            left: -5px;
+            display: none;
+            font-size: 14px;
+            color: #c4c6cc;
+            cursor: pointer;
+            transform: translateX(-100%);
+
+            &:hover {
+                color: #ea3636;
+            }
         }
     }
 </style>
