@@ -29,9 +29,18 @@
     <div class="job-execute-record" v-bkloading="{ isLoading }">
         <template v-if="!isLoading">
             <bk-table v-if="data.length > 0" :data="data">
-                <bk-table-column :label="$t('history.时间')" prop="createTime" width="180" />
-                <bk-table-column :label="$t('history.操作人')" prop="operator" width="120" />
-                <bk-table-column :label="$t('history.操作')" prop="operationName" width="120" />
+                <bk-table-column
+                    :label="$t('history.时间')"
+                    prop="createTime"
+                    width="180" />
+                <bk-table-column
+                    :label="$t('history.操作人')"
+                    prop="operator"
+                    width="120" />
+                <bk-table-column
+                    :label="$t('history.操作')"
+                    prop="operationName"
+                    width="120" />
                 <bk-table-column
                     :label="$t('history.步骤')"
                     prop="stepName"
@@ -39,11 +48,18 @@
                     class-name="step-name" />
                 <bk-table-column :label="$t('history.详情')">
                     <template slot-scope="{ row }">
-                        <bk-button
-                            v-if="row.detailEnable"
-                            theme="primary"
-                            text
-                            @click="handleView(row)">{{ row.detail }}</bk-button>
+                        <template v-if="row.detailEnable">
+                            <span v-if="chekcIsCurrentUrl(row)">
+                                {{ $t('history.当前正在显示的内容') }}
+                            </span>
+                            <bk-button
+                                v-else
+                                theme="primary"
+                                text
+                                @click="handleView(row)">
+                                {{ row.detail }}
+                            </bk-button>
+                        </template>
                         <div v-else>{{ row.detail }}</div>
                     </template>
                 </bk-table-column>
@@ -93,6 +109,12 @@
                     .finally(() => {
                         this.isLoading = false;
                     });
+            },
+            chekcIsCurrentUrl (data) {
+                const { stepInstanceId, retryCount = 0 } = this.$route.query;
+                
+                return parseInt(stepInstanceId, 10) === data.stepInstanceId
+                    && parseInt(retryCount, 10) === data.retry;
             },
             handleView (payload) {
                 const routerInfo = {
