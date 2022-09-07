@@ -197,7 +197,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
                 status = checkRespAndGetStatus(uri, esbResp);
                 throw new PaasException(
-                    ErrorType.FAILED_PRECONDITION,
+                    ErrorType.INTERNAL,
                     ErrorCode.CMSI_FAIL_TO_SEND_MSG,
                     new Object[]{
                         esbResp.getCode().toString(),

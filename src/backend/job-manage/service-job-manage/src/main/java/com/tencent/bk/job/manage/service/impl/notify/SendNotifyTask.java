@@ -99,7 +99,7 @@ public class SendNotifyTask implements Runnable {
                 );
                 result = true;
             } catch (Exception e) {
-                log.warn("Fail to sendMsg", e);
+                log.error("Fail to sendMsg", e);
             }
         }
         return result;

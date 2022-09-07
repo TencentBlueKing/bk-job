@@ -33,8 +33,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.helpers.FormattingTuple;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -136,11 +134,7 @@ public class NotifySendService {
                                       String title,
                                       String content) {
         if (CollectionUtils.isEmpty(receivers)) {
-            FormattingTuple msg = MessageFormatter.format(
-                "receivers is empty of channel {}, do not send notification",
-                channel
-            );
-            log.warn(msg.getMessage());
+            log.warn("receivers is empty of channel {}, do not send notification", channel);
             return;
         }
         watchableSendMsgService.sendMsg(
