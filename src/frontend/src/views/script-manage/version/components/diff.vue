@@ -52,23 +52,29 @@
         </div>
         <div class="version-select-layout">
             <div class="version-left">
-                <bk-select class="version-selector" :clearable="false" v-model="oldVersion">
+                <bk-select
+                    class="version-selector"
+                    :clearable="false"
+                    v-model="oldVersion">
                     <bk-option
                         v-for="item in data"
                         :key="item.scriptVersionId"
                         :id="item.scriptVersionId"
                         :name="item.version"
-                        :disabled="item.scriptVersionId === oldVersionId" />
+                        :disabled="item.scriptVersionId === oldVersion" />
                 </bk-select>
             </div>
             <div class="version-right">
-                <bk-select class="version-selector" :clearable="false" v-model="newVersion">
+                <bk-select
+                    class="version-selector"
+                    :clearable="false"
+                    v-model="newVersion">
                     <bk-option
                         v-for="item in data"
                         :key="item.scriptVersionId"
                         :id="item.scriptVersionId"
                         :name="item.version"
-                        :disabled="item.scriptVersionId === newVersionId" />
+                        :disabled="item.scriptVersionId === newVersion" />
                 </bk-select>
             </div>
         </div>

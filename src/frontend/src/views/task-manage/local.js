@@ -64,7 +64,7 @@ export default {
         确认人: 'Confirmer',
         输入确认人: 'Type the confirmer name...',
         通知方式: 'Notify by',
-        全部: 'All',
+        选择全部: 'All',
         确认描述: 'Description',
         确认人必填: 'Confirmer is required',
         步骤人工确认: 'ConfirmationStep',
