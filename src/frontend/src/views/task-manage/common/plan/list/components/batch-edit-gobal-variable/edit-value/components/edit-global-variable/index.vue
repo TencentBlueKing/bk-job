@@ -48,7 +48,6 @@
             },
         },
         data () {
-            console.log('from asdasda = ', this.data);
             return {};
         },
         computed: {
