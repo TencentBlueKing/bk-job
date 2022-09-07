@@ -144,7 +144,6 @@
                         globalVariableMap[genGlobalVariableKey(variableData)] = variableData;
                     });
                 });
-                console.log('asdad = ', globalVariableMap);
                
                 this.relatedTemplateNums = Object.values(templateIdMap).length;
                 this.globalVariableMap = Object.freeze(globalVariableMap);
