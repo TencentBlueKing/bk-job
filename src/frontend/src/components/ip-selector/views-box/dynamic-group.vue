@@ -77,8 +77,8 @@
             :draggable="false"
             :title="`动态拓扑主机预览`">
             <host-list
-                v-if="selectedGroup"
-                :dynamic-group="selectedGroup" />
+                v-if="selectedDynamicGroup"
+                :dynamic-group="selectedDynamicGroup" />
             <template #footer>
                 <bk-button
                     theme="primary"
@@ -100,7 +100,6 @@
     import useDialogSize from '../hooks/use-dialog-size';
     import useIpSelector from '../hooks/use-ip-selector';
     import {
-        getDiffNewNum,
         getDynamicGroupDiffMap,
         getInvalidDynamicGroupList,
         getRemoveDynamicGroupList,
@@ -132,7 +131,7 @@
     const resultList = shallowRef([]);
 
     const isShowHostList = ref(false);
-    const selectedGroup = shallowRef();
+    const selectedDynamicGroup = shallowRef();
 
     let isInnerChange = false;
 
@@ -161,23 +160,23 @@
             })),
         };
         Manager.service.fetchDynamicGroups(params)
-        .then((data) => {
-            validDynamicGroupList.value = data;
-        })
-        .finally(() => {
-            isLoading.value = false;
-        });
+            .then((data) => {
+                validDynamicGroupList.value = data;
+            })
+            .finally(() => {
+                isLoading.value = false;
+            });
         isAgentStatisticsLoading.value = true;
         Manager.service.fetchHostAgentStatisticsDynamicGroups(params)
-        .then((data) => {
-            agentStaticMap.value = data.reduce((result, item) => {
-                result[item.dynamic_group.id] = item.agent_statistics;
-                return result;
-            }, {});
-        })
-        .finally(() => {
-           isAgentStatisticsLoading.value = false;
-        });
+            .then((data) => {
+                agentStaticMap.value = data.reduce((result, item) => {
+                    result[item.dynamic_group.id] = item.agent_statistics;
+                    return result;
+                }, {});
+            })
+            .finally(() => {
+            isAgentStatisticsLoading.value = false;
+            });
     };
 
     watch(() => props.data, () => {
@@ -198,12 +197,13 @@
         invalidDynamicGroupList.value = getInvalidDynamicGroupList(props.data, validDynamicGroupList.value);
         removedDynamicGroupList.value = getRemoveDynamicGroupList(props.data, context.orinigalValue);
         diffMap.value = getDynamicGroupDiffMap(props.data, context.orinigalValue, invalidDynamicGroupList.value);
-        newDynamicGroupNum.value = getDiffNewNum(diffMap.value);
 
         const {
             newList,
             originalList,
         } = groupDynamicGroupList(validDynamicGroupList.value, diffMap.value);
+
+        newDynamicGroupNum.value = newList.length;
 
         tableData.value = [
             ...invalidDynamicGroupList.value,
@@ -248,7 +248,7 @@
     // 查看分组的主机列表
     const handleShowHostList = (group) => {
         isShowHostList.value = true;
-        selectedGroup.value = group;
+        selectedDynamicGroup.value = group;
     };
 
     const handleHideHostList = () => {

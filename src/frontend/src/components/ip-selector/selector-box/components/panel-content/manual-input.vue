@@ -68,6 +68,7 @@
                 @row-click="handleRowClick">
                 <template #header-selection>
                     <page-check
+                        :disabled="renderData.length < 1"
                         :value="pageCheckValue"
                         @change="handlePageCheck" />
                 </template>
@@ -219,7 +220,6 @@
             '((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))',
         ];
         const ipv6Regex = new RegExp(`^\\s*(${ipv6RegexList.join('|')})(%.+)?\\s*$`);
-        const keyRegex = /^[1-9a-z]\w{0, 255}$/;
 
         const errorInput = [];
         const ipList = [];
@@ -251,10 +251,8 @@
                 ipv6List.push(ipv6Str);
                 return;
             }
-            const keyMatch = itemText.match(keyRegex);
-            if (keyMatch) {
-                const [key] = keyMatch;
-                keyList.push(key);
+            if (itemText.length <= 256) {
+                keyList.push(itemText);
                 return;
             }
             // 输入内容无法匹配任何格式
@@ -340,8 +338,6 @@
     const handlePageCheck = (checkValue) => {
         const checkedMap = { ...hostCheckedMap.value };
 
-        console.log(checkValue, checkedMap, renderData.value);
-        
         if (checkValue === 'page') {
             renderData.value.forEach((hostDataItem) => {
                 checkedMap[hostDataItem.host_id] = hostDataItem;

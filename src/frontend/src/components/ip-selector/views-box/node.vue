@@ -101,7 +101,6 @@
         getNodeDiffMap,
         getInvalidNodeList,
         getRemoveNodeList,
-        getDiffNewNum,
         groupNodeList,
     } from '../utils';
     import useLocalPagination from '../hooks/use-local-pagination';
@@ -119,6 +118,7 @@
             required: true,
         },
     });
+
     const emits = defineEmits(['change']);
 
     const isLoading = ref(false);
@@ -156,7 +156,6 @@
 
     const fetchData = () => {
         isLoading.value = true;
-        console.log('frin view node  = ', props.data);
         const params = {
             [Manager.nameStyle('nodeList')]: props.data.map(item => ({
                 [Manager.nameStyle('objectId')]: item.object_id,
@@ -211,12 +210,13 @@
         invalidNodeList.value = getInvalidNodeList(props.data, validNodeList.value);
         removedNodeList.value = getRemoveNodeList(props.data, context.orinigalValue);
         diffMap.value = getNodeDiffMap(props.data, context.orinigalValue, invalidNodeList.value);
-        newNodeNum.value = getDiffNewNum(diffMap.value);
 
         const {
             newList,
             originalList,
         } = groupNodeList(validNodeList.value, diffMap.value);
+
+        newNodeNum.value = newList.legnth;
         
         tableData.value = [
             ...invalidNodeList.value,

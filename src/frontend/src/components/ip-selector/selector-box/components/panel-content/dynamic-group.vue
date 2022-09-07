@@ -249,6 +249,7 @@
 
                     .dynamic-group-name {
                         margin-right: 5px;
+                        font-size: 12px;
                     }
 
                     .dynamic-group-detail-link {

@@ -3,37 +3,44 @@
         <div class="layout-left">
             <slot />
         </div>
-        <div class="layout-right">
+        <div
+            class="layout-right"
+            :style="layoutRightStyles">
             <slot name="right" />
         </div>
         <div
-            v-if="resize === 'left'"
+            v-if="flexDirection === 'left'"
             class="resize-btn-left">
             &lt;
         </div>
         <div
-            v-if="resize === 'right'"
+            v-if="flexDirection === 'right'"
             class="resize-btn-right">
-            >
+            &gt;
         </div>
     </div>
 </template>
-<script setup lang="ts">
-    defineProps({
-        resize: {
+<script setup>
+    import { computed } from 'vue';
+    
+    const props = defineProps({
+        flexDirection: {
             type: String,
             default: 'left',
         },
+        defaultWidth: {
+            type: Number,
+        },
     });
+
+    const layoutRightStyles = computed(() => ({
+        width: `${props.defaultWidth}px`,
+    }));
 </script>
 <style lang="postcss">
     .ip-selector-resize-layout {
         position: relative;
         display: flex;
-
-        .layout-left {
-            border-left: 1px solid #dcdee5;
-        }
 
         .layout-right {
             display: block;

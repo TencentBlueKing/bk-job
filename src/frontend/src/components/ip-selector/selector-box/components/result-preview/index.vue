@@ -43,7 +43,10 @@
     import useDialogSize from '../../../hooks/use-dialog-size';
     import useHostRenderKey from '../../../hooks/use-host-render-key';
     import ExtendAction from '../../../common/extend-action.vue';
-    import { execCopy } from '../../../utils';
+    import {
+        execCopy,
+        isAliveHost,
+     } from '../../../utils';
     import ViewHost from './view-host.vue';
     import ViewNode from './view-node.vue';
     import ViewDynamicGroup from './view-dynamic-group.vue';
@@ -101,7 +104,7 @@
     };
     const handleRemoveFailedIP = () => {
         const hostList = props.hostList.reduce((result, item) => {
-            if (item.alive === 1) {
+            if (isAliveHost(item)) {
                 result.push(item);
             }
             return result;
@@ -116,7 +119,7 @@
 
     const handleCopeFailedAIP = () => {
         const IPList = props.hostList.reduce((result, item) => {
-            if (item.alive !== 1) {
+            if (!isAliveHost(item)) {
                 result.push(item[hostRenderKey.value]);
             }
             return result;

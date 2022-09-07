@@ -5,11 +5,10 @@
         :close-icon="false"
         :draggable="false"
         class="bk-ip-selector-dialog">
-        <div class="container-layout">
-            <div
-                class="layout-left"
-                v-bkloading="{ isLoading: isTopoDataLoading } ">
+        <resize-layout flex-direction="right">
+            <div v-bkloading="{ isLoading: isTopoDataLoading } ">
                 <panel-tab
+                    :is-show="isShow"
                     :value="panelType"
                     :unique-type="panelTableUniqueType"
                     @change="handleTypeChange" />
@@ -24,7 +23,7 @@
                         @change="handleChange" />
                 </div>
             </div>
-            <div class="layout-right">
+            <template slot="right">
                 <result-preview
                     v-if="isShow"
                     :host-list="lastHostList"
@@ -32,8 +31,8 @@
                     :dynamic-group-list="lastDynamicGroupList"
                     @change="handleChange"
                     @clear="handleClearChange" />
-            </div>
-        </div>
+            </template>
+        </resize-layout>
         <template #footer>
             <div>
                 <bk-button
@@ -63,6 +62,7 @@
         formatOutput,
     } from '../utils/index';
     import useDialogSize from '../hooks/use-dialog-size';
+    import ResizeLayout from './components/resize-layout.vue';
     import PanelTab from './components/panel-tab/index.vue';
     import PanelContent from './components/panel-content/index.vue';
     import ResultPreview from './components/result-preview/index.vue';
@@ -87,8 +87,10 @@
         'cancel',
     ]);
 
+    const panelType = ref('');
+    
     const isTopoDataLoading = ref(true);
-    const panelType = ref('staticTopo');
+
     const panelTableUniqueType = computed(() => {
         if (!Manager.config.unqiuePanelValue) {
             return '';
@@ -134,7 +136,7 @@
 
     watch(() => props.isShow, () => {
         if (props.isShow) {
-            panelType.value = 'staticTopo';
+            // panelType.value = 'staticTopo';
             fetchTopoData();
             const {
                 host_list: hostList,

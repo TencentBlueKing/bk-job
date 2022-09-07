@@ -113,11 +113,11 @@
             }
             return hostRef.value.getHostIpList();
         },
-        getAbnormalHostIpList () {
+        getNotAlivelHostIpList () {
             if (!hostRef.value) {
                 return [];
             }
-            return hostRef.value.getAbnormalHostIpList();
+            return hostRef.value.getNotAlivelHostIpList();
         },
         refresh () {
             hostRef.value && hostRef.value.refresh();

@@ -12,7 +12,8 @@ const loading = ref(true);
 
 export default () => {
     if (!config.bk_cmdb_dynamic_group_url) {
-        Manager.service.fetchConfig()
+        Promise.resolve()
+            .then(() => Manager.service.fetchConfig())
             .then((data) => {
                 config.bk_cmdb_dynamic_group_url = data.bk_cmdb_dynamic_group_url;
                 loading.value = false;

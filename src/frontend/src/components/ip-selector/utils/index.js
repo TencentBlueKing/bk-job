@@ -10,6 +10,7 @@ export * from './get-pagination-default';
 export * from './get-repeat-ip-host-map';
 export * from './group-result-list';
 export * from './invalid-list';
+export * from './is-alive-host';
 export * from './make-map';
 export * from './remove-list';
 export * from './transform-topo-tree';

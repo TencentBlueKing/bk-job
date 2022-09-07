@@ -48,7 +48,6 @@
     } from 'vue';
     import Manager from '../../../manager';
     import {
-        getDiffNewNum,
         getDynamicGroupDiffMap,
         getInvalidDynamicGroupList,
         getRemoveDynamicGroupList,
@@ -115,12 +114,13 @@
         invalidDynamicGroupList.value = getInvalidDynamicGroupList(props.data, validDynamicGroupList.value);
         removedDynamicGroupList.value = getRemoveDynamicGroupList(props.data, context.orinigalValue);
         diffMap.value = getDynamicGroupDiffMap(props.data, context.orinigalValue, invalidDynamicGroupList.value);
-        newDynamicGroupNum.value = getDiffNewNum(diffMap.value);
 
         const {
             newList,
             originalList,
         } = groupDynamicGroupList(validDynamicGroupList.value, diffMap.value);
+
+        newDynamicGroupNum.value = newList.length;
 
         listData.value = [
             ...invalidDynamicGroupList.value,

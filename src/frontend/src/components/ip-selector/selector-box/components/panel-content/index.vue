@@ -1,5 +1,7 @@
 <template>
-    <div class="ip-selector-panel-content">
+    <div
+        class="ip-selector-panel-content"
+        v-bkloading="{ isLoading: !Boolean(type) }">
         <component
             :is="renderCom"
             v-bind="$attrs"
@@ -41,7 +43,7 @@
         manualInput: RenderManualInput,
     };
 
-    const renderCom = computed(() => comMap[props.type]);
+    const renderCom = computed(() => comMap[props.type] || 'div');
 </script>
 <style lang="postcss">
     .ip-selector-panel-content {

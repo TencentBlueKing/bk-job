@@ -52,7 +52,6 @@
         getNodeDiffMap,
         getInvalidNodeList,
         getRemoveNodeList,
-        getDiffNewNum,
         groupNodeList,
     } from '../../../utils';
     import useIpSelector from '../../../hooks/use-ip-selector';
@@ -125,12 +124,13 @@
         invalidNodeList.value = getInvalidNodeList(props.data, validNodeList.value);
         removedNodeList.value = getRemoveNodeList(props.data, context.orinigalValue);
         diffMap.value = getNodeDiffMap(props.data, context.orinigalValue, invalidNodeList.value);
-        newNodeNum.value = getDiffNewNum(diffMap.value);
 
         const {
             newList,
             originalList,
         } = groupNodeList(validNodeList.value, diffMap.value);
+
+        newNodeNum.value = newList.length;
 
         listData.value = [
             ...invalidNodeList.value,

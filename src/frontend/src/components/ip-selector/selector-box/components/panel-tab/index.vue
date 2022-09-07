@@ -63,6 +63,7 @@
     import {
         computed,
         ref,
+        watch,
      } from 'vue';
     import vuedraggable from 'vuedraggable';
 
@@ -70,6 +71,10 @@
     import TabItem from './tab-item.vue';
 
     const props = defineProps({
+        isShow: {
+            type: Boolean,
+            default: false,
+        },
         value: {
             type: String,
             required: true,
@@ -91,27 +96,28 @@
         panelList,
     } = Manager.config;
 
-    // const supPanelList = [
-    //     'staticTopo',
-    //     'dynamicTopo',
-    //     'dynamicGroup',
-    //     'serviceTemplate',
-    //     'setTemplate',
-    //     'manualInput',
-    // ];
-
     const panelSortList = ref([...panelList]);
-    console.log(panelSortList.value);
 
     const isUnqiuePanelValue = computed(() => Boolean(props.uniqueType) && unqiuePanelValue);
 
     Manager.service.fetchCustomSettings({
         [Manager.nameStyle('moduleList')]: [CUSTOM_SETTINGS_MODULE],
-    }).then((data) => {
-        if (!data[CUSTOM_SETTINGS_MODULE]) {
-            return;
+    })
+    .then((data) => {
+        if (data[CUSTOM_SETTINGS_MODULE]) {
+            panelSortList.value = data[CUSTOM_SETTINGS_MODULE].panelSortList;
         }
-        panelSortList.value = data[CUSTOM_SETTINGS_MODULE].panelSortList;
+    })
+    .finally(() => {
+        setTimeout(() => {
+            handleChange(panelSortList.value[0]);
+        });
+    });
+
+    watch(() => props.isShow, () => {
+        if (props.isShow) {
+            handleChange(panelSortList.value[0]);
+        }
     });
 
     const handleSortChange = (data) => {

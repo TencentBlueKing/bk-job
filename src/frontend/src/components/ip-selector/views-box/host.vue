@@ -81,9 +81,9 @@
         getInvalidHostList,
         getRemoveHostList,
         getHostDiffMap,
-        getDiffNewNum,
         getRepeatIpHostMap,
         groupHostList,
+        isAliveHost,
     } from '../utils';
     import CollapseBox from './components/collapse-box/index.vue';
 
@@ -167,13 +167,16 @@
         invalidHostList.value = getInvalidHostList(props.data, validHostList.value);
         removedHostList.value = getRemoveHostList(props.data, context.orinigalValue);
         diffMap.value = getHostDiffMap(props.data, context.orinigalValue, invalidHostList.value);
-        newHostNum.value = getDiffNewNum(diffMap.value);
+        
         hostIpRepeatMap.value = getRepeatIpHostMap(validHostList.value);
 
         const {
             newList,
             originalList,
         } = groupHostList(validHostList.value, diffMap.value);
+
+        newHostNum.value = newList.length;
+
         tableData.value = [
             ...invalidHostList.value,
             ...newList,
@@ -216,7 +219,7 @@
     // 复制异常 IP
     const handleCopyFaidedIP = () => {
         const ipList = tableData.value.reduce((result, item) => {
-            if (item.alive !== 1) {
+            if (!isAliveHost(item)) {
                 result.push(item[hostRenderKey.value]);
             }
             return result;
@@ -229,7 +232,7 @@
         const newValidHostList = [];
         const newValidHostIdMap = {};
         validHostList.value.forEach((hostData) => {
-            if (hostData.alive === 1) {
+            if (isAliveHost(hostData)) {
                 newValidHostList.push(hostData);
                 newValidHostIdMap[hostData.host_id] = true;
             }
@@ -257,7 +260,7 @@
             return validHostList.value.map(item => item[hostRenderKey.value]);
         },
         // 异常 IP 列表
-        getAbnormalHostIpList () {
+        getNotAlivelHostIpList () {
             const result = validHostList.value.reduce((result, item) => {
                 if (item.alive !== 1) {
                     result.push(item[hostRenderKey.value]);

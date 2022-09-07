@@ -94,11 +94,11 @@
             }
             return viewsRef.value.getHostIpList();
         },
-        getAbnormalHostIpList () {
+        getNotAlivelHostIpList () {
             if (!viewsRef.value) {
                 return [];
             }
-            return viewsRef.value.getAbnormalHostIpList();
+            return viewsRef.value.getNotAlivelHostIpList();
         },
         resetValue () {
             if (props.value) {

@@ -63,7 +63,6 @@
         getInvalidHostList,
         getRemoveHostList,
         getHostDiffMap,
-        getDiffNewNum,
         groupHostList,
     } from '../../../utils';
     import useIpSelector from '../../../hooks/use-ip-selector';
@@ -132,12 +131,13 @@
         invalidHostList.value = getInvalidHostList(props.data, validHostList.value);
         removedHostList.value = getRemoveHostList(props.data, context.orinigalValue);
         diffMap.value = getHostDiffMap(props.data, context.orinigalValue, invalidHostList.value);
-        newHostNum.value = getDiffNewNum(diffMap.value);
 
         const {
             newList,
             originalList,
         } = groupHostList(validHostList.value, diffMap.value);
+
+        newHostNum.value = newList.length;
 
         listData.value = [
             ...invalidHostList.value,
