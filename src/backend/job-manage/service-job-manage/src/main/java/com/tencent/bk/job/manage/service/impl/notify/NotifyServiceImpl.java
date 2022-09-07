@@ -552,7 +552,7 @@ public class NotifyServiceImpl implements NotifyService {
         // 3.默认业务
         // 业务未配置消息通知策略才使用默认策略
         if (!appNotifyPolicyConfigured(appId) && CollectionUtils.isEmpty(triggerPolicyList)) {
-            triggerPolicyList = systemDefaultNotifyPolices(resourceType, triggerType, resourceExecuteStatus);
+            triggerPolicyList = systemDefaultNotifyPolices(triggerType, resourceType, resourceExecuteStatus);
         }
         return triggerPolicyList;
     }
