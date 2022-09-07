@@ -10,7 +10,8 @@ export default () => {
         height: 0,
         contentHeight: 0,
     });
-    const headerAndFooterHeight = 98;
+    const headerHeight = 41;
+    const footerHeight = 57;
 
     const handleResize = () => {
         const windowWidth = window.innerWidth;
@@ -24,7 +25,7 @@ export default () => {
             size.width = 1600;
             size.height = 800;
         }
-        size.contentHeight = size.height - headerAndFooterHeight;
+        size.contentHeight = size.height - headerHeight - footerHeight;
     };
 
     window.addEventListener('resize', handleResize);

@@ -5,7 +5,9 @@
         :close-icon="false"
         :draggable="false"
         class="bk-ip-selector-dialog">
-        <resize-layout flex-direction="right">
+        <resize-layout
+            flex-direction="right"
+            :default-width="320">
             <div v-bkloading="{ isLoading: isTopoDataLoading } ">
                 <panel-tab
                     :is-show="isShow"

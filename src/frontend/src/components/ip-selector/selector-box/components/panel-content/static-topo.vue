@@ -1,6 +1,9 @@
 <template>
     <div class="ip-selector-static-topo">
-        <template v-if="topoTreeData.length > 0">
+        <resize-layout
+            v-if="topoTreeData.length > 0"
+            flex-direction="left"
+            :default-width="265">
             <div class="tree-box">
                 <bk-input
                     v-model="filterKey"
@@ -47,32 +50,34 @@
                     </template>
                 </bk-big-tree>
             </div>
-            <div
-                class="host-table"
-                v-bkloading="{ isLoading: isHostLoading }">
-                <bk-input
-                    v-model="nodeHostListSearch"
-                    placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
-                    style="margin-bottom: 12px;"
-                    @keyup="handleEnterKeyUp" />
-                <render-host-table
-                    :data="hostTableData"
-                    :pagination="pagination"
-                    :height="renderTableHeight"
-                    @pagination-change="handlePaginationChange"
-                    @row-click="handleRowClick">
-                    <template #header-selection>
-                        <table-page-check
-                            :value="pageCheckValue"
-                            :disabled="hostTableData.length < 1"
-                            @change="handlePageCheck" />
-                    </template>
-                    <template #selection="{ row }">
-                        <bk-checkbox :value="Boolean(hostCheckedMap[row.host_id])" />
-                    </template>
-                </render-host-table>
-            </div>
-        </template>
+            <template #right>
+                <div
+                    class="host-table"
+                    v-bkloading="{ isLoading: isHostLoading }">
+                    <bk-input
+                        v-model="nodeHostListSearch"
+                        placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
+                        style="margin-bottom: 12px;"
+                        @keyup="handleEnterKeyUp" />
+                    <render-host-table
+                        :data="hostTableData"
+                        :pagination="pagination"
+                        :height="renderTableHeight"
+                        @pagination-change="handlePaginationChange"
+                        @row-click="handleRowClick">
+                        <template #header-selection>
+                            <table-page-check
+                                :value="pageCheckValue"
+                                :disabled="hostTableData.length < 1"
+                                @change="handlePageCheck" />
+                        </template>
+                        <template #selection="{ row }">
+                            <bk-checkbox :value="Boolean(hostCheckedMap[row.host_id])" />
+                        </template>
+                    </render-host-table>
+                </div>
+            </template>
+        </resize-layout>
         <div
             v-else
             v-bkloading="{ isLoading: isConfigLoading }"
@@ -106,6 +111,7 @@
     import useTreeFilter from '../../../hooks/use-tree-filter';
     import useFetchConfig from '../../../hooks/use-fetch-config';
     import TablePageCheck from '../table-page-check.vue';
+    import ResizeLayout from '../resize-layout.vue';
 
     const props = defineProps({
         topoTreeData: {
