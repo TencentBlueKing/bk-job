@@ -116,9 +116,9 @@ public class SendNotifyTask implements Runnable {
             logIgnoreToSend();
             return;
         }
-        FormattingTuple msg = MessageFormatter.format(
+        FormattingTuple msg = MessageFormatter.arrayFormat(
             "Fail to send notify:({},{},{},{})",
-            new String[]{
+            new Object[]{
                 String.join(",", receivers),
                 msgType,
                 title,

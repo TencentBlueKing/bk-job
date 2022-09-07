@@ -394,7 +394,7 @@ public class ErrorCode {
     public static final int USER_MANAGE_API_ACCESS_ERROR = 1213002;
     // 调用CMSI接口获取通知渠道数据异常
     public static final int CMSI_MSG_CHANNEL_DATA_ERROR = 1213003;
-    // 调用CMSI接口发送通知失败，原因：{0}
+    // 调用CMSI接口发送通知失败，错误码：{0}，错误信息：{1}
     public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
 
     // 制品库异常

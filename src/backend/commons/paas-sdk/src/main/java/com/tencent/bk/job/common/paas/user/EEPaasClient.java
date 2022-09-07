@@ -200,10 +200,13 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
                     ErrorType.FAILED_PRECONDITION,
                     ErrorCode.CMSI_FAIL_TO_SEND_MSG,
                     new Object[]{
+                        esbResp.getCode(),
                         esbResp.getMessage()
                     });
             }
             status = EsbMetricTags.VALUE_STATUS_SUCCESS;
+        } catch (PaasException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Fail to request {}", uri, e);
             status = EsbMetricTags.VALUE_STATUS_ERROR;
