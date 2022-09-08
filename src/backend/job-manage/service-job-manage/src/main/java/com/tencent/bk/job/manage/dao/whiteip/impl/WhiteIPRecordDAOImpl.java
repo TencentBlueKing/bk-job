@@ -480,6 +480,16 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return getWhiteIPActionScopesByConditions(dslContext, conditions);
     }
 
+    @Override
+    public List<String> getWhiteIPActionScopes(DSLContext dslContext, Collection<Long> appIds, Long hostId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_WHITE_IP_APP_REL.APP_ID.in(appIds));
+        if (hostId != null) {
+            conditions.add(T_WHITE_IP_IP.HOST_ID.eq(hostId));
+        }
+        return getWhiteIPActionScopesByConditions(dslContext, conditions);
+    }
+
     private List<String> getWhiteIPActionScopesByConditions(DSLContext dslContext, List<Condition> conditions) {
         val query = dslContext.selectDistinct(T_ACTION_SCOPE.CODE).from(T_WHITE_IP_APP_REL)
             .join(T_WHITE_IP_RECORD).on(T_WHITE_IP_APP_REL.RECORD_ID.eq(T_WHITE_IP_RECORD.ID))

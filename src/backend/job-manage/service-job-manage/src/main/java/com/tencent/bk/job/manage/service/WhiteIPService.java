@@ -76,7 +76,7 @@ public interface WhiteIPService {
 
     Long deleteWhiteIPById(String username, Long id);
 
-    List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId);
+    List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId, Long hostId);
 
     List<ServiceWhiteIPInfo> listWhiteIPInfos();
 }

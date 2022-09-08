@@ -134,7 +134,7 @@ public class HostServiceImpl implements HostService {
     public List<String> getHostAllowedAction(long appId, HostDTO host) {
         try {
             InternalResponse<List<String>> resp = whiteIpResourceClient.getWhiteIPActionScopes(appId, host.getIp(),
-                host.getBkCloudId());
+                host.getBkCloudId(), host.getHostId());
             if (!resp.isSuccess()) {
                 log.warn("Get white ip action scopes return fail resp, appId:{}, host:{}", appId,
                     host.toCloudIp());

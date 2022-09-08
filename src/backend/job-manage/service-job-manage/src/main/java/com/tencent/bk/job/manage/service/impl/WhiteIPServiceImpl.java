@@ -581,12 +581,17 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     }
 
     @Override
-    public List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId) {
-        log.info("Input=({},{},{})", appId, ip, cloudAreaId);
+    public List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId, Long hostId) {
+        log.info("Input=({},{},{},{})", appId, ip, cloudAreaId, hostId);
         // 1.找出与当前业务关联的所有appId
         List<Long> effectiveAppIds = getEffectiveAppIdList(appId);
         // 2.再查对应的白名单
-        return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, ip, cloudAreaId);
+        if (hostId != null) {
+            return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, hostId);
+        } else {
+            // TODO: IPv6兼容代码，发布完成后删除
+            return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, ip, cloudAreaId);
+        }
     }
 
     @Override
@@ -676,6 +681,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             throw new RuntimeException("Cannot merge ServiceWhiteIPInfo with different cloudId and Ip");
         }
         ServiceWhiteIPInfo finalServiceWhiteIPInfo = new ServiceWhiteIPInfo();
+        finalServiceWhiteIPInfo.setHostId(whiteIPInfo1.getHostId());
         finalServiceWhiteIPInfo.setCloudId(whiteIPInfo1.getCloudId());
         finalServiceWhiteIPInfo.setIp(whiteIPInfo1.getIp());
         finalServiceWhiteIPInfo.setAllAppActionScopeList(new ArrayList<>());
@@ -765,6 +771,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             }
             serviceWhiteIPInfo.setAllAppActionScopeList(allAppActionScopeList);
             serviceWhiteIPInfo.setAppIdActionScopeMap(new HashMap<>());
+            serviceWhiteIPInfo.setHostId(whiteIPIPDTO.getHostId());
             serviceWhiteIPInfo.setCloudId(whiteIPIPDTO.getCloudAreaId());
             serviceWhiteIPInfo.setIp(whiteIPIPDTO.getIp());
             resultList.add(serviceWhiteIPInfo);
@@ -788,6 +795,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             ServiceWhiteIPInfo serviceWhiteIPInfo = new ServiceWhiteIPInfo();
             serviceWhiteIPInfo.setForAllApp(false);
             serviceWhiteIPInfo.setAllAppActionScopeList(new ArrayList<>());
+            serviceWhiteIPInfo.setHostId(whiteIPIPDTO.getHostId());
             serviceWhiteIPInfo.setCloudId(whiteIPIPDTO.getCloudAreaId());
             serviceWhiteIPInfo.setIp(whiteIPIPDTO.getIp());
             HashMap<Long, List<String>> map = new HashMap<>();
