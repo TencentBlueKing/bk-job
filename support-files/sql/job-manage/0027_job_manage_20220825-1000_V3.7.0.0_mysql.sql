@@ -68,6 +68,15 @@ BEGIN
             MODIFY COLUMN `cloud_ip` VARCHAR(65) NULL COMMENT '云区域ID:主机IP地址';
     END IF;
 
+    IF EXISTS(SELECT 1
+              FROM information_schema.columns
+              WHERE TABLE_SCHEMA = db
+                AND TABLE_NAME = 'white_ip_ip'
+                AND COLUMN_NAME = 'ip') THEN
+        ALTER TABLE `white_ip_ip`
+            MODIFY COLUMN `ip` VARCHAR(16) NULL COMMENT '主机IPv4地址';
+    END IF;
+
     COMMIT;
 END <JOB_UBF>
 DELIMITER ;

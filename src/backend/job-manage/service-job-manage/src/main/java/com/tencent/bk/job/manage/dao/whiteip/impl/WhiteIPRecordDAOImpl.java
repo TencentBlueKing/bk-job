@@ -70,6 +70,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -139,10 +140,11 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     @SuppressWarnings("all")
+    @Transactional
     @Override
-    public Long insertWhiteIPRecord(DSLContext dslContext, WhiteIPRecordDTO whiteIPRecordDTO) {
+    public Long insertWhiteIPRecord(DSLContext context, WhiteIPRecordDTO whiteIPRecordDTO) {
         //插入Record表
-        final Record record = dslContext.insertInto(
+        final Record record = context.insertInto(
             T_WHITE_IP_RECORD,
             T_WHITE_IP_RECORD.REMARK,
             T_WHITE_IP_RECORD.CREATOR,
@@ -159,10 +161,10 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         val recordId = record.get(T_WHITE_IP_RECORD.ID);
         //插入Record-App关联表
         whiteIPRecordDTO.getAppIdList().forEach(appId ->
-            whiteIPAppRelDAO.insertWhiteIPAppRel(dslContext, whiteIPRecordDTO.getCreator(), recordId, appId));
+            whiteIPAppRelDAO.insertWhiteIPAppRel(context, whiteIPRecordDTO.getCreator(), recordId, appId));
         //插入IP表
         whiteIPRecordDTO.getIpList().forEach(ip ->
-            whiteIPIPDAO.insertWhiteIPIP(dslContext, new WhiteIPIPDTO(
+            whiteIPIPDAO.insertWhiteIPIP(context, new WhiteIPIPDTO(
                 null,
                 recordId,
                 ip.getCloudAreaId(),
@@ -177,7 +179,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         );
         //插入ActionScope表
         whiteIPRecordDTO.getActionScopeList().forEach(actionScope ->
-            whiteIPActionScopeDAO.insertWhiteIPActionScope(dslContext, new WhiteIPActionScopeDTO(
+            whiteIPActionScopeDAO.insertWhiteIPActionScope(context, new WhiteIPActionScopeDTO(
                 null,
                 recordId,
                 actionScope.getActionScopeId(),
@@ -190,6 +192,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return recordId;
     }
 
+    @Transactional
     @Override
     public int deleteWhiteIPRecordById(DSLContext dslContext, Long id) {
         //删关联表
@@ -430,6 +433,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return query.fetchOne(0, Long.class);
     }
 
+    @Transactional
     @Override
     public int updateWhiteIPRecordById(DSLContext dslContext, WhiteIPRecordDTO whiteIPRecordDTO) {
         //更新Record表

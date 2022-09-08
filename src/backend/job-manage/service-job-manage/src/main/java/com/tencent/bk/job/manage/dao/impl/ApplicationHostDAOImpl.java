@@ -1159,6 +1159,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return queryHostsByCondition(conditions);
     }
 
+    @Override
+    public List<ApplicationHostDTO> listHostsByIpv6s(Collection<String> ipv6s) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.IP_V6.in(ipv6s));
+        return queryHostsByCondition(conditions);
+    }
+
     private List<ApplicationHostDTO> queryHostsByCondition(List<Condition> conditions) {
         Result<Record> result =
             context.select(ALL_FIELDS)

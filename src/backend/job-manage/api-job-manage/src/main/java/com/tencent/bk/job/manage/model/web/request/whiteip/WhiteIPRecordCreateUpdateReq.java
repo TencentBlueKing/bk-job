@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.manage.model.web.request.whiteip;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -44,8 +46,15 @@ public class WhiteIPRecordCreateUpdateReq {
     @ApiModelProperty(value = "云区域ID", required = true)
     private Long cloudAreaId;
 
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     @ApiModelProperty(value = "IPs(换行分隔)", required = true)
     private String ipStr;
+
+    @ApiModelProperty(value = "IPv4列表", required = true)
+    private List<String> ipList = new ArrayList<>();
+
+    @ApiModelProperty(value = "IPv6列表", required = true)
+    private List<String> ipv6List = new ArrayList<>();
 
     @ApiModelProperty(value = "备注", required = true)
     private String remark;

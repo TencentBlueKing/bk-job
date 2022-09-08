@@ -1025,11 +1025,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         hostGroups.forEach((bkCloudId, ips) -> {
             ComposeRuleDTO hostRule = new ComposeRuleDTO();
             hostRule.setCondition("AND");
-            BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
-            bkCloudIdRule.setField("bk_cloud_id");
-            bkCloudIdRule.setOperator("equal");
-            bkCloudIdRule.setValue(bkCloudId);
-            hostRule.addRule(bkCloudIdRule);
+            hostRule.addRule(buildCloudIdRule(bkCloudId));
 
             BaseRuleDTO ipRule = new BaseRuleDTO();
             ipRule.setField("bk_host_innerip");
@@ -1042,6 +1038,38 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         req.setCondition(condition);
 
         return listHostsWithoutBiz(req);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s) {
+        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        PropertyFilterDTO condition = new PropertyFilterDTO();
+        condition.setCondition("OR");
+        Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIpv6s);
+        hostGroups.forEach((bkCloudId, ipv6s) -> {
+            ComposeRuleDTO hostRule = new ComposeRuleDTO();
+            hostRule.setCondition("AND");
+            hostRule.addRule(buildCloudIdRule(bkCloudId));
+
+            BaseRuleDTO ipRule = new BaseRuleDTO();
+            ipRule.setField("bk_host_innerip_v6");
+            ipRule.setOperator("in");
+            ipRule.setValue(ipv6s);
+            hostRule.addRule(ipRule);
+
+            condition.addRule(hostRule);
+        });
+        req.setCondition(condition);
+
+        return listHostsWithoutBiz(req);
+    }
+
+    private BaseRuleDTO buildCloudIdRule(Long bkCloudId) {
+        BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
+        bkCloudIdRule.setField("bk_cloud_id");
+        bkCloudIdRule.setOperator("equal");
+        bkCloudIdRule.setValue(bkCloudId);
+        return bkCloudIdRule;
     }
 
     private List<ApplicationHostDTO> listHostsWithoutBiz(ListHostsWithoutBizReq req) {
@@ -1093,9 +1121,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private Map<Long, List<String>> groupHostsByBkCloudId(List<String> cloudIps) {
         Map<Long, List<String>> hostGroup = new HashMap<>();
         cloudIps.forEach(cloudIp -> {
-            String[] cloudIdAndIp = cloudIp.split(":");
-            Long bkCloudId = Long.valueOf(cloudIdAndIp[0]);
-            String ip = cloudIdAndIp[1];
+            int i = cloudIp.indexOf(":");
+            Long bkCloudId = Long.valueOf(cloudIp.substring(0, i));
+            String ip = cloudIp.substring(i + 1);
             List<String> ipList = hostGroup.computeIfAbsent(bkCloudId, (k) -> new ArrayList<>());
             ipList.add(ip);
         });
