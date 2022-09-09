@@ -22,43 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl;
+package com.tencent.bk.job.manage.service.host.impl;
 
-import com.tencent.bk.job.common.cc.model.CcGroupDTO;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
-import com.tencent.bk.job.manage.model.dto.DynamicGroupDTO;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-public class BizDynamicGroupService {
+public class OsTypeService {
 
-    private final BizCmdbClient bizCmdbClient;
+    private final LoadingCache<String, Map<String, String>> osTypeMapCache = CacheBuilder.newBuilder()
+        .maximumSize(2).expireAfterWrite(30, TimeUnit.MINUTES).
+            build(new CacheLoader<String, Map<String, String>>() {
+                      @Override
+                      public Map<String, String> load(String lang) {
+                          IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
+                          return bizCmdbClient.getOsTypeIdNameMap();
+                      }
+                  }
+            );
 
-    @Autowired
-    public BizDynamicGroupService(BizCmdbClient bizCmdbClient) {
-        this.bizCmdbClient = bizCmdbClient;
+    private String getOsTypeNameById(String osTypeId) throws Exception {
+        Map<String, String> osTypeIdNameMap = osTypeMapCache.get(JobContextUtil.getUserLang());
+        return osTypeIdNameMap.get(osTypeId);
     }
 
-    public List<DynamicGroupDTO> listDynamicGroup(Long bizId) {
-        List<CcGroupDTO> ccGroupList = bizCmdbClient.getDynamicGroupList(bizId);
-        return ccGroupList.parallelStream().map(DynamicGroupDTO::fromCcGroupDTO).collect(Collectors.toList());
-    }
-
-    public List<DynamicGroupDTO> listDynamicGroup(Long bizId, Collection<String> ids) {
-        List<DynamicGroupDTO> dynamicGroupList = listDynamicGroup(bizId);
-        if (ids == null) {
-            return dynamicGroupList;
+    public String getOsTypeNameOrDefault(String osTypeId, String defaultValue) {
+        if (osTypeId == null) {
+            return defaultValue;
         }
-        Set<String> idSet = new HashSet<>(ids);
-        return dynamicGroupList.parallelStream().filter(it -> idSet.contains(it.getId())).collect(Collectors.toList());
+        try {
+            return getOsTypeNameById(osTypeId);
+        } catch (Exception e) {
+            log.warn("Fail to getOsTypeNameById", e);
+            return defaultValue;
+        }
     }
+
 }

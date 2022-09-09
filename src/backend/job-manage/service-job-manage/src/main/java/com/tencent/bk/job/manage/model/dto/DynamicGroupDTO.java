@@ -30,7 +30,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
+@Slf4j
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -59,5 +65,14 @@ public class DynamicGroupDTO {
 
     public DynamicGroupBasicVO toBasicVO() {
         return new DynamicGroupBasicVO(id, name, lastTime, null);
+    }
+
+    public ZonedDateTime getParsedLastTime() {
+        try {
+            return ZonedDateTime.parse(lastTime, DateTimeFormatter.ISO_DATE_TIME);
+        } catch (Exception e) {
+            log.warn("Fail to parse ZonedDateTime from lastTime {}, format=ISO_DATE_TIME", lastTime);
+            return null;
+        }
     }
 }

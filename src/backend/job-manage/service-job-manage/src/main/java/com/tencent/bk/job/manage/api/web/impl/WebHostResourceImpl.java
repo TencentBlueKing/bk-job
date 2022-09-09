@@ -71,6 +71,7 @@ import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
 import com.tencent.bk.job.manage.service.impl.BizDynamicGroupService;
+import com.tencent.bk.job.manage.service.impl.ScopeDynamicGroupService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -102,6 +103,7 @@ public class WebHostResourceImpl implements WebHostResource {
     private final BizTopoHostService bizTopoHostService;
     private final BizDynamicGroupService bizDynamicGroupService;
     private final BizDynamicGroupHostService bizDynamicGroupHostService;
+    private final ScopeDynamicGroupService scopeDynamicGroupHostService;
 
     @Autowired
     public WebHostResourceImpl(ApplicationService applicationService,
@@ -112,7 +114,8 @@ public class WebHostResourceImpl implements WebHostResource {
                                HostDetailService hostDetailService,
                                BizTopoHostService bizTopoHostService,
                                BizDynamicGroupService bizDynamicGroupService,
-                               BizDynamicGroupHostService bizDynamicGroupHostService) {
+                               BizDynamicGroupHostService bizDynamicGroupHostService,
+                               ScopeDynamicGroupService scopeDynamicGroupHostService) {
         this.applicationService = applicationService;
         this.hostService = hostService;
         this.scopeHostService = scopeHostService;
@@ -122,6 +125,7 @@ public class WebHostResourceImpl implements WebHostResource {
         this.bizTopoHostService = bizTopoHostService;
         this.bizDynamicGroupService = bizDynamicGroupService;
         this.bizDynamicGroupHostService = bizDynamicGroupHostService;
+        this.scopeDynamicGroupHostService = scopeDynamicGroupHostService;
     }
 
     @Override
@@ -224,7 +228,7 @@ public class WebHostResourceImpl implements WebHostResource {
             pagePair.getLeft(),
             pagePair.getRight()
         );
-        hostDetailService.fillCloudInfoForHosts(pageHostList.getData());
+        hostDetailService.fillDetailForHosts(pageHostList.getData());
         return Response.buildSuccessResp(PageUtil.transferPageData(
             pageHostList,
             ApplicationHostDTO::toVO
@@ -398,30 +402,17 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                  String scopeType,
                                                                  String scopeId,
                                                                  ListDynamicGroupsReq req) {
-        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appResourceScope.getAppId());
-        // 业务集动态分组暂不支持
-        if (!applicationDTO.isBiz()) {
-            return Response.buildSuccessResp(new ArrayList<>());
-        }
-        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
-            username, appResourceScope
-        );
         List<DynamicGroupIdWithMeta> idWithMetaList = req == null ? null : req.getDynamicGroupList();
-        if (idWithMetaList == null) {
-            List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
-                .map(TopologyHelper::convertToDynamicGroupBasicVO)
-                .collect(Collectors.toList());
-            return Response.buildSuccessResp(dynamicGroupInfoList);
-        } else {
-            // TODO:全量拉取+按ID过滤实现，优化为部分拉取需要CMDB接口支持
-            Set<String> idSet =
-                idWithMetaList.stream().map(DynamicGroupIdWithMeta::getId).collect(Collectors.toSet());
-            List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
-                .map(TopologyHelper::convertToDynamicGroupBasicVO)
-                .filter(dynamicGroupBasicVO -> idSet.contains(dynamicGroupBasicVO.getId()))
-                .collect(Collectors.toList());
-            return Response.buildSuccessResp(dynamicGroupInfoList);
-        }
+        Set<String> ids = idWithMetaList == null ? null :
+            idWithMetaList.stream().map(DynamicGroupIdWithMeta::getId).collect(Collectors.toSet());
+        List<DynamicGroupDTO> dynamicGroupList = scopeDynamicGroupHostService.listOrderedDynamicGroup(
+            appResourceScope,
+            ids
+        );
+        List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
+            .map(DynamicGroupDTO::toBasicVO)
+            .collect(Collectors.toList());
+        return Response.buildSuccessResp(dynamicGroupInfoList);
     }
 
     // 标准接口7
@@ -655,5 +646,13 @@ public class WebHostResourceImpl implements WebHostResource {
         }
         AgentStatistics agentStatistics = agentStatusService.calcAgentStatistics(allHostList);
         return Response.buildSuccessResp(agentStatistics);
+    }
+
+    @Override
+    public Response<List<DynamicGroupBasicVO>> listAllDynamicGroups(String username,
+                                                                    AppResourceScope appResourceScope,
+                                                                    String scopeType,
+                                                                    String scopeId) {
+        return listDynamicGroups(username, appResourceScope, scopeType, scopeId, null);
     }
 }

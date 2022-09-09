@@ -93,4 +93,18 @@ public class WhiteIPIPDTO {
         hostInfoVO.setIpv6(ipv6);
         return hostInfoVO;
     }
+
+    public String getCloudIp() {
+        if (ip == null) {
+            return null;
+        }
+        return cloudAreaId + ":" + ip;
+    }
+
+    public String getCloudIpv6() {
+        if (ipv6 == null) {
+            return null;
+        }
+        return cloudAreaId + ":" + ipv6;
+    }
 }

@@ -55,6 +55,8 @@ public interface WhiteIPRecordDAO {
 
     List<String> getWhiteIPActionScopes(DSLContext dslContext, Collection<Long> appIds, String ip, Long cloudAreaId);
 
+    List<String> getWhiteIPActionScopes(DSLContext dslContext, Collection<Long> appIds, Long hostId);
+
     List<CloudIPDTO> listWhiteIPByAppIds(DSLContext dslContext, Collection<Long> appIds, Long actionScopeId);
 
     List<HostDTO> listWhiteIPHost(Collection<Long> appIds, Long actionScopeId, Collection<Long> hostIds);

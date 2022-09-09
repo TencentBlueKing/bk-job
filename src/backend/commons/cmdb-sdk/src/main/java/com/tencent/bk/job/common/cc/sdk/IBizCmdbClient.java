@@ -165,6 +165,14 @@ public interface IBizCmdbClient {
     List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps);
 
     /**
+     * 根据IPv6批量获取主机
+     *
+     * @param cloudIpv6s 云区域+IPv6列表
+     * @return 主机列表
+     */
+    List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s);
+
+    /**
      * 根据IP批量获取主机
      *
      * @param hostIds 主机ID列表
@@ -207,6 +215,11 @@ public interface IBizCmdbClient {
      * 获取主机所属云厂商枚举值，key:id，value:名称
      */
     Map<String, String> getCloudVendorIdNameMap();
+
+    /**
+     * 获取主机类型枚举值，key:id，value:名称
+     */
+    Map<String, String> getOsTypeIdNameMap();
 
     /**
      * 批量获取topo节点层级

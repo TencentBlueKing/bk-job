@@ -58,7 +58,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class ApplicationReadyEventListener implements ApplicationListener<ApplicationReadyEvent> {
+public class NotifyInitListener implements ApplicationListener<ApplicationReadyEvent> {
 
     final PaaSService paaSService;
     final GlobalSettingsService globalSettingsService;
@@ -71,9 +71,12 @@ public class ApplicationReadyEventListener implements ApplicationListener<Applic
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
 
     @Autowired
-    public ApplicationReadyEventListener(PaaSService paaSService, GlobalSettingsService globalSettingsService,
-                                         NotifyService notifyService, AvailableEsbChannelDAO availableEsbChannelDAO,
-                                         NotifyTriggerPolicyDAO notifyTriggerPolicyDAO, DSLContext dslContext) {
+    public NotifyInitListener(PaaSService paaSService,
+                              GlobalSettingsService globalSettingsService,
+                              NotifyService notifyService,
+                              AvailableEsbChannelDAO availableEsbChannelDAO,
+                              NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
+                              DSLContext dslContext) {
         this.paaSService = paaSService;
         this.globalSettingsService = globalSettingsService;
         this.notifyService = notifyService;

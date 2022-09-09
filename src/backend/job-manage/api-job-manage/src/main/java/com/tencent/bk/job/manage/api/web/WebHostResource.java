@@ -318,6 +318,24 @@ public interface WebHostResource {
             AgentStatisticsReq agentStatisticsReq
     );
 
+
+    @ApiOperation(value = "批量获取动态分组信息(不含主机)")
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/dynamicGroup"})
+    Response<List<DynamicGroupBasicVO>> listAllDynamicGroups(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId
+    );
+
     // 标准接口1
     @ApiOperation(value = "获取拓扑树（含各节点主机数）", produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostCount"})

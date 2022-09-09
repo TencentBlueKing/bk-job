@@ -188,7 +188,14 @@ public interface ApplicationHostDAO {
     /**
      * 根据cloudIp查询主机
      *
-     * @param cloudIps 主机ip(云区域+ip)列表
+     * @param cloudIps 主机ip(云区域+ip)集合
      */
     List<ApplicationHostDTO> listHostsByCloudIps(Collection<String> cloudIps);
+
+    /**
+     * 根据ipv6查询主机
+     *
+     * @param ipv6s 主机ipv6集合
+     */
+    List<ApplicationHostDTO> listHostsByIpv6s(Collection<String> ipv6s);
 }
