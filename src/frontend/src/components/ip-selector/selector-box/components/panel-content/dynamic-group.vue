@@ -165,7 +165,6 @@
                             ...result,
                             [item.dynamic_group.id]: item.agent_statistics.total_count,
                         }), {});
-                        console.log(agentStatisticsData, dynamicGroupHostCountMap.value);
                     })
                     .finally(() => {
                         isDynamicGroupHostCountLoading.value = false;

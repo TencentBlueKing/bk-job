@@ -318,7 +318,6 @@
         fixedStyles.value = {
             width: `${fixedWidth}px`,
         };
-        console.log(fixedColumns);
     }, 30);
 
     onMounted(() => {

@@ -134,7 +134,6 @@
         invalidHostList.value = getInvalidHostList(props.data, validHostList.value);
         removedHostList.value = getRemoveHostList(props.data, context.originalValue);
         diffMap.value = getHostDiffMap(props.data, context.originalValue, invalidHostList.value);
-        console.log('from watch validHostList = ', props.data, validHostList.value);
 
         const {
             newList,
