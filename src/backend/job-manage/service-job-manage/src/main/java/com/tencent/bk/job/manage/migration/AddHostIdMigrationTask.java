@@ -48,6 +48,7 @@ import org.jooq.generated.tables.TaskTemplateStepScript;
 import org.jooq.generated.tables.TaskTemplateVariable;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -95,8 +96,8 @@ public class AddHostIdMigrationTask {
     }
 
     public List<AddHostIdResult> execute() {
+        List<AddHostIdResult> results = new ArrayList<>();
         try {
-            List<AddHostIdResult> results = new ArrayList<>();
             results.add(migrateTaskTargets(new TaskTemplateStepScriptTargetMigration()));
             results.add(migrateTaskTargets(new TaskTemplateStepFileTargetMigration()));
             results.add(migrateTaskTargets(new TaskTemplateStepFileListTargetMigration()));
@@ -107,6 +108,7 @@ public class AddHostIdMigrationTask {
             results.add(migrateTaskTargets(new TaskPlanVariableTargetMigration()));
             return results;
         } finally {
+            log.info("AddHostIdMigrationTask done, result: {}", JsonUtils.toJson(results));
             // 清理缓存，避免占用内存
             this.ipAndHostIdMapping.clear();
         }
@@ -122,7 +124,7 @@ public class AddHostIdMigrationTask {
             watch.start("list_targets");
             Map<Long, TaskTargetDTO> targets = migration.listTaskTargets();
             log.info("[{}] {} targets need migration", migration.getTableName(), targets.size());
-            result.setAffectRecords(targets.size());
+            result.setTotalRecords(targets.size());
             watch.stop();
 
             if (targets.isEmpty()) {
@@ -131,18 +133,30 @@ public class AddHostIdMigrationTask {
             }
 
             watch.start("fill_host_id");
-            targets.values().forEach(this::fillHostId);
+            List<Long> invalidIds = new ArrayList<>();
+            targets.forEach((id, target) -> {
+                boolean success = fillHostId(target);
+                if (!success) {
+                    invalidIds.add(id);
+                }
+            });
+            if (CollectionUtils.isNotEmpty(invalidIds)) {
+                log.error("[{}] {} targets fill host id fail", migration.getTableName(), invalidIds.size());
+                // 删除掉没有设置hostId的
+                invalidIds.forEach(targets::remove);
+            }
             watch.stop();
 
             watch.start("update_targets");
             migration.updateTaskTargets(targets);
+            result.setSuccessRecords(targets.size());
             watch.stop();
         } catch (Throwable e) {
             // catch all exception
             log.error("Migration caught exception", e);
             result.setSuccess(false);
-            // 由于回滚机制，所以affectRecord=0
-            result.setAffectRecords(0);
+            // 由于回滚机制，所以successRecords=0
+            result.setSuccessRecords(0);
             return result;
         } finally {
             if (watch.isRunning()) {
@@ -161,27 +175,37 @@ public class AddHostIdMigrationTask {
     }
 
     private boolean hasHostId(Long hostId) {
-        return hostId != null && hostId > 0;
+        // host = -1,表示已经处理过的数据，并且这个主机被判定为不存在
+        return hostId != null && (hostId > 0 || hostId == -1);
     }
 
-    private void fillHostId(TaskTargetDTO target) {
-        target.getHostNodeList().getHostList().forEach(host -> {
+    private boolean fillHostId(TaskTargetDTO target) {
+        for (ApplicationHostDTO host : target.getHostNodeList().getHostList()) {
             String cloudIp = host.getCloudIp();
             if (ipAndHostIdMapping.get(cloudIp) != null) {
                 // 优先使用本地缓存，提升效率
                 host.setHostId(ipAndHostIdMapping.get(cloudIp));
             } else {
-                ApplicationHostDTO appHost = hostService.getHostByIp(host.getCloudIp());
-                Long hostId = -1L;
-                if (appHost != null) {
-                    hostId = appHost.getHostId();
-                } else {
-                    log.warn("Host with ip {} is not exist, set hostId -1", host.getCloudIp());
+                try {
+                    ApplicationHostDTO appHost = hostService.getHostByIp(cloudIp);
+                    Long hostId = -1L;
+                    if (appHost != null) {
+                        hostId = appHost.getHostId();
+                    } else {
+                        log.warn("Host with ip {} is not exist, set hostId -1", cloudIp);
+                    }
+                    host.setHostId(hostId);
+                    ipAndHostIdMapping.put(cloudIp, hostId);
+                } catch (Throwable e) {
+                    // 由于从cmdb查询hostId可能会返回异常（比如接口超时）等,为了保证下次迁移不需要从头开始，所以这里捕获住异常
+                    String errorMsg = MessageFormatter
+                        .format("Get host by ip {} fail", cloudIp).getMessage();
+                    log.error(errorMsg, e);
+                    return false;
                 }
-                host.setHostId(hostId);
-                ipAndHostIdMapping.put(cloudIp, hostId);
             }
-        });
+        }
+        return true;
     }
 
     private String convertTargetToJson(TaskTargetDTO target) {
@@ -571,7 +595,8 @@ public class AddHostIdMigrationTask {
     @NoArgsConstructor
     public static class AddHostIdResult {
         private String task;
-        private int affectRecords;
+        private int totalRecords;
+        private int successRecords;
         private boolean success;
 
         public AddHostIdResult(String task) {
