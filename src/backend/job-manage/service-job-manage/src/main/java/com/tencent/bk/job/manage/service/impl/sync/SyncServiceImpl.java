@@ -140,7 +140,8 @@ public class SyncServiceImpl implements SyncService {
                            ApplicationCache applicationCache,
                            HostCache hostCache,
                            BizSetEventWatcher bizSetEventWatcher,
-                           BizSetRelationEventWatcher bizSetRelationEventWatcher) {
+                           BizSetRelationEventWatcher bizSetRelationEventWatcher,
+                           ThreadPoolExecutor syncAppExecutor) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -161,13 +162,7 @@ public class SyncServiceImpl implements SyncService {
         this.bizSetEventWatcher = bizSetEventWatcher;
         this.bizSetRelationEventWatcher = bizSetRelationEventWatcher;
         // 同步业务的线程池配置
-        syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
-            TimeUnit.SECONDS, new ArrayBlockingQueue<>(20), (r, executor) ->
-            log.error(
-                "syncAppExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
-                executor.getPoolSize(), executor.getQueue().size()));
-        syncAppExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncAppExecutor-",
-            new AtomicInteger(1)));
+        this.syncAppExecutor = syncAppExecutor;
         // 同步主机的线程池配置
         syncHostExecutor = new ThreadPoolExecutor(5, 5, 1L,
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(5000), (r, executor) ->
@@ -274,11 +269,6 @@ public class SyncServiceImpl implements SyncService {
                 t.setPriority(Thread.NORM_PRIORITY);
             return t;
         };
-    }
-
-    @Override
-    public ThreadPoolExecutor getSyncAppExecutor() {
-        return syncAppExecutor;
     }
 
     @Override

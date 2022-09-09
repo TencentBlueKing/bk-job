@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Service
@@ -56,13 +57,14 @@ public class MeasureServiceImpl implements MeasureService {
     private final TaskTemplateService taskTemplateService;
     private final TaskPlanService taskPlanService;
     private final SyncService syncService;
+    private final ThreadPoolExecutor syncAppExecutor;
 
     @Autowired
     public MeasureServiceImpl(MeterRegistry meterRegistry, AccountDAO accountDAO,
                               ApplicationDAO applicationDAO, ApplicationHostDAO applicationHostDAO,
                               ScriptDAO scriptDAO, WhiteIPRecordDAO whiteIPRecordDAO,
                               TaskTemplateService taskTemplateService, TaskPlanService taskPlanService,
-                              SyncService syncService) {
+                              SyncService syncService, ThreadPoolExecutor syncAppExecutor) {
         this.meterRegistry = meterRegistry;
         this.accountDAO = accountDAO;
         this.applicationDAO = applicationDAO;
@@ -72,6 +74,7 @@ public class MeasureServiceImpl implements MeasureService {
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
         this.syncService = syncService;
+        this.syncAppExecutor = syncAppExecutor;
     }
 
     @Override
@@ -230,14 +233,14 @@ public class MeasureServiceImpl implements MeasureService {
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_APP_EXECUTOR_POOL_SIZE,
             Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
-            this.syncService,
-            syncService1 -> syncService1.getSyncAppExecutor().getPoolSize()
+            this.syncAppExecutor,
+            ThreadPoolExecutor::getPoolSize
         );
         meterRegistry.gauge(
             MetricsConstants.NAME_SYNC_APP_EXECUTOR_QUEUE_SIZE,
             Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
-            this.syncService,
-            syncService1 -> syncService1.getSyncAppExecutor().getQueue().size()
+            this.syncAppExecutor,
+            syncAppExecutor -> syncAppExecutor.getQueue().size()
         );
     }
 
