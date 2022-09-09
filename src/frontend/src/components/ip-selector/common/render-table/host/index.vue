@@ -1,6 +1,7 @@
 <template>
     <div class="ip-selector-host-table">
         <div
+            ref="tableWrapperRef"
             class="host-talbe-wrapper"
             :class="{
                 'not-empty': data.length > 0,
@@ -11,17 +12,23 @@
                     <tr>
                         <th
                             v-if="slots.selection"
+                            class="columu-fixed"
                             style="width: 60px;">
                             <slot name="header-selection" />
                         </th>
-                        <template v-for="columnKey in columnKeySortList">
+                        <template
+                            v-for="(columnKey) in columnKeySortList">
                             <th
                                 v-if="columnKeyRenderMap[columnKey]"
                                 :key="columnKey"
+                                :class="{
+                                    'columu-fixed': columnKey === firstRenderColumnKey,
+                                }"
                                 :style="{
                                     width: columnWidthCallback ?
                                         columnWidthCallback(columnKeyRenderList.indexOf(columnKey))
                                         : tableColumnConfig[columnKey].width,
+                                    left: `${slots.selection ? 60: 0}px`,
                                 }">
                                 <div class="cell">
                                     <div class="cell-text">
@@ -38,28 +45,41 @@
                             style="width: 100px;" />
                         <th
                             v-if="showSetting"
-                            style="width: 40px;"
-                            @click="handleShowSetting">
-                            <div class="table-column-setting-btn">
-                                <i class="bk-ipselector-icon bk-ipselector-set-fill" />
-                            </div>
+                            style="width: 40px;">
+                            <column-setting
+                                :selected-list="columnKeyRenderList"
+                                :sort-list="columnKeySortList"
+                                @change="handleSettingChange">
+                                <div class="table-column-setting-btn">
+                                    <i class="bk-ipselector-icon bk-ipselector-set-fill" />
+                                </div>
+                            </column-setting>
                         </th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr
-                        v-for="(hostDataItem, index) in data"
-                        :key="index"
-                        @click="handleRowClick(hostDataItem, index, $event)">
-                        <td v-if="slots.selection">
+                        v-for="(hostDataItem, rowIndex) in data"
+                        :key="rowIndex"
+                        @click="handleRowClick(hostDataItem, rowIndex, $event)">
+                        <td
+                            v-if="slots.selection"
+                            class="columu-fixed">
                             <slot
                                 name="selection"
                                 v-bind:row="hostDataItem" />
                         </td>
-                        <template v-for="(columnKey) in columnKeySortList">
+                        <template
+                            v-for="(columnKey) in columnKeySortList">
                             <td
                                 v-if="columnKeyRenderMap[columnKey]"
-                                :key="columnKey">
+                                :key="columnKey"
+                                :class="{
+                                    'columu-fixed': columnKey === firstRenderColumnKey,
+                                }"
+                                :style="{
+                                    left: `${slots.selection ? 60: 0}px`,
+                                }">
                                 <template v-if="columnKey === 'alive'">
                                     <agent-status :data="hostDataItem.alive" />
                                 </template>
@@ -87,7 +107,7 @@
                         <td v-if="slots.action">
                             <slot
                                 name="action"
-                                v-bind:row="item" />
+                                v-bind:row="hostDataItem" />
                         </td>
                         <td
                             v-if="showSetting"
@@ -104,6 +124,7 @@
                 </slot>
             </div>
         </div>
+        <div class="table-fixed" :style="fixedStyles" />
         <bk-pagination
             v-if="isShowPagination"
             small
@@ -113,20 +134,17 @@
             v-bind="pagination"
             @change="handlePaginationChange"
             @limit-change="handlePaginationLimitChange" />
-        <column-setting
-            v-if="isShowSetting"
-            :selected-list="columnKeyRenderList"
-            :sort-list="columnKeySortList"
-            @change="handleSettingChange"
-            @close="handleSettingClose" />
     </div>
 </template>
-<script setup>
+<script>
+    import _ from 'lodash';
     import {
         ref,
         useSlots,
         computed,
         shallowRef,
+        onMounted,
+        onBeforeUnmount,
     } from 'vue';
     import Manager from '../../../manager';
     import useHostRenderKey from '../../../hooks/use-host-render-key';
@@ -139,6 +157,20 @@
     import tableColumnConfig from './column-config';
     import RenderFilter from './render-filter.vue';
 
+    const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorHostList');
+
+    // 列的显示顺序
+    const columnKeySortList = shallowRef(Object.keys(tableColumnConfig));
+    // 需要显示的列
+    const columnKeyRenderList = shallowRef(['ip', 'ipv6', 'alive', 'osName']);
+    // 需要显示的列
+    const columnKeyRenderMap = computed(() => makeMap(columnKeyRenderList.value));
+
+    export default {
+        inheritAttrs: false,
+    };
+</script>
+<script setup>
     const slots = useSlots();
 
     const props = defineProps({
@@ -166,16 +198,8 @@
         'pagination-change',
     ]);
 
-    const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorHostList');
-
+    const tableWrapperRef = ref();
     const isLoadingCustom = ref(true);
-    // 列的显示顺序
-    const columnKeySortList = shallowRef(Object.keys(tableColumnConfig));
-    // 需要显示的列
-    const columnKeyRenderList = shallowRef(['ip', 'ipv6', 'alive', 'osName']);
-    // 需要显示的列
-    const columnKeyRenderMap = computed(() => makeMap(columnKeyRenderList.value));
-    const isShowSetting = ref(false);
 
     const styles = computed(() => {
         const styles = {};
@@ -183,6 +207,19 @@
             styles['max-height'] = `${props.height - 56}px`;
         }
         return styles;
+    });
+
+    const fixedStyles = shallowRef({});
+
+    const firstRenderColumnKey = computed(() => {
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < columnKeySortList.value.length; i++) {
+            const columnKey = columnKeySortList.value[i];
+            if (columnKeyRenderMap.value[columnKey]) {
+                return columnKey;
+            }
+        }
+        return '';
     });
 
     const isShowPagination = computed(() => {
@@ -231,11 +268,6 @@
             isLoadingCustom.value = false;
         });
     
-    // 显示设置弹框
-    const handleShowSetting = () => {
-        isShowSetting.value = true;
-    };
-
     // 提交表格列表配置
     const handleSettingChange = (selectedList, sortList) => {
         columnKeyRenderList.value = selectedList;
@@ -248,12 +280,8 @@
                 },
             },
         });
-        isShowSetting.value = false;
-    };
-
-    // 取消表格列配置
-    const handleSettingClose = () => {
-        isShowSetting.value = false;
+        setHostListRenderPrimaryKey();
+        handleHorizontalScroll();
     };
 
     // 选中行数
@@ -276,15 +304,40 @@
             limit,
         });
     };
+
+    const handleHorizontalScroll = _.throttle(() => {
+        const { scrollLeft } = tableWrapperRef.value;
+        if (scrollLeft === 0) {
+            fixedStyles.value = {
+                display: 'none',
+            };
+            return;
+        }
+        const fixedColumns = tableWrapperRef.value.querySelectorAll('th.columu-fixed');
+        const fixedWidth = Array.from(fixedColumns).reduce((result, itemEl) => result + itemEl.getBoundingClientRect().width, 0);
+        fixedStyles.value = {
+            width: `${fixedWidth}px`,
+        };
+        console.log(fixedColumns);
+    }, 30);
+
+    onMounted(() => {
+        tableWrapperRef.value.addEventListener('scroll', handleHorizontalScroll);
+        onBeforeUnmount(() => {
+            tableWrapperRef.value.removeEventListener('scroll', handleHorizontalScroll);
+        });
+    });
 </script>
 <style lang="postcss">
     @import "../../../styles/table.mixin.css";
 
     .ip-selector-host-table {
         position: relative;
+        overflow: hidden;
 
         .host-talbe-wrapper {
-            /* overflow-y: auto; */
+            position: relative;
+            overflow-x: auto;
             border-top: 1px solid #f0f1f5;
 
             &.not-empty {
@@ -295,6 +348,14 @@
                 tr:last-child {
                     td {
                         border-bottom: none;
+                    }
+                }
+
+                th,
+                td {
+                    &:first-child {
+                        position: sticky;
+                        left: 0;
                     }
                 }
             }
@@ -315,6 +376,15 @@
                 justify-content: center;
                 cursor: pointer;
             }
+        }
+
+        .table-fixed {
+            position: absolute;
+            top: 0;
+            bottom: 45px;
+            left: 0;
+            pointer-events: none;
+            box-shadow: 0 0 10px rgb(0 0 0 / 12%);
         }
 
         @include table;

@@ -27,6 +27,9 @@
     import SelectorBox from './selector-box/index.vue';
     import SelectorView from './views-box/index.vue';
 
+    import('tippy.js/dist/tippy.css');
+    import('tippy.js/themes/light.css');
+
     const props = defineProps({
         showDialog: {
             type: Boolean,

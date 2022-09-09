@@ -196,7 +196,7 @@
         });
     };
 
-    const checkLastStatus = dynamicGroupData => new Date(dynamicGroupData.last_time).item >= Date.now() - 86400000;
+    const checkLastStatus = dynamicGroupData => new Date(dynamicGroupData.last_time).getTime() >= Date.now() - 86400000;
 
     // 查看分组的主机列表
     const handleGroupSelect = (group) => {

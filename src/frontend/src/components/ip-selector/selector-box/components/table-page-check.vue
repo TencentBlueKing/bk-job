@@ -11,9 +11,13 @@
             :checked="value === 'page'"
             @change="handlePageChange" />
         <i
+            ref="handlerRef"
             class="menu-flag bk-ipselector-icon bk-ipselector-jiantou"
+            :disabled="disabled"
             style="font-size: 18px;" />
-        <div class="pagination-check-menu">
+        <div
+            ref="popRef"
+            class="pagination-check-menu">
             <div class="pop-menu">
                 <div
                     class="item"
@@ -30,6 +34,12 @@
     </div>
 </template>
 <script setup>
+    import {
+        ref,
+        onMounted,
+    } from 'vue';
+    import tippy from 'tippy.js';
+
     const props = defineProps({
         value: {
             type: String,
@@ -43,11 +53,17 @@
 
     const emits = defineEmits(['change']);
 
+    const handlerRef = ref();
+    const popRef = ref();
+
+    let tippyInstance;
+
     const triggerChange = (actionType) => {
         if (props.disabled) {
             return;
         }
         emits('change', actionType);
+        tippyInstance.hide();
     };
     // 取消跨页全选
     const handleAllCheckCancle = () => {
@@ -71,6 +87,22 @@
         }
         triggerChange(value);
     };
+
+    onMounted(() => {
+        tippyInstance = tippy(handlerRef.value, {
+            content: popRef.value,
+            placement: 'bottom',
+            appendTo: () => document.body,
+            theme: 'light',
+            maxWidth: 'none',
+            trigger: 'click',
+            interactive: true,
+            arrow: false,
+            offset: [0, 8],
+            zIndex: 999999,
+            hideOnClick: true,
+        });
+    });
 </script>
 <style lang="postcss" scoped>
     .ip-selector-table-page-check {
@@ -91,10 +123,6 @@
             .pagination-check-menu {
                 display: block;
             }
-
-            /* .menu-flag {
-                transform: rotateZ(-90deg);
-            } */
         }
 
         .all-checked {
@@ -130,31 +158,26 @@
         .bk-ipselector-open-line {
             margin-left: 5px;
         }
+    }
 
-        .pagination-check-menu {
-            position: absolute;
-            top: 34px;
-            left: 0;
-            z-index: 10000;
-            display: none;
-            width: 80px;
-            margin: 0 -14px;
-            font-size: 12px;
-            line-height: 32px;
-            text-align: center;
-            cursor: pointer;
-            background: #fff;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
-            box-shadow: 0 2px 6px 0 rgb(0 0 0 / 10%);
+    .pagination-check-menu {
+        width: 80px;
+        margin: -5px -9px;
+        font-size: 12px;
+        line-height: 32px;
+        text-align: center;
+        cursor: pointer;
+        background: #fff;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+        box-shadow: 0 2px 6px 0 rgb(0 0 0 / 10%);
 
-            .item {
-                padding: 0 14px;
+        .item {
+            padding: 0 14px;
 
-                &:hover {
-                    color: #3a84ff;
-                    background: #f5f6fa;
-                }
+            &:hover {
+                color: #3a84ff;
+                background: #f5f6fa;
             }
         }
     }

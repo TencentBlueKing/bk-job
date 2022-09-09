@@ -30,6 +30,7 @@
     "js-cookie": "^3.0.1",
     "lodash": "^4.17.21",
     "marked": "^2.0.5",
+    "tippy.js": "^6.3.7",
     "vue": "2.7.8",
     "vue-content-loader": "0.2.2",
     "vue-i18n": "8.14.1",

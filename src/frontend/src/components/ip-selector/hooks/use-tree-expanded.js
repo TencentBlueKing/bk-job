@@ -10,10 +10,15 @@ const getChildrenIdList = (node) => {
 
 export default (treeRef) => {
     const toggleExpanded = (node) => {
+        const expanded = !node.expanded;
+        treeRef.value.setExpanded(node.id, {
+            expanded,
+            emitEvent: false,
+        });
         const childIdList = getChildrenIdList(node);
         childIdList.forEach((nodeId) => {
             treeRef.value.setExpanded(nodeId, {
-                expanded: true,
+                expanded,
                 emitEvent: false,
             });
         });
