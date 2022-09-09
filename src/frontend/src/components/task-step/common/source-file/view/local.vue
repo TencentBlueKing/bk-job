@@ -71,6 +71,7 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
     import QuertGlobalSettingService from '@service/query-global-setting';
@@ -128,9 +129,7 @@
                         this.innerChange = false;
                         return;
                     }
-                    if (this.fileList.length < 1) {
-                        this.fileList = newData;
-                    }
+                    this.fileList = [...newData];
                 },
                 immediate: true,
             },
@@ -241,16 +240,17 @@
                     this.$refs.uploadInput.value = '';
                     return;
                 }
+                
                 this.fileList.push(...uploadFileQueue);
                 
                 TaskExecuteService.getUploadFileContent(params, {
-                    onUploadProgress: (event) => {
+                    onUploadProgress: _.throttle((event) => {
                         uploadFileQueue.forEach((sourceFile) => {
                             const { loaded, total } = event;
                             sourceFile.loaded = loaded;
                             sourceFile.loadTotal = total;
                         });
-                    },
+                    }, 30),
                 }).then((data) => {
                     uploadFileQueue.forEach((sourceFile, index) => {
                         const { md5, filePath, fileSize } = data[index];

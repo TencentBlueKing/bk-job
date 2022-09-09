@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
-import brave.ScopedSpan;
-import brave.Tracing;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -34,6 +32,8 @@ import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveMana
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -58,9 +58,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ResultHandleManager implements SmartLifecycle {
     /**
-     * 日志调用链Tracing
+     * 日志调用链Tracer
      */
-    private final Tracing tracing;
+    private final Tracer tracer;
     /**
      * 结果处理任务存活管理
      */
@@ -137,10 +137,10 @@ public class ResultHandleManager implements SmartLifecycle {
         new LinkedBlockingQueue<>());
 
     @Autowired
-    public ResultHandleManager(Tracing tracing, ExecuteMonitor counters,
+    public ResultHandleManager(Tracer tracer, ExecuteMonitor counters,
                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                ResultHandleTaskSampler resultHandleTaskSampler, JobExecuteConfig jobExecuteConfig) {
-        this.tracing = tracing;
+        this.tracer = tracer;
         this.counters = counters;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.resultHandleTaskSampler = resultHandleTaskSampler;
@@ -156,7 +156,7 @@ public class ResultHandleManager implements SmartLifecycle {
         resultHandleLimiter.acquire();
         log.info("Handle delivered task: {}", task);
         ScheduledContinuousResultHandleTask scheduleTask =
-            new ScheduledContinuousResultHandleTask(resultHandleTaskSampler, tracing, task, this,
+            new ScheduledContinuousResultHandleTask(resultHandleTaskSampler, tracer, task, this,
                 resultHandleTaskKeepaliveManager, resultHandleLimiter);
         synchronized (lifecycleMonitor) {
             if (!isActive()) {
@@ -267,7 +267,7 @@ public class ResultHandleManager implements SmartLifecycle {
                 stopTaskCounter.initCounter(scheduledTasks.keySet());
             }
             for (ScheduledContinuousResultHandleTask task : scheduledTasks.values()) {
-                shutdownExecutorService.execute(new StopTask(task, tracing));
+                shutdownExecutorService.execute(new StopTask(task, tracer));
             }
         }
         try {
@@ -365,18 +365,18 @@ public class ResultHandleManager implements SmartLifecycle {
 
     private static final class StopTask implements Runnable {
         private final ScheduledContinuousResultHandleTask task;
-        private final Tracing tracing;
+        private final Tracer tracer1;
 
-        StopTask(ScheduledContinuousResultHandleTask task, Tracing tracing) {
+        StopTask(ScheduledContinuousResultHandleTask task, Tracer tracer1) {
             this.task = task;
-            this.tracing = tracing;
+            this.tracer1 = tracer1;
         }
 
         @Override
         public void run() {
-            ScopedSpan span = null;
+            Span span = null;
             try {
-                span = tracing.tracer().startScopedSpanWithParent("stop-task", task.getTraceContext());
+                span = tracer1.nextSpan(task.getTraceContext()).name("stop-task");
                 log.info("Begin to stop task, task: {}", task.getResultHandleTask());
                 task.getResultHandleTask().stop();
                 log.info("Stop task successfully, task: {}", task.getResultHandleTask());
@@ -385,7 +385,7 @@ public class ResultHandleManager implements SmartLifecycle {
                 log.warn(errorMsg, e);
             } finally {
                 if (span != null) {
-                    span.finish();
+                    span.end();
                 }
             }
         }

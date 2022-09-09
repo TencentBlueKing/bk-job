@@ -247,7 +247,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     public void updateFailedTaskCount(TaskInstanceDTO taskInstanceDTO, Map<StatisticsKey, AtomicInteger> metricsMap) {
         // 累计执行失败次数统计
-        if (RunStatusEnum.FAIL.getValue().equals(taskInstanceDTO.getStatus())) {
+        if (taskInstanceDTO.getStatus() == RunStatusEnum.FAIL) {
             StatisticsKey keyFailedTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                 StatisticsConstants.RESOURCE_FAILED_TASK, StatisticsConstants.DIMENSION_TIME_UNIT,
                 StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY);
@@ -263,7 +263,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         // 快速脚本按状态统计
         Integer type = taskInstanceDTO.getType();
         if (type != null && type.equals(TaskTypeEnum.SCRIPT.getValue())) {
-            if (RunStatusEnum.SUCCESS.getValue().equals(taskInstanceDTO.getStatus())) {
+            RunStatusEnum status = taskInstanceDTO.getStatus();
+            if (status == RunStatusEnum.SUCCESS) {
                 // 执行成功的快速脚本统计
                 StatisticsKey keySuccessFastScriptCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -272,7 +273,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int successFastScriptCountValue = successFastScriptCount.incrementAndGet();
                 log.debug("successFastScriptCount={}", successFastScriptCountValue);
-            } else if (RunStatusEnum.FAIL.getValue().equals(taskInstanceDTO.getStatus())) {
+            } else if (status == RunStatusEnum.FAIL) {
                 // 执行失败的快速脚本统计
                 StatisticsKey keyFailedFastScriptCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -281,7 +282,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int failedFastScriptCountValue = failedFastScriptCount.incrementAndGet();
                 log.debug("failedFastScriptCount={}", failedFastScriptCountValue);
-            } else if (RunStatusEnum.ABNORMAL_STATE.getValue().equals(taskInstanceDTO.getStatus())) {
+            } else if (status == RunStatusEnum.ABNORMAL_STATE) {
                 // 状态异常的快速脚本统计
                 StatisticsKey keyExceptionFastScriptCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -299,7 +300,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         // 快速文件按状态统计
         Integer type = taskInstanceDTO.getType();
         if (type != null && type.equals(TaskTypeEnum.FILE.getValue())) {
-            if (RunStatusEnum.SUCCESS.getValue().equals(taskInstanceDTO.getStatus())) {
+            RunStatusEnum status = taskInstanceDTO.getStatus();
+            if (status == RunStatusEnum.SUCCESS) {
                 // 执行成功的快速文件统计
                 StatisticsKey keySuccessFastFileCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -308,7 +310,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int successFastFileCountValue = successFastFileCount.incrementAndGet();
                 log.debug("successFastFileCount={}", successFastFileCountValue);
-            } else if (RunStatusEnum.FAIL.getValue().equals(taskInstanceDTO.getStatus())) {
+            } else if (status == RunStatusEnum.FAIL) {
                 // 执行失败的快速文件统计
                 StatisticsKey keyFailedFastFileCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -317,7 +319,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int failedFastFileCountValue = failedFastFileCount.incrementAndGet();
                 log.debug("failedFastFileCount={}", failedFastFileCountValue);
-            } else if (RunStatusEnum.ABNORMAL_STATE.getValue().equals(taskInstanceDTO.getStatus())) {
+            } else if (status == RunStatusEnum.ABNORMAL_STATE) {
                 // 执行失败的快速文件统计
                 StatisticsKey keyExceptionFastFileCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,

@@ -297,6 +297,10 @@ export default class TaskExecutionResultStep {
                 'forcedRetry',
             ];
         }
+        // 非人工确认类型的步骤，在需要人工确认时（人工确认批次）没有对步骤的确认操作
+        if (!this.isApproval) {
+            actionMap.confirm = [];
+        }
         return actionMap[checkStatus(this.status)];
     }
 }

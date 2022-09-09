@@ -41,6 +41,7 @@
         </detail-item>
         <detail-item :label="$t('template.通知方式：')">{{ renderChannel }}</detail-item>
         <detail-item :label="$t('template.确认描述：')">{{ stepInfo.approvalMessage || '--' }}</detail-item>
+        <slot />
     </div>
 </template>
 <script>

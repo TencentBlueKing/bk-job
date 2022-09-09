@@ -53,7 +53,7 @@ public enum TaskFileTypeEnum {
      */
     BASE64_FILE(4);
 
-    private int type;
+    private final int type;
 
     public static TaskFileTypeEnum valueOf(int type) {
         for (TaskFileTypeEnum fileType : values()) {
@@ -61,6 +61,18 @@ public enum TaskFileTypeEnum {
                 return fileType;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No TaskFileTypeEnum constant: " + type);
+    }
+
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        for (TaskFileTypeEnum fileType : values()) {
+            if (fileType.type == type) {
+                return true;
+            }
+        }
+        return false;
     }
 }

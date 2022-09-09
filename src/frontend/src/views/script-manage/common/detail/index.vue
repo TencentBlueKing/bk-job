@@ -353,7 +353,10 @@
              * @desc 调整到快速执行脚本页面调试脚本
              */
             handleDebugScript () {
-                debugScriptCache.setItem(this.scriptInfo.content);
+                debugScriptCache.setItem({
+                    type: this.scriptInfo.type,
+                    content: this.scriptInfo.content,
+                });
                 const { href } = this.$router.resolve({
                     name: 'fastExecuteScript',
                     query: {

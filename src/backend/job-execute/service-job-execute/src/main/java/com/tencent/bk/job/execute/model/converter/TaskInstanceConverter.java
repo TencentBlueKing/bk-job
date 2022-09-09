@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -56,9 +55,9 @@ public class TaskInstanceConverter {
         taskInstanceVO.setStartupMode(taskInstanceDTO.getStartupMode());
         taskInstanceVO.setStartupModeDesc(
             i18nService.getI18n(TaskStartupModeEnum.getStartupMode(taskInstanceDTO.getStartupMode()).getI18nKey()));
-        taskInstanceVO.setStatus(taskInstanceDTO.getStatus());
+        taskInstanceVO.setStatus(taskInstanceDTO.getStatus().getValue());
         taskInstanceVO.setStatusDesc(
-            i18nService.getI18n(RunStatusEnum.valueOf(taskInstanceDTO.getStatus()).getI18nKey()));
+            i18nService.getI18n(taskInstanceDTO.getStatus().getI18nKey()));
         taskInstanceVO.setType(taskInstanceDTO.getType());
         taskInstanceVO.setTypeDesc(
             i18nService.getI18n(Objects.requireNonNull(TaskTypeEnum.valueOf(taskInstanceDTO.getType())).getI18nKey()));
@@ -85,9 +84,9 @@ public class TaskInstanceConverter {
         serviceTaskInstance.setType(taskInstanceDTO.getType());
         serviceTaskInstance.setTypeDesc(
             i18nService.getI18n(Objects.requireNonNull(TaskTypeEnum.valueOf(taskInstanceDTO.getType())).getI18nKey()));
-        serviceTaskInstance.setStatus(taskInstanceDTO.getStatus());
+        serviceTaskInstance.setStatus(taskInstanceDTO.getStatus().getValue());
         serviceTaskInstance.setStatusDesc(
-            i18nService.getI18n(RunStatusEnum.valueOf(taskInstanceDTO.getStatus()).getI18nKey()));
+            i18nService.getI18n(taskInstanceDTO.getStatus().getI18nKey()));
         serviceTaskInstance.setDebugTask(taskInstanceDTO.isDebugTask());
         serviceTaskInstance.setTaskId(taskInstanceDTO.getTaskId());
         serviceTaskInstance.setTemplateId(taskInstanceDTO.getTaskTemplateId());

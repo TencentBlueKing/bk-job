@@ -28,33 +28,34 @@ package com.tencent.bk.job.logsvr.consts;
  * 日志类型
  */
 public enum LogTypeEnum {
-    SCRIPT(1, "script"), FILE(2, "file");
+    /**
+     * 脚本执行任务日志
+     */
+    SCRIPT(1),
+    /**
+     * 文件分发任务日志
+     */
+    FILE(2);
 
     private final Integer value;
-    private final String name;
 
-    LogTypeEnum(Integer val, String name) {
+    LogTypeEnum(Integer val) {
         this.value = val;
-        this.name = name;
     }
 
     public static LogTypeEnum getLogType(Integer logType) {
         if (logType == null) {
-            return null;
+            throw new IllegalArgumentException("Empty logType value!");
         }
         for (LogTypeEnum logTypeEnum : values()) {
             if (logTypeEnum.getValue().equals(logType)) {
                 return logTypeEnum;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Illegal logType: " + logType);
     }
 
     public Integer getValue() {
         return value;
-    }
-
-    public String getName() {
-        return this.name;
     }
 }

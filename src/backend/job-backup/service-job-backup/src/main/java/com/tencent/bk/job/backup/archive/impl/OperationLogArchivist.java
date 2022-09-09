@@ -26,47 +26,19 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.OperationLog;
 import org.jooq.generated.tables.records.OperationLogRecord;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
- * @since 18/3/2021 20:13
+ * operation_log 表归档
  */
 public class OperationLogArchivist extends AbstractArchivist<OperationLogRecord> {
 
-    public OperationLogArchivist(JobExecuteDAO jobExecuteDAO,
+    public OperationLogArchivist(OperationLogRecordDAO executeRecordDAO,
                                  ExecuteArchiveDAO executeArchiveDAO,
                                  ArchiveProgressService archiveProgressService) {
-        this.jobExecuteDAO = jobExecuteDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
-        this.archiveProgressService = archiveProgressService;
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
         this.deleteIdStepSize = 10_000;
-        this.setTableName("operation_log");
-    }
-
-    @Override
-    public List<OperationLogRecord> listRecord(Long start, Long stop) {
-        return jobExecuteDAO.listOperationLog(start, stop);
-    }
-
-    @Override
-    protected int batchInsert(List<OperationLogRecord> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(jobExecuteDAO.getOperationLogFields(), recordList, 1000);
-    }
-
-    @Override
-    protected int deleteRecord(Long start, Long stop) {
-        return jobExecuteDAO.deleteOperationLog(start, stop);
-    }
-
-    @Override
-    protected long getFirstInstanceId() {
-        return jobExecuteDAO.getFirstInstanceId(OperationLog.OPERATION_LOG,
-            OperationLog.OPERATION_LOG.TASK_INSTANCE_ID);
     }
 }

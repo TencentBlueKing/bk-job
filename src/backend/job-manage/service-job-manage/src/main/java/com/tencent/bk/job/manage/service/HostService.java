@@ -30,9 +30,10 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
@@ -182,22 +183,19 @@ public interface HostService {
     void fillAgentStatus(List<ApplicationHostDTO> hosts);
 
 
-    Boolean existsHost(Long bizId, String ip);
-
     /**
-     * 检查主机是否在业务下
+     * 获取业务下的主机
      *
-     * @param appId   Job业务ID
-     * @param hostIps 被检查的主机
-     * @return 非法的主机
+     * @param appId Job业务ID
+     * @param hosts 主机列表
      */
-    List<IpDTO> checkAppHosts(Long appId, List<IpDTO> hostIps);
+    ServiceListAppHostResultDTO listAppHosts(Long appId, List<HostDTO> hosts);
 
     /**
-     * 根据主机IP批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
+     * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
      *
-     * @param hostIps 主机IP
+     * @param hosts 主机
      * @return 主机
      */
-    List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps);
+    List<ApplicationHostDTO> listHosts(Collection<HostDTO> hosts);
 }

@@ -70,7 +70,7 @@ public interface FileSourceService {
 
     Integer saveFileSource(Long appId, FileSourceDTO fileSourceDTO);
 
-    Integer updateFileSourceById(Long appId, FileSourceDTO fileSourceDTO);
+    int updateFileSourceById(Long appId, FileSourceDTO fileSourceDTO);
 
     int updateFileSourceStatus(Integer fileSourceId, Integer status);
 
@@ -94,7 +94,9 @@ public interface FileSourceService {
 
     Boolean checkFileSourceAlias(Long appId, String alias, Integer fileSourceId);
 
-    boolean existsCode(String code);
+    boolean existsCode(Long appId, String code);
+
+    boolean existsCodeExceptId(Long appId, String code, Integer exceptId);
 
     boolean existsFileSource(Long appId, Integer id);
 

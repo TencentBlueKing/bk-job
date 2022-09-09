@@ -24,10 +24,8 @@
 
 package com.tencent.bk.job.common.trace.executors;
 
-import brave.ScopedSpan;
-import brave.Tracer;
-import brave.Tracing;
-import brave.propagation.TraceContext;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.Callable;
 
@@ -39,25 +37,30 @@ public class TraceCallable<V> implements Callable<V> {
     /**
      * 调用链父上下文
      */
-    private final TraceContext parent;
+    private final Span parent;
     private Callable<V> delegate;
 
-    public TraceCallable(Callable<V> callable, Tracing tracing) {
+    public TraceCallable(Callable<V> callable, Tracer tracer) {
         this.delegate = callable;
-        this.tracer = tracing.tracer();
-        this.parent = tracing.currentTraceContext().get();
+        this.tracer = tracer;
+        this.parent = tracer.currentSpan();
     }
 
     @Override
     public V call() throws Exception {
-        ScopedSpan span = this.tracer.startScopedSpanWithParent("async", parent);
+        Span span = null;
         try {
+            span = tracer.nextSpan(parent).name("async");
             return delegate.call();
         } catch (Throwable e) {
-            span.error(e);
+            if (span != null) {
+                span.error(e);
+            }
             throw e;
         } finally {
-            span.finish();
+            if (span != null) {
+                span.end();
+            }
         }
     }
 }

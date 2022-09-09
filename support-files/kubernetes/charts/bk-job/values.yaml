@@ -570,6 +570,16 @@ job:
       esbApiParamBkBizId:
         # 是否兼容bk_biz_id参数
         enabled: true
+  trace:
+    # 是否开启Trace，默认开启，设置为false则jar启动参数中不含-javaagent:opentelemetry-javaagent.jar，且日志中无traceId
+    enabled: true
+    report:
+      # 是否上报Trace数据至监控平台APM应用，默认不上报
+      enabled: false
+      # 监控平台中目标APM应用的PUSH URL
+      pushUrl: ""
+      # 监控平台中目标APM应用的SecureKey
+      secureKey: ""
 
   migration:
     iamModel:
@@ -1147,7 +1157,7 @@ fileWorkerConfig:
     targetMemory: 50
   containerPort: 19810
   service:
-    port: 80
+    port: 19810
     type: ClusterIP
   swaggerUrl: ""
   # 实例名称

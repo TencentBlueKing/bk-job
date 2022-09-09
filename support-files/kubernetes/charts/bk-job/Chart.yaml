@@ -5,6 +5,7 @@ type: application
 version: {{CHART_VERSION}}
 appVersion: "{{APP_VERSION}}"
 
+
 dependencies:
 - name: common
   version: 1.16.0

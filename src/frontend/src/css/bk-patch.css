@@ -286,3 +286,10 @@
         border-left: 1px solid currentColor !important;
     }
 }
+
+/**
+    覆盖 bk-button 样式
+ */
+.bk-button-text{
+    line-height: 22px;
+}

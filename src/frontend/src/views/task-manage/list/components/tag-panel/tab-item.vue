@@ -89,11 +89,15 @@
                 :id="sefId"
                 style="font-size: 12px; line-height: 24px; color: #63656e;">
                 <tr>
-                    <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">标签名称：</td>
+                    <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
+                        {{ $t('template.标签名称：') }}
+                    </td>
                     <td style="word-break: break-all; vertical-align: top;">{{ displayName }}</td>
                 </tr>
                 <tr>
-                    <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">标签描述：</td>
+                    <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
+                        {{ $t('template.标签描述：') }}
+                    </td>
                     <td style="word-break: break-all; vertical-align: top;">{{ description || '--' }}</td>
                 </tr>
             </table>

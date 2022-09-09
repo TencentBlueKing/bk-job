@@ -45,4 +45,7 @@ public class TaskExecuteResultVO {
 
     @ApiModelProperty("步骤执行情况")
     private List<StepExecutionVO> stepExecution;
+
+    @ApiModelProperty("滚动任务列表")
+    private List<RollingTaskVO> rollingTaskList;
 }

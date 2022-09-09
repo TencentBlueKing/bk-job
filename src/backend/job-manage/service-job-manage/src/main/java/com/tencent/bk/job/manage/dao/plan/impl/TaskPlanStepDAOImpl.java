@@ -31,7 +31,11 @@ import com.tencent.bk.job.manage.dao.TaskStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record11;
+import org.jooq.Result;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.TaskPlanStep;
 import org.jooq.generated.tables.records.TaskPlanStepRecord;
 import org.jooq.types.UByte;
@@ -109,7 +113,7 @@ public class TaskPlanStepDAOImpl extends AbstractTaskStepDAO implements TaskStep
             .columns(TABLE.PLAN_ID, TABLE.NAME, TABLE.TYPE, TABLE.PREVIOUS_STEP_ID, TABLE.NEXT_STEP_ID,
                 TABLE.TEMPLATE_STEP_ID, TABLE.IS_ENABLE)
             .values(ULong.valueOf(taskStep.getPlanId()), taskStep.getName(),
-                UByte.valueOf(taskStep.getType().getType()), ULong.valueOf(taskStep.getPreviousStepId()),
+                UByte.valueOf(taskStep.getType().getValue()), ULong.valueOf(taskStep.getPreviousStepId()),
                 ULong.valueOf(taskStep.getNextStepId()), ULong.valueOf(taskStep.getTemplateStepId()),
                 UByte.valueOf(taskStep.getEnable()))
             .returning(TABLE.ID).fetchOne();
@@ -154,7 +158,7 @@ public class TaskPlanStepDAOImpl extends AbstractTaskStepDAO implements TaskStep
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.ID.eq(ULong.valueOf(taskStep.getId())));
         conditions.add(TABLE.PLAN_ID.eq(ULong.valueOf(taskStep.getPlanId())));
-        conditions.add(TABLE.TYPE.eq(UByte.valueOf(taskStep.getType().getType())));
+        conditions.add(TABLE.TYPE.eq(UByte.valueOf(taskStep.getType().getValue())));
         return 1 == updateStep.where(conditions).limit(1).execute();
     }
 

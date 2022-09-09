@@ -25,15 +25,15 @@
 package com.tencent.bk.job.common.constant;
 
 public enum Bool {
-    FALSE(0), TRUE(1);
+    FALSE((byte) 0), TRUE((byte) 1);
 
-    private final int value;
+    private final byte value;
 
-    Bool(int value) {
+    Bool(byte value) {
         this.value = value;
     }
 
-    public static Bool from(Integer value) {
+    public static Bool from(Byte value) {
         if (value == null) {
             return FALSE;
         }
@@ -49,14 +49,14 @@ public enum Bool {
         return value ? TRUE : FALSE;
     }
 
-    public static boolean isTrue(Integer value) {
+    public static boolean isTrue(Byte value) {
         if (value == null) {
             return false;
         }
         return value.equals(Bool.TRUE.getValue());
     }
 
-    public int getValue() {
+    public byte getValue() {
         return this.value;
     }
 }

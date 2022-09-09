@@ -511,3 +511,54 @@ Return the Job Storage Env Content
 - name: BK_JOB_STORAGE_LOCAL_DIR
   value: {{ .Values.persistence.localStorage.path }}/local
 {{- end -}}
+
+{{/*
+Return the Job Trace Env Content
+*/}}
+{{- define "job.trace.env" -}}
+- name: OTEL_TRACE_ENABLED
+  value: {{ .Values.job.trace.enabled | quote }}
+- name: OTEL_TRACE_REPORT_ENABLED
+  value: {{ .Values.job.trace.report.enabled | quote }}
+- name: OTEL_TRACE_REPORT_ENDPOINT_URL
+  value: {{ .Values.job.trace.report.pushUrl | quote }}
+- name: OTEL_TRACE_REPORT_BK_DATA_TOKEN
+  value: {{ .Values.job.trace.report.secureKey | quote }}
+{{- end -}}
+
+{{/*
+Return the Job Common Env Content
+*/}}
+{{- define "job.common.env" -}}
+{{ include "job.storage.env" . }}
+{{ include "job.trace.env" . }}
+{{- end -}}
+
+{{/*
+Return the Job Ingress Frontend TLS Config
+*/}}
+{{- define "job.ingress.frontend.tls" -}}
+{{- if .Values.frontendConfig.ingress.tls -}}
+tls: {{- include "common.tplvalues.render" ( dict "value" .Values.frontendConfig.ingress.tls "context" $) | nindent 0 -}}
+{{- else -}}
+tls:
+- hosts:
+    - {{ .Values.job.web.domain }}
+  secretName: {{ include "common.names.fullname" . }}-ingress-tls
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job Ingress Gateway TLS Config
+*/}}
+{{- define "job.ingress.gateway.tls" -}}
+{{- if .Values.gatewayConfig.ingress.tls -}}
+tls: {{- include "common.tplvalues.render" ( dict "value" .Values.gatewayConfig.ingress.tls "context" $) | nindent 0 -}}
+{{- else -}}
+tls:
+- hosts:
+    - {{ .Values.job.web.apiDomain }}
+  secretName: {{ include "common.names.fullname" . }}-ingress-tls
+{{- end -}}
+{{- end -}}
+

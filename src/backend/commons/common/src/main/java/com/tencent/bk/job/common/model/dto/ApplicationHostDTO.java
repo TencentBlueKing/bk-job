@@ -111,6 +111,11 @@ public class ApplicationHostDTO {
      */
     private List<String> ipList;
 
+    /**
+     * 主机AgentId
+     */
+    private String agentId;
+
     public String getCloudIp() {
         if (StringUtils.isNotBlank(cloudIp)) {
             return cloudIp;

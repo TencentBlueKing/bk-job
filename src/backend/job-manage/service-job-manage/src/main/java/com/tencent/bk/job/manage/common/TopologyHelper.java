@@ -254,8 +254,6 @@ public class TopologyHelper {
         DynamicGroupInfoVO dynamicGroupInfoVO = new DynamicGroupInfoVO();
         dynamicGroupInfoVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
         dynamicGroupInfoVO.setScopeId(dynamicGroupInfoDTO.getBizId().toString());
-        // TODO:发布后去除
-        dynamicGroupInfoVO.setAppName(dynamicGroupInfoDTO.getBizName());
         dynamicGroupInfoVO.setScopeName(dynamicGroupInfoDTO.getBizName());
         dynamicGroupInfoVO.setId(dynamicGroupInfoDTO.getId());
         dynamicGroupInfoVO.setOwner(dynamicGroupInfoDTO.getOwner());
@@ -332,21 +330,7 @@ public class TopologyHelper {
         if (appInfo.isAllBizSet()) {
             return applicationDAO.listAllBizAppBizIds();
         } else if (appInfo.isBizSet()) {
-            List<Long> subAppIds = appInfo.getSubBizIds();
-            // 兼容发布过程中未完成子业务字段同步的部门型业务集
-            Long optDeptId = appInfo.getOperateDeptId();
-            if (CollectionUtils.isEmpty(subAppIds) && optDeptId != null) {
-                // 使用OperateDeptId
-                subAppIds = applicationDAO.getBizIdsByOptDeptId(optDeptId);
-            } else {
-                // subAppIds与OperateDeptId同时生效
-                if (optDeptId != null) {
-                    subAppIds.addAll(applicationDAO.getBizIdsByOptDeptId(optDeptId));
-                }
-            }
-            // 去重
-            subAppIds = new ArrayList<>(new HashSet<>(subAppIds));
-            return subAppIds;
+            return appInfo.getSubBizIds();
         } else {
             FormattingTuple msg = MessageFormatter.format(
                 "app {} is not bizSet app, please check, detail:{}",

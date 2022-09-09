@@ -63,10 +63,14 @@
                 </div>
             </div>
             <div class="jb-navigation-main" :style="mainStyles">
-                <div class="jb-navigation-body-header" :style="bodyHeaderStyles">
+                <div
+                    class="jb-navigation-body-header"
+                    :style="bodyHeaderStyles">
                     <slot name="contentHeader" />
                 </div>
-                <scroll-faker ref="contentScroll" :style="scrollStyles">
+                <scroll-faker
+                    ref="contentScroll"
+                    :style="scrollStyles">
                     <div class="jb-navigation-content" :style="contentStyles">
                         <div class="navigation-content-wrapper">
                             <slot />

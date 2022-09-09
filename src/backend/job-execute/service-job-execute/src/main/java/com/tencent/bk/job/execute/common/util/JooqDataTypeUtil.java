@@ -25,54 +25,35 @@
 package com.tencent.bk.job.execute.common.util;
 
 import org.jooq.types.UByte;
-import org.jooq.types.UInteger;
-import org.jooq.types.ULong;
 
 public class JooqDataTypeUtil {
-    public static ULong getULongFromLong(Long value) {
-        if (value == null) {
-            return null;
-        }
-        return ULong.valueOf(value);
-    }
 
-    public static UInteger getUIntegerFromInteger(Integer value) {
-        if (value == null) {
-            return null;
-        }
-        return UInteger.valueOf(value);
-    }
-
-    public static UByte getUByteFromInteger(Integer value) {
+    public static UByte toUByte(Integer value) {
         if (value == null) {
             return null;
         }
         return UByte.valueOf(value);
     }
 
-    public static Byte getByteFromInteger(Integer value) {
+    public static Byte toByte(Integer value) {
         if (value == null) {
             return null;
         }
         return Byte.valueOf(String.valueOf(value));
     }
 
-    public static Integer getIntegerFromByte(Byte value) {
+    public static Short toShort(Integer value) {
+        if (value == null) {
+            return null;
+        }
+        return Short.valueOf(String.valueOf(value));
+    }
+
+    public static Integer toInteger(Byte value) {
         if (value == null) {
             return null;
         }
         return value.intValue();
     }
 
-    public static Long getLongFromULong(ULong value) {
-        return value == null ? null : value.longValue();
-    }
-
-    public static Integer getIntegerFromUInteger(UInteger value) {
-        return value == null ? null : value.intValue();
-    }
-
-    public static Double parseDouble(Float value) {
-        return value == null ? null : value.doubleValue();
-    }
 }

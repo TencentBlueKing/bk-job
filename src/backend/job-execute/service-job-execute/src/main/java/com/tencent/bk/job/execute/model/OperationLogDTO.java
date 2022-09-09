@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import lombok.Data;
 
@@ -43,10 +44,12 @@ public class OperationLogDTO {
      */
     @Data
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @PersistenceObject
     public static class OperationDetail {
         private Long taskInstanceId;
         private Long stepInstanceId;
         private Integer executeCount;
+        private Integer batch;
         private String stepName;
         private Integer startupMode;
         private String appCode;

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -72,9 +72,42 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         this.appScopeMappingService = appScopeMappingService;
     }
 
-    private void checkParam(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+    private void checkCodeBlank(String code) {
+        if (StringUtils.isBlank(code)) {
+            throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, new String[]{"code"});
+        }
+    }
+
+    private void confirmIdExists(Integer id) {
+        if (id == null || id <= 0) {
+            throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"id"});
+        }
+    }
+
+    private void checkParam(Long appId, FileSourceCreateUpdateReq fileSourceCreateUpdateReq, boolean forCreate) {
+        Integer id = fileSourceCreateUpdateReq.getId();
+        String code = fileSourceCreateUpdateReq.getCode();
+        checkCodeBlank(code);
+        if (forCreate) {
+            // 创建
+            if (fileSourceService.existsCode(appId, code)) {
+                throw new FailedPreconditionException(
+                    ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS,
+                    new String[]{code}
+                );
+            }
+        } else {
+            // 更新
+            confirmIdExists(id);
+            if (fileSourceService.existsCodeExceptId(appId, code, id)) {
+                throw new FailedPreconditionException(
+                    ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS,
+                    new String[]{code}
+                );
+            }
+        }
         if (StringUtils.isBlank(fileSourceCreateUpdateReq.getCredentialId())) {
-            throw new InternalException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"credentialId"});
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"credentialId"});
         }
     }
 
@@ -102,7 +135,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
                 throw new PermissionDeniedException(authResult);
             }
 
-            checkParam(fileSourceCreateUpdateReq);
+            checkParam(appId, fileSourceCreateUpdateReq, true);
             FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
             Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
             boolean registerResult = fileSourceAuthService.registerFileSource(
@@ -129,6 +162,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
+        checkParam(appId, fileSourceCreateUpdateReq, false);
         return Response.buildSuccessResp(fileSourceService.updateFileSourceById(appId, fileSourceDTO));
     }
 
