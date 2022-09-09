@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
@@ -116,6 +117,10 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
 
+    private Map<String, String> getMDCContext() {
+        return MDC.getCopyOfContextMap();
+    }
+
     private void initSpanAndAddRequestId() {
         Span currentSpan = tracer.currentSpan();
         if (currentSpan == null) {
@@ -123,6 +128,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
         }
         spanInScope = tracer.withSpan(currentSpan);
         log.debug("currentSpan={}", currentSpan);
+        log.debug("MDC={}", getMDCContext());
         String traceId = currentSpan.context().traceId();
         JobContextUtil.setRequestId(traceId);
     }
