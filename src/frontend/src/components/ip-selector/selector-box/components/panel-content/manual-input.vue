@@ -1,97 +1,103 @@
 <template>
-    <div class="ip-selector-custom-input">
-        <div
-            ref="inputRef"
-            class="custom-input">
-            <bk-input
-                v-model="manualInputText"
-                type="textarea"
-                placeholder="请输入 IP / IPv6 或主机名称，如（192.168.1.112 或 ebd4:3e1::e13），带云区域请使用冒号分隔，如：0:192.168.9.10
-多个可使用换行，空格或；，｜ ”分隔"
-                :native-attributes="{ spellcheck: false }"
-                :style="manualInputStyles" />
-            <div class="custom-input-parse-error">
-                <span v-if="errorInputStack.length > 0">
-                    <span style="padding-right: 2px; font-weight: bold;">
-                        {{ errorInputStack.length }}
-                    </span>
-                    处格式有误
-                    <span
-                        v-bk-tooltips="$t('标识错误')"
-                        class="parse-error-btn"
-                        @click="handleHighlightError">
-                        <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
-                    </span>
-                </span>
-                <span v-if="invalidInputStack.length > 0">
-                    <span v-if="errorInputStack.length > 0"> ;</span>
-                    <span style="padding-right: 2px; font-weight: bold;">
-                        {{ invalidInputStack.length }}
-                    </span>
-                    处 IP 不存在
-                    <span
-                        v-bk-tooltips="$t('标识错误')"
-                        class="parse-error-btn"
-                        @click="handleHighlightInvalid">
-                        <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
-                    </span>
-                </span>
-            </div>
-            <div class="custom-input-action">
-                <bk-button
-                    size="small"
-                    theme="primary"
-                    :loading="isLoading"
-                    outline
-                    class="parse-btn"
-                    @click="handleParseManualInput">
-                    点击解析
-                </bk-button>
-                <bk-button
-                    size="small"
-                    class="clear-btn"
-                    @click="handleClearManualInput">
-                    清空
-                </bk-button>
-            </div>
-        </div>
-        <div
-            class="host-table"
-            v-bkloading="{ isLoading }">
-            <bk-input
-                v-model="serachKey"
-                placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
-                style="margin-bottom: 12px;" />
-            <render-host-table
-                :data="renderData"
-                :height="renderTableHeight"
-                @row-click="handleRowClick">
-                <template #header-selection>
-                    <page-check
-                        :disabled="renderData.length < 1"
-                        :value="pageCheckValue"
-                        @change="handlePageCheck" />
-                </template>
-                <template #selection="{ row }">
-                    <bk-checkbox :value="Boolean(hostCheckedMap[row.host_id])" />
-                </template>
-                <template
-                    v-if="hostTableData.length < 1"
-                    #empty>
-                    <i class="bk-ipselector-icon bk-ipselector-info-circle" />
-                    请先从右侧输入主机并解析
-                </template>
-            </render-host-table>
+    <div class="ip-selector-manual-input">
+        <resize-layout
+            flex-direction="left"
+            :default-width="385">
             <div
-                v-if="isShowPagination"
-                style="padding: 0 10px 8px 0;">
-                <bk-pagination
-                    style="margin-top: 8px;"
-                    v-bind="pagination"
-                    @change="handlePaginationCurrentChange"
-                    @limit-change="handlePaginationLimitChange" />
+                ref="inputRef"
+                class="custom-input">
+                <bk-input
+                    v-model="manualInputText"
+                    type="textarea"
+                    placeholder="请输入 IP / IPv6 或主机名称，如（192.168.1.112 或 ebd4:3e1::e13），带云区域请使用冒号分隔，如：0:192.168.9.10
+多个可使用换行，空格或；，｜ ”分隔"
+                    :native-attributes="{ spellcheck: false }"
+                    :style="manualInputStyles" />
+                <div class="custom-input-parse-error">
+                    <span v-if="errorInputStack.length > 0">
+                        <span style="padding-right: 2px; font-weight: bold;">
+                            {{ errorInputStack.length }}
+                        </span>
+                        处格式有误
+                        <span
+                            v-bk-tooltips="$t('标识错误')"
+                            class="parse-error-btn"
+                            @click="handleHighlightError">
+                            <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
+                        </span>
+                    </span>
+                    <span v-if="invalidInputStack.length > 0">
+                        <span v-if="errorInputStack.length > 0"> ;</span>
+                        <span style="padding-right: 2px; font-weight: bold;">
+                            {{ invalidInputStack.length }}
+                        </span>
+                        处 IP 不存在
+                        <span
+                            v-bk-tooltips="$t('标识错误')"
+                            class="parse-error-btn"
+                            @click="handleHighlightInvalid">
+                            <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
+                        </span>
+                    </span>
+                </div>
+                <div class="custom-input-action">
+                    <bk-button
+                        size="small"
+                        theme="primary"
+                        :loading="isLoading"
+                        outline
+                        class="parse-btn"
+                        @click="handleParseManualInput">
+                        点击解析
+                    </bk-button>
+                    <bk-button
+                        size="small"
+                        class="clear-btn"
+                        @click="handleClearManualInput">
+                        清空
+                    </bk-button>
+                </div>
             </div>
-        </div>
+            <template #right>
+                <div
+                    class="host-table"
+                    v-bkloading="{ isLoading }">
+                    <bk-input
+                        v-model="serachKey"
+                        placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
+                        style="margin-bottom: 12px;" />
+                    <render-host-table
+                        :data="renderData"
+                        :height="renderTableHeight"
+                        @row-click="handleRowClick">
+                        <template #header-selection>
+                            <page-check
+                                :disabled="renderData.length < 1"
+                                :value="pageCheckValue"
+                                @change="handlePageCheck" />
+                        </template>
+                        <template #selection="{ row }">
+                            <bk-checkbox :value="Boolean(hostCheckedMap[row.host_id])" />
+                        </template>
+                        <template
+                            v-if="hostTableData.length < 1"
+                            #empty>
+                            <i class="bk-ipselector-icon bk-ipselector-info-circle" />
+                            请先从右侧输入主机并解析
+                        </template>
+                    </render-host-table>
+                    <div
+                        v-if="isShowPagination"
+                        style="padding: 0 10px 8px 0;">
+                        <bk-pagination
+                            style="margin-top: 8px;"
+                            v-bind="pagination"
+                            @change="handlePaginationCurrentChange"
+                            @limit-change="handlePaginationLimitChange" />
+                    </div>
+                </div>
+            </template>
+        </resize-layout>
     </div>
 </template>
 <script>
@@ -118,6 +124,7 @@
         makeMap,
     } from '../../../utils';
     import PageCheck from '../table-page-check.vue';
+    import ResizeLayout from '../resize-layout.vue';
 
     const props = defineProps({
         lastHostList: {
@@ -375,11 +382,8 @@
     
 </script>
 <style lang="postcss">
-    .ip-selector-custom-input {
-        display: flex;
-
+    .ip-selector-manual-input {
         .custom-input {
-            flex: 0 0 383px;
             padding-left: 16px;
 
             .custom-input-parse-error {
