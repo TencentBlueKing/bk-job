@@ -54,8 +54,11 @@ public class BizDynamicGroupService {
     }
 
     public List<DynamicGroupDTO> listDynamicGroup(Long bizId, Collection<String> ids) {
-        Set<String> idSet = new HashSet<>(ids);
         List<DynamicGroupDTO> dynamicGroupList = listDynamicGroup(bizId);
+        if (ids == null) {
+            return dynamicGroupList;
+        }
+        Set<String> idSet = new HashSet<>(ids);
         return dynamicGroupList.parallelStream().filter(it -> idSet.contains(it.getId())).collect(Collectors.toList());
     }
 }
