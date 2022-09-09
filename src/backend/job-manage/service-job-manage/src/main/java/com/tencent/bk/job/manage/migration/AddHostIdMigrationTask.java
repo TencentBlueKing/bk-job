@@ -85,6 +85,8 @@ public class AddHostIdMigrationTask {
     private static final TaskPlanVariable TASK_PLAN_VARIABLE =
         TaskPlanVariable.TASK_PLAN_VARIABLE;
 
+    private final Map<String, Long> ipAndHostIdMapping = new HashMap<>();
+
     @Autowired
     public AddHostIdMigrationTask(@Qualifier("job-manage-dsl-context") DSLContext ctx,
                                   HostService hostService) {
@@ -93,16 +95,21 @@ public class AddHostIdMigrationTask {
     }
 
     public List<AddHostIdResult> execute() {
-        List<AddHostIdResult> results = new ArrayList<>();
-        results.add(migrateTaskTargets(new TaskTemplateStepScriptTargetMigration()));
-        results.add(migrateTaskTargets(new TaskTemplateStepFileTargetMigration()));
-        results.add(migrateTaskTargets(new TaskTemplateStepFileListTargetMigration()));
-        results.add(migrateTaskTargets(new TaskTemplateVariableTargetMigration()));
-        results.add(migrateTaskTargets(new TaskPlanStepScriptTargetMigration()));
-        results.add(migrateTaskTargets(new TaskPlanStepFileTargetMigration()));
-        results.add(migrateTaskTargets(new TaskPlanStepFileListTargetMigration()));
-        results.add(migrateTaskTargets(new TaskPlanVariableTargetMigration()));
-        return results;
+        try {
+            List<AddHostIdResult> results = new ArrayList<>();
+            results.add(migrateTaskTargets(new TaskTemplateStepScriptTargetMigration()));
+            results.add(migrateTaskTargets(new TaskTemplateStepFileTargetMigration()));
+            results.add(migrateTaskTargets(new TaskTemplateStepFileListTargetMigration()));
+            results.add(migrateTaskTargets(new TaskTemplateVariableTargetMigration()));
+            results.add(migrateTaskTargets(new TaskPlanStepScriptTargetMigration()));
+            results.add(migrateTaskTargets(new TaskPlanStepFileTargetMigration()));
+            results.add(migrateTaskTargets(new TaskPlanStepFileListTargetMigration()));
+            results.add(migrateTaskTargets(new TaskPlanVariableTargetMigration()));
+            return results;
+        } finally {
+            // 清理缓存，避免占用内存
+            this.ipAndHostIdMapping.clear();
+        }
     }
 
     private AddHostIdResult migrateTaskTargets(TaskTargetMigration migration) {
@@ -159,12 +166,20 @@ public class AddHostIdMigrationTask {
 
     private void fillHostId(TaskTargetDTO target) {
         target.getHostNodeList().getHostList().forEach(host -> {
-            ApplicationHostDTO appHost = hostService.getHostByIp(host.getCloudIp());
-            if (appHost != null) {
-                host.setHostId(appHost.getHostId());
+            String cloudIp = host.getCloudIp();
+            if (ipAndHostIdMapping.get(cloudIp) != null) {
+                // 优先使用本地缓存，提升效率
+                host.setHostId(ipAndHostIdMapping.get(cloudIp));
             } else {
-                log.warn("Host with ip {} is not exist, set hostId -1", host.getCloudIp());
-                host.setHostId(-1L);
+                ApplicationHostDTO appHost = hostService.getHostByIp(host.getCloudIp());
+                Long hostId = -1L;
+                if (appHost != null) {
+                    hostId = appHost.getHostId();
+                } else {
+                    log.warn("Host with ip {} is not exist, set hostId -1", host.getCloudIp());
+                }
+                host.setHostId(hostId);
+                ipAndHostIdMapping.put(cloudIp, hostId);
             }
         });
     }
