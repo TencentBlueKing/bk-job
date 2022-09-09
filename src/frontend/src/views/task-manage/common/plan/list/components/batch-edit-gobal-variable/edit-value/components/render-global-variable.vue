@@ -36,7 +36,7 @@
                         <td>{{ data.description || '--' }}</td>
                     </tr>
                     <tr>
-                        <td>{{ $t('template.必填：') }}</td>
+                        <td>{{ $t('template.执行时必填：') }}</td>
                         <td>{{ data.requiredText }}</td>
                     </tr>
                     <tr>
