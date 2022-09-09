@@ -1047,21 +1047,28 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private List<ApplicationHostDTO> listHostsWithoutBiz(ListHostsWithoutBizReq req) {
         int limit = 500;
         int start = 0;
-        PageDTO page = new PageDTO(start, limit, "");
-        req.setPage(page);
-        EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ,
-            req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
-            });
-        ListHostsWithoutBizResult pageData = esbResp.getData();
-        if (esbResp.getData() == null || CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
-            return Collections.emptyList();
-        }
+        int total;
+        List<ApplicationHostDTO> hosts = new ArrayList<>();
+        do {
+            PageDTO page = new PageDTO(start, limit, "");
+            req.setPage(page);
+            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ,
+                req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
+                });
+            ListHostsWithoutBizResult pageData = esbResp.getData();
+            total = pageData.getCount();
+            start += limit;
+            if (esbResp.getData() == null || CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
+                break;
+            }
 
-        List<ApplicationHostDTO> hosts =
-            pageData.getInfo().stream().map(host -> convertHost(-1, host)).collect(Collectors.toList());
+            hosts.addAll(pageData.getInfo().stream()
+                .map(host -> convertHost(-1, host))
+                .collect(Collectors.toList()));
 
-        // 设置主机业务信息
-        setBizRelationInfo(hosts);
+            // 设置主机业务信息
+            setBizRelationInfo(hosts);
+        } while (start < total);
 
         return hosts;
     }

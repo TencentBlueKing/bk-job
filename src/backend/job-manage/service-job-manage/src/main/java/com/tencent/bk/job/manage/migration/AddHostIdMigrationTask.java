@@ -48,7 +48,6 @@ import org.jooq.generated.tables.TaskTemplateStepScript;
 import org.jooq.generated.tables.TaskTemplateVariable;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -56,9 +55,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 作业模板、执行方案等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性
@@ -85,6 +87,11 @@ public class AddHostIdMigrationTask {
         TaskPlanStepFileList.TASK_PLAN_STEP_FILE_LIST;
     private static final TaskPlanVariable TASK_PLAN_VARIABLE =
         TaskPlanVariable.TASK_PLAN_VARIABLE;
+
+    /**
+     * 不存在的主机，hostId使用-1表示
+     */
+    private static final long NOT_EXIST_HOST_ID = -1L;
 
     private final Map<String, Long> ipAndHostIdMapping = new HashMap<>();
 
@@ -132,6 +139,10 @@ public class AddHostIdMigrationTask {
                 return result;
             }
 
+            watch.start("add_ip_host_id_mappings");
+            addIpAndHostIdMappings(targets.values());
+            watch.stop();
+
             watch.start("fill_host_id");
             List<Long> invalidIds = new ArrayList<>();
             targets.forEach((id, target) -> {
@@ -168,6 +179,35 @@ public class AddHostIdMigrationTask {
         return result;
     }
 
+    private void addIpAndHostIdMappings(Collection<TaskTargetDTO> targets) {
+        Set<String> notCachedCloudIps = new HashSet<>();
+        targets.forEach(target ->
+            target.getHostNodeList().getHostList().forEach(host -> {
+                String cloudIp = host.getCloudIp();
+                if (ipAndHostIdMapping.get(cloudIp) == null) {
+                    notCachedCloudIps.add(cloudIp);
+                }
+            }));
+
+        if (CollectionUtils.isNotEmpty(notCachedCloudIps)) {
+            try {
+                Map<String, ApplicationHostDTO> hosts = hostService.listHostsByIps(notCachedCloudIps);
+                notCachedCloudIps.forEach(notCacheCloudIp -> {
+                    ApplicationHostDTO host = hosts.get(notCacheCloudIp);
+                    if (host == null) {
+                        log.warn("Host with ip {} is not exist in cmdb, set hostId -1", notCacheCloudIp);
+                        ipAndHostIdMapping.put(notCacheCloudIp, NOT_EXIST_HOST_ID);
+                    } else {
+                        ipAndHostIdMapping.put(notCacheCloudIp, host.getHostId());
+                    }
+                });
+            } catch (Throwable e) {
+                // 由于从cmdb查询hostId可能会返回异常（比如接口超时）等,为了保证下次迁移不需要从头开始，所以这里捕获住异常
+                log.error("Get host by ips fail", e);
+            }
+        }
+    }
+
     private boolean isTargetMissingHostId(TaskTargetDTO target) {
         return target != null && target.getHostNodeList() != null
             && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())
@@ -176,36 +216,22 @@ public class AddHostIdMigrationTask {
 
     private boolean hasHostId(Long hostId) {
         // host = -1,表示已经处理过的数据，并且这个主机被判定为不存在
-        return hostId != null && (hostId > 0 || hostId == -1);
+        return hostId != null && (hostId > 0 || hostId == NOT_EXIST_HOST_ID);
     }
 
     private boolean fillHostId(TaskTargetDTO target) {
+        boolean success = true;
         for (ApplicationHostDTO host : target.getHostNodeList().getHostList()) {
             String cloudIp = host.getCloudIp();
-            if (ipAndHostIdMapping.get(cloudIp) != null) {
-                // 优先使用本地缓存，提升效率
-                host.setHostId(ipAndHostIdMapping.get(cloudIp));
+            Long hostId = ipAndHostIdMapping.get(cloudIp);
+            if (hostId != null) {
+                host.setHostId(hostId);
             } else {
-                try {
-                    ApplicationHostDTO appHost = hostService.getHostByIp(cloudIp);
-                    Long hostId = -1L;
-                    if (appHost != null) {
-                        hostId = appHost.getHostId();
-                    } else {
-                        log.warn("Host with ip {} is not exist, set hostId -1", cloudIp);
-                    }
-                    host.setHostId(hostId);
-                    ipAndHostIdMapping.put(cloudIp, hostId);
-                } catch (Throwable e) {
-                    // 由于从cmdb查询hostId可能会返回异常（比如接口超时）等,为了保证下次迁移不需要从头开始，所以这里捕获住异常
-                    String errorMsg = MessageFormatter
-                        .format("Get host by ip {} fail", cloudIp).getMessage();
-                    log.error(errorMsg, e);
-                    return false;
-                }
+                success = false;
+                break;
             }
         }
-        return true;
+        return success;
     }
 
     private String convertTargetToJson(TaskTargetDTO target) {
