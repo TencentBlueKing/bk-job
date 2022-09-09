@@ -164,7 +164,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             whiteIPAppRelDAO.insertWhiteIPAppRel(context, whiteIPRecordDTO.getCreator(), recordId, appId));
         //插入IP表
         whiteIPRecordDTO.getIpList().forEach(ip ->
-            whiteIPIPDAO.insertWhiteIPIP(context, new WhiteIPIPDTO(
+            whiteIPIPDAO.insertWhiteIPIP(new WhiteIPIPDTO(
                 null,
                 recordId,
                 ip.getCloudAreaId(),
@@ -198,7 +198,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         //删关联表
         whiteIPAppRelDAO.deleteWhiteIPAppRelByRecordId(dslContext, id);
         //删IP
-        whiteIPIPDAO.deleteWhiteIPIPByRecordId(dslContext, id);
+        whiteIPIPDAO.deleteWhiteIPIPByRecordId(id);
         //删生效范围
         whiteIPActionScopeDAO.deleteWhiteIPActionScopeByRecordId(dslContext, id);
         //删Record
@@ -214,7 +214,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         //查业务List
         val appIdList = whiteIPAppRelDAO.listAppIdByRecordId(dslContext, id);
         //查IP List
-        val ipList = whiteIPIPDAO.getWhiteIPIPByRecordId(dslContext, id);
+        val ipList = whiteIPIPDAO.getWhiteIPIPByRecordId(id);
         //查ActionScope List
         val actionScopeList = whiteIPActionScopeDAO.getWhiteIPActionScopeByRecordId(dslContext, id);
         //查Record
@@ -382,7 +382,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 return new WhiteIPRecordVO(
                     recordId,
                     (Long) record.get(KEY_CLOUD_AREA_ID),
-                    whiteIPIPDAO.getWhiteIPIPByRecordId(dslContext, recordId).stream()
+                    whiteIPIPDAO.getWhiteIPIPByRecordId(recordId).stream()
                         .map(WhiteIPIPDTO::extractWhiteIPHostVO).collect(Collectors.toList()),
                     actionScopeVOList,
                     appVOList,
@@ -456,9 +456,9 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             )
         );
         //删除IP表
-        whiteIPIPDAO.deleteWhiteIPIPByRecordId(dslContext, whiteIPRecordDTO.getId());
+        whiteIPIPDAO.deleteWhiteIPIPByRecordId(whiteIPRecordDTO.getId());
         //重新插入IP表
-        whiteIPRecordDTO.getIpList().forEach(it -> whiteIPIPDAO.insertWhiteIPIP(dslContext, it));
+        whiteIPRecordDTO.getIpList().forEach(it -> whiteIPIPDAO.insertWhiteIPIP(it));
         //删除ActionScope表
         whiteIPActionScopeDAO.deleteWhiteIPActionScopeByRecordId(dslContext, whiteIPRecordDTO.getId());
         //重新插入ActionScope表
@@ -641,7 +641,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
 
             for (List<Long> idList : recordIdsList) {
                 whiteIPAppRelList.addAll(whiteIPAppRelDAO.listAppRelByRecordIds(dslContext, idList));
-                whiteIPIPList.addAll(whiteIPIPDAO.listWhiteIPIPByRecordIds(dslContext, idList));
+                whiteIPIPList.addAll(whiteIPIPDAO.listWhiteIPIPByRecordIds(idList));
                 whiteIPActionScopeList.addAll(whiteIPActionScopeDAO.listWhiteIPActionScopeByRecordIds(dslContext,
                     idList));
             }
