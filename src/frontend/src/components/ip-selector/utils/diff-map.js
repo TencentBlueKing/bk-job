@@ -32,7 +32,6 @@ export const getHostDiffMap = (lastHostList, originalValue, invalidList = []) =>
     invalidList.forEach((item) => {
         diffMap[item.host_id] = 'invalid';
     });
-    console.log('from getHostDiffMap = ', diffMap);
 
     return diffMap;
 };
@@ -58,7 +57,7 @@ export const getNodeDiffMap = (lastNodeList, originalValue, invalidList = []) =>
         }
     });
     invalidList.forEach((item) => {
-        diffMap[item.host_id] = 'invalid';
+        diffMap[genNodeKey(item)] = 'invalid';
     });
     return diffMap;
 };
@@ -84,7 +83,7 @@ export const getDynamicGroupDiffMap = (lastDynamicGroupList, originalValue, inva
     });
 
     invalidList.forEach((item) => {
-        diffMap[item.host_id] = 'invalid';
+        diffMap[item.id] = 'invalid';
     });
     return diffMap;
 };

@@ -195,8 +195,12 @@
 
     watch([validDynamicGroupList, resultList], () => {
         invalidDynamicGroupList.value = getInvalidDynamicGroupList(props.data, validDynamicGroupList.value);
+
+        console.log('fom wtahc validDynamicGroupList = ', props.data, validDynamicGroupList.value);
         removedDynamicGroupList.value = getRemoveDynamicGroupList(props.data, context.originalValue);
         diffMap.value = getDynamicGroupDiffMap(props.data, context.originalValue, invalidDynamicGroupList.value);
+
+        console.log('form adfadfdfd ', diffMap.value);
 
         const {
             newList,
