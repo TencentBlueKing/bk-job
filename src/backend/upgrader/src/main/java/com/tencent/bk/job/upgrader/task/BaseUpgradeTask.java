@@ -30,24 +30,42 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.BaseHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.ssl.SSLContexts;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 
 @Slf4j
 public abstract class BaseUpgradeTask implements IUpgradeTask {
 
     private Properties properties;
+    private static final ExtHttpHelper HTTP_HELPER;
+
+    static {
+        HTTP_HELPER = new ExtHttpHelper(new BaseHttpHelper(getHttpClient()));
+    }
 
     BaseUpgradeTask() {
+
     }
 
     BaseUpgradeTask(Properties properties) {
@@ -79,7 +97,7 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
         headers[1] = new BasicHeader("Content-Type", "application/json");
 
         try {
-            String respStr = HttpHelperFactory.getDefaultHttpHelper().post(url, content, headers);
+            String respStr = HTTP_HELPER.post(url, content, headers);
             log.info("Post {}, content: {}, response: {}", url, content, respStr);
             if (StringUtils.isBlank(respStr)) {
                 String errorMsg =
@@ -153,5 +171,37 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
     @Override
     public int getPriority() {
         return this.getClass().getAnnotation(UpgradeTask.class).priority();
+    }
+
+    private static CloseableHttpClient getHttpClient() {
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
+            .setDefaultConnectionConfig(
+                ConnectionConfig.custom()
+                    .setBufferSize(102400)
+                    .setCharset(StandardCharsets.UTF_8)
+                    .build()
+            ).setDefaultRequestConfig(
+                RequestConfig.custom()
+                    .setConnectTimeout(15000)
+                    // 12h,等待足够长时间，等待升级任务返回结果
+                    .setSocketTimeout(43200000)
+                    .build()
+            )
+            .disableAutomaticRetries();
+
+        CloseableHttpClient httpClient;
+        try {
+            httpClient = httpClientBuilder.setSSLSocketFactory(
+                new SSLConnectionSocketFactory(
+                    SSLContexts.custom()
+                        .loadTrustMaterial(null, new TrustSelfSignedStrategy())
+                        .build()
+                )
+            ).build();
+        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
+            log.error("Set ssl config error", e);
+            httpClient = httpClientBuilder.build();
+        }
+        return httpClient;
     }
 }

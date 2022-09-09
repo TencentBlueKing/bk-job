@@ -38,11 +38,10 @@ import java.util.List;
 
 @Slf4j
 public class ExtHttpHelper {
-    private final String CHARSET = "UTF-8";
 
     private final HttpHelper httpHelper;
 
-    protected ExtHttpHelper(HttpHelper httpHelper) {
+    public ExtHttpHelper(HttpHelper httpHelper) {
         this.httpHelper = httpHelper;
     }
 
@@ -55,6 +54,7 @@ public class ExtHttpHelper {
      * @return
      */
     public String post(String url, String content, Header... headers) {
+        String CHARSET = "UTF-8";
         return post(url, CHARSET, content, headers);
     }
 
@@ -75,7 +75,9 @@ public class ExtHttpHelper {
      */
     public String post(String url, String charset, String content, Header... headers) {
         try {
-            byte[] resp = post(url, new ByteArrayEntity(content.getBytes(charset)), headers);
+            byte[] resp = post(url,
+                new ByteArrayEntity(content == null ? "".getBytes() : content.getBytes(charset)),
+                headers);
             if (null == resp) {
                 return null;
             }
