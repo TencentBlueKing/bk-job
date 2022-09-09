@@ -24,22 +24,28 @@
 
 package com.tencent.bk.job.upgrader.task;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.util.jwt.BasicJwtManager;
-import com.tencent.bk.job.common.util.jwt.JwtManager;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
+import org.slf4j.helpers.MessageFormatter;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.Properties;
 
 @Slf4j
 public abstract class BaseUpgradeTask implements IUpgradeTask {
 
-    public Properties properties;
+    private Properties properties;
 
     BaseUpgradeTask() {
     }
@@ -56,22 +62,78 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
     public void init() {
     }
 
-    public String getJobAuthToken() {
-        String securityPublicKeyBase64 =
-            (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
-        String securityPrivateKeyBase64 =
-            (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
-        JwtManager jwtManager;
+    public <T> Response<T> post(String url, String content) throws InternalException {
+        String jobAuthToken = getProperties().getProperty(
+            ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
+        );
+        if (StringUtils.isBlank(jobAuthToken)) {
+            log.error("{} is not configured", ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{
+                ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
+            });
+        }
+        jobAuthToken = Base64Util.decodeContentToStr(jobAuthToken);
+
+        Header[] headers = new Header[2];
+        headers[0] = new BasicHeader("x-job-auth-token", jobAuthToken);
+        headers[1] = new BasicHeader("Content-Type", "application/json");
+
         try {
-            jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
-            // 迁移过程最大预估时间：3h
-            return jwtManager.generateToken(3 * 60 * 60 * 1000);
-        } catch (IOException | GeneralSecurityException e) {
-            String msg = "Fail to generate jwt auth token";
-            log.error(msg, e);
-            throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
+            String respStr = HttpHelperFactory.getDefaultHttpHelper().post(url, content, headers);
+            log.info("Post {}, content: {}, response: {}", url, content, respStr);
+            if (StringUtils.isBlank(respStr)) {
+                String errorMsg =
+                    MessageFormatter.format("Fail: response is blank|url={}", url).getMessage();
+                log.error(errorMsg);
+                throw new InternalException(errorMsg, ErrorCode.INTERNAL_ERROR);
+            }
+            Response<T> resp = JsonUtils.fromJson(respStr,
+                new TypeReference<Response<T>>() {
+                });
+            if (resp == null) {
+                String errorMsg =
+                    MessageFormatter.format("Fail: parse response|url={}", url).getMessage();
+                throw new InternalException(errorMsg, ErrorCode.INTERNAL_ERROR);
+            }
+            return resp;
+        } catch (Exception e) {
+            log.error("Fail: caught exception", e);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
     }
+
+    protected final String buildMigrationTaskUrl(String serviceUrl, String migrationTaskUri) {
+        String url;
+        if (!serviceUrl.endsWith("/")) {
+            url = serviceUrl + migrationTaskUri;
+        } else {
+            url = serviceUrl.substring(0, serviceUrl.length() - 1) + migrationTaskUri;
+        }
+        return url;
+    }
+
+    protected final String getJobManageUrl() {
+        String serverUrl = getProperties().getProperty(
+            ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS
+        );
+        return addMissingSchema(serverUrl);
+    }
+
+    protected final String getJobCrontabUrl() {
+        String serverUrl = getProperties().getProperty(
+            ParamNameConsts.INPUT_PARAM_JOB_CRONTAB_SERVER_ADDRESS
+        );
+        return addMissingSchema(serverUrl);
+    }
+
+    private String addMissingSchema(String url) {
+        String newUrl = url;
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            newUrl = "http://" + url;
+        }
+        return newUrl;
+    }
+
 
     @Override
     public String getName() {

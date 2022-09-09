@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.manage.api.migration.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.migration.AddHostIdMigrationTask;
 import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
@@ -49,15 +52,18 @@ public class MigrationResource {
     private final EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask;
     private final ResourceTagsMigrationTask resourceTagsMigrationTask;
     private final BizSetService bizSetService;
+    private final AddHostIdMigrationTask addHostIdMigrationTask;
 
     @Autowired
     public MigrationResource(
         EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask,
         ResourceTagsMigrationTask resourceTagsMigrationTask,
-        BizSetService bizSetService) {
+        BizSetService bizSetService,
+        AddHostIdMigrationTask addHostIdMigrationTask) {
         this.encryptDbAccountPasswordMigrationTask = encryptDbAccountPasswordMigrationTask;
         this.resourceTagsMigrationTask = resourceTagsMigrationTask;
         this.bizSetService = bizSetService;
+        this.addHostIdMigrationTask = addHostIdMigrationTask;
     }
 
     /**
@@ -82,5 +88,17 @@ public class MigrationResource {
     @PostMapping("/action/setBizSetMigrationStatus")
     public Response<Boolean> setBizSetMigrationStatus(@RequestBody SetBizSetMigrationStatusReq req) {
         return Response.buildSuccessResp(bizSetService.setBizSetMigratedToCMDB(req.getMigrated()));
+    }
+
+    /**
+     * 作业模板、执行方案等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性
+     */
+    @PostMapping("/action/addHostIdMigrationTask")
+    public Response<String> addHostIdMigrationTask() {
+        List<AddHostIdMigrationTask.AddHostIdResult> results = addHostIdMigrationTask.execute();
+        boolean success = results.stream().allMatch(AddHostIdMigrationTask.AddHostIdResult::isSuccess);
+        return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
+            Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"AddHostIdMigrationTask",
+                JsonUtils.toJson(results)});
     }
 }

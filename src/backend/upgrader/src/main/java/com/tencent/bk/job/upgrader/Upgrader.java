@@ -315,8 +315,8 @@ public class Upgrader {
                             upgradeTask.getName(),
                             upgradeTask.getPriority(),
                             upgradeTask.getTargetVersion());
-                        int resultCode = upgradeTask.execute(args);
-                        if (resultCode == 0) {
+                        boolean success = upgradeTask.execute(args);
+                        if (success) {
                             successfulTaskNum.incrementAndGet();
                             taskSuccess.set(true);
                             log.info("UpgradeTask [{}][priority={}] for version {} successfully end",
