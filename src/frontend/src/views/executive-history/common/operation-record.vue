@@ -50,7 +50,7 @@
                     <template slot-scope="{ row }">
                         <template v-if="row.detailEnable">
                             <span v-if="chekcIsCurrentUrl(row)">
-                                {{ $t('history.当前正在显示的内容') }}
+                                ({{ $t('history.当前正在显示的内容') }})
                             </span>
                             <bk-button
                                 v-else
@@ -69,7 +69,6 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
     import Empty from '@components/empty';
 
@@ -111,7 +110,9 @@
                     });
             },
             chekcIsCurrentUrl (data) {
-                const { stepInstanceId, retryCount = 0 } = this.$route.query;
+                const urlSearch = new URLSearchParams(window.location.search);
+                const stepInstanceId = urlSearch.get('stepInstanceId');
+                const retryCount = urlSearch.get('retryCount');
                 
                 return parseInt(stepInstanceId, 10) === data.stepInstanceId
                     && parseInt(retryCount, 10) === data.retry;
@@ -129,13 +130,6 @@
                         from: this.from || this.$route.query.from,
                     },
                 };
-                // 跳转路由没变
-                const { stepInstanceId, retryCount = 0 } = this.$route.query;
-                if (parseInt(stepInstanceId, 10) === payload.stepInstanceId
-                    && parseInt(retryCount, 10) === payload.retry) {
-                    this.messageWarn(I18n.t('history.正在查看'));
-                    return;
-                }
                 
                 this.$emit('on-change');
                 this.$router.push(routerInfo);
