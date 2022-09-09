@@ -1,6 +1,9 @@
 <template>
     <div class="ip-selector-dynamic-topo">
-        <template v-if="topoTreeData.length > 0">
+        <resize-layout
+            v-if="topoTreeData.length > 0"
+            flex-direction="left"
+            :default-width="265">
             <div class="tree-box">
                 <bk-input
                     v-model="filterKey"
@@ -50,35 +53,37 @@
                     </template>
                 </bk-big-tree>
             </div>
-            <div class="table-box">
-                <template v-if="selectedTopoNode.instance_name">
-                    <table-tab
-                        :model-value="renderTableType"
-                        @change="handleTableTypeChange">
-                        <table-tab-item name="node">
-                            {{ selectedTopoNode.instance_name }} ({{ selectedTopoNode.child.length }})
-                        </table-tab-item>
-                        <table-tab-item name="host">
-                            主机 ({{ selectedTopoNode.count }})
-                        </table-tab-item>
-                    </table-tab>
-                    <div :key="`${selectedTopoNode.object_id}${selectedTopoNode.instance_id}`">
-                        <keep-alive>
-                            <component
-                                :is="renderTableCom"
-                                :node="selectedTopoNode"
-                                :data="renderNodeList"
-                                :checked-map="nodeCheckedMap"
-                                style="min-height: 200px;"
-                                @check-change="handleTableNodeCheckChange" />
-                        </keep-alive>
+            <template #right>
+                <div class="table-box">
+                    <template v-if="selectedTopoNode.instance_name">
+                        <table-tab
+                            :model-value="renderTableType"
+                            @change="handleTableTypeChange">
+                            <table-tab-item name="node">
+                                {{ selectedTopoNode.instance_name }} ({{ selectedTopoNode.child.length }})
+                            </table-tab-item>
+                            <table-tab-item name="host">
+                                主机 ({{ selectedTopoNode.count }})
+                            </table-tab-item>
+                        </table-tab>
+                        <div :key="`${selectedTopoNode.object_id}${selectedTopoNode.instance_id}`">
+                            <keep-alive>
+                                <component
+                                    :is="renderTableCom"
+                                    :node="selectedTopoNode"
+                                    :data="renderNodeList"
+                                    :checked-map="nodeCheckedMap"
+                                    style="min-height: 200px;"
+                                    @check-change="handleTableNodeCheckChange" />
+                            </keep-alive>
+                        </div>
+                    </template>
+                    <div v-else>
+                        请在右侧选择节点
                     </div>
-                </template>
-                <div v-else>
-                    请在右侧选择节点
                 </div>
-            </div>
-        </template>
+            </template>
+        </resize-layout>
         <div
             v-else
             v-bkloading="{ isLoading: isConfigLoading }"
@@ -108,6 +113,7 @@
     import { genNodeKey } from '../../../../utils';
     import TableTab from '../../table-tab';
     import TableTabItem from '../../table-tab/item.vue';
+    import ResizeLayout from '../../resize-layout.vue';
     import RenderNodeTable from './render-node-table.vue';
     import RenderHostTable from './render-host-table.vue';
     
@@ -254,11 +260,10 @@
         height: 100%;
 
         .tree-box {
-            width: 265px;
             height: 100%;
-            padding-right: 15px;
+            padding-right: 16px;
+            padding-left: 16px;
             overflow: auto;
-            border-right: 1px solid #dcdee5;
 
             @include tree;
         }

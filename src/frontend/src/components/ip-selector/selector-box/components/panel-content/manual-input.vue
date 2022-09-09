@@ -6,7 +6,7 @@
             <bk-input
                 v-model="manualInputText"
                 type="textarea"
-                placeholder="请输入 IP / Ipv6 或主机名称，如（192.168.1.112 或 ebd4:3e1::e13），带云区域请使用冒号分隔，如：0:192.168.9.10
+                placeholder="请输入 IP / IPv6 或主机名称，如（192.168.1.112 或 ebd4:3e1::e13），带云区域请使用冒号分隔，如：0:192.168.9.10
 多个可使用换行，空格或；，｜ ”分隔"
                 :native-attributes="{ spellcheck: false }"
                 :style="manualInputStyles" />
@@ -199,7 +199,7 @@
         if (!inputText) {
             return;
         }
-        const itemList = inputText.split(/[;,；，\n|]+/).filter(_ => !!_);
+        const itemList = inputText.split(/[;,；，\n |]+/).filter(_ => !!_);
 
         const ipRegex = /(((\d+:)?)(?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d))))/;
         const ipv6RegexList = [
@@ -380,6 +380,7 @@
 
         .custom-input {
             flex: 0 0 383px;
+            padding-left: 16px;
 
             .custom-input-parse-error {
                 display: flex;

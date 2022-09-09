@@ -9,6 +9,7 @@ export default () => {
         width: 0,
         height: 0,
         contentHeight: 0,
+        panelHeight: 0,
     });
     const headerHeight = 41;
     const footerHeight = 57;

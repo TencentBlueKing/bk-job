@@ -2,7 +2,10 @@
     <div
         class="ip-selector-dynamic-group"
         v-bkloading="{ isLoading: isDynamicGroupLoading }">
-        <template v-if="dynamicGroupList.length > 0">
+        <resize-layout
+            v-if="dynamicGroupList.length > 0"
+            flex-direction="left"
+            :default-width="265">
             <div class="tree-box">
                 <bk-input
                     placeholder="搜索动态分组名称"
@@ -49,19 +52,21 @@
                     </div>
                 </div>
             </div>
-            <div
-                class="table-box"
-                v-bkloading="{ isLoading: isHostListLoading }">
-                <bk-input
-                    placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
-                    style="margin-bottom: 12px;" />
-                <render-host-table
-                    :data="hostTableData"
-                    :pagination="pagination"
-                    :height="renderTableHeight"
-                    @pagination-change="handlePaginationChange" />
-            </div>
-        </template>
+            <template #right>
+                <div
+                    class="table-box"
+                    v-bkloading="{ isLoading: isHostListLoading }">
+                    <bk-input
+                        placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
+                        style="margin-bottom: 12px;" />
+                    <render-host-table
+                        :data="hostTableData"
+                        :pagination="pagination"
+                        :height="renderTableHeight"
+                        @pagination-change="handlePaginationChange" />
+                </div>
+            </template>
+        </resize-layout>
         <div
             v-else-if="!isDynamicGroupLoading"
             v-bkloading="{ isLoading: isConfigLoading }"
@@ -89,6 +94,7 @@
     import useFetchConfig from '../../../hooks/use-fetch-config';
     import { getPaginationDefault } from '../../../utils';
     import RenderHostTable from '../../../common/render-table/host/index.vue';
+    import ResizeLayout from '../resize-layout.vue';
 
     const props = defineProps({
         topoTreeData: {
@@ -226,11 +232,10 @@
         height: 100%;
 
         .tree-box {
-            width: 265px;
             height: 100%;
-            padding-right: 15px;
+            padding-right: 16px;
+            padding-left: 16px;
             overflow: auto;
-            border-right: 1px solid #dcdee5;
 
             .dynamic-group-item {
                 display: flex;

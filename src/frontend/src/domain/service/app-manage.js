@@ -128,7 +128,10 @@ export default {
             .then(({ data }) => IpSelectrAdapter.hostAgentStatisticsDynamicGroups(data));
     },
     fetchInputParseHostList (params) {
-        return AppManageSource.getInputParseHostList(params)
+        return AppManageSource.getInputParseHostList({
+            ...params,
+            actionScope: window.IPInputScope,
+        })
             .then(({ data }) => IpSelectrAdapter.hostCheck(data));
     },
     fetchHostInfoByHostId (params) {

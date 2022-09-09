@@ -186,6 +186,7 @@
                 newCheckedMap[nodeItem.key] = nodeItem.node;
             });
         }
+        pageCheckValue.value = checkValue;
         isInnerChange = true;
         emits('check-change', newCheckedMap);
     };

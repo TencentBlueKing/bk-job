@@ -43,6 +43,10 @@ import i18n from '@/i18n';
 import '@bk-icon/style.css';
 import '@bk-icon/iconcool.js';
 
+// import Component from 'lib/dist/js/main.js';
+
+// console.log(Component);
+
 /**
  * @desc 启动打印当前系统信息
  */

@@ -130,11 +130,9 @@
 <style lang="postcss">
     .ip-selector-result-preview {
         position: relative;
-        width: 320px;
         height: 100%;
         font-size: 12px;
         background: #f5f6fa;
-        border-left: 1px solid #dcdee5;
 
         .preview-header {
             padding: 12px 24px 16px;

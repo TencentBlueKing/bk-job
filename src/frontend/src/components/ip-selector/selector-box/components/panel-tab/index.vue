@@ -189,6 +189,8 @@
             .drag-btn {
                 position: absolute;
                 left: 10px;
+                font-size: 12px;
+                color: #979ba5;
                 cursor: move;
                 opacity: 0%;
                 transition: all 0.15s;

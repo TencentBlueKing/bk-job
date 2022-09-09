@@ -48,6 +48,6 @@
 <style lang="postcss">
     .ip-selector-panel-content {
         height: 100%;
-        padding: 16px 24px 0 16px;
+        padding: 16px 24px 0 0;
     }
 </style>

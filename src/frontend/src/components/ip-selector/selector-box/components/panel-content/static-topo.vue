@@ -330,15 +330,13 @@
     @import "../../../styles/tree.mixin.css";
 
     .ip-selector-static-topo {
-        display: flex;
         height: 100%;
 
         .tree-box {
-            width: 265px;
             height: 100%;
-            padding-right: 15px;
+            padding-right: 16px;
+            padding-left: 16px;
             overflow: auto;
-            border-right: 1px solid #dcdee5;
 
             @include tree;
         }
