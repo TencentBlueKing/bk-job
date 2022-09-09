@@ -111,6 +111,7 @@
         <ip-selector
             :show-dialog="isShowChooseIp"
             :value="formData.defaultTargetValue.hostNodeInfo"
+            :original-value="originalValue"
             @change="handleHostChange"
             @close-dialog="handleCloseIPSelector" />
     </tr>
@@ -177,6 +178,8 @@
             },
         },
         created () {
+            this.originalValue = _.cloneDeep(this.data.defaultTargetValue.hostNodeInfo);
+
             this.typeList = [
                 {
                     id: GlobalVariableModel.TYPE_STRING,

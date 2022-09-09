@@ -15,16 +15,14 @@
                     共<span class="bk-ip-selector-number">{{ data.total_count }}</span>台主机
                 </div>
                 <div
-                    v-if="data.alive_count"
                     class="statistics-item"
                     @click="handleClick('normal')">
-                    正常：<span class="bk-ip-selector-number-success">{{ data.alive_count }}</span>台
+                    正常<span class="bk-ip-selector-number-success">{{ data.alive_count }}</span>台
                 </div>
                 <div
-                    v-if="data.not_alive_count"
                     class="statistics-item"
                     @click="handleClick('abnormal')">
-                    异常：<span class="bk-ip-selector-number-error">{{ data.not_alive_count }}</span>台
+                    异常<span class="bk-ip-selector-number-error">{{ data.not_alive_count }}</span>台
                 </div>
             </template>
             <span v-else>--</span>
@@ -55,18 +53,24 @@
 
         .statistics-item {
             display: flex;
+            width: 130px;
             height: 24px;
-            padding: 0 4px;
-            align-items: center;
             border-radius: 2px;
+            align-items: center;
 
             &:hover {
                 background: #eaebf0;
             }
 
             & ~ & {
-                margin-left: 20px;
+                margin-left: 2px;
             }
+        }
+
+        .bk-ip-selector-number,
+        .bk-ip-selector-number-success,
+        .bk-ip-selector-number-error {
+            padding: 0 4px;
         }
     }
 </style>

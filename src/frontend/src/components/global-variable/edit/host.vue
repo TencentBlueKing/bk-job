@@ -47,6 +47,7 @@
             <ip-selector
                 :show-dialog="isShowChooseIp"
                 :value="hostNodeInfo"
+                :origianl-value="originalHostNodeInfo"
                 @change="handleChange"
                 @close-dialog="handleCloseIpSelector" />
             <!-- <server-panel
@@ -66,6 +67,7 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import TaskHostNodeModel from '@model/task-host-node';
     // import ChooseIp from '@components/choose-ip';
     // import ServerPanel from '@components/choose-ip/server-panel';
@@ -89,6 +91,7 @@
             return {
                 isShowChooseIp: false,
                 hostNodeInfo: {},
+                originalHostNodeInfo: {},
             };
         },
         computed: {
@@ -125,6 +128,8 @@
                 } else {
                     this.hostNodeInfo = this.data.targetValue.hostNodeInfo;
                 }
+                this.originalHostNodeInfo = Object.freeze(_.cloneDeep(this.hostNodeInfo));
+                console.log('from hahahahah');
             },
             /**
              * @desc 外部调用——移除无效主机

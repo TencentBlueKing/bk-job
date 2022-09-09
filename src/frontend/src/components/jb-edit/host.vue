@@ -45,23 +45,30 @@
                     class="edit-loading" />
             </div>
         </div>
-        <choose-ip
+        <ip-selector
+            :show-dialog="isShowChooseIp"
+            :value="localValue.hostNodeInfo"
+            :original-value="originalHostNodeInfo"
+            @change="handleHostChange"
+            @close-dialog="handleCloseIPSelector" />
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="localValue.hostNodeInfo"
-            @on-change="handleHostChange" />
+            :original-value
+            @on-change="handleHostChange" /> -->
     </div>
 </template>
 <script>
     import _ from 'lodash';
     import I18n from '@/i18n';
     import TaskHostNodeModel from '@model/task-host-node';
-    import ChooseIp from '@components/choose-ip';
+    // import ChooseIp from '@components/choose-ip';
 
     export default {
         name: 'JbEditHost',
-        components: {
-            ChooseIp,
-        },
+        // components: {
+        //     ChooseIp,
+        // },
         props: {
             /**
              * @value block 块级交互
@@ -152,6 +159,9 @@
                 immediate: true,
             },
         },
+        created () {
+            this.originalValue = _.cloneDeep(this.value.hostNodeInfo);
+        },
         methods: {
             /**
              * @desc 值验证
@@ -231,6 +241,9 @@
             handleShowEdit () {
                 document.body.click();
                 this.isShowChooseIp = true;
+            },
+            handleCloseIPSelector () {
+                this.isShowChooseIp = false;
             },
             
             handleHostChange (hostNodeInfo) {

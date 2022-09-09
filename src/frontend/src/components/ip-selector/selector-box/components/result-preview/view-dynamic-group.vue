@@ -78,6 +78,8 @@
     const newDynamicGroupNum = ref(0);
     const diffMap = shallowRef({});
 
+    const isCreated = false;
+
     // 根据 ID 获取分组详情
     const fetchData = () => {
         isLoading.value = true;
@@ -98,7 +100,7 @@
     watch(() => props.data, () => {
         if (props.data.length > 0) {
             const needFetchHostDetail = _.find(props.data, item => !item.name);
-            if (needFetchHostDetail) {
+            if (needFetchHostDetail || !isCreated) {
                 fetchData();
             } else {
                 validDynamicGroupList.value = [...props.data];
@@ -112,8 +114,8 @@
 
     watch(validDynamicGroupList, () => {
         invalidDynamicGroupList.value = getInvalidDynamicGroupList(props.data, validDynamicGroupList.value);
-        removedDynamicGroupList.value = getRemoveDynamicGroupList(props.data, context.orinigalValue);
-        diffMap.value = getDynamicGroupDiffMap(props.data, context.orinigalValue, invalidDynamicGroupList.value);
+        removedDynamicGroupList.value = getRemoveDynamicGroupList(props.data, context.originalValue);
+        diffMap.value = getDynamicGroupDiffMap(props.data, context.originalValue, invalidDynamicGroupList.value);
 
         const {
             newList,

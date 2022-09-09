@@ -77,9 +77,9 @@
         value: {
             type: Object,
             default: () => ({
-                hostList: [],
-                nodeList: [],
-                dynamicGroupList: [],
+                host_list: [],
+                node_list: [],
+                dynamic_group_list: [],
             }),
         },
     });

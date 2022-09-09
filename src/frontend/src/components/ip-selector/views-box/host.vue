@@ -165,8 +165,8 @@
 
     watch([validHostList, resultList], () => {
         invalidHostList.value = getInvalidHostList(props.data, validHostList.value);
-        removedHostList.value = getRemoveHostList(props.data, context.orinigalValue);
-        diffMap.value = getHostDiffMap(props.data, context.orinigalValue, invalidHostList.value);
+        removedHostList.value = getRemoveHostList(props.data, context.originalValue);
+        diffMap.value = getHostDiffMap(props.data, context.originalValue, invalidHostList.value);
         
         hostIpRepeatMap.value = getRepeatIpHostMap(validHostList.value);
 

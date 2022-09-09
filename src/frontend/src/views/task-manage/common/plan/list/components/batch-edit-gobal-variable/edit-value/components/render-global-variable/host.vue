@@ -55,11 +55,13 @@
         <ip-selector
             :show-dialog="isShowChooseIp"
             :value="hostNodeInfo"
-            @change="handleHostChange"
+            :original-value="originalValue"
+            @change="handleChange"
             @close-dialog="handleCloseIpSelector" />
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import TaskHostNodeModel from '@model/task-host-node';
     // import ChooseIp from '@components/choose-ip';
 
@@ -91,7 +93,9 @@
                 return new TaskHostNodeModel(this.value).text;
             },
         },
-        
+        created () {
+            this.originalValue = _.cloneDeep(this.value.hostNodeInfo);
+        },
         methods: {
             handleRemove () {
                 this.$emit('on-remove');

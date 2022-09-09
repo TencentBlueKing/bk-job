@@ -1,8 +1,8 @@
 import { genNodeKey } from './gen-node-key';
 
 export const getHostDiffMap = (lastHostList, originalValue, invalidList = []) => {
+    console.log('from getHostDiffMap enternentnen = ', lastHostList, originalValue);
     const isShowOriginalValueDiff = Boolean(originalValue);
-
     const {
         host_list: originalHostList = [],
     } = originalValue || {};
@@ -32,6 +32,8 @@ export const getHostDiffMap = (lastHostList, originalValue, invalidList = []) =>
     invalidList.forEach((item) => {
         diffMap[item.host_id] = 'invalid';
     });
+    console.log('from getHostDiffMap = ', diffMap);
+
     return diffMap;
 };
 

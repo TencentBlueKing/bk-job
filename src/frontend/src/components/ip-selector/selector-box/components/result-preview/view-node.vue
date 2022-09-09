@@ -122,8 +122,8 @@
 
     watch(validNodeList, () => {
         invalidNodeList.value = getInvalidNodeList(props.data, validNodeList.value);
-        removedNodeList.value = getRemoveNodeList(props.data, context.orinigalValue);
-        diffMap.value = getNodeDiffMap(props.data, context.orinigalValue, invalidNodeList.value);
+        removedNodeList.value = getRemoveNodeList(props.data, context.originalValue);
+        diffMap.value = getNodeDiffMap(props.data, context.originalValue, invalidNodeList.value);
 
         const {
             newList,

@@ -59,6 +59,7 @@
                     :show-dialog="isShowChooseIp"
                     show-view
                     :value="formData.defaultTargetValue.hostNodeInfo"
+                    :original-value="originalHostNodeInfo"
                     @change="handleHostChange"
                     @close-dialog="handleCloseIPSelector" />
             </jb-form-item>
@@ -82,6 +83,7 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
     import TaskGlobalVariableModel from '@model/task/global-variable';
     import TaskHostNodeModel from '@model/task-host-node';
@@ -125,6 +127,7 @@
             },
         },
         created () {
+            this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
             this.rules = {
                 name: [
                     {

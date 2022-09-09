@@ -44,6 +44,7 @@
                 :show-dialog="isShowChooseIp"
                 show-view
                 :value="formData.defaultTargetValue.hostNodeInfo"
+                :original-value="originalHostNodeInfo"
                 @change="handleHostChange"
                 @close-dialog="handleCloseIPSelector" />
             <!-- <server-panel
@@ -67,6 +68,7 @@
     </jb-form>
 </template>
 <script>
+    import _ from 'lodash';
     import TaskGlobalVariableModel from '@model/task/global-variable';
     import TaskHostNodeModel from '@model/task-host-node';
     // import ChooseIp from '@components/choose-ip';
@@ -118,6 +120,9 @@
                 },
                 immediate: true,
             },
+        },
+        created () {
+            this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
         },
         methods: {
             handleHostChange (hostNodeInfo) {

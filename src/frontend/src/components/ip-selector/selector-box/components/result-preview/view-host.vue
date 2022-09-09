@@ -95,6 +95,8 @@
 
     const newHostNum = ref(0);
 
+    let isCreated = false;
+
     // 通过 host_id 查询主机详情
     const fetchData = () => {
         isLoading.value = true;
@@ -115,11 +117,12 @@
     watch(() => props.data, () => {
         if (props.data.length > 0) {
             const needFetchHostDetail = _.find(props.data, item => !item.ip);
-            if (needFetchHostDetail) {
+            if (needFetchHostDetail || !isCreated) {
                 fetchData();
             } else {
                 validHostList.value = [...props.data];
             }
+            isCreated = true;
         } else {
             validHostList.value = [];
         }
@@ -129,8 +132,9 @@
 
     watch(validHostList, () => {
         invalidHostList.value = getInvalidHostList(props.data, validHostList.value);
-        removedHostList.value = getRemoveHostList(props.data, context.orinigalValue);
-        diffMap.value = getHostDiffMap(props.data, context.orinigalValue, invalidHostList.value);
+        removedHostList.value = getRemoveHostList(props.data, context.originalValue);
+        diffMap.value = getHostDiffMap(props.data, context.originalValue, invalidHostList.value);
+        console.log('from watch validHostList = ', props.data, validHostList.value);
 
         const {
             newList,

@@ -18,7 +18,6 @@
         ref,
         shallowRef,
         provide,
-        toRefs,
         watch,
         reactive,
     } from 'vue';
@@ -26,6 +25,7 @@
     import './bk-icon/iconcool.js';
     import SelectorBox from './selector-box/index.vue';
     import SelectorView from './views-box/index.vue';
+    import { formatInput } from './utils/index';
 
     import('tippy.js/dist/tippy.css');
     import('tippy.js/themes/light.css');
@@ -87,7 +87,8 @@
     };
 
     provide('BKIPSELECTOR', reactive({
-        ...toRefs(props),
+        originalValue: props.originalValue && formatInput(props.originalValue),
+        readonly: props.readonly,
     }));
 
     defineExpose({
