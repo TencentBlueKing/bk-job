@@ -201,7 +201,7 @@ export default {
         '初始值：': 'Default: ',
         '变量描述：': 'Description: ',
         '赋值可变：': 'Value is changeable: ',
-        '必填：': 'Is Required: ',
+        '执行时必填：': 'Is Required: ',
         '同步执行方案需要重新确认定时任务的全局变量，不使用的定时任务可以直接停用。': 'The synchronous operation needs to reconfirm the global variables of the related Crons.',
         的全局变量: 'Variables confirm',
         已停用: 'OFF',
