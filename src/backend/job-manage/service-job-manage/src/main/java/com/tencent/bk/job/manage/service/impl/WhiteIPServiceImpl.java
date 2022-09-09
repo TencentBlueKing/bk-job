@@ -335,6 +335,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         return ipv4List;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private List<String> checkAndGetIpv6List(String paramName, List<String> ipv6List) {
         //过滤空值
         ipv6List =
@@ -384,6 +385,10 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         notInDbCloudIpList.removeIf(hostMap::containsKey);
         if (!notInDbCloudIpList.isEmpty()) {
             log.warn("Cannot find ips in db/cmdb:{}", notInDbCloudIpList);
+            throw new InvalidParamException(
+                ErrorCode.IP_NOT_EXIST_IN_CMDB,
+                StringUtil.concatCollection(notInDbCloudIpList)
+            );
         }
 
         return ipv4List.stream().map(ipv4 -> {
@@ -432,9 +437,12 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             cloudIpv6List.removeIf(hostMap::containsKey);
             if (!cloudIpv6List.isEmpty()) {
                 log.warn("Cannot find cloudIpv6s in db/cmdb:{}", cloudIpv6List);
+                throw new InvalidParamException(
+                    ErrorCode.IP_NOT_EXIST_IN_CMDB,
+                    StringUtil.concatCollection(cloudIpv6List)
+                );
             }
         }
-
 
         return ipv6List.stream().map(ipv6 -> {
             ApplicationHostDTO hostDTO = hostMap.get(ipv6);
