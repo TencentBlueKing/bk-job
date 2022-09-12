@@ -26,18 +26,22 @@
 -->
 
 <template>
-    <div class="task-execution-step-wraper" :class="{ column: taskExecutionDetail.taskExecution.isTask }">
-        <div v-if="taskExecutionDetail.taskExecution.isTask" class="task-process">
+    <div
+        class="task-execution-step-wraper"
+        :class="{ column: taskExecutionDetail.taskExecution.isTask }">
+        <div
+            v-if="taskExecutionDetail.taskExecution.isTask"
+            class="task-process">
             <div class="process-wraper">
                 <scroll-faker>
                     <task-step-start />
                     <task-step
                         v-for="step in taskExecutionDetail.stepExecution"
-                        :data="step"
+                        :key="step.stepInstanceId"
                         :active-id="currentStepInstanceId"
+                        :data="step"
                         @on-select="handleChangeStep"
-                        @on-update="handleTaskStatusUpdate"
-                        :key="step.stepInstanceId" />
+                        @on-update="handleTaskStatusUpdate" />
                     <task-step-end :disable="!taskExecutionDetail.taskExecution.isSuccess" />
                 </scroll-faker>
             </div>
@@ -48,17 +52,26 @@
         <div class="task-step-detail">
             <slot />
         </div>
-        <div v-if="historyEnable" class="execution-history" :class="{ active: isShowHistory }">
-            <div class="toggle-btn" @click="handleShowHistory">
-                <Icon class="toggle-flag" type="angle-double-left" />
-                <div class="return-edit">{{ $t('history.返回编辑') }}</div>
+        <div
+            v-if="historyEnable"
+            class="execution-history"
+            :class="{ active: isShowHistory }">
+            <div
+                class="toggle-btn"
+                @click="handleShowHistory">
+                <Icon
+                    class="toggle-flag"
+                    type="angle-double-left" />
+                <div class="return-edit">
+                    {{ $t('history.返回编辑') }}
+                </div>
             </div>
             <div class="history-content">
                 <template v-if="taskExecutionDetail.taskExecution.isScript">
                     <div
                         v-for="item in scriptHistoryList"
-                        class="item"
                         :key="item.id"
+                        class="item"
                         @click="handleGoRedoScriptExec(item)">
                         {{ item.name }}
                     </div>
@@ -66,8 +79,8 @@
                 <template v-if="taskExecutionDetail.taskExecution.isFile">
                     <div
                         v-for="item in fileHistoryList"
-                        class="item"
                         :key="item.id"
+                        class="item"
                         @click="handleGoRedoFileExec(item)">
                         {{ item.name }}
                     </div>
@@ -78,16 +91,20 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskExecuteService from '@service/task-execute';
+
     import {
         execScriptHistory,
         pushFileHistory,
     } from '@utils/cache-helper';
+
+    import mixins from './mixins';
+    import TaskStepEnd from './task-step/end';
     import TaskStep from './task-step/index';
     import TaskStepStart from './task-step/start';
-    import TaskStepEnd from './task-step/end';
-    import mixins from './mixins';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

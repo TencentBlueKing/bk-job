@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div class="diff-global-variable" :class="classes" :id="`${type}_variable_${data.id}_${data.name}`">
+    <div
+        :id="`${type}_variable_${data.id}_${data.name}`"
+        class="diff-global-variable"
+        :class="classes">
         <div class="name">
             <div class="type-flag">
                 <Icon :type="data.icon" />
@@ -48,8 +51,8 @@
                     <span class="value">{{ data.valueText }}</span>
                     <host-detail
                         class="host-value-detail"
-                        :diff-enable="diffValue.defaultTargetValue === 'changed'"
                         :data="data.defaultTargetValue"
+                        :diff-enable="diffValue.defaultTargetValue === 'changed'"
                         :name="data.name" />
                 </div>
             </template>

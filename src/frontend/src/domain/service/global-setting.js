@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import GlobalSettingSource from '../source/global-setting';
 import AccountRuleModel from '@model/account-rule';
+
+import GlobalSettingSource from '../source/global-setting';
 
 export default {
     fetchAllNameRule (params, payload) {

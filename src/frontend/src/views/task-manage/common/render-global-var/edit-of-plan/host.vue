@@ -26,9 +26,13 @@
 -->
 
 <template>
-    <jb-form :model="formData" ref="varHostForm">
+    <jb-form
+        ref="varHostForm"
+        :model="formData">
         <jb-form-item :label="$t('template.变量名称')">
-            <bk-input v-model="formData.name" disabled />
+            <bk-input
+                v-model="formData.name"
+                disabled />
         </jb-form-item>
         <jb-form-item :label="$t('template.变量值')">
             <section>
@@ -36,15 +40,18 @@
                     <Icon type="plus" />
                     {{ $t('template.选择主机') }}
                 </bk-button>
-                <bk-button style="margin-left: 10px;" v-if="isShowClear" @click="handleClear">
+                <bk-button
+                    v-if="isShowClear"
+                    style="margin-left: 10px;"
+                    @click="handleClear">
                     {{ $t('template.清空') }}
                 </bk-button>
             </section>
             <ip-selector
+                :original-value="originalHostNodeInfo"
                 :show-dialog="isShowChooseIp"
                 show-view
                 :value="formData.defaultTargetValue.hostNodeInfo"
-                :original-value="originalHostNodeInfo"
                 @change="handleHostChange"
                 @close-dialog="handleCloseIPSelector" />
             <!-- <server-panel
@@ -55,20 +62,31 @@
                 @on-change="handleHostChange" /> -->
         </jb-form-item>
         <jb-form-item :label="$t('template.变量描述')">
-            <bk-input v-model="formData.description" disabled type="textarea" :row="5" maxlength="100" />
+            <bk-input
+                v-model="formData.description"
+                disabled
+                maxlength="100"
+                :row="5"
+                type="textarea" />
         </jb-form-item>
         <jb-form-item>
-            <bk-checkbox v-model="formData.required" disabled :true-value="1" :false-value="0">{{ $t('template.必填') }}</bk-checkbox>
+            <bk-checkbox
+                v-model="formData.required"
+                disabled
+                :false-value="0"
+                :true-value="1">
+                {{ $t('template.必填') }}
+            </bk-checkbox>
         </jb-form-item>
         <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="formData.defaultTargetValue.hostNodeInfo"
             @on-change="handleHostChange" /> -->
-        
     </jb-form>
 </template>
 <script>
     import _ from 'lodash';
+
     import TaskGlobalVariableModel from '@model/task/global-variable';
     import TaskHostNodeModel from '@model/task-host-node';
     // import ChooseIp from '@components/choose-ip';

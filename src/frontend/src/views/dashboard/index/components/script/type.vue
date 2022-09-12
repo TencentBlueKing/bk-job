@@ -27,11 +27,13 @@
 
 <template>
     <card-layout
+        v-bkloading="{ isLoading, opacity: 0.8 }"
         class="script-type-dashboard"
-        :title="$t('dashboard.脚本类型分布')"
-        v-bkloading="{ isLoading, opacity: 0.8 }">
+        :title="$t('dashboard.脚本类型分布')">
         <div class="wraper">
-            <div ref="dashboard" style="width: 180px; height: 180px;" />
+            <div
+                ref="dashboard"
+                style="width: 180px; height: 180px;" />
             <div class="item-list">
                 <div
                     v-for="item in typeList"
@@ -48,7 +50,9 @@
 <script>
     import echarts from 'lib/echarts.min.js';
     import _ from 'lodash';
+
     import StatisticsService from '@service/statistics';
+
     import CardLayout from '../card-layout';
     import {
         chartsOptionsBase,

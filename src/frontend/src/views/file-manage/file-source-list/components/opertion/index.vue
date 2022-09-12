@@ -27,8 +27,8 @@
 
 <template>
     <div
-        class="file-source-create-form"
-        v-bkloading="{ isLoading }">
+        v-bkloading="{ isLoading }"
+        class="file-source-create-form">
         <jb-form
             v-if="!isLoading"
             ref="fileSourceform"
@@ -37,24 +37,24 @@
             :rules="rules">
             <jb-form-item
                 :label="$t('file.文件源标识.label')"
-                required
-                property="code">
+                property="code"
+                required>
                 <bk-input
                     v-model="formData.code"
                     :placeholder="$t('file.请输入文件源标识')" />
             </jb-form-item>
             <jb-form-item
                 :label="$t('file.文件源别名.label')"
-                required
-                property="alias">
+                property="alias"
+                required>
                 <jb-input
                     v-model="formData.alias"
                     :maxlength="32"
                     :placeholder="$t('file.为文件源起一个可读性较好的别名')" />
             </jb-form-item>
             <jb-form-item
-                required
-                :label="$t('file.类型.label')">
+                :label="$t('file.类型.label')"
+                required>
                 <bk-radio-group v-model="formData.storageType">
                     <bk-radio-button value="OSS">
                         {{ $t('file.对象存储') }}
@@ -62,8 +62,8 @@
                 </bk-radio-group>
             </jb-form-item>
             <jb-form-item
-                required
-                :label="$t('file.来源')">
+                :label="$t('file.来源')"
+                required>
                 <bk-radio-group
                     v-model="formData.fileSourceTypeCode"
                     @change="handleFileSourceChange">
@@ -71,7 +71,9 @@
                         v-for="item in sourceTypeList"
                         :key="item.code"
                         :value="item.code">
-                        <img :src="item.icon" style="width: 1em; height: 1em; vertical-align: middle;">
+                        <img
+                            :src="item.icon"
+                            style="width: 1em; height: 1em; vertical-align: middle;">
                         <span style="vertical-align: middle;">{{ item.name }}</span>
                     </bk-radio-button>
                 </bk-radio-group>
@@ -81,8 +83,8 @@
                 :param-map="formData.fileSourceInfoMap"
                 @on-change="handleFileSourceParamsChange" />
             <jb-form-item
-                required
-                :label="$t('file.公共存储')">
+                :label="$t('file.公共存储')"
+                required>
                 <bk-checkbox v-model="formData.publicFlag">
                     {{ $t('file.设为公共存储') }}
                 </bk-checkbox>
@@ -90,20 +92,20 @@
             <jb-form-item
                 v-if="formData.publicFlag"
                 :label="$t('file.共享对象')"
-                required
-                property="sharedScopeList">
+                property="sharedScopeList"
+                required>
                 <div class="share-object-box">
                     <bk-select
+                        v-model="formData.sharedScopeList"
                         class="share-app-select"
                         :clearable="false"
-                        searchable
-                        multiple
                         :disabled="formData.shareToAllApp"
-                        v-model="formData.sharedScopeList">
+                        multiple
+                        searchable>
                         <bk-option
                             v-for="scopeItem in scopeList"
-                            :key="`#${scopeItem.scopeType}#${scopeItem.scopeId}`"
                             :id="`#${scopeItem.scopeType}#${scopeItem.scopeId}`"
+                            :key="`#${scopeItem.scopeType}#${scopeItem.scopeId}`"
                             :name="scopeItem.name" />
                     </bk-select>
                     <bk-checkbox v-model="formData.shareToAllApp">
@@ -112,20 +114,20 @@
                 </div>
             </jb-form-item>
             <jb-form-item
-                required
                 :label="$t('file.身份凭证')"
-                property="credentialId">
+                property="credentialId"
+                required>
                 <bk-select
                     v-model="formData.credentialId"
                     :clearable="false">
                     <auth-option
                         v-for="option in fileFourceTicketList"
+                        :id="option.id"
                         :key="option.id"
                         auth="ticket/use"
+                        :name="option.name"
                         :permission="option.canUse"
-                        :resource-id="option.id"
-                        :id="option.id"
-                        :name="option.name" />
+                        :resource-id="option.id" />
                 </bk-select>
             </jb-form-item>
             <jb-form-item :label="$t('file.文件前缀名')">
@@ -145,17 +147,17 @@
                     style="margin-top: 10px;" />
             </jb-form-item>
             <jb-form-item
-                required
-                :label="$t('file.接入点')">
+                :label="$t('file.接入点')"
+                required>
                 <div class="access-point-box">
                     <bk-select
                         v-model="formData.workerSelectScope"
-                        :clearable="false"
-                        class="worker-select">
+                        class="worker-select"
+                        :clearable="false">
                         <bk-option
                             v-for="option in workerSelectModeList"
-                            :key="option.id"
                             :id="option.id"
+                            :key="option.id"
                             :name="option.name" />
                     </bk-select>
                     <bk-checkbox
@@ -184,17 +186,21 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import FileSourceModel from '@model/file/file-source';
+    import AppManageService from '@service/app-manage';
     import FileSourceManageService from '@service/file-source-manage';
     import FileSourceTypeService from '@service/file-source-type';
-    import TicketManageService from '@service/ticket-manage';
     import FileWorkerService from '@service/file-worker';
-    import AppManageService from '@service/app-manage';
+    import TicketManageService from '@service/ticket-manage';
+
+    import FileSourceModel from '@model/file/file-source';
+
     import {
         fileSourceAliasNameRule,
     } from '@utils/validator';
+
     import RenderFileSourceParam from './components/render-file-source-param';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         // ID,更新文件源的时候需要传入，新建文件源不需要

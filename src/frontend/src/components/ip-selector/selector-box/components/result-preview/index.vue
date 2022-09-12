@@ -1,6 +1,8 @@
 <template>
     <div class="ip-selector-result-preview">
-        <div class="preview-header">结果预览</div>
+        <div class="preview-header">
+            结果预览
+        </div>
         <div
             v-if="resultNum"
             class="result-num">
@@ -23,14 +25,24 @@
             v-if="resultNum < 1"
             class="result-empty">
             <img src="../../../images/empty.svg">
-            <div style="margin-top: 8px;">暂无数据，请从左侧添加对象</div>
+            <div style="margin-top: 8px;">
+                暂无数据，请从左侧添加对象
+            </div>
         </div>
         <div class="extend-action">
             <extend-action>
-                <div @click="handleClear">清除所有</div>
-                <div @click="handleRemoveFailedIP">清除异常 IP</div>
-                <div @click="handleCopyAllIP">复制所有 IP</div>
-                <div @click="handleCopeFailedAIP">复制异常 IP</div>
+                <div @click="handleClear">
+                    清除所有
+                </div>
+                <div @click="handleRemoveFailedIP">
+                    清除异常 IP
+                </div>
+                <div @click="handleCopyAllIP">
+                    复制所有 IP
+                </div>
+                <div @click="handleCopeFailedAIP">
+                    复制异常 IP
+                </div>
             </extend-action>
         </div>
     </div>
@@ -40,16 +52,18 @@
         computed,
         useListeners,
     } from 'vue';
+
+    import ExtendAction from '../../../common/extend-action.vue';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import useHostRenderKey from '../../../hooks/use-host-render-key';
-    import ExtendAction from '../../../common/extend-action.vue';
     import {
         execCopy,
         isAliveHost,
      } from '../../../utils';
+
+    import ViewDynamicGroup from './view-dynamic-group.vue';
     import ViewHost from './view-host.vue';
     import ViewNode from './view-node.vue';
-    import ViewDynamicGroup from './view-dynamic-group.vue';
 
     const props = defineProps({
         hostList: {

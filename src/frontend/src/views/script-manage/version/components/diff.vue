@@ -26,24 +26,33 @@
 -->
 
 <template>
-    <div class="jb-diff-layout"
+    <div
+        class="jb-diff-layout"
         :style="{
             'z-index': zIndex,
         }">
         <div class="header">
-            <div class="title">{{ title }}</div>
+            <div class="title">
+                {{ title }}
+            </div>
             <div class="diff-info">
-                <div class="diff-del" @click="handleViewDel">
+                <div
+                    class="diff-del"
+                    @click="handleViewDel">
                     <span class="before" />
                     <span class="after" />
                     <span>{{ $t('删除') }}（{{ del }}）</span>
                 </div>
-                <div class="diff-change" @click="handleViewChange">
+                <div
+                    class="diff-change"
+                    @click="handleViewChange">
                     <span class="before" />
                     <span class="after" />
                     <span>{{ $t('变换') }}（{{ change }}）</span>
                 </div>
-                <div class="diff-ins" @click="handleViewIns">
+                <div
+                    class="diff-ins"
+                    @click="handleViewIns">
                     <span class="before" />
                     <span class="after" />
                     <span>{{ $t('新增.diff') }}（{{ ins }}）</span>
@@ -52,43 +61,51 @@
         </div>
         <div class="version-select-layout">
             <div class="version-left">
-                <bk-select class="version-selector" :clearable="false" v-model="oldVersion">
+                <bk-select
+                    v-model="oldVersion"
+                    class="version-selector"
+                    :clearable="false">
                     <bk-option
                         v-for="item in data"
-                        :key="item.scriptVersionId"
                         :id="item.scriptVersionId"
-                        :name="item.version"
-                        :disabled="item.scriptVersionId === oldVersionId" />
+                        :key="item.scriptVersionId"
+                        :disabled="item.scriptVersionId === oldVersionId"
+                        :name="item.version" />
                 </bk-select>
             </div>
             <div class="version-right">
-                <bk-select class="version-selector" :clearable="false" v-model="newVersion">
+                <bk-select
+                    v-model="newVersion"
+                    class="version-selector"
+                    :clearable="false">
                     <bk-option
                         v-for="item in data"
-                        :key="item.scriptVersionId"
                         :id="item.scriptVersionId"
-                        :name="item.version"
-                        :disabled="item.scriptVersionId === newVersionId" />
+                        :key="item.scriptVersionId"
+                        :disabled="item.scriptVersionId === newVersionId"
+                        :name="item.version" />
                 </bk-select>
             </div>
         </div>
         <scroll-faker class="content-wraper">
             <jb-diff
-                class="diff-details"
-                format="side-by-side"
-                theme="dark"
                 ref="diff"
-                :language="language"
+                class="diff-details"
                 :context="Infinity"
+                format="side-by-side"
+                :language="language"
+                :new-content="newContent"
                 :old-content="oldContent"
-                :new-content="newContent" />
+                theme="dark" />
         </scroll-faker>
-        <i class="bk-icon icon-close" @click="handleClose" />
+        <i
+            class="bk-icon icon-close"
+            @click="handleClose" />
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import { Base64 } from 'js-base64';
+    import _ from 'lodash';
 
     export default {
         props: {

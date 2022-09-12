@@ -26,18 +26,28 @@
 -->
 
 <template>
-    <jb-form ref="form" :model="formData" :rules="rules" form-type="vertical">
-        <jb-form-item :label="$t('ticket.AppId')" required property="value1">
+    <jb-form
+        ref="form"
+        form-type="vertical"
+        :model="formData"
+        :rules="rules">
+        <jb-form-item
+            :label="$t('ticket.AppId')"
+            property="value1"
+            required>
             <bk-input v-model="formData.value1" />
         </jb-form-item>
-        <jb-form-item :label="$t('ticket.SecretKey')" required property="value2">
+        <jb-form-item
+            :label="$t('ticket.SecretKey')"
+            property="value2"
+            required>
             <bk-input v-model="formData.value2" />
         </jb-form-item>
         <jb-form-item :label="$t('ticket.描述')">
             <bk-input
                 v-model="formData.description"
-                type="textarea"
-                maxlength="100" />
+                maxlength="100"
+                type="textarea" />
         </jb-form-item>
     </jb-form>
 </template>

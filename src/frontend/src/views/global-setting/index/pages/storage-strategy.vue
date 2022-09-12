@@ -26,15 +26,28 @@
 -->
 
 <template>
-    <div class="page-storage-strategy" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="page-storage-strategy">
         <div class="wraper">
             <div class="execute-block">
-                <div class="block-title">{{ $t('setting.执行历史保留') }}：</div>
-                <jb-form ref="form" :model="formData" :rules="rules" form-type="vertical">
+                <div class="block-title">
+                    {{ $t('setting.执行历史保留') }}：
+                </div>
+                <jb-form
+                    ref="form"
+                    form-type="vertical"
+                    :model="formData"
+                    :rules="rules">
                     <jb-form-item property="days">
-                        <bk-input v-model="formData.days" type="number" :min="1">
+                        <bk-input
+                            v-model="formData.days"
+                            :min="1"
+                            type="number">
                             <template slot="append">
-                                <div class="group-text">{{ $t('setting.天') }}</div>
+                                <div class="group-text">
+                                    {{ $t('setting.天') }}
+                                </div>
                             </template>
                         </bk-input>
                     </jb-form-item>
@@ -43,19 +56,22 @@
             <div class="action-box">
                 <bk-button
                     class="w120 mr10"
-                    theme="primary"
                     :loading="isSubmiting"
+                    theme="primary"
                     @click="handleSave">
                     {{ $t('setting.保存') }}
                 </bk-button>
-                <bk-button @click="handleReset">{{ $t('setting.重置') }}</bk-button>
+                <bk-button @click="handleReset">
+                    {{ $t('setting.重置') }}
+                </bk-button>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import GlobalSettingService from '@service/global-setting';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

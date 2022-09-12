@@ -28,10 +28,12 @@
 */
 
 import _ from 'lodash';
-import I18n from '@/i18n';
+
 import TagModel from '@model/tag';
-import TaskStepModel from '@model/task/task-step';
 import GlobalVariableModel from '@model/task/global-variable';
+import TaskStepModel from '@model/task/task-step';
+
+import I18n from '@/i18n';
 
 const STATUS_SCRIPT_NEED_UPDATE = 1;
 const STATUS_SCRIPT_DISABLED = 2;

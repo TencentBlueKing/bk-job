@@ -24,6 +24,7 @@
 */
 
 import _ from 'lodash';
+
 import StepExecutionModel from '@model/execution/task-execution-result-step';
 import TaskExecutionModel from '@model/execution/task-execution-result-task';
 

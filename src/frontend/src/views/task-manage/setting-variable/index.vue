@@ -28,18 +28,20 @@
 <template>
     <div class="setting-variable-page">
         <smart-action offset-target="variable-value">
-            <global-variable-layout type="vertical" style="padding-bottom: 20px;">
+            <global-variable-layout
+                style="padding-bottom: 20px;"
+                type="vertical">
                 <global-variable
                     v-for="variable in usedList"
-                    ref="used"
-                    :type="variable.type"
                     :key="variable.id"
-                    :data="variable" />
+                    ref="used"
+                    :data="variable"
+                    :type="variable.type" />
                 <Empty
                     v-if="usedList.length < 1"
                     key="empty"
-                    :title="$t('template.暂无引用的变量')"
-                    style="height: 160px; max-width: 960px; background-color: #f0f1f5;" />
+                    style="height: 160px; max-width: 960px; background-color: #f0f1f5;"
+                    :title="$t('template.暂无引用的变量')" />
                 <toggle-display
                     v-if="unusedList.length > 0"
                     :count="unusedList.length"
@@ -47,19 +49,19 @@
                     <div style="margin-top: 20px;">
                         <global-variable
                             v-for="variable in unusedList"
-                            ref="unused"
-                            :type="variable.type"
                             :key="variable.id"
-                            :data="variable" />
+                            ref="unused"
+                            :data="variable"
+                            :type="variable.type" />
                     </div>
                 </toggle-display>
             </global-variable-layout>
             <template #action>
                 <div class="action-wraper">
                     <bk-button
-                        theme="primary"
                         class="w120 mr10"
                         :loading="isSubmiting"
+                        theme="primary"
                         @click="handleGoExec">
                         {{ $t('template.执行') }}
                     </bk-button>
@@ -78,20 +80,26 @@
         </smart-action>
         <back-top />
         <element-teleport v-if="planName">
-            <div style="font-size: 12px; color: #63656e;">（{{ planName }}）</div>
+            <div style="font-size: 12px; color: #63656e;">
+                （{{ planName }}）
+            </div>
         </element-teleport>
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskExecuteService from '@service/task-execute';
     import TaskPlanService from '@service/task-plan';
+
     import { findUsedVariable } from '@utils/assist';
-    import GlobalVariableLayout from '@components/global-variable/layout';
-    import GlobalVariable from '@components/global-variable/edit';
-    import ToggleDisplay from '@components/global-variable/toggle-display';
+
     import BackTop from '@components/back-top';
+    import GlobalVariable from '@components/global-variable/edit';
+    import GlobalVariableLayout from '@components/global-variable/layout';
+    import ToggleDisplay from '@components/global-variable/toggle-display';
+
+    import I18n from '@/i18n';
     
     export default {
         name: '',

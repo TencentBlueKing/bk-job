@@ -27,9 +27,13 @@
 
 <template>
     <div class="task-export-step1-page">
-        <div v-once class="flag">
+        <div
+            v-once
+            class="flag">
             <img src="/static/images/notice.svg">
-            <div class="title">{{ $t('template.用户须知.title') }}</div>
+            <div class="title">
+                {{ $t('template.用户须知.title') }}
+            </div>
         </div>
         <div class="tips-content">
             <p>{{ $t('template.1. 作业内文件分发步骤中带有“本地文件”的会一并导出，没有大小限制！但导入时会受到目标环境的文件上传大小限制，请知悉；') }}</p>
@@ -43,8 +47,17 @@
             <p>{{ $t('template.9. 若导入的作业模板或执行方案名称与目标环境的作业存在冲突的情况，会根据导入时设置的"重名后缀"自动在作业名称后面追加命名。') }}</p>
         </div>
         <div class="action-footer">
-            <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-            <bk-button class="w120" theme="primary" @click="handleNext">{{ $t('template.我知道了') }}</bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
+            <bk-button
+                class="w120"
+                theme="primary"
+                @click="handleNext">
+                {{ $t('template.我知道了') }}
+            </bk-button>
         </div>
     </div>
 </template>

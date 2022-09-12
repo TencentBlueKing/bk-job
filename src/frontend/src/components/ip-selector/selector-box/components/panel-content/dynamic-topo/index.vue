@@ -2,8 +2,8 @@
     <div class="ip-selector-dynamic-topo">
         <resize-layout
             v-if="topoTreeData.length > 0"
-            flex-direction="left"
-            :default-width="265">
+            :default-width="265"
+            flex-direction="left">
             <div class="tree-box">
                 <bk-input
                     v-model="filterKey"
@@ -11,18 +11,20 @@
                     style="margin-bottom: 12px;" />
                 <bk-big-tree
                     ref="treeRef"
-                    :data="topoTreeData"
-                    show-link-line
-                    show-checkbox
-                    selectable
-                    :filter-method="filterMethod"
                     :check-strictly="false"
+                    :data="topoTreeData"
                     :expand-on-click="false"
-                    @select-change="handleNodeSelect"
-                    @check-change="handleNodeCheckChange">
+                    :filter-method="filterMethod"
+                    selectable
+                    show-checkbox
+                    show-link-line
+                    @check-change="handleNodeCheckChange"
+                    @select-change="handleNodeSelect">
                     <template #default="{ node: nodeItem, data }">
                         <div class="topo-node-box">
-                            <div class="topo-node-name">{{ data.name }}</div>
+                            <div class="topo-node-name">
+                                {{ data.name }}
+                            </div>
                             <template v-if="nodeItem.level === 0">
                                 <div
                                     v-bk-tooltips="'隐藏没有主机的节点'"
@@ -70,9 +72,9 @@
                             <keep-alive>
                                 <component
                                     :is="renderTableCom"
-                                    :node="selectedTopoNode"
-                                    :data="renderNodeList"
                                     :checked-map="nodeCheckedMap"
+                                    :data="renderNodeList"
+                                    :node="selectedTopoNode"
                                     style="min-height: 200px;"
                                     @check-change="handleTableNodeCheckChange" />
                             </keep-alive>
@@ -89,7 +91,9 @@
             v-bkloading="{ isLoading: isConfigLoading }"
             class="create-static-topo">
             <span>无数据，</span>
-            <a :href="config.bk_cmdb_static_topo_url" target="_blank">{{ $t('去创建') }}</a>
+            <a
+                :href="config.bk_cmdb_static_topo_url"
+                target="_blank">{{ $t('去创建') }}</a>
         </div>
     </div>
 </template>
@@ -101,21 +105,23 @@
 <script setup>
     import {
         computed,
+        nextTick,
         ref,
         shallowRef,
         watch,
-        nextTick,
     } from 'vue';
+
     import useDebounceRef from '../../../../hooks/use-debounced-ref';
+    import useFetchConfig from '../../../../hooks/use-fetch-config';
     import useTreeExpanded from '../../../../hooks/use-tree-expanded';
     import useTreeFilter from '../../../../hooks/use-tree-filter';
-    import useFetchConfig from '../../../../hooks/use-fetch-config';
     import { genNodeKey } from '../../../../utils';
+    import ResizeLayout from '../../resize-layout.vue';
     import TableTab from '../../table-tab';
     import TableTabItem from '../../table-tab/item.vue';
-    import ResizeLayout from '../../resize-layout.vue';
-    import RenderNodeTable from './render-node-table.vue';
+
     import RenderHostTable from './render-host-table.vue';
+    import RenderNodeTable from './render-node-table.vue';
     
     const props = defineProps({
         topoTreeData: {

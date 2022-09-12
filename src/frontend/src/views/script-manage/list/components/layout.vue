@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div ref="handler" class="script-manage-list-layout">
+    <div
+        ref="handler"
+        class="script-manage-list-layout">
         <div
             v-if="$slots.tag"
             :class="{
@@ -47,9 +49,9 @@
                 class="toggle-button"
                 @click="handleToggle">
                 <Icon
-                    type="down-small"
                     class="toggle-arrow"
-                    :class="{ open: isOpen }" />
+                    :class="{ open: isOpen }"
+                    type="down-small" />
             </div>
             <slot />
         </div>

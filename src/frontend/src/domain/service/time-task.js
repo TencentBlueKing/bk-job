@@ -24,9 +24,10 @@
 */
 
 /* eslint-disable no-param-reassign */
-import TimeTaskSource from '../source/time-task';
-import TaskPlanSource from '../source/task-plan';
 import CrontabModel from '@model/crontab/crontab';
+
+import TaskPlanSource from '../source/task-plan';
+import TimeTaskSource from '../source/time-task';
 
 export default {
     timeTaskUpdate (params = {}) {

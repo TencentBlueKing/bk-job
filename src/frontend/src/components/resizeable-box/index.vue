@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div ref="handle" class="resizeable-box" :style="styles">
+    <div
+        ref="handle"
+        class="resizeable-box"
+        :style="styles">
         <slot />
         <div
             class="mouse-flag"

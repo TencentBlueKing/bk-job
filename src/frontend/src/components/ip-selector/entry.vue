@@ -3,29 +3,31 @@
         <selector-box
             :is-show="showDialog"
             :value="selectorValue"
-            @change="handleValueChange"
-            @cancel="handleCancel" />
+            @cancel="handleCancel"
+            @change="handleValueChange" />
         <selector-view
             v-if="showView"
             ref="viewsRef"
-            :value="selectorValue"
             :search-key="viewSearchKey"
+            :value="selectorValue"
             @change="handleValueChange" />
     </div>
 </template>
 <script setup>
     import {
+        provide,
+        reactive,
         ref,
         shallowRef,
-        provide,
         watch,
-        reactive,
     } from 'vue';
+
+    import SelectorBox from './selector-box/index.vue';
+    import { formatInput } from './utils/index';
+    import SelectorView from './views-box/index.vue';
+
     import './bk-icon/style.css';
     import './bk-icon/iconcool.js';
-    import SelectorBox from './selector-box/index.vue';
-    import SelectorView from './views-box/index.vue';
-    import { formatInput } from './utils/index';
 
     import('tippy.js/dist/tippy.css');
     import('tippy.js/themes/light.css');

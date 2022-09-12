@@ -29,14 +29,22 @@
     <div>
         <table>
             <thead>
-                <th style="width: 40%;">{{ $t('文件名称') }}</th>
-                <th style="width: auto;">{{ $t('文件源.text') }}</th>
+                <th style="width: 40%;">
+                    {{ $t('文件名称') }}
+                </th>
+                <th style="width: auto;">
+                    {{ $t('文件源.text') }}
+                </th>
                 <th>{{ $t('操作') }}</th>
             </thead>
             <tbody>
-                <tr v-for="(sourceFile, index) in list" :key="index">
+                <tr
+                    v-for="(sourceFile, index) in list"
+                    :key="index">
                     <td>
-                        <div class="path-text-style" @click="handleEditSourceFile(index)">
+                        <div
+                            class="path-text-style"
+                            @click="handleEditSourceFile(index)">
                             <render-file-name :data="sourceFile.fileLocation" />
                         </div>
                     </td>
@@ -45,13 +53,19 @@
                     </td>
                     <td>
                         <div class="action-box">
-                            <bk-button text @click="handlerRemove(index)">{{ $t('移除') }}</bk-button>
+                            <bk-button
+                                text
+                                @click="handlerRemove(index)">
+                                {{ $t('移除') }}
+                            </bk-button>
                         </div>
                     </td>
                 </tr>
             </tbody>
         </table>
-        <lower-component level="custom" :custom="isShowSourceFile">
+        <lower-component
+            :custom="isShowSourceFile"
+            level="custom">
             <choose-source-file
                 v-model="isShowSourceFile"
                 :source-file="data[editSourceFileIndex] || {}"
@@ -61,8 +75,8 @@
 </template>
 <script>
     import ChooseSourceFile from './components/choose-source-file/';
-    import RenderSourceName from './components/render-source-name';
     import RenderFileName from './components/render-file-name';
+    import RenderSourceName from './components/render-source-name';
 
     export default {
         components: {

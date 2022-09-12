@@ -67,6 +67,7 @@
     "eslint-plugin-n": "^15.2.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-simple-import-sort": "^8.0.0",
     "eslint-plugin-vue": "^9.3.0",
     "eslint-webpack-plugin": "^3.1.0",
     "figlet": "^1.5.0",

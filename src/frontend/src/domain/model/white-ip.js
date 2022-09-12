@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import Model from '@model/model';
+
+import I18n from '@/i18n';
 
 export default class WhiteIp extends Model {
     constructor (payload) {

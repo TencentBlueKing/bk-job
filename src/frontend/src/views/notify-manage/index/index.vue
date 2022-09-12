@@ -28,19 +28,21 @@
 <template>
     <smart-action offset-target="bk-form-content">
         <div class="notify-message-page">
-            <bk-collapse v-if="!isLoading" v-model="activeResult">
+            <bk-collapse
+                v-if="!isLoading"
+                v-model="activeResult">
                 <notify-collapse-item
                     v-for="item in triggerTypeList"
                     :key="item.code"
-                    :name="item.code"
-                    :active="activeResult">
+                    :active="activeResult"
+                    :name="item.code">
                     <span class="trigger-title">{{ item.name }}</span>
                     <trigger-setting
-                        slot="content"
                         ref="setting"
-                        :type="item.code"
+                        slot="content"
                         :data="formData[item.code]"
-                        :template-data="templateData" />
+                        :template-data="templateData"
+                        :type="item.code" />
                 </notify-collapse-item>
             </bk-collapse>
         </div>
@@ -48,9 +50,9 @@
             <div class="action-wrapper">
                 <bk-button
                     class="w120 mr10"
-                    theme="primary"
                     :disabled="isLoading"
                     :loading="isSubmiting"
+                    theme="primary"
                     @click="handleSave">
                     {{ $t('notify.保存') }}
                 </bk-button>
@@ -64,10 +66,12 @@
     </smart-action>
 </template>
 <script>
-    import I18n from '@/i18n';
     import NotifyService from '@service/notify';
+
     import NotifyCollapseItem from './components/notify-collapse-item';
     import TriggerSetting from './components/trigger-setting';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import PubliceTagSource from '../source/public-tag-manage';
 import TagModel from '@model/tag';
+
+import PubliceTagSource from '../source/public-tag-manage';
 
 export default {
     fetchTagList (params) {

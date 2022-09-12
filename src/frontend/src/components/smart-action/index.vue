@@ -30,14 +30,14 @@
         <slot />
         <div
             ref="placeholder"
-            :style="placeholderStyles"
-            role="placeholder">
+            role="placeholder"
+            :style="placeholderStyles">
             <div
-                ref="action"
                 v-show="isPlaceholderShow"
+                ref="action"
                 :class="dymaicClasses"
-                :style="dymaicStyles"
-                role="action">
+                role="action"
+                :style="dymaicStyles">
                 <div :style="actionContentstyles">
                     <slot name="action" />
                 </div>

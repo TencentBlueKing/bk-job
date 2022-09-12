@@ -26,13 +26,16 @@
 -->
 
 <template>
-    <component class="guide-page" :is="com" />
+    <component
+        :is="com"
+        class="guide-page" />
 </template>
 <script>
     import EventBus from '@utils/event-bus';
-    import TaskList from './task-list';
-    import ScriptList from './script-list';
+
     import CrontabList from './corntab-list';
+    import ScriptList from './script-list';
+    import TaskList from './task-list';
 
     const comMap = {
         taskList: TaskList,

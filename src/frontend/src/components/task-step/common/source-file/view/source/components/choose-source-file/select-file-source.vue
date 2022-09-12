@@ -30,7 +30,9 @@
         <list-action-layout>
             <jb-breadcrumb :width="645">
                 <jb-breadcrumb-item>
-                    <Icon type="folder-open" style="font-size: 20px;" />
+                    <Icon
+                        style="font-size: 20px;"
+                        type="folder-open" />
                     <span>{{ $t('请选择文件源') }}</span>
                 </jb-breadcrumb-item>
             </jb-breadcrumb>
@@ -43,10 +45,10 @@
             </template>
         </list-action-layout>
         <bk-table
+            v-bkloading="{ isLoading }"
             :data="tableData"
-            max-height="500"
             :highlight-current-row="true"
-            v-bkloading="{ isLoading }">
+            max-height="500">
             <bk-table-column width="50">
                 <template slot-scope="{ row }">
                     <span v-html="row.publicFlagHtml" />
@@ -69,7 +71,9 @@
                     <span
                         v-else
                         v-bk-tooltips="$t('接入点异常，暂时不可用')">
-                        <bk-button disabled text>{{ row.alias }}</bk-button>
+                        <bk-button
+                            disabled
+                            text>{{ row.alias }}</bk-button>
                     </span>
                 </template>
             </bk-table-column>
@@ -82,7 +86,9 @@
                 :label="$t('状态')"
                 prop="status">
                 <template slot-scope="{ row }">
-                    <Icon :type="row.statusIcon" svg />
+                    <Icon
+                        svg
+                        :type="row.statusIcon" />
                     {{ row.statusText }}
                 </template>
             </bk-table-column>
@@ -104,6 +110,7 @@
 </template>
 <script>
     import FileSourceManageService from '@service/file-source-manage';
+
     import ListActionLayout from '@components/list-action-layout';
     
     export default {

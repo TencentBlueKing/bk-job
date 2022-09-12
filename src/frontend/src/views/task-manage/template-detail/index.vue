@@ -26,8 +26,12 @@
 -->
 
 <template>
-    <smart-action class="task-template-detail" offset-target="detail-content">
-        <detail-layout class="task-template-detail-layout" mode="see">
+    <smart-action
+        class="task-template-detail"
+        offset-target="detail-content">
+        <detail-layout
+            class="task-template-detail-layout"
+            mode="see">
             <detail-item :label="$t('template.模板名称：')">
                 <auth-component
                     auth="job_template/edit"
@@ -35,10 +39,12 @@
                     <jb-edit-input
                         class="input"
                         field="name"
-                        :value="formData.name"
+                        :remote-hander="handleUpdateTemplate"
                         :rules="rules.name"
-                        :remote-hander="handleUpdateTemplate" />
-                    <div slot="forbid">{{ formData.name }}</div>
+                        :value="formData.name" />
+                    <div slot="forbid">
+                        {{ formData.name }}
+                    </div>
                 </auth-component>
             </detail-item>
             <detail-item :label="$t('template.场景标签：')">
@@ -48,9 +54,11 @@
                     <jb-edit-tag
                         class="input"
                         field="tags"
-                        :value="formData.tags"
-                        :remote-hander="handleUpdateTemplate" />
-                    <div slot="forbid">{{ formData.tagText }}</div>
+                        :remote-hander="handleUpdateTemplate"
+                        :value="formData.tags" />
+                    <div slot="forbid">
+                        {{ formData.tagText }}
+                    </div>
                 </auth-component>
             </detail-item>
             <detail-item :label="$t('template.模板描述：')">
@@ -60,17 +68,23 @@
                     <jb-edit-textarea
                         class="input"
                         field="description"
-                        :placeholder="$t('template.填写该模板的功能介绍等详细描述...')"
                         :maxlength="500"
-                        :value="formData.description"
-                        :remote-hander="handleUpdateTemplate" />
-                    <div slot="forbid">{{ formData.description || '--' }}</div>
+                        :placeholder="$t('template.填写该模板的功能介绍等详细描述...')"
+                        :remote-hander="handleUpdateTemplate"
+                        :value="formData.description" />
+                    <div slot="forbid">
+                        {{ formData.description || '--' }}
+                    </div>
                 </auth-component>
             </detail-item>
-            <detail-item :label="$t('template.全局变量：')" class="gloval-var-item">
+            <detail-item
+                class="gloval-var-item"
+                :label="$t('template.全局变量：')">
                 <render-global-var :list="formData.variables" />
             </detail-item>
-            <detail-item :label="$t('template.作业步骤：')" class="task-step-item">
+            <detail-item
+                class="task-step-item"
+                :label="$t('template.作业步骤：')">
                 <render-task-step
                     ref="step"
                     :list="formData.stepList"
@@ -80,77 +94,87 @@
         <template #action>
             <div class="action-box">
                 <bk-button
-                    theme="primary"
+                    v-test="{ type: 'button', value: 'planList' }"
                     class="w120 mr10"
-                    @click="handleGoExec"
-                    v-test="{ type: 'button', value: 'planList' }">
+                    theme="primary"
+                    @click="handleGoExec">
                     {{ $t('template.选择方案') }}
                 </bk-button>
                 <auth-button
+                    v-test="{ type: 'button', value: 'debugTemplate' }"
+                    auth="job_template/debug"
                     class="mr10"
                     :resource-id="taskId"
-                    auth="job_template/debug"
-                    @click="handleGoDebug"
-                    v-test="{ type: 'button', value: 'debugTemplate' }">
+                    @click="handleGoDebug">
                     {{ $t('template.调试') }}
                 </auth-button>
                 <auth-button
+                    v-test="{ type: 'button', value: 'editTemplate' }"
+                    auth="job_template/edit"
                     class="mr10"
                     :resource-id="taskId"
-                    auth="job_template/edit"
-                    @click="handleGoEdit"
-                    v-test="{ type: 'button', value: 'editTemplate' }">
+                    @click="handleGoEdit">
                     {{ $t('template.编辑') }}
                 </auth-button>
                 <span v-bk-tooltips="notNeedUpdateTips">
                     <bk-button
+                        v-test="{ type: 'button', value: 'syncPlan' }"
                         class="action-sync mr10"
                         :disabled="isNotNeedUpdate"
                         :loading="isPlanListLoading"
-                        @click="handleGoSyncPlan"
-                        v-test="{ type: 'button', value: 'syncPlan' }">
+                        @click="handleGoSyncPlan">
                         {{ $t('template.同步方案') }}
-                        <div v-if="!isNotNeedUpdate" class="update-flag" v-bk-tooltips="$t('template.待同步')">
+                        <div
+                            v-if="!isNotNeedUpdate"
+                            v-bk-tooltips="$t('template.待同步')"
+                            class="update-flag">
                             <Icon type="sync-8" />
                         </div>
                     </bk-button>
                 </span>
                 <jb-popover-confirm
                     class="action-del"
-                    :title="$t('template.确定删除该作业模板？')"
+                    :confirm-handler="handleDelete"
                     :content="$t('template.注意！模板下关联的所有执行方案也将被清除')"
-                    :confirm-handler="handleDelete">
+                    :title="$t('template.确定删除该作业模板？')">
                     <auth-button
-                        class="delete-btn"
-                        :resource-id="taskId"
+                        v-test="{ type: 'button', value: 'deleteTemplate' }"
                         auth="job_template/delete"
-                        v-test="{ type: 'button', value: 'deleteTemplate' }">
+                        class="delete-btn"
+                        :resource-id="taskId">
                         {{ $t('template.删除') }}
                     </auth-button>
                 </jb-popover-confirm>
             </div>
         </template>
         <element-teleport v-if="formData.name">
-            <div style="font-size: 12px; color: #63656e;">（{{ formData.name }}）</div>
+            <div style="font-size: 12px; color: #63656e;">
+                （{{ formData.name }}）
+            </div>
         </element-teleport>
         <back-top />
     </smart-action>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskManageService from '@service/task-manage';
     import TaskPlanService from '@service/task-plan';
+
     import { taskTemplateName } from '@utils/validator';
+
+    import BackTop from '@components/back-top';
     import DetailLayout from '@components/detail-layout';
     import DetailItem from '@components/detail-layout/item';
-    import BackTop from '@components/back-top';
     import JbEditInput from '@components/jb-edit/input';
     import JbEditTag from '@components/jb-edit/tag';
     import JbEditTextarea from '@components/jb-edit/textarea';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
+
     import RenderGlobalVar from '../common/render-global-var';
     import RenderTaskStep from '../common/render-task-step';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         createTime: '',

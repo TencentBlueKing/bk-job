@@ -1,7 +1,7 @@
 <template>
     <div
-        class="ip-selector-view-host"
-        v-bkloading="{ isLoading }">
+        v-bkloading="{ isLoading }"
+        class="ip-selector-view-host">
         <collapse-box>
             <template #title>
                 <span style="font-weight: bold;">【已筛选出主机】</span>
@@ -15,18 +15,26 @@
             </template>
             <template #action>
                 <extend-action>
-                    <div @click="handleCopyAllIP">复制所有 IP</div>
-                    <div @click="handleCopyFaidedIP">复制异常 IP</div>
+                    <div @click="handleCopyAllIP">
+                        复制所有 IP
+                    </div>
+                    <div @click="handleCopyFaidedIP">
+                        复制异常 IP
+                    </div>
                     <template v-if="!context.readonly">
-                        <div @click="handleRemoveAll">清除所有</div>
-                        <div @click="handleRemoveFailedIP">清除异常 IP</div>
+                        <div @click="handleRemoveAll">
+                            清除所有
+                        </div>
+                        <div @click="handleRemoveFailedIP">
+                            清除异常 IP
+                        </div>
                     </template>
                 </extend-action>
             </template>
             <render-host-table
+                :column-width-callback="columnWidthCallback"
                 :data="renderData"
-                :show-setting="false"
-                :column-width-callback="columnWidthCallback">
+                :show-setting="false">
                 <template #[hostRenderKey]="{ row }">
                     <diff-tag :value="diffMap[row.host_id]" />
                 </template>
@@ -62,22 +70,24 @@
 <script setup>
     import {
         ref,
-        watch,
         shallowRef,
+        watch,
     } from 'vue';
-    import Manager from '../../manager';
-    import useLocalPagination from '../../hooks/use-local-pagination';
+
+    import DiffTag from '../../common/diff-tag.vue';
+    import ExtendAction from '../../common/extend-action.vue';
+    import RenderHostTable from '../../common/render-table/host/index.vue';
     import useHostRenderKey from '../../hooks/use-host-render-key';
     import useIpSelector from '../../hooks/use-ip-selector';
-    import ExtendAction from '../../common/extend-action.vue';
-    import DiffTag from '../../common/diff-tag.vue';
-    import RenderHostTable from '../../common/render-table/host/index.vue';
+    import useLocalPagination from '../../hooks/use-local-pagination';
+    import Manager from '../../manager';
     import {
         execCopy,
-        getInvalidHostList,
         getHostDiffMap,
+        getInvalidHostList,
         groupHostList,
     } from '../../utils';
+
     import CollapseBox from './collapse-box/index.vue';
 
     const props = defineProps({

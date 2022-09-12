@@ -26,7 +26,8 @@
 -->
 
 <template>
-    <div class="execution-step-box theme-approval"
+    <div
+        class="execution-step-box theme-approval"
         :class="[data.displayStyle]"
         @click="choose">
         <div class="step-desc">
@@ -34,47 +35,76 @@
                 <Icon :type="data.icon" />
             </div>
             <div>{{ data.name }}</div>
-            <div class="confirm-flag">{{ $t('history.已确认') }}</div>
+            <div class="confirm-flag">
+                {{ $t('history.已确认') }}
+            </div>
         </div>
         <div class="approval-container">
             <div class="approval-info">
-                <div v-if="data.roleNameList.length || data.userList.length" class="approval-person">
+                <div
+                    v-if="data.roleNameList.length || data.userList.length"
+                    class="approval-person">
                     <span class="persion-label">{{ $t('history.确认人') }}：</span>
-                    <div v-for="item in data.roleNameList" :key="`role_${item}`" class="person">
-                        <Icon type="user-group-gray" class="role-flag" />
+                    <div
+                        v-for="item in data.roleNameList"
+                        :key="`role_${item}`"
+                        class="person">
+                        <Icon
+                            class="role-flag"
+                            type="user-group-gray" />
                         {{ item }}
                     </div>
-                    <div v-for="item in data.userList" :key="`user_${item}`" class="person">
-                        <Icon type="user" class="role-flag" />
+                    <div
+                        v-for="item in data.userList"
+                        :key="`user_${item}`"
+                        class="person">
+                        <Icon
+                            class="role-flag"
+                            type="user" />
                         {{ item }}
                     </div>
                 </div>
-                <div v-if="data.notifyChannelNameList.length > 0" class="approval-channel">
+                <div
+                    v-if="data.notifyChannelNameList.length > 0"
+                    class="approval-channel">
                     {{ $t('history.通知方式') }}：<span>{{ data.notifyChannelNameList.join('，') }}</span>
                 </div>
             </div>
-            <div v-if="data.confirmMessage" class="step-message">{{ data.confirmMessage }}</div>
+            <div
+                v-if="data.confirmMessage"
+                class="step-message">
+                {{ data.confirmMessage }}
+            </div>
             <bk-input
                 v-if="data.isApprovaling"
                 v-model="confirmReason"
                 class="confirm-reason"
-                type="textarea"
-                :rows="3"
                 :maxlength="100"
-                :placeholder="$t('history.可在此处输入确认或终止的因由')" />
-            <div v-else-if="data.operator" class="confirm-reason-text">
-                <div class="person">{{ data.operator }}</div>
+                :placeholder="$t('history.可在此处输入确认或终止的因由')"
+                :rows="3"
+                type="textarea" />
+            <div
+                v-else-if="data.operator"
+                class="confirm-reason-text">
+                <div class="person">
+                    {{ data.operator }}
+                </div>
                 <span v-html="data.confirmReasonHtml" />
             </div>
-            <div class="step-action" @click.stop="">
+            <div
+                class="step-action"
+                @click.stop="">
                 <step-action
                     v-for="action in data.actions"
-                    :name="action"
                     :key="action"
-                    :confirm-handler="operationCode => handleChangeStatus(operationCode, confirmReason)" />
+                    :confirm-handler="operationCode => handleChangeStatus(operationCode, confirmReason)"
+                    :name="action" />
             </div>
         </div>
-        <Icon :type="data.lastStepIcon" svg class="step-process" />
+        <Icon
+            class="step-process"
+            svg
+            :type="data.lastStepIcon" />
     </div>
 </template>
 <script>

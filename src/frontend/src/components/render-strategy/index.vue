@@ -26,8 +26,12 @@
 -->
 
 <template>
-    <div class="strategy-item" :style="{ width: `${width}px` }">
-        <div class="triangle" :style="{ left: `${left}px` }" />
+    <div
+        class="strategy-item"
+        :style="{ width: `${width}px` }">
+        <div
+            class="triangle"
+            :style="{ left: `${left}px` }" />
         <div>
             <slot />
         </div>

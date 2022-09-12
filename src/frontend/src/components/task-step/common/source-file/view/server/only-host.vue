@@ -29,7 +29,9 @@
     <tbody class="create-server-file">
         <tr v-if="hasSaved">
             <td colspan="4">
-                <bk-button text @click="handleAddNew">
+                <bk-button
+                    text
+                    @click="handleAddNew">
                     <Icon type="plus" />
                     {{ $t('添加一行') }}
                 </bk-button>
@@ -39,8 +41,8 @@
         <tr v-else>
             <td>
                 <edit-file-path
-                    :value="serverFile.fileLocation"
                     mode="input"
+                    :value="serverFile.fileLocation"
                     @on-change="handleFileChange" />
             </td>
             <template v-if="serverFile.isHostEmpty">
@@ -48,7 +50,9 @@
                     <div
                         class="server-add-only-host-btn"
                         @click="handleShowChooseIp">
-                        <Icon type="plus" class="add-flag" />
+                        <Icon
+                            class="add-flag"
+                            type="plus" />
                         {{ $t('添加服务器') }}
                     </div>
                 </td>
@@ -67,18 +71,22 @@
             <td>
                 <account-select
                     class="account-add-btn"
-                    :value="serverFile.account"
                     type="system"
+                    :value="serverFile.account"
                     @change="handleAccountChange" />
             </td>
             <td>
                 <bk-button
+                    :disabled="serverFile.isDisableSave"
                     text
-                    @click="handlerSave"
-                    :disabled="serverFile.isDisableSave">
+                    @click="handlerSave">
                     {{ $t('保存') }}
                 </bk-button>
-                <bk-button text @click="handlerCancel">{{ $t('取消') }}</bk-button>
+                <bk-button
+                    text
+                    @click="handlerCancel">
+                    {{ $t('取消') }}
+                </bk-button>
             </td>
         </tr>
         <!-- <choose-ip
@@ -97,12 +105,16 @@
     import {
         mapMutations,
     } from 'vuex';
-    import SourceFileVO from '@domain/variable-object/source-file';
+
     import {
         findParent,
     } from '@utils/vdom';
+
     // import ChooseIp from '@components/choose-ip';
     import AccountSelect from '@components/account-select';
+
+    import SourceFileVO from '@domain/variable-object/source-file';
+
     import EditFilePath from '../../components/edit-file-path';
 
     const generatorDefault = () => new SourceFileVO({

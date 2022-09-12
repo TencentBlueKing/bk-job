@@ -27,7 +27,9 @@
 
 <template>
     <div class="list-operation-extend">
-        <Icon type="more" class="icon" />
+        <Icon
+            class="icon"
+            type="more" />
         <div
             ref="content"
             class="list-operation-extend-wrapper"

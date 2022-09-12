@@ -29,15 +29,17 @@
     <div class="task-list-empty-page">
         <div class="page-header">
             <div class="header-wraper">
-                <div class="page-title">{{ $t('当前业务暂无作业，请先创建') }}</div>
+                <div class="page-title">
+                    {{ $t('当前业务暂无作业，请先创建') }}
+                </div>
                 <div class="page-desc">
                     <p>{{ $t('「作业」是指由脚本执行、文件分发和人工确认组合成的一套操作流程，分为“模板”和“执行方案”；用户需要先创建 “作业模板”，再由该模板生成1个或多个不同步骤组合的 “执行方案”。') }}</p>
                     <p>{{ $t('使用“模板->执行方案”的模式来管理作业的好处，一是可以有效地减少重复的作业步骤，提高步骤复用率；二是可以将场景固化下来，提升操作场景的辨识度和可维护性。') }}</p>
                 </div>
                 <div class="page-action">
                     <bk-button
-                        theme="primary"
                         class="mr10"
+                        theme="primary"
                         @click="handleGoTemplateCreate">
                         {{ $t('新建作业') }}
                     </bk-button>
@@ -51,10 +53,14 @@
             <div class="page-container">
                 <div class="feature-item">
                     <div class="feature-pic">
-                        <img style="width: 223px; margin: 28px 25px 0 22px;" src="/static/images/guide/task-template.svg">
+                        <img
+                            src="/static/images/guide/task-template.svg"
+                            style="width: 223px; margin: 28px 25px 0 22px;">
                     </div>
                     <div class="feature-box">
-                        <div class="feature-title">{{ $t('编排作业相关的执行步骤') }}</div>
+                        <div class="feature-title">
+                            {{ $t('编排作业相关的执行步骤') }}
+                        </div>
                         <div>
                             <span>{{ $t('点击') }}</span>
                             <router-link :to="{ name: 'templateCreate' }">
@@ -67,10 +73,14 @@
                 <div class="divide-line" />
                 <div class="feature-item">
                     <div class="feature-pic">
-                        <img style="width: 230px; margin: 20px 36px 0 7px;" src="/static/images/guide/task-plan.svg">
+                        <img
+                            src="/static/images/guide/task-plan.svg"
+                            style="width: 230px; margin: 20px 36px 0 7px;">
                     </div>
                     <div class="feature-box">
-                        <div class="feature-title">{{ $t('生成对应的执行方案') }}</div>
+                        <div class="feature-title">
+                            {{ $t('生成对应的执行方案') }}
+                        </div>
                         <div>{{ $t('从已创建的作业模板中，按照操作场景的需要勾选所需的步骤或修改全局变量值，另存为对应的 “执行方案”。') }}</div>
                     </div>
                 </div>

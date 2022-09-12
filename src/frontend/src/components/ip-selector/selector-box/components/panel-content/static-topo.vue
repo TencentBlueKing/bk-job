@@ -2,8 +2,8 @@
     <div class="ip-selector-static-topo">
         <resize-layout
             v-if="topoTreeData.length > 0"
-            flex-direction="left"
-            :default-width="265">
+            :default-width="265"
+            flex-direction="left">
             <div class="tree-box">
                 <bk-input
                     v-model="filterKey"
@@ -12,14 +12,16 @@
                 <bk-big-tree
                     ref="treeRef"
                     :data="topoTreeData"
-                    :filter-method="filterMethod"
-                    show-link-line
-                    selectable
                     expand-on-click
+                    :filter-method="filterMethod"
+                    selectable
+                    show-link-line
                     @select-change="handleNodeSelect">
                     <template #default="{ node: nodeItem, data }">
                         <div class="topo-node-box">
-                            <div class="topo-node-name">{{ data.name }}</div>
+                            <div class="topo-node-name">
+                                {{ data.name }}
+                            </div>
                             <template v-if="nodeItem.level === 0">
                                 <div
                                     v-bk-tooltips="'隐藏没有主机的节点'"
@@ -52,8 +54,8 @@
             </div>
             <template #right>
                 <div
-                    class="host-table"
-                    v-bkloading="{ isLoading: isHostLoading }">
+                    v-bkloading="{ isLoading: isHostLoading }"
+                    class="host-table">
                     <bk-input
                         v-model="nodeHostListSearch"
                         placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
@@ -61,14 +63,14 @@
                         @keyup="handleEnterKeyUp" />
                     <render-host-table
                         :data="hostTableData"
-                        :pagination="pagination"
                         :height="renderTableHeight"
+                        :pagination="pagination"
                         @pagination-change="handlePaginationChange"
                         @row-click="handleRowClick">
                         <template #header-selection>
                             <table-page-check
-                                :value="pageCheckValue"
                                 :disabled="hostTableData.length < 1"
+                                :value="pageCheckValue"
                                 @change="handlePageCheck" />
                         </template>
                         <template #selection="{ row }">
@@ -83,7 +85,9 @@
             v-bkloading="{ isLoading: isConfigLoading }"
             class="create-static-topo">
             <span>无数据，</span>
-            <a :href="config.bk_cmdb_static_topo_url" target="_blank">{{ $t('去创建') }}</a>
+            <a
+                :href="config.bk_cmdb_static_topo_url"
+                target="_blank">{{ $t('去创建') }}</a>
         </div>
     </div>
 </template>
@@ -94,24 +98,24 @@
 </script>
 <script setup>
     import {
-        ref,
+        nextTick,
         reactive,
+        ref,
         shallowRef,
         watch,
-        nextTick,
     } from 'vue';
 
-    import Manager from '../../../manager';
-    import { getPaginationDefault } from '../../../utils';
     import RenderHostTable from '../../../common/render-table/host/index.vue';
-    import useDialogSize from '../../../hooks/use-dialog-size';
     import useDebounceRef from '../../../hooks/use-debounced-ref';
+    import useDialogSize from '../../../hooks/use-dialog-size';
+    import useFetchConfig from '../../../hooks/use-fetch-config';
     import useInputEnter from '../../../hooks/use-input-enter';
     import useTreeExpanded from '../../../hooks/use-tree-expanded';
     import useTreeFilter from '../../../hooks/use-tree-filter';
-    import useFetchConfig from '../../../hooks/use-fetch-config';
-    import TablePageCheck from '../table-page-check.vue';
+    import Manager from '../../../manager';
+    import { getPaginationDefault } from '../../../utils';
     import ResizeLayout from '../resize-layout.vue';
+    import TablePageCheck from '../table-page-check.vue';
 
     const props = defineProps({
         topoTreeData: {

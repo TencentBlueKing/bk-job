@@ -35,10 +35,11 @@
             'edit-error': !!error,
         }"
         @click.stop="">
-        <Icon :type="icon" class="tag-flag" />
+        <Icon
+            class="tag-flag"
+            :type="icon" />
         <template v-if="!isEditable">
             <div
-                class="tag-name"
                 v-bk-tooltips="{
                     allowHtml: true,
                     width: 240,
@@ -50,8 +51,11 @@
                     boundary: 'window',
                     disabled: tooltipsDisabled,
                 }"
+                class="tag-name"
                 @click="handleSelect">
-                <div class="name-text">{{ displayName }}</div>
+                <div class="name-text">
+                    {{ displayName }}
+                </div>
             </div>
             <div class="tag-num-box">
                 <span class="tag-num">{{ count }}</span>
@@ -60,10 +64,14 @@
                 v-if="canEdit"
                 auth="tag/edit"
                 :resource-id="id">
-                <div class="edit-action" @click="handleEdit">
+                <div
+                    class="edit-action"
+                    @click="handleEdit">
                     <Icon type="edit-2" />
                 </div>
-                <div slot="forbid" class="edit-action">
+                <div
+                    slot="forbid"
+                    class="edit-action">
                     <Icon type="edit-2" />
                 </div>
             </auth-component>
@@ -73,10 +81,13 @@
                 ref="input"
                 :placeholder="$t('template.请输入标签名...')"
                 :value="displayName"
-                @change="handleChange"
                 @blur="handleBlur"
+                @change="handleChange"
                 @keyup="handleEnter" />
-            <div v-if="error" class="input-edit-info" v-bk-tooltips="errorTipsConfig">
+            <div
+                v-if="error"
+                v-bk-tooltips="errorTipsConfig"
+                class="input-edit-info">
                 <Icon type="info" />
             </div>
         </template>
@@ -88,13 +99,17 @@
                     <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
                         {{ $t('script.标签名称：') }}
                     </td>
-                    <td style="word-break: break-all; vertical-align: top;">{{ displayName }}</td>
+                    <td style="word-break: break-all; vertical-align: top;">
+                        {{ displayName }}
+                    </td>
                 </tr>
                 <tr>
                     <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
                         {{ $t('script.标签描述：') }}
                     </td>
-                    <td style="word-break: break-all; vertical-align: top;">{{ description || '--' }}</td>
+                    <td style="word-break: break-all; vertical-align: top;">
+                        {{ description || '--' }}
+                    </td>
                 </tr>
             </table>
         </div>
@@ -102,8 +117,10 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import { tagNameRule } from '@utils/validator';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

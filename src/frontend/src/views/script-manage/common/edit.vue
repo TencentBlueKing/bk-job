@@ -27,43 +27,47 @@
 
 <template>
     <layout>
-        <div slot="title">{{ $t('script.编辑脚本') }}</div>
+        <div slot="title">
+            {{ $t('script.编辑脚本') }}
+        </div>
         <template slot="sub-header">
             <Icon
-                type="upload"
-                @click="handleUploadScript"
                 v-bk-tooltips="$t('上传脚本')"
-                v-test="{ type: 'button', value: 'uploadScript' }" />
+                v-test="{ type: 'button', value: 'uploadScript' }"
+                type="upload"
+                @click="handleUploadScript" />
             <Icon
-                type="history"
-                @click.stop="handleShowHistory"
                 v-bk-tooltips="$t('历史缓存')"
-                v-test="{ type: 'button', value: 'scriptEditHistory' }" />
+                v-test="{ type: 'button', value: 'scriptEditHistory' }"
+                type="history"
+                @click.stop="handleShowHistory" />
             <Icon
-                type="full-screen"
                 v-bk-tooltips="$t('全屏')"
-                @click="handleFullScreen"
-                v-test="{ type: 'button', value: 'scriptEditFullscreen' }" />
+                v-test="{ type: 'button', value: 'scriptEditFullscreen' }"
+                type="full-screen"
+                @click="handleFullScreen" />
         </template>
         <div slot="left">
             <jb-form
                 ref="form"
-                :model="formData"
-                :rules="rules"
-                form-type="vertical"
+                v-test="{ type: 'form', value: 'editScript' }"
                 class="edit-script-form"
-                v-test="{ type: 'form', value: 'editScript' }">
+                form-type="vertical"
+                :model="formData"
+                :rules="rules">
                 <jb-form-item
                     :label="$t('script.版本号.label')"
                     required>
-                    <bk-input :value="formData.version" readonly />
+                    <bk-input
+                        readonly
+                        :value="formData.version" />
                 </jb-form-item>
                 <jb-form-item :label="$t('script.版本日志')">
                     <bk-input
                         v-model="formData.versionDesc"
-                        type="textarea"
+                        :maxlength="100"
                         :rows="5"
-                        :maxlength="100" />
+                        type="textarea" />
                 </jb-form-item>
             </jb-form>
         </div>
@@ -71,29 +75,29 @@
             <ace-editor
                 ref="aceEditor"
                 v-model="formData.content"
-                :lang="formData.typeName"
                 :height="contentHeight"
-                :readonly="!scriptInfo.isDraft"
-                :options="formData.typeName" />
+                :lang="formData.typeName"
+                :options="formData.typeName"
+                :readonly="!scriptInfo.isDraft" />
         </div>
         <template #footer>
             <bk-button
-                theme="primary"
-                :loading="isSubmiting"
-                @click="handleSubmit"
+                v-test="{ type: 'button', value: 'editScriptSubmit' }"
                 class="w120 mr10"
-                v-test="{ type: 'button', value: 'editScriptSubmit' }">
+                :loading="isSubmiting"
+                theme="primary"
+                @click="handleSubmit">
                 {{ $t('script.提交') }}
             </bk-button>
             <bk-button
+                v-test="{ type: 'button', value: 'debugScript' }"
                 class="mr10"
-                @click="handleDebugScript"
-                v-test="{ type: 'button', value: 'debugScript' }">
+                @click="handleDebugScript">
                 {{ $t('script.调试') }}
             </bk-button>
             <bk-button
-                @click="handleCancel"
-                v-test="{ type: 'button', value: 'editScriptCancel' }">
+                v-test="{ type: 'button', value: 'editScriptCancel' }"
+                @click="handleCancel">
                 {{ $t('script.取消') }}
             </bk-button>
         </template>
@@ -101,18 +105,23 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import ScriptManageService from '@service/script-manage';
+
     import PublicScriptManageService from '@service/public-script-manage';
-    import AceEditor from '@components/ace-editor';
+    import ScriptManageService from '@service/script-manage';
+
     import {
         checkPublicScript,
-        leaveConfirm,
         getOffset,
+        leaveConfirm,
         scriptErrorConfirm,
     } from '@utils/assist';
     import { debugScriptCache } from '@utils/cache-helper';
+
+    import AceEditor from '@components/ace-editor';
+
     import Layout from './components/layout';
+
+    import I18n from '@/i18n';
 
     const genDefaultFormData = () => ({
         id: '',

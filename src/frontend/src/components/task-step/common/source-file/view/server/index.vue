@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div class="server-file-edit-box" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="server-file-edit-box">
         <table>
             <thead>
                 <th>{{ $t('文件路径') }}</th>
@@ -36,7 +38,9 @@
                 <th>{{ $t('操作') }}</th>
             </thead>
             <tbody>
-                <tr v-for="(row, index) in serverFileList" :key="index">
+                <tr
+                    v-for="(row, index) in serverFileList"
+                    :key="index">
                     <td>
                         <edit-file-path
                             :value="row.fileLocation"
@@ -51,21 +55,21 @@
                             style="margin-left: -10px;">
                             <bk-select
                                 class="variable-edit-select"
-                                :value="row.host.variable"
                                 :clearable="false"
-                                @change="value => handleVariableChange(value, index)"
-                                searchable>
+                                searchable
+                                :value="row.host.variable"
+                                @change="value => handleVariableChange(value, index)">
                                 <bk-option
                                     v-for="(option, variableIndex) in variable"
-                                    :key="variableIndex"
                                     :id="option.name"
+                                    :key="variableIndex"
                                     :name="option.name" />
                             </bk-select>
                             <Icon
                                 v-if="!row.host.variable"
-                                type="info"
+                                v-bk-tooltips="$t('全局变量被删除，重新设置')"
                                 class="error-tips"
-                                v-bk-tooltips="$t('全局变量被删除，重新设置')" />
+                                type="info" />
                         </div>
                         <!-- 手动添加主机 -->
                         <div
@@ -78,27 +82,29 @@
                         <!-- 展示服务器列表主机信息 -->
                         <render-server-agent
                             v-if="!row.isVar"
-                            :title="`${$t('服务器文件-服务器列表')}`"
-                            :host-node-info="row.host.hostNodeInfo"
                             key="host"
-                            :separator="agentSeparator" />
+                            :host-node-info="row.host.hostNodeInfo"
+                            :separator="agentSeparator"
+                            :title="`${$t('服务器文件-服务器列表')}`" />
                         <!-- 展示变量的主机信息 -->
                         <render-server-agent
                             v-else
-                            :title="`${$t('全局变量')} - ${row.host.variable}`"
-                            :host-node-info="findVariableValue(row.serverDesc)"
                             :key="row.serverDesc"
-                            :separator="agentSeparator" />
+                            :host-node-info="findVariableValue(row.serverDesc)"
+                            :separator="agentSeparator"
+                            :title="`${$t('全局变量')} - ${row.host.variable}`" />
                     </td>
                     <td>
                         <account-select
                             class="account-add-btn"
-                            :value="row.account"
                             type="system"
+                            :value="row.account"
                             @change="value => handleAccountChange(value, index)" />
                     </td>
                     <td>
-                        <bk-button text @click="handlerRemove(index)">
+                        <bk-button
+                            text
+                            @click="handlerRemove(index)">
                             {{ $t('移除') }}
                         </bk-button>
                     </td>
@@ -108,11 +114,11 @@
                 :is="addCom"
                 key="add"
                 v-bind="$attrs"
-                :data="serverFileList"
                 :account="accountList"
+                :data="serverFileList"
                 :variable="variable"
-                @on-change="handleAddSave"
-                @on-cancel="handleAddCancel" />
+                @on-cancel="handleAddCancel"
+                @on-change="handleAddSave" />
         </table>
         <!-- <lower-component level="custom" :custom="isShowChooseIp">
             <choose-ip
@@ -130,14 +136,19 @@
 </template>
 <script>
     import { mapMutations } from 'vuex';
+
     import AccountManageService from '@service/account-manage';
+
     import TaskHostNodeModel from '@model/task-host-node';
+
+    import AccountSelect from '@components/account-select';
     import ChooseIp from '@components/choose-ip';
     import RenderServerAgent from '@components/render-server-agent';
-    import AccountSelect from '@components/account-select';
-    import AddOnlyHost from './only-host';
-    import AddHostAndVariable from './host-and-variable';
+
     import EditFilePath from '../../components/edit-file-path';
+
+    import AddHostAndVariable from './host-and-variable';
+    import AddOnlyHost from './only-host';
 
     export default {
         name: 'SourceFileServer',

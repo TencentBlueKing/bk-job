@@ -34,18 +34,34 @@
             toggled: isOpen,
         }">
         <div class="layout-left">
-            <div class="left-wraper" :style="styles">
+            <div
+                class="left-wraper"
+                :style="styles">
                 <slot />
             </div>
-            <div v-if="isShowRight" class="toggle-button" @click="handleToggle">
-                <Icon type="down-small" class="toggle-arrow" />
+            <div
+                v-if="isShowRight"
+                class="toggle-button"
+                @click="handleToggle">
+                <Icon
+                    class="toggle-arrow"
+                    type="down-small" />
             </div>
         </div>
-        <div v-if="flod" class="layout-right" :style="rightStyles">
-            <div class="right-wraper" :class="{ active: isShowRight }">
-                <slot v-if="isShowRight" name="flod" />
+        <div
+            v-if="flod"
+            class="layout-right"
+            :style="rightStyles">
+            <div
+                class="right-wraper"
+                :class="{ active: isShowRight }">
+                <slot
+                    v-if="isShowRight"
+                    name="flod" />
             </div>
-            <div class="close-btn" @click="handleClose">
+            <div
+                class="close-btn"
+                @click="handleClose">
                 <Icon type="close-big" />
             </div>
         </div>

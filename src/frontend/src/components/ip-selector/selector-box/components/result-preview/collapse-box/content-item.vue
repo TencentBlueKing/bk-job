@@ -9,15 +9,15 @@
         <div class="item-action">
             <div
                 v-if="content"
-                class="item-btn"
                 v-bk-tooltips="'复制'"
+                class="item-btn"
                 @click="handleCopy">
                 <i class="bk-ipselector-icon bk-ipselector-copy" />
             </div>
             <div
                 v-if="removable"
-                class="item-btn"
                 v-bk-tooltips="'删除'"
+                class="item-btn"
                 @click="handleRemove">
                 <i class="bk-ipselector-icon bk-ipselector-close-line-2" />
             </div>

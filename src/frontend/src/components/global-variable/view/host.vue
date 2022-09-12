@@ -27,14 +27,16 @@
 
 <template>
     <div>
-        <div v-if="data.isEmpty">--</div>
+        <div v-if="data.isEmpty">
+            --
+        </div>
         <!-- <server-panel
             v-else
             :host-node-info="data.defaultTargetValue.hostNodeInfo"
             detail-fullscreen /> -->
         <ip-selector
-            show-view
             readonly
+            show-view
             :value="data.defaultTargetValue.hostNodeInfo" />
     </div>
 </template>

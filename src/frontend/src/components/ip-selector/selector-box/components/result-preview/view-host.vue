@@ -51,24 +51,25 @@
     </CollapseBox>
 </template>
 <script setup>
+    import _ from 'lodash';
     import {
         ref,
-        watch,
         shallowRef,
+        watch,
     } from 'vue';
-    import _ from 'lodash';
+
+    import DiffTag from '../../../common/diff-tag.vue';
+    import useHostRenderKey from '../../../hooks/use-host-render-key';
+    import useIpSelector from '../../../hooks/use-ip-selector';
     import Manager from '../../../manager';
     import {
         execCopy,
+        getHostDiffMap,
         getInvalidHostList,
         getRemoveHostList,
-        getHostDiffMap,
         groupHostList,
     } from '../../../utils';
-    import useIpSelector from '../../../hooks/use-ip-selector';
-    import useHostRenderKey from '../../../hooks/use-host-render-key';
 
-    import DiffTag from '../../../common/diff-tag.vue';
     import CallapseContentItem from './collapse-box/content-item.vue';
     import CollapseBox from './collapse-box/index.vue';
 

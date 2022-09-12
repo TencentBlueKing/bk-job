@@ -61,9 +61,10 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import DetailLayout from '@components/detail-layout';
     import DetailItem from '@components/detail-layout/item';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'GlobalVariablePopoverDetail',

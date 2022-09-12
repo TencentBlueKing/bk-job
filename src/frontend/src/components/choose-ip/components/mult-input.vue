@@ -32,11 +32,16 @@
             class="input-text-area"
             contenteditable="true"
             :style="stylees"
-            @input="handleInput"
-            @focus="handleFocus"
             @blur="handleBlur"
+            @focus="handleFocus"
+            @input="handleInput"
             @paste="handlePaste" />
-        <div v-if="showPlaceholder" class="mult-input-placeholder" @click="handleInputFocus">{{ placeholder }}</div>
+        <div
+            v-if="showPlaceholder"
+            class="mult-input-placeholder"
+            @click="handleInputFocus">
+            {{ placeholder }}
+        </div>
     </div>
 </template>
 <script>

@@ -28,33 +28,37 @@
 <template>
     <div
         ref="renderList"
-        class="jb-render-list"
+        v-bkloading="{ isLoading }"
         v-test="{ type: 'data', value: 'table' }"
-        v-bkloading="{ isLoading }">
+        class="jb-render-list">
         <bk-table
             v-if="isRendered"
             v-bind="$attrs"
-            v-on="$listeners"
-            :default-sort="defaultSort"
             :data="data"
-            :pagination="realPagination"
+            :default-sort="defaultSort"
             :max-height="tableMaxHeight"
+            :pagination="realPagination"
             width="100%"
-            @sort-change="handleSort"
+            v-on="$listeners"
             @page-change="handlePageChange"
-            @page-limit-change="handleLimitChange">
+            @page-limit-change="handleLimitChange"
+            @sort-change="handleSort">
             <template slot="prepend">
-                <div v-if="selectNums > 0" class="jb-table-select-tips">
+                <div
+                    v-if="selectNums > 0"
+                    class="jb-table-select-tips">
                     <!-- eslint-disable-next-line max-len -->
                     <span>{{ $t('已选择.select') }}<span class="number strong">{{ selectNums }}</span>{{ $t('条.total') }}</span>
-                    <span class="action-clear" @click="handleClearAllSelect">，{{ $t('清除所有勾选') }}</span>
+                    <span
+                        class="action-clear"
+                        @click="handleClearAllSelect">，{{ $t('清除所有勾选') }}</span>
                 </div>
                 <slot name="prepend" />
             </template>
             <bk-table-column
                 v-if="selectable"
-                :render-header="renderHeader"
                 key="listSelect"
+                :render-header="renderHeader"
                 width="70">
                 <template slot-scope="{ row }">
                     <bk-checkbox
@@ -63,10 +67,18 @@
                 </template>
             </bk-table-column>
             <slot />
-            <div v-if="isRequesting" slot="empty" style="height: 200px;" />
-            <Empty v-else-if="isSearching" slot="empty" type="search">
+            <div
+                v-if="isRequesting"
+                slot="empty"
+                style="height: 200px;" />
+            <Empty
+                v-else-if="isSearching"
+                slot="empty"
+                type="search">
                 <div>
-                    <div style="font-size: 14px; color: #63656e;">{{ $t('搜索结果为空') }}</div>
+                    <div style="font-size: 14px; color: #63656e;">
+                        {{ $t('搜索结果为空') }}
+                    </div>
                     <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
                         <span>{{ $t('可以尝试调整关键词') }}</span>
                         <template v-if="searchControl">
@@ -85,14 +97,17 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import Empty from '@components/empty';
-    import EventBus from '@utils/event-bus';
+
     import {
-        getOffset,
         buildURLParams,
+        getOffset,
     } from '@utils/assist';
     import { routerCache } from '@utils/cache-helper';
+    import EventBus from '@utils/event-bus';
+
+    import Empty from '@components/empty';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

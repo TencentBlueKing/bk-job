@@ -26,102 +26,117 @@
 -->
 
 <template>
-    <div class="service-state-info" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="service-state-info">
         <bk-table
             :data="serviceData"
-            :size="tableSize"
-            row-key="name"
-            ext-cls="service-table"
             :expand-row-keys="expandRow"
+            ext-cls="service-table"
+            row-key="name"
+            :size="tableSize"
             @row-click="toggleRowExpansion">
             <bk-table-column
-                type="expand"
                 key="expand"
-                :before-expand-change="onBeforeExpandChange">
+                :before-expand-change="onBeforeExpandChange"
+                type="expand">
                 <template slot-scope="{ row }">
                     <bk-table
-                        ext-cls="service-expand-table"
                         :data="row.instanceList"
-                        :outer-border="false"
-                        :header-border="false">
+                        ext-cls="service-expand-table"
+                        :header-border="false"
+                        :outer-border="false">
                         <bk-table-column
                             key="index"
-                            width="60"
-                            :label="$t('service.序号.colHead')">
+                            :label="$t('service.序号.colHead')"
+                            width="60">
                             <template slot-scope="{ $index }">
                                 #{{ $index + 1 }}
                             </template>
                         </bk-table-column>
                         <bk-table-column
-                            prop="name"
                             key="name"
-                            width="420"
-                            :label="$t('service.实例名.colHead')">
+                            :label="$t('service.实例名.colHead')"
+                            prop="name"
+                            width="420">
                             <template slot-scope="scope">
                                 {{ scope.row.name }}
                             </template>
                         </bk-table-column>
                         <bk-table-column
-                            prop="version"
                             key="version"
-                            width="310"
-                            :label="$t('service.版本号.label')" />
+                            :label="$t('service.版本号.label')"
+                            prop="version"
+                            width="310" />
                         <bk-table-column
-                            prop="status"
                             key="status"
-                            :label="$t('service.状态.colHead')">
+                            :label="$t('service.状态.colHead')"
+                            prop="status">
                             <template slot-scope="scope">
-                                <Icon :type="statusIcon(scope.row)" svg />
+                                <Icon
+                                    svg
+                                    :type="statusIcon(scope.row)" />
                                 <span v-html="statusHtml(scope.row)" />
                             </template>
                         </bk-table-column>
                         <bk-table-column
-                            prop="ip"
                             key="ip"
-                            width="150"
-                            :label="$t('service.绑定IP.colHead')">
+                            :label="$t('service.绑定IP.colHead')"
+                            prop="ip"
+                            width="150">
                             <template slot-scope="scope">
-                                <span class="service-ip" @click="handleCopyIp(scope.row.ip)">
+                                <span
+                                    class="service-ip"
+                                    @click="handleCopyIp(scope.row.ip)">
                                     {{ scope.row.ip }}
-                                    <Icon class="ml5 copy-ip-icon" type="step-copy" svg />
+                                    <Icon
+                                        class="ml5 copy-ip-icon"
+                                        svg
+                                        type="step-copy" />
                                     <!-- <Icon class="skip-icon" type="edit" svg /> -->
                                 </span>
                             </template>
                         </bk-table-column>
                         <bk-table-column
-                            prop="port"
                             key="port"
-                            width="100"
-                            :label="$t('service.端口.colHead')" />
+                            :label="$t('service.端口.colHead')"
+                            prop="port"
+                            width="100" />
                     </bk-table>
                 </template>
             </bk-table-column>
             <bk-table-column
+                key="name"
+                align="left"
                 :label="$t('service.服务名.colHead')"
                 prop="name"
-                width="480"
-                key="name"
-                align="left" />
+                width="480" />
             <bk-table-column
+                key="version"
+                align="left"
                 :label="$t('service.版本号.colHead')"
                 prop="version"
-                width="310"
-                key="version"
-                align="left">
+                width="310">
                 <template slot-scope="{ row }">
                     <span v-html="row.versionHtml" />
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('service.实例状态.colHead')"
-                prop="instanceList"
                 key="instanceList"
-                align="left">
+                align="left"
+                :label="$t('service.实例状态.colHead')"
+                prop="instanceList">
                 <template slot-scope="{ row }">
                     <div v-bk-tooltips="instanceTips(row)">
-                        <span class="service-instance-num abnormal" v-if="row.abnormalNum">{{ row.abnormalNum }}</span>
-                        <span class="service-instance-num unknown" v-if="row.unknownNum">{{ row.unknownNum }}</span>
-                        <span class="service-instance-num normal" v-if="row.normalNum">{{ row.normalNum }}</span>
+                        <span
+                            v-if="row.abnormalNum"
+                            class="service-instance-num abnormal">{{ row.abnormalNum }}</span>
+                        <span
+                            v-if="row.unknownNum"
+                            class="service-instance-num unknown">{{ row.unknownNum }}</span>
+                        <span
+                            v-if="row.normalNum"
+                            class="service-instance-num normal">{{ row.normalNum }}</span>
                     </div>
                 </template>
             </bk-table-column>
@@ -130,11 +145,13 @@
 </template>
  
 <script>
-    import I18n from '@/i18n';
     import ServiceStateService from '@service/service-state';
+
     import {
         execCopy,
     } from '@utils/assist';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'Service',

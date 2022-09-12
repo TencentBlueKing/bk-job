@@ -26,12 +26,25 @@
 -->
 
 <template>
-    <jb-form-item :label="$t('传输模式')" required>
+    <jb-form-item
+        :label="$t('传输模式')"
+        required>
         <div class="form-item-content">
             <div class="file-step-transfer-mode-wraper">
-                <bk-radio-group class="radio-check" :value="formData[field]" @change="handleChange">
-                    <bk-radio v-bk-tooltips="constraintTips" :value="2">{{ $t('强制模式') }}</bk-radio>
-                    <bk-radio v-bk-tooltips="strictTips" :value="1">{{ $t('严谨模式') }}</bk-radio>
+                <bk-radio-group
+                    class="radio-check"
+                    :value="formData[field]"
+                    @change="handleChange">
+                    <bk-radio
+                        v-bk-tooltips="constraintTips"
+                        :value="2">
+                        {{ $t('强制模式') }}
+                    </bk-radio>
+                    <bk-radio
+                        v-bk-tooltips="strictTips"
+                        :value="1">
+                        {{ $t('严谨模式') }}
+                    </bk-radio>
                 </bk-radio-group>
             </div>
         </div>

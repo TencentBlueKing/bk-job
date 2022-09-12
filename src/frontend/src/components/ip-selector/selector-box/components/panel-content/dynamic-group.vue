@@ -1,11 +1,11 @@
 <template>
     <div
-        class="ip-selector-dynamic-group"
-        v-bkloading="{ isLoading: isDynamicGroupLoading }">
+        v-bkloading="{ isLoading: isDynamicGroupLoading }"
+        class="ip-selector-dynamic-group">
         <resize-layout
             v-if="dynamicGroupList.length > 0"
-            flex-direction="left"
-            :default-width="265">
+            :default-width="265"
+            flex-direction="left">
             <div class="tree-box">
                 <bk-input
                     placeholder="搜索动态分组名称"
@@ -26,8 +26,8 @@
                             {{ item.name }}
                         </div>
                         <a
-                            class="dynamic-group-detail-link"
                             v-bk-tooltips="'跳转 CMDB 查看详情'"
+                            class="dynamic-group-detail-link"
                             :href="config.bk_cmdb_dynamic_group_url"
                             target="_blank">
                             <i class="bk-ipselector-icon bk-ipselector-jump-link" />
@@ -54,15 +54,15 @@
             </div>
             <template #right>
                 <div
-                    class="table-box"
-                    v-bkloading="{ isLoading: isHostListLoading }">
+                    v-bkloading="{ isLoading: isHostListLoading }"
+                    class="table-box">
                     <bk-input
                         placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
                         style="margin-bottom: 12px;" />
                     <render-host-table
                         :data="hostTableData"
-                        :pagination="pagination"
                         :height="renderTableHeight"
+                        :pagination="pagination"
                         @pagination-change="handlePaginationChange" />
                 </div>
             </template>
@@ -72,7 +72,9 @@
             v-bkloading="{ isLoading: isConfigLoading }"
             class="create-dynamic-group">
             <span>无数据，</span>
-            <a :href="config.bk_cmdb_dynamic_group_url" target="_blank">去创建</a>
+            <a
+                :href="config.bk_cmdb_dynamic_group_url"
+                target="_blank">去创建</a>
         </div>
     </div>
 </template>
@@ -83,17 +85,17 @@
 </script>
 <script setup>
     import {
-        watch,
+        reactive,
         ref,
         shallowRef,
-        reactive,
+        watch,
     } from 'vue';
 
-    import Manager from '../../../manager';
+    import RenderHostTable from '../../../common/render-table/host/index.vue';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import useFetchConfig from '../../../hooks/use-fetch-config';
+    import Manager from '../../../manager';
     import { getPaginationDefault } from '../../../utils';
-    import RenderHostTable from '../../../common/render-table/host/index.vue';
     import ResizeLayout from '../resize-layout.vue';
 
     const props = defineProps({

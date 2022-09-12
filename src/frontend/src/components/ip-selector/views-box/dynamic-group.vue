@@ -1,7 +1,7 @@
 <template>
     <div
-        class="ip-selector-view-dynamic-group"
-        v-bkloading="{ isLoading }">
+        v-bkloading="{ isLoading }"
+        class="ip-selector-view-dynamic-group">
         <collapse-box>
             <template #title>
                 <span style="font-weight: bold;">【动态分组】</span>
@@ -25,7 +25,9 @@
                 v-if="!context.readonly"
                 #action>
                 <extend-action>
-                    <div @click="handleRemoveAll">清除所有</div>
+                    <div @click="handleRemoveAll">
+                        清除所有
+                    </div>
                 </extend-action>
             </template>
             <table>
@@ -43,8 +45,8 @@
                     </td>
                     <td>
                         <render-agent-statistics
-                            :loading="isAgentStatisticsLoading"
                             :data="agentStaticMap[row.id]"
+                            :loading="isAgentStatisticsLoading"
                             @select="handleShowHostList(row)" />
                     </td>
                     <td
@@ -72,10 +74,10 @@
         </collapse-box>
         <bk-dialog
             v-model="isShowHostList"
-            :width="dialogWidth"
-            header-position="left"
             :draggable="false"
-            :title="`动态拓扑主机预览`">
+            header-position="left"
+            :title="`动态拓扑主机预览`"
+            :width="dialogWidth">
             <host-list
                 v-if="selectedDynamicGroup"
                 :dynamic-group="selectedDynamicGroup" />
@@ -92,23 +94,25 @@
 <script setup>
     import {
         ref,
-        watch,
         shallowRef,
+        watch,
     } from 'vue';
-    import Manager from '../manager';
-    import useLocalPagination from '../hooks/use-local-pagination';
+
+    import DiffTag from '../common/diff-tag.vue';
+    import ExtendAction from '../common/extend-action.vue';
     import useDialogSize from '../hooks/use-dialog-size';
     import useIpSelector from '../hooks/use-ip-selector';
+    import useLocalPagination from '../hooks/use-local-pagination';
+    import Manager from '../manager';
     import {
         getDynamicGroupDiffMap,
         getInvalidDynamicGroupList,
         getRemoveDynamicGroupList,
         groupDynamicGroupList,
     } from '../utils';
-    import DiffTag from '../common/diff-tag.vue';
-    import ExtendAction from '../common/extend-action.vue';
-    import CollapseBox from './components/collapse-box/index.vue';
+
     import RenderAgentStatistics from './components/agent-statistics.vue';
+    import CollapseBox from './components/collapse-box/index.vue';
     import HostList from './components/dynamic-group-host-list.vue';
 
     const props = defineProps({

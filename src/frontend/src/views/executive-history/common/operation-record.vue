@@ -26,36 +26,57 @@
 -->
 
 <template>
-    <div class="job-execute-record" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="job-execute-record">
         <template v-if="!isLoading">
-            <bk-table v-if="data.length > 0" :data="data">
-                <bk-table-column :label="$t('history.时间')" prop="createTime" width="180" />
-                <bk-table-column :label="$t('history.操作人')" prop="operator" width="120" />
-                <bk-table-column :label="$t('history.操作')" prop="operationName" width="120" />
+            <bk-table
+                v-if="data.length > 0"
+                :data="data">
                 <bk-table-column
+                    :label="$t('history.时间')"
+                    prop="createTime"
+                    width="180" />
+                <bk-table-column
+                    :label="$t('history.操作人')"
+                    prop="operator"
+                    width="120" />
+                <bk-table-column
+                    :label="$t('history.操作')"
+                    prop="operationName"
+                    width="120" />
+                <bk-table-column
+                    class-name="step-name"
                     :label="$t('history.步骤')"
                     prop="stepName"
-                    show-overflow-tooltip
-                    class-name="step-name" />
+                    show-overflow-tooltip />
                 <bk-table-column :label="$t('history.详情')">
                     <template slot-scope="{ row }">
                         <bk-button
                             v-if="row.detailEnable"
-                            theme="primary"
                             text
-                            @click="handleView(row)">{{ row.detail }}</bk-button>
-                        <div v-else>{{ row.detail }}</div>
+                            theme="primary"
+                            @click="handleView(row)">
+                            {{ row.detail }}
+                        </bk-button>
+                        <div v-else>
+                            {{ row.detail }}
+                        </div>
                     </template>
                 </bk-table-column>
             </bk-table>
-            <empty v-else class="empty" />
+            <empty
+                v-else
+                class="empty" />
         </template>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
+
     import Empty from '@components/empty';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

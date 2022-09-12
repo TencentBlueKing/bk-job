@@ -28,21 +28,29 @@
 <template>
     <div class="dangerous-rule-manage-page">
         <table
-            class="rule-table"
-            v-test="{ type: 'list', value: 'dangerousRule' }">
+            v-test="{ type: 'list', value: 'dangerousRule' }"
+            class="rule-table">
             <thead>
                 <tr>
-                    <th style="width: 200px;">{{ $t('dangerousRule.语法检测表达式') }}</th>
+                    <th style="width: 200px;">
+                        {{ $t('dangerousRule.语法检测表达式') }}
+                    </th>
                     <th>{{ $t('dangerousRule.规则说明') }}</th>
-                    <th style="width: 300px;">{{ $t('dangerousRule.脚本类型') }}</th>
+                    <th style="width: 300px;">
+                        {{ $t('dangerousRule.脚本类型') }}
+                    </th>
                     <th style="width: 300px;">
                         <span>{{ $t('dangerousRule.动作') }}</span>
                         <bk-popover placement="right">
-                            <Icon type="info" class="action-tips" />
+                            <Icon
+                                class="action-tips"
+                                type="info" />
                             <div slot="content">
                                 <div>{{ $t('dangerousRule.【扫描】') }}</div>
                                 <div>{{ $t('dangerousRule.命中规则的脚本执行任务仅会做记录，不会拦截') }}</div>
-                                <div style="margin-top: 8px;">{{ $t('dangerousRule.【拦截】') }}</div>
+                                <div style="margin-top: 8px;">
+                                    {{ $t('dangerousRule.【拦截】') }}
+                                </div>
                                 <div>{{ $t('dangerousRule.命中规则的脚本执行任务会被记录，并中止运行') }}</div>
                             </div>
                         </bk-popover>
@@ -68,28 +76,28 @@
                         <jb-edit-input
                             field="expression"
                             mode="block"
+                            :remote-hander="val => handleUpdate(rule, val)"
                             :rules="formRules.expression"
-                            :value="rule.expression"
-                            :remote-hander="val => handleUpdate(rule, val)" />
+                            :value="rule.expression" />
                     </td>
                     <td>
                         <jb-edit-input
                             field="description"
                             mode="block"
+                            :remote-hander="val => handleUpdate(rule, val)"
                             :rules="formRules.description"
-                            :value="rule.description"
-                            :remote-hander="val => handleUpdate(rule, val)" />
+                            :value="rule.description" />
                     </td>
                     <td>
                         <jb-edit-select
                             field="scriptTypeList"
-                            mode="block"
-                            :rules="formRules.scriptTypeList"
-                            multiple
-                            show-select-all
-                            :value="rule.scriptTypeList"
                             :list="scriptTypeList"
-                            :remote-hander="val => handleUpdate(rule, val)" />
+                            mode="block"
+                            multiple
+                            :remote-hander="val => handleUpdate(rule, val)"
+                            :rules="formRules.scriptTypeList"
+                            show-select-all
+                            :value="rule.scriptTypeList" />
                     </td>
                     <td>
                         <edit-action
@@ -99,39 +107,39 @@
                     <td>
                         <div class="action-box">
                             <bk-switcher
-                                :value="rule.status"
-                                :true-value="1"
-                                :false-value="0"
-                                @update="status => handleUpdate(rule, { status })"
+                                v-test="{ type: 'button', value: 'toggleRuleStatus' }"
                                 class="mr10"
-                                theme="primary"
+                                :false-value="0"
                                 size="small"
-                                v-test="{ type: 'button', value: 'toggleRuleStatus' }" />
+                                theme="primary"
+                                :true-value="1"
+                                :value="rule.status"
+                                @update="status => handleUpdate(rule, { status })" />
                             <bk-button
-                                class="arrow-btn mr10"
-                                text
-                                :disabled="index === 0"
                                 v-bk-tooltips.top="$t('dangerousRule.上移')"
-                                @click="handleMove(index, -1)"
-                                v-test="{ type: 'button', value: 'upMoveRule' }">
+                                v-test="{ type: 'button', value: 'upMoveRule' }"
+                                class="arrow-btn mr10"
+                                :disabled="index === 0"
+                                text
+                                @click="handleMove(index, -1)">
                                 <Icon type="increase-line" />
                             </bk-button>
                             <bk-button
-                                class="arrow-btn mr10"
-                                text
-                                :disabled="index + 1 === list.length"
                                 v-bk-tooltips.top="$t('dangerousRule.下移')"
-                                @click="handleMove(index, 1)"
-                                v-test="{ type: 'button', value: 'downMoveRule' }">
+                                v-test="{ type: 'button', value: 'downMoveRule' }"
+                                class="arrow-btn mr10"
+                                :disabled="index + 1 === list.length"
+                                text
+                                @click="handleMove(index, 1)">
                                 <Icon type="decrease-line" />
                             </bk-button>
                             <jb-popover-confirm
-                                :title="$t('dangerousRule.确定删除该规则？')"
+                                :confirm-handler="() => handleDelete(rule.id)"
                                 :content="$t('dangerousRule.脚本编辑器中匹配该规则将不会再收到提醒')"
-                                :confirm-handler="() => handleDelete(rule.id)">
+                                :title="$t('dangerousRule.确定删除该规则？')">
                                 <bk-button
-                                    text
-                                    v-test="{ type: 'button', value: 'deleteRule' }">
+                                    v-test="{ type: 'button', value: 'deleteRule' }"
+                                    text>
                                     {{ $t('dangerousRule.删除') }}
                                 </bk-button>
                             </jb-popover-confirm>
@@ -143,14 +151,17 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import DangerousRuleService from '@service/dangerous-rule';
     import PublicScriptManageService from '@service/public-script-manage';
+
     import JbEditInput from '@components/jb-edit/input';
     import JbEditSelect from '@components/jb-edit/select';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
-    import TableActionRow from './components/table-action-row';
+
     import EditAction from './components/edit-action';
+    import TableActionRow from './components/table-action-row';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

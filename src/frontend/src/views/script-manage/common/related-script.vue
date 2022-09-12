@@ -26,47 +26,61 @@
 -->
 
 <template>
-    <div class="render-related-script" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="render-related-script">
         <div class="tab-wraper">
             <div
                 class="tab-item"
                 :class="{ active: listTab === 'template' }"
                 @click="handleTabChange('template')">
-                <div class="tab-name">{{ $t('script.作业模板引用') }}</div>
+                <div class="tab-name">
+                    {{ $t('script.作业模板引用') }}
+                </div>
                 <Icon
                     v-if="isLaunchLoading"
-                    type="sync-pending"
+                    class="loading-flag"
                     svg
-                    class="loading-flag" />
-                <div v-else class="tab-nums">{{ launchNums }}</div>
+                    type="sync-pending" />
+                <div
+                    v-else
+                    class="tab-nums">
+                    {{ launchNums }}
+                </div>
             </div>
             <div
                 class="tab-item"
                 :class="{ active: listTab === 'plan' }"
                 @click="handleTabChange('plan')">
-                <div class="tab-name">{{ $t('script.执行方案引用') }}</div>
+                <div class="tab-name">
+                    {{ $t('script.执行方案引用') }}
+                </div>
                 <Icon
                     v-if="isUnlaunchLoading"
-                    type="sync-pending"
+                    class="loading-flag"
                     svg
-                    class="loading-flag" />
-                <div v-else class="tab-nums">{{ unLaunchNums }}</div>
+                    type="sync-pending" />
+                <div
+                    v-else
+                    class="tab-nums">
+                    {{ unLaunchNums }}
+                </div>
             </div>
         </div>
         <div class="search">
             <jb-search-select
-                @on-change="handleSearch"
                 :data="searchSelect"
-                :popover-zindex="99999"
                 :placeholder="$t('script.搜索名称，版本号')"
-                style="width: 100%;" />
+                :popover-zindex="99999"
+                style="width: 100%;"
+                @on-change="handleSearch" />
         </div>
         <bk-table :data="renderList">
             <!-- 执行方案引用 -->
             <bk-table-column
                 v-if="isPlanRelated"
-                :label="$t('script.执行方案')"
                 align="left"
+                :label="$t('script.执行方案')"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
                     <bk-button
@@ -79,8 +93,8 @@
             <!-- 作业模板引用 -->
             <bk-table-column
                 v-if="!isPlanRelated"
-                :label="$t('script.作业模板')"
                 align="left"
+                :label="$t('script.作业模板')"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
                     <bk-button
@@ -91,13 +105,13 @@
                 </template>
             </bk-table-column>
             <bk-table-column
+                align="left"
                 :label="$t('script.引用的版本号')"
-                prop="scriptVersion"
-                align="left" />
+                prop="scriptVersion" />
             <bk-table-column
+                align="left"
                 :label="$t('script.状态')"
                 prop="scriptStatusDesc"
-                align="left"
                 width="120">
                 <template slot-scope="{ row }">
                     <span v-html="row.statusHtml" />
@@ -107,14 +121,17 @@
     </div>
 </template>
 <script>
-    import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
-    import I18n from '@/i18n';
+    import ScriptService from '@service/script-manage';
+
     import {
         checkPublicScript,
         encodeRegexp,
     } from '@utils/assist';
+
     import JbSearchSelect from '@components/jb-search-select';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'RenderRelatedScript',

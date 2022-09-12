@@ -23,44 +23,44 @@
  * IN THE SOFTWARE.
 */
 
-import Vue from 'vue';
 import bkMagicVue from 'bk-magic-vue';
+import Vue from 'vue';
 import VueProgressBar from 'vue-progressbar';
 
-import AppManageService from '@service/app-manage';
 import CustomSettingsService from '@service/custom-settings';
+import AppManageService from '@service/demo';
 import QueryGlobalSettingService from '@service/query-global-setting';
 
-import AuthRouterLink from '@components/auth/router-link';
 import AuthButton from '@components/auth/button';
-import AuthOption from '@components/auth/option';
 import AuthCompontent from '@components/auth/component';
+import AuthOption from '@components/auth/option';
+import AuthRouterLink from '@components/auth/router-link';
+import Cursor from '@components/cursor';
+import ElementTeleport from '@components/element-teleport';
 import Empty from '@components/empty';
-import LowerComponent from '@components/lower-component';
-import Exception from '@/components/exception';
+import Exception from '@components/exception';
 import Icon from '@components/icon';
+import createIpSelector from '@components/ip-selector/index.js';
+import JbBreadcrumb from '@components/jb-breadcrumb';
+import JbBreadcrumbItem from '@components/jb-breadcrumb/jb-breadcrumb-item';
+import JbDialog from '@components/jb-dialog';
 import JbDiff from '@components/jb-diff';
-import JbRouterView from '@components/jb-router-view';
 import JbForm from '@components/jb-form';
 import JbFormItem from '@components/jb-form/item';
 import JbInput from '@components/jb-input';
-import JbTextarea from '@components/jb-textarea';
 import JbPopoverConfirm from '@components/jb-popover-confirm';
+import JbRouterView from '@components/jb-router-view';
 import JbSideslider from '@components/jb-sideslider';
-import JbDialog from '@components/jb-dialog';
-import JbBreadcrumb from '@components/jb-breadcrumb';
-import JbBreadcrumbItem from '@components/jb-breadcrumb/jb-breadcrumb-item';
+import JbTextarea from '@components/jb-textarea';
+import LowerComponent from '@components/lower-component';
+import Request from '@components/request';
+import ResizeableBox from '@components/resizeable-box';
 import ScrollFaker from '@components/scroll-faker';
 import SmartAction from '@components/smart-action';
-import ElementTeleport from '@components/element-teleport';
-import Request from '@components/request';
-import Cursor from '@components/cursor';
-import TippyTips from '@components/tippy-tips';
-import ResizeableBox from '@components/resizeable-box';
 import Test from '@components/test';
-import 'bk-magic-vue/dist/bk-magic-vue.min.css';
+import TippyTips from '@components/tippy-tips';
 
-import createIpSelector from '@components/ip-selector/index.js';
+import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 
 const IpSelector = createIpSelector({
     panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],

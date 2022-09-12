@@ -23,14 +23,17 @@
  * IN THE SOFTWARE.
 */
 
+import AuthResultModel from '@model/auth-result';
+
+import EventBus from '@utils/event-bus';
+
+import RequestError from '../lib/request-error';
+
 import {
-    messageError,
     loginDialog,
+    messageError,
     permissionDialog,
 } from '@/common/bkmagic';
-import EventBus from '@utils/event-bus';
-import AuthResultModel from '@model/auth-result';
-import RequestError from '../lib/request-error';
 
 // 标记已经登录过状态
 // 第一次登录跳转登录页面，之后弹框登录

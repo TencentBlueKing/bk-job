@@ -27,35 +27,51 @@
 
 <template>
     <div
-        class="step-execute-script-log"
         v-bkloading="{
             isLoading, opacity: .1,
-        }">
+        }"
+        class="step-execute-script-log">
         <div class="log-wraper">
-            <div v-once id="executeScriptLog" style="height: 100%;" />
+            <div
+                v-once
+                id="executeScriptLog"
+                style="height: 100%;" />
         </div>
-        <div class="log-status" v-if="host && isRunning">
-            <div class="log-loading">{{ $t('history.执行中') }}</div>
+        <div
+            v-if="host && isRunning"
+            class="log-status">
+            <div class="log-loading">
+                {{ $t('history.执行中') }}
+            </div>
         </div>
         <div class="log-action-box">
-            <div class="action-item" v-bk-tooltips="backTopTips" @click="handleScrollTop">
+            <div
+                v-bk-tooltips="backTopTips"
+                class="action-item"
+                @click="handleScrollTop">
                 <Icon type="up-to-top" />
             </div>
-            <div class="action-item action-bottom" v-bk-tooltips="backBottomTips" @click="handleScrollBottom">
+            <div
+                v-bk-tooltips="backBottomTips"
+                class="action-item action-bottom"
+                @click="handleScrollBottom">
                 <Icon type="up-to-top" />
             </div>
         </div>
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import ace from 'ace/ace';
+    import _ from 'lodash';
+
+    import TaskExecuteService from '@service/task-execute';
+
+    import mixins from '../../mixins';
+
     import 'ace/mode-text';
     import 'ace/theme-monokai';
     import 'ace/ext-searchbox';
     import I18n from '@/i18n';
-    import TaskExecuteService from '@service/task-execute';
-    import mixins from '../../mixins';
 
     export default {
         mixins: [

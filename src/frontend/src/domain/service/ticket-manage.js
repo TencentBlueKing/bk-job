@@ -24,9 +24,11 @@
 */
 
 /* eslint-disable no-param-reassign */
-import TicketSource from '../source/ticket-manage';
 import FileManageService from '@service/file-source-manage';
+
 import TicketModel from '@model/ticket';
+
+import TicketSource from '../source/ticket-manage';
 
 export default {
     fetchList (params) {

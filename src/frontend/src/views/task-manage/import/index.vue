@@ -26,29 +26,36 @@
 -->
 
 <template>
-    <div class="task-import-page" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="task-import-page">
         <div class="header">
-            <bk-steps :steps="steps" :cur-step.sync="currentStep" />
+            <bk-steps
+                :cur-step.sync="currentStep"
+                :steps="steps" />
         </div>
         <div class="content">
             <scroll-faker>
                 <component
                     :is="pageCom"
-                    @on-change="handleStepChange"
-                    @on-cancle="handleCancle" />
+                    @on-cancle="handleCancle"
+                    @on-change="handleStepChange" />
             </scroll-faker>
         </div>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import BackupService from '@service/backup';
+
     import { taskImport } from '@utils/cache-helper';
+
     import Step1 from './pages/step1';
     import Step2 from './pages/step2';
     import Step3 from './pages/step3';
     import Step4 from './pages/step4';
     import Step5 from './pages/step5';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

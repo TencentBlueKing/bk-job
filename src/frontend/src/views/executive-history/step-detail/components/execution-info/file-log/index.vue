@@ -28,21 +28,24 @@
 <template>
     <div
         ref="contentBox"
+        v-bkloading="{ isLoading, opacity: .1 }"
         class="file-download-log"
-        @scroll="handleScroll"
-        v-bkloading="{ isLoading, opacity: .1 }">
+        @scroll="handleScroll">
         <div>
             <file-item
                 v-for="(item, index) in renderList"
                 :key="index"
-                :index="index"
-                :open-memo="openMemo"
                 :data="item"
-                :render-content-map="renderContentMap"
+                :index="index"
                 :is-content-loading="isAsyncContentLoading"
+                :open-memo="openMemo"
+                :render-content-map="renderContentMap"
                 @on-toggle="handleToggle" />
         </div>
-        <div v-if="renderNums < contentList.length" ref="load" class="load-more">
+        <div
+            v-if="renderNums < contentList.length"
+            ref="load"
+            class="load-more">
             <div class="loading-flag">
                 <Icon type="loading-circle" />
             </div>
@@ -52,11 +55,15 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import TaskExecuteService from '@service/task-execute';
+
     import {
         getOffset,
     } from '@utils/assist';
+
     import mixins from '../../mixins';
+
     import FileItem from './log-item';
 
     export default {

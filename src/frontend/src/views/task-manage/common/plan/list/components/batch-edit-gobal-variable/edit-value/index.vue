@@ -38,12 +38,26 @@
                 <span>{{ $t('template.个作业模板') }}</span>
             </span>
         </div>
-        <div class="action-target-info" style="margin-top: 10px;">
+        <div
+            class="action-target-info"
+            style="margin-top: 10px;">
             <span class="label">{{ $t('template.选择变量') }}</span>
-            <span class="content-split" style="color: #ea3636;">*</span>
+            <span
+                class="content-split"
+                style="color: #ea3636;">*</span>
             <span>{{ selectResultText }}，</span>
-            <bk-button v-if="isHasSelectedAll" text @click="handleCancleSelectAll">{{ $t('template.取消全选') }}</bk-button>
-            <bk-button v-else text @click="handleSelectAll">{{ $t('template.全选') }}</bk-button>
+            <bk-button
+                v-if="isHasSelectedAll"
+                text
+                @click="handleCancleSelectAll">
+                {{ $t('template.取消全选') }}
+            </bk-button>
+            <bk-button
+                v-else
+                text
+                @click="handleSelectAll">
+                {{ $t('template.全选') }}
+            </bk-button>
         </div>
         <div class="global-variable-list">
             <div
@@ -55,17 +69,23 @@
                 <div class="variable-type">
                     <Icon :type="variableData.icon" />
                 </div>
-                <div v-bk-overflow-tips class="variable-name">{{ variableData.name }}</div>
+                <div
+                    v-bk-overflow-tips
+                    class="variable-name">
+                    {{ variableData.name }}
+                </div>
                 <div class="select-checked" />
             </div>
         </div>
-        <div v-if="isSelectNotEmpty" class="global-variable-value">
+        <div
+            v-if="isSelectNotEmpty"
+            class="global-variable-value">
             <template v-for="(variableData, key) in globalVariableMap">
                 <render-global-variable
                     v-if="selectVariableMap[key]"
                     :key="key"
-                    :value="selectVariableValueMap[key]"
                     :data="variableData"
+                    :value="selectVariableValueMap[key]"
                     @on-change="value => handleValueChange(key, value)"
                     @on-remove="handleRemoveSelect(key)" />
             </template>
@@ -73,12 +93,15 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskHostNodeModel from '@model/task-host-node';
-    import RenderGlobalVariable from './components/render-global-variable';
+
     import {
         genGlobalVariableKey,
     } from '../utils';
+
+    import RenderGlobalVariable from './components/render-global-variable';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

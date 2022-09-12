@@ -26,10 +26,15 @@
 -->
 
 <template>
-    <div class="render-file-source-name" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="render-file-source-name">
         <div @click="handleGoFileSource(fileSourceId)">
             {{ fileSourceAlias || '--' }}
-            <Icon type="edit" class="link-flag" svg />
+            <Icon
+                class="link-flag"
+                svg
+                type="edit" />
         </div>
     </div>
 </template>

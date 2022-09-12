@@ -2,9 +2,9 @@
     <div class="bk-ip-selector-views">
         <search-host
             v-if="isShowHostSearch"
-            :search-key="searchKey"
-            :data="lastHostList"
             class="view-host-serach"
+            :data="lastHostList"
+            :search-key="searchKey"
             @change="handleChange" />
         <div
             v-show="!searchKey"
@@ -29,19 +29,21 @@
 </template>
 <script setup>
     import {
-        ref,
-        watch,
-        shallowRef,
         computed,
+        ref,
+        shallowRef,
+        watch,
     } from 'vue';
-    import RenderHost from './host.vue';
-    import RenderNode from './node.vue';
+
     import {
         formatInput,
         formatOutput,
      } from '../utils';
-    import RenderDynamicGroup from './dynamic-group.vue';
+
     import SearchHost from './components/search-host.vue';
+    import RenderDynamicGroup from './dynamic-group.vue';
+    import RenderHost from './host.vue';
+    import RenderNode from './node.vue';
 
     const props = defineProps({
         value: {

@@ -1,18 +1,18 @@
 <template>
     <div class="ip-selector-manual-input">
         <resize-layout
-            flex-direction="left"
-            :default-width="385">
+            :default-width="385"
+            flex-direction="left">
             <div
                 ref="inputRef"
                 class="custom-input">
                 <bk-input
                     v-model="manualInputText"
-                    type="textarea"
+                    :native-attributes="{ spellcheck: false }"
                     placeholder="请输入 IP / IPv6 或主机名称，如（192.168.1.112 或 ebd4:3e1::e13），带云区域请使用冒号分隔，如：0:192.168.9.10
 多个可使用换行，空格或；，｜ ”分隔"
-                    :native-attributes="{ spellcheck: false }"
-                    :style="manualInputStyles" />
+                    :style="manualInputStyles"
+                    type="textarea" />
                 <div class="custom-input-parse-error">
                     <span v-if="errorInputStack.length > 0">
                         <span style="padding-right: 2px; font-weight: bold;">
@@ -42,17 +42,17 @@
                 </div>
                 <div class="custom-input-action">
                     <bk-button
-                        size="small"
-                        theme="primary"
+                        class="parse-btn"
                         :loading="isLoading"
                         outline
-                        class="parse-btn"
+                        size="small"
+                        theme="primary"
                         @click="handleParseManualInput">
                         点击解析
                     </bk-button>
                     <bk-button
-                        size="small"
                         class="clear-btn"
+                        size="small"
                         @click="handleClearManualInput">
                         清空
                     </bk-button>
@@ -60,8 +60,8 @@
             </div>
             <template #right>
                 <div
-                    class="host-table"
-                    v-bkloading="{ isLoading }">
+                    v-bkloading="{ isLoading }"
+                    class="host-table">
                     <bk-input
                         v-model="serachKey"
                         placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
@@ -106,25 +106,26 @@
     };
 </script>
 <script setup>
+    import _ from 'lodash';
     import {
+        computed,
         ref,
         shallowRef,
-        computed,
         watch,
     } from 'vue';
-    import _ from 'lodash';
-    import Manager from '../../../manager';
+
     import RenderHostTable from '../../../common/render-table/host/index.vue';
-    import useDialogSize from '../../../hooks/use-dialog-size';
     import useDebounceRef from '../../../hooks/use-debounced-ref';
+    import useDialogSize from '../../../hooks/use-dialog-size';
     import useLocalPagination from '../../../hooks/use-local-pagination';
+    import Manager from '../../../manager';
     import {
-        getPaginationDefault,
         encodeRegexp,
+        getPaginationDefault,
         makeMap,
     } from '../../../utils';
-    import PageCheck from '../table-page-check.vue';
     import ResizeLayout from '../resize-layout.vue';
+    import PageCheck from '../table-page-check.vue';
 
     const props = defineProps({
         lastHostList: {

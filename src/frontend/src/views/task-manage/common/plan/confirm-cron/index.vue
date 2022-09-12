@@ -26,40 +26,53 @@
 -->
 
 <template>
-    <div class="plan-manage-confirm-cron" :empty="isEmpty" :loading="isLoading">
+    <div
+        class="plan-manage-confirm-cron"
+        :empty="isEmpty"
+        :loading="isLoading">
         <div class="layout-left">
             <scroll-faker>
                 <div
-                    class="cron-job-tab"
                     v-for="cronJobItem in timeTaskList"
-                    :class="{ active: cronJobItem.id === currentTaskId }"
-                    :key="cronJobItem.id">
+                    :key="cronJobItem.id"
+                    class="cron-job-tab"
+                    :class="{ active: cronJobItem.id === currentTaskId }">
                     <auth-component
-                        :permission="cronJobItem.canManage"
                         auth="cron/view"
+                        :permission="cronJobItem.canManage"
                         :resource-id="cronJobItem.id">
-                        <div class="tab-container" @click="handleTabChange(cronJobItem.id)">
+                        <div
+                            class="tab-container"
+                            @click="handleTabChange(cronJobItem.id)">
                             <span class="job-name">{{ cronJobItem.name }}</span>
-                            <Icon v-if="cronJobItem.hasConfirm" type="check" class="job-check" />
+                            <Icon
+                                v-if="cronJobItem.hasConfirm"
+                                class="job-check"
+                                type="check" />
                             <div @click.stop="">
                                 <bk-switcher
-                                    :value="cronJobItem.enable"
                                     class="job-switch"
                                     size="small"
                                     theme="primary"
+                                    :value="cronJobItem.enable"
                                     @change="value => handleEnableChange(cronJobItem.id, value)" />
                             </div>
                         </div>
-                        <div slot="forbid" class="tab-container">
+                        <div
+                            slot="forbid"
+                            class="tab-container">
                             <span class="job-name">{{ cronJobItem.name }}</span>
-                            <Icon v-if="cronJobItem.hasConfirm" type="check" class="job-check" />
+                            <Icon
+                                v-if="cronJobItem.hasConfirm"
+                                class="job-check"
+                                type="check" />
                             <div @click.stop="">
                                 <bk-switcher
-                                    :value="cronJobItem.enable"
                                     class="job-switch"
-                                    size="small"
                                     disabled
+                                    size="small"
                                     theme="primary"
+                                    :value="cronJobItem.enable"
                                     @change="value => handleEnableChange(cronJobItem.id, value)" />
                             </div>
                         </div>
@@ -70,9 +83,9 @@
         <div class="layout-right">
             <scroll-faker>
                 <cron-detail
+                    :key="detailInfo.id"
                     :data="detailInfo"
                     :variable-list="templateVariableList"
-                    :key="detailInfo.id"
                     @on-change="handleVariableChange"
                     @on-update-confirm="handleUpdateConfirm" />
             </scroll-faker>
@@ -81,7 +94,9 @@
 </template>
 <script>
     import TimeTaskService from '@service/time-task';
+
     import ScrollFaker from '@components/scroll-faker';
+
     import CronDetail from './cron-detail';
 
     const generatorData = ({ id, name, enable }) => ({

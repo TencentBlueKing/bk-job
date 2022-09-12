@@ -67,7 +67,7 @@
                             class="columu-fixed">
                             <slot
                                 name="selection"
-                                v-bind:row="hostDataItem" />
+                                :row="hostDataItem" />
                         </td>
                         <template
                             v-for="(columnKey) in columnKeySortList">
@@ -92,12 +92,12 @@
                                             <template v-if="columnKey === 'ip'">
                                                 <slot
                                                     name="ip"
-                                                    v-bind:row="hostDataItem" />
+                                                    :row="hostDataItem" />
                                             </template>
                                             <template v-if="columnKey === 'ipv6'">
                                                 <slot
                                                     name="ipv6"
-                                                    v-bind:row="hostDataItem" />
+                                                    :row="hostDataItem" />
                                             </template>
                                         </div>
                                     </div>
@@ -107,7 +107,7 @@
                         <td v-if="slots.action">
                             <slot
                                 name="action"
-                                v-bind:row="hostDataItem" />
+                                :row="hostDataItem" />
                         </td>
                         <td
                             v-if="showSetting"
@@ -124,13 +124,15 @@
                 </slot>
             </div>
         </div>
-        <div class="table-fixed" :style="fixedStyles" />
+        <div
+            class="table-fixed"
+            :style="fixedStyles" />
         <bk-pagination
             v-if="isShowPagination"
-            small
-            show-total-count
-            :show-limit="false"
             align="right"
+            :show-limit="false"
+            show-total-count
+            small
             v-bind="pagination"
             @change="handlePaginationChange"
             @limit-change="handlePaginationLimitChange" />
@@ -139,22 +141,24 @@
 <script>
     import _ from 'lodash';
     import {
-        ref,
-        useSlots,
         computed,
-        shallowRef,
-        onMounted,
         onBeforeUnmount,
+        onMounted,
+        ref,
+        shallowRef,
+        useSlots,
     } from 'vue';
-    import Manager from '../../../manager';
+
     import useHostRenderKey from '../../../hooks/use-host-render-key';
+    import Manager from '../../../manager';
     import {
-        makeMap,
         getObjectValueByPath,
+        makeMap,
      } from '../../../utils';
     import AgentStatus from '../../agent-status.vue';
-    import ColumnSetting from './column-setting.vue';
+
     import tableColumnConfig from './column-config';
+    import ColumnSetting from './column-setting.vue';
     import RenderFilter from './render-filter.vue';
 
     const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorHostList');

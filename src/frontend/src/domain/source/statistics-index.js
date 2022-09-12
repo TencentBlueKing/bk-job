@@ -24,6 +24,7 @@
 */
 
 import Request from '@utils/request';
+
 import ModuleBase from './module-base';
 
 class StatisticsIndex extends ModuleBase {

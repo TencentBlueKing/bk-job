@@ -9,16 +9,16 @@
             </div>
             <bk-checkbox-group v-model="selectedList">
                 <vuedraggable
-                    :list="renderColumnList"
                     :animation="200"
-                    group="description"
+                    class="column-list"
                     :disabled="false"
                     ghost-class="ghost"
-                    class="column-list">
+                    group="description"
+                    :list="renderColumnList">
                     <div
                         v-for="item in renderColumnList"
-                        class="column-item"
-                        :key="item.name">
+                        :key="item.name"
+                        class="column-item">
                         <span
                             v-if="item.key === 'ip'"
                             v-bk-tooltips="{
@@ -26,8 +26,8 @@
                                 disabled: selectedList.includes('ipv6'),
                             }">
                             <bk-checkbox
-                                :value="item.key"
-                                :disabled="!selectedList.includes('ipv6')">
+                                :disabled="!selectedList.includes('ipv6')"
+                                :value="item.key">
                                 {{ item.name }}
                             </bk-checkbox>
                         </span>
@@ -38,8 +38,8 @@
                                 disabled: selectedList.includes('ip'),
                             }">
                             <bk-checkbox
-                                :value="item.key"
-                                :disabled="!selectedList.includes('ip')">
+                                :disabled="!selectedList.includes('ip')"
+                                :value="item.key">
                                 {{ item.name }}
                             </bk-checkbox>
                         </span>
@@ -56,9 +56,9 @@
             </bk-checkbox-group>
             <div class="setting-footer">
                 <bk-button
+                    style="margin-right: 8px;"
                     theme="primary"
-                    @click="handleSubmitSetting"
-                    style="margin-right: 8px;">
+                    @click="handleSubmitSetting">
                     确定
                 </bk-button>
                 <bk-button @click="handleHideSetting">
@@ -69,13 +69,14 @@
     </div>
 </template>
 <script setup>
+    import tippy from 'tippy.js';
     import {
+        onMounted,
         ref,
         shallowRef,
-        onMounted,
     } from 'vue';
-    import tippy from 'tippy.js';
     import vuedraggable from 'vuedraggable';
+
     import columnConfig from './column-config';
 
     const props = defineProps({

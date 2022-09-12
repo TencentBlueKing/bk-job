@@ -29,7 +29,9 @@
     <div class="crontab-list-empty-page">
         <div class="page-header">
             <div class="header-wraper">
-                <div class="page-title">{{ $t('当前业务暂无定时任务，请先创建') }}</div>
+                <div class="page-title">
+                    {{ $t('当前业务暂无定时任务，请先创建') }}
+                </div>
                 <div class="page-desc">
                     {{ $t('采用类Unix Crontab的配置表达式风格，降低使用门槛更快上手！提供了执行前/后通知提醒、执行记录等辅助功能，让用户可以放心地把定期执行的任务交给Job！') }}
                 </div>
@@ -46,20 +48,28 @@
             <div class="page-container">
                 <div class="feature-item">
                     <div class="feature-pic">
-                        <img style="width: 220px; margin: 24px 25px 0;" src="/static/images/guide/cron-plan.svg">
+                        <img
+                            src="/static/images/guide/cron-plan.svg"
+                            style="width: 220px; margin: 24px 25px 0;">
                     </div>
                     <div class="feature-box">
-                        <div class="feature-title">{{ $t('选择需要定期执行的作业') }}</div>
+                        <div class="feature-title">
+                            {{ $t('选择需要定期执行的作业') }}
+                        </div>
                         <div>{{ $t('定时任务关联的是“作业执行方案”，且支持在配置时按需传入定时场景的全局变量值；如果关联的作业执行方案有更新，也会在相关的操作流程中给予提醒和确认，确保不会受到影响。') }} </div>
                     </div>
                 </div>
                 <div class="divide-line" />
                 <div class="feature-item">
                     <div class="feature-pic">
-                        <img style="width: 246px; margin: 21px 8px 0 16px;" src="/static/images/guide/cron-clock.svg">
+                        <img
+                            src="/static/images/guide/cron-clock.svg"
+                            style="width: 246px; margin: 21px 8px 0 16px;">
                     </div>
                     <div class="feature-box">
-                        <div class="feature-title">{{ $t('设置定时模式和提醒机制') }}</div>
+                        <div class="feature-title">
+                            {{ $t('设置定时模式和提醒机制') }}
+                        </div>
                         <div>{{ $t('支持“周期性”和“一次性”的定期执行模式， “周期性”采用类Linux Crontab表达式的配置方式，支持设置“结束时间”；“一次性”模式可以通过配置执行前的通知提醒，避免时间间隔周期长，计划有变动。') }}</div>
                     </div>
                 </div>

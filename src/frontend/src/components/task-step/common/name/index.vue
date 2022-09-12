@@ -26,18 +26,23 @@
 -->
 
 <template>
-    <jb-form-item :label="label" required :property="field" :rules="rules">
+    <jb-form-item
+        :label="label"
+        :property="field"
+        required
+        :rules="rules">
         <jb-input
             class="form-item-content"
+            :maxlength="60"
             :placeholder="placeholder"
-            @change="handleChange"
             :value="formData[field]"
-            :maxlength="60" />
+            @change="handleChange" />
     </jb-form-item>
 </template>
 <script>
-    import I18n from '@/i18n';
     import JbInput from '@components/jb-input';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

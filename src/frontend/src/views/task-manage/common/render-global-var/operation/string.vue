@@ -26,55 +26,63 @@
 -->
 
 <template>
-    <jb-form :model="formData" :rules="rules" ref="varStringForm">
-        <jb-form-item :label="$t('template.变量名称')" required property="name">
+    <jb-form
+        ref="varStringForm"
+        :model="formData"
+        :rules="rules">
+        <jb-form-item
+            :label="$t('template.变量名称')"
+            property="name"
+            required>
             <jb-input
                 v-model="formData.name"
-                :placeholder="$t('template.变量名仅支持大小写英文字母或下划线 [必填]')"
-                :maxlength="30" />
+                :maxlength="30"
+                :placeholder="$t('template.变量名仅支持大小写英文字母或下划线 [必填]')" />
         </jb-form-item>
         <jb-form-item
             ref="defaultValue"
-            :label="$t('template.初始值')"
             :desc="$t('template.仅作用于创建执行方案时的初始变量值，后续更改不会同步到执行方案')"
+            :label="$t('template.初始值')"
             property="defaultValue">
             <bk-input
+                v-model="formData.defaultValue"
                 class="var-default-value"
-                :placeholder="$t('template.请输入变量的初始值 [可选]')"
-                v-model="formData.defaultValue" />
+                :placeholder="$t('template.请输入变量的初始值 [可选]')" />
         </jb-form-item>
         <jb-form-item :label="$t('template.变量描述')">
             <bk-input
                 v-model="formData.description"
-                type="textarea"
+                maxlength="100"
                 :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息 [可选]')"
-                maxlength="100" />
+                type="textarea" />
         </jb-form-item>
         <jb-form-item ext-cls="changeable-cls">
             <bk-checkbox
                 v-model="formData.changeable"
-                :true-value="1"
+                v-bk-tooltips.right="$t('template.变量的值在执行中可变')"
                 :false-value="0"
-                v-bk-tooltips.right="$t('template.变量的值在执行中可变')">
+                :true-value="1">
                 {{ $t('template.赋值可变') }}
             </bk-checkbox>
         </jb-form-item>
         <jb-form-item style="margin-bottom: 0;">
             <bk-checkbox
                 v-model="formData.required"
-                :true-value="1"
-                :false-value="0">
+                :false-value="0"
+                :true-value="1">
                 {{ $t('template.执行时必填') }}
             </bk-checkbox>
         </jb-form-item>
     </jb-form>
 </template>
 <script>
-    import I18n from '@/i18n';
     import {
         globalVariableNameRule,
     } from '@utils/validator';
+
     import JbInput from '@components/jb-input';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'VarString',

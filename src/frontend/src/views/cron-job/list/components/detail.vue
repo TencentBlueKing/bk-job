@@ -27,9 +27,9 @@
 
 <template>
     <detail-layout
-        mode="see"
+        v-bkloading="{ isLoading }"
         class="detail-layout-wrapper"
-        v-bkloading="{ isLoading }">
+        mode="see">
         <detail-item :label="$t('cron.任务名称：')">
             {{ data.name }}
         </detail-item>
@@ -38,12 +38,14 @@
         </detail-item>
         <detail-item :label="$t('cron.执行时间：')">
             <span
-                class="tips"
-                v-bk-tooltips.right="data.executeTimeTips">
+                v-bk-tooltips.right="data.executeTimeTips"
+                class="tips">
                 {{ data.policeText }}
             </span>
         </detail-item>
-        <detail-item v-if="data.endTime" :label="$t('cron.结束时间：')">
+        <detail-item
+            v-if="data.endTime"
+            :label="$t('cron.结束时间：')">
             {{ data.endTime }}
         </detail-item>
         <detail-item
@@ -55,23 +57,37 @@
             v-if="renderRoleList.length > 0 || data.notifyUser.userList.length > 0"
             :label="$t('cron.通知对象：')">
             <div class="approval-wraper">
-                <div v-for="role in renderRoleList" :key="role" class="item">
-                    <Icon type="user-group-gray" class="approval-flag" />
+                <div
+                    v-for="role in renderRoleList"
+                    :key="role"
+                    class="item">
+                    <Icon
+                        class="approval-flag"
+                        type="user-group-gray" />
                     {{ role }}
                 </div>
-                <div v-for="user in data.notifyUser.userList" :key="user" class="item">
-                    <Icon type="user" class="approval-flag" />
+                <div
+                    v-for="user in data.notifyUser.userList"
+                    :key="user"
+                    class="item">
+                    <Icon
+                        class="approval-flag"
+                        type="user" />
                     {{ user }}
                 </div>
             </div>
         </detail-item>
-        <detail-item v-if="renderChannel" :label="$t('cron.通知方式：')">
+        <detail-item
+            v-if="renderChannel"
+            :label="$t('cron.通知方式：')">
             {{ renderChannel }}
         </detail-item>
         <detail-item :label="$t('cron.执行方案：')">
             {{ data.taskPlanName }}
         </detail-item>
-        <render-strategy left="20" v-bkloading="{ isVarLoading }">
+        <render-strategy
+            v-bkloading="{ isVarLoading }"
+            left="20">
             <template v-if="!isVarLoading">
                 <span
                     v-if="currentPlanVariableList.length < 1"
@@ -81,24 +97,26 @@
                 <global-variable-layout v-else>
                     <global-variable
                         v-for="variable in currentPlanVariableList"
-                        value-width="100%"
-                        :type="variable.type"
-                        :layout="variable.type === 3 ? 'vertical' : ''"
                         :key="variable.id + variable.name"
-                        :data="variable" />
+                        :data="variable"
+                        :layout="variable.type === 3 ? 'vertical' : ''"
+                        :type="variable.type"
+                        value-width="100%" />
                 </global-variable-layout>
             </template>
         </render-strategy>
     </detail-layout>
 </template>
 <script>
-    import QueryGlobalSettingService from '@service/query-global-setting';
     import NotifyService from '@service/notify';
+    import QueryGlobalSettingService from '@service/query-global-setting';
     import TaskPlanService from '@service/task-plan';
+
     import DetailLayout from '@components/detail-layout';
     import DetailItem from '@components/detail-layout/item';
     import GlobalVariableLayout from '@components/global-variable/layout';
     import GlobalVariable from '@components/global-variable/view';
+
     import RenderStrategy from './render-strategy';
 
     export default {

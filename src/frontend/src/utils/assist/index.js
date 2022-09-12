@@ -23,8 +23,8 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import { messageSuccess } from '@/common/bkmagic';
+import I18n from '@/i18n';
 
 export * from './permission';
 export * from './leave-confirm';

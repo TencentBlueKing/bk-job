@@ -8,9 +8,9 @@
 </template>
 <script setup>
     import {
-        inject,
         computed,
         getCurrentInstance,
+        inject,
         onBeforeUnmount,
     } from 'vue';
 

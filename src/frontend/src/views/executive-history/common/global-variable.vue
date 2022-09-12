@@ -26,27 +26,33 @@
 -->
 
 <template>
-    <div class="execute-global-variable" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="execute-global-variable">
         <template v-if="!isLoading">
             <global-variable-layout v-if="taskVariables.length > 0">
                 <global-variable
                     v-for="variable in taskVariables"
-                    ref="variable"
-                    :type="variable.type"
                     :key="variable.id"
+                    ref="variable"
+                    :data="variable"
                     :layout="variable.type === 3 ? 'vertical' : ''"
-                    :data="variable" />
+                    :type="variable.type" />
             </global-variable-layout>
-            <empty v-else class="empty" />
+            <empty
+                v-else
+                class="empty" />
         </template>
     </div>
 </template>
 <script>
     import TaskExecuteService from '@service/task-execute';
+
     import TaskHostNodeModel from '@model/task-host-node';
+
+    import Empty from '@components/empty';
     import GlobalVariableLayout from '@components/global-variable/layout';
     import GlobalVariable from '@components/global-variable/view';
-    import Empty from '@components/empty';
 
     export default {
         name: '',

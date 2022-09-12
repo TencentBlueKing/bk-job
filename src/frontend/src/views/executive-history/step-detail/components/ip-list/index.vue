@@ -26,20 +26,24 @@
 -->
 
 <template>
-    <div class="step-execute-host-list" :style="styles">
+    <div
+        class="step-execute-host-list"
+        :style="styles">
         <list-head
             class="ip-list-head"
             :columns="columnList"
             :show-columns="allShowColumn"
-            @on-sort="handleSort"
             @on-copy="handleCopyIP"
-            @on-show-setting="handleShowSetting" />
-        <div ref="list" class="ip-list-body">
+            @on-show-setting="handleShowSetting"
+            @on-sort="handleSort" />
+        <div
+            ref="list"
+            class="ip-list-body">
             <scroll-faker @on-scroll="handleScroll">
                 <list-body
                     :columns="columnList"
-                    :show-columns="allShowColumn"
                     :data="list"
+                    :show-columns="allShowColumn"
                     @on-row-select="handleSelect" />
                 <div
                     v-if="hasMore"
@@ -51,21 +55,24 @@
                     <div>{{ $t('history.加载中') }}</div>
                 </div>
                 <template v-if="list.length < 1 && !listLoading">
-                    <Empty v-if="!searchValue" style="height: 100%;" />
-                    <Empty v-else type="search" style="height: 100%;">
+                    <Empty
+                        v-if="!searchValue"
+                        style="height: 100%;" />
+                    <Empty
+                        v-else
+                        style="height: 100%;"
+                        type="search">
                         <div style="font-size: 14px; color: #63656e;">
                             {{ $t('搜索结果为空') }}
                         </div>
                         <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
                             <span>{{ $t('可以尝试调整关键词') }}</span>
-                            <template>
-                                <span>{{ $t('或') }}</span>
-                                <bk-button
-                                    text
-                                    @click="handleClearSearch">
-                                    {{ $t('清空搜索条件') }}
-                                </bk-button>
-                            </template>
+                            <span>{{ $t('或') }}</span>
+                            <bk-button
+                                text
+                                @click="handleClearSearch">
+                                {{ $t('清空搜索条件') }}
+                            </bk-button>
                         </div>
                     </Empty>
                 </template>
@@ -75,19 +82,21 @@
             v-show="isSetting"
             class="list-column-select">
             <div class="select-body">
-                <div class="title">{{ $t('history.字段显示设置') }}</div>
+                <div class="title">
+                    {{ $t('history.字段显示设置') }}
+                </div>
                 <bk-checkbox
-                    @click.native="handleToggleAll"
+                    :checked="isAllColumn"
                     :indeterminate="isIndeterminate"
-                    :checked="isAllColumn">
+                    @click.native="handleToggleAll">
                     {{ $t('history.全选') }}
                 </bk-checkbox>
                 <bk-checkbox-group v-model="tempAllShowColumn">
                     <bk-checkbox
-                        class="select-column"
                         v-for="item in columnList"
                         :key="item.name"
                         :checked="item.checked"
+                        class="select-column"
                         :disabled="item.disabled"
                         :value="item.name">
                         {{ item.label }}
@@ -109,13 +118,17 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import {
         getOffset,
     } from '@utils/assist';
+
     import Empty from '@components/empty';
-    import ListHead from './list-head';
+
     import ListBody from './list-body';
+    import ListHead from './list-head';
+
+    import I18n from '@/i18n';
 
     const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN';
     const LIST_ROW_HEIGHT = 40; // 每列高度
