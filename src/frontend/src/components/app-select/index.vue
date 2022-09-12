@@ -26,51 +26,62 @@
 -->
 
 <template>
-    <div ref="app" class="job-app-select" :class="{ focus: isFocus }">
+    <div
+        ref="app"
+        class="job-app-select"
+        :class="{ focus: isFocus }">
         <div>
-            <div v-if="showIcon" class="app-icon">{{ icon }}</div>
+            <div
+                v-if="showIcon"
+                class="app-icon">
+                {{ icon }}
+            </div>
             <template v-else>
                 <input
                     class="app-name"
                     readonly
                     :value="`${scopeName} (${scopeId})`"
                     @keydown.down.prevent="handleStep('next')"
-                    @keydown.up.prevent="handleStep('prev')"
-                    @keydown.enter.prevent="handleSelect">
+                    @keydown.enter.prevent="handleSelect"
+                    @keydown.up.prevent="handleStep('prev')">
                 <i class="bk-icon icon-angle-down panel-arrow" />
             </template>
         </div>
         <div style="display: none;">
-            <div ref="panel" class="app-panel">
+            <div
+                ref="panel"
+                class="app-panel">
                 <div class="app-search">
                     <input
                         ref="search"
                         v-model="query"
-                        spellcheck="false"
                         :placeholder="$t('关键字')"
+                        spellcheck="false"
+                        @input="handleInputChange"
                         @keydown.down.prevent="handleStep('next')"
-                        @keydown.up.prevent="handleStep('prev')"
                         @keydown.enter.prevent="handleSelect"
-                        @input="handleInputChange">
+                        @keydown.up.prevent="handleStep('prev')">
                     <i class="bk-icon icon-search app-search-flag" />
                 </div>
-                <div ref="list" class="app-list">
+                <div
+                    ref="list"
+                    class="app-list">
                     <auth-component
                         v-for="(app, index) in renderList"
+                        :key="app.id"
+                        auth="biz/access_business"
                         class="app-item"
                         :class="{
                             active: app.scopeType === scopeType && app.scopeId === scopeId,
                             hover: index === activeIndex,
                         }"
-                        :key="app.id"
                         :permission="app.hasPermission"
                         :resource-id="app.scopeId"
-                        :scope-type="app.scopeType"
                         :scope-id="app.scopeId"
-                        auth="biz/access_business">
+                        :scope-type="app.scopeType">
                         <div
-                            @mouseenter.self="handleMouseenter(index)"
-                            @click="handleAppChange(app)">
+                            @click="handleAppChange(app)"
+                            @mouseenter.self="handleMouseenter(index)">
                             <div class="app-wrapper">
                                 <span class="app-name">{{ app.name }}</span>
                                 <span class="app-id">({{ app.scopeId }})</span>
@@ -79,18 +90,20 @@
                                 <Icon
                                     v-if="app.favor"
                                     class="favor"
-                                    type="collection"
                                     svg
+                                    type="collection"
                                     @click.stop="handleFavor(app.scopeType, app.scopeId, false)" />
                                 <Icon
                                     v-else
                                     class="unfavor"
-                                    type="star-line"
                                     svg
+                                    type="star-line"
                                     @click.stop="handleFavor(app.scopeType, app.scopeId, true)" />
                             </div>
                         </div>
-                        <div slot="forbid" class="app-wrapper">
+                        <div
+                            slot="forbid"
+                            class="app-wrapper">
                             <span class="app-name">{{ app.name }}</span>
                             <span class="app-id">(#{{ app.scopeId }})</span>
                         </div>
@@ -102,8 +115,8 @@
                     </div>
                 </div>
                 <div
-                    class="app-create"
                     key="create"
+                    class="app-create"
                     @click="handleGoCreateApp">
                     <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建业务') }}
                 </div>
@@ -112,11 +125,13 @@
     </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
     import pinyin from 'bk-magic-vue/lib/utils/pinyin';
-    import QueryGlobalSettingService from '@service/query-global-setting';
+    import _ from 'lodash';
+
     import AppManageService from '@service/app-manage';
+    import QueryGlobalSettingService from '@service/query-global-setting';
+
+    import I18n from '@/i18n';
     import {
         encodeRegexp,
         prettyDateTimeFormat,

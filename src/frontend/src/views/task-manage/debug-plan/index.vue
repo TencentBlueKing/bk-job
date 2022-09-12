@@ -40,10 +40,12 @@
                     </div>
                     <render-global-var
                         :list="variableList"
-                        :select-value="selectedVariable"
-                        mode="editOfPlan" />
+                        mode="editOfPlan"
+                        :select-value="selectedVariable" />
                 </detail-item>
-                <detail-item label="" class="task-step-item">
+                <detail-item
+                    class="task-step-item"
+                    label="">
                     <div class="task-step-selection">
                         <div
                             class="detail-item-title"
@@ -68,17 +70,17 @@
                     </div>
                     <render-task-step
                         :list="taskStepList"
-                        :select-value="formData.enableSteps"
                         mode="select"
+                        :select-value="formData.enableSteps"
                         @on-select="handleSelectStep" />
                 </detail-item>
             </detail-layout>
             <template #action>
                 <div class="action-wraper">
                     <bk-button
-                        theme="primary"
                         class="w120 mr10"
                         :disabled="!enableStepsNotEmpty"
+                        theme="primary"
                         @click="handleSubmitExec">
                         {{ $t('template.去执行') }}
                     </bk-button>
@@ -88,8 +90,8 @@
                         {{ $t('template.取消') }}
                     </bk-button>
                     <bk-button
-                        :disabled="!enableStepsNotEmpty"
                         class="mr10"
+                        :disabled="!enableStepsNotEmpty"
                         @click="handleSavePlan">
                         {{ $t('template.另存为') }}
                     </bk-button>
@@ -100,21 +102,21 @@
         <jb-dialog
             v-model="isShowSave"
             class="save-debug-plan-dialog"
-            :title="$t('template.另存为执行方案')"
-            header-position="left"
-            render-directive="if"
-            :mask-close="false"
             :esc-close="false"
+            header-position="left"
+            :mask-close="false"
+            render-directive="if"
+            :title="$t('template.另存为执行方案')"
             :width="480">
             <jb-form
                 ref="editPlanForm"
-                :model="planFormData"
                 form-type="vertical"
+                :model="planFormData"
                 :rules="rules">
                 <jb-form-item
                     :label="$t('template.执行方案名称')"
-                    required
-                    property="name">
+                    property="name"
+                    required>
                     <bk-input
                         v-model="planFormData.name"
                         :native-attributes="{ autofocus: 'autofocus' }"
@@ -126,9 +128,9 @@
                 slot="footer"
                 class="setting-password-footer">
                 <bk-button
-                    theme="primary"
                     class="mr10"
                     :loading="isPlanCreating"
+                    theme="primary"
                     @click="handleSubmitCreatePlan">
                     {{ $t('template.确定') }}
                 </bk-button>
@@ -141,20 +143,24 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
     import ExecPlanService from '@service/task-plan';
-    import BackTop from '@components/back-top';
-    import DetailLayout from '@components/detail-layout';
-    import DetailItem from '@components/detail-layout/item';
-    import {
-        planNameRule,
-    } from '@utils/validator';
+
     import {
         findUsedVariable,
     } from '@utils/assist';
+    import {
+        planNameRule,
+    } from '@utils/validator';
+
+    import BackTop from '@components/back-top';
+    import DetailLayout from '@components/detail-layout';
+    import DetailItem from '@components/detail-layout/item';
+
     import RenderGlobalVar from '../common/render-global-var';
     import RenderTaskStep from '../common/render-task-step';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         id: 0,

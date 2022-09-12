@@ -26,31 +26,35 @@
 -->
 
 <template>
-    <div class="step-view-global-variable" @click="handlerView">
-        <Icon class="type-flag" type="audit" />
+    <div
+        class="step-view-global-variable"
+        @click="handlerView">
+        <Icon
+            class="type-flag"
+            type="audit" />
         <jb-dialog
             v-model="isShowDetail"
-            :title="title"
-            :width="1020"
+            class="host-variable-detail-dialog"
             :ok-text="$t('template.关闭')"
-            class="host-variable-detail-dialog">
+            :title="title"
+            :width="1020">
             <template #header>
                 <div>{{ title }}</div>
                 <div class="display-diff">
                     <template v-if="diffEnable">
                         <bk-switcher
-                            :value="isShowDiff"
-                            theme="primary"
                             size="large"
+                            theme="primary"
+                            :value="isShowDiff"
                             @change="handleToggleDiff" />
                     </template>
                     <template v-else>
                         <bk-switcher
-                            :value="false"
                             v-bk-tooltips="$t('template.无差异')"
                             disabled
+                            size="large"
                             theme="primary"
-                            size="large" />
+                            :value="false" />
                     </template>
                     {{ $t('template.显示差异') }}
                 </div>
@@ -64,8 +68,8 @@
                         :host-diff="hostDiff"
                         :group-diff="groupDiff" /> -->
                     <ip-selector
-                        show-view
                         readonly
+                        show-view
                         :value="hostNodeInfo" />
                 </scroll-faker>
             </div>
@@ -74,12 +78,16 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskHostNodeModel from '@model/task-host-node';
+
     import {
         findParent,
     } from '@utils/vdom';
+
     import ScrollFaker from '@components/scroll-faker';
+
+    import I18n from '@/i18n';
     // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {

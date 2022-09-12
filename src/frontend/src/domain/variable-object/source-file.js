@@ -24,9 +24,12 @@
 */
 
 import _ from 'lodash';
+
 import TaskHostNodeModel from '@model/task-host-node';
-import I18n from '@/i18n';
+
 import { bytePretty } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 const AGENT_STATUS_NORMAL = 1; // 正常
 const AGENT_STATUS_ABNORMAL = 0; // 异常

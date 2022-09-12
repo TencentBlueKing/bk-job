@@ -26,28 +26,35 @@
 -->
 
 <template>
-    <div class="export-job" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="export-job">
         <div class="steps">
-            <bk-steps :steps="steps" :cur-step.sync="curStep" />
+            <bk-steps
+                :cur-step.sync="curStep"
+                :steps="steps" />
         </div>
         <div class="page-wraper">
             <scroll-faker>
                 <component
                     :is="pageCom"
-                    @on-change="handleStepChange"
-                    @on-cancle="handleCancel" />
+                    @on-cancle="handleCancel"
+                    @on-change="handleStepChange" />
             </scroll-faker>
         </div>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import BackupService from '@service/backup';
+
     import { taskExport } from '@utils/cache-helper';
+
     import Step1 from './components/step1';
     import Step2 from './components/step2';
     import Step3 from './components/step3';
     import Step4 from './components/step4';
+
+    import I18n from '@/i18n';
     
     export default {
         name: 'ExportJob',

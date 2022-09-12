@@ -35,26 +35,49 @@
                         <span class="split-item template">{{ $t('setting.模板') }}</span>
                     </div>
                 </th>
-                <th v-for="(channel, index) in channleList" :key="index" @click.stop="handleToggleChannel(channel.code)"
-                    :class="['channel-item', { 'un-selected': !channelCode.includes(channel.code) }]">
+                <th
+                    v-for="(channel, index) in channleList"
+                    :key="index"
+                    :class="['channel-item', { 'un-selected': !channelCode.includes(channel.code) }]"
+                    @click.stop="handleToggleChannel(channel.code)">
                     <div class="channel-wraper">
-                        <img class="channel-icon" :src="channel.icon" alt="">
-                        <p class="channel-name">{{ channel.name }}</p>
+                        <img
+                            alt=""
+                            class="channel-icon"
+                            :src="channel.icon">
+                        <p class="channel-name">
+                            {{ channel.name }}
+                        </p>
                     </div>
-                    <bk-checkbox class="channel-check" :checked="channelCode.includes(channel.code)" />
+                    <bk-checkbox
+                        :checked="channelCode.includes(channel.code)"
+                        class="channel-check" />
                 </th>
             </tr>
         </thead>
         <tbody>
-            <tr v-for="(template, index) in templateList" :key="index">
+            <tr
+                v-for="(template, index) in templateList"
+                :key="index">
                 <td>{{ template.name }}</td>
-                <td v-for="(channl, colIndex) in channleList" :key="colIndex"
+                <td
+                    v-for="(channl, colIndex) in channleList"
+                    :key="colIndex"
                     :class="{ 'un-selected': !channelCode.includes(channl.code) }">
                     <div class="setting-detail">
-                        <Icon v-if="getConfigStatus(channl.templateInfoList, template.code)" type="check" class="setting-flag" />
-                        <span v-else class="un-set-up">{{ $t('setting.未设置') }}</span>
-                        <span class="edit-btn" @click.stop="handleEditTemplate(channl.code, template.code)">
-                            <Icon type="edit-2" class="edit-icon" />{{ $t('setting.编辑模板') }}
+                        <Icon
+                            v-if="getConfigStatus(channl.templateInfoList, template.code)"
+                            class="setting-flag"
+                            type="check" />
+                        <span
+                            v-else
+                            class="un-set-up">{{ $t('setting.未设置') }}</span>
+                        <span
+                            class="edit-btn"
+                            @click.stop="handleEditTemplate(channl.code, template.code)">
+                            <Icon
+                                class="edit-icon"
+                                type="edit-2" />{{ $t('setting.编辑模板') }}
                         </span>
                     </div>
                 </td>

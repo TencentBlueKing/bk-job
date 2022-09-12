@@ -1,36 +1,36 @@
 <template>
     <bk-dialog
-        :value="isShow"
-        :width="dialogWidth"
+        class="bk-ip-selector-dialog"
         :close-icon="false"
         :draggable="false"
-        class="bk-ip-selector-dialog">
+        :value="isShow"
+        :width="dialogWidth">
         <resize-layout
-            flex-direction="right"
-            :default-width="320">
+            :default-width="320"
+            flex-direction="right">
             <div v-bkloading="{ isLoading: isTopoDataLoading } ">
                 <panel-tab
                     :is-show="isShow"
-                    :value="panelType"
                     :unique-type="panelTableUniqueType"
+                    :value="panelType"
                     @change="handleTypeChange" />
                 <div :style="contentStyles">
                     <panel-content
                         v-if="!isTopoDataLoading"
-                        :topo-tree-data="topoTreeData"
-                        :type="panelType"
+                        :last-dynamic-group-list="lastDynamicGroupList"
                         :last-host-list="lastHostList"
                         :last-node-list="lastNodeList"
-                        :last-dynamic-group-list="lastDynamicGroupList"
+                        :topo-tree-data="topoTreeData"
+                        :type="panelType"
                         @change="handleChange" />
                 </div>
             </div>
             <template slot="right">
                 <result-preview
                     v-if="isShow"
+                    :dynamic-group-list="lastDynamicGroupList"
                     :host-list="lastHostList"
                     :node-list="lastNodeList"
-                    :dynamic-group-list="lastDynamicGroupList"
                     @change="handleChange"
                     @clear="handleClearChange" />
             </template>
@@ -52,21 +52,23 @@
 <script setup>
     import _ from 'lodash';
     import {
+        computed,
         ref,
         shallowRef,
-        computed,
         watch,
     } from 'vue';
+
+    import useDialogSize from '../hooks/use-dialog-size';
     import Manager from '../manager';
     import {
-        transformTopoTree,
         formatInput,
         formatOutput,
+        transformTopoTree,
     } from '../utils/index';
-    import useDialogSize from '../hooks/use-dialog-size';
-    import ResizeLayout from './components/resize-layout.vue';
-    import PanelTab from './components/panel-tab/index.vue';
+
     import PanelContent from './components/panel-content/index.vue';
+    import PanelTab from './components/panel-tab/index.vue';
+    import ResizeLayout from './components/resize-layout.vue';
     import ResultPreview from './components/result-preview/index.vue';
 
     const props = defineProps({

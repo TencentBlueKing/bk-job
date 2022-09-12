@@ -42,52 +42,52 @@
                         searchable>
                         <bk-option
                             v-for="option in appList"
-                            :key="option.localKey"
                             :id="option.localKey"
+                            :key="option.localKey"
                             :name="option.name" />
                     </bk-select>
                 </div>
             </jb-form-item>
             <jb-form-item
                 :label="$t('whiteIP.云区域')"
-                required
-                property="cloudAreaId">
+                property="cloudAreaId"
+                required>
                 <bk-select
+                    v-model="formData.cloudAreaId"
                     class="input"
                     :clearable="false"
-                    v-model="formData.cloudAreaId"
                     searchable>
                     <bk-option
                         v-for="option in cloudAreaList"
-                        :key="option.id"
                         :id="option.id"
+                        :key="option.id"
                         :name="option.name" />
                 </bk-select>
             </jb-form-item>
             <jb-form-item
                 label="IP"
-                required
-                property="ipStr">
+                property="ipStr"
+                required>
                 <bk-input
-                    :placeholder="$t('whiteIP.输入IP，以“回车”分隔')"
+                    v-model="formData.ipStr"
                     class="input"
-                    type="textarea"
-                    v-model="formData.ipStr" />
+                    :placeholder="$t('whiteIP.输入IP，以“回车”分隔')"
+                    type="textarea" />
             </jb-form-item>
             <jb-form-item
                 :label="$t('whiteIP.备注')"
-                required
-                property="remark">
+                property="remark"
+                required>
                 <bk-input
                     v-model="formData.remark"
                     class="input"
-                    type="textarea"
-                    :maxlength="100" />
+                    :maxlength="100"
+                    type="textarea" />
             </jb-form-item>
             <jb-form-item
                 :label="$t('whiteIP.生效范围.label')"
-                required
                 property="actionScopeIdList"
+                required
                 style="margin-bottom: 0;">
                 <bk-checkbox-group
                     v-model="formData.actionScopeIdList"
@@ -95,8 +95,8 @@
                     <bk-checkbox
                         v-for="(item, index) in actionScope"
                         :key="item.id"
-                        :value="item.id"
-                        :class="{ 'scope-checkbox': index !== actionScope.length - 1 }">
+                        :class="{ 'scope-checkbox': index !== actionScope.length - 1 }"
+                        :value="item.id">
                         {{ item.name }}
                     </bk-checkbox>
                 </bk-checkbox-group>
@@ -105,9 +105,10 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import WhiteIpService from '@service/white-ip';
     import AppManageService from '@service/app-manage';
+    import WhiteIpService from '@service/white-ip';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         id: 0,

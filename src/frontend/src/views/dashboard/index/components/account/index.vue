@@ -26,48 +26,68 @@
 -->
 
 <template>
-    <div class="account-dashboard" v-bkloading="{ isLoading, opacity: 0.8 }">
+    <div
+        v-bkloading="{ isLoading, opacity: 0.8 }"
+        class="account-dashboard">
         <card-layout :title="$t('dashboard.Linux 账号数')">
             <div class="item-content">
-                <div class="nums">{{ data.LINUX }}</div>
+                <div class="nums">
+                    {{ data.LINUX }}
+                </div>
                 <div
                     ref="LINUX"
-                    class="dashboard"
                     v-bk-tooltips.right="calcPercentage(data.LINUX)"
+                    class="dashboard"
                     style="width: 24px; height: 24px;" />
             </div>
-            <Icon type="linux" class="type-flag" style="font-size: 37px;" />
+            <Icon
+                class="type-flag"
+                style="font-size: 37px;"
+                type="linux" />
         </card-layout>
         <card-layout :title="$t('dashboard.Windows 账号数')">
             <div class="item-content">
-                <div class="nums">{{ data.WINDOWS | formatNumber }}</div>
+                <div class="nums">
+                    {{ data.WINDOWS | formatNumber }}
+                </div>
                 <div
                     ref="WINDOWS"
-                    class="dashboard"
                     v-bk-tooltips.right="calcPercentage(data.WINDOWS)"
+                    class="dashboard"
                     style="width: 24px; height: 24px;" />
             </div>
-            <Icon type="windows" class="type-flag" style="font-size: 36px;" />
+            <Icon
+                class="type-flag"
+                style="font-size: 36px;"
+                type="windows" />
         </card-layout>
         <card-layout :title="$t('dashboard.DB 账号数')">
             <div class="item-content">
-                <div class="nums">{{ data.DB | formatNumber }}</div>
+                <div class="nums">
+                    {{ data.DB | formatNumber }}
+                </div>
                 <div
                     ref="DB"
-                    class="dashboard"
                     v-bk-tooltips.right="calcPercentage(data.DB)"
+                    class="dashboard"
                     style="width: 24px; height: 24px;" />
             </div>
-            <Icon type="db" class="type-flag" style="font-size: 27px;" />
+            <Icon
+                class="type-flag"
+                style="font-size: 27px;"
+                type="db" />
         </card-layout>
     </div>
 </template>
 <script>
     import echarts from 'lib/echarts.min.js';
+
     import StatisticsService from '@service/statistics';
+
     import {
         formatNumber,
     } from '@utils/assist';
+
     import CardLayout from '../card-layout';
 
     export default {

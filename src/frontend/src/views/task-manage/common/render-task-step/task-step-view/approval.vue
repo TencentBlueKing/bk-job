@@ -26,27 +26,44 @@
 -->
 
 <template>
-    <div class="artificial-view" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="artificial-view">
         <detail-item :label="$t('template.确认人：')">
             <div class="approval-wraper">
-                <div v-for="role in renderRoleList" :key="role" class="item">
-                    <Icon type="user-group-gray" class="approval-flag" />
+                <div
+                    v-for="role in renderRoleList"
+                    :key="role"
+                    class="item">
+                    <Icon
+                        class="approval-flag"
+                        type="user-group-gray" />
                     {{ role }}
                 </div>
-                <div v-for="user in stepInfo.approvalUser.userList" :key="user" class="item">
-                    <Icon type="user" class="approval-flag" />
+                <div
+                    v-for="user in stepInfo.approvalUser.userList"
+                    :key="user"
+                    class="item">
+                    <Icon
+                        class="approval-flag"
+                        type="user" />
                     {{ user }}
                 </div>
             </div>
         </detail-item>
-        <detail-item :label="$t('template.通知方式：')">{{ renderChannel }}</detail-item>
-        <detail-item :label="$t('template.确认描述：')">{{ stepInfo.approvalMessage || '--' }}</detail-item>
+        <detail-item :label="$t('template.通知方式：')">
+            {{ renderChannel }}
+        </detail-item>
+        <detail-item :label="$t('template.确认描述：')">
+            {{ stepInfo.approvalMessage || '--' }}
+        </detail-item>
         <slot />
     </div>
 </template>
 <script>
-    import QueryGlobalSettingService from '@service/query-global-setting';
     import NotifyService from '@service/notify';
+    import QueryGlobalSettingService from '@service/query-global-setting';
+
     import DetailItem from '@components/detail-layout/item';
 
     export default {

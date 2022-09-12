@@ -4,13 +4,13 @@
         class="render-host-table">
         <div class="search-box">
             <bk-select
-                @change="handleChildNodeChange"
-                style="width: 264px; margin-right: 8px;">
+                style="width: 264px; margin-right: 8px;"
+                @change="handleChildNodeChange">
                 <bk-option
                     v-for="item in node.child"
-                    :name="item.instance_name"
                     :id="item.instance_id"
-                    :key="item.instance_id" />
+                    :key="item.instance_id"
+                    :name="item.instance_name" />
             </bk-select>
             <bk-input
                 v-model="nodeHostListSearch"
@@ -29,17 +29,18 @@
     };
 </script>
 <script setup>
-    import {
-        shallowRef,
-        reactive,
-        watch,
-        ref,
-    } from 'vue';
     import _ from 'lodash';
-    import Manager from '../../../../manager';
+    import {
+        reactive,
+        ref,
+        shallowRef,
+        watch,
+    } from 'vue';
+
+    import RenderHostTable from '../../../../common/render-table/host/index.vue';
     import useDialogSize from '../../../../hooks/use-dialog-size';
     import useInputEnter from '../../../../hooks/use-input-enter';
-    import RenderHostTable from '../../../../common/render-table/host/index.vue';
+    import Manager from '../../../../manager';
     import { getPaginationDefault } from '../../../../utils';
 
     const props = defineProps({

@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import TaskHostNodeModel from '@model/task-host-node';
+
+import I18n from '@/i18n';
 
 export default class TaskInstanceDetailStepScript {
     static STATUS_SCRIPT_NEED_UPDATE = 1;

@@ -27,26 +27,37 @@
 
 <template>
     <div class="script-source-of-template">
-        <jb-form-item class="script-source-item" :label="$t('脚本来源')" required>
-            <bk-radio-group @change="handleScriptSourceChange" :value="sourceType">
-                <bk-radio-button value="local">{{ $t('手工录入') }}</bk-radio-button>
-                <bk-radio-button value="refer">{{ $t('脚本引用') }}</bk-radio-button>
+        <jb-form-item
+            class="script-source-item"
+            :label="$t('脚本来源')"
+            required>
+            <bk-radio-group
+                :value="sourceType"
+                @change="handleScriptSourceChange">
+                <bk-radio-button value="local">
+                    {{ $t('手工录入') }}
+                </bk-radio-button>
+                <bk-radio-button value="refer">
+                    {{ $t('脚本引用') }}
+                </bk-radio-button>
             </bk-radio-group>
         </jb-form-item>
         <jb-form-item
+            v-show="isScriptRefer"
             ref="scriptId"
             :label="$t('脚本引用')"
-            v-show="isScriptRefer"
-            required
             property="scriptId"
+            required
             :rules="rules">
             <div class="refer-script-item">
-                <compose-form-item class="form-item-content" type="select">
+                <compose-form-item
+                    class="form-item-content"
+                    type="select">
                     <bk-select
+                        :clearable="false"
                         style="width: 120px;"
-                        @change="handleReferScriptTypeChange"
                         :value="referType"
-                        :clearable="false">
+                        @change="handleReferScriptTypeChange">
                         <bk-option
                             :id="2"
                             :name="$t('业务脚本')">
@@ -59,29 +70,31 @@
                         </bk-option>
                     </bk-select>
                     <bk-select
+                        :clearable="false"
                         :placeholder="$t('选择引用脚本')"
+                        searchable
                         style="width: 375px;"
                         :value="formData[scriptVersionIdField]"
-                        @change="handleScriptVersionIdChange"
-                        :clearable="false"
-                        searchable>
+                        @change="handleScriptVersionIdChange">
                         <component
                             :is="scriptGroupComponent"
                             v-for="(group, index) in scriptListDisplay"
-                            :name="index === 0 ? $t('当前脚本') : $t('其它脚本')"
-                            :key="index">
+                            :key="index"
+                            :name="index === 0 ? $t('当前脚本') : $t('其它脚本')">
                             <auth-option
                                 v-for="(option, itemIndex) in group"
-                                :key="`${option.scriptVersionId}_${itemIndex}`"
                                 :id="option.scriptVersionId"
+                                :key="`${option.scriptVersionId}_${itemIndex}`"
+                                :auth="authView"
                                 :name="option.name"
                                 :permission="option.canView"
-                                :resource-id="option.id"
-                                :auth="authView" />
+                                :resource-id="option.id" />
                         </component>
                         <template slot="extension">
                             <auth-component :auth="authCreate">
-                                <div @click="handleGoCreate" style="cursor: pointer;">
+                                <div
+                                    style="cursor: pointer;"
+                                    @click="handleGoCreate">
                                     <i class="bk-icon icon-plus-circle mr10" />{{ newBtnText }}
                                 </div>
                                 <div slot="forbid">
@@ -93,9 +106,9 @@
                 </compose-form-item>
                 <Icon
                     v-if="formData[scriptStatusField]"
-                    type="script-update"
                     class="update-flag"
-                    :tippy-tips="$t('引用脚本待更新')" />
+                    :tippy-tips="$t('引用脚本待更新')"
+                    type="script-update" />
                 <div
                     v-if="formData[scriptVersionIdField]"
                     class="refer-script-detail"
@@ -109,11 +122,15 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import ScriptManageService from '@service/script-manage';
+
     import PublicScriptManageService from '@service/public-script-manage';
+    import ScriptManageService from '@service/script-manage';
+
     import TaskStepModel from '@model/task/task-step';
+
     import ComposeFormItem from '@components/compose-form-item';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

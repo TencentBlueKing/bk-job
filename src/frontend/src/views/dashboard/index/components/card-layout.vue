@@ -29,11 +29,11 @@
     <div class="dashboard-card-layout">
         <div class="card-title">
             <span
-                :tippy-tips="titleTips"
                 class="card-title-text"
                 :class="{
                     'hover-tips': needRenderTips,
-                }">
+                }"
+                :tippy-tips="titleTips">
                 {{ title }}
             </span>
         </div>

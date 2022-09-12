@@ -43,9 +43,12 @@
     import _ from 'lodash';
     import {
         ref,
-        watch,
         shallowRef,
+        watch,
     } from 'vue';
+
+    import DiffTag from '../../../common/diff-tag.vue';
+    import useIpSelector from '../../../hooks/use-ip-selector';
     import Manager from '../../../manager';
     import {
         getDynamicGroupDiffMap,
@@ -53,8 +56,7 @@
         getRemoveDynamicGroupList,
         groupDynamicGroupList,
     } from '../../../utils';
-    import useIpSelector from '../../../hooks/use-ip-selector';
-    import DiffTag from '../../../common/diff-tag.vue';
+
     import CallapseContentItem from './collapse-box/content-item.vue';
     import CollapseBox from './collapse-box/index.vue';
 

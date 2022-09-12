@@ -30,10 +30,10 @@
         <jb-search-select
             ref="search"
             class="search-select-style"
-            @on-change="handleSearch"
-            :parse-url="false"
             :data="searchSelect"
-            :placeholder="$t('ticket.搜索文件源别名...')" />
+            :parse-url="false"
+            :placeholder="$t('ticket.搜索文件源别名...')"
+            @on-change="handleSearch" />
         <render-list
             ref="fileSourcelist"
             :data-source="fetchFileSourceList"
@@ -44,63 +44,69 @@
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('ticket.文件源别名')"
-                sortable
                 align="left"
-                show-overflow-tooltip>
+                :label="$t('ticket.文件源别名')"
+                show-overflow-tooltip
+                sortable>
                 <template slot-scope="{ row }">
                     <auth-router-link
                         v-if="row.isAvailable"
                         auth="file_source/view"
                         :permission="row.canView"
                         :resource-id="row.id"
+                        target="_blank"
                         :to="{
                             name: 'fileList',
                             query: {
                                 fileSourceId: row.id,
                             },
-                        }"
-                        target="_blank">
+                        }">
                         {{ row.alias }}
                     </auth-router-link>
                     <span
                         v-else
                         v-bk-tooltips="$t('ticket.接入点异常，暂时不可用')">
-                        <bk-button disabled text>{{ row.alias }}</bk-button>
+                        <bk-button
+                            disabled
+                            text>{{ row.alias }}</bk-button>
                     </span>
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('ticket.文件源标识')"
-                sortable
                 align="left"
-                width="160"
+                :label="$t('ticket.文件源标识')"
+                prop="code"
                 show-overflow-tooltip
-                prop="code" />
+                sortable
+                width="160" />
             <bk-table-column
-                width="80"
-                :label="$t('ticket.状态')">
+                :label="$t('ticket.状态')"
+                width="80">
                 <template slot-scope="{ row }">
-                    <Icon :type="row.statusIcon" svg />
+                    <Icon
+                        svg
+                        :type="row.statusIcon" />
                     {{ row.statusText }}
                 </template>
             </bk-table-column>
             <bk-table-column
-                width="120"
                 :label="$t('ticket.更新人')"
-                prop="lastModifyUser" />
+                prop="lastModifyUser"
+                width="120" />
             <bk-table-column
-                width="180"
                 :label="$t('ticket.更新时间')"
-                prop="lastModifyTime" />
+                prop="lastModifyTime"
+                width="180" />
         </render-list>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import FileManageService from '@service/file-source-manage';
+
     import JbSearchSelect from '@components/jb-search-select';
     import RenderList from '@components/render-list';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'RelatedTicket',

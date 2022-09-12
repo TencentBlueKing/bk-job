@@ -26,8 +26,13 @@
 -->
 
 <template>
-    <div class="step-execute-host-group" :class="{ hide: isHide }">
-        <div ref="groupTab" class="group-tab" :class="{ toggle: showGroupToggle }">
+    <div
+        class="step-execute-host-group"
+        :class="{ hide: isHide }">
+        <div
+            ref="groupTab"
+            class="group-tab"
+            :class="{ toggle: showGroupToggle }">
             <div
                 v-for="(item) in renderGroup"
                 :key="item.resultType + item.tag"
@@ -36,42 +41,54 @@
                     active: value.groupName === item.groupName,
                 }"
                 @click="handleGroupChange(item)">
-                <div class="group-name" v-bk-overflow-tips>{{ item.groupName }}</div>
+                <div
+                    v-bk-overflow-tips
+                    class="group-name">
+                    {{ item.groupName }}
+                </div>
                 <Icon
                     v-if="item.tagMaxLength"
-                    class="max-length-info"
                     v-bk-tooltips="$t('history.分组标签长度最大支持256，超过会被自动截断，请留意！')"
+                    class="max-length-info"
                     type="info" />
-                <div class="group-nums">{{ item.agentTaskSize }}</div>
+                <div class="group-nums">
+                    {{ item.agentTaskSize }}
+                </div>
             </div>
             <div
                 v-if="showGroupToggle"
                 class="group-toggle"
                 :class="groupToggleClass">
                 <div class="tab-more">
-                    <div class="group-holder">{{ groupHolder }}</div>
-                    <Icon type="arrow-full-right" class="toggle-flag" />
+                    <div class="group-holder">
+                        {{ groupHolder }}
+                    </div>
+                    <Icon
+                        class="toggle-flag"
+                        type="arrow-full-right" />
                 </div>
                 <div class="dropdown-menu">
                     <div
-                        class="dropdowm-item"
                         v-for="(item, index) in toggleGroup"
+                        :key="index"
+                        class="dropdowm-item"
                         :class="{
                             active: value.groupName === item.groupName,
                         }"
-                        @click="handleGroupChange(item)"
-                        :key="index">
+                        @click="handleGroupChange(item)">
                         <div
-                            class="group-name"
-                            v-bk-overflow-tips>
+                            v-bk-overflow-tips
+                            class="group-name">
                             {{ item.groupName }}
                         </div>
                         <Icon
                             v-if="item.tagMaxLength"
-                            class="max-length-info"
                             v-bk-tooltips="$t('history.分组标签长度最大支持256，超过会被自动截断，请留意！')"
+                            class="max-length-info"
                             type="info" />
-                        <div class="group-nums">{{ item.agentTaskSize }}</div>
+                        <div class="group-nums">
+                            {{ item.agentTaskSize }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -80,6 +97,7 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import I18n from '@/i18n';
 
     export default {

@@ -27,18 +27,18 @@
 
 <template>
     <jb-dialog
-        :value="value"
         class="system-log-dialog"
-        :show-footer="false"
         close-icon
-        :width="1105"
-        mask-close
         esc-close
+        mask-close
+        :show-footer="false"
+        :value="value"
+        :width="1105"
         @cancel="handleClose">
         <div
             ref="log"
-            class="system-log-layout"
-            v-bkloading="{ isLoading }">
+            v-bkloading="{ isLoading }"
+            class="system-log-layout">
             <div class="layout-left">
                 <scroll-faker class="version-wraper">
                     <div
@@ -47,25 +47,37 @@
                         class="log-tab"
                         :class="{ active: index === activeIndex }"
                         @click="handleTabChange(index)">
-                        <div class="title">{{ log.version }}</div>
-                        <div class="date">{{ log.time }}</div>
-                        <div v-if="index === 0" class="new-flag">{{ $t('当前版本') }}</div>
+                        <div class="title">
+                            {{ log.version }}
+                        </div>
+                        <div class="date">
+                            {{ log.time }}
+                        </div>
+                        <div
+                            v-if="index === 0"
+                            class="new-flag">
+                            {{ $t('当前版本') }}
+                        </div>
                     </div>
                 </scroll-faker>
             </div>
             <div class="layout-right">
                 <scroll-faker class="content-wraper">
-                    <div v-html="logContent" class="markdowm-container" />
+                    <div
+                        class="markdowm-container"
+                        v-html="logContent" />
                 </scroll-faker>
             </div>
         </div>
     </jb-dialog>
 </template>
 <script>
-    import marked from 'marked';
-    import Cookie from 'js-cookie';
     import Tippy from 'bk-magic-vue/lib/utils/tippy';
+    import Cookie from 'js-cookie';
+    import marked from 'marked';
+
     import WebGlobalService from '@service/web-global';
+
     import ScrollFaker from '@components/scroll-faker';
 
     export default {

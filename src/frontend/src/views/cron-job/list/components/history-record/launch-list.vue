@@ -30,80 +30,87 @@
         <list-action-layout>
             <jb-search-select
                 ref="search"
+                :append-value="searchAppendValue"
                 :data="searchSelect"
                 :parse-url="false"
                 :placeholder="$t('cron.搜索指定任务ID 或 根据字段筛选结果')"
-                :append-value="searchAppendValue"
-                @on-change="handleSearch"
-                style="width: 510px;" />
+                style="width: 510px;"
+                @on-change="handleSearch" />
             <template #right>
                 <bk-date-picker
                     ref="datePicker"
-                    :value="defaultDateTime"
+                    :clearable="false"
                     :placeholder="$t('cron.选择日期')"
+                    :shortcut-close="true"
                     :shortcuts="shortcuts"
                     type="datetimerange"
-                    :shortcut-close="true"
-                    :use-shortcut-text="true"
-                    :clearable="false"
                     up-to-now
+                    :use-shortcut-text="true"
+                    :value="defaultDateTime"
                     @change="handleDateChange" />
             </template>
         </list-action-layout>
         <render-list
             ref="list"
+            class="executive-history-table"
             :data-source="fetchExecutionHistoryList"
-            :search-control="() => $refs.search"
             ignore-url
-            class="executive-history-table">
+            :search-control="() => $refs.search">
             <bk-table-column
+                key="id"
+                align="left"
                 label="ID"
                 prop="id"
-                key="id"
-                width="130"
-                align="left">
+                width="130">
                 <template slot-scope="{ row }">
-                    <bk-button text @click="handleGoDetail(row)">{{ row.id }}</bk-button>
+                    <bk-button
+                        text
+                        @click="handleGoDetail(row)">
+                        {{ row.id }}
+                    </bk-button>
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('cron.任务状态.colHead')"
-                prop="statusDesc"
                 key="statusDesc"
-                align="left">
+                align="left"
+                :label="$t('cron.任务状态.colHead')"
+                prop="statusDesc">
                 <template slot-scope="{ row }">
                     <span v-html="row.statusDescHtml" />
                 </template>
             </bk-table-column>
             <bk-table-column
+                key="operator"
+                align="left"
                 :label="$t('cron.执行人.colHead')"
                 prop="operator"
-                key="operator"
-                width="160"
-                align="left" />
+                width="160" />
             <bk-table-column
+                key="createTime"
+                align="left"
                 :label="$t('cron.开始时间.colHead')"
                 prop="createTime"
-                key="createTime"
-                width="180"
-                align="left" />
+                width="180" />
             <bk-table-column
+                key="totalTimeText"
+                align="right"
                 :label="$t('cron.耗时时长')"
                 prop="totalTimeText"
-                key="totalTimeText"
-                width="160"
-                align="right" />
+                width="160" />
         </render-list>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TaskExecuteService from '@service/task-execute';
     import NotifyService from '@service/notify';
+    import TaskExecuteService from '@service/task-execute';
+
     import { prettyDateTimeFormat } from '@utils/assist';
+
     import JbSearchSelect from '@components/jb-search-select';
     import ListActionLayout from '@components/list-action-layout';
     import RenderList from '@components/render-list';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

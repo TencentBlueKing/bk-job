@@ -13,7 +13,9 @@
                             <slot name="header-selection" />
                         </th>
                         <th>节点名称</th>
-                        <th style="width: 180px;">Agent 状态</th>
+                        <th style="width: 180px;">
+                            Agent 状态
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -22,7 +24,9 @@
                         :key="index"
                         @click="handleRowClick(row, index, $event)">
                         <td v-if="slots.selection">
-                            <slot name="selection" v-bind:row="row" />
+                            <slot
+                                name="selection"
+                                :row="row" />
                         </td>
                         
                         <td>
@@ -64,8 +68,8 @@
 </template>
 <script setup>
     import {
-        useSlots,
         computed,
+        useSlots,
     } from 'vue';
 
     const props = defineProps({

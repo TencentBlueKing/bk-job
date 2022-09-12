@@ -34,11 +34,11 @@
     </div>
 </template>
 <script setup>
-    import {
-        ref,
-        onMounted,
-    } from 'vue';
     import tippy from 'tippy.js';
+    import {
+        onMounted,
+        ref,
+    } from 'vue';
 
     const props = defineProps({
         value: {

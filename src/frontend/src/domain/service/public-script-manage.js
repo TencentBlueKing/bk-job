@@ -24,11 +24,12 @@
 */
 
 /* eslint-disable no-param-reassign */
-import PublicScriptManageSource from '../source/public-script-manage';
 import ScriptModel from '@model/script/script';
 import ScriptErrorModel from '@model/script/script-error';
-import ScriptSyncModel from '@model/script/script-sync';
 import ScriptRelatedModel from '@model/script/script-related';
+import ScriptSyncModel from '@model/script/script-sync';
+
+import PublicScriptManageSource from '../source/public-script-manage';
 
 export default {
     scriptList (params) {

@@ -32,13 +32,23 @@
         :tippy-tips="isFile ? $t('history.分发文件步骤不支持日志导出') : ''"
         @click="handleShow">
         <div>{{ $t('history.导出日志') }}</div>
-        <div v-if="isShowThumProcess" class="thum-precess-bar" :class="boxClass">
-            <div class="thum-precess" :style="{ width: `${process * 100}%` }" />
+        <div
+            v-if="isShowThumProcess"
+            class="thum-precess-bar"
+            :class="boxClass">
+            <div
+                class="thum-precess"
+                :style="{ width: `${process * 100}%` }" />
         </div>
         <div style="display: none;">
-            <div ref="progress" class="step-execute-log-package" :class="boxClass">
+            <div
+                ref="progress"
+                class="step-execute-log-package"
+                :class="boxClass">
                 <div class="package-baseinfo">
-                    <div class="package-size">{{ $t('history.文件大小') }}: {{ fileSize | formFileSize }}</div>
+                    <div class="package-size">
+                        {{ $t('history.文件大小') }}: {{ fileSize | formFileSize }}
+                    </div>
                     <div class="package-result">
                         <span v-if="packageStatus === 1">{{ $t('history.打包中') }}…</span>
                         <span v-if="packageStatus === 2">{{ $t('history.打包中') }}…</span>
@@ -52,26 +62,34 @@
                 <bk-progress
                     :key="resetKey"
                     class="package-process"
-                    size="small"
-                    theme="primary"
                     :percent="process"
-                    :show-text="false" />
-                <div v-if="packageStatus === 1" class="package-result-tips">
+                    :show-text="false"
+                    size="small"
+                    theme="primary" />
+                <div
+                    v-if="packageStatus === 1"
+                    class="package-result-tips">
                     {{ $t('history.温馨提示：打包耗时会受到总的日志内容大小影响，请耐心等待') }}
                 </div>
-                <div v-if="packageStatus === 2" class="package-result-tips">
+                <div
+                    v-if="packageStatus === 2"
+                    class="package-result-tips">
                     {{ $t('history.温馨提示：文件打包中请勿关闭浏览器，以免导致任务中断') }}
                 </div>
-                <div v-if="packageStatus === 3" class="package-result-tips">
+                <div
+                    v-if="packageStatus === 3"
+                    class="package-result-tips">
                     {{ $t('history.日志文件打包超时，可能因为日志量过大，请选择单台日志下载') }}
                 </div>
-                <div v-if="packageStatus === 4" class="package-result-tips">
+                <div
+                    v-if="packageStatus === 4"
+                    class="package-result-tips">
                     <!-- eslint-disable-next-line max-len -->
                     <span>{{ $t('history.日志压缩包已准备就绪，') }}{{ $t('history.是否') }}<a @click="handleDownload">{{ $t('history.直接下载') }}</a></span>
                     <bk-button
                         style="margin-top: -5px; margin-left: auto;"
-                        @click="handleGetLogFilePackageResult"
-                        theme="primary">
+                        theme="primary"
+                        @click="handleGetLogFilePackageResult">
                         {{ $t('history.重新打包') }}
                     </bk-button>
                 </div>
@@ -81,6 +99,7 @@
 </template>
 <script>
     import TaskExecuteService from '@service/task-execute';
+
     import {
         bytePretty,
     } from '@utils/assist';

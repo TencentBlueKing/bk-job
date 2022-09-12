@@ -1,10 +1,12 @@
 import {
     computed,
     reactive,
-    watch,
     ref,
+    watch,
 } from 'vue';
+
 import { encodeRegexp } from '../utils';
+
 import useDebounceRef from './use-debounced-ref';
 
 export default (

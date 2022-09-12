@@ -31,20 +31,90 @@
             :height="439"
             :width="maxWidth"
             v-bind="$attrs">
-            <rect x="0" y="0" width="116" height="20" rx="2" />
-            <rect x="58" y="70" width="58" height="20" rx="2" />
-            <rect x="138" y="70" width="92" height="20" rx="2" />
-            <rect x="138" y="119" width="92" height="20" rx="2" />
-            <rect x="138" y="160" width="92" height="20" rx="2" />
-            <rect x="255" y="160" width="601" height="20" rx="2" />
-            <rect x="140" y="228" width="716" height="20" rx="2" />
-            <rect x="140" y="269" width="716" height="20" rx="2" />
-            <rect x="140" y="310" width="716" height="20" rx="2" />
-            <rect x="140" y="351" width="716" height="20" rx="2" />
-            <rect x="255" y="119" width="92" height="20" rx="2" />
-            <rect x="371" y="119" width="92" height="20" rx="2" />
-            <rect x="255" y="70" width="92" height="20" rx="2" />
-            <rect x="58" y="119" width="58" height="20" rx="2" />
+            <rect
+                height="20"
+                rx="2"
+                width="116"
+                x="0"
+                y="0" />
+            <rect
+                height="20"
+                rx="2"
+                width="58"
+                x="58"
+                y="70" />
+            <rect
+                height="20"
+                rx="2"
+                width="92"
+                x="138"
+                y="70" />
+            <rect
+                height="20"
+                rx="2"
+                width="92"
+                x="138"
+                y="119" />
+            <rect
+                height="20"
+                rx="2"
+                width="92"
+                x="138"
+                y="160" />
+            <rect
+                height="20"
+                rx="2"
+                width="601"
+                x="255"
+                y="160" />
+            <rect
+                height="20"
+                rx="2"
+                width="716"
+                x="140"
+                y="228" />
+            <rect
+                height="20"
+                rx="2"
+                width="716"
+                x="140"
+                y="269" />
+            <rect
+                height="20"
+                rx="2"
+                width="716"
+                x="140"
+                y="310" />
+            <rect
+                height="20"
+                rx="2"
+                width="716"
+                x="140"
+                y="351" />
+            <rect
+                height="20"
+                rx="2"
+                width="92"
+                x="255"
+                y="119" />
+            <rect
+                height="20"
+                rx="2"
+                width="92"
+                x="371"
+                y="119" />
+            <rect
+                height="20"
+                rx="2"
+                width="92"
+                x="255"
+                y="70" />
+            <rect
+                height="20"
+                rx="2"
+                width="58"
+                x="58"
+                y="119" />
         </content-loader>
     </div>
 </template>

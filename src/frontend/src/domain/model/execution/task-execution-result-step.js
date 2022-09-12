@@ -23,10 +23,11 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import {
     transformTimeFriendly,
 } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 // 步骤类型
 const TYPE_SCRIPT = 1;

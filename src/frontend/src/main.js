@@ -24,28 +24,24 @@
 */
 
 import Vue from 'vue';
-import createRouter from '@/router';
-import store from '@/store';
+
 import AppManageService from '@service/app-manage';
 import QueryGlobalSettingService from '@service/query-global-setting';
 import TaskExecuteService from '@service/task-execute';
 import TaskPlanService from '@service/task-plan';
-import EntryTask from '@/utils/entry-task';
-import { scopeCache } from '@/utils/cache-helper';
 
 import '@/common/bkmagic';
 import '@/css/reset.css';
 import '@/css/app.css';
-import App from '@/App';
-import IframeApp from '@/iframe-app';
-import i18n from '@/i18n';
-
 import '@bk-icon/style.css';
 import '@bk-icon/iconcool.js';
-
-// import Component from 'lib/dist/js/main.js';
-
-// console.log(Component);
+import App from '@/App';
+import i18n from '@/i18n';
+import IframeApp from '@/iframe-app';
+import createRouter from '@/router';
+import store from '@/store';
+import { scopeCache } from '@/utils/cache-helper';
+import EntryTask from '@/utils/entry-task';
 
 /**
  * @desc 启动打印当前系统信息

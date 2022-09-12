@@ -27,47 +27,68 @@
 
 <template>
     <div>
-        <div class="row" :class="diff.timeout">
+        <div
+            class="row"
+            :class="diff.timeout">
             <span class="label">{{ $t('template.超时时长：') }}</span>
             <span class="value">{{ data.timeout }}(s)</span>
         </div>
-        <div class="row" :class="diff.ignoreError">
+        <div
+            class="row"
+            :class="diff.ignoreError">
             <span class="label">{{ $t('template.错误处理：') }}</span>
             <span class="value">{{ data.ignoreErrorText }}</span>
         </div>
-        <div class="row" :class="diff.uploadSpeedLimit">
+        <div
+            class="row"
+            :class="diff.uploadSpeedLimit">
             <span class="label">{{ $t('template.上传限速：') }}</span>
             <span class="value">{{ data.uploadSpeedLimitText }}</span>
         </div>
-        <div class="row" :class="diff.downloadSpeedLimit">
+        <div
+            class="row"
+            :class="diff.downloadSpeedLimit">
             <span class="label">{{ $t('template.下载限速：') }}</span>
             <span class="value">{{ data.downloadSpeedLimitText }}</span>
         </div>
         <div>
-            <p class="label">{{ $t('template.文件来源：') }}</p>
-            <file-source :account="account" :id="id" :data="data.originFileList" />
+            <p class="label">
+                {{ $t('template.文件来源：') }}
+            </p>
+            <file-source
+                :id="id"
+                :account="account"
+                :data="data.originFileList" />
         </div>
-        <div class="row" :class="diff.destinationFileLocation">
+        <div
+            class="row"
+            :class="diff.destinationFileLocation">
             <span class="label">{{ $t('template.目标路径：') }}</span>
             <span class="value">{{ data.destinationFileLocation }}</span>
         </div>
-        <div class="row" :class="diff.transferMode">
+        <div
+            class="row"
+            :class="diff.transferMode">
             <span class="label">{{ $t('template.传输模式：') }}</span>
             <span class="value">{{ data.transferModeText }}</span>
         </div>
-        <div class="row" :class="diff.executeAccount">
+        <div
+            class="row"
+            :class="diff.executeAccount">
             <span class="label">{{ $t('template.执行帐号：') }}</span>
             <span class="value">{{ findName(data.executeAccount) }}</span>
         </div>
-        <div class="row" :class="diff.destination">
+        <div
+            class="row"
+            :class="diff.destination">
             <span class="label">{{ $t('template.执行目标：') }}</span>
             <file-execute-target />
         </div>
     </div>
 </template>
 <script>
-    import FileSource from './components/file-source';
     import FileExecuteTarget from './components/file-execute-target';
+    import FileSource from './components/file-source';
 
     export default {
         name: '',

@@ -27,7 +27,6 @@
 
 <template>
     <div
-        class="more-btn"
         v-bk-tooltips="{
             allowHtml: true,
             width: 280,
@@ -37,7 +36,8 @@
             content: `#stepExecuteDetailBatchPagination`,
             placement: 'bottom',
             boundary: 'window',
-        }">
+        }"
+        class="more-btn">
         <Icon type="more" />
         <div style="display: none;">
             <div
@@ -49,10 +49,10 @@
                 <div>
                     <bk-input
                         v-model="batchLocation"
-                        type="number"
-                        :min="1"
                         :max="rollingTaskNums"
+                        :min="1"
                         :placeholder="$t('history.请输入批次')"
+                        type="number"
                         @keyup="handleEnterSubmit">
                         <template slot="prepend">
                             <div class="group-text">
@@ -83,9 +83,9 @@
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
                     <bk-button
-                        theme="primary"
                         size="small"
                         style="margin-right: 8px;"
+                        theme="primary"
                         @click="handleGoBatch">
                         {{ $t('history.确定') }}
                     </bk-button>
@@ -96,7 +96,6 @@
                     </bk-button>
                 </div>
             </div>
-            
         </div>
     </div>
 </template>

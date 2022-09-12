@@ -1,11 +1,11 @@
 <template>
     <div
-        :style="styles"
-        v-bkloading="{ isLoading }">
+        v-bkloading="{ isLoading }"
+        :style="styles">
         <div style="padding: 8px 0;">
             <bk-button
-                style="margin-right: 8px;"
                 :loading="isCopyFaildLoading"
+                style="margin-right: 8px;"
                 @click="handeCopeAllFailedIP">
                 复制异常 IP
             </bk-button>
@@ -24,18 +24,19 @@
 <script setup>
     import {
         computed,
+        onMounted,
         reactive,
         ref,
         shallowRef,
-        onMounted,
     } from 'vue';
-    import Manager from '../../manager';
+
     import RenderHostTable from '../../common/render-table/host';
     import useDialogSize from '../../hooks/use-dialog-size';
     import useHostRenderKey from '../../hooks/use-host-render-key';
+    import Manager from '../../manager';
     import {
-        getPaginationDefault,
         execCopy,
+        getPaginationDefault,
      } from '../../utils';
 
     const props = defineProps({

@@ -2,6 +2,7 @@ import {
     reactive,
     ref,
 } from 'vue';
+
 import Manager from '../manager';
 
 const config = reactive({

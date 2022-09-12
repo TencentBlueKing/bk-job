@@ -28,15 +28,20 @@
 <template>
     <div>
         <jb-form-item>
-            <bk-checkbox v-model="executeBeforeNotify">{{ $t('cron.执行前通知') }}</bk-checkbox>
+            <bk-checkbox v-model="executeBeforeNotify">
+                {{ $t('cron.执行前通知') }}
+            </bk-checkbox>
         </jb-form-item>
-        <render-strategy v-if="executeBeforeNotify" left="55" class="notify-wraper">
+        <render-strategy
+            v-if="executeBeforeNotify"
+            class="notify-wraper"
+            left="55">
             <execute-notify
-                v-on="$listeners"
                 v-bind="$attrs"
-                mode="execute-beofre"
                 :form-data="formData"
-                :notify-offset-label="$t('cron.执行前')" />
+                mode="execute-beofre"
+                :notify-offset-label="$t('cron.执行前')"
+                v-on="$listeners" />
         </render-strategy>
     </div>
 </template>

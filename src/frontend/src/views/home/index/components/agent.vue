@@ -26,29 +26,43 @@
 -->
 
 <template>
-    <div class="agent-box" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="agent-box">
         <div class="agent-statistics">
-            <div ref="agentStatistics" style="width: 126px; height: 126px;" />
+            <div
+                ref="agentStatistics"
+                style="width: 126px; height: 126px;" />
         </div>
         <div class="agent-statistics-detail">
-            <div class="detail-item normal"
-                @mouseover="handlePieScale($t('home.正常'))"
-                @click="handleShowAgentDetail('normal', agentInfo.normalNum)">
+            <div
+                class="detail-item normal"
+                @click="handleShowAgentDetail('normal', agentInfo.normalNum)"
+                @mouseover="handlePieScale($t('home.正常'))">
                 <span>{{ $t('home.正常') }}</span>
                 <span class="detail-value">{{ agentInfo.normalNum }}</span>
             </div>
-            <div class="detail-item fail"
-                @mouseover="handlePieScale($t('home.异常'))"
-                @click="handleShowAgentDetail('fail', agentInfo.normalNum)">
+            <div
+                class="detail-item fail"
+                @click="handleShowAgentDetail('fail', agentInfo.normalNum)"
+                @mouseover="handlePieScale($t('home.异常'))">
                 <span>{{ $t('home.异常') }}</span>
                 <span class="detail-value">{{ agentInfo.abnormalNum }}</span>
             </div>
         </div>
-        <sideslider-box :value="isShow" @change="handleClose">
-            <div slot="title">{{ listTitle }}</div>
+        <sideslider-box
+            :value="isShow"
+            @change="handleClose">
+            <div slot="title">
+                {{ listTitle }}
+            </div>
             <div slot="desc">
                 <action-extend>
-                    <div class="action-item" @click="handleCopyAll">{{ $t('home.复制全部') }}</div>
+                    <div
+                        class="action-item"
+                        @click="handleCopyAll">
+                        {{ $t('home.复制全部') }}
+                    </div>
                 </action-extend>
             </div>
             <host-list :status-type="statusType" />
@@ -56,15 +70,20 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import echarts from 'lib/echarts.min.js';
+
     import HomeService from '@service/home';
-    import SidesliderBox from '@components/choose-ip/components/sideslider-box';
-    import ActionExtend from '@components/choose-ip/components/action-extend';
-    import HostList from './host-list';
+
     import {
         execCopy,
     } from '@utils/assist';
+
+    import ActionExtend from '@components/choose-ip/components/action-extend';
+    import SidesliderBox from '@components/choose-ip/components/sideslider-box';
+
+    import HostList from './host-list';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

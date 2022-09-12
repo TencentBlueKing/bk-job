@@ -26,43 +26,45 @@
 -->
 
 <template>
-    <div class="file-manage-source-file" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="file-manage-source-file">
         <list-action-layout>
             <auth-button
-                theme="primary"
                 auth="file_source/create"
-                @click="handleCreate"
-                class="w120">
+                class="w120"
+                theme="primary"
+                @click="handleCreate">
                 {{ $t('file.新建') }}
             </auth-button>
             <template #right>
                 <jb-search-select
                     ref="search"
-                    @on-change="handleSearch"
                     :data="searchSelect"
                     :placeholder="$t('file.请输入文件源名称...')"
-                    style="width: 480px;" />
+                    style="width: 480px;"
+                    @on-change="handleSearch" />
             </template>
         </list-action-layout>
         <render-list
             ref="fileSourcelist"
             :data-source="fetchFileSourceList"
-            :size="tableSize"
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            :size="tableSize">
             <bk-table-column
-                width="40"
-                key="publicFlag">
+                key="publicFlag"
+                width="40">
                 <template slot-scope="{ row }">
                     <span v-html="row.publicFlagHtml" />
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('file.文件源别名.colHead')"
-                sortable
-                align="left"
-                prop="alias"
                 key="alias"
-                show-overflow-tooltip>
+                align="left"
+                :label="$t('file.文件源别名.colHead')"
+                prop="alias"
+                show-overflow-tooltip
+                sortable>
                 <template slot-scope="{ row }">
                     <auth-router-link
                         v-if="row.isAvailable"
@@ -77,80 +79,89 @@
                         }">
                         {{ row.alias }}
                     </auth-router-link>
-                    <span v-else v-bk-tooltips="$t('file.接入点异常，暂时不可用')">
-                        <bk-button disabled text>{{ row.alias }}</bk-button>
+                    <span
+                        v-else
+                        v-bk-tooltips="$t('file.接入点异常，暂时不可用')">
+                        <bk-button
+                            disabled
+                            text>{{ row.alias }}</bk-button>
                     </span>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.code"
-                :label="$t('file.文件源标识.colHead')"
-                sortable
+                key="code"
                 align="left"
-                show-overflow-tooltip
+                :label="$t('file.文件源标识.colHead')"
                 prop="code"
-                key="code" />
+                show-overflow-tooltip
+                sortable />
             <bk-table-column
                 v-if="allRenderColumnMap.status"
+                key="status"
                 :label="$t('file.状态')"
-                prop="status"
-                key="status">
+                prop="status">
                 <template slot-scope="{ row }">
-                    <Icon :type="row.statusIcon" svg style="vertical-align: middle;" />
+                    <Icon
+                        style="vertical-align: middle;"
+                        svg
+                        :type="row.statusIcon" />
                     <span style="vertical-align: middle;">{{ row.statusText }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.type"
+                key="type"
                 :label="$t('file.类型.colHead')"
-                prop="storageTypeText"
-                key="type" />
+                prop="storageTypeText" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyUser"
+                key="lastModifyUser"
                 :label="$t('file.更新人')"
-                prop="lastModifyUser"
-                key="lastModifyUser" />
+                prop="lastModifyUser" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
+                key="lastModifyTime"
                 :label="$t('file.更新时间')"
-                prop="lastModifyTime"
-                key="lastModifyTime" />
+                prop="lastModifyTime" />
             <bk-table-column
+                key="action"
                 :label="$t('file.操作')"
-                width="160"
-                key="action">
-                <div class="action-box" slot-scope="{ row }">
+                width="160">
+                <div
+                    slot-scope="{ row }"
+                    class="action-box">
                     <auth-component
-                        class="mr10"
                         auth="file_source/edit"
+                        class="mr10"
                         :permission="row.canManage"
                         :resource-id="row.id">
                         <bk-switcher
                             class="table-enable-switch"
                             size="small"
-                            :value="row.enable"
                             theme="primary"
+                            :value="row.enable"
                             @change="value => hanldeToggleEnable(value, row)" />
                         <bk-switcher
                             slot="forbid"
-                            size="small"
                             disabled
-                            :value="row.enable"
-                            theme="primary" />
+                            size="small"
+                            theme="primary"
+                            :value="row.enable" />
                     </auth-component>
                     <auth-button
                         auth="file_source/edit"
-                        :resource-id="row.id"
-                        :permission="row.canManage"
-                        text
                         class="mr10"
+                        :permission="row.canManage"
+                        :resource-id="row.id"
+                        text
                         @click="handleEdit(row)">
                         {{ $t('file.配置更改') }}
                     </auth-button>
                     <jb-popover-confirm
-                        :title="$t('file.确定删除该文件源？')"
+                        :confirm-handler="() => handleDelete(row)"
                         :content="$t('file.该操作只涉及在作业平台的文件源配置，不影响其本体的内容')"
-                        :confirm-handler="() => handleDelete(row)">
+                        :title="$t('file.确定删除该文件源？')">
                         <auth-button
                             auth="file_source/delete"
                             :permission="row.canManage"
@@ -170,10 +181,10 @@
             </bk-table-column>
         </render-list>
         <jb-sideslider
-            :is-show.sync="isShowSideslider"
             v-bind="operationSidesliderInfo"
-            :width="700"
-            footer-offset-target="bk-form-content">
+            footer-offset-target="bk-form-content"
+            :is-show.sync="isShowSideslider"
+            :width="700">
             <file-opertion
                 :data="fileSourceDetailInfo"
                 @on-change="handleFileSourceChange" />
@@ -181,16 +192,20 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import FileManageService from '@service/file-source-manage';
+
     import {
         listColumnsCache,
     } from '@utils/cache-helper';
+
+    import JbPopoverConfirm from '@components/jb-popover-confirm';
     import JbSearchSelect from '@components/jb-search-select';
     import ListActionLayout from '@components/list-action-layout';
-    import JbPopoverConfirm from '@components/jb-popover-confirm';
     import RenderList from '@components/render-list';
+
     import FileOpertion from './components/opertion';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'file_source_list_columns';
 

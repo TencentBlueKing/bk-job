@@ -29,11 +29,11 @@
     <div>
         <list-action-layout>
             <auth-button
-                class="w120"
+                v-test="{ type: 'button', value: 'createTag' }"
                 auth="tag/create"
+                class="w120"
                 theme="primary"
-                @click="handleCreate"
-                v-test="{ type: 'button', value: 'createTag' }">
+                @click="handleCreate">
                 {{ $t('tag.新建') }}
             </auth-button>
             <template #right>
@@ -47,41 +47,41 @@
         </list-action-layout>
         <render-list
             ref="list"
+            v-test="{ type: 'list', value: 'tag' }"
             :data-source="dataSource"
-            :size="tableSize"
             :search-control="() => $refs.search"
-            @on-refresh="handleListChange"
-            v-test="{ type: 'list', value: 'tag' }">
+            :size="tableSize"
+            @on-refresh="handleListChange">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
-                label="ID"
-                width="60"
-                prop="id"
                 key="id"
-                align="left" />
+                align="left"
+                label="ID"
+                prop="id"
+                width="60" />
             <bk-table-column
-                :label="$t('tag.标签名.colHead')"
-                prop="name"
                 key="name"
-                sortable
+                align="left"
+                :label="$t('tag.标签名.colHead')"
                 min-width="200"
+                prop="name"
                 show-overflow-tooltip
-                align="left" />
+                sortable />
             <bk-table-column
                 v-if="allRenderColumnMap.description"
-                :label="$t('tag.描述.colHead')"
-                prop="descriptionText"
                 key="descriptionText"
+                align="left"
+                :label="$t('tag.描述.colHead')"
                 min-width="200"
-                show-overflow-tooltip
-                align="left" />
+                prop="descriptionText"
+                show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.relatedTaskTemplateNum"
+                key="relatedTaskTemplateNum"
+                align="right"
                 :label="$t('tag.关联作业量.colHead')"
                 prop="relatedTaskTemplateNum"
-                key="relatedTaskTemplateNum"
-                width="150"
-                align="right">
+                width="150">
                 <template slot-scope="{ row }">
                     <router-link
                         v-if="row.relatedTaskTemplateNum > 0"
@@ -96,19 +96,19 @@
                     </router-link>
                     <bk-button
                         v-else
-                        text
-                        disabled>
+                        disabled
+                        text>
                         {{ row.relatedTaskTemplateNum }}
                     </bk-button>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.relatedScriptNum"
+                key="relatedScriptNum"
+                align="right"
                 :label="$t('tag.关联脚本量.colHead')"
                 prop="relatedScriptNum"
-                key="relatedScriptNum"
-                width="170"
-                align="right">
+                width="170">
                 <template slot-scope="{ row }">
                     <router-link
                         v-if="row.relatedScriptNum > 0"
@@ -123,55 +123,55 @@
                     </router-link>
                     <bk-button
                         v-else
-                        text
-                        disabled>
+                        disabled
+                        text>
                         {{ row.relatedScriptNum }}
                     </bk-button>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.creator"
+                key="creator"
+                align="left"
                 :label="$t('tag.创建人')"
                 prop="creator"
-                key="creator"
-                width="120"
-                align="left" />
+                width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
+                key="createTime"
+                align="left"
                 :label="$t('tag.创建时间')"
                 prop="createTime"
-                key="createTime"
-                width="180"
-                align="left" />
+                width="180" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyUser"
+                key="lastModifyUser"
+                align="left"
                 :label="$t('tag.更新人.colHead')"
                 prop="lastModifyUser"
-                key="lastModifyUser"
-                width="160"
-                align="left" />
+                width="160" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
+                key="lastModifyTime"
+                align="left"
                 :label="$t('tag.更新时间')"
                 prop="lastModifyTime"
-                key="lastModifyTime"
-                width="180"
-                align="left" />
+                width="180" />
             <bk-table-column
-                :label="$t('tag.操作')"
-                :resizable="false"
                 key="action"
                 fixed="right"
+                :label="$t('tag.操作')"
+                :resizable="false"
                 width="100">
                 <template slot-scope="{ row }">
                     <auth-button
-                        theme="primary"
-                        :permission="row.canManage"
+                        v-test="{ type: 'button', value: 'editTag' }"
                         auth="tag/edit"
+                        :permission="row.canManage"
                         :resource-id="row.id"
                         text
-                        @click="handleEdit(row)"
-                        v-test="{ type: 'button', value: 'editTag' }">
+                        theme="primary"
+                        @click="handleEdit(row)">
                         {{ $t('tag.编辑') }}
                     </auth-button>
                     <!-- <bk-button
@@ -185,15 +185,15 @@
                     </bk-button> -->
                     <jb-popover-confirm
                         class="ml10"
-                        :title="$t('tag.确认删除该标签？')"
+                        :confirm-handler="() => handleDelete(row.id)"
                         :content="$t('tag.关联的作业、脚本，将同时移除本标签')"
-                        :confirm-handler="() => handleDelete(row.id)">
+                        :title="$t('tag.确认删除该标签？')">
                         <auth-button
-                            text
-                            :permission="row.canManage"
+                            v-test="{ type: 'button', value: 'deleteTag' }"
                             auth="tag/delete"
+                            :permission="row.canManage"
                             :resource-id="row.id"
-                            v-test="{ type: 'button', value: 'deleteTag' }">
+                            text>
                             {{ $t('tag.删除') }}
                         </auth-button>
                     </jb-popover-confirm>
@@ -207,7 +207,9 @@
                     @setting-change="handleSettingChange" />
             </bk-table-column>
         </render-list>
-        <lower-component level="custom" :custom="isShowOperation">
+        <lower-component
+            :custom="isShowOperation"
+            level="custom">
             <operation-tag
                 v-model="isShowOperation"
                 :data="editData"
@@ -215,10 +217,10 @@
         </lower-component>
         <jb-dialog
             v-model="isShowEditRelate"
-            :width="480"
-            :title="$t('tag.批量流转关联项')"
+            header-position="left"
             :ok-text="$t('tag.提交')"
-            header-position="left">
+            :title="$t('tag.批量流转关联项')"
+            :width="480">
             <batch-edit-relate
                 v-if="isShowEditRelate"
                 ref="batchEditRelate"
@@ -229,15 +231,19 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import NotifyService from '@service/notify';
     import TagManageService from '@service/tag-manage';
+
     import { listColumnsCache } from '@utils/cache-helper';
-    import ListActionLayout from '@components/list-action-layout';
-    import RenderList from '@components/render-list';
+
     import JbSearchSelect from '@components/jb-search-select';
+    import ListActionLayout from '@components/list-action-layout';
     import OperationTag from '@components/operation-tag';
+    import RenderList from '@components/render-list';
+
     import BatchEditRelate from './components/batch-edit-relate';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'tag_manage_columns';
 

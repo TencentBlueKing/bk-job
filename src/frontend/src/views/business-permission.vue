@@ -29,20 +29,22 @@
     <div class="bussiness-app-empty-page">
         <div class="page-header">
             <div class="header-wraper">
-                <div class="page-title">{{ $t('暂无业务权限，请先申请或创建') }}</div>
+                <div class="page-title">
+                    {{ $t('暂无业务权限，请先申请或创建') }}
+                </div>
                 <div class="page-desc">
                     {{ $t('作业平台的核心功能包括面向服务器操作系统的命令执行、文件分发，以及将多个操作组合成作业流程，并支持设置定时执行。') }}
                 </div>
                 <div class="page-action">
                     <bk-button
-                        theme="primary"
                         class="mr10"
+                        theme="primary"
                         @click="handleGoCreateApp">
                         {{ $t('新建业务') }}
                     </bk-button>
                     <bk-button
-                        theme="primary"
                         :loading="isApplyLoading"
+                        theme="primary"
                         @click="handleGoApplyPermission">
                         {{ $t('申请业务权限') }}
                     </bk-button>
@@ -54,11 +56,13 @@
                 <div class="feature-item">
                     <div class="feature-pic">
                         <img
-                            style="width: 220px; margin: 19px 26px 0 24px;"
-                            src="/static/images/guide/permission-apply.svg">
+                            src="/static/images/guide/permission-apply.svg"
+                            style="width: 220px; margin: 19px 26px 0 24px;">
                     </div>
                     <div class="feature-box">
-                        <div class="feature-title">{{ $t('申请已有业务权限 / 创建新的业务') }}</div>
+                        <div class="feature-title">
+                            {{ $t('申请已有业务权限 / 创建新的业务') }}
+                        </div>
                         <div>{{ $t('不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择 申请已有业务的权限，亦或是 新建 一个全新的业务。') }}</div>
                     </div>
                 </div>
@@ -66,11 +70,13 @@
                 <div class="feature-item">
                     <div class="feature-pic">
                         <img
-                            style="width: 230px; margin: 22px 32px 0 7px;"
-                            src="/static/images/guide/permission-use.svg">
+                            src="/static/images/guide/permission-use.svg"
+                            style="width: 230px; margin: 22px 32px 0 7px;">
                     </div>
                     <div class="feature-box">
-                        <div class="feature-title">{{ $t('开始使用作业平台') }}</div>
+                        <div class="feature-title">
+                            {{ $t('开始使用作业平台') }}
+                        </div>
                         <div>
                             <span>{{ $t('作业平台的目标服务器信息同样来自') }} </span>
                             <a
@@ -114,8 +120,9 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import QueryGlobalSettingService from '@service/query-global-setting';
+
+    import I18n from '@/i18n';
 
     export default {
         data () {

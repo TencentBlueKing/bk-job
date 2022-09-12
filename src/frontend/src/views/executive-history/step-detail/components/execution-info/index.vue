@@ -26,9 +26,14 @@
 -->
 
 <template>
-    <div ref="infoBox" class="step-execution-info-box" :style="boxStyles">
+    <div
+        ref="infoBox"
+        class="step-execution-info-box"
+        :style="boxStyles">
         <div class="tab-container">
-            <div class="tab-title" :class="host.result">
+            <div
+                class="tab-title"
+                :class="host.result">
                 <span class="host-ip">{{ host.displayIp || '--' }}</span>
             </div>
             <div class="split-line" />
@@ -63,8 +68,8 @@
             <div class="extend-box">
                 <div
                     v-if="activePanel === 'scriptLog'"
-                    class="extend-item"
                     v-bk-tooltips="$t('history.下载日志')"
+                    class="extend-item"
                     @click="handleDownload">
                     <Icon type="download" />
                 </div>
@@ -72,18 +77,20 @@
                     v-if="activePanel === 'scriptLog'"
                     class="extend-item"
                     @mouseenter="handleShowSetFont"
-                    @mouseleave="handleHideSetFont">Aa</div>
+                    @mouseleave="handleHideSetFont">
+                    Aa
+                </div>
                 <div
                     v-if="!isFullscreen"
-                    class="extend-item"
                     v-bk-tooltips="$t('history.全屏')"
+                    class="extend-item"
                     @click="handleFullscreen">
                     <Icon type="full-screen" />
                 </div>
                 <div
                     v-if="isFullscreen"
-                    class="extend-item"
                     v-bk-tooltips="$t('history.还原')"
+                    class="extend-item"
                     @click="handleExitFullscreen">
                     <Icon type="un-full-screen" />
                 </div>
@@ -92,28 +99,30 @@
                     class="extend-item"
                     style="padding-left: 16px; border-left: 1px solid #262626;">
                     <bk-switcher
-                        :value="isScriptLogLineFeed"
-                        theme="primary"
                         size="small"
+                        theme="primary"
+                        :value="isScriptLogLineFeed"
                         @change="handleScriptLogLineFeedChange" />
                     <span style="padding-left: 7px; font-size: 12px; color: #979ba5;">{{ $t('history.自动换行') }}</span>
                 </div>
             </div>
         </div>
-        <div class="tab-content-wraper" :style="contentStyles">
+        <div
+            class="tab-content-wraper"
+            :style="contentStyles">
             <component
-                ref="view"
-                :key="activePanel"
                 :is="renderCom"
-                :name="`${stepInstanceId}_${host.ip}_${retryCount}`"
-                :step-instance-id="stepInstanceId"
-                :ip="host.ip"
-                :host="host"
+                :key="activePanel"
+                ref="view"
                 :batch="host.batch"
-                :retry-count="retryCount"
                 :font-size="fontSize"
-                :mode="activePanel"
+                :host="host"
+                :ip="host.ip"
                 :line-feed="isScriptLogLineFeed"
+                :mode="activePanel"
+                :name="`${stepInstanceId}_${host.ip}_${retryCount}`"
+                :retry-count="retryCount"
+                :step-instance-id="stepInstanceId"
                 v-bind="$attrs"
                 v-on="$listeners" />
         </div>
@@ -127,29 +136,37 @@
                     class="font-item"
                     :class="{ active: fontSize === 12 }"
                     style="font-size: 12px;"
-                    @click="handleFontChange(12)">Aa</div>
+                    @click="handleFontChange(12)">
+                    Aa
+                </div>
                 <div class="line" />
                 <div
                     class="font-item"
                     :class="{ active: fontSize === 13 }"
                     style="font-size: 13px;"
-                    @click="handleFontChange(13)">Aa</div>
+                    @click="handleFontChange(13)">
+                    Aa
+                </div>
                 <div class="line" />
                 <div
                     class="font-item"
                     :class="{ active: fontSize === 14 }"
                     style="font-size: 14px;"
-                    @click="handleFontChange(14)">Aa</div>
+                    @click="handleFontChange(14)">
+                    Aa
+                </div>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
-    import ScriptLog from './script-log';
+
     import FileLog from './file-log';
+    import ScriptLog from './script-log';
     import VariableView from './variable-view';
+
+    import I18n from '@/i18n';
 
     const STEP_FONT_SIZE_KEY = 'step_execution_font_size';
     const SCRIPT_LOG_AUTO_LINE_FEED = 'script_log_line_feed';

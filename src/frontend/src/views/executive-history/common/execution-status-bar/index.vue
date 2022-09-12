@@ -26,15 +26,20 @@
 -->
 
 <template>
-    <div class="exection-status-bar" :class="[data.displayStyle]">
-        <component :is="themeCom" :data="data" :title-max-width="titleMaxWidth">
+    <div
+        class="exection-status-bar"
+        :class="[data.displayStyle]">
+        <component
+            :is="themeCom"
+            :data="data"
+            :title-max-width="titleMaxWidth">
             <slot />
         </component>
     </div>
 </template>
 <script>
-    import Task from './task';
     import Step from './step';
+    import Task from './task';
 
     export default {
         name: '',

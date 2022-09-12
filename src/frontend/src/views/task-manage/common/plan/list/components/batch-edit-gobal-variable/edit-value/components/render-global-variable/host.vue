@@ -29,23 +29,33 @@
     <div>
         <div class="name">
             <span>{{ data.name }}</span>
-            <span class="remove-flag" @click="handleRemove">
+            <span
+                class="remove-flag"
+                @click="handleRemove">
                 <Icon type="reduce-fill" />
             </span>
         </div>
         <div>
-            <bk-button v-if="isValueEmpty" @click="handleChooseIp" style="width: 160px;">
+            <bk-button
+                v-if="isValueEmpty"
+                style="width: 160px;"
+                @click="handleChooseIp">
                 <Icon type="plus" />
                 {{ $t('template.添加服务器') }}
             </bk-button>
-            <div v-else class="host-value-text" @click="handleChooseIp">
+            <div
+                v-else
+                class="host-value-text"
+                @click="handleChooseIp">
                 <div class="host-type">
                     <Icon type="host" />
                 </div>
                 <div>
                     {{ valueText }}
                 </div>
-                <Icon class="host-edit" type="edit-2" />
+                <Icon
+                    class="host-edit"
+                    type="edit-2" />
             </div>
         </div>
         <!-- <choose-ip
@@ -53,15 +63,16 @@
             :host-node-info="hostNodeInfo"
             @on-change="handleChange" /> -->
         <ip-selector
+            :original-value="originalValue"
             :show-dialog="isShowChooseIp"
             :value="hostNodeInfo"
-            :original-value="originalValue"
             @change="handleChange"
             @close-dialog="handleCloseIpSelector" />
     </div>
 </template>
 <script>
     import _ from 'lodash';
+
     import TaskHostNodeModel from '@model/task-host-node';
     // import ChooseIp from '@components/choose-ip';
 

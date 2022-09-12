@@ -27,11 +27,13 @@
 
 <template>
     <card-layout
+        v-bkloading="{ isLoading, opacity: 0.8 }"
         class="crontab-type-dashboard"
-        :title="$t('dashboard.定时任务类型分布')"
-        v-bkloading="{ isLoading, opacity: 0.8 }">
+        :title="$t('dashboard.定时任务类型分布')">
         <div class="wraper">
-            <div ref="dashboard" style="width: 176px; height: 176px;" />
+            <div
+                ref="dashboard"
+                style="width: 176px; height: 176px;" />
             <div class="item-list">
                 <div
                     v-for="item in list"
@@ -46,14 +48,17 @@
     </card-layout>
 </template>
 <script>
-    import _ from 'lodash';
     import echarts from 'lib/echarts.min.js';
-    import I18n from '@/i18n';
+    import _ from 'lodash';
+
     import StatisticsService from '@service/statistics';
+
     import CardLayout from '../card-layout';
     import {
         chartsOptionsBase,
     } from '../common/assist';
+
+    import I18n from '@/i18n';
 
     const colorMap = {
         SIMPLE: '#3786AD',

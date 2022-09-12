@@ -23,8 +23,8 @@
  * IN THE SOFTWARE.
 */
 
-import _ from 'lodash';
 import tippy from 'bk-magic-vue/lib/utils/tippy';
+import _ from 'lodash';
 
 const defaultOptions = {
     duration: 0,

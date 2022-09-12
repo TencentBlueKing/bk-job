@@ -27,9 +27,9 @@
 
 <template>
     <div
-        class="executive-history-task"
+        :key="taskInstanceId"
         v-bkloading="{ isLoading }"
-        :key="taskInstanceId">
+        class="executive-history-task">
         <div class="step-list">
             <task-step-start key="start" />
             <task-step
@@ -38,15 +38,19 @@
                 :data="step"
                 @on-select="handleSelectStep"
                 @on-update="handleUpdateStepStatus" />
-            <task-step-end key="end" :finished="formData.taskExecution.isSuccess" />
+            <task-step-end
+                key="end"
+                :finished="formData.taskExecution.isSuccess" />
         </div>
         <div class="step-list-action">
-            <back-top size="small" :fixed="false" />
+            <back-top
+                :fixed="false"
+                size="small" />
             <execution-process
                 v-if="!isLoading"
                 class="execution-process"
-                :total="formData.totalStep"
-                :current="formData.currentStepRunningOrder" />
+                :current="formData.currentStepRunningOrder"
+                :total="formData.totalStep" />
         </div>
         <div class="task-action">
             <auth-component
@@ -58,7 +62,9 @@
                     @click="handleGoRetry">
                     <Icon type="redo" />
                 </div>
-                <div slot="forbid" class="action-btn">
+                <div
+                    slot="forbid"
+                    class="action-btn">
                     <Icon type="redo" />
                 </div>
             </auth-component>
@@ -81,26 +87,28 @@
                 <Icon type="clock" />
             </div>
         </div>
-        <execution-status-bar type="task" :data="formData.taskExecution">
+        <execution-status-bar
+            :data="formData.taskExecution"
+            type="task">
             <step-action
                 v-if="formData.taskExecution.isForcedEnable"
+                :confirm-handler="handleForceTask"
                 name="forced"
                 @on-cancel="handleCancelForceTask"
-                @on-show="handleStartForceTask"
-                :confirm-handler="handleForceTask" />
+                @on-show="handleStartForceTask" />
         </execution-status-bar>
         <jb-sideslider
             :is-show.sync="isShowGlobalVariable"
-            :show-footer="false"
             :quick-close="true"
+            :show-footer="false"
             :title="$t('history.全局变量')"
             :width="960">
             <global-variable :id="taskInstanceId" />
         </jb-sideslider>
         <jb-sideslider
             :is-show.sync="isShowOperationRecord"
-            :show-footer="false"
             :quick-close="true"
+            :show-footer="false"
             :title="$t('history.操作记录')"
             :width="900">
             <operation-record
@@ -110,17 +118,21 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
+
     import BackTop from '@components/back-top';
-    import TaskStep from './components/task-step';
-    import ExecutionProcess from './components/execution-process';
-    import TaskStepStart from './components/task-step/theme/start';
-    import TaskStepEnd from './components/task-step/theme/end';
+
+    import ExecutionStatusBar from '../common/execution-status-bar';
     import GlobalVariable from '../common/global-variable';
     import OperationRecord from '../common/operation-record';
     import StepAction from '../common/step-action';
-    import ExecutionStatusBar from '../common/execution-status-bar';
+
+    import ExecutionProcess from './components/execution-process';
+    import TaskStep from './components/task-step';
+    import TaskStepEnd from './components/task-step/theme/end';
+    import TaskStepStart from './components/task-step/theme/start';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

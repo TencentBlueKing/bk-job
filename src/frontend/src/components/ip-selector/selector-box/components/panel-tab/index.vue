@@ -1,11 +1,11 @@
 <template>
     <vuedraggable
-        class="ip-selector-panel-tab"
-        :list="panelSortList"
         :animation="200"
-        group="description"
+        class="ip-selector-panel-tab"
         :disabled="false"
         ghost-class="ghost"
+        group="description"
+        :list="panelSortList"
         @change="handleSortChange">
         <template v-for="(panelName) in panelSortList">
             <tab-item
@@ -68,6 +68,7 @@
     import vuedraggable from 'vuedraggable';
 
     import Manager from '../../../manager';
+
     import TabItem from './tab-item.vue';
 
     const props = defineProps({

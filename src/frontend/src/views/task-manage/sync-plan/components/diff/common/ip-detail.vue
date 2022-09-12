@@ -27,36 +27,52 @@
 
 <template>
     <div class="sync-plan-ip-detail">
-        <div v-if="variableName" class="sync-plan-step-variable" @click="handlerView">
+        <div
+            v-if="variableName"
+            class="sync-plan-step-variable"
+            @click="handlerView">
             <div class="variable-flag">
                 <Icon type="host" />
             </div>
-            <div class="variable-name" :tippy-tips="variableName">{{ variableName }}</div>
+            <div
+                class="variable-name"
+                :tippy-tips="variableName">
+                {{ variableName }}
+            </div>
         </div>
-        <div v-else class="ip-text" v-bk-overflow-tips>{{ ipText }}</div>
-        <Icon v-if="isNotEmpty" class="look-ip-detail" type="audit" @click="handlerView" />
+        <div
+            v-else
+            v-bk-overflow-tips
+            class="ip-text">
+            {{ ipText }}
+        </div>
+        <Icon
+            v-if="isNotEmpty"
+            class="look-ip-detail"
+            type="audit"
+            @click="handlerView" />
         <jb-dialog
             v-model="isShowDetail"
-            :width="1020"
+            class="sync-ip-detail-dialog"
             :ok-text="$t('template.关闭')"
-            class="sync-ip-detail-dialog">
+            :width="1020">
             <template #header>
                 <div>{{ $t('template.执行目标') }}</div>
                 <div class="display-diff">
                     <template v-if="diffEnable">
                         <bk-switcher
-                            :value="isShowDiff"
-                            theme="primary"
                             size="large"
+                            theme="primary"
+                            :value="isShowDiff"
                             @change="handleToggleDiff" />
                     </template>
                     <template v-else>
                         <bk-switcher
-                            :value="false"
                             v-bk-tooltips="$t('template.无差异')"
                             disabled
+                            size="large"
                             theme="primary"
-                            size="large" />
+                            :value="false" />
                     </template>
                     {{ $t('template.显示差异') }}
                 </div>
@@ -70,8 +86,8 @@
                         :host-diff="hostDiff"
                         :group-diff="groupDiff" /> -->
                     <ip-selector
-                        show-view
                         readonly
+                        show-view
                         :value="hostNodeInfo" />
                 </scroll-faker>
             </div>
@@ -80,11 +96,14 @@
 </template>
 <script>
     import TaskHostNodeModel from '@model/task-host-node';
-    import ScrollFaker from '@components/scroll-faker';
+
     // import ServerPanel from '@components/choose-ip/server-panel';
     import {
         findParent,
     } from '@utils/vdom';
+
+    import ScrollFaker from '@components/scroll-faker';
+
     import {
         findVariable,
     } from './utils';

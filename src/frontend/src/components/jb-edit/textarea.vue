@@ -26,48 +26,60 @@
 -->
 
 <template>
-    <div class="jb-edit-textarea" :class="mode">
+    <div
+        class="jb-edit-textarea"
+        :class="mode">
         <div
             v-if="!isEditing"
             class="render-value-box"
             @click.stop="handleBlockShowEdit">
             <div
-                class="render-text-box"
                 ref="valueTextBox"
-                @copy="handleCopy"
-                :style="boxStyles">
-                <slot v-bind:value="newVal">{{ renderText }}</slot>
+                class="render-text-box"
+                :style="boxStyles"
+                @copy="handleCopy">
+                <slot :value="newVal">
+                    {{ renderText }}
+                </slot>
                 <span
                     v-if="isShowMore"
                     class="text-whole"
                     @click.stop="handleExpandAll">
                     <template v-if="isExpand">
-                        <Icon type="angle-double-up" style="font-size: 12px;" />
+                        <Icon
+                            style="font-size: 12px;"
+                            type="angle-double-up" />
                         <span>收起</span>
                     </template>
                     <template v-else>
-                        <Icon type="angle-double-down" style="font-size: 12px;" />
+                        <Icon
+                            style="font-size: 12px;"
+                            type="angle-double-down" />
                         <span>展开</span>
                     </template>
                 </span>
             </div>
-            <div v-if="!readonly" class="edit-action-box">
+            <div
+                v-if="!readonly"
+                class="edit-action-box">
                 <Icon
                     v-if="!isBlock && !isSubmiting"
-                    type="edit-2"
                     class="edit-action"
+                    type="edit-2"
                     @click.self.stop="handleShowInput" />
                 <Icon
                     v-if="isSubmiting"
-                    type="loading-circle"
-                    class="edit-loading" />
+                    class="edit-loading"
+                    type="loading-circle" />
             </div>
         </div>
-        <div v-else @click.stop="">
+        <div
+            v-else
+            @click.stop="">
             <jb-textarea
+                ref="input"
                 v-model="newVal"
                 class="edit-value-box"
-                ref="input"
                 :rows="rows"
                 v-bind="$attrs"
                 @blur="handleInputBlur" />
@@ -76,8 +88,10 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import JbTextarea from '@components/jb-textarea';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'JbEditTextarea',

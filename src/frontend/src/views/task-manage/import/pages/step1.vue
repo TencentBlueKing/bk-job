@@ -27,11 +27,17 @@
 
 <template>
     <div class="task-import-step1">
-        <div v-once class="flag">
+        <div
+            v-once
+            class="flag">
             <img src="/static/images/notice.svg">
-            <div class="title">{{ $t('template.用户须知.title') }}</div>
+            <div class="title">
+                {{ $t('template.用户须知.title') }}
+            </div>
         </div>
-        <div v-once class="tips">
+        <div
+            v-once
+            class="tips">
             <p>{{ $t('template.1. 作业内文件分发步骤中带有“本地文件”的会一并导出，没有大小限制！但导入时会受到目标环境的文件上传大小限制，请知悉；') }}</p>
             <p>{{ $t('template.2. 作业内引用的脚本会保留其原始ID，但如果在导入时目标环境找不到对应ID的脚本，将自动转换为「手工录入」的方式导入；') }}</p>
             <p>{{ $t('template.3. 由于导出和导入环境的服务器 IP 地址、人工确认的用户名、通知渠道可能存在差异，请在后续导入后修改对应的信息，以免造成作业不可用的问题；') }}</p>
@@ -43,8 +49,17 @@
             <p>{{ $t('template.9. 若导入的作业模板或执行方案名称与目标环境的作业存在冲突的情况，会根据导入时设置的"重名后缀"自动在作业名称后面追加命名。') }}</p>
         </div>
         <action-bar>
-            <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-            <bk-button class="w120" theme="primary" @click="handleNext">{{ $t('template.我知道了') }}</bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
+            <bk-button
+                class="w120"
+                theme="primary"
+                @click="handleNext">
+                {{ $t('template.我知道了') }}
+            </bk-button>
         </action-bar>
     </div>
 </template>

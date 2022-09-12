@@ -26,29 +26,35 @@
 -->
 
 <template>
-    <div class="jb-edit-host" :class="mode">
-        <div class="render-value-box" @click.stop="handleBlockShowEdit">
+    <div
+        class="jb-edit-host"
+        :class="mode">
+        <div
+            class="render-value-box"
+            @click.stop="handleBlockShowEdit">
             <div class="value-text">
-                <slot v-bind:value="localValue">
-                    <div v-html="renderHtml" style="margin-left: -4px;" />
+                <slot :value="localValue">
+                    <div
+                        style="margin-left: -4px;"
+                        v-html="renderHtml" />
                 </slot>
             </div>
             <div class="edit-action-box">
                 <Icon
                     v-if="!isBlock && !isSubmiting"
-                    type="edit-2"
                     class="edit-action"
+                    type="edit-2"
                     @click.self.stop="handleShowEdit" />
                 <Icon
                     v-if="isSubmiting"
-                    type="loading-circle"
-                    class="edit-loading" />
+                    class="edit-loading"
+                    type="loading-circle" />
             </div>
         </div>
         <ip-selector
+            :original-value="originalHostNodeInfo"
             :show-dialog="isShowChooseIp"
             :value="localValue.hostNodeInfo"
-            :original-value="originalHostNodeInfo"
             @change="handleHostChange"
             @close-dialog="handleCloseIPSelector" />
         <!-- <choose-ip
@@ -60,8 +66,10 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskHostNodeModel from '@model/task-host-node';
+
+    import I18n from '@/i18n';
     // import ChooseIp from '@components/choose-ip';
 
     export default {

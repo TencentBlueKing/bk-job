@@ -35,9 +35,10 @@
 </template>
 <script>
     import GlobalVariableModel from '@model/task/global-variable';
-    import TextType from './text';
+
     import HostType from './host';
     import PasswordType from './password';
+    import TextType from './text';
 
     export default {
         name: '',

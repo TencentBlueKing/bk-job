@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import AccountSource from '../source/account-manage';
 import AccountModel from '@model/account';
+
+import AccountSource from '../source/account-manage';
 
 export default {
     fetchAccountWhole (params) {

@@ -28,22 +28,36 @@
 <template>
     <div class="jb-apply-permission">
         <div class="no-permission-tips">
-            <img class="lock" src="/static/images/no-permission.svg">
-            <p class="tips-text">{{ titleText }}</p>
+            <img
+                class="lock"
+                src="/static/images/no-permission.svg">
+            <p class="tips-text">
+                {{ titleText }}
+            </p>
         </div>
-        <div class="apply-permission-content" :style="listStyle" v-bkloading="{ isLoading: loading }">
-            <bk-table v-if="!loading" class="apply-permission-table" :data="permissionList">
+        <div
+            v-bkloading="{ isLoading: loading }"
+            class="apply-permission-content"
+            :style="listStyle">
+            <bk-table
+                v-if="!loading"
+                class="apply-permission-table"
+                :data="permissionList">
                 <bk-table-column
-                    :width="300"
-                    :label="actionText">
-                    <template slot-scope="{ row }">{{ row.actionName }}</template>
+                    :label="actionText"
+                    :width="300">
+                    <template slot-scope="{ row }">
+                        {{ row.actionName }}
+                    </template>
                 </bk-table-column>
                 <bk-table-column
                     :label="resourceText">
                     <template slot-scope="{ row }">
                         <div class="resource-content">
                             <template v-if="row.relatedResources.length > 0">
-                                <p v-for="(resource, index) in row.relatedResources" :key="index">
+                                <p
+                                    v-for="(resource, index) in row.relatedResources"
+                                    :key="index">
                                     <span>{{ resource.resourceTypeName }}</span>：
                                     <span>{{ resource.resourceName }}</span>
                                 </p>

@@ -29,36 +29,36 @@
     <layout
         v-bind="$attrs"
         class="task-plan-edit-box"
-        :plan-name="name"
-        :loading="isLoading">
+        :loading="isLoading"
+        :plan-name="name">
         <jb-form
-            slot="title"
             ref="titleForm"
-            style="width: 100%;"
-            :model="formData">
+            slot="title"
+            :model="formData"
+            style="width: 100%;">
             <jb-form-item
-                :rules="rules.name"
-                property="name"
                 error-display-type="tooltips"
+                property="name"
+                :rules="rules.name"
                 style="margin-bottom: 0;">
                 <jb-input
                     v-model="formData.name"
-                    class="name-input"
                     behavior="simplicity"
-                    :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
+                    class="name-input"
+                    :maxlength="60"
                     :native-attributes="{
                         spellcheck: false,
                         autofocus: true,
                     }"
-                    :maxlength="60" />
+                    :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')" />
             </jb-form-item>
         </jb-form>
         <jb-form
             ref="editPlanForm"
-            :model="formData"
-            :rules="rules"
+            v-test="{ type: 'form', value: 'editPlan' }"
             form-type="vertical"
-            v-test="{ type: 'form', value: 'editPlan' }">
+            :model="formData"
+            :rules="rules">
             <jb-form-item style="margin-bottom: 40px;">
                 <div class="section-title">
                     <span>{{ $t('template.全局变量.label') }}</span>
@@ -66,15 +66,15 @@
                 </div>
                 <render-global-var
                     :key="id"
-                    :list="globalVariableList"
-                    :select-value="selectedVariable"
-                    @on-change="handleVariableChange"
                     :default-field="$t('template.变量值')"
-                    mode="editOfPlan" />
+                    :list="globalVariableList"
+                    mode="editOfPlan"
+                    :select-value="selectedVariable"
+                    @on-change="handleVariableChange" />
             </jb-form-item>
             <jb-form-item
-                :rules="rules.enableSteps"
-                property="enableSteps">
+                property="enableSteps"
+                :rules="rules.enableSteps">
                 <div class="task-step-selection">
                     <div class="section-title">
                         <span>{{ $t('template.选择执行步骤') }}</span>
@@ -98,43 +98,47 @@
                 <render-task-step
                     :key="id"
                     :list="taskStepList"
+                    mode="select"
                     :select-value="formData.enableSteps"
                     :variable="globalVariableList"
-                    mode="select"
                     @on-select="handleSelectStep" />
             </jb-form-item>
         </jb-form>
         <template #footer>
             <span v-bk-tooltips="isSubmitDisable ? $t('template.请至少勾选一个执行步骤') : ''">
                 <bk-button
-                    theme="primary"
+                    v-test="{ type: 'button', value: 'editPlanSave' }"
                     class="w120 mr10"
                     :disabled="isSubmitDisable"
                     :loading="submitLoading"
-                    @click="handleSumbit"
-                    v-test="{ type: 'button', value: 'editPlanSave' }">
+                    theme="primary"
+                    @click="handleSumbit">
                     {{ $t('template.保存') }}
                 </bk-button>
             </span>
             <bk-button
-                @click="handleCancle"
-                v-test="{ type: 'button', value: 'editPlanCancel' }">
+                v-test="{ type: 'button', value: 'editPlanCancel' }"
+                @click="handleCancle">
                 {{ $t('template.取消') }}
             </bk-button>
         </template>
     </layout>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskPlanService from '@service/task-plan';
+
     import {
         findUsedVariable,
         leaveConfirm,
     } from '@utils/assist';
     import { planNameRule } from '@utils/validator';
+
     import RenderGlobalVar from '../../common/render-global-var';
     import RenderTaskStep from '../../common/render-task-step';
+
     import Layout from './components/layout';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         id: 0,

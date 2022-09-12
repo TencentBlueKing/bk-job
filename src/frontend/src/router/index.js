@@ -23,11 +23,12 @@
  * IN THE SOFTWARE.
 */
 
+import _ from 'lodash';
 import Vue, {
     customRef,
 } from 'vue';
 import VueRouter from 'vue-router';
-import _ from 'lodash';
+
 import {
     leaveConfirm,
 } from '@utils/assist';
@@ -35,30 +36,29 @@ import {
     routerCache,
 } from '@utils/cache-helper';
 
-import Entry from '@views/index';
-import BusinessPermission from '@views/business-permission';
 import NotFound from '@views/404';
-
-import Home from '@views/home/routes';
 import AccountManage from '@views/account-manage/routes';
-import NotifyManage from '@views/notify-manage/routes';
-import PublicScriptManage from '@views/public-script-manage/routes';
-import GlobalSetting from '@views/global-setting/routes';
-import WhiteIP from '@views/white-ip/routes';
-import TaskManage from '@views/task-manage/routes';
-import PlanManage from '@views/plan-manage/routes';
+import BusinessPermission from '@views/business-permission';
+import CronJob from '@views/cron-job/routes';
+import DangerousRuleManage from '@views/dangerous-rule-manage/routes';
+import Dashboard from '@views/dashboard/routes';
+import DetectRecords from '@views/detect-records/routes';
+import ExecutiveHistory from '@views/executive-history/routes';
 import FastExecution from '@views/fast-execution/routes';
+import FileManage from '@views/file-manage/routes';
+import GlobalSetting from '@views/global-setting/routes';
+import Home from '@views/home/routes';
+import Entry from '@views/index';
+import NotifyManage from '@views/notify-manage/routes';
+import PlanManage from '@views/plan-manage/routes';
+import PublicScriptManage from '@views/public-script-manage/routes';
 import ScriptManage from '@views/script-manage/routes';
 import ScriptTemplate from '@views/script-template/routes';
-import CronJob from '@views/cron-job/routes';
-import ExecutiveHistory from '@views/executive-history/routes';
-import Dashboard from '@views/dashboard/routes';
-import FileManage from '@views/file-manage/routes';
-import TicketManage from '@views/ticket-manage/routes';
 import ServiceState from '@views/service-state/routes';
-import DetectRecords from '@views/detect-records/routes';
-import DangerousRuleManage from '@views/dangerous-rule-manage/routes';
 import TagManage from '@views/tag-manage/routes';
+import TaskManage from '@views/task-manage/routes';
+import TicketManage from '@views/ticket-manage/routes';
+import WhiteIP from '@views/white-ip/routes';
 
 Vue.use(VueRouter);
 

@@ -51,13 +51,13 @@
     </div>
 </template>
 <script setup>
+    import _ from 'lodash';
     import {
         computed,
-        ref,
-        onMounted,
         onBeforeUnmount,
+        onMounted,
+        ref,
     } from 'vue';
-    import _ from 'lodash';
     
     const props = defineProps({
         flexDirection: {

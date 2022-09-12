@@ -26,93 +26,95 @@
 -->
 
 <template>
-    <div class="ticket-manage-page" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="ticket-manage-page">
         <list-action-layout>
             <auth-button
-                theme="primary"
+                v-test="{ type: 'button', value: 'createTicket' }"
                 auth="ticket/create"
-                @click="handleCreate"
                 class="w120"
-                v-test="{ type: 'button', value: 'createTicket' }">
+                theme="primary"
+                @click="handleCreate">
                 {{ $t('ticket.新建') }}
             </auth-button>
             <template #right>
                 <jb-search-select
                     ref="search"
-                    @on-change="handleSearch"
                     :data="searchSelect"
                     :placeholder="$t('ticket.搜索 ID、名称、描述、创建人、更新人...')"
-                    style="width: 480px;" />
+                    style="width: 480px;"
+                    @on-change="handleSearch" />
             </template>
         </list-action-layout>
         <render-list
             ref="list"
+            v-test="{ type: 'list', value: 'ticket' }"
             :data-source="getTicketList"
-            :size="tableSize"
             :search-control="() => $refs.search"
-            v-test="{ type: 'list', value: 'ticket' }">
+            :size="tableSize">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
-                :label="$t('ticket.凭证ID')"
-                width="300"
-                prop="id"
                 key="id"
-                align="left">
+                align="left"
+                :label="$t('ticket.凭证ID')"
+                prop="id"
+                width="300">
                 <template slot-scope="{ row }">
                     <span>{{ row.id }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('ticket.凭证名称')"
-                sortable
-                prop="name"
                 key="name"
                 align="left"
+                :label="$t('ticket.凭证名称')"
                 min-width="200"
-                show-overflow-tooltip>
+                prop="name"
+                show-overflow-tooltip
+                sortable>
                 <template slot-scope="{ row }">
                     <span class="ticket-name">{{ row.name }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('ticket.类型.colHead')"
-                prop="type"
                 key="type"
                 align="left"
-                width="180"
+                :filter-method="handelFilterType"
                 :filters="sourceFilters"
-                :filter-method="handelFilterType">
+                :label="$t('ticket.类型.colHead')"
+                prop="type"
+                width="180">
                 <template slot-scope="{ row }">
                     <span>{{ typeMap[row.type] }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.description"
-                :label="$t('ticket.描述')"
-                prop="description"
                 key="description"
+                align="left"
+                :label="$t('ticket.描述')"
                 min-width="150"
-                align="left">
+                prop="description">
                 <template slot-scope="{ row }">
                     <span>{{ row.description || '--' }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.related"
+                key="related"
+                align="right"
                 :label="$t('ticket.被引用.colHead')"
                 prop="related"
-                key="related"
-                width="100"
-                align="right">
+                width="100">
                 <template slot-scope="{ row }">
                     <div
                         v-if="row.isRelatedLoading"
                         class="sync-fetch-relate-nums">
                         <div class="related-nums-loading">
                             <Icon
-                                type="sync-pending"
+                                style="color: #3a84ff;"
                                 svg
-                                style="color: #3a84ff;" />
+                                type="sync-pending" />
                         </div>
                     </div>
                     <bk-button
@@ -125,60 +127,60 @@
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.creator"
-                :label="$t('ticket.创建人')"
-                width="120"
-                prop="creator"
                 key="creator"
-                align="left" />
+                align="left"
+                :label="$t('ticket.创建人')"
+                prop="creator"
+                width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
+                key="createTime"
+                align="left"
                 :label="$t('ticket.创建时间')"
                 prop="createTime"
-                key="createTime"
-                width="180"
-                align="left" />
+                width="180" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyUser"
+                key="lastModifyUser"
+                align="left"
                 :label="$t('ticket.更新人')"
                 prop="lastModifyUser"
-                key="lastModifyUser"
-                width="120"
-                align="left" />
+                width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
+                key="lastModifyTime"
+                align="left"
                 :label="$t('ticket.更新时间')"
                 prop="lastModifyTime"
-                key="lastModifyTime"
-                width="180"
-                align="left" />
+                width="180" />
             <bk-table-column
+                key="action"
+                align="left"
+                fixed="right"
                 :label="$t('ticket.操作')"
                 :resizable="false"
-                key="action"
-                fixed="right"
-                width="100"
-                align="left">
+                width="100">
                 <template slot-scope="{ row }">
                     <auth-button
+                        v-test="{ type: 'list', value: 'editTicket' }"
                         auth="ticket/edit"
-                        :resource-id="row.id"
-                        :permission="row.canManage"
-                        text
                         class="mr10"
-                        @click="handleEdit(row)"
-                        v-test="{ type: 'list', value: 'editTicket' }">
+                        :permission="row.canManage"
+                        :resource-id="row.id"
+                        text
+                        @click="handleEdit(row)">
                         {{ $t('ticket.编辑') }}
                     </auth-button>
                     <jb-popover-confirm
-                        :title="$t('ticket.确定删除该凭证？')"
+                        :confirm-handler="() => handleDelete(row.id)"
                         :content="$t('ticket.正在被文件源使用的凭证无法删除，如需删除请先解除引用关系。')"
-                        :confirm-handler="() => handleDelete(row.id)">
+                        :title="$t('ticket.确定删除该凭证？')">
                         <auth-button
+                            v-test="{ type: 'list', value: 'deleteTicket' }"
                             auth="ticket/edit"
                             :permission="row.canManage"
                             :resource-id="row.id"
-                            text
-                            v-test="{ type: 'list', value: 'deleteTicket' }">
+                            text>
                             {{ $t('ticket.删除') }}
                         </auth-button>
                     </jb-popover-confirm>
@@ -195,8 +197,8 @@
         <jb-sideslider
             :is-show.sync="showRelatedSideslider"
             :show-footer="false"
-            :width="900"
-            :title="$t('ticket.被引用.label')">
+            :title="$t('ticket.被引用.label')"
+            :width="900">
             <related-ticket
                 :credential-id="credentialId" />
         </jb-sideslider>
@@ -211,16 +213,20 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TicketService from '@service/ticket-manage';
     import NotifyService from '@service/notify';
+    import TicketService from '@service/ticket-manage';
+
     import { listColumnsCache } from '@utils/cache-helper';
-    import RenderList from '@components/render-list';
-    import JbSearchSelect from '@components/jb-search-select';
+
     import JbPopoverConfirm from '@components/jb-popover-confirm';
+    import JbSearchSelect from '@components/jb-search-select';
     import ListActionLayout from '@components/list-action-layout';
-    import RelatedTicket from './components/related-ticket';
+    import RenderList from '@components/render-list';
+
     import TicketOpertion from './components/opertion';
+    import RelatedTicket from './components/related-ticket';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'ticket_list_columns';
 

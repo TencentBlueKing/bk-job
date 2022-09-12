@@ -26,14 +26,16 @@
 -->
 
 <template>
-    <div class="variable-type-host" :class="{ 'variable-value-error': isError }">
+    <div
+        class="variable-type-host"
+        :class="{ 'variable-value-error': isError }">
         <div>
             <div>
                 <bk-button
+                    v-bk-tooltips="descPopover"
                     class="mr10"
                     :disabled="readonly"
-                    @click="handleChooseIp"
-                    v-bk-tooltips="descPopover">
+                    @click="handleChooseIp">
                     <Icon type="plus" />
                     {{ $t('添加服务器') }}
                 </bk-button>
@@ -45,9 +47,9 @@
                 </bk-button>
             </div>
             <ip-selector
+                :origianl-value="originalHostNodeInfo"
                 :show-dialog="isShowChooseIp"
                 :value="hostNodeInfo"
-                :origianl-value="originalHostNodeInfo"
                 @change="handleChange"
                 @close-dialog="handleCloseIpSelector" />
             <!-- <server-panel
@@ -58,7 +60,11 @@
                 detail-fullscreen
                 :editable="!readonly"
                 @on-change="handleChange" /> -->
-            <p v-if="isError" class="variable-error">{{ $t('该变量的值必填') }}</p>
+            <p
+                v-if="isError"
+                class="variable-error">
+                {{ $t('该变量的值必填') }}
+            </p>
         </div>
         <!-- <choose-ip
             v-model="isShowChooseIp"
@@ -68,6 +74,7 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import TaskHostNodeModel from '@model/task-host-node';
     // import ChooseIp from '@components/choose-ip';
     // import ServerPanel from '@components/choose-ip/server-panel';

@@ -24,10 +24,11 @@
 */
 
 /* eslint-disable no-param-reassign */
-import TaskPlanSource from '../source/task-plan';
-import TaskModel from '@model/task/task';
-import PlanModel from '@model/task/plan';
 import VariableModel from '@model/task/global-variable';
+import PlanModel from '@model/task/plan';
+import TaskModel from '@model/task/task';
+
+import TaskPlanSource from '../source/task-plan';
 
 export default {
     fetchAllPlan (params) {

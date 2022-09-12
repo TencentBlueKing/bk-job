@@ -37,8 +37,8 @@
     </div>
 </template>
 <script>
-    import TemplateCount from './template-count';
     import PlanCount from './plan-count';
+    import TemplateCount from './template-count';
     import TemplateStep from './template-step';
 
     export default {

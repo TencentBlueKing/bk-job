@@ -6,8 +6,8 @@
                 placeholder="请输入节点名称搜索"
                 style="margin: 12px 0;" />
             <render-node-table
-                :data="renderTableData"
                 :agent-static="agentStaticMap"
+                :data="renderTableData"
                 :height="renderTableHeight"
                 @row-click="handleRowClick">
                 <template #header-selection>
@@ -41,20 +41,21 @@
     };
 </script>
 <script setup>
+    import _ from 'lodash';
     import {
         ref,
         shallowRef,
         watch,
     } from 'vue';
-    import _ from 'lodash';
+
+    import RenderNodeTable from '../../../../common/render-table/node.vue';
+    import useDialogSize from '../../../../hooks/use-dialog-size';
+    import useLocalPagination from '../../../../hooks/use-local-pagination';
     import Manager from '../../../../manager';
     import {
         genNodeKey,
         getPaginationDefault,
     } from '../../../../utils';
-    import useLocalPagination from '../../../../hooks/use-local-pagination';
-    import useDialogSize from '../../../../hooks/use-dialog-size';
-    import RenderNodeTable from '../../../../common/render-table/node.vue';
     import TablePageCheck from '../../table-page-check.vue';
 
     const props = defineProps({

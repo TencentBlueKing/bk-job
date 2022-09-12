@@ -34,10 +34,10 @@
         </template>
         <list-action-layout>
             <auth-button
-                theme="primary"
                 auth="script/create"
-                @click="handleCreate"
-                class="w120">
+                class="w120"
+                theme="primary"
+                @click="handleCreate">
                 {{ $t('script.新建') }}
             </auth-button>
             <bk-button
@@ -48,45 +48,45 @@
             <template #right>
                 <jb-search-select
                     ref="search"
-                    @on-change="handleSearch"
                     :data="searchSelect"
                     :placeholder="$t('script.搜索脚本名称，类型，场景标签，更新人...')"
-                    style="width: 420px;" />
+                    style="width: 420px;"
+                    @on-change="handleSearch" />
             </template>
         </list-action-layout>
         <render-list
             ref="list"
             :data-source="getScriptList"
-            :size="tableSize"
-            selectable
             :search-control="() => $refs.search"
+            selectable
+            :size="tableSize"
             @on-selection-change="handleSelection">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
+                key="id"
+                align="left"
                 label="ID"
                 prop="id"
-                key="id"
-                width="300"
-                align="left" />
+                width="300" />
             <bk-table-column
-                :label="$t('script.脚本名称.colHead')"
-                prop="name"
                 key="name"
+                align="left"
+                :label="$t('script.脚本名称.colHead')"
                 :min-width="300"
-                sortable
-                align="left">
+                prop="name"
+                sortable>
                 <template slot-scope="{ row }">
                     <auth-component
-                        :permission="row.canView"
                         auth="script/view"
+                        :permission="row.canView"
                         :resource-id="row.id">
                         <jb-edit-input
                             :key="row.id"
+                            v-slot="{ value }"
                             field="scriptName"
-                            :rules="rules.name"
-                            :value="row.name"
                             :remote-hander="val => handleUpdateScript(row.id, val)"
-                            v-slot="{ value }">
+                            :rules="rules.name"
+                            :value="row.name">
                             <span
                                 style="color: #3a84ff; cursor: pointer;"
                                 @click="handleVersion(row)">
@@ -99,54 +99,56 @@
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.type"
-                :label="$t('script.脚本语言')"
-                sortable
-                prop="type"
                 key="type"
-                width="120"
-                align="left">
+                align="left"
+                :label="$t('script.脚本语言')"
+                prop="type"
+                sortable
+                width="120">
                 <template slot-scope="{ row }">
                     <span>{{ row.typeName }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('script.场景标签.colHead')"
-                sortable
-                prop="tags"
                 key="tags"
-                width="200"
                 align="left"
-                class-name="edit-tag-column">
+                class-name="edit-tag-column"
+                :label="$t('script.场景标签.colHead')"
+                prop="tags"
+                sortable
+                width="200">
                 <template slot-scope="{ row }">
                     <auth-component
-                        :permission="row.canManage"
                         auth="script/edit"
+                        :permission="row.canManage"
                         :resource-id="row.id">
                         <jb-edit-tag
                             :key="row.id"
                             field="scriptTags"
-                            :value="row.tags"
+                            :remote-hander="val => handleUpdateScript(row.id, val)"
                             shortcurt
-                            :remote-hander="val => handleUpdateScript(row.id, val)" />
-                        <div slot="forbid">{{ row.tagsText }}</div>
+                            :value="row.tags" />
+                        <div slot="forbid">
+                            {{ row.tagsText }}
+                        </div>
                     </auth-component>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.related"
+                key="related"
+                align="right"
                 :label="$t('script.被引用.colHead')"
                 prop="related"
-                key="related"
-                width="120"
                 :render-header="renderHeader"
-                align="right">
+                width="120">
                 <template slot-scope="{ row }">
                     <bk-button
-                        text
-                        class="mr20"
                         v-bk-tooltips.right.allowHtml="`
                                     <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
                                     <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
+                        class="mr20"
+                        text
                         @click="handleShowRelated(row)">
                         <span>{{ row.relatedTaskTemplateNum }}</span>
                         <span> / </span>
@@ -156,60 +158,60 @@
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.version"
-                :label="$t('script.线上版本')"
-                show-overflow-tooltip
-                prop="version"
                 key="version"
-                width="140"
-                align="left">
+                align="left"
+                :label="$t('script.线上版本')"
+                prop="version"
+                show-overflow-tooltip
+                width="140">
                 <template slot-scope="{ row }">
                     <span> {{ row.version || '--' }} </span>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.creator"
-                :label="$t('script.创建人.colHead')"
-                sortable
-                show-overflow-tooltip
-                prop="creator"
                 key="creator"
-                width="140"
-                align="left" />
+                align="left"
+                :label="$t('script.创建人.colHead')"
+                prop="creator"
+                show-overflow-tooltip
+                sortable
+                width="140" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
+                key="createTime"
+                align="left"
                 :label="$t('script.创建时间')"
                 prop="createTime"
-                key="createTime"
-                width="180"
-                align="left" />
+                width="180" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyUser"
-                :label="$t('script.更新人.colHead')"
-                width="160"
-                prop="lastModifyUser"
                 key="lastModifyUser"
-                align="left" />
+                align="left"
+                :label="$t('script.更新人.colHead')"
+                prop="lastModifyUser"
+                width="160" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
-                :label="$t('script.更新时间')"
-                width="180"
-                prop="lastModifyTime"
                 key="lastModifyTime"
-                align="left" />
+                align="left"
+                :label="$t('script.更新时间')"
+                prop="lastModifyTime"
+                width="180" />
             <bk-table-column
+                key="action"
+                align="left"
+                fixed="right"
                 :label="$t('script.操作')"
                 :resizable="false"
-                fixed="right"
-                key="action"
-                width="170"
-                align="left">
+                width="170">
                 <template slot-scope="{ row }">
                     <auth-button
-                        class="mr10"
-                        text
-                        :permission="row.canView"
                         auth="script/view"
+                        class="mr10"
+                        :permission="row.canView"
                         :resource-id="row.id"
+                        text
                         @click="handleVersion(row)">
                         {{ $t('script.版本管理') }}
                     </auth-button>
@@ -217,22 +219,22 @@
                         class="mr10"
                         :tippy-tips="row.isExecuteDisable ? $t('script.该脚本没有 “线上版本” 可执行，请前往版本管理内设置。') : ''">
                         <auth-button
-                            text
-                            :permission="row.canView"
                             auth="script/execute"
-                            :resource-id="row.id"
                             :disabled="row.isExecuteDisable"
+                            :permission="row.canView"
+                            :resource-id="row.id"
+                            text
                             @click="handleExec(row)">
                             {{ $t('script.去执行') }}
                         </auth-button>
                     </span>
                     <jb-popover-confirm
-                        :title="$t('script.确定删除该脚本？')"
+                        :confirm-handler="() => handleDelete(row)"
                         :content="$t('script.注意！脚本内的所有版本也将被清除')"
-                        :confirm-handler="() => handleDelete(row)">
+                        :title="$t('script.确定删除该脚本？')">
                         <auth-button
-                            :permission="row.canManage"
                             auth="script/delete"
+                            :permission="row.canManage"
                             :resource-id="row.id"
                             text>
                             {{ $t('script.删除') }}
@@ -250,9 +252,9 @@
         </render-list>
         <jb-dialog
             v-model="isShowBatchEditTag"
-            :title="$t('script.编辑标签')"
             header-position="left"
             :ok-text="$t('script.确定')"
+            :title="$t('script.编辑标签')"
             :width="480">
             <batch-edit-tag
                 v-if="isShowBatchEditTag"
@@ -261,8 +263,8 @@
         </jb-dialog>
         <jb-sideslider
             :is-show.sync="showRelated"
-            :show-footer="false"
             quick-close
+            :show-footer="false"
             :title="$t('script.被引用.label')"
             :width="695">
             <script-related-info
@@ -272,24 +274,29 @@
     </layout>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TagManageService from '@service/tag-manage';
+    import NotifyService from '@service/notify';
+    import PublicScriptService from '@service/public-script-manage';
     import PublicTagManageService from '@service/public-tag-manage';
     import ScriptService from '@service/script-manage';
-    import PublicScriptService from '@service/public-script-manage';
-    import NotifyService from '@service/notify';
+    import TagManageService from '@service/tag-manage';
+
     import { checkPublicScript } from '@utils/assist';
-    import { scriptNameRule } from '@utils/validator';
     import { listColumnsCache } from '@utils/cache-helper';
-    import ListActionLayout from '@components/list-action-layout';
-    import RenderList from '@components/render-list';
-    import JbSearchSelect from '@components/jb-search-select';
+    import { scriptNameRule } from '@utils/validator';
+
     import JbEditInput from '@components/jb-edit/input';
     import JbEditTag from '@components/jb-edit/tag';
+    import JbSearchSelect from '@components/jb-search-select';
+    import ListActionLayout from '@components/list-action-layout';
+    import RenderList from '@components/render-list';
+
     import ScriptRelatedInfo from '../common/script-related-info';
+
+    import BatchEditTag from './components/batch-edit-tag';
     import Layout from './components/layout';
     import TagPanel from './components/tag-panel';
-    import BatchEditTag from './components/batch-edit-tag';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'script_list_columns';
 

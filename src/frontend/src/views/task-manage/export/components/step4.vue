@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div class="export-task-step4-page" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="export-task-step4-page">
         <div>
             <div class="notice">
                 <img src="/static/images/export.svg">
@@ -35,22 +37,30 @@
                         <div>{{ $t('template.作业导出成功！请及时保存并妥善保管。') }}</div>
                         <div class="export-download">
                             <span>{{ $t('template.如果页面未出现提示保存窗口，请点击') }}</span>
-                            <span class="btn" @click="handleDownloadFile">{{ $t('template.重新下载文件') }}</span>
+                            <span
+                                class="btn"
+                                @click="handleDownloadFile">{{ $t('template.重新下载文件') }}</span>
                         </div>
                     </div>
-                    <div v-else>{{ $t('template.正在导出作业，请稍候') }}<span class="loading" /></div>
+                    <div v-else>
+                        {{ $t('template.正在导出作业，请稍候') }}<span class="loading" />
+                    </div>
                 </div>
             </div>
             <div class="log-content">
-                <div v-for="(item, index) in logList" :key="index">[{{ item.timestamp }}] {{ item.content }}</div>
+                <div
+                    v-for="(item, index) in logList"
+                    :key="index">
+                    [{{ item.timestamp }}] {{ item.content }}
+                </div>
             </div>
         </div>
         <div class="action-footer">
             <bk-button
                 class="w120"
-                theme="primary"
-                :loading="isFinishing"
                 :disabled="!isExportSuccess"
+                :loading="isFinishing"
+                theme="primary"
                 @click="handleFinish">
                 {{ $t('template.完成') }}
             </bk-button>
@@ -58,11 +68,13 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import BackupService from '@service/backup';
+
     import {
         taskExport,
     } from '@utils/cache-helper';
+
+    import I18n from '@/i18n';
 
     const TASK_STATUS_DEFAULT = 0;
     const TASK_STATUS_DOING = 5;

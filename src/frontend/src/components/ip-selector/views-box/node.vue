@@ -1,7 +1,7 @@
 <template>
     <div
-        class="ip-selector-view-node"
-        v-bkloading="{ isLoading }">
+        v-bkloading="{ isLoading }"
+        class="ip-selector-view-node">
         <collapse-box>
             <template #title>
                 <span style="font-weight: bold;">【动态拓扑】</span>
@@ -25,7 +25,9 @@
                 v-if="!context.readonly"
                 #action>
                 <extend-action>
-                    <div @click="handleRemoveAll">清除所有</div>
+                    <div @click="handleRemoveAll">
+                        清除所有
+                    </div>
                 </extend-action>
             </template>
             <table>
@@ -43,8 +45,8 @@
                     </td>
                     <td>
                         <render-agent-statistics
-                            :loading="isAgentStatisticsLoading"
                             :data="nodeAgentStaticMap[genNodeKey(row)]"
+                            :loading="isAgentStatisticsLoading"
                             @select="handleShowHostList(row)" />
                     </td>
                     <td
@@ -71,10 +73,10 @@
         </collapse-box>
         <bk-dialog
             v-model="isShowNodeHostList"
-            :width="dialogWidth"
-            header-position="left"
             :draggable="false"
-            :title="`动态拓扑主机预览`">
+            header-position="left"
+            :title="`动态拓扑主机预览`"
+            :width="dialogWidth">
             <node-host-list
                 v-if="selectedNode"
                 :node="selectedNode" />
@@ -95,21 +97,23 @@
         shallowRef,
         watch,
     } from 'vue';
+
+    import DiffTag from '../common/diff-tag.vue';
+    import ExtendAction from '../common/extend-action.vue';
+    import useDialogSize from '../hooks/use-dialog-size';
+    import useIpSelector from '../hooks/use-ip-selector';
+    import useLocalPagination from '../hooks/use-local-pagination';
     import Manager from '../manager';
     import {
         genNodeKey,
-        getNodeDiffMap,
         getInvalidNodeList,
+        getNodeDiffMap,
         getRemoveNodeList,
         groupNodeList,
     } from '../utils';
-    import useLocalPagination from '../hooks/use-local-pagination';
-    import useDialogSize from '../hooks/use-dialog-size';
-    import useIpSelector from '../hooks/use-ip-selector';
-    import ExtendAction from '../common/extend-action.vue';
-    import DiffTag from '../common/diff-tag.vue';
-    import CollapseBox from './components/collapse-box/index.vue';
+
     import RenderAgentStatistics from './components/agent-statistics.vue';
+    import CollapseBox from './components/collapse-box/index.vue';
     import NodeHostList from './components/node-host-list.vue';
 
     const props = defineProps({

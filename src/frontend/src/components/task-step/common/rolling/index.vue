@@ -29,16 +29,16 @@
     <div class="task-step-rolling">
         <jb-form-item :label="$t('滚动执行')">
             <bk-switcher
-                :value="formData[enabledField]"
                 theme="primary"
+                :value="formData[enabledField]"
                 @change="handleRollingEnableChange" />
         </jb-form-item>
         <div v-if="formData[enabledField]">
             <jb-form-item
                 ref="expr"
                 :label="$t('滚动策略')"
-                required
                 :property="exprField"
+                required
                 :rules="rollingExprRule">
                 <div class="form-item-content rolling-expr-field">
                     <bk-input
@@ -71,13 +71,19 @@
                 :label="$t('滚动机制')"
                 required>
                 <bk-select
-                    :value="formData[modeField]"
-                    :clearable="false"
                     class="form-item-content"
+                    :clearable="false"
+                    :value="formData[modeField]"
                     @change="handleRollingModeChange">
-                    <bk-option :id="1" :name="$t('默认（执行失败则暂停）')" />
-                    <bk-option :id="2" :name="$t('忽略失败，自动滚动下一批')" />
-                    <bk-option :id="3" :name="$t('不自动，每批次都人工确认')" />
+                    <bk-option
+                        :id="1"
+                        :name="$t('默认（执行失败则暂停）')" />
+                    <bk-option
+                        :id="2"
+                        :name="$t('忽略失败，自动滚动下一批')" />
+                    <bk-option
+                        :id="3"
+                        :name="$t('不自动，每批次都人工确认')" />
                 </bk-select>
             </jb-form-item>
         </div>
@@ -90,7 +96,9 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import rollingExprParse from '@utils/rolling-expr-parse';
+
     import Guide from './guide';
 
     export default {

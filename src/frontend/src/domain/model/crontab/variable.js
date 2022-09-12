@@ -24,6 +24,7 @@
 */
 
 import _ from 'lodash';
+
 import TaskHostNodeModel from '@model/task-host-node';
 
 export default class CrontabVariable {

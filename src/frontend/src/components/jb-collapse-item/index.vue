@@ -27,7 +27,11 @@
 
 <template>
     <div class="jb-collapse-item">
-        <bk-collapse-item ref="collapseItem" v-bind="$attrs" v-on="$listeners" hide-arrow>
+        <bk-collapse-item
+            ref="collapseItem"
+            v-bind="$attrs"
+            hide-arrow
+            v-on="$listeners">
             <template #default>
                 <Icon :type="iconType" />
                 <span style="display: none;">{{ iconType }}</span>

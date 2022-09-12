@@ -32,10 +32,10 @@
             'only-host': mode === 'onlyHost',
         }">
         <jb-form-item
-            :label="$t('目标服务器')"
-            required
             ref="targetServerRef"
+            :label="$t('目标服务器')"
             :property="property"
+            required
             :rules="rules">
             <div
                 ref="actionBox"
@@ -53,29 +53,35 @@
                     <!-- 作业步骤场景可以切换主机列表和主机变量 -->
                     <compose-form-item>
                         <bk-select
+                            :clearable="false"
                             :style="targetSelectorStyle"
                             :value="targetType"
-                            :clearable="false"
                             @change="handleTargetTypeChange">
-                            <bk-option id="variable" :name="$t('全局变量')" />
-                            <bk-option id="hostNodeInfo" :name="$t('手动添加')" />
+                            <bk-option
+                                id="variable"
+                                :name="$t('全局变量')" />
+                            <bk-option
+                                id="hostNodeInfo"
+                                :name="$t('手动添加')" />
                         </bk-select>
                         <template v-if="isGolbalVariableType">
                             <bk-select
                                 class="server-global-variable-select"
+                                :clearable="false"
                                 :placeholder="$t('请选择主机列表变量')"
                                 :value="localVariable"
-                                @change="handleVariableChange"
-                                :clearable="false">
+                                @change="handleVariableChange">
                                 <bk-option
                                     v-for="(item, index) in variable"
-                                    :key="index"
                                     :id="item.name"
+                                    :key="index"
                                     :name="item.name" />
                             </bk-select>
                         </template>
                         <template v-else>
-                            <bk-button class="w120 mr10" @click="handleShowChooseIp">
+                            <bk-button
+                                class="w120 mr10"
+                                @click="handleShowChooseIp">
                                 <Icon type="plus" />
                                 {{ $t('添加服务器') }}
                             </bk-button>
@@ -85,30 +91,38 @@
                 <template v-if="isShowServerAction">
                     <bk-dropdown-menu>
                         <bk-button
+                            slot="dropdown-trigger"
                             class="mr10"
-                            type="primary"
-                            slot="dropdown-trigger">
+                            type="primary">
                             <span>{{ $t('复制IP') }}</span>
-                            <Icon type="down-small" class="action-flag" />
+                            <Icon
+                                class="action-flag"
+                                type="down-small" />
                         </bk-button>
-                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                        <ul
+                            slot="dropdown-content"
+                            class="bk-dropdown-list">
                             <li><a @click="handleCopyAll">{{ $t('全部IP') }}</a></li>
                             <li><a @click="handleCopyFail">{{ $t('异常IP') }}</a></li>
                         </ul>
                     </bk-dropdown-menu>
-                    <bk-button class="mr10" @click="handleClearAll">
+                    <bk-button
+                        class="mr10"
+                        @click="handleClearAll">
                         <span>{{ $t('清空') }}</span>
                     </bk-button>
-                    <bk-button type="primary" @click="handleRefreshHost">
+                    <bk-button
+                        type="primary"
+                        @click="handleRefreshHost">
                         {{ $t('刷新状态') }}
                     </bk-button>
                 </template>
                 <bk-input
                     v-if="isShowHostSearchInput"
                     class="ip-search"
-                    :value="searchText"
                     :placeholder="$t('筛选主机')"
                     right-icon="bk-icon icon-search"
+                    :value="searchText"
                     @change="handleHostSearch" />
             </div>
             
@@ -127,8 +141,8 @@
                 show-view
                 :value="localHost"
                 :view-search-key="searchText"
-                @close-dialog="handleCloseIpSelector"
-                @change="handleHostChange" />
+                @change="handleHostChange"
+                @close-dialog="handleCloseIpSelector" />
         </jb-form-item>
         <!-- <choose-ip
             v-model="isShowChooseIp"
@@ -138,10 +152,14 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import TaskHostNodeModel from '@model/task-host-node';
-    import I18n from '@/i18n';
+
     import { execCopy } from '@utils/assist';
+
     import ComposeFormItem from '@components/compose-form-item';
+
+    import I18n from '@/i18n';
     // import ChooseIp from '@components/choose-ip';
     // import ServerPanel from '@components/choose-ip/server-panel';
 

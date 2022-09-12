@@ -24,6 +24,7 @@
 */
 
 import Request from '@utils/request';
+
 import ModuleBase from './module-base';
 
 /* eslint-disable max-len */

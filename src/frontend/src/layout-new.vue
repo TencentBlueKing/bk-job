@@ -28,13 +28,13 @@
 <template>
     <site-frame
         :side-fixed="isFrameSideFixed"
-        @on-side-fixed="handleSideFixedChnage"
-        @on-side-expand="handleSideExpandChange">
+        @on-side-expand="handleSideExpandChange"
+        @on-side-fixed="handleSideFixedChnage">
         <template slot="header">
             <Icon
-                type="job-logo"
-                svg
                 style="font-size: 28px; color: #96a2b9;"
+                svg
+                type="job-logo"
                 @click="handleRouterChange('home')" />
             <span
                 class="site-title"
@@ -45,30 +45,30 @@
         <template slot="headerCenter">
             <div class="top-menu-box">
                 <div
-                    class="top-menu-item"
                     v-test="{ type: 'navigation', value: 'home' }"
+                    class="top-menu-item"
                     :class="{ active: routerGroup === 'business' }"
                     @click="handleRouterChange('home')">
                     {{ $t('作业管理') }}
                 </div>
                 <div
-                    class="top-menu-item"
                     v-test="{ type: 'navigation', value: 'dashboard' }"
+                    class="top-menu-item"
                     :class="{ active: routerGroup === 'operation' }"
                     @click="handleRouterChange('dashboard')">
                     {{ $t('运营分析') }}
                 </div>
                 <div
-                    class="top-menu-item"
                     v-test="{ type: 'navigation', value: 'scriptTemplate' }"
+                    class="top-menu-item"
                     :class="{ active: routerGroup === 'personal' }"
                     @click="handleRouterChange('scriptTemplate')">
                     {{ $t('个性化') }}
                 </div>
                 <div
                     v-if="isAdmin"
-                    class="top-menu-item"
                     v-test="{ type: 'navigation', value: 'publicScriptList' }"
+                    class="top-menu-item"
                     :class="{ active: routerGroup === 'manage' }"
                     @click="handleRouterChange('publicScriptList')">
                     {{ $t('平台管理') }}
@@ -98,8 +98,12 @@
                         {{ $t('业务概览') }}
                     </jb-item>
                     <jb-item-group>
-                        <div slot="title">{{ $t('快速执行') }}</div>
-                        <div slot="flod-title">{{ $t('快速') }}</div>
+                        <div slot="title">
+                            {{ $t('快速执行') }}
+                        </div>
+                        <div slot="flod-title">
+                            {{ $t('快速') }}
+                        </div>
                         <jb-item index="fastExecuteScript">
                             <Icon type="job-fast-script" />
                             {{ $t('脚本执行') }}
@@ -110,8 +114,12 @@
                         </jb-item>
                     </jb-item-group>
                     <jb-item-group>
-                        <div slot="title">{{ $t('任务编排') }}</div>
-                        <div slot="flod-title">{{ $t('任务') }}</div>
+                        <div slot="title">
+                            {{ $t('任务编排') }}
+                        </div>
+                        <div slot="flod-title">
+                            {{ $t('任务') }}
+                        </div>
                         <jb-item index="taskManage">
                             <Icon type="job-job" />
                             {{ $t('作业') }}
@@ -130,8 +138,12 @@
                         </jb-item>
                     </jb-item-group>
                     <jb-item-group>
-                        <div slot="title">{{ $t('资源.menuGroup') }}</div>
-                        <div slot="flod-title">{{ $t('资源.flodTitle') }}</div>
+                        <div slot="title">
+                            {{ $t('资源.menuGroup') }}
+                        </div>
+                        <div slot="flod-title">
+                            {{ $t('资源.flodTitle') }}
+                        </div>
                         <jb-item index="scriptManage">
                             <Icon type="job-script" />
                             {{ $t('脚本') }}
@@ -142,8 +154,12 @@
                         </jb-item>
                     </jb-item-group>
                     <jb-item-group v-if="isEnableFeatureFileManage">
-                        <div slot="title">{{ $t('文件源.menuGroup') }}</div>
-                        <div slot="flod-title">{{ $t('文件') }}</div>
+                        <div slot="title">
+                            {{ $t('文件源.menuGroup') }}
+                        </div>
+                        <div slot="flod-title">
+                            {{ $t('文件') }}
+                        </div>
                         <jb-item index="fileManage">
                             <Icon type="file-fill" />
                             {{ $t('文件源.menu') }}
@@ -154,8 +170,12 @@
                         </jb-item>
                     </jb-item-group>
                     <jb-item-group>
-                        <div slot="title">{{ $t('管理.menuGroup') }}</div>
-                        <div slot="flod-title">{{ $t('管理.flodTitle') }}</div>
+                        <div slot="title">
+                            {{ $t('管理.menuGroup') }}
+                        </div>
+                        <div slot="flod-title">
+                            {{ $t('管理.flodTitle') }}
+                        </div>
                         <jb-item index="tagManage">
                             <Icon type="tag" />
                             {{ $t('标签') }}
@@ -180,16 +200,24 @@
                 </template>
                 <template v-if="routerGroup === 'manage'">
                     <jb-item-group>
-                        <div slot="title">{{ $t('资源.menuGroup') }}</div>
-                        <div slot="flod-title">{{ $t('资源.flodTitle') }}</div>
+                        <div slot="title">
+                            {{ $t('资源.menuGroup') }}
+                        </div>
+                        <div slot="flod-title">
+                            {{ $t('资源.flodTitle') }}
+                        </div>
                         <jb-item index="publicScript">
                             <Icon type="job-public-script" />
                             {{ $t('公共脚本') }}
                         </jb-item>
                     </jb-item-group>
                     <jb-item-group>
-                        <div slot="title">{{ $t('设置.menuGroup') }}</div>
-                        <div slot="flod-title">{{ $t('设置.flodTitle') }}</div>
+                        <div slot="title">
+                            {{ $t('设置.menuGroup') }}
+                        </div>
+                        <div slot="flod-title">
+                            {{ $t('设置.flodTitle') }}
+                        </div>
                         <jb-item index="whiteIp">
                             <Icon type="job-white-list" />
                             {{ $t('IP 白名单') }}
@@ -200,8 +228,12 @@
                         </jb-item>
                     </jb-item-group>
                     <jb-item-group>
-                        <div slot="title">{{ $t('安全.menuGroup') }}</div>
-                        <div slot="flod-title">{{ $t('安全.flodTitle') }}</div>
+                        <div slot="title">
+                            {{ $t('安全.menuGroup') }}
+                        </div>
+                        <div slot="flod-title">
+                            {{ $t('安全.flodTitle') }}
+                        </div>
                         <jb-item index="dangerousRuleManage">
                             <Icon type="job-white-list" />
                             {{ $t('高危语句规则') }}
@@ -212,8 +244,12 @@
                         </jb-item>
                     </jb-item-group>
                     <jb-item-group>
-                        <div slot="title">{{ $t('视图') }}</div>
-                        <div slot="flod-title">{{ $t('视图') }}</div>
+                        <div slot="title">
+                            {{ $t('视图') }}
+                        </div>
+                        <div slot="flod-title">
+                            {{ $t('视图') }}
+                        </div>
                         <jb-item index="service">
                             <Icon type="status-2" />
                             {{ $t('服务状态') }}
@@ -224,9 +260,15 @@
         </template>
         <template slot="contentHeader">
             <slot name="back" />
-            <div id="sitePageTitle" class="page-title">
-                <div class="page-title-text">{{ routerTitle }}</div>
-                <div v-once id="siteHeaderStatusBar" />
+            <div
+                id="sitePageTitle"
+                class="page-title">
+                <div class="page-title-text">
+                    {{ routerTitle }}
+                </div>
+                <div
+                    v-once
+                    id="siteHeaderStatusBar" />
             </div>
         </template>
         <div v-test="{ type: 'page', value: $route.name }">
@@ -239,12 +281,15 @@
         ref,
         watch,
     } from 'vue';
+
     import QueryGlobalSettingService from '@service/query-global-setting';
-    import SiteFrame from '@components/site-frame';
+
+    import AppSelect from '@components/app-select';
     import JbMenu from '@components/jb-menu';
     import JbItem from '@components/jb-menu/item';
     import JbItemGroup from '@components/jb-menu/item-group';
-    import AppSelect from '@components/app-select';
+    import SiteFrame from '@components/site-frame';
+
     import {
         useRoute,
         useRouter,

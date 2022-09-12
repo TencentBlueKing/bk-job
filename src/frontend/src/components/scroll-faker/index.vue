@@ -49,7 +49,11 @@
             @mouseenter="handleVerticalMouseenter"
             @mouseleave="handleVerticalMouseleave"
             @scroll="handleVerticalScroll">
-            <div class="scrollbar-inner" :style="{ height: `${contentScrollHeight}px` }">&nbsp;</div>
+            <div
+                class="scrollbar-inner"
+                :style="{ height: `${contentScrollHeight}px` }">
+&nbsp;
+            </div>
         </div>
         <div
             v-if="isRenderHorizontalScrollbar"
@@ -58,7 +62,11 @@
             @mouseenter="handleHorizontalMouseenter"
             @mouseleave="handleHorizontalMouseleave"
             @scroll="handleHorizontalScroll">
-            <div class="scrollbar-inner" :style="{ width: `${contentScrollWidth}px` }">&nbsp;</div>
+            <div
+                class="scrollbar-inner"
+                :style="{ width: `${contentScrollWidth}px` }">
+&nbsp;
+            </div>
         </div>
     </div>
 </template>

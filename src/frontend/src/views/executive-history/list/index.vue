@@ -30,42 +30,42 @@
         <list-action-layout>
             <jb-search-select
                 ref="search"
-                @on-change="handleSearch"
                 :data="searchSelect"
                 :placeholder="$t('history.搜索任务ID，任务名称，执行方式，任务类型，任务状态，执行人...')"
-                style="width: 600px;" />
+                style="width: 600px;"
+                @on-change="handleSearch" />
             <template #right>
                 <bk-date-picker
                     ref="datePicker"
-                    :value="defaultDateTime"
+                    :clearable="false"
                     :placeholder="$t('history.选择日期')"
+                    :shortcut-close="true"
                     :shortcuts="shortcuts"
                     type="datetimerange"
-                    :shortcut-close="true"
-                    :use-shortcut-text="true"
-                    :clearable="false"
                     up-to-now
+                    :use-shortcut-text="true"
+                    :value="defaultDateTime"
                     @change="handleDateChange" />
             </template>
         </list-action-layout>
         <render-list
             ref="list"
-            :size="tableSize"
+            v-test="{ type: 'list', value: 'execHistory' }"
+            class="executive-history-table"
             :data-source="fetchExecutionHistoryList"
             :search-control="() => $refs.search"
-            class="executive-history-table"
-            v-test="{ type: 'list', value: 'execHistory' }">
+            :size="tableSize">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
+                key="id"
+                align="left"
                 label="ID"
                 prop="id"
-                key="id"
-                width="130"
-                align="left">
+                width="130">
                 <template slot-scope="{ row }">
                     <auth-button
-                        :permission="row.canView"
                         auth="task_instance/view"
+                        :permission="row.canView"
                         :resource-id="row.id"
                         text
                         @click="handleGoDetail(row)">
@@ -75,75 +75,75 @@
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.name"
-                :label="$t('history.任务名称.colHead')"
-                prop="name"
                 key="name"
-                min-width="200"
                 align="left"
+                :label="$t('history.任务名称.colHead')"
+                min-width="200"
+                prop="name"
                 show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.startupModeDesc"
+                key="startupModeDesc"
+                align="left"
                 :label="$t('history.执行方式.colHead')"
                 prop="startupModeDesc"
-                key="startupModeDesc"
-                width="120"
-                align="left" />
+                width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.typeDesc"
+                key="typeDesc"
+                align="left"
                 :label="$t('history.任务类型.colHead')"
                 prop="typeDesc"
-                key="typeDesc"
-                width="140"
-                align="left" />
+                width="140" />
             <bk-table-column
                 v-if="allRenderColumnMap.statusDesc"
+                key="statusDesc"
+                align="left"
                 :label="$t('history.任务状态.colHead')"
                 prop="statusDesc"
-                key="statusDesc"
-                width="140"
-                align="left">
+                width="140">
                 <template slot-scope="{ row }">
                     <Icon
-                        svg
-                        :type="row.statusIconType"
                         :class="{
                             'rotate-loading': row.isDoing,
                         }"
-                        style="font-size: 16px; color: #3a84ff; vertical-align: middle;" />
+                        style="font-size: 16px; color: #3a84ff; vertical-align: middle;"
+                        svg
+                        :type="row.statusIconType" />
                     <span style="vertical-align: middle;">{{ row.statusDesc }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.operator"
+                key="operator"
+                align="left"
                 :label="$t('history.执行人.colHead')"
                 prop="operator"
-                key="operator"
-                width="140"
-                align="left" />
+                width="140" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
+                key="createTime"
+                align="left"
                 :label="$t('history.开始时间.colHead')"
                 prop="createTime"
-                key="createTime"
-                width="180"
-                align="left" />
+                width="180" />
             <bk-table-column
                 v-if="allRenderColumnMap.totalTimeText"
+                key="totalTimeText"
+                align="right"
                 :label="$t('history.耗时时长')"
                 prop="totalTimeText"
-                key="totalTimeText"
-                width="130"
-                align="right" />
+                width="130" />
             <bk-table-column
-                :label="$t('history.操作')"
-                width="150"
                 key="action"
+                align="left"
                 fixed="right"
-                align="left">
+                :label="$t('history.操作')"
+                width="150">
                 <template slot-scope="{ row }">
                     <auth-button
-                        :permission="row.canView"
                         auth="task_instance/view"
+                        :permission="row.canView"
                         :resource-id="row.id"
                         text
                         @click="handleGoDetail(row)">
@@ -151,8 +151,8 @@
                     </auth-button>
                     <auth-button
                         v-if="!redoRequestMap[row.id]"
-                        :permission="row.canExecute"
                         auth="task_instance/redo"
+                        :permission="row.canExecute"
                         :resource-id="row.id"
                         text
                         @click="handleGoRetry(row)">
@@ -163,9 +163,9 @@
                         class="task-redo-loading ml10"
                         :data-text="$t('history.去重做')">
                         <Icon
+                            class="rotate-loading"
                             svg
-                            type="sync-pending"
-                            class="rotate-loading" />
+                            type="sync-pending" />
                     </span>
                 </template>
             </bk-table-column>
@@ -180,15 +180,18 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TaskExecuteService from '@service/task-execute';
     import NotifyService from '@service/notify';
+    import TaskExecuteService from '@service/task-execute';
+
     import { prettyDateTimeFormat } from '@utils/assist';
     import { listColumnsCache } from '@utils/cache-helper';
     import { IPRule } from '@utils/validator';
+
+    import JbSearchSelect from '@components/jb-search-select';
     import ListActionLayout from '@components/list-action-layout';
     import RenderList from '@components/render-list';
-    import JbSearchSelect from '@components/jb-search-select';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'execute_history_list_columns';
 

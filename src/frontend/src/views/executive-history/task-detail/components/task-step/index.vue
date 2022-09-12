@@ -29,16 +29,19 @@
     <component
         :is="themeCom"
         v-bind="$attrs"
-        :data="data"
         :choose="handleChoose"
+        :data="data"
         :handle-change-status="handleChangeStatus" />
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
-    import ThemeNormal from './theme/normal';
-    import ThemeApproval from './theme/approval';
+
     import StepAction from '../../../common/step-action';
+
+    import ThemeApproval from './theme/approval';
+    import ThemeNormal from './theme/normal';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'TaskStep',

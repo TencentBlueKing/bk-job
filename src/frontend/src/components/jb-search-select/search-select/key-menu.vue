@@ -27,6 +27,7 @@
 
 <script>
     import _ from 'lodash';
+
     import Mixin from './mixin';
 
     export default {

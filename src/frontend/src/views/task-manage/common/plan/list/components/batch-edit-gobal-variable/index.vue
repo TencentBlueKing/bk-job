@@ -27,33 +27,45 @@
 
 <template>
     <jb-sideslider
-        :is-show="isShow"
-        :width="900"
-        :title="$t('template.批量编辑变量值')"
         ref="root"
+        :is-show="isShow"
         :show-footer="!isLoading && isGlobalVariableNotEmpty"
+        :title="$t('template.批量编辑变量值')"
+        :width="900"
         @update:isShow="handleCancel">
-        <div v-if="isLoading" style="min-height: 100px;" v-bkloading="{ isLoading }" />
+        <div
+            v-if="isLoading"
+            v-bkloading="{ isLoading }"
+            style="min-height: 100px;" />
         <div v-else>
-            <div v-if="isGlobalVariableNotEmpty" class="batch-edit-global-variable-box">
+            <div
+                v-if="isGlobalVariableNotEmpty"
+                class="batch-edit-global-variable-box">
                 <div class="edit-header">
-                    <bk-steps :cur-step.sync="curStep" style="width: 300px;" :steps="steps" />
+                    <bk-steps
+                        :cur-step.sync="curStep"
+                        :steps="steps"
+                        style="width: 300px;" />
                 </div>
                 <keep-alive exclude="editPreview">
                     <component
+                        :is="stepCom"
                         v-if="planList.length > 0"
                         ref="handler"
-                        :is="stepCom"
-                        :plan-list="planList"
                         :latest-value-map="globalVariableValueMap"
+                        :plan-list="planList"
                         @on-edit-change="handleEditChange" />
                 </keep-alive>
             </div>
-            <Empty v-else style="margin-top: 126px;">
+            <Empty
+                v-else
+                style="margin-top: 126px;">
                 <div style="font-size: 20px; line-height: 26px; color: #63656e;">
                     {{ $t('template.暂无全局变量') }}
                 </div>
-                <div style="margin-top: 12px; font-size: 14px; line-height: 19px; color: #979ba5;" slot="desc">
+                <div
+                    slot="desc"
+                    style="margin-top: 12px; font-size: 14px; line-height: 19px; color: #979ba5;">
                     {{ $t('template.所选执行方案，无变量值可编辑') }}
                 </div>
             </Empty>
@@ -61,9 +73,9 @@
         <div slot="footer">
             <template v-if="curStep === 1">
                 <bk-button
-                    theme="primary"
                     class="mr10"
                     :disabled="isPreviewDisabled"
+                    theme="primary"
                     @click="handlePreview">
                     {{ $t('template.下一步') }}
                 </bk-button>
@@ -71,41 +83,47 @@
             <template v-if="curStep === 2">
                 <jb-popover-confirm
                     v-if="hasEmptyValueVariable"
-                    :title="$t('template.确定立即批量更新？')"
+                    :confirm-handler="handleSubmit"
                     :content="$t('template.请注意！变量值填框留空，即代表设置目标变量为空值。')"
-                    :confirm-handler="handleSubmit">
+                    :title="$t('template.确定立即批量更新？')">
                     <bk-button
-                        theme="primary"
-                        class="mr10">
+                        class="mr10"
+                        theme="primary">
                         {{ $t('template.提交') }}
                     </bk-button>
                 </jb-popover-confirm>
                 <bk-button
                     v-else
-                    theme="primary"
                     class="mr10"
+                    theme="primary"
                     @click="handleSubmit">
                     {{ $t('template.提交') }}
                 </bk-button>
                 <bk-button
-                    theme="primary"
                     class="mr10"
+                    theme="primary"
                     @click="handleChangeStep(1)">
                     {{ $t('template.上一步') }}
                 </bk-button>
             </template>
-            <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
+            <bk-button @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
         </div>
     </jb-sideslider>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskPlanService from '@service/task-plan';
+
     import { leaveConfirm } from '@utils/assist';
-    import { genGlobalVariableKey } from './utils';
-    import EditValue from './edit-value';
+
     import EditPreview from './edit-preview';
+    import EditValue from './edit-value';
+    import { genGlobalVariableKey } from './utils';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

@@ -27,9 +27,13 @@
 
 <template>
     <div class="server-pagination">
-        <div class="pagination-total">{{ $t('共计') }} {{ total }} {{ $t('条.total') }}</div>
+        <div class="pagination-total">
+            {{ $t('共计') }} {{ total }} {{ $t('条.total') }}
+        </div>
         <div class="pagination-change">
-            <div class="page-last" @click="handlePageChange(-1)">
+            <div
+                class="page-last"
+                @click="handlePageChange(-1)">
                 <Icon type="down-small" />
             </div>
             <input
@@ -37,9 +41,15 @@
                 :value="current"
                 @blur="handleInputSubmit"
                 @change="handleInputSubmit">
-            <div class="page-line">/</div>
-            <div class="page-count">{{ totalPage }}</div>
-            <div class="page-next" @click="handlePageChange(1)">
+            <div class="page-line">
+                /
+            </div>
+            <div class="page-count">
+                {{ totalPage }}
+            </div>
+            <div
+                class="page-next"
+                @click="handlePageChange(1)">
                 <Icon type="down-small" />
             </div>
         </div>

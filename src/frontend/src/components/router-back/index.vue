@@ -26,13 +26,19 @@
 -->
 
 <template>
-    <Icon v-if="showBack" type="back1" class="jb-router-back" svg @click="handleGoBack" />
+    <Icon
+        v-if="showBack"
+        class="jb-router-back"
+        svg
+        type="back1"
+        @click="handleGoBack" />
 </template>
 <script>
     import _ from 'lodash';
+
     import {
-        taskImport,
         taskExport,
+        taskImport,
     } from '@utils/cache-helper';
 
     export default {

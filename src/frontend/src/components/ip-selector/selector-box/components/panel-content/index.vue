@@ -1,7 +1,7 @@
 <template>
     <div
-        class="ip-selector-panel-content"
-        v-bkloading="{ isLoading: !Boolean(type) }">
+        v-bkloading="{ isLoading: !Boolean(type) }"
+        class="ip-selector-panel-content">
         <component
             :is="renderCom"
             v-bind="$attrs"
@@ -18,12 +18,13 @@
         computed,
         useListeners,
     } from 'vue';
-    import RenderStaticTopo from './static-topo.vue';
+
     import RenderDynamicGroup from './dynamic-group.vue';
     import RenderDynamicTopo from './dynamic-topo/index.vue';
+    import RenderManualInput from './manual-input.vue';
     import RenderServiceTemplate from './service-template.vue';
     import RenderSetTemplate from './set-template.vue';
-    import RenderManualInput from './manual-input.vue';
+    import RenderStaticTopo from './static-topo.vue';
 
     const props = defineProps({
         type: {
