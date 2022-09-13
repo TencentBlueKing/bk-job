@@ -62,7 +62,7 @@ public class AddHostIdMigrationTask extends BaseUpgradeTask {
             log.info("job.manage.addHostIdMigrationTask start ...");
             Response<String> response = post(buildMigrationTaskUrl(getJobManageUrl(),
                 "/migration/action/addHostIdMigrationTask"),
-                JsonUtils.toJson(new AddHostIdMigrationReq(true)));
+                JsonUtils.toJson(new AddHostIdMigrationReq(false)));
             log.info("job.manage.addHostIdMigrationTask done, result: {}", response);
             return response.isSuccess();
         } catch (Throwable e) {
