@@ -797,9 +797,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
                 if (fileSourceList != null) {
                     for (FileSourceDTO fileSource : fileSourceList) {
-                        ServersDTO servers = fileSource.getServers();
-                        if (servers != null && servers.getIpList() != null) {
-                            checkHosts.addAll(servers.getIpList());
+                        if (fileSource.getFileType().equals(TaskFileTypeEnum.SERVER.getType())) {
+                            // 远程文件分发需要校验文件源主机
+                            ServersDTO servers = fileSource.getServers();
+                            if (servers != null && servers.getIpList() != null) {
+                                checkHosts.addAll(servers.getIpList());
+                            }
                         }
                     }
                 }
