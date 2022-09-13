@@ -163,7 +163,7 @@ public class AddHostIdMigrationTask {
             watch.start("update_targets");
             if (isDryRun) {
                 // 只输出要更新的数据用于验证，不进行DB数据的变更
-                log.info("Update targets, tableName: {},  records: {}", migration.getTableName(),
+                log.info("Update targets with dryRun mode, tableName: {},  records: {}", migration.getTableName(),
                     JsonUtils.toJson(targets));
             } else {
                 migration.updateTaskTargets(targets);
