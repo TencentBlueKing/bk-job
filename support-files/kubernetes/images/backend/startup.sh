@@ -53,7 +53,7 @@ if [[ "$OTEL_TRACE_ENABLED" == "true" ]];then
     fi
 fi
 
-java -server \
+exec java -server \
      $OTEL_OPTS \
      -Dfile.encoding=UTF-8 \
      -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
@@ -69,4 +69,5 @@ java -server \
      -XX:ErrorFile=$BK_JOB_LOG_DIR/error_sys.log \
      -Dspring.profiles.active=$BK_JOB_PROFILE \
      $BK_JOB_JVM_OPTION \
-     -jar /data/job/exec/$BK_JOB_JAR
+     -jar /data/job/exec/$BK_JOB_JAR \
+     "$@"

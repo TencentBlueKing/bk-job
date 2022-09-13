@@ -54,7 +54,7 @@ public class WatchableSendMsgService {
     }
 
     @EsbApiTimed
-    public boolean sendMsg(
+    public void sendMsg(
         Long appId,
         long createTimeMillis,
         String msgType,
@@ -62,14 +62,11 @@ public class WatchableSendMsgService {
         Set<String> receivers,
         String title,
         String content
-    ) throws Exception {
+    ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
-            boolean result = paaSService.sendMsg(msgType, sender, receivers, title, content);
-            if (result) {
-                sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
-            }
-            return result;
+            paaSService.sendMsg(msgType, sender, receivers, title, content);
+            sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
         } finally {
             long delayMillis = System.currentTimeMillis() - createTimeMillis;
             Tags tags = Tags.of(MetricsConstants.TAG_KEY_MSG_TYPE, msgType);

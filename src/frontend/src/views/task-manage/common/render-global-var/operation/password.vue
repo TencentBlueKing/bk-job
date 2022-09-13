@@ -41,8 +41,7 @@
             <bk-input
                 v-model="formData.defaultValue"
                 :placeholder="$t('template.请输入变量的初始值 [可选]')"
-                type="password"
-                :password-icon="passwordIcon" />
+                type="password" />
         </jb-form-item>
         <jb-form-item label="变量描述">
             <bk-input
@@ -87,23 +86,7 @@
         data () {
             return {
                 formData: { ...this.data },
-                passwordIcon: [],
             };
-        },
-        watch: {
-            data: {
-                handler (data) {
-                    if (data.name) {
-                        this.passwordIcon = [];
-                    } else {
-                        this.passwordIcon = [
-                            'icon-eye-slash',
-                        ];
-                    }
-                },
-                immediate: true,
-            },
-            
         },
         created () {
             this.rules = {

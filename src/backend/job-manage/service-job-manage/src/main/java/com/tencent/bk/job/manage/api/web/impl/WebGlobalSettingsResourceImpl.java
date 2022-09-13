@@ -53,7 +53,7 @@ import java.util.List;
 @Slf4j
 public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource {
 
-    private GlobalSettingsService globalSettingsService;
+    private final GlobalSettingsService globalSettingsService;
 
     @Autowired
     public WebGlobalSettingsResourceImpl(GlobalSettingsService globalSettingsService) {

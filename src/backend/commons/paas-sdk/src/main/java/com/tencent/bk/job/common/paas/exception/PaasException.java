@@ -22,34 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.impl;
+package com.tencent.bk.job.common.paas.exception;
 
-import com.tencent.bk.job.backup.archive.AbstractArchivist;
-import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
-import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.StepInstanceRecord;
+import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.model.error.ErrorType;
 
-/**
- * step_instance 表归档
- */
-public class StepInstanceArchivist extends AbstractArchivist<StepInstanceRecord> {
+public class PaasException extends ServiceException {
 
-    public StepInstanceArchivist(StepInstanceRecordDAO executeRecordDAO,
-                                 ExecuteArchiveDAO executeArchiveDAO,
-                                 ArchiveProgressService archiveProgressService) {
-        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
-        this.deleteIdStepSize = 10_000;
+    public PaasException(ErrorType errorType, Integer errorCode, Object[] errorParams) {
+        super(errorType, errorCode, errorParams);
     }
 
-    /**
-     * 获取作业实例ID范围内的步骤实例ID最大值
-     *
-     * @param taskInstanceId 作业实例ID
-     * @return 步骤实例ID 最大值
-     */
-    public Long getMaxId(Long taskInstanceId) {
-        StepInstanceRecordDAO stepInstanceRecordDAO = (StepInstanceRecordDAO) executeRecordDAO;
-        return stepInstanceRecordDAO.getMaxId(taskInstanceId);
+    public PaasException(Throwable cause, ErrorType errorType, Integer errorCode, Object[] errorParams) {
+        super(cause, errorType, errorCode, errorParams);
     }
+
 }

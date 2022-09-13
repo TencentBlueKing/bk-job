@@ -61,6 +61,8 @@ data:
       base-url: {{ .Values.bkIamApiUrl }}
       system-id: {{ .Values.iam.systemId }}
     paas:
+      server:
+        url: {{ .Values.bkPaasUrl }}
       login:
         {{- if .Values.login.custom.enabled }}
         custom:

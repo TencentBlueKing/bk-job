@@ -221,5 +221,6 @@ export default {
             finished: 'finished.',
         },
         已执行: '',
+        当前正在显示的内容: 'Currently displayed',
     },
 };
