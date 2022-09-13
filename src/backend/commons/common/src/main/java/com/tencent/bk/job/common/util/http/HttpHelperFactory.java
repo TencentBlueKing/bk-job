@@ -47,8 +47,6 @@ public class HttpHelperFactory {
                     .setSocketTimeout(socketTimeout)
                     .build()
             )
-            // esb的keep-alive时间为90s，需要<90s,防止连接超时抛出org.apache.http.NoHttpResponseException:
-            // The target server failed to respond
             .setConnectionTimeToLive(34, TimeUnit.SECONDS).evictExpiredConnections()
             .evictIdleConnections(5, TimeUnit.SECONDS)
             .disableAutomaticRetries()

@@ -25,33 +25,33 @@
 package com.tencent.bk.job.upgrader.task;
 
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTaskInputParam;
+import com.tencent.bk.job.upgrader.model.job.AddHostIdMigrationReq;
+import com.tencent.bk.job.upgrader.task.param.JobCrontabServerAddress;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.Properties;
 
 /**
- * 迁移作业模板/脚本引用的标签到resource_tag表
+ * 作业模板、执行方案、白名单、定时任务等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性
  */
 @Slf4j
 @RequireTaskParam(value = {
-    @UpgradeTaskInputParam(value = JobManageServerAddress.class)
+    @UpgradeTaskInputParam(value = JobManageServerAddress.class),
+    @UpgradeTaskInputParam(value = JobCrontabServerAddress.class)
 })
 @UpgradeTask(
     dataStartVersion = "3.0.0.0",
-    targetVersion = "3.4.0.0",
+    targetVersion = "3.7.0",
     targetExecuteTime = ExecuteTimeEnum.AFTER_UPDATE_JOB)
-public class ResourceTagMigrationTask extends BaseUpgradeTask {
+public class AddHostIdMigrationTask extends BaseUpgradeTask {
 
-    public ResourceTagMigrationTask(Properties properties) {
+    public AddHostIdMigrationTask(Properties properties) {
         super(properties);
     }
 
@@ -59,25 +59,15 @@ public class ResourceTagMigrationTask extends BaseUpgradeTask {
     public boolean execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         try {
-            Response<List<ResourceTagDTO>> response = post(buildMigrationTaskUrl(getJobManageUrl(),
-                "/migration/action/migrationResourceTags"), null);
-            log.info("MigrationResourceTags done, result: {}", response);
+            log.info("job.manage.addHostIdMigrationTask start ...");
+            Response<String> response = post(buildMigrationTaskUrl(getJobManageUrl(),
+                "/migration/action/addHostIdMigrationTask"),
+                JsonUtils.toJson(new AddHostIdMigrationReq(false)));
+            log.info("job.manage.addHostIdMigrationTask done, result: {}", response);
             return response.isSuccess();
         } catch (Throwable e) {
-            log.error("MigrationResourceTags fail", e);
+            log.error("AddHostIdMigrationTask fail", e);
             return false;
         }
-    }
-
-    @Getter
-    @Setter
-    @ToString
-    private static class ResourceTagDTO {
-
-        private Integer resourceType;
-
-        private String resourceId;
-
-        private Long tagId;
     }
 }

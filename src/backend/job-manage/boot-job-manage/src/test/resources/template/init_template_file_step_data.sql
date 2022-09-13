@@ -27,6 +27,6 @@ TRUNCATE TABLE `task_template_step_file`;
 INSERT INTO `task_template_step_file` (id, step_id, destination_file_location, execute_account,
                                        destination_host_list, timeout, origin_speed_limit, target_speed_limit,
                                        ignore_error, duplicate_handler)
-VALUES (1, 1000, '/root/tmp', 1, '1.1.1.1,2.2.2.2', 6000, 100, 200, 0, 1),
-       (2, 2000, '/home/user1/tmp', 2, '3.3.3.3,4.4.4.4,6.6.6.6', 6000, null, null, 1, 2),
-       (3, 3000, '/home/userC/tmp', 3, '10.10.10.10', 6000, 100, 200, 0, 1);
+VALUES (1, 1000, '/root/tmp', 1, null, 6000, 100, 200, 0, 1),
+       (2, 2000, '/home/user1/tmp', 2, null, 6000, null, null, 1, 2),
+       (3, 3000, '/home/userC/tmp', 3, null, 6000, 100, 200, 0, 1);

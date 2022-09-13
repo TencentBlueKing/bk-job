@@ -21,27 +21,21 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-package com.tencent.bk.job.common.model.error;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package com.tencent.bk.job.upgrader.model.job;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 作业模板、执行方案等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性 - 请求
+ */
 @Data
 @NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ErrorDetailDTO {
-    /**
-     * @see ErrorType
-     */
-    private Integer type;
+public class AddHostIdMigrationReq {
+    private boolean dryRun;
 
-    @JsonProperty("badRequestDetail")
-    private BadRequestDetailDTO badRequestDetail;
-
-    public ErrorDetailDTO(BadRequestDetailDTO badRequestDetail) {
-        this.badRequestDetail = badRequestDetail;
-        this.type = ErrorType.INVALID_PARAM.getType();
+    public AddHostIdMigrationReq(boolean dryRun) {
+        this.dryRun = dryRun;
     }
 }

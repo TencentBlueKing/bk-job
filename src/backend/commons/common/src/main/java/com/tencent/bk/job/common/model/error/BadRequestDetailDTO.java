@@ -40,7 +40,7 @@ import java.util.List;
 @NoArgsConstructor
 public class BadRequestDetailDTO {
 
-    @JsonProperty("field_violations")
+    @JsonProperty("fieldViolations")
     private List<FieldViolationDTO> fieldViolations;
 
     /**

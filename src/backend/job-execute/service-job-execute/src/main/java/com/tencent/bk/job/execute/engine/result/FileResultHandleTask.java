@@ -846,7 +846,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                     null,
                     sourceHost.getHostId(),
                     sourceHost.toCloudIp(),
-                    sourceHost.toCloudIp(),
+                    sourceHost.getDisplayIp(),
                     filePath,
                     displayFilePath,
                     fileSize,

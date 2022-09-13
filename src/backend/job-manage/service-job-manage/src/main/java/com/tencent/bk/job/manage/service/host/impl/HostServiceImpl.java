@@ -1267,73 +1267,6 @@ public class HostServiceImpl implements HostService {
         return bizIdList;
     }
 
-    private void checkCachedHosts(List<HostDTO> hosts,
-                                  List<Long> includeBizIds,
-                                  List<ApplicationHostDTO> hostsInOtherApp,
-                                  List<String> notExistHosts) {
-        List<CacheHostDO> cacheHosts =
-            hostCache.batchGetHostsByIps(hosts.stream().map(HostDTO::toCloudIp).collect(Collectors.toList()));
-        for (int i = 0; i < hosts.size(); i++) {
-            HostDTO host = hosts.get(i);
-            CacheHostDO cacheHost = cacheHosts.get(i);
-            if (cacheHost != null) {
-                if (!includeBizIds.contains(cacheHost.getBizId())) {
-                    hostsInOtherApp.add(cacheHost.toApplicationHostDTO());
-                }
-            } else {
-                notExistHosts.add(host.toCloudIp());
-            }
-        }
-    }
-
-    private void checkSyncHosts(List<Long> includeBizIds,
-                                List<ApplicationHostDTO> hostsInOtherApp,
-                                List<String> notExistHosts) {
-        List<ApplicationHostDTO> appHosts = applicationHostDAO.listHostsByCloudIps(notExistHosts);
-        if (CollectionUtils.isNotEmpty(appHosts)) {
-            for (ApplicationHostDTO appHost : appHosts) {
-                if (appHost.getBizId() == null || appHost.getBizId() <= 0) {
-                    log.info("Host: {} missing bizId, skip!", appHost.getCloudIp());
-                    // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
-                    continue;
-                }
-
-                notExistHosts.remove(appHost.getCloudIp());
-                hostCache.addOrUpdateHost(appHost);
-                if (!includeBizIds.contains(appHost.getBizId())) {
-                    hostsInOtherApp.add(appHost);
-                }
-            }
-        }
-    }
-
-    private void checkHostsFromCmdb(List<Long> includeBizIds,
-                                    List<ApplicationHostDTO> hostsInOtherApp,
-                                    List<String> notExistHosts) {
-
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-        try {
-            List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByCloudIps(notExistHosts);
-            if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
-                List<String> cmdbExistHostIps = cmdbExistHosts.stream()
-                    .map(ApplicationHostDTO::getCloudIp)
-                    .collect(Collectors.toList());
-                notExistHosts.removeAll(cmdbExistHostIps);
-                log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
-
-                hostCache.addOrUpdateHosts(cmdbExistHosts);
-
-                cmdbExistHosts.forEach(syncHost -> {
-                    if (!includeBizIds.contains(syncHost.getBizId())) {
-                        hostsInOtherApp.add(syncHost);
-                    }
-                });
-            }
-        } catch (Exception e) {
-            log.warn("Handle hosts that may not be synchronized from cmdb fail!", e);
-        }
-    }
-
     public List<ApplicationHostDTO> listHosts(Collection<HostDTO> hosts) {
         Pair<List<HostDTO>, List<ApplicationHostDTO>> hostResult = listHostsFromCacheOrCmdb(hosts);
         if (CollectionUtils.isEmpty(hostResult.getRight())) {
@@ -1597,5 +1530,12 @@ public class HostServiceImpl implements HostService {
         Pair<List<String>, List<ApplicationHostDTO>> result = listHostsByStrategy(Collections.singletonList(cloudIp),
             new ListHostByIpsStrategy());
         return CollectionUtils.isNotEmpty(result.getRight()) ? result.getRight().get(0) : null;
+    }
+
+    @Override
+    public Map<String, ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps) {
+        Pair<List<String>, List<ApplicationHostDTO>> result = listHostsByStrategy(new ArrayList<>(cloudIps),
+            new ListHostByIpsStrategy());
+        return result.getRight().stream().collect(Collectors.toMap(ApplicationHostDTO::getCloudIp, host -> host));
     }
 }

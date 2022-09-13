@@ -332,6 +332,10 @@ public class ErrorCode {
     public static final int FAIL_TO_REQUEST_THIRD_FILE_SOURCE_GET_OBJECT = 1262006;
     // 文件Worker end
 
+    // 迁移升级
+    // 迁移失败，任务: {0}, 详情: {1}
+    public static final int MIGRATION_FAIL = 1263001;
+
     // ==================================== 系统级错误 ================================================//
     // ======== 系统错误-权限错误 ==================//
     // 用户权限不足
