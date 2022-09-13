@@ -148,7 +148,7 @@
 <script>
     import _ from 'lodash';
 
-    import AppService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
 
     import TaskHostNodeModel from '@model/task-host-node';
 
@@ -355,7 +355,7 @@
              */
             fetchTopologyWithCount () {
                 this.isLoading = true;
-                AppService.fetchTopologyWithCount()
+                HostManageService.fetchTopologyWithCount()
                     .then((data) => {
                         this.topologyNodeTree = Object.freeze(bigTreeTransformTopologyOfTopology([
                             data,

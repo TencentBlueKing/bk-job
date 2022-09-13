@@ -47,7 +47,7 @@
     </sideslider-box>
 </template>
 <script>
-    import AppService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
 
     import {
         sortHost,
@@ -92,7 +92,7 @@
         methods: {
             fetchDynamicGroup () {
                 this.isLoading = true;
-                AppService.fetchHostOfDynamicGroup({
+                HostManageService.fetchHostOfDynamicGroup({
                     id: this.data.id,
                 }).then((data) => {
                     if (data.length < 1) {

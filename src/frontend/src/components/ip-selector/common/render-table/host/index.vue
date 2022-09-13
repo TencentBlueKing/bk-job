@@ -1,132 +1,134 @@
 <template>
     <div class="ip-selector-host-table">
-        <div
-            ref="tableWrapperRef"
-            class="host-talbe-wrapper"
-            :class="{
-                'not-empty': data.length > 0,
-            }"
-            :style="styles">
-            <table v-if="!isLoadingCustom">
-                <thead>
-                    <tr>
-                        <th
-                            v-if="slots.selection"
-                            class="columu-fixed"
-                            style="width: 60px;">
-                            <slot name="header-selection" />
-                        </th>
-                        <template
-                            v-for="(columnKey) in columnKeySortList">
+        <div class="table-wrapper">
+            <div
+                ref="tableContentRef"
+                class="talbe-content"
+                :class="{
+                    'not-empty': data.length > 0,
+                }"
+                :style="styles">
+                <table v-if="!isLoadingCustom">
+                    <thead>
+                        <tr>
                             <th
-                                v-if="columnKeyRenderMap[columnKey]"
-                                :key="columnKey"
-                                :class="{
-                                    'columu-fixed': columnKey === firstRenderColumnKey,
-                                }"
-                                :style="{
-                                    width: columnWidthCallback ?
-                                        columnWidthCallback(columnKeyRenderList.indexOf(columnKey))
-                                        : tableColumnConfig[columnKey].width,
-                                    left: `${slots.selection ? 60: 0}px`,
-                                }">
-                                <div class="cell">
-                                    <div class="cell-text">
-                                        {{ tableColumnConfig[columnKey].name }}
-                                    </div>
-                                    <render-filter
-                                        v-if="tableColumnConfig[columnKey].filter"
-                                        :data="tableColumnConfig[columnKey].filter" />
-                                </div>
+                                v-if="slots.selection"
+                                class="columu-fixed"
+                                style="width: 60px;">
+                                <slot name="header-selection" />
                             </th>
-                        </template>
-                        <th
-                            v-if="slots.action"
-                            style="width: 100px;" />
-                        <th
-                            v-if="showSetting"
-                            style="width: 40px;">
-                            <column-setting
-                                :selected-list="columnKeyRenderList"
-                                :sort-list="columnKeySortList"
-                                @change="handleSettingChange">
-                                <div class="table-column-setting-btn">
-                                    <i class="bk-ipselector-icon bk-ipselector-set-fill" />
-                                </div>
-                            </column-setting>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="(hostDataItem, rowIndex) in data"
-                        :key="rowIndex"
-                        @click="handleRowClick(hostDataItem, rowIndex, $event)">
-                        <td
-                            v-if="slots.selection"
-                            class="columu-fixed">
-                            <slot
-                                name="selection"
-                                :row="hostDataItem" />
-                        </td>
-                        <template
-                            v-for="(columnKey) in columnKeySortList">
-                            <td
-                                v-if="columnKeyRenderMap[columnKey]"
-                                :key="columnKey"
-                                :class="{
-                                    'columu-fixed': columnKey === firstRenderColumnKey,
-                                }"
-                                :style="{
-                                    left: `${slots.selection ? 60: 0}px`,
-                                }">
-                                <template v-if="columnKey === 'alive'">
-                                    <agent-status :data="hostDataItem.alive" />
-                                </template>
-                                <template v-else>
+                            <template
+                                v-for="(columnKey) in columnKeySortList">
+                                <th
+                                    v-if="columnKeyRenderMap[columnKey]"
+                                    :key="columnKey"
+                                    :class="{
+                                        'columu-fixed': columnKey === firstRenderColumnKey,
+                                    }"
+                                    :style="{
+                                        width: columnWidthCallback ?
+                                            columnWidthCallback(columnKeyRenderList.indexOf(columnKey))
+                                            : tableColumnConfig[columnKey].width,
+                                        left: `${slots.selection ? 60: 0}px`,
+                                    }">
                                     <div class="cell">
                                         <div class="cell-text">
-                                            {{ getObjectValueByPath(hostDataItem, tableColumnConfig[columnKey].field) || '--' }}
+                                            {{ tableColumnConfig[columnKey].name }}
                                         </div>
-                                        <div class="cell-append">
-                                            <template v-if="columnKey === 'ip'">
-                                                <slot
-                                                    name="ip"
-                                                    :row="hostDataItem" />
-                                            </template>
-                                            <template v-if="columnKey === 'ipv6'">
-                                                <slot
-                                                    name="ipv6"
-                                                    :row="hostDataItem" />
-                                            </template>
-                                        </div>
+                                        <render-filter
+                                            v-if="tableColumnConfig[columnKey].filter"
+                                            :data="tableColumnConfig[columnKey].filter" />
                                     </div>
-                                </template>
+                                </th>
+                            </template>
+                            <th
+                                v-if="slots.action"
+                                style="width: 100px;" />
+                            <th
+                                v-if="showSetting"
+                                style="width: 40px;">
+                                <column-setting
+                                    :selected-list="columnKeyRenderList"
+                                    :sort-list="columnKeySortList"
+                                    @change="handleSettingChange">
+                                    <div class="table-column-setting-btn">
+                                        <i class="bk-ipselector-icon bk-ipselector-set-fill" />
+                                    </div>
+                                </column-setting>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="(hostDataItem, rowIndex) in data"
+                            :key="rowIndex"
+                            @click="handleRowClick(hostDataItem, rowIndex, $event)">
+                            <td
+                                v-if="slots.selection"
+                                class="columu-fixed">
+                                <slot
+                                    name="selection"
+                                    :row="hostDataItem" />
                             </td>
-                        </template>
-                        <td v-if="slots.action">
-                            <slot
-                                name="action"
-                                :row="hostDataItem" />
-                        </td>
-                        <td
-                            v-if="showSetting"
-                            key="settting" />
-                    </tr>
-                </tbody>
-            </table>
-            <div
-                v-if="data.length < 1"
-                class="table-empty">
-                <slot name="empty">
-                    <img src="../../../images/empty.svg">
-                    <div>暂无数据</div>
-                </slot>
+                            <template
+                                v-for="(columnKey) in columnKeySortList">
+                                <td
+                                    v-if="columnKeyRenderMap[columnKey]"
+                                    :key="columnKey"
+                                    :class="{
+                                        'columu-fixed': columnKey === firstRenderColumnKey,
+                                    }"
+                                    :style="{
+                                        left: `${slots.selection ? 60: 0}px`,
+                                    }">
+                                    <template v-if="columnKey === 'alive'">
+                                        <agent-status :data="hostDataItem.alive" />
+                                    </template>
+                                    <template v-else>
+                                        <div class="cell">
+                                            <div class="cell-text">
+                                                {{ getObjectValueByPath(hostDataItem, tableColumnConfig[columnKey].field) || '--' }}
+                                            </div>
+                                            <div class="cell-append">
+                                                <template v-if="columnKey === 'ip'">
+                                                    <slot
+                                                        name="ip"
+                                                        :row="hostDataItem" />
+                                                </template>
+                                                <template v-if="columnKey === 'ipv6'">
+                                                    <slot
+                                                        name="ipv6"
+                                                        :row="hostDataItem" />
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </td>
+                            </template>
+                            <td v-if="slots.action">
+                                <slot
+                                    name="action"
+                                    :row="hostDataItem" />
+                            </td>
+                            <td
+                                v-if="showSetting"
+                                key="settting" />
+                        </tr>
+                    </tbody>
+                </table>
+                <div
+                    v-if="data.length < 1"
+                    class="table-empty">
+                    <slot name="empty">
+                        <img src="../../../images/empty.svg">
+                        <div>暂无数据</div>
+                    </slot>
+                </div>
             </div>
+            <div
+                class="table-fixed"
+                :style="fixedStyles" />
         </div>
-        <div
-            class="table-fixed"
-            :style="fixedStyles" />
         <bk-pagination
             v-if="isShowPagination"
             align="right"
@@ -175,8 +177,6 @@
     };
 </script>
 <script setup>
-    const slots = useSlots();
-
     const props = defineProps({
         data: {
             type: Array,
@@ -202,7 +202,9 @@
         'pagination-change',
     ]);
 
-    const tableWrapperRef = ref();
+    const slots = useSlots();
+
+    const tableContentRef = ref();
     const isLoadingCustom = ref(true);
 
     const styles = computed(() => {
@@ -310,14 +312,14 @@
     };
 
     const handleHorizontalScroll = _.throttle(() => {
-        const { scrollLeft } = tableWrapperRef.value;
+        const { scrollLeft } = tableContentRef.value;
         if (scrollLeft === 0) {
             fixedStyles.value = {
                 display: 'none',
             };
             return;
         }
-        const fixedColumns = tableWrapperRef.value.querySelectorAll('th.columu-fixed');
+        const fixedColumns = tableContentRef.value.querySelectorAll('th.columu-fixed');
         const fixedWidth = Array.from(fixedColumns).reduce((result, itemEl) => result + itemEl.getBoundingClientRect().width, 0);
         fixedStyles.value = {
             width: `${fixedWidth}px`,
@@ -325,9 +327,9 @@
     }, 30);
 
     onMounted(() => {
-        tableWrapperRef.value.addEventListener('scroll', handleHorizontalScroll);
+        tableContentRef.value.addEventListener('scroll', handleHorizontalScroll);
         onBeforeUnmount(() => {
-            tableWrapperRef.value.removeEventListener('scroll', handleHorizontalScroll);
+            tableContentRef.value.removeEventListener('scroll', handleHorizontalScroll);
         });
     });
 </script>
@@ -338,7 +340,11 @@
         position: relative;
         overflow: hidden;
 
-        .host-talbe-wrapper {
+        .table-wrapper {
+            position: relative;
+        }
+
+        .talbe-content {
             position: relative;
             overflow-x: auto;
             border-top: 1px solid #f0f1f5;
@@ -384,7 +390,7 @@
         .table-fixed {
             position: absolute;
             top: 0;
-            bottom: 45px;
+            bottom: 0;
             left: 0;
             pointer-events: none;
             box-shadow: 0 0 10px rgb(0 0 0 / 12%);

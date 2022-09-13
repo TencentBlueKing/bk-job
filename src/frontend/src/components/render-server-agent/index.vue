@@ -79,7 +79,7 @@
     </div>
 </template>
 <script>
-    import AppManageService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
 
     import TaskHostNodeModel from '@model/task-host-node';
     // import ServerPanel from '@components/choose-ip/server-panel';
@@ -134,7 +134,7 @@
                 }
                 this.isLoading = true;
                 const { dynamicGroupList, hostList, nodeList } = this.hostNodeInfo;
-                AppManageService.fetchHostStatistics({
+                HostManageService.fetchHostStatistics({
                     nodeList,
                     dynamicGroupList,
                     hostList,

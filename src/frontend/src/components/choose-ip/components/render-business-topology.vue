@@ -206,7 +206,7 @@
 <script>
     import _ from 'lodash';
 
-    import AppManageService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
     import UserService from '@service/user';
 
     import { topoNodeCache } from '@utils/cache-helper';
@@ -347,7 +347,7 @@
                 const [objectId, instanceId] = parseIdInfo(this.selectedNodeId);
                 const { page, pageSize } = this.pagination;
                 this.isLoading = true;
-                AppManageService.fetchTopologyHost({
+                HostManageService.fetchTopologyHost({
                     appTopoNodeList: [
                         {
                             objectId,
@@ -382,7 +382,7 @@
                     ...this.checkedMap,
                 };
                 this.isLoading = true;
-                AppManageService.fetchTopogyHostIdList({
+                HostManageService.fetchTopogyHostIdList({
                     appTopoNodeList: [{
                         objectId,
                         instanceId,

@@ -1,4 +1,6 @@
-import { messageSuccess } from '@/common/bkmagic';
+import Vue from 'vue';
+
+const Message = Vue.prototype.$bkMessage;
 /**
  * @desc 复制文本
  * @param { String } value
@@ -12,7 +14,11 @@ export const execCopy = (value, message = '复制成功') => {
     textarea.select();
     if (document.execCommand('copy')) {
         document.execCommand('copy');
-        messageSuccess(message);
+        Message({
+            message,
+            delay: 500,
+            theme: 'success',
+        });
     }
     document.body.removeChild(textarea);
 };

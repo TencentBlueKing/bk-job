@@ -116,7 +116,7 @@
 <script>
     import _ from 'lodash';
 
-    import AppManageService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
 
     import JbCollapseItem from '@components/jb-collapse-item';
 
@@ -197,7 +197,7 @@
                     return result;
                 }, {});
 
-                AppManageService.fetchHostOfHost({
+                HostManageService.fetchHostOfHost({
                     hostIdList: this.data.map(({ hostId }) => hostId),
                 })
                     .then((data) => {

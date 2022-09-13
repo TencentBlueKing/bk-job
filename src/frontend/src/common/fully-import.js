@@ -28,7 +28,7 @@ import Vue from 'vue';
 import VueProgressBar from 'vue-progressbar';
 
 import CustomSettingsService from '@service/custom-settings';
-import AppManageService from '@service/demo';
+import HostManageService from '@service/host-manage';
 import QueryGlobalSettingService from '@service/query-global-setting';
 
 import AuthButton from '@components/auth/button';
@@ -65,16 +65,16 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 const IpSelector = createIpSelector({
     panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
     unqiuePanelValue: false,
-    fetchTopologyHostCount: AppManageService.fetchTopologyWithCount,
-    fetchTopologyHostsNodes: AppManageService.fetchTopologyHost,
-    fetchTopologyHostIdsNodes: AppManageService.fetchTopogyHostIdList,
-    fetchHostsDetails: AppManageService.fetchHostInfoByHostId,
-    fetchHostCheck: AppManageService.fetchInputParseHostList,
-    fetchNodesQueryPath: AppManageService.fetchNodePath,
-    fetchHostAgentStatisticsNodes: AppManageService.fetchBatchNodeAgentStatistics,
-    fetchDynamicGroups: AppManageService.fetchDynamicGroup,
-    fetchHostsDynamicGroup: AppManageService.fetchDynamicGroupHost,
-    fetchHostAgentStatisticsDynamicGroups: AppManageService.fetchBatchGroupAgentStatistics,
+    fetchTopologyHostCount: HostManageService.fetchTopologyWithCount,
+    fetchTopologyHostsNodes: HostManageService.fetchTopologyHost,
+    fetchTopologyHostIdsNodes: HostManageService.fetchTopogyHostIdList,
+    fetchHostsDetails: HostManageService.fetchHostInfoByHostId,
+    fetchHostCheck: HostManageService.fetchInputParseHostList,
+    fetchNodesQueryPath: HostManageService.fetchNodePath,
+    fetchHostAgentStatisticsNodes: HostManageService.fetchBatchNodeAgentStatistics,
+    fetchDynamicGroups: HostManageService.fetchDynamicGroup,
+    fetchHostsDynamicGroup: HostManageService.fetchDynamicGroupHost,
+    fetchHostAgentStatisticsDynamicGroups: HostManageService.fetchBatchGroupAgentStatistics,
     fetchCustomSettings: CustomSettingsService.fetchAll,
     updateCustomSettings: CustomSettingsService.update,
     fetchConfig: () => QueryGlobalSettingService.fetchRelatedSystemUrls()

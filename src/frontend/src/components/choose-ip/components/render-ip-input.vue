@@ -94,7 +94,7 @@
 <script>
     import _ from 'lodash';
 
-    import AppManageService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
 
     import { encodeRegexp } from '@utils/assist';
 
@@ -253,7 +253,7 @@
                     params.actionScope = window.IPInputScope;
                 }
 
-                AppManageService.fetchHostOfHost(params)
+                HostManageService.fetchHostOfHost(params)
                     .then((data) => {
                         // 输入的有效 IP
                         const resultIPList = [];

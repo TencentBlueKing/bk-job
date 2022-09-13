@@ -141,7 +141,7 @@
 <script>
     import _ from 'lodash';
 
-    import AppService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
 
     import JbCollapseItem from '@components/jb-collapse-item';
 
@@ -221,7 +221,7 @@
                     return result;
                 }, {});
                 
-                AppService.fetchNodePath(this.data)
+                HostManageService.fetchNodePath(this.data)
                     .then((data) => {
                         this.nodeMap = {};
                         const list = [];
@@ -271,7 +271,7 @@
                 }, {});
                 // 更新节点主机列表的loading状态
                 this.list = Object.freeze(Object.values(nodeMap));
-                AppService.fetchNodeInfo(this.list.map(({ id, type }) => ({
+                HostManageService.fetchNodeInfo(this.list.map(({ id, type }) => ({
                     id,
                     type,
                 })))

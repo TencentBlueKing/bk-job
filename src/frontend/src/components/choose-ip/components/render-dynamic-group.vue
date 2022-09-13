@@ -104,7 +104,7 @@
 <script>
     import _ from 'lodash';
 
-    import AppService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
     import QueryGlobalSettingService from '@service/query-global-setting';
 
     import {
@@ -191,7 +191,7 @@
              */
             fetchDynamicGroup () {
                 this.isLoading = true;
-                AppService.fetchDynamicGroup()
+                HostManageService.fetchDynamicGroup()
                     .then((data) => {
                         this.list = Object.freeze(data);
                         this.tempList = Object.freeze(data);

@@ -24,7 +24,7 @@
                             </div>
                             <template v-if="nodeItem.level === 0">
                                 <div
-                                    v-bk-tooltips="'隐藏没有主机的节点'"
+                                    v-bk-tooltips="`${isShowEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点' }`"
                                     class="topo-node-filter"
                                     :style="{
                                         display: isShowEmptyNode ? 'block' : 'none',
@@ -40,7 +40,7 @@
                             </template>
                             <div
                                 v-if="!nodeItem.isLeaf"
-                                v-bk-tooltips="'展开所有节点'"
+                                v-bk-tooltips="`${nodeItem.expanded ? '收起所有节点' : '展开所有节点'}`"
                                 class="topo-node-expand"
                                 @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
                                 <i class="bk-ipselector-icon bk-ipselector-shangxiachengkai" />

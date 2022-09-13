@@ -126,7 +126,7 @@
 <script>
     import _ from 'lodash';
 
-    import AppService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
 
     import JbCollapseItem from '@components/jb-collapse-item';
 
@@ -201,7 +201,7 @@
                     return result;
                 }, {});
                 
-                AppService.fetchHostOfDynamicGroup({
+                HostManageService.fetchHostOfDynamicGroup({
                     id: this.data.join(','),
                 }).then((data) => {
                     const list = [];
