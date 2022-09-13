@@ -11,7 +11,7 @@
             <div v-bkloading="{ isLoading: isTopoDataLoading } ">
                 <panel-tab
                     :is-show="isShow"
-                    :unique-type="panelTableUniqueType"
+                    :unique-type="panelTabUniqueType"
                     :value="panelType"
                     @change="handleTypeChange" />
                 <div :style="contentStyles">
@@ -95,7 +95,8 @@
     
     const isTopoDataLoading = ref(true);
 
-    const panelTableUniqueType = computed(() => {
+    // 面板单选时数据回填选中的面板
+    const panelTabUniqueType = computed(() => {
         if (!Manager.config.unqiuePanelValue) {
             return '';
         }
@@ -140,7 +141,6 @@
 
     watch(() => props.isShow, () => {
         if (props.isShow) {
-            // panelType.value = 'staticTopo';
             fetchTopoData();
             const {
                 host_list: hostList,
@@ -173,6 +173,7 @@
                 break;
         }
     };
+    // 清空所有
     const handleClearChange = () => {
         lastHostList.value = [];
         lastNodeList.value = [];

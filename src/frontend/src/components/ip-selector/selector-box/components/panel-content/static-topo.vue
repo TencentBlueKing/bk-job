@@ -87,7 +87,9 @@
             <span>无数据，</span>
             <a
                 :href="config.bk_cmdb_static_topo_url"
-                target="_blank">{{ $t('去创建') }}</a>
+                target="_blank">
+                去创建
+            </a>
         </div>
     </div>
 </template>

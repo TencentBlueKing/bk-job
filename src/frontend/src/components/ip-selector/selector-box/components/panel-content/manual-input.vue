@@ -20,7 +20,7 @@
                         </span>
                         处格式有误
                         <span
-                            v-bk-tooltips="$t('标识错误')"
+                            v-bk-tooltips="'标识错误'"
                             class="parse-error-btn"
                             @click="handleHighlightError">
                             <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
@@ -33,7 +33,7 @@
                         </span>
                         处 IP 不存在
                         <span
-                            v-bk-tooltips="$t('标识错误')"
+                            v-bk-tooltips="'标识错误'"
                             class="parse-error-btn"
                             @click="handleHighlightInvalid">
                             <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
@@ -71,7 +71,7 @@
                         :height="renderTableHeight"
                         @row-click="handleRowClick">
                         <template #header-selection>
-                            <page-check
+                            <table-page-check
                                 :disabled="renderData.length < 1"
                                 :value="pageCheckValue"
                                 @change="handlePageCheck" />
@@ -125,7 +125,7 @@
         makeMap,
     } from '../../../utils';
     import ResizeLayout from '../resize-layout.vue';
-    import PageCheck from '../table-page-check.vue';
+    import TablePageCheck from '../table-page-check.vue';
 
     const props = defineProps({
         lastHostList: {
@@ -167,7 +167,7 @@
     } = useLocalPagination(hostTableData, getPaginationDefault(renderTableHeight));
 
     // 判断 page-check 的状态
-    const syncPageCheckValue = () => {
+    const syncTablePageCheckValue = () => {
         if (hostTableData.value.length > 0) {
             pageCheckValue.value = 'page';
             hostTableData.value.forEach((hostDataItem) => {
@@ -191,7 +191,7 @@
             result[hostDataItem.host_id] = hostDataItem;
             return result;
         }, {});
-        syncPageCheckValue();
+        syncTablePageCheckValue();
     }, {
         immediate: true,
     });
@@ -275,7 +275,7 @@
         })
         .then((data) => {
             hostTableData.value = data;
-            syncPageCheckValue();
+            syncTablePageCheckValue();
             const ipMap = makeMap(ipList);
             const ipv6Map = makeMap(ipv6List);
             const keyMap = makeMap(keyList);
@@ -378,7 +378,7 @@
         }
         hostCheckedMap.value = checkedMap;
         triggerChange();
-        syncPageCheckValue();
+        syncTablePageCheckValue();
     };
     
 </script>
