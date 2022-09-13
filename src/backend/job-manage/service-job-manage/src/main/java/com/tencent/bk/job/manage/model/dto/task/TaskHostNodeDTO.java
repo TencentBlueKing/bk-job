@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TaskHostNodeDTO {
 
     @JsonProperty("nodeInfoList")

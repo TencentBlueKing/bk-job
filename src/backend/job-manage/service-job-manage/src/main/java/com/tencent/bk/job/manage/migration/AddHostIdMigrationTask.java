@@ -102,17 +102,17 @@ public class AddHostIdMigrationTask {
         this.hostService = hostService;
     }
 
-    public List<AddHostIdResult> execute() {
+    public List<AddHostIdResult> execute(boolean isDryRun) {
         List<AddHostIdResult> results = new ArrayList<>();
         try {
-            results.add(migrateTaskTargets(new TaskTemplateStepScriptTargetMigration()));
-            results.add(migrateTaskTargets(new TaskTemplateStepFileTargetMigration()));
-            results.add(migrateTaskTargets(new TaskTemplateStepFileListTargetMigration()));
-            results.add(migrateTaskTargets(new TaskTemplateVariableTargetMigration()));
-            results.add(migrateTaskTargets(new TaskPlanStepScriptTargetMigration()));
-            results.add(migrateTaskTargets(new TaskPlanStepFileTargetMigration()));
-            results.add(migrateTaskTargets(new TaskPlanStepFileListTargetMigration()));
-            results.add(migrateTaskTargets(new TaskPlanVariableTargetMigration()));
+            results.add(migrateTaskTargets(new TaskTemplateStepScriptTargetMigration(), isDryRun));
+            results.add(migrateTaskTargets(new TaskTemplateStepFileTargetMigration(), isDryRun));
+            results.add(migrateTaskTargets(new TaskTemplateStepFileListTargetMigration(), isDryRun));
+            results.add(migrateTaskTargets(new TaskTemplateVariableTargetMigration(), isDryRun));
+            results.add(migrateTaskTargets(new TaskPlanStepScriptTargetMigration(), isDryRun));
+            results.add(migrateTaskTargets(new TaskPlanStepFileTargetMigration(), isDryRun));
+            results.add(migrateTaskTargets(new TaskPlanStepFileListTargetMigration(), isDryRun));
+            results.add(migrateTaskTargets(new TaskPlanVariableTargetMigration(), isDryRun));
             return results;
         } finally {
             log.info("AddHostIdMigrationTask done, result: {}", JsonUtils.toJson(results));
@@ -121,7 +121,7 @@ public class AddHostIdMigrationTask {
         }
     }
 
-    private AddHostIdResult migrateTaskTargets(TaskTargetMigration migration) {
+    private AddHostIdResult migrateTaskTargets(TaskTargetMigration migration, boolean isDryRun) {
         String taskName = "migrate_" + migration.getTableName();
         AddHostIdResult result = new AddHostIdResult(taskName);
         StopWatch watch = new StopWatch(taskName);
@@ -141,6 +141,7 @@ public class AddHostIdMigrationTask {
 
             watch.start("add_ip_host_id_mappings");
             addIpAndHostIdMappings(targets.values());
+            log.info("[{}] ipAndHostIdMappings: {}", migration.getTableName(), JsonUtils.toJson(ipAndHostIdMapping));
             watch.stop();
 
             watch.start("fill_host_id");
@@ -152,14 +153,21 @@ public class AddHostIdMigrationTask {
                 }
             });
             if (CollectionUtils.isNotEmpty(invalidIds)) {
-                log.error("[{}] {} targets fill host id fail", migration.getTableName(), invalidIds.size());
+                log.error("[{}] {} targets fill host id fail, invalidIdList: {}", migration.getTableName(),
+                    invalidIds.size(), invalidIds);
                 // 删除掉没有设置hostId的
                 invalidIds.forEach(targets::remove);
             }
             watch.stop();
 
             watch.start("update_targets");
-            migration.updateTaskTargets(targets);
+            if (isDryRun) {
+                // 只输出要更新的数据用于验证，不进行DB数据的变更
+                log.info("Update targets, tableName: {},  records: {}", migration.getTableName(),
+                    JsonUtils.toJson(targets));
+            } else {
+                migration.updateTaskTargets(targets);
+            }
             result.setSuccessRecords(targets.size());
             watch.stop();
         } catch (Throwable e) {
@@ -202,7 +210,7 @@ public class AddHostIdMigrationTask {
                     }
                 });
             } catch (Throwable e) {
-                // 由于从cmdb查询hostId可能会返回异常（比如接口超时）等,为了保证下次迁移不需要从头开始，所以这里捕获住异常
+                // 由于从cmdb查询hostId可能会返回异常（比如接口超时）等,为了保证下次迁移不需要全部从头开始，所以这里捕获住异常，控制影响范围
                 log.error("Get host by ips fail", e);
             }
         }

@@ -31,6 +31,7 @@ import com.tencent.bk.job.manage.migration.AddHostIdMigrationTask;
 import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
+import com.tencent.bk.job.manage.model.migration.AddHostIdMigrationReq;
 import com.tencent.bk.job.manage.model.migration.SetBizSetMigrationStatusReq;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
@@ -94,8 +95,8 @@ public class MigrationResource {
      * 作业模板、执行方案等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性
      */
     @PostMapping("/action/addHostIdMigrationTask")
-    public Response<String> addHostIdMigrationTask() {
-        List<AddHostIdMigrationTask.AddHostIdResult> results = addHostIdMigrationTask.execute();
+    public Response<String> addHostIdMigrationTask(AddHostIdMigrationReq req) {
+        List<AddHostIdMigrationTask.AddHostIdResult> results = addHostIdMigrationTask.execute(req.isDryRun());
         boolean success = results.stream().allMatch(AddHostIdMigrationTask.AddHostIdResult::isSuccess);
         return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
             Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"AddHostIdMigrationTask",

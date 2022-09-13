@@ -25,10 +25,12 @@
 package com.tencent.bk.job.upgrader.task;
 
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTaskInputParam;
+import com.tencent.bk.job.upgrader.model.job.AddHostIdMigrationReq;
 import com.tencent.bk.job.upgrader.task.param.JobCrontabServerAddress;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +61,8 @@ public class AddHostIdMigrationTask extends BaseUpgradeTask {
         try {
             log.info("job.manage.addHostIdMigrationTask start ...");
             Response<String> response = post(buildMigrationTaskUrl(getJobManageUrl(),
-                "/migration/action/addHostIdMigrationTask"), null);
+                "/migration/action/addHostIdMigrationTask"),
+                JsonUtils.toJson(new AddHostIdMigrationReq(true)));
             log.info("job.manage.addHostIdMigrationTask done, result: {}", response);
             return response.isSuccess();
         } catch (Throwable e) {
