@@ -38,10 +38,10 @@ public interface HostDetailService {
     List<ApplicationHostDTO> listHostDetails(AppResourceScope appResourceScope, Collection<Long> hostIds);
 
     /**
-     * 为主机填充云区域与云厂商信息
+     * 为主机填充云区域、云厂商、系统类型名称等信息
      *
      * @param hostList 主机列表
      */
-    void fillCloudInfoForHosts(List<ApplicationHostDTO> hostList);
+    void fillDetailForHosts(List<ApplicationHostDTO> hostList);
 
 }

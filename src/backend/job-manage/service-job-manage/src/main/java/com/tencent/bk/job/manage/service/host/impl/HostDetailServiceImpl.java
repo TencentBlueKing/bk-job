@@ -44,14 +44,17 @@ public class HostDetailServiceImpl implements HostDetailService {
     private final ScopeHostService scopeHostService;
     private final AgentStatusService agentStatusService;
     private final CloudVendorService cloudVendorService;
+    private final OsTypeService osTypeService;
 
     @Autowired
     public HostDetailServiceImpl(ScopeHostService scopeHostService,
                                  AgentStatusService agentStatusService,
-                                 CloudVendorService cloudVendorService) {
+                                 CloudVendorService cloudVendorService,
+                                 OsTypeService osTypeService) {
         this.scopeHostService = scopeHostService;
         this.agentStatusService = agentStatusService;
         this.cloudVendorService = cloudVendorService;
+        this.osTypeService = osTypeService;
     }
 
     @Override
@@ -59,18 +62,24 @@ public class HostDetailServiceImpl implements HostDetailService {
         List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIds(appResourceScope, hostIds);
         // 填充实时agent状态
         agentStatusService.fillRealTimeAgentStatus(scopeHostList);
-        fillCloudInfoForHosts(scopeHostList);
+        fillDetailForHosts(scopeHostList);
         return scopeHostList;
     }
 
     @Override
-    public void fillCloudInfoForHosts(List<ApplicationHostDTO> hostList) {
+    public void fillDetailForHosts(List<ApplicationHostDTO> hostList) {
         for (ApplicationHostDTO host : hostList) {
-            String cloudVendorId = host.getCloudVendorId();
             host.setCloudAreaName(CloudAreaService.getCloudAreaNameFromCache(host.getCloudAreaId()));
+            String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
                 cloudVendorId,
-                cloudVendorId == null ? null : "ID=" + host.getCloudVendorId()
+                cloudVendorId == null ? null : "ID=" + cloudVendorId
+                )
+            );
+            String osTypeId = host.getOsType();
+            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(
+                osTypeId,
+                osTypeId == null ? null : "ID=" + osTypeId
                 )
             );
         }

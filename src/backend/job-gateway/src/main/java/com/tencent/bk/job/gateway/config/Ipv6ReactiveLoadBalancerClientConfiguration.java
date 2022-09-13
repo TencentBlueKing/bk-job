@@ -25,7 +25,6 @@
 package com.tencent.bk.job.gateway.config;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
@@ -36,6 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
+import java.util.Map;
 
 /**
  * 用于修复spring-cloud-gateway在IPv6环境下的负载均衡路由报错问题
@@ -63,28 +63,62 @@ public class Ipv6ReactiveLoadBalancerClientConfiguration {
 
         @Override
         protected URI reconstructURI(ServiceInstance serviceInstance, URI original) {
-            return LoadBalancerUriTools.reconstructURI(buildHostAdjustedInstance(serviceInstance), original);
-        }
-
-        private ServiceInstance buildHostAdjustedInstance(ServiceInstance originServiceInstance) {
-            DefaultServiceInstance serviceInstance = new DefaultServiceInstance(
-                originServiceInstance.getInstanceId(),
-                originServiceInstance.getServiceId(),
-                originServiceInstance.getHost(),
-                originServiceInstance.getPort(),
-                originServiceInstance.isSecure(),
-                originServiceInstance.getMetadata()
+            return LoadBalancerUriTools.reconstructURI(
+                new Ipv6CapableDelegatingServiceInstance(serviceInstance),
+                original
             );
-            processIpv6Host(serviceInstance);
-            return serviceInstance;
         }
 
-        private void processIpv6Host(DefaultServiceInstance serviceInstance) {
-            String host = serviceInstance.getHost();
+    }
+
+    static class Ipv6CapableDelegatingServiceInstance implements ServiceInstance {
+
+        final ServiceInstance delegate;
+
+        public Ipv6CapableDelegatingServiceInstance(ServiceInstance delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String getServiceId() {
+            return delegate.getServiceId();
+        }
+
+        @Override
+        public String getHost() {
+            return getAvailableIpv6Host(delegate.getHost());
+        }
+
+        private String getAvailableIpv6Host(String host) {
             if (StringUtils.isNotBlank(host) && host.contains(":") && !host.startsWith("[")) {
-                serviceInstance.setHost("[" + host + "]");
+                return "[" + host + "]";
             }
+            return host;
         }
 
+        @Override
+        public int getPort() {
+            return delegate.getPort();
+        }
+
+        @Override
+        public boolean isSecure() {
+            return delegate.isSecure();
+        }
+
+        @Override
+        public URI getUri() {
+            return delegate.getUri();
+        }
+
+        @Override
+        public Map<String, String> getMetadata() {
+            return delegate.getMetadata();
+        }
+
+        @Override
+        public String getScheme() {
+            return delegate.getScheme();
+        }
     }
 }

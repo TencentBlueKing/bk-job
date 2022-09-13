@@ -226,7 +226,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (bizIds != null) {
             conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
         }
-        conditions.add(TABLE.IP.in(ips));
+        conditions.add(TABLE.IP.in(ips).or(TABLE.CLOUD_IP.in(ips)));
         return listHostInfoByConditions(conditions);
     }
 
@@ -1156,6 +1156,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public List<ApplicationHostDTO> listHostsByCloudIps(Collection<String> cloudIps) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.CLOUD_IP.in(cloudIps));
+        return queryHostsByCondition(conditions);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostsByIpv6s(Collection<String> ipv6s) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.IP_V6.in(ipv6s));
         return queryHostsByCondition(conditions);
     }
 

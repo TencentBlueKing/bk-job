@@ -118,6 +118,11 @@ public class ApplicationHostDTO {
     private String osType;
 
     /**
+     * 操作系统类型名称
+     */
+    private String osTypeName;
+
+    /**
      * 所属云厂商ID
      */
     private String cloudVendorId;
@@ -204,6 +209,7 @@ public class ApplicationHostDTO {
             hostInfoDTO.setCloudAreaName(hostInfoVO.getCloudArea().getName());
         }
         hostInfoDTO.setOsName(hostInfoVO.getOsName());
+        hostInfoDTO.setOsTypeName(hostInfoVO.getOsTypeName());
         hostInfoDTO.setAgentId(hostInfoVO.getAgentId());
         hostInfoDTO.setCloudVendorName(hostInfoVO.getCloudVendorName());
         return hostInfoDTO;
@@ -218,6 +224,7 @@ public class ApplicationHostDTO {
         hostInfoVO.setDisplayIp(displayIp);
         hostInfoVO.setHostName(hostName);
         hostInfoVO.setOsName(osName);
+        hostInfoVO.setOsTypeName(osTypeName);
         hostInfoVO.setAgentStatus(gseAgentStatus);
         hostInfoVO.setAlive(getAgentAliveValue());
         hostInfoVO.setAgentId(agentId);
