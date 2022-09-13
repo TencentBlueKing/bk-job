@@ -239,7 +239,7 @@ public class ArchivistAutoConfig {
             rollingConfigRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
-            archiveConfig
-        );
+            archiveConfig,
+            archiveExecutor);
     }
 }

@@ -38,10 +38,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Service
@@ -54,6 +54,7 @@ public class LocalFilePrepareService {
     private final TaskInstanceService taskInstanceService;
     private final ArtifactoryClient artifactoryClient;
     private final Map<Long, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
+    private final ThreadPoolExecutor localFilePrepareExecutor;
 
     @Autowired
     public LocalFilePrepareService(StorageSystemConfig storageSystemConfig,
@@ -61,18 +62,15 @@ public class LocalFilePrepareService {
                                    LocalFileConfigForExecute localFileConfigForExecute,
                                    AgentService agentService,
                                    TaskInstanceService taskInstanceService,
-                                   ArtifactoryClient artifactoryClient) {
+                                   ArtifactoryClient artifactoryClient,
+                                   ThreadPoolExecutor localFilePrepareExecutor) {
         this.storageSystemConfig = storageSystemConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
         this.agentService = agentService;
         this.taskInstanceService = taskInstanceService;
         this.artifactoryClient = artifactoryClient;
-    }
-
-    @PostConstruct
-    private void init() {
-        ArtifactoryLocalFilePrepareTask.init(localFileConfigForExecute.getDownloadConcurrency());
+        this.localFilePrepareExecutor = localFilePrepareExecutor;
     }
 
     public void stopPrepareLocalFilesAsync(
@@ -111,7 +109,8 @@ public class LocalFilePrepareService {
             artifactoryClient,
             artifactoryConfig.getArtifactoryJobProject(),
             localFileConfigForExecute.getLocalUploadRepo(),
-            storageSystemConfig.getJobStorageRootPath()
+            storageSystemConfig.getJobStorageRootPath(),
+            localFilePrepareExecutor
         );
         taskMap.put(stepInstanceId, task);
         task.execute();

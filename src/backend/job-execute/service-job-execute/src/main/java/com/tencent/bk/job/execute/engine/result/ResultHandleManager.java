@@ -45,8 +45,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -132,19 +130,20 @@ public class ResultHandleManager implements SmartLifecycle {
      * whether this component is currently running(Spring Lifecycle isRunning method)
      */
     private volatile boolean running = false;
-    private final ExecutorService shutdownExecutorService = new ThreadPoolExecutor(
-        10, 20, 120, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>());
+    private final ExecutorService shutdownExecutor;
 
     @Autowired
     public ResultHandleManager(Tracer tracer, ExecuteMonitor counters,
                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                               ResultHandleTaskSampler resultHandleTaskSampler, JobExecuteConfig jobExecuteConfig) {
+                               ResultHandleTaskSampler resultHandleTaskSampler,
+                               JobExecuteConfig jobExecuteConfig,
+                               ExecutorService shutdownExecutor) {
         this.tracer = tracer;
         this.counters = counters;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.resultHandleTaskSampler = resultHandleTaskSampler;
         this.resultHandleLimiter = new ResultHandleLimiter(jobExecuteConfig.getResultHandleTasksLimit());
+        this.shutdownExecutor = shutdownExecutor;
     }
 
     /**
@@ -267,7 +266,7 @@ public class ResultHandleManager implements SmartLifecycle {
                 stopTaskCounter.initCounter(scheduledTasks.keySet());
             }
             for (ScheduledContinuousResultHandleTask task : scheduledTasks.values()) {
-                shutdownExecutorService.execute(new StopTask(task, tracer));
+                shutdownExecutor.execute(new StopTask(task, tracer));
             }
         }
         try {

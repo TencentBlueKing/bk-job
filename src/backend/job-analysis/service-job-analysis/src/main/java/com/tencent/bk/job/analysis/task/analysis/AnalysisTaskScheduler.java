@@ -37,9 +37,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @Description
@@ -54,28 +56,25 @@ public class AnalysisTaskScheduler {
     public static final String NAME_ANALYSIS_TASK_SCHEDULE_POOL_SIZE = "analysisTask.schedule.pool.size";
     public static final String NAME_ANALYSIS_TASK_SCHEDULE_QUEUE_SIZE = "analysisTask.schedule.queue.size";
 
-    private static final ThreadPoolExecutor scheduleThreadPoolExecutor = new ThreadPoolExecutor(5, 10, 60L,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(2), new RejectedExecutionHandler() {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            log.warn("analysisTask runnable rejected!");
-        }
-    });
+    private final ThreadPoolExecutor analysisScheduleExecutor;
     public static List<IAnalysisTask> analysisTaskList = new ArrayList<>();
     public static Map<String, IAnalysisTask> analysisTaskMap = new ConcurrentHashMap<>();
     private static long count = -1L;
+
     @Autowired
-    public AnalysisTaskScheduler(MeterRegistry meterRegistry) {
+    public AnalysisTaskScheduler(MeterRegistry meterRegistry,
+                                 ThreadPoolExecutor analysisScheduleExecutor) {
+        this.analysisScheduleExecutor = analysisScheduleExecutor;
         meterRegistry.gauge(
             NAME_ANALYSIS_TASK_SCHEDULE_POOL_SIZE,
-            Arrays.asList(Tag.of(StatisticsConstants.TAG_KEY_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
-            scheduleThreadPoolExecutor,
+            Collections.singletonList(Tag.of(StatisticsConstants.TAG_KEY_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
+            this.analysisScheduleExecutor,
             ThreadPoolExecutor::getPoolSize
         );
         meterRegistry.gauge(
             NAME_ANALYSIS_TASK_SCHEDULE_QUEUE_SIZE,
-            Arrays.asList(Tag.of(StatisticsConstants.TAG_KEY_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
-            scheduleThreadPoolExecutor,
+            Collections.singletonList(Tag.of(StatisticsConstants.TAG_KEY_MODULE, VALUE_MODULE_ANALYSIS_TASK)),
+            this.analysisScheduleExecutor,
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );
     }
@@ -116,7 +115,7 @@ public class AnalysisTaskScheduler {
             } else {
                 if (count % analysisTask.getPeriodSeconds() == 0) {
                     //开一个新线程跑分析任务
-                    scheduleThreadPoolExecutor.submit(analysisTask);
+                    analysisScheduleExecutor.submit(analysisTask);
                 }
             }
         });

@@ -22,9 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.common.cc.config;
 
-import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
