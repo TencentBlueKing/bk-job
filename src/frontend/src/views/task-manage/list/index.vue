@@ -438,7 +438,6 @@
                     name: I18n.t('template.场景标签.colHead'),
                     id: 'tags',
                     remoteMethod: TagManageService.fetchTagOfSearch,
-                    remoteExecuteImmediate: true,
                 },
                 {
                     name: I18n.t('template.更新人.colHead'),

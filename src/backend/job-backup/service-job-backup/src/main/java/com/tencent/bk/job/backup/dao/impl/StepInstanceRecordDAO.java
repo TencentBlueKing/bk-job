@@ -26,16 +26,22 @@ public class StepInstanceRecordDAO extends AbstractExecuteRecordDAO<StepInstance
         return TABLE;
     }
 
-    public Long getMaxNeedArchiveStepInstanceId(Long taskInstanceId) {
-        Record1<Long> maxNeedStepInstanceIdRecord =
+    /**
+     * 获取作业实例ID范围内的步骤实例ID最大值
+     *
+     * @param taskInstanceId 作业实例ID
+     * @return 步骤实例ID 最大值
+     */
+    public Long getMaxId(Long taskInstanceId) {
+        Record1<Long> record =
             context.select(max(TABLE.ID))
                 .from(TABLE)
                 .where(TABLE.TASK_INSTANCE_ID.lessOrEqual(taskInstanceId))
                 .fetchOne();
-        if (maxNeedStepInstanceIdRecord != null) {
-            Long maxNeedStepInstanceId = (Long) maxNeedStepInstanceIdRecord.get(0);
-            if (maxNeedStepInstanceId != null) {
-                return maxNeedStepInstanceId;
+        if (record != null) {
+            Long maxId = (Long) record.get(0);
+            if (maxId != null) {
+                return maxId;
             }
         }
         return 0L;

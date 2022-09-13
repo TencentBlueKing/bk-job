@@ -175,7 +175,7 @@
                 key="offline"
                 style="margin-left: auto;"
                 :title="$t('script.确定禁用该版本？')"
-                :content="$t('script.一旦禁用成功，线上引用该版本的作业脚本步骤都会执行失败，请务必谨慎操作！')"
+                :content="$t('script.一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！')"
                 :confirm-handler="handleOffline">
                 <auth-button
                     :permission="scriptInfo.canManage"

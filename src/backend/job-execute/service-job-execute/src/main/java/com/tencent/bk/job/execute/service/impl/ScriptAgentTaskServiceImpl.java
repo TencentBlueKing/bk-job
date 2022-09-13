@@ -196,7 +196,11 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
-        scriptAgentTaskDAO.updateActualExecuteCount(stepInstanceId, batch, actualExecuteCount);
+    public void updateAgentTaskFields(long stepInstanceId,
+                                      int executeCount,
+                                      Integer batch,
+                                      Integer actualExecuteCount,
+                                      Long gseTaskId) {
+        scriptAgentTaskDAO.updateAgentTaskFields(stepInstanceId, executeCount, batch, actualExecuteCount, gseTaskId);
     }
 }

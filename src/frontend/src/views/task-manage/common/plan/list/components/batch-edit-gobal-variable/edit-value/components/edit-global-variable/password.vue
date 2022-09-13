@@ -33,7 +33,11 @@
                 <Icon type="reduce-fill" />
             </span>
         </div>
-        <bk-input type="password" :value="value" @change="handleChange" />
+        <bk-input
+            v-bk-tooltips="descPopover"
+            type="password"
+            :value="value"
+            @change="handleChange" />
     </div>
 </template>
 <script>
@@ -46,6 +50,19 @@
             },
             value: {
                 type: String,
+            },
+        },
+        computed: {
+            descPopover () {
+                return {
+                    theme: 'light',
+                    extCls: 'variable-desc-tippy',
+                    trigger: 'click mouseenter',
+                    placement: 'left',
+                    hideOnClick: false,
+                    content: this.data.description,
+                    disabled: !this.data.description,
+                };
             },
         },
         methods: {

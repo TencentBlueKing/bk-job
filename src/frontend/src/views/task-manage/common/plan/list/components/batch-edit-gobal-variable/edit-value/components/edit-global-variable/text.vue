@@ -29,11 +29,16 @@
     <div>
         <div class="name">
             <span>{{ data.name }}</span>
-            <span class="remove-flag" @click="handleRemove">
+            <span
+                class="remove-flag"
+                @click="handleRemove">
                 <Icon type="reduce-fill" />
             </span>
         </div>
-        <bk-input :value="value" @change="handleChange" />
+        <bk-input
+            v-bk-tooltips="descPopover"
+            :value="value"
+            @change="handleChange" />
     </div>
 </template>
 <script>
@@ -46,6 +51,19 @@
             },
             value: {
                 type: String,
+            },
+        },
+        computed: {
+            descPopover () {
+                return {
+                    theme: 'light',
+                    extCls: 'variable-desc-tippy',
+                    trigger: 'click mouseenter',
+                    placement: 'left',
+                    hideOnClick: false,
+                    content: this.data.description,
+                    disabled: !this.data.description,
+                };
             },
         },
         methods: {

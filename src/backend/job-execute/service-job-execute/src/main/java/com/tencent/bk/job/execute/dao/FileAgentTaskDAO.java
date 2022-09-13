@@ -146,12 +146,18 @@ public interface FileAgentTaskDAO {
     boolean isStepInstanceRecordExist(long stepInstanceId);
 
     /**
-     * 更新Agent任务实际执行的步骤重试次数
+     * 批量更新AgentTask的字段
      *
-     * @param stepInstanceId     步骤实例ID
-     * @param batch              滚动执行批次；传入null将忽略该条件
-     * @param actualExecuteCount Agent任务实际执行的步骤重试次数
+     * @param stepInstanceId     条件 - 步骤实例ID
+     * @param executeCount       条件 - 重试次数
+     * @param batch              条件 - 滚动执行批次；传入null将忽略该条件
+     * @param actualExecuteCount 值 - Agent任务实际执行的步骤重试次数；如果传入null，则不更新
+     * @param gseTaskId          值 - Agent任务对应的GSE_TASK_ID；如果传入null，则不更新
      */
-    void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount);
+    void updateAgentTaskFields(long stepInstanceId,
+                               int executeCount,
+                               Integer batch,
+                               Integer actualExecuteCount,
+                               Long gseTaskId);
 
 }
