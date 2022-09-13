@@ -85,7 +85,6 @@ public class CMDBFlowControllerConfig {
                 map, cmdbConfig.getFlowControlDefaultLimit(), cmdbConfig.getFlowControlPrecision());
             cmdbGlobalFlowController.init(redisTemplate, map, cmdbConfig.getFlowControlDefaultLimit(),
                 cmdbConfig.getFlowControlPrecision());
-            BizCmdbClient.setGlobalFlowController(cmdbGlobalFlowController);
         } catch (Exception e) {
             log.error("Fail to init globalFlowController", e);
         }

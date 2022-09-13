@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -38,6 +39,44 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @Configuration
 public class ExecutorConfiguration {
+
+    @Bean("syncAgentStatusExecutor")
+    public ThreadPoolExecutor syncAgentStatusExecutor() {
+        ThreadPoolExecutor syncAgentStatusExecutor = new ThreadPoolExecutor(
+            5,
+            5,
+            1L,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(5000), (r, executor) ->
+            log.error(
+                "syncAgentStatusExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
+                executor.getPoolSize(),
+                executor.getQueue().size()
+            )
+        );
+        syncAgentStatusExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncAgentStatusExecutor-",
+            new AtomicInteger(1)));
+        return syncAgentStatusExecutor;
+    }
+
+    @Bean("syncHostExecutor")
+    public ThreadPoolExecutor syncHostExecutor() {
+        ThreadPoolExecutor syncHostExecutor = new ThreadPoolExecutor(
+            5,
+            5,
+            1L,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(5000), (r, executor) ->
+            log.error(
+                "syncHostExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
+                executor.getPoolSize(),
+                executor.getQueue().size()
+            )
+        );
+        syncHostExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncHostExecutor-",
+            new AtomicInteger(1)));
+        return syncHostExecutor;
+    }
 
     @Bean("syncAppExecutor")
     public ThreadPoolExecutor syncAppExecutor() {
@@ -67,6 +106,28 @@ public class ExecutorConfiguration {
             60L,
             TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(10)
+        );
+    }
+
+    @Bean("dangerousRuleCheckExecutor")
+    public ExecutorService dangerousRuleCheckExecutor() {
+        return new ThreadPoolExecutor(
+            10,
+            50,
+            60L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+        );
+    }
+
+    @Bean("adminAuthExecutor")
+    public ThreadPoolExecutor adminAuthExecutor() {
+        return new ThreadPoolExecutor(
+            5,
+            5,
+            30,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
         );
     }
 

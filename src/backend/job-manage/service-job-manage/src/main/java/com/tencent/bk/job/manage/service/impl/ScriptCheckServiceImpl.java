@@ -51,8 +51,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -60,13 +58,12 @@ import java.util.concurrent.TimeUnit;
 public class ScriptCheckServiceImpl implements ScriptCheckService {
 
     private final DangerousRuleCache dangerousRuleCache;
-    private final ExecutorService executor = new ThreadPoolExecutor(
-        10, 50, 60L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>());
+    private final ExecutorService dangerousRuleCheckExecutor;
 
     @Autowired
-    public ScriptCheckServiceImpl(DangerousRuleCache dangerousRuleCache) {
+    public ScriptCheckServiceImpl(DangerousRuleCache dangerousRuleCache, ExecutorService dangerousRuleCheckExecutor) {
         this.dangerousRuleCache = dangerousRuleCache;
+        this.dangerousRuleCheckExecutor = dangerousRuleCheckExecutor;
     }
 
     @Override
@@ -82,21 +79,24 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             int timeout = 5;
             ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems =
-                executor.submit(new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
+                dangerousRuleCheckExecutor.submit(new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
             if (ScriptTypeEnum.SHELL.equals(scriptType)) {
-                Future<List<ScriptCheckResultItemDTO>> grammar = executor.submit(new ScriptGrammarChecker(scriptType,
-                    content));
+                Future<List<ScriptCheckResultItemDTO>> grammar = dangerousRuleCheckExecutor.submit(
+                    new ScriptGrammarChecker(scriptType, content)
+                );
 
                 Future<List<ScriptCheckResultItemDTO>> danger =
-                    executor.submit(new BuildInDangerousScriptChecker(scriptCheckParam));
+                    dangerousRuleCheckExecutor.submit(new BuildInDangerousScriptChecker(scriptCheckParam));
 
                 Future<List<ScriptCheckResultItemDTO>> logic =
-                    executor.submit(new ScriptLogicChecker(scriptCheckParam));
+                    dangerousRuleCheckExecutor.submit(new ScriptLogicChecker(scriptCheckParam));
 
-                Future<List<ScriptCheckResultItemDTO>> io = executor.submit(new IOScriptChecker(scriptCheckParam));
+                Future<List<ScriptCheckResultItemDTO>> io = dangerousRuleCheckExecutor.submit(
+                    new IOScriptChecker(scriptCheckParam)
+                );
 
                 Future<List<ScriptCheckResultItemDTO>> device =
-                    executor.submit(new DeviceCrashScriptChecker(scriptCheckParam));
+                    dangerousRuleCheckExecutor.submit(new DeviceCrashScriptChecker(scriptCheckParam));
                 checkResultList.addAll(grammar.get(timeout, TimeUnit.SECONDS));
                 checkResultList.addAll(logic.get(timeout, TimeUnit.SECONDS));
                 checkResultList.addAll(danger.get(timeout, TimeUnit.SECONDS));
@@ -133,7 +133,7 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             if (CollectionUtils.isEmpty(dangerousRules)) {
                 return Collections.emptyList();
             }
-            Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems = executor.submit(
+            Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems = dangerousRuleCheckExecutor.submit(
                 new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
             checkResultList.addAll(dangerousRuleCheckResultItems.get(timeout, TimeUnit.SECONDS));
             checkResultList.sort(Comparator.comparingInt(ScriptCheckResultItemDTO::getLine));
