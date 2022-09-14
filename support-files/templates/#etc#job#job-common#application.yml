@@ -8,6 +8,14 @@ spring:
       name: __BK_JOB_SECURITY_USERNAME__
       password: __BK_JOB_SECURITY_PASSWORD__
       roles: ADMIN
+  sleuth:
+    otel:
+      exporter:
+        enabled: __BK_JOB_TRACE_REPORT_ENABLED__
+        otlp:
+          endpoint: __BK_JOB_TRACE_REPORT_PUSH_URL__
+      resource:
+        bkDataToken: __BK_JOB_TRACE_REPORT_SECURE_KEY__
 app:
   code: __BK_JOB_APP_CODE__
   secret: __BK_JOB_APP_SECRET__

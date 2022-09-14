@@ -17,6 +17,14 @@ data:
           name: {{ .Values.job.security.actuator.user.name }}
           password: {{ .Values.job.security.actuator.user.password }}
           roles: ENDPOINT_ADMIN
+      sleuth:
+        otel:
+          exporter:
+            enabled: {{ .Values.job.trace.report.enabled }}
+            otlp:
+              endpoint: {{ .Values.job.trace.report.pushUrl }}
+          resource:
+            bkDataToken: {{ .Values.job.trace.report.secureKey }}
     app:
       code: {{ .Values.appCode }}
       secret: {{ .Values.appSecret }}
@@ -88,9 +96,6 @@ data:
           enabled: {{ .Values.job.feature.toggle.esbApiParamBkBizId.enabled }}
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
-      trace:
-        report:
-          enabled: {{ .Values.job.trace.report.enabled }}
     cmdb:
       default:
         supplier:
