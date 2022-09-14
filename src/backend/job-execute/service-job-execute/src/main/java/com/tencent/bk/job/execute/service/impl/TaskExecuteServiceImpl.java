@@ -661,29 +661,69 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstanceList.forEach(this::checkStepInstanceHostNonEmpty);
 
         long appId = stepInstanceList.get(0).getAppId();
-        Set<HostDTO> checkHosts = new HashSet<>();
-        addNeedCheckHosts(stepInstanceList, checkHosts);
-        if (checkHosts.isEmpty()) {
+        Set<HostDTO> stepHosts = extractHosts(stepInstanceList);
+
+        if (stepHosts.isEmpty()) {
             return;
         }
 
-        // 检查主机是否存在
-        ServiceListAppHostResultDTO hosts = hostService.batchGetAppHosts(appId, checkHosts);
+        // 获取主机详情
+        ServiceListAppHostResultDTO hosts = hostService.batchGetAppHosts(appId, stepHosts);
         if (CollectionUtils.isNotEmpty(hosts.getNotExistHosts())) {
+            // 如果主机在cmdb不存在，直接报错
             throwHostInvalidException(hosts.getNotExistHosts(), appId);
         }
 
         // 设置主机信息
         fillStepHostDetail(stepInstanceList, hosts);
 
-        // 检查是否在白名单配置
+        // 如果存在主机不在当前业务下，需要进一步判断
         if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
-            List<HostDTO> invalidHosts = checkHostsNotAllowedInWhiteIpConfig(appId, stepInstanceList,
-                hosts.getNotInAppHosts());
-            if (!invalidHosts.isEmpty()) {
-                log.warn("Contains invalid host, invalidHost: {}", JsonUtils.toJson(invalidHosts));
-                throwHostInvalidException(invalidHosts, appId);
+            // 过滤掉不需要检查业务从属的主机
+            List<HostDTO> notInAppHosts = filterHostsDoNotNeedCheck(stepInstanceList, hosts.getNotInAppHosts());
+            if (CollectionUtils.isNotEmpty(notInAppHosts)) {
+                // 检查是否在白名单配置
+                notInAppHosts = checkHostsNotAllowedInWhiteIpConfig(appId, stepInstanceList,
+                    notInAppHosts);
             }
+            if (!notInAppHosts.isEmpty()) {
+                log.warn("Contains invalid host, invalidHost: {}", JsonUtils.toJson(notInAppHosts));
+                throwHostInvalidException(notInAppHosts, appId);
+            }
+        }
+    }
+
+    private List<HostDTO> filterHostsDoNotNeedCheck(List<StepInstanceDTO> stepInstanceList,
+                                                    List<HostDTO> notInAppHosts) {
+        Set<Long> needCheckHostIds = new HashSet<>();
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            if (!isStepContainsHostProps(stepInstance)) {
+                continue;
+            }
+            needCheckHostIds.addAll(stepInstance.getTargetServers().getIpList().stream()
+                .map(HostDTO::getHostId).collect(Collectors.toSet()));
+            if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
+                List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+                if (fileSourceList != null) {
+                    for (FileSourceDTO fileSource : fileSourceList) {
+                        if (fileSource.getFileType().equals(TaskFileTypeEnum.SERVER.getType())) {
+                            // 远程文件分发需要校验文件源主机;其他类型不需要
+                            ServersDTO servers = fileSource.getServers();
+                            if (servers != null && servers.getIpList() != null) {
+                                needCheckHostIds.addAll(servers.getIpList().stream()
+                                    .map(HostDTO::getHostId).collect(Collectors.toSet()));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(needCheckHostIds)) {
+            return notInAppHosts.stream().filter(host -> needCheckHostIds.contains(host.getHostId()))
+                .collect(Collectors.toList());
+        } else {
+            return notInAppHosts;
         }
     }
 
@@ -787,24 +827,26 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void addNeedCheckHosts(List<StepInstanceDTO> stepInstanceList, Set<HostDTO> checkHosts) {
+    private Set<HostDTO> extractHosts(List<StepInstanceDTO> stepInstanceList) {
+        Set<HostDTO> stepHosts = new HashSet<>();
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             if (!isStepContainsHostProps(stepInstance)) {
                 continue;
             }
-            checkHosts.addAll(stepInstance.getTargetServers().getIpList());
+            stepHosts.addAll(stepInstance.getTargetServers().getIpList());
             if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
                 List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
                 if (fileSourceList != null) {
                     for (FileSourceDTO fileSource : fileSourceList) {
                         ServersDTO servers = fileSource.getServers();
                         if (servers != null && servers.getIpList() != null) {
-                            checkHosts.addAll(servers.getIpList());
+                            stepHosts.addAll(servers.getIpList());
                         }
                     }
                 }
             }
         }
+        return stepHosts;
     }
 
     private List<HostDTO> checkHostsNotAllowedInWhiteIpConfig(long appId, List<StepInstanceDTO> stepInstanceList,
