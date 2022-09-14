@@ -8,7 +8,7 @@
  * License for BK-JOB蓝鲸智云作业平台:
  * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * documentation files (the "Software', to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
  * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
@@ -22,45 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.trace.executors;
-
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
-
-import java.util.concurrent.Callable;
-
-public class TraceCallable<V> implements Callable<V> {
-    /**
-     * 日志调用链tracer
-     */
-    private final Tracer tracer;
-    /**
-     * 调用链父上下文
-     */
-    private final Span parent;
-    private Callable<V> delegate;
-
-    public TraceCallable(Callable<V> callable, Tracer tracer) {
-        this.delegate = callable;
-        this.tracer = tracer;
-        this.parent = tracer.currentSpan();
-    }
-
-    @Override
-    public V call() throws Exception {
-        Span span = null;
-        try {
-            span = tracer.nextSpan(parent).name("async");
-            return delegate.call();
-        } catch (Throwable e) {
-            if (span != null) {
-                span.error(e);
-            }
-            throw e;
-        } finally {
-            if (span != null) {
-                span.end();
-            }
-        }
-    }
+dependencies {
+    api "org.springframework.cloud:spring-cloud-sleuth-api"
+    api "org.springframework.cloud:spring-cloud-sleuth-otel"
+    api "org.springframework.cloud:spring-cloud-sleuth-otel-autoconfigure"
+    api "io.opentelemetry:opentelemetry-exporter-otlp-trace"
+    // https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-extension-resources
+    api 'io.opentelemetry:opentelemetry-sdk-extension-resources'
 }
