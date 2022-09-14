@@ -16,6 +16,8 @@ spring:
           endpoint: __BK_JOB_TRACE_REPORT_PUSH_URL__
       resource:
         bkDataToken: __BK_JOB_TRACE_REPORT_SECURE_KEY__
+      config:
+        traceIdRatioBased: __BK_JOB_TRACE_REPORT_RATIO__
 app:
   code: __BK_JOB_APP_CODE__
   secret: __BK_JOB_APP_SECRET__

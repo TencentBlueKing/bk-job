@@ -578,6 +578,8 @@ job:
       pushUrl: ""
       # 监控平台中目标APM应用的SecureKey
       secureKey: ""
+      # Trace数据上报比率，根据作业平台与监控平台负载适当调节该比率
+      ratio: 0.1
 
   migration:
     iamModel:

@@ -1,13 +1,11 @@
 # chart values 更新日志
 
-## 0.3.0-rc.24
+## 0.3.0-rc.31
 1.增加Trace及数据上报至APM相关配置
 ```shell script
 ## Trace配置
 job:
   trace:
-    # 是否开启Trace，默认开启，设置为false则jar启动参数中不含-javaagent:opentelemetry-javaagent.jar，且日志中无traceId
-    enabled: true
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
       enabled: false
@@ -15,6 +13,8 @@ job:
       pushUrl: ""
       # 监控平台中目标APM应用的SecureKey
       secureKey: ""
+      # Trace数据上报比率，根据作业平台与监控平台负载适当调节该比率
+      ratio: 0.1
 ```
 2.fileWorker对应的Service端口默认值设置为与pod端口一致，避免混淆
 ```shell script

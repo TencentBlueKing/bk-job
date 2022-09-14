@@ -25,6 +25,8 @@ data:
               endpoint: {{ .Values.job.trace.report.pushUrl }}
           resource:
             bkDataToken: {{ .Values.job.trace.report.secureKey }}
+          config:
+            traceIdRatioBased: {{ .Values.job.trace.report.ratio }}
     app:
       code: {{ .Values.appCode }}
       secret: {{ .Values.appSecret }}
