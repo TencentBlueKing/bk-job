@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.cc.config;
 
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.redis.util.RedisSlideWindowFlowController;
 import com.tencent.bk.job.common.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
