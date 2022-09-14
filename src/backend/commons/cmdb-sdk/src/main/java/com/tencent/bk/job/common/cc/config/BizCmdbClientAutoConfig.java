@@ -104,7 +104,7 @@ public class BizCmdbClientAutoConfig {
                                          ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                          @Autowired(required = false) QueryAgentStatusClient queryAgentStatusClient,
                                          MeterRegistry meterRegistry,
-                                         FlowController flowController) {
+                                         @Autowired(required = false) FlowController flowController) {
         return new BizCmdbClient(
             esbConfig,
             cmdbConfig,
