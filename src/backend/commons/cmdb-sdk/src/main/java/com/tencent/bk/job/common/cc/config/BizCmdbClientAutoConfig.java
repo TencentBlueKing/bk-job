@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.util.FlowController;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -81,7 +82,7 @@ public class BizCmdbClientAutoConfig {
                                        CmdbConfig cmdbConfig,
                                        ThreadPoolExecutor cmdbThreadPoolExecutor,
                                        ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
-                                       QueryAgentStatusClient queryAgentStatusClient,
+                                       @Autowired(required = false) QueryAgentStatusClient queryAgentStatusClient,
                                        MeterRegistry meterRegistry,
                                        FlowController flowController) {
         return new BizCmdbClient(
@@ -101,7 +102,7 @@ public class BizCmdbClientAutoConfig {
                                          CmdbConfig cmdbConfig,
                                          ThreadPoolExecutor cmdbThreadPoolExecutor,
                                          ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
-                                         QueryAgentStatusClient queryAgentStatusClient,
+                                         @Autowired(required = false) QueryAgentStatusClient queryAgentStatusClient,
                                          MeterRegistry meterRegistry,
                                          FlowController flowController) {
         return new BizCmdbClient(
