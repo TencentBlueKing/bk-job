@@ -13,7 +13,7 @@ job:
       pushUrl: ""
       # 监控平台中目标APM应用的SecureKey
       secureKey: ""
-      # Trace数据上报比率，根据作业平台与监控平台负载适当调节该比率
+      # Trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
       ratio: 0.1
 ```
 2.fileWorker对应的Service端口默认值设置为与pod端口一致，避免混淆
