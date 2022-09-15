@@ -26,7 +26,6 @@ package com.tencent.bk.job.crontab.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 
 import java.util.HashMap;
@@ -36,7 +35,6 @@ import java.util.Map;
  * @since 1.0
  */
 @Data
-@Profile({"prod", "dev"})
 @ConfigurationProperties(prefix = "spring.quartz")
 public class QuartzProperties {
 
