@@ -201,13 +201,17 @@ public class ScriptServiceImpl implements ScriptService {
         setTags(Collections.singletonList(script));
     }
 
-    private void setTags(List<ScriptDTO> scripts) {
+    private void setTags(Collection<ScriptDTO> scripts) {
         if (CollectionUtils.isEmpty(scripts)) {
             return;
         }
+        ScriptDTO someScript = scripts.stream().findAny().orElse(null);
+        if (someScript == null) {
+            return;
+        }
+        long appId = someScript.getAppId();
+        boolean isPublicScript = someScript.isPublicScript();
 
-        Long appId = scripts.get(0).getAppId();
-        boolean isPublicScript = scripts.get(0).isPublicScript();
         Integer resourceType = isPublicScript ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
 
@@ -257,7 +261,7 @@ public class ScriptServiceImpl implements ScriptService {
 
     private List<String> queryScriptIdsByTags(ScriptQuery query) {
         List<String> matchScriptIds = new ArrayList<>();
-        Integer resourceType = query.getPublicScript() ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
+        Integer resourceType = query.isPublicScript() ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
         if (query.isUntaggedScript()) {
             // untagged script
@@ -650,7 +654,7 @@ public class ScriptServiceImpl implements ScriptService {
     @Override
     public Map<String, ScriptDTO> batchGetOnlineScriptVersionByScriptIds(List<String> scriptIdList) {
         Map<String, ScriptDTO> scripts = scriptDAO.batchGetOnlineByScriptIds(scriptIdList);
-        scripts.forEach((scriptId, script) -> setTags(script));
+        setTags(scripts.values());
         return scripts;
     }
 

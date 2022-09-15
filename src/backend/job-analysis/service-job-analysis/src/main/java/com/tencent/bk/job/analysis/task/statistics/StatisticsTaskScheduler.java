@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -75,29 +76,23 @@ public class StatisticsTaskScheduler {
     private static final String machineIp = IpUtils.getFirstMachineIP();
     private static final String REDIS_KEY_STATISTIC_JOB_LOCK = "statistic-job-lock";
     private static final String REDIS_KEY_STATISTIC_JOB_RUNNING_MACHINE = "statistic-job-running-machine";
-    private static final AtomicLong rejectedStatisticsTaskNum = new AtomicLong(0);
+    public static final AtomicLong rejectedStatisticsTaskNum = new AtomicLong(0);
     private static final String REDIS_KEY_STATISTIC_JOB_INIT_MACHINE = "statistic-job-init-machine";
+
+    // 线程池默认配置参数
+    public static final long defaultKeepAliveTime = 60L;
+    public static final int defaultCorePoolSize = 10;
+    public static final int defaultMaximumPoolSize = 10;
+    public static final int currentStatisticsTaskQueueSize = 2000;
+    public static final int pastStatisticsTaskQueueSize = 200000;
+
     public static List<IStatisticsTask> statisticsTaskList = new ArrayList<>();
     public static Map<String, IStatisticsTask> statisticsTaskMap = new ConcurrentHashMap<>();
     public static Map<String, TaskInfo> currentStatisticTaskFutureMap = new HashMap<>();
 
-    // 线程池默认配置参数
-    private static final long defaultKeepAliveTime = 60L;
-    private static final int defaultCorePoolSize = 10;
-    private static final int defaultMaximumPoolSize = 10;
-    private static final int currentStatisticsTaskQueueSize = 2000;
-    private static final int pastStatisticsTaskQueueSize = 200000;
 
-    private static ThreadPoolExecutor currentStatisticsTaskExecutor = new ThreadPoolExecutor(
-        defaultCorePoolSize, defaultMaximumPoolSize, defaultKeepAliveTime,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<>(currentStatisticsTaskQueueSize),
-        (r, executor) -> log.error("statisticsTask runnable rejected! num:{}",
-            rejectedStatisticsTaskNum.incrementAndGet()));
-    private static ThreadPoolExecutor pastStatisticsTaskExecutor = new ThreadPoolExecutor(
-        defaultCorePoolSize, defaultMaximumPoolSize, defaultKeepAliveTime,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<>(pastStatisticsTaskQueueSize),
-        (r, executor) -> log.error("pastStatisticsTaskExecutor runnable rejected! num:{}",
-            rejectedStatisticsTaskNum.incrementAndGet()));
+    private ThreadPoolExecutor currentStatisticsTaskExecutor;
+    private ThreadPoolExecutor pastStatisticsTaskExecutor;
 
     static {
         List<String> keyList = Collections.singletonList(REDIS_KEY_STATISTIC_JOB_LOCK);
@@ -118,9 +113,17 @@ public class StatisticsTaskScheduler {
     private int currentCycleHours = 0;
 
     @Autowired
-    public StatisticsTaskScheduler(MeterRegistry meterRegistry, StatisticConfig statisticConfig, RedisTemplate<String
-        , String> redisTemplate, PastStatisticsMakeupTask pastStatisticsMakeupTask,
+    public StatisticsTaskScheduler(MeterRegistry meterRegistry,
+                                   @Qualifier("currentStatisticsTaskExecutor")
+                                       ThreadPoolExecutor currentStatisticsTaskExecutor,
+                                   @Qualifier("pastStatisticsTaskExecutor")
+                                       ThreadPoolExecutor pastStatisticsTaskExecutor,
+                                   StatisticConfig statisticConfig,
+                                   RedisTemplate<String, String> redisTemplate,
+                                   PastStatisticsMakeupTask pastStatisticsMakeupTask,
                                    ClearExpiredStatisticsTask clearExpiredStatisticsTask) {
+        this.currentStatisticsTaskExecutor = currentStatisticsTaskExecutor;
+        this.pastStatisticsTaskExecutor = pastStatisticsTaskExecutor;
         this.statisticConfig = statisticConfig;
         this.redisTemplate = redisTemplate;
         this.pastStatisticsMakeupTask = pastStatisticsMakeupTask;
@@ -129,14 +132,14 @@ public class StatisticsTaskScheduler {
             StatisticsConstants.NAME_STATISTICS_TASK_SCHEDULE_POOL_SIZE,
             Collections.singletonList(Tag.of(StatisticsConstants.TAG_KEY_MODULE,
                 StatisticsConstants.TAG_VALUE_MODULE_STATISTICS_TASK)),
-            currentStatisticsTaskExecutor,
+            this.currentStatisticsTaskExecutor,
             ThreadPoolExecutor::getPoolSize
         );
         meterRegistry.gauge(
             StatisticsConstants.NAME_STATISTICS_TASK_SCHEDULE_QUEUE_SIZE,
             Collections.singletonList(Tag.of(StatisticsConstants.TAG_KEY_MODULE,
                 StatisticsConstants.TAG_VALUE_MODULE_STATISTICS_TASK)),
-            currentStatisticsTaskExecutor,
+            this.currentStatisticsTaskExecutor,
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );
     }

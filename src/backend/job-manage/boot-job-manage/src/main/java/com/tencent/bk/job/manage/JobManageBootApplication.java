@@ -24,21 +24,13 @@
 
 package com.tencent.bk.job.manage;
 
-import com.tencent.bk.job.common.cc.config.CmdbConfig;
-import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.esb.config.BkApiConfig;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
@@ -46,16 +38,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableCaching
 @EnableFeignClients
 @EnableScheduling
-@DependsOn({"applicationContextRegister", "cmdbConfigSetter"})
 public class JobManageBootApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(JobManageBootApplication.class, args);
     }
 
-    @Bean
-    CloudAreaService buildCloudAreaService(@Autowired BkApiConfig bkApiConfig, @Autowired CmdbConfig cmdbConfig) {
-        MeterRegistry meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
-        return new CloudAreaService(bkApiConfig, cmdbConfig, meterRegistry);
-    }
 }
