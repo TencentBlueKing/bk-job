@@ -1,6 +1,10 @@
 <template>
-    <bk-dialog
-        class="bk-ip-selector-dialog"
+    <component
+        :is="rootCom"
+        class="bk-ip-selector-box"
+        :class="{
+            [mode]: true
+        }"
         :close-icon="false"
         :draggable="false"
         :value="isShow"
@@ -10,7 +14,7 @@
             flex-direction="right">
             <div v-bkloading="{ isLoading: isTopoDataLoading } ">
                 <panel-tab
-                    :is-show="isShow"
+                    :is-show="hasRendered"
                     :unique-type="panelTabUniqueType"
                     :value="panelType"
                     @change="handleTypeChange" />
@@ -27,7 +31,7 @@
             </div>
             <template slot="right">
                 <result-preview
-                    v-if="isShow"
+                    v-if="hasRendered"
                     :dynamic-group-list="lastDynamicGroupList"
                     :host-list="lastHostList"
                     :node-list="lastNodeList"
@@ -47,7 +51,7 @@
                 </bk-button>
             </div>
         </template>
-    </bk-dialog>
+    </component>
 </template>
 <script setup>
     import _ from 'lodash';
@@ -75,6 +79,10 @@
         isShow: {
             type: Boolean,
             default: false,
+        },
+        mode: {
+            type: String,
+            required: true,
         },
         value: {
             type: Object,
@@ -112,6 +120,10 @@
         return '';
     });
 
+    const isDialogMode = computed(() => props.model === 'dialog');
+    const rootCom = computed(() => isDialogMode.value ? 'bk-dialog' : 'div');
+    const hasRendered = computed(() => isDialogMode.value ? props.isShow : true);
+
     const topoTreeData = shallowRef([]);
 
     const lastHostList = shallowRef([]);
@@ -139,8 +151,8 @@
             });
     };
 
-    watch(() => props.isShow, () => {
-        if (props.isShow) {
+    watch(hasRendered, () => {
+        if (hasRendered.value) {
             fetchTopoData();
             const {
                 host_list: hostList,
@@ -151,7 +163,9 @@
             lastHostList.value = hostList;
             lastNodeList.value = nodeList;
             lastDynamicGroupList.value = dynamicGroupList;
-        }
+            }
+    }, {
+        immediate: true,
     });
     
     // 面板类型切换
@@ -193,7 +207,14 @@
     };
 </script>
 <style lang="postcss">
-    .bk-ip-selector-dialog {
+    .bk-ip-selector-box {
+        background: #fff;
+
+        &.section {
+            border: 1px solid #dcdee5;
+            border-radius: 2px;
+        }
+
         .bk-dialog {
             .bk-dialog-tool {
                 display: none;

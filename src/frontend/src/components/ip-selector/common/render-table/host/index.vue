@@ -245,7 +245,7 @@
         for (let i = 0; i < columnKeySortList.value.length; i++) {
             const curColumnKey = columnKeySortList.value[i];
             if (['ip', 'ipv6'].includes(curColumnKey)
-                & columnKeyRenderList.value.includes(curColumnKey)) {
+                && columnKeyRenderList.value.includes(curColumnKey)) {
                 setKey(curColumnKey);
                 return;
             }

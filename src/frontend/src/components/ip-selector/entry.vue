@@ -1,16 +1,21 @@
 <template>
-    <div class="bk-ip-selector">
-        <selector-box
-            :is-show="showDialog"
-            :value="selectorValue"
-            @cancel="handleCancel"
-            @change="handleValueChange" />
-        <views-box
-            v-if="showView"
-            ref="viewsRef"
-            :search-key="viewSearchKey"
-            :value="selectorValue"
-            @change="handleValueChange" />
+    <div
+        ref="rootRef"
+        class="bk-ip-selector">
+        <template v-if="localMounted">
+            <selector-box
+                :is-show="showDialog"
+                :mode="mode"
+                :value="selectorValue"
+                @cancel="handleCancel"
+                @change="handleValueChange" />
+            <views-box
+                v-if="showView"
+                ref="viewsRef"
+                :search-key="viewSearchKey"
+                :value="selectorValue"
+                @change="handleValueChange" />
+        </template>
     </div>
 </template>
 <script setup>
@@ -18,13 +23,15 @@
         onBeforeUnmount,
         onMounted,
         provide,
-        reactive,
         ref,
         shallowRef,
         watch,
     } from 'vue';
 
-    import { mergeLocalService } from './manager.js';
+    import {
+        mergeLocalConfig,
+        mergeLocalService,
+} from './manager.js';
     import SelectorBox from './selector-box/index.vue';
     import { formatInput } from './utils/index';
     import ViewsBox from './views-box/index.vue';
@@ -35,6 +42,10 @@
     import 'tippy.js/themes/light.css';
 
     const props = defineProps({
+        mode: {
+            type: String,
+            default: 'section', // 'dialog' | 'section'
+        },
         showDialog: {
             type: Boolean,
             default: false,
@@ -65,6 +76,10 @@
             type: Object,
             default: () => ({}),
         },
+        config: {
+            type: Object,
+            default: () => ({}),
+        },
     });
 
     const emits = defineEmits([
@@ -72,8 +87,10 @@
         'close-dialog',
     ]);
 
-    const selectorValue = shallowRef({});
+    const rootRef = ref();
     const viewsRef = ref();
+    const localMounted = ref(false);
+    const selectorValue = shallowRef({});
 
     watch(() => props.value, () => {
         console.log('from ip-selector watch value = ', props.value);
@@ -86,7 +103,7 @@
         selectorValue.value = value;
         emits('change', value);
         emits('update:value', value);
-        emits('update:modelValue', value);
+        emits('update:modelalue', value);
         emits('close-dialog');
     };
 
@@ -94,16 +111,21 @@
         emits('close-dialog');
     };
 
-    provide('BKIPSELECTOR', reactive({
+    provide('BKIPSELECTOR', {
         originalValue: props.originalValue && formatInput(props.originalValue),
         readonly: props.readonly,
-    }));
+        mode: props.mode,
+        rootRef,
+    });
 
     onMounted(() => {
         mergeLocalService(props.service);
+        mergeLocalConfig(props.config);
+        localMounted.value = true;
     });
     onBeforeUnmount(() => {
         mergeLocalService({});
+        mergeLocalConfig({});
     });
 
     defineExpose({

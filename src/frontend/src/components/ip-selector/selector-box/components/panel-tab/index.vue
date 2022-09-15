@@ -68,6 +68,7 @@
     import vuedraggable from 'vuedraggable';
 
     import Manager from '../../../manager';
+    import { makeMap } from '../../../utils';
 
     import TabItem from './tab-item.vue';
 
@@ -105,8 +106,15 @@
         [Manager.nameStyle('moduleList')]: [CUSTOM_SETTINGS_MODULE],
     })
     .then((data) => {
-        if (data[CUSTOM_SETTINGS_MODULE]) {
-            panelSortList.value = data[CUSTOM_SETTINGS_MODULE].panelSortList;
+        if (data[CUSTOM_SETTINGS_MODULE]
+            && data[CUSTOM_SETTINGS_MODULE].panelSortList) {
+            const panelConfigMap = makeMap(panelList);
+            panelSortList.value = data[CUSTOM_SETTINGS_MODULE].panelSortList.reduce((result, item) => {
+                if (panelConfigMap[item]) {
+                    result.push(item);
+                }
+                return result;
+            }, []);
         }
     })
     .finally(() => {

@@ -52,6 +52,14 @@
                 :label="$t('whiteIP.云区域')"
                 property="cloudAreaId"
                 required>
+                <bk-button @click="handleShowIpSelector">
+                    选择主机
+                </bk-button>
+            </jb-form-item>
+            <jb-form-item
+                :label="$t('whiteIP.云区域')"
+                property="cloudAreaId"
+                required>
                 <bk-select
                     v-model="formData.cloudAreaId"
                     class="input"
@@ -102,6 +110,10 @@
                 </bk-checkbox-group>
             </jb-form-item>
         </jb-form>
+        <ip-selector
+            model="dialog"
+            :show-dialog="isShowIpSelector"
+            @close-dialog="handleColseIpSelector" />
     </div>
 </template>
 <script>
@@ -141,6 +153,7 @@
                 appList: [],
                 cloudAreaList: [],
                 actionScope: [],
+                isShowIpSelector: false,
             };
         },
         watch: {
@@ -253,7 +266,12 @@
                         this.actionScope = data;
                     });
             },
-            
+            handleShowIpSelector () {
+                this.isShowIpSelector = true;
+            },
+            handleColseIpSelector () {
+                this.isShowIpSelector = false;
+            },
             handleRangeChange (value) {
                 if (value.length > 0) {
                     this.$refs.whiteIpForm.clearError('actionScopeIdList');

@@ -29,7 +29,9 @@
                     <i class="bk-ipselector-icon bk-ipselector-close-line" />
                 </span>
             </div>
-            <i class="move-dot bk-ipselector-icon bk-ipselector-more" />
+            <i
+                v-if="isLeftExpanded"
+                class="move-dot bk-ipselector-icon bk-ipselector-more" />
         </div>
         <div
             v-if="flexDirection === 'right'"
@@ -46,7 +48,9 @@
                     <i class="bk-ipselector-icon bk-ipselector-close-line" />
                 </span>
             </div>
-            <i class="move-dot bk-ipselector-icon bk-ipselector-more" />
+            <i
+                v-if="isRightExpanded"
+                class="move-dot bk-ipselector-icon bk-ipselector-more" />
         </div>
     </div>
 </template>

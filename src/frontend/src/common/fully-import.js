@@ -62,7 +62,7 @@ import Test from '@components/test';
 import TippyTips from '@components/tippy-tips';
 
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
-import 'lib/ip-selector/styles/index.css';
+// import 'lib/ip-selector/styles/index.css';
 
 const IpSelector = createIpSelector({
     panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],

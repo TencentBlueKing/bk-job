@@ -109,19 +109,13 @@
                 lastDynamicGroupList.value = value;
                 break;
         }
-        // console.log('============from view change = ', name, value);
-        // const result = {
-        //     ...props.value,
-        //     [Manager.nameStyle(name)]: value,
-        // };
-        // console.log('asdasdasd = ', result);
+        
         isInnerChange = true;
         emits('change', formatOutput({
             hostList: lastHostList.value,
             nodeList: lastNodeList.value,
             dynamicGroupList: lastDynamicGroupList.value,
         }));
-        // emits('change', result);
     };
 
     defineExpose({

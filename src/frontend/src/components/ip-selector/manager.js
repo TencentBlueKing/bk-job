@@ -51,7 +51,9 @@ const getServiceListByPanelList
 
 export const merge = (options) => {
     baseConfigNameList.forEach((name) => {
-        config[name] = options[name];
+        if (options[name]) {
+            config[name] = options[name];
+        }
     });
 
     getServiceListByPanelList(config.panelList).forEach((serviceName) => {
@@ -68,12 +70,27 @@ export const mergeLocalService = (service) => {
     localService = service;
 };
 
+let localConfig = {};
+export const mergeLocalConfig = (config) => {
+    localConfig = config;
+};
+
 export default {
-    config,
+    config: new Proxy({}, {
+        get (target, propKey) {
+            if (localConfig[propKey]) {
+                return localConfig[propKey];
+            }
+            return config[propKey];
+        },
+    }),
     service: new Proxy({}, {
         get (target, propKey) {
             if (_.isFunction(localService[propKey])) {
                 return localService[propKey];
+            }
+            if (!service[propKey]) {
+                return Promise.reject(new Error(`请配置 *${propKey}* 方法`));
             }
             return service[propKey];
         },
