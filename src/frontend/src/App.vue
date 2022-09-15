@@ -168,6 +168,7 @@
             this.fetchUserInfo();
             this.fetchTitleConfig();
             this.fetchRelatedSystemUrls();
+            // console.log('asdadada = ', this);
         },
         /**
          * @desc 页面渲染完成

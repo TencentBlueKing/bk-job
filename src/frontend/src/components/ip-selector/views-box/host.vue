@@ -209,7 +209,7 @@
             }
             return result;
         }, []);
-        if (diffMap.value[hostData.host_id] === 'new') {
+        if (diffMap.value[hostData.host_id] !== 'invalid') {
             validHostList.value = validHostList.value.reduce((result, item) => {
                 if (item.host_id !== hostData.host_id) {
                     result.push(item);

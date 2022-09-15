@@ -5,7 +5,7 @@
             :value="selectorValue"
             @cancel="handleCancel"
             @change="handleValueChange" />
-        <selector-view
+        <views-box
             v-if="showView"
             ref="viewsRef"
             :search-key="viewSearchKey"
@@ -15,6 +15,8 @@
 </template>
 <script setup>
     import {
+        onBeforeUnmount,
+        onMounted,
         provide,
         reactive,
         ref,
@@ -22,15 +24,15 @@
         watch,
     } from 'vue';
 
+    import { mergeLocalService } from './manager.js';
     import SelectorBox from './selector-box/index.vue';
     import { formatInput } from './utils/index';
-    import SelectorView from './views-box/index.vue';
+    import ViewsBox from './views-box/index.vue';
 
     import './bk-icon/style.css';
     import './bk-icon/iconcool.js';
-
-    import('tippy.js/dist/tippy.css');
-    import('tippy.js/themes/light.css');
+    import 'tippy.js/dist/tippy.css';
+    import 'tippy.js/themes/light.css';
 
     const props = defineProps({
         showDialog: {
@@ -58,6 +60,10 @@
         readonly: {
             type: Boolean,
             default: false,
+        },
+        service: {
+            type: Object,
+            default: () => ({}),
         },
     });
 
@@ -92,6 +98,13 @@
         originalValue: props.originalValue && formatInput(props.originalValue),
         readonly: props.readonly,
     }));
+
+    onMounted(() => {
+        mergeLocalService(props.service);
+    });
+    onBeforeUnmount(() => {
+        mergeLocalService({});
+    });
 
     defineExpose({
         getHostIpList () {

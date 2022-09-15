@@ -24,6 +24,7 @@
 */
 
 import bkMagicVue from 'bk-magic-vue';
+// import createIpSelector from 'lib/ip-selector/vue2.6.x.js';
 import Vue from 'vue';
 import VueProgressBar from 'vue-progressbar';
 
@@ -61,6 +62,7 @@ import Test from '@components/test';
 import TippyTips from '@components/tippy-tips';
 
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
+import 'lib/ip-selector/styles/index.css';
 
 const IpSelector = createIpSelector({
     panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
@@ -85,6 +87,8 @@ const IpSelector = createIpSelector({
             bk_cmdb_static_topo_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
         })),
 });
+
+console.dir(IpSelector);
 
 Vue.use(bkMagicVue);
 Vue.use(VueProgressBar, {

@@ -244,7 +244,7 @@
             }
             return result;
         }, []);
-        if (diffMap.value[genNodeKey(nodeData)] === 'new') {
+        if (diffMap.value[genNodeKey(nodeData)] !== 'invalid') {
             validNodeList.value = validNodeList.value.reduce((result, item) => {
                 if (genNodeKey(item) !== genNodeKey(nodeData)) {
                     result.push(item);

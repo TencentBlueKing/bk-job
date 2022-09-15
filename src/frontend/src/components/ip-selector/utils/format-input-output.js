@@ -19,18 +19,18 @@ export const formatInput = data => ({
 });
 
 export const formatOutput = data => ({
-    [Manager.nameStyle('hostList')]: data.hostList.map(item => ({
+    [Manager.nameStyle('hostList')]: (data.hostList || []).map(item => ({
         [Manager.nameStyle('hostId')]: item.host_id,
         [Manager.nameStyle('ip')]: item.ip,
         [Manager.nameStyle('ipv6')]: item.ipv6,
         [Manager.nameStyle('meta')]: item.meta,
     })),
-    [Manager.nameStyle('nodeList')]: data.nodeList.map(item => ({
+    [Manager.nameStyle('nodeList')]: (data.nodeList || []).map(item => ({
         [Manager.nameStyle('objectId')]: item.object_id,
         [Manager.nameStyle('instanceId')]: item.instance_id,
         [Manager.nameStyle('meta')]: item.meta,
     })),
-    [Manager.nameStyle('dynamicGroupList')]: data.dynamicGroupList.map(item => ({
+    [Manager.nameStyle('dynamicGroupList')]: (data.dynamicGroupList || []).map(item => ({
         [Manager.nameStyle('id')]: item.id,
         [Manager.nameStyle('meta')]: item.meta,
     })),

@@ -255,7 +255,6 @@
 
                     .dynamic-group-name {
                         margin-right: 5px;
-                        font-size: 12px;
                     }
 
                     .dynamic-group-detail-link {
@@ -273,6 +272,7 @@
                     padding-left: 8px;
                     margin-right: auto;
                     overflow: hidden;
+                    font-size: 12px;
                     line-height: 18px;
                     text-overflow: ellipsis;
                     white-space: nowrap;

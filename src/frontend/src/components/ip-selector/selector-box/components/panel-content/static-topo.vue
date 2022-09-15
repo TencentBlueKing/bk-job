@@ -14,6 +14,8 @@
                     :data="topoTreeData"
                     expand-on-click
                     :filter-method="filterMethod"
+                    :lazy-disabled="lazyDisabledCallbak"
+                    :lazy-method="lazyMethodCallback"
                     selectable
                     show-link-line
                     @select-change="handleNodeSelect">
@@ -114,8 +116,11 @@
     import useInputEnter from '../../../hooks/use-input-enter';
     import useTreeExpanded from '../../../hooks/use-tree-expanded';
     import useTreeFilter from '../../../hooks/use-tree-filter';
+    import useTreeLazy from '../../../hooks/use-tree-lazy';
     import Manager from '../../../manager';
-    import { getPaginationDefault } from '../../../utils';
+    import {
+        getPaginationDefault,
+     } from '../../../utils';
     import ResizeLayout from '../resize-layout.vue';
     import TablePageCheck from '../table-page-check.vue';
 
@@ -170,6 +175,11 @@
     const {
         toggleExpanded: handleToggleTopoTreeExpanded,
     } = useTreeExpanded(treeRef);
+
+    const {
+        lazyDisabledCallbak,
+        lazyMethodCallback,
+    } = useTreeLazy();
 
     // 判断 page-check 的状态
     const syncPageCheckValue = () => {

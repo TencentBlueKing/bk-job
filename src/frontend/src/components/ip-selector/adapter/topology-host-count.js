@@ -6,5 +6,6 @@ export const topologyHostCount = (data = []) => data.map(item => ({
     instance_name: item.instanceName,
     count: item.count,
     lazy: item.lazy,
+    expanded: item.expanded,
     child: topologyHostCount(item.child),
 }));

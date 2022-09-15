@@ -13,8 +13,10 @@
                     ref="treeRef"
                     :check-strictly="false"
                     :data="topoTreeData"
-                    :expand-on-click="false"
+                    expand-on-click
                     :filter-method="filterMethod"
+                    :lazy-disabled="lazyDisabledCallbak"
+                    :lazy-method="lazyMethodCallback"
                     selectable
                     show-checkbox
                     show-link-line
@@ -117,6 +119,7 @@
     import useFetchConfig from '../../../../hooks/use-fetch-config';
     import useTreeExpanded from '../../../../hooks/use-tree-expanded';
     import useTreeFilter from '../../../../hooks/use-tree-filter';
+    import useTreeLazy from '../../../../hooks/use-tree-lazy';
     import { genNodeKey } from '../../../../utils';
     import ResizeLayout from '../../resize-layout.vue';
     import TableTab from '../../table-tab';
@@ -173,6 +176,11 @@
         loading: isConfigLoading,
         config,
     } = useFetchConfig();
+
+    const {
+        lazyDisabledCallbak,
+        lazyMethodCallback,
+    } = useTreeLazy();
 
     // 同步拓扑树节点的选中状态
     const syncTopoTreeNodeCheckStatus = () => {

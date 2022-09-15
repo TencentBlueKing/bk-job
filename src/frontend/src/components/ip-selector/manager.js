@@ -62,9 +62,22 @@ export const merge = (options) => {
     });
 };
 
+let localService = {};
+
+export const mergeLocalService = (service) => {
+    localService = service;
+};
+
 export default {
     config,
-    service,
+    service: new Proxy({}, {
+        get (target, propKey) {
+            if (_.isFunction(localService[propKey])) {
+                return localService[propKey];
+            }
+            return service[propKey];
+        },
+    }),
     nameStyle: (name) => {
         if (config.nameStyle === 'camelCase') {
             return name;

@@ -232,7 +232,7 @@
             }
             return result;
         }, []);
-        if (diffMap.value[dynamicGroupData.id] === 'new') {
+        if (diffMap.value[dynamicGroupData.id] !== 'invalid') {
             validDynamicGroupList.value = validDynamicGroupList.value.reduce((result, item) => {
                 if (item.id !== dynamicGroupData.id) {
                     result.push(item);

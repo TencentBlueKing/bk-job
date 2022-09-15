@@ -98,14 +98,30 @@
     });
 
     const handleChange = (name, value) => {
-        const result = {
-            ...props.value,
-            ...formatOutput({
-                [name]: value,
-            }),
-        };
+        switch (name) {
+            case 'hostList':
+                lastHostList.value = value;
+                break;
+            case 'nodeList':
+                lastNodeList.value = value;
+                break;
+            case 'dynamicGroupList':
+                lastDynamicGroupList.value = value;
+                break;
+        }
+        // console.log('============from view change = ', name, value);
+        // const result = {
+        //     ...props.value,
+        //     [Manager.nameStyle(name)]: value,
+        // };
+        // console.log('asdasdasd = ', result);
         isInnerChange = true;
-        emits('change', result);
+        emits('change', formatOutput({
+            hostList: lastHostList.value,
+            nodeList: lastNodeList.value,
+            dynamicGroupList: lastDynamicGroupList.value,
+        }));
+        // emits('change', result);
     };
 
     defineExpose({
