@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.cc.config;
 
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.redis.util.RedisSlideWindowFlowController;
 import com.tencent.bk.job.common.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +84,6 @@ public class CMDBFlowControllerConfig {
                 map, cmdbConfig.getFlowControlDefaultLimit(), cmdbConfig.getFlowControlPrecision());
             cmdbGlobalFlowController.init(redisTemplate, map, cmdbConfig.getFlowControlDefaultLimit(),
                 cmdbConfig.getFlowControlPrecision());
-            BizCmdbClient.setGlobalFlowController(cmdbGlobalFlowController);
         } catch (Exception e) {
             log.error("Fail to init globalFlowController", e);
         }

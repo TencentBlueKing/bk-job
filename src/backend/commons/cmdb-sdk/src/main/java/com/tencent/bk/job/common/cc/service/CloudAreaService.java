@@ -24,19 +24,13 @@
 
 package com.tencent.bk.job.common.cc.service;
 
-import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -53,18 +47,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 23/12/2019 22:48
  */
 
-@DependsOn({"cmdbConfigSetter"})
 @Slf4j
+@Service
 public class CloudAreaService {
     private static final Map<Long, String> CLOUD_AREA_NAME_MAP = new ConcurrentHashMap<>();
-    private static IBizCmdbClient esbBizCmdbClient;
+    private static IBizCmdbClient bizCmdbClient;
     private static List<CcCloudAreaInfoDTO> fullCloudAreaInfoList;
 
-    public CloudAreaService(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
-                            MeterRegistry meterRegistry) {
+    public CloudAreaService(IBizCmdbClient bizCmdbClient) {
+        CloudAreaService.bizCmdbClient = bizCmdbClient;
         CloudAreaNameCacheThread cloudAreaNameCacheThread = new CloudAreaNameCacheThread();
-        esbBizCmdbClient = new BizCmdbClient(esbConfig, cmdbConfig, LocaleUtils.LANG_EN_US, queryAgentStatusClient,
-            meterRegistry);
         cloudAreaNameCacheThread.start();
     }
 
@@ -78,7 +70,7 @@ public class CloudAreaService {
     }
 
     private static List<CcCloudAreaInfoDTO> getCloudAreaListFromCc() {
-        List<CcCloudAreaInfoDTO> cloudAreaInfoList = esbBizCmdbClient.getCloudAreaList();
+        List<CcCloudAreaInfoDTO> cloudAreaInfoList = bizCmdbClient.getCloudAreaList();
         if (cloudAreaInfoList == null) {
             return new ArrayList<>();
         }

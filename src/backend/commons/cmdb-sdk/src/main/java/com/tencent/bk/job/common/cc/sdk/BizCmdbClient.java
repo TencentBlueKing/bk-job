@@ -159,13 +159,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private static final ConcurrentHashMap<Long, Pair<InstanceTopologyDTO, Long>> bizInternalTopoMap =
         new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Long, ReentrantLock> bizInternalTopoLockMap = new ConcurrentHashMap<>();
-    public static ThreadPoolExecutor threadPoolExecutor = null;
-    public static ThreadPoolExecutor longTermThreadPoolExecutor = null;
-    public static CmdbConfig cmdbConfig = null;
+    private final ThreadPoolExecutor threadPoolExecutor;
+    private final ThreadPoolExecutor longTermThreadPoolExecutor;
+    private final CmdbConfig cmdbConfig;
     /**
      * 对整个应用中所有的CMDB调用进行限流
      */
-    private static FlowController globalFlowController = null;
+    private final FlowController globalFlowController;
 
     static {
         interfaceNameMap.put(SEARCH_BIZ_INST_TOPO, "search_biz_inst_topo");
@@ -187,64 +187,35 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     protected String defaultSupplierAccount;
     protected String defaultUin = "admin";
-    private QueryAgentStatusClient queryAgentStatusClient;
+    private final QueryAgentStatusClient queryAgentStatusClient;
     private final MeterRegistry meterRegistry;
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
             build(new CacheLoader<Long, InstanceTopologyDTO>() {
                       @Override
-                      public InstanceTopologyDTO load(Long bizId) {
+                      public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
                           return getBizInstCompleteTopology(bizId);
                       }
                   }
             );
 
-    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
+    public BizCmdbClient(EsbConfig esbConfig,
+                         CmdbConfig cmdbConfig,
+                         String lang,
+                         ThreadPoolExecutor threadPoolExecutor,
+                         ThreadPoolExecutor longTermThreadPoolExecutor,
+                         QueryAgentStatusClient queryAgentStatusClient,
+                         FlowController flowController,
                          MeterRegistry meterRegistry) {
-        this(esbConfig, cmdbConfig, null, queryAgentStatusClient, meterRegistry);
-    }
-
-    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, String lang,
-                         QueryAgentStatusClient queryAgentStatusClient, MeterRegistry meterRegistry) {
         super(esbConfig.getEsbUrl(), esbConfig.getAppCode(), esbConfig.getAppSecret(), lang,
             esbConfig.isUseEsbTestEnv());
+        this.cmdbConfig = cmdbConfig;
         this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
+        this.threadPoolExecutor = threadPoolExecutor;
+        this.longTermThreadPoolExecutor = longTermThreadPoolExecutor;
         this.queryAgentStatusClient = queryAgentStatusClient;
+        this.globalFlowController = flowController;
         this.meterRegistry = meterRegistry;
-    }
-
-    public static void setGlobalFlowController(FlowController flowController) {
-        globalFlowController = flowController;
-    }
-
-    private static void initThreadPoolExecutor(int cmdbQueryThreadsNum, int longTermCmdbQueryThreadsNum) {
-        threadPoolExecutor = new ThreadPoolExecutor(cmdbQueryThreadsNum, cmdbQueryThreadsNum, 180L, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(cmdbQueryThreadsNum * 4), (r, executor) -> {
-            //使用请求的线程直接拉取数据
-            log.error("cmdb request runnable rejected, use current thread({}), plz add more threads",
-                Thread.currentThread().getName());
-            r.run();
-        });
-        longTermThreadPoolExecutor = new ThreadPoolExecutor(longTermCmdbQueryThreadsNum, longTermCmdbQueryThreadsNum,
-            180L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(longTermCmdbQueryThreadsNum * 4), (r, executor) -> {
-            //使用请求的线程直接拉取数据
-            log.warn("cmdb long term request runnable rejected, use current thread({}), plz add more threads",
-                Thread.currentThread().getName());
-            r.run();
-        });
-    }
-
-    public static void init() {
-        initThreadPoolExecutor(cmdbConfig.getCmdbQueryThreadsNum(),
-            cmdbConfig.getFindHostRelationLongTermConcurrency());
-    }
-
-    public static void setCcConfig(CmdbConfig cmdbConfig) {
-        BizCmdbClient.cmdbConfig = cmdbConfig;
-    }
-
-    public void setQueryAgentStatusClient(QueryAgentStatusClient queryAgentStatusClient) {
-        this.queryAgentStatusClient = queryAgentStatusClient;
     }
 
     @Override
@@ -555,15 +526,15 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 FindModuleHostRelationTask task = new FindModuleHostRelationTask(resultQueue,
                     genFindModuleHostRelationReq(bizId, moduleIdList, start, limit),
                     JobContextUtil.getRequestId());
+                Future<?> future;
                 if (totalCount > 10000) {
                     //主机数太多，防止将CMDB拉挂了
-                    Future<?> future = longTermThreadPoolExecutor.submit(task);
-                    futures.add(future);
+                    future = longTermThreadPoolExecutor.submit(task);
                 } else {
                     // 默认采用多个并发线程拉取
-                    Future<?> future = threadPoolExecutor.submit(task);
-                    futures.add(future);
+                    future = threadPoolExecutor.submit(task);
                 }
+                futures.add(future);
                 totalCount -= limit;
             }
             futures.forEach(it -> {

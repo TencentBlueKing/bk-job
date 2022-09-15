@@ -40,7 +40,6 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -118,7 +117,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -136,9 +135,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SCRIPT;
@@ -161,7 +157,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final HostService hostService;
     private final ServiceUserResourceClient userResource;
     private final ExecuteAuthService executeAuthService;
-    private final ExecutorService GET_HOSTS_BY_TOPO_EXECUTOR;
+    private final ExecutorService getHostsByTopoExecutor;
     private final DangerousScriptCheckService dangerousScriptCheckService;
     private final RollingConfigService rollingConfigService;
     private final JobExecuteConfig jobExecuteConfig;
@@ -182,7 +178,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   HostService hostService,
                                   ServiceUserResourceClient userResource,
                                   ExecuteAuthService executeAuthService,
-                                  Tracer tracer,
+                                  @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor,
                                   DangerousScriptCheckService dangerousScriptCheckService,
                                   JobExecuteConfig jobExecuteConfig,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
@@ -199,8 +195,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.hostService = hostService;
         this.userResource = userResource;
         this.executeAuthService = executeAuthService;
-        this.GET_HOSTS_BY_TOPO_EXECUTOR = new TraceableExecutorService(new ThreadPoolExecutor(50,
-            100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>()), tracer);
+        this.getHostsByTopoExecutor = getHostsByTopoExecutor;
         this.dangerousScriptCheckService = dangerousScriptCheckService;
         this.rollingConfigService = rollingConfigService;
         this.jobExecuteConfig = jobExecuteConfig;
@@ -1869,7 +1864,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         CountDownLatch latch = new CountDownLatch(topoNodes.size());
         List<Future<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>>> futures = new ArrayList<>(topoNodes.size());
         for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
-            futures.add(GET_HOSTS_BY_TOPO_EXECUTOR.submit(new GetTopoHostTask(appId, topoNode, latch)));
+            futures.add(getHostsByTopoExecutor.submit(new GetTopoHostTask(appId, topoNode, latch)));
         }
 
         try {

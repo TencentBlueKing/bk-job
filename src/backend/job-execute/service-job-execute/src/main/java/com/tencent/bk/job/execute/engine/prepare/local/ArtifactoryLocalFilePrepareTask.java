@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -67,27 +66,8 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     private final String artifactoryRepo;
     private final String jobStorageRootPath;
     private final List<Future<Boolean>> futureList = new ArrayList<>();
-    public static ThreadPoolExecutor threadPoolExecutor = null;
+    private final ThreadPoolExecutor threadPoolExecutor;
     public static FinalResultHandler finalResultHandler = null;
-
-    public static void init(int concurrency) {
-        if (threadPoolExecutor == null) {
-            threadPoolExecutor = new ThreadPoolExecutor(
-                concurrency,
-                concurrency,
-                180L,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(100),
-                (r, executor) -> {
-                    //使用请求的线程直接拉取数据
-                    log.error(
-                        "download localupload file from artifactory runnable rejected," +
-                            " use current thread({}), plz add more threads",
-                        Thread.currentThread().getName());
-                    r.run();
-                });
-        }
-    }
 
     public ArtifactoryLocalFilePrepareTask(
         Long stepInstanceId,
@@ -97,7 +77,8 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         ArtifactoryClient artifactoryClient,
         String artifactoryProject,
         String artifactoryRepo,
-        String jobStorageRootPath
+        String jobStorageRootPath,
+        ThreadPoolExecutor threadPoolExecutor
     ) {
         this.stepInstanceId = stepInstanceId;
         this.isForRetry = isForRetry;
@@ -107,6 +88,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         this.artifactoryProject = artifactoryProject;
         this.artifactoryRepo = artifactoryRepo;
         this.jobStorageRootPath = jobStorageRootPath;
+        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     @Override
