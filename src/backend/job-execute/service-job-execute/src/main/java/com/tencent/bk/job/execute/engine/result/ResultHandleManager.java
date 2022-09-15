@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveMana
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.SmartLifecycle;
@@ -137,7 +138,7 @@ public class ResultHandleManager implements SmartLifecycle {
                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                ResultHandleTaskSampler resultHandleTaskSampler,
                                JobExecuteConfig jobExecuteConfig,
-                               ExecutorService shutdownExecutor) {
+                               @Qualifier("shutdownExecutor") ExecutorService shutdownExecutor) {
         this.tracer = tracer;
         this.counters = counters;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;

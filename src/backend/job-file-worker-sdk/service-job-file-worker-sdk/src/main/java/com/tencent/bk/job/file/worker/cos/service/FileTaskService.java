@@ -29,6 +29,7 @@ import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -54,8 +55,8 @@ public class FileTaskService {
     private final TaskReporter taskReporter;
 
     @Autowired
-    public FileTaskService(ThreadPoolExecutor fileTaskExecutor,
-                           ThreadPoolExecutor watchingTaskExecutor,
+    public FileTaskService(@Qualifier("fileTaskExecutor") ThreadPoolExecutor fileTaskExecutor,
+                           @Qualifier("watchingTaskExecutor") ThreadPoolExecutor watchingTaskExecutor,
                            WorkerConfig workerConfig,
                            TaskReporter taskReporter) {
         this.fileTaskExecutor = fileTaskExecutor;

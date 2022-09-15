@@ -219,7 +219,7 @@ public class ArchivistAutoConfig {
         @Autowired(required = false) RollingConfigRecordDAO rollingConfigRecordDAO,
         @Autowired(required = false) ExecuteArchiveDAO executeArchiveDAO,
         ArchiveProgressService archiveProgressService,
-        ExecutorService archiveExecutor,
+        @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
         ArchiveConfig archiveConfig) {
 
         log.info("Init JobExecuteArchiveManage");

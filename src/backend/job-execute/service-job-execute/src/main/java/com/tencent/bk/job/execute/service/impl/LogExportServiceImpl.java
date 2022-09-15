@@ -49,6 +49,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -89,7 +90,7 @@ public class LogExportServiceImpl implements LogExportService {
                                 ArtifactoryConfig artifactoryConfig,
                                 LogExportConfig logExportConfig,
                                 ScriptAgentTaskService scriptAgentTaskService,
-                                ExecutorService logExportExecutor) {
+                                @Qualifier("logExportExecutor") ExecutorService logExportExecutor) {
         this.logService = logService;
         this.redisTemplate = redisTemplate;
         this.taskInstanceService = taskInstanceService;

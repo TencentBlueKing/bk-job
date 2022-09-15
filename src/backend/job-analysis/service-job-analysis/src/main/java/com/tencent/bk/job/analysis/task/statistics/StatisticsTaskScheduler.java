@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -113,8 +114,10 @@ public class StatisticsTaskScheduler {
 
     @Autowired
     public StatisticsTaskScheduler(MeterRegistry meterRegistry,
-                                   ThreadPoolExecutor currentStatisticsTaskExecutor,
-                                   ThreadPoolExecutor pastStatisticsTaskExecutor,
+                                   @Qualifier("currentStatisticsTaskExecutor")
+                                       ThreadPoolExecutor currentStatisticsTaskExecutor,
+                                   @Qualifier("pastStatisticsTaskExecutor")
+                                       ThreadPoolExecutor pastStatisticsTaskExecutor,
                                    StatisticConfig statisticConfig,
                                    RedisTemplate<String, String> redisTemplate,
                                    PastStatisticsMakeupTask pastStatisticsMakeupTask,

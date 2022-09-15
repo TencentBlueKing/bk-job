@@ -32,6 +32,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -63,7 +64,7 @@ public class AnalysisTaskScheduler {
 
     @Autowired
     public AnalysisTaskScheduler(MeterRegistry meterRegistry,
-                                 ThreadPoolExecutor analysisScheduleExecutor) {
+                                 @Qualifier("analysisScheduleExecutor") ThreadPoolExecutor analysisScheduleExecutor) {
         this.analysisScheduleExecutor = analysisScheduleExecutor;
         meterRegistry.gauge(
             NAME_ANALYSIS_TASK_SCHEDULE_POOL_SIZE,

@@ -45,6 +45,7 @@ import com.tencent.bk.job.manage.service.ScriptService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -73,7 +74,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                                               NoResourceScopeAuthService noResourceScopeAuthService,
                                               AppAuthService appAuthService,
                                               ScriptService scriptService,
-                                              ThreadPoolExecutor adminAuthExecutor) {
+                                              @Qualifier("adminAuthExecutor") ThreadPoolExecutor adminAuthExecutor) {
         this.globalSettingsService = globalSettingsService;
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;

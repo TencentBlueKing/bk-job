@@ -138,9 +138,9 @@ public class SyncServiceImpl implements SyncService {
                            HostCache hostCache,
                            BizSetEventWatcher bizSetEventWatcher,
                            BizSetRelationEventWatcher bizSetRelationEventWatcher,
-                           ThreadPoolExecutor syncAppExecutor,
-                           ThreadPoolExecutor syncHostExecutor,
-                           ThreadPoolExecutor syncAgentStatusExecutor) {
+                           @Qualifier("syncAppExecutor") ThreadPoolExecutor syncAppExecutor,
+                           @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor,
+                           @Qualifier("syncAgentStatusExecutor") ThreadPoolExecutor syncAgentStatusExecutor) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;

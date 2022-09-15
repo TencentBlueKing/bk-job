@@ -36,6 +36,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -63,7 +64,7 @@ public class LocalFilePrepareService {
                                    AgentService agentService,
                                    TaskInstanceService taskInstanceService,
                                    ArtifactoryClient artifactoryClient,
-                                   ThreadPoolExecutor localFilePrepareExecutor) {
+                                   @Qualifier("localFilePrepareExecutor") ThreadPoolExecutor localFilePrepareExecutor) {
         this.storageSystemConfig = storageSystemConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;

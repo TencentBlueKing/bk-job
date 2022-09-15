@@ -32,6 +32,7 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -51,7 +52,7 @@ public class NotifySendService {
     @Autowired
     public NotifySendService(WatchableSendMsgService watchableSendMsgService,
                              EsbUserInfoDAO esbUserInfoDAO,
-                             ThreadPoolExecutor notifySendExecutor,
+                             @Qualifier("notifySendExecutor") ThreadPoolExecutor notifySendExecutor,
                              MeterRegistry meterRegistry) {
         this.watchableSendMsgService = watchableSendMsgService;
         this.esbUserInfoDAO = esbUserInfoDAO;
