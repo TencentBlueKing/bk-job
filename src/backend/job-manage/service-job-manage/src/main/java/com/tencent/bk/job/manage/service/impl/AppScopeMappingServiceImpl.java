@@ -24,21 +24,18 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.AbstractLocalCacheAppScopeMappingService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Map;
-
 @Slf4j
 @Service
-public class AppScopeMappingServiceImpl implements AppScopeMappingService {
+public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappingService {
 
     private final ApplicationService applicationService;
 
@@ -48,42 +45,22 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
     }
 
     @Override
-    public Long getAppIdByScope(ResourceScope resourceScope) {
-        return applicationService.getAppIdByScope(resourceScope);
-    }
-
-    @Override
-    public Long getAppIdByScope(String scopeType, String scopeId) {
-        return getAppIdByScope(new ResourceScope(scopeType, scopeId));
-    }
-
-    @Override
-    public ResourceScope getScopeByAppId(Long appId) {
-        return applicationService.getScopeByAppId(appId);
-    }
-
-    @Override
-    public AppResourceScope getAppResourceScope(Long appId, String scopeType, String scopeId) {
-        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new AppResourceScope(scopeType, scopeId, getAppIdByScope(scopeType, scopeId));
-        } else {
-            ResourceScope resourceScope = getScopeByAppId(appId);
-            return new AppResourceScope(appId, resourceScope);
+    public Long queryAppByScope(ResourceScope resourceScope) throws NotFoundException {
+        Long appId = applicationService.getAppIdByScope(resourceScope);
+        if (appId == null) {
+            log.error("App not exist, resourceScope: {}", resourceScope);
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
         }
+        return appId;
     }
 
     @Override
-    public AppResourceScope getAppResourceScope(String scopeType, String scopeId) {
-        return new AppResourceScope(scopeType, scopeId, getAppIdByScope(scopeType, scopeId));
-    }
-
-    @Override
-    public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
-        return applicationService.getScopeByAppIds(appIds);
-    }
-
-    @Override
-    public Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList) {
-        return applicationService.getAppIdByScopeList(scopeList);
+    public ResourceScope queryScopeByAppId(Long appId) throws NotFoundException {
+        ResourceScope resourceScope = applicationService.getScopeByAppId(appId);
+        if (resourceScope == null) {
+            log.error("App not exist, appId: {}", appId);
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+        }
+        return resourceScope;
     }
 }
