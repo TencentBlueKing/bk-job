@@ -22,37 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.metrics;
+package com.tencent.bk.job.crontab.config;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Service;
-
-import java.util.Collections;
 
 @Slf4j
-@Service
-public class MeasureServiceImpl {
+@Configuration
+public class ExecutorConfiguration {
 
-    @Autowired
-    public MeasureServiceImpl(MeterRegistry meterRegistry, ThreadPoolTaskExecutor quartzTaskExecutor) {
-        // 同步线程池监控：Agent状态
-        meterRegistry.gauge(
-            CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_POOL_SIZE,
-            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE,
-                CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
-            quartzTaskExecutor,
-            taskExecutor -> taskExecutor.getThreadPoolExecutor().getPoolSize()
-        );
-        meterRegistry.gauge(
-            CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE,
-                CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
-            quartzTaskExecutor,
-            taskExecutor -> taskExecutor.getThreadPoolExecutor().getQueue().size()
-        );
+    @Bean
+    public ThreadPoolTaskExecutor quartzTaskExecutor(QuartzProperties quartzProperties) {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.setCorePoolSize(quartzProperties.getThreadPool().getCorePoolSize());
+        threadPoolTaskExecutor.setMaxPoolSize(quartzProperties.getThreadPool().getMaxPoolSize());
+        threadPoolTaskExecutor.setQueueCapacity(quartzProperties.getThreadPool().getQueueCapacity());
+        threadPoolTaskExecutor.setKeepAliveSeconds(quartzProperties.getThreadPool().getKeepAliveSeconds());
+        threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(
+            quartzProperties.getThreadPool().isWaitForTasksToCompleteOnShutdown());
+        threadPoolTaskExecutor.setAwaitTerminationSeconds(
+            quartzProperties.getThreadPool().getAwaitTerminationSeconds());
+
+        return threadPoolTaskExecutor;
     }
 }
