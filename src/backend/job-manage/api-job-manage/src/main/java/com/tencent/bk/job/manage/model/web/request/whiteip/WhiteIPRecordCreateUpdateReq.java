@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.model.web.request.whiteip;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.HostIdWithMeta;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -50,11 +51,8 @@ public class WhiteIPRecordCreateUpdateReq {
     @ApiModelProperty(value = "IPs(换行分隔)", required = true)
     private String ipStr;
 
-    @ApiModelProperty(value = "IPv4列表", required = true)
-    private List<String> ipList = new ArrayList<>();
-
-    @ApiModelProperty(value = "IPv6列表", required = true)
-    private List<String> ipv6List = new ArrayList<>();
+    @ApiModelProperty(value = "主机列表", required = true)
+    private List<HostIdWithMeta> hostList = new ArrayList<>();
 
     @ApiModelProperty(value = "备注", required = true)
     private String remark;
