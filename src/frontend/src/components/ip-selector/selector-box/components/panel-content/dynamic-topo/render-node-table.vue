@@ -122,6 +122,7 @@
             [Manager.nameStyle('nodeList')]: props.node.child.map(item => ({
                 [Manager.nameStyle('objectId')]: item.object_id,
                 [Manager.nameStyle('instanceId')]: item.instance_id,
+                [Manager.nameStyle('meta')]: item.meta,
             })),
         };
         // 查询节点路径

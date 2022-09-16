@@ -249,6 +249,7 @@
                 {
                     [Manager.nameStyle('objectId')]: selectedTopoNode.object_id,
                     [Manager.nameStyle('instanceId')]: selectedTopoNode.instance_id,
+                    [Manager.nameStyle('meta')]: selectedTopoNode.meta,
                 },
             ],
             [Manager.nameStyle('pageSize')]: pagination.limit,
@@ -275,6 +276,7 @@
                 {
                     [Manager.nameStyle('objectId')]: selectedTopoNode.object_id,
                     [Manager.nameStyle('instanceId')]: selectedTopoNode.instance_id,
+                    [Manager.nameStyle('meta')]: selectedTopoNode.meta,
                 },
             ],
             [Manager.nameStyle('searchContent')]: nodeHostListSearch.value,

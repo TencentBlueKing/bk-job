@@ -31,7 +31,7 @@
     import {
         mergeLocalConfig,
         mergeLocalService,
-} from './manager.js';
+    } from './manager.js';
     import SelectorBox from './selector-box/index.vue';
     import { formatInput } from './utils/index';
     import ViewsBox from './views-box/index.vue';
@@ -44,7 +44,7 @@
     const props = defineProps({
         mode: {
             type: String,
-            default: 'section', // 'dialog' | 'section'
+            default: 'dialog', // 'dialog' | 'section'
         },
         showDialog: {
             type: Boolean,

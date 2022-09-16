@@ -120,7 +120,7 @@
         return '';
     });
 
-    const isDialogMode = computed(() => props.model === 'dialog');
+    const isDialogMode = computed(() => props.mode === 'dialog');
     const rootCom = computed(() => isDialogMode.value ? 'bk-dialog' : 'div');
     const hasRendered = computed(() => isDialogMode.value ? props.isShow : true);
 

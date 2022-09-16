@@ -30,15 +30,10 @@ const typeServeiceMap = {
     ],
 };
 
-const baseConfigNameList = [
-    'panelList',
-    'unqiuePanelValue',
-];
-
 const config = {
     panelList: ['staticTopo', 'manualInput'], // 'staticTopo' | 'dynamicTopo' | 'dynamicGroup' | 'manualInput'
     unqiuePanelValue: false,
-    nameStyle: 'camelCase', // 'camelCase' | 'kebabCase'
+    nameStyle: 'kebabCase', // 'camelCase' | 'kebabCase'
 };
 
 const service = {};
@@ -50,9 +45,9 @@ const getServiceListByPanelList
 ));
 
 export const merge = (options) => {
-    baseConfigNameList.forEach((name) => {
-        if (options[name]) {
-            config[name] = options[name];
+    Object.keys(config).forEach((key) => {
+        if (options[key]) {
+            config[key] = options[key];
         }
     });
 

@@ -69,10 +69,12 @@
     const fetchNodeHostList = () => {
         isLoading.value = true;
         Manager.service.fetchTopologyHostsNodes({
-            [Manager.nameStyle('nodeList')]: [{
-                [Manager.nameStyle('objectId')]: memoNode.object_id,
-                [Manager.nameStyle('instanceId')]: memoNode.instance_id,
-            },
+            [Manager.nameStyle('nodeList')]: [
+                {
+                    [Manager.nameStyle('objectId')]: memoNode.object_id,
+                    [Manager.nameStyle('instanceId')]: memoNode.instance_id,
+                    [Manager.nameStyle('meta')]: memoNode.meta,
+                },
             ],
             [Manager.nameStyle('pageSize')]: pagination.limit,
             [Manager.nameStyle('start')]: (pagination.current - 1) * pagination.limit,

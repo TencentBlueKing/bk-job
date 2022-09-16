@@ -67,6 +67,7 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 const IpSelector = createIpSelector({
     panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
     unqiuePanelValue: false,
+    nameStyle: 'camelCase',
     fetchTopologyHostCount: HostManageService.fetchTopologyWithCount,
     fetchTopologyHostsNodes: HostManageService.fetchTopologyHost,
     fetchTopologyHostIdsNodes: HostManageService.fetchTopogyHostIdList,

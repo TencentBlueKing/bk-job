@@ -2,10 +2,10 @@ import Manager from '../manager';
 import { transformTopoTree } from '../utils';
 
 export default () => {
-    const lazyDisabledCallbak = node => !node.data.lazy && node.data.children.length < 1;
+    const lazyDisabledCallbak = node => !node.data.payload.lazy && node.data.children.length < 1;
 
     const lazyMethodCallback = (node) => {
-        if (node.data.lazy) {
+        if (node.data.payload.lazy) {
             const nodeInfoData = node.data.payload;
             return Manager.service.fetchTopologyHostCount({
                 [Manager.nameStyle('objectId')]: nodeInfoData.object_id,
