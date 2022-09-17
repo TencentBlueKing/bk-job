@@ -4,6 +4,7 @@
         style="margin-left: 4px; font-size: 20px;">
         <ip-selector-icon
             style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;"
+            svg
             :type="iconType" />
     </span>
 </template>
