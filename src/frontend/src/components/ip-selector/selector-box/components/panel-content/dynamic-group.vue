@@ -15,10 +15,13 @@
                         v-for="item in dynamicGroupList"
                         :key="item.id"
                         class="dynamic-group-item"
-                        :class="{ active: selectGroupId === item.id }"
+                        :class="{
+                            active: selectGroupId === item.id
+                        }"
                         @click="handleGroupSelect(item)">
                         <div @click.stop="">
                             <bk-checkbox
+                                :checked="Boolean(dynamicGroupCheckedMap[item.id])"
                                 :value="item.id"
                                 @change="value => handleGroupCheck(item, value)" />
                         </div>
@@ -28,9 +31,9 @@
                         <a
                             v-bk-tooltips="'跳转 CMDB 查看详情'"
                             class="dynamic-group-detail-link"
-                            :href="config.bk_cmdb_dynamic_group_url"
+                            :href="`${config.bk_cmdb_dynamic_group_url}?page=1&filter=${item.name}`"
                             target="_blank">
-                            <i class="bk-ipselector-icon bk-ipselector-jump-link" />
+                            <ip-selector-icon type="jump-link" />
                         </a>
                         <div
                             v-if="checkLastStatus(item)"
@@ -41,9 +44,9 @@
                             <div
                                 v-if="isDynamicGroupHostCountLoading"
                                 class="bk-ip-selector-rotate-loading">
-                                <svg style="width: 1em; height: 1em; vertical-align: middle; fill: currentcolor;">
-                                    <use xlink:href="#bk-ipselector-loading" />
-                                </svg>
+                                <ip-selector-icon
+                                    svg
+                                    type="loading" />
                             </div>
                             <span v-else>
                                 {{ dynamicGroupHostCountMap[item.id] }}
@@ -91,6 +94,7 @@
         watch,
     } from 'vue';
 
+    import IpSelectorIcon from '../../../common/ip-selector-icon';
     import RenderHostTable from '../../../common/render-table/host/index.vue';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import useFetchConfig from '../../../hooks/use-fetch-config';
@@ -132,13 +136,13 @@
     const hostTableData = shallowRef([]);
     const dynamicGroupHostCountMap = shallowRef({});
     
-    const groupCheckedMap = shallowRef({});
+    const dynamicGroupCheckedMap = shallowRef({});
 
     const selectGroupId = ref();
 
     // 同步外部值
     watch(() => props.lastDynamicGroupList, (lastDynamicGroupList) => {
-        groupCheckedMap.value = lastDynamicGroupList.reduce((result, dynamicGroupItem) => {
+        dynamicGroupCheckedMap.value = lastDynamicGroupList.reduce((result, dynamicGroupItem) => {
             result[dynamicGroupItem.id] = dynamicGroupItem;
             return result;
         }, {});
@@ -207,16 +211,16 @@
 
     // 选中分组
     const handleGroupCheck = (groupData, checked) => {
-        const checkedMap = { ...groupCheckedMap.value };
+        const checkedMap = { ...dynamicGroupCheckedMap.value };
         if (checked) {
             checkedMap[groupData.id] = groupData;
         } else {
             delete checkedMap[groupData.id];
         }
 
-        groupCheckedMap.value = checkedMap;
+        dynamicGroupCheckedMap.value = checkedMap;
 
-        emits('change', 'dynamicGroupList', Object.values(groupCheckedMap.value));
+        emits('change', 'dynamicGroupList', Object.values(dynamicGroupCheckedMap.value));
     };
 
     // 分页

@@ -29,26 +29,21 @@
                             </div>
                             <template v-if="nodeItem.level === 0">
                                 <div
-                                    v-bk-tooltips="'隐藏没有主机的节点'"
+                                    v-bk-tooltips="`${isHidedEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点'}`"
                                     class="topo-node-filter"
                                     :style="{
-                                        display: isShowEmptyNode ? 'block' : 'none',
+                                        display: isHidedEmptyNode ? 'block' : 'none',
                                     }"
                                     @click.stop="handleToggleFilterWithCount">
-                                    <i
-                                        class="bk-ipselector-icon"
-                                        :class="{
-                                            'bk-ipselector-invisible1': isShowEmptyNode,
-                                            'bk-ipselector-visible1': !isShowEmptyNode,
-                                        }" />
+                                    <ip-selector-icon :type="`${isHidedEmptyNode ? 'invisible1' : 'visible1'}`" />
                                 </div>
                             </template>
                             <div
                                 v-if="!nodeItem.isLeaf"
-                                v-bk-tooltips="'展开所有节点'"
+                                v-bk-tooltips="`${nodeItem.expanded ? '收起所有节点' : '展开所有节点'}`"
                                 class="topo-node-expand"
                                 @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
-                                <i class="bk-ipselector-icon bk-ipselector-shangxiachengkai" />
+                                <ip-selector-icon :type="`${nodeItem.expanded ? 'shangxiachengkai-2' : 'shangxiachengkai'}`" />
                             </div>
                             <div class="topo-node-count">
                                 {{ data.payload.count }}
@@ -115,6 +110,7 @@
         watch,
     } from 'vue';
 
+    import IpSelectorIcon from '../../../../common/ip-selector-icon';
     import useDebounceRef from '../../../../hooks/use-debounced-ref';
     import useFetchConfig from '../../../../hooks/use-fetch-config';
     import useTreeExpanded from '../../../../hooks/use-tree-expanded';
@@ -164,7 +160,7 @@
     const {
         filterKey,
         filterMethod,
-        filterWithCount: isShowEmptyNode,
+        filterWithCount: isHidedEmptyNode,
         toggleFilterWithCount: handleToggleFilterWithCount,
     } = useTreeFilter(treeRef);
 
@@ -177,11 +173,6 @@
         config,
     } = useFetchConfig();
 
-    const {
-        lazyDisabledCallbak,
-        lazyMethodCallback,
-    } = useTreeLazy();
-
     // 同步拓扑树节点的选中状态
     const syncTopoTreeNodeCheckStatus = () => {
         treeRef.value.removeChecked({
@@ -192,6 +183,13 @@
             checked: true,
         });
     };
+
+    const {
+        lazyDisabledCallbak,
+        lazyMethodCallback,
+    } = useTreeLazy(() => {
+        syncTopoTreeNodeCheckStatus();
+    });
 
     // 同步拓扑树数据
     watch(() => props.topoTreeData, () => {

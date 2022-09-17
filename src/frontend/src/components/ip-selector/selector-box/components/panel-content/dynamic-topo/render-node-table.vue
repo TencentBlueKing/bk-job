@@ -6,7 +6,7 @@
                 placeholder="请输入节点名称搜索"
                 style="margin: 12px 0;" />
             <render-node-table
-                :agent-static="agentStaticMap"
+                :agent-static="nodeAgentStaticMap"
                 :data="renderTableData"
                 :height="renderTableHeight"
                 @row-click="handleRowClick">
@@ -75,7 +75,7 @@
     const pageCheckValue = ref('');
 
     const tableData = shallowRef([]);
-    const agentStaticMap = shallowRef({});
+    const nodeAgentStaticMap = shallowRef({});
 
     const tableOffetTop = 155;
     const {
@@ -118,39 +118,53 @@
     // 获取分组路径、agent状态
     const fetchData = () => {
         isLoading.value = true;
-        const params = {
-            [Manager.nameStyle('nodeList')]: props.node.child.map(item => ({
-                [Manager.nameStyle('objectId')]: item.object_id,
-                [Manager.nameStyle('instanceId')]: item.instance_id,
-                [Manager.nameStyle('meta')]: item.meta,
-            })),
-        };
-        // 查询节点路径
-        Manager.service.fetchNodesQueryPath(params)
-            .then((data) => {
-                tableData.value = data.reduce((result, nodeStack) => {
-                    const namePath = nodeStack.map(nodeData => nodeData.instance_name).join('/');
-                    const tailNode = _.last(nodeStack);
-                    result.push({
-                        key: genNodeKey(tailNode),
-                        node: tailNode,
-                        namePath,
+        Promise.resolve()
+            .then(() => {
+                // 懒加载节点需异步获取子节点
+                if (props.node.lazy) {
+                    return Manager.service.fetchTopologyHostCount({
+                        [Manager.nameStyle('objectId')]: props.node.object_id,
+                        [Manager.nameStyle('instanceId')]: props.node.instance_id,
+                        [Manager.nameStyle('meta')]: props.node.meta,
                     });
-                    return result;
-                }, []);
-
-                syncPageCheckValue();
+                }
+                return props.node.child;
             })
-            .finally(() => {
-                isLoading.value = false;
-            });
-        // 查询节点的 agent 状态
-        Manager.service.fetchHostAgentStatisticsNodes(params)
-            .then((data) => {
-                agentStaticMap.value = data.reduce((result, item) => {
-                    result[genNodeKey(item.node)] = item.agent_statistics;
-                    return result;
-                }, {});
+            .then((children) => {
+                const params = {
+                    [Manager.nameStyle('nodeList')]: children.map(item => ({
+                        [Manager.nameStyle('objectId')]: item.object_id,
+                        [Manager.nameStyle('instanceId')]: item.instance_id,
+                        [Manager.nameStyle('meta')]: item.meta,
+                    })),
+                };
+                // 查询节点路径
+                Manager.service.fetchNodesQueryPath(params)
+                    .then((data) => {
+                        tableData.value = data.reduce((result, nodeStack) => {
+                            const namePath = nodeStack.map(nodeData => nodeData.instance_name).join('/');
+                            const tailNode = _.last(nodeStack);
+                            result.push({
+                                key: genNodeKey(tailNode),
+                                node: tailNode,
+                                namePath,
+                            });
+                            return result;
+                        }, []);
+
+                        syncPageCheckValue();
+                    })
+                    .finally(() => {
+                        isLoading.value = false;
+                    });
+                // 查询节点的 agent 状态
+                Manager.service.fetchHostAgentStatisticsNodes(params)
+                    .then((data) => {
+                        nodeAgentStaticMap.value = data.reduce((result, item) => {
+                            result[genNodeKey(item.node)] = item.agent_statistics;
+                            return result;
+                        }, {});
+                    });
             });
     };
 
