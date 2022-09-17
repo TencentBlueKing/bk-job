@@ -2,27 +2,27 @@
     <span
         v-if="value"
         style="margin-left: 4px; font-size: 20px;">
-        <svg style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;">
-            <use
-                v-if="value === 'new'"
-                xlink:href="#bk-ipselector-xinzeng" />
-            <use
-                v-if="value === 'remove'"
-                xlink:href="#bk-ipselector-shanchu" />
-            <use
-                v-if="value === 'invalid'"
-                xlink:href="#bk-ipselector-shixiao" />
-            <use
-                v-if="value === 'repeat'"
-                xlink:href="#bk-ipselector-miaobianqianhuangse" />
-        </svg>
+        <ip-selector-icon
+            style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;"
+            :type="iconType" />
     </span>
 </template>
 <script setup>
-    defineProps({
+    import { computed } from 'vue';
+
+    import IpSelectorIcon from './ip-selector-icon';
+
+    const props = defineProps({
         value: {
             type: String,
         },
     });
 
+    const iconMap = {
+        new: 'xinzeng',
+        remove: 'shanchu',
+        invalid: 'shixiao',
+        repeat: 'miaobianqianhuangse',
+    };
+    const iconType = computed(() => iconMap[props.value]);
 </script>

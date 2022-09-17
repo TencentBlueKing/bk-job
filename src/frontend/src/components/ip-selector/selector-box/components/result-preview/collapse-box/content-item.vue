@@ -12,19 +12,20 @@
                 v-bk-tooltips="'复制'"
                 class="item-btn"
                 @click="handleCopy">
-                <i class="bk-ipselector-icon bk-ipselector-copy" />
+                <ip-selector-icon type="copy" />
             </div>
             <div
                 v-if="removable"
                 v-bk-tooltips="'删除'"
                 class="item-btn"
                 @click="handleRemove">
-                <i class="bk-ipselector-icon bk-ipselector-close-line-2" />
+                <ip-selector-icon type="close-line-2" />
             </div>
         </div>
     </div>
 </template>
 <script setup>
+    import IpSelectorIcon from '../../../../common/ip-selector-icon';
     import { execCopy } from '../../../../utils';
 
     const props = defineProps({

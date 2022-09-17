@@ -52,7 +52,7 @@
                                     :sort-list="columnKeySortList"
                                     @change="handleSettingChange">
                                     <div class="table-column-setting-btn">
-                                        <i class="bk-ipselector-icon bk-ipselector-set-fill" />
+                                        <ip-selector-icon type="set-fill" />
                                     </div>
                                 </column-setting>
                             </th>
@@ -151,6 +151,7 @@
         useSlots,
     } from 'vue';
 
+    import IpSelectorIcon from '../../../common/ip-selector-icon';
     import useHostRenderKey from '../../../hooks/use-host-render-key';
     import Manager from '../../../manager';
     import {

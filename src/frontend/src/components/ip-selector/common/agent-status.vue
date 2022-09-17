@@ -1,24 +1,29 @@
 <template>
     <div class="ip-selector-agent-status">
-        <span v-html="statusIcon" />
+        <ip-selector-icon
+            style="margin-right: 4px;"
+            svg
+            :type="statusIconType" />
         {{ statusText }}
     </div>
 </template>
 <script setup>
     import { computed } from 'vue';
+
+    import IpSelectorIcon from './ip-selector-icon';
     const props = defineProps({
         data: {
             type: Number,
         },
     });
 
-    const statusIcon = computed(() => {
+    const statusIconType = computed(() => {
         if (props.data === 1) {
-            return '<svg style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;"><use xlink:href="#bk-ipselector-normal" /></svg>';
+            return 'normal';
         } else if (props.data === 0) {
-            return '<svg style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;"><use xlink:href="#bk-ipselector-abnormal" /></svg>';
+            return 'abnormal';
         }
-        return '<svg style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;"><use xlink:href="#bk-ipselector-unknown" /></svg>';
+        return 'unknown';
     });
 
     const statusText = computed(() => {

@@ -1,13 +1,13 @@
 <template>
     <div class="ip-selector-extend-action">
-        <i class="bk-ipselector-icon bk-ipselector-more" />
+        <ip-selector-icon type="more" />
         <div class="action-menu">
             <slot />
         </div>
     </div>
 </template>
 <script setup>
-  
+  import IpSelectorIcon from './ip-selector-icon';
 </script>
 <style lang="postcss">
     .ip-selector-extend-action {

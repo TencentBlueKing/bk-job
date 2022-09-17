@@ -3,9 +3,10 @@
         <div
             class="collspan-header"
             @click="handleToggle">
-            <i
-                class="bk-ipselector-icon bk-ipselector-jiantou arrow-flag"
-                :class="{ 'is-show': isShow }" />
+            <ip-selector-icon
+                class="arrow-flag"
+                :class="{ 'is-show': isShow }"
+                type="jiantou" />
             <div class="header-title">
                 <slot name="title" />
             </div>
@@ -28,6 +29,8 @@
         ref,
         useSlots,
     } from 'vue';
+
+    import IpSelectorIcon from '../../../../common/ip-selector-icon';
 
     const slots = useSlots();
 

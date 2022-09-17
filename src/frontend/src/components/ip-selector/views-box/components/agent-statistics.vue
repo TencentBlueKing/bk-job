@@ -2,9 +2,10 @@
     <div class="ip-selector-agent-statistics">
         <template v-if="loading">
             <div class="bk-ip-selector-rotate-loading">
-                <svg style="width: 1em; height: 1em; vertical-align: middle; fill: currentcolor;">
-                    <use xlink:href="#bk-ipselector-loading" />
-                </svg>
+                <ip-selector-icon
+                    style="width: 1em; height: 1em; vertical-align: middle; fill: currentcolor;"
+                    svg
+                    type="loading" />
             </div>
         </template>
         <template v-else>
@@ -30,6 +31,8 @@
     </div>
 </template>
 <script setup>
+    import IpSelectorIcon from '../../common/ip-selector-icon';
+
     defineProps({
         data: {
             type: Object,

@@ -3,9 +3,10 @@
         <div
             class="box-header"
             @click="handleToggle">
-            <i
-                class="bk-ipselector-icon bk-ipselector-close arrow-flag"
-                :class="{ 'is-show': isShow }" />
+            <ip-selector-icon
+                class="arrow-flag"
+                :class="{ 'is-show': isShow }"
+                type="close" />
             <slot name="title" />
         </div>
         <div
@@ -20,6 +21,8 @@
 </template>
 <script setup>
   import { ref } from 'vue';
+
+  import IpSelectorIcon from '../../../common/ip-selector-icon';
 
   const isShow = ref(true);
 

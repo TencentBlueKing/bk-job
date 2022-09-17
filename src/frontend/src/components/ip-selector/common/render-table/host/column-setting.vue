@@ -49,7 +49,7 @@
                             </bk-checkbox>
                         </template>
                         <div class="column-item-drag">
-                            <i class="bk-ipselector-icon bk-ipselector-ketuodong" />
+                            <ip-selector-icon type="ketuodong" />
                         </div>
                     </div>
                 </vuedraggable>
@@ -76,6 +76,8 @@
         shallowRef,
     } from 'vue';
     import vuedraggable from 'vuedraggable';
+
+    import IpSelectorIcon from '../../ip-selector-icon';
 
     import columnConfig from './column-config';
 

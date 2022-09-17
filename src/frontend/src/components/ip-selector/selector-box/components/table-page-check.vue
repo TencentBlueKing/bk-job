@@ -10,11 +10,12 @@
             v-else
             :checked="value === 'page'"
             @change="handlePageChange" />
-        <i
+        <span
             ref="handlerRef"
-            class="menu-flag bk-ipselector-icon bk-ipselector-jiantou"
             :disabled="disabled"
-            style="font-size: 18px;" />
+            style="font-size: 18px;">
+            <ip-selector-icon type="jiantou" />
+        </span>
         <div
             ref="popRef"
             class="pagination-check-menu">
@@ -39,6 +40,8 @@
         onMounted,
         ref,
     } from 'vue';
+
+    import IpSelectorIcon from '../../common/ip-selector-icon';
 
     const props = defineProps({
         value: {

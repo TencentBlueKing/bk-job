@@ -23,7 +23,7 @@
                             v-bk-tooltips="'标识错误'"
                             class="parse-error-btn"
                             @click="handleHighlightError">
-                            <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
+                            <ip-selector-icon type="ip-audit" />
                         </span>
                     </span>
                     <span v-if="invalidInputStack.length > 0">
@@ -36,7 +36,7 @@
                             v-bk-tooltips="'标识错误'"
                             class="parse-error-btn"
                             @click="handleHighlightInvalid">
-                            <i class="bk-ipselector-icon bk-ipselector-ip-audit" />
+                            <ip-selector-icon type="ip-audit" />
                         </span>
                     </span>
                 </div>
@@ -82,7 +82,7 @@
                         <template
                             v-if="hostTableData.length < 1"
                             #empty>
-                            <i class="bk-ipselector-icon bk-ipselector-info-circle" />
+                            <ip-selector-icon type="info-circle" />
                             请先从右侧输入主机并解析
                         </template>
                     </render-host-table>
@@ -114,6 +114,7 @@
         watch,
     } from 'vue';
 
+    import IpSelectorIcon from '../../../common/ip-selector-icon';
     import RenderHostTable from '../../../common/render-table/host/index.vue';
     import useDebounceRef from '../../../hooks/use-debounced-ref';
     import useDialogSize from '../../../hooks/use-dialog-size';

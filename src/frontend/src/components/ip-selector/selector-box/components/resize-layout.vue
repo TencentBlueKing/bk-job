@@ -26,12 +26,13 @@
                 }"
                 @click="handleToggleLeftExpanded">
                 <span>
-                    <i class="bk-ipselector-icon bk-ipselector-close-line" />
+                    <ip-selector-icon type="close-line" />
                 </span>
             </div>
-            <i
+            <ip-selector-icon
                 v-if="isLeftExpanded"
-                class="move-dot bk-ipselector-icon bk-ipselector-more" />
+                class="move-dot"
+                type="more" />
         </div>
         <div
             v-if="flexDirection === 'right'"
@@ -45,12 +46,13 @@
                 }"
                 @click="handleToggleRightExpanded">
                 <span>
-                    <i class="bk-ipselector-icon bk-ipselector-close-line" />
+                    <ip-selector-icon type="close-line" />
                 </span>
             </div>
-            <i
+            <ip-selector-icon
                 v-if="isRightExpanded"
-                class="move-dot bk-ipselector-icon bk-ipselector-more" />
+                class="move-dot"
+                type="more" />
         </div>
     </div>
 </template>
@@ -62,6 +64,8 @@
         onMounted,
         ref,
     } from 'vue';
+
+    import IpSelectorIcon from '../../common/ip-selector-icon';
     
     const props = defineProps({
         flexDirection: {

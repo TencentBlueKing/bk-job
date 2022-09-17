@@ -22,7 +22,7 @@
             <div
                 v-bk-tooltips="'清空'"
                 @click="handlRemoveAll">
-                <i class="bk-ipselector-icon bk-ipselector-delete" />
+                <ip-selector-icon type="delete" />
             </div>
         </template>
         <div v-bkloading="{ isLoading }">
@@ -48,6 +48,7 @@
     } from 'vue';
 
     import DiffTag from '../../../common/diff-tag.vue';
+    import IpSelectorIcon from '../../../common/ip-selector-icon';
     import useIpSelector from '../../../hooks/use-ip-selector';
     import Manager from '../../../manager';
     import {

@@ -4,7 +4,7 @@
         :class="{
             active: value !== undefined,
         }">
-        <i class="bk-ipselector-icon bk-ipselector-select" />
+        <ip-selector-icon type="select" />
         <div class="filter-menu">
             <div
                 v-for="item in data"
@@ -20,6 +20,8 @@
     </div>
 </template>
 <script setup>
+    import IpSelectorIcon from '../../ip-selector-icon';
+
     defineProps({
         data: {
             type: Array,

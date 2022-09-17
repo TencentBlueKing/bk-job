@@ -7,12 +7,14 @@
         }"
         @click="handleClick">
         <div class="drag-btn">
-            <i class="bk-ipselector-icon bk-ipselector-ketuodong" />
+            <ip-selector-icon type="ketuodong" />
         </div>
         <slot />
     </div>
 </template>
 <script setup>
+    import IpSelectorIcon from '../../../common/ip-selector-icon';
+
     const props = defineProps({
         active: {
             type: Boolean,
