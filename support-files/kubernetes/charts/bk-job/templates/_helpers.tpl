@@ -206,6 +206,20 @@ Return the MariaDB secret name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return the JDBC MySQL Driver Class
+*/}}
+{{- define "job.jdbcMysqlDriverClass" -}}
+{{- printf "io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver" -}}
+{{- end -}}
+
+{{/*
+Return the JDBC MySQL scheme
+*/}}
+{{- define "job.jdbcMysqlScheme" -}}
+{{- printf "jdbc:otel:mysql" -}}
+{{- end -}}
+
 
 {{/*
 Fully qualified app name for Redis

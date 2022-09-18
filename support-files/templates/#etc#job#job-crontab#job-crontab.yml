@@ -3,9 +3,9 @@ spring:
     name: job-crontab
   datasource:
     job-crontab:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
       type: com.zaxxer.hikari.HikariDataSource
-      jdbc-url: jdbc:mysql://__BK_JOB_CRONTAB_MYSQL_HOST__:__BK_JOB_CRONTAB_MYSQL_PORT__/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_CRONTAB_MYSQL_HOST__:__BK_JOB_CRONTAB_MYSQL_PORT__/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       username: __BK_JOB_CRONTAB_MYSQL_USERNAME__
       password: __BK_JOB_CRONTAB_MYSQL_PASSWORD__
       maximum-pool-size: 20
@@ -86,7 +86,7 @@ ribbon:
 job:
   crontab:
     db:
-      url: jdbc:mysql://__BK_JOB_CRONTAB_MYSQL_HOST__:__BK_JOB_CRONTAB_MYSQL_PORT__/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      url: jdbc:otel:mysql://__BK_JOB_CRONTAB_MYSQL_HOST__:__BK_JOB_CRONTAB_MYSQL_PORT__/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       username: __BK_JOB_CRONTAB_MYSQL_USERNAME__
       password: __BK_JOB_CRONTAB_MYSQL_PASSWORD__
 
