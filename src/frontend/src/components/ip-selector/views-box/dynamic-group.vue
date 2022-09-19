@@ -51,7 +51,7 @@
                     </td>
                     <td
                         v-if="!context.readonly"
-                        style="width: 100px;">
+                        style="width: 60px;">
                         <bk-button
                             v-if="diffMap[row.id] !== 'remove'"
                             text

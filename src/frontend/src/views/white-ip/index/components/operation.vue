@@ -49,38 +49,20 @@
                 </div>
             </jb-form-item>
             <jb-form-item
-                :label="$t('whiteIP.云区域')"
+                :label="$t('whiteIP.主机')"
                 property="cloudAreaId"
                 required>
                 <bk-button @click="handleShowIpSelector">
-                    选择主机
+                    {{ $t('whiteIP.选择主机') }}
                 </bk-button>
-            </jb-form-item>
-            <jb-form-item
-                :label="$t('whiteIP.云区域')"
-                property="cloudAreaId"
-                required>
-                <bk-select
-                    v-model="formData.cloudAreaId"
-                    class="input"
-                    :clearable="false"
-                    searchable>
-                    <bk-option
-                        v-for="option in cloudAreaList"
-                        :id="option.id"
-                        :key="option.id"
-                        :name="option.name" />
-                </bk-select>
-            </jb-form-item>
-            <jb-form-item
-                label="IP"
-                property="ipStr"
-                required>
-                <bk-input
-                    v-model="formData.ipStr"
-                    class="input"
-                    :placeholder="$t('whiteIP.输入IP，以“回车”分隔')"
-                    type="textarea" />
+                <ip-selector
+                    :config="ipSelectorConfig"
+                    model="dialog"
+                    :show-dialog="isShowIpSelector"
+                    show-view
+                    :value="ipSelectorValue"
+                    @change="handleIpSelectorChange"
+                    @close-dialog="handleColseIpSelector" />
             </jb-form-item>
             <jb-form-item
                 :label="$t('whiteIP.备注')"
@@ -88,7 +70,6 @@
                 required>
                 <bk-input
                     v-model="formData.remark"
-                    class="input"
                     :maxlength="100"
                     type="textarea" />
             </jb-form-item>
@@ -110,10 +91,6 @@
                 </bk-checkbox-group>
             </jb-form-item>
         </jb-form>
-        <ip-selector
-            model="dialog"
-            :show-dialog="isShowIpSelector"
-            @close-dialog="handleColseIpSelector" />
     </div>
 </template>
 <script>
@@ -124,13 +101,11 @@
 
     const getDefaultData = () => ({
         id: 0,
+        hostList: [],
         // 生效范围
         actionScopeIdList: [],
         // 业务ID
         scopeList: [],
-        // 云区域ID
-        cloudAreaId: '',
-        ipStr: '',
         // 备注
         remark: '',
     });
@@ -149,9 +124,9 @@
             return {
                 isLoading: true,
                 formData: getDefaultData(),
+                ipSelectorValue: {},
                 scopeLocalKeyList: [],
                 appList: [],
-                cloudAreaList: [],
                 actionScope: [],
                 isShowIpSelector: false,
             };
@@ -165,7 +140,6 @@
                     const {
                         id,
                         actionScopeList,
-                        cloudAreaId,
                         appList,
                         remark,
                         hostList,
@@ -174,13 +148,15 @@
                         ...this.formData,
                         id,
                         actionScopeIdList: actionScopeList.map(item => item.id),
-                        cloudAreaId,
                         scopeList: appList.map(item => ({
                             type: item.scopeType,
                             id: item.scopeId,
                         })),
                         remark,
-                        ipStr: hostList.map(({ ip }) => ip).join('\n'),
+                        hostList,
+                    };
+                    this.ipSelectorValue = {
+                        hostList,
                     };
                 },
                 immediate: true,
@@ -189,11 +165,13 @@
         created () {
             Promise.all([
                 this.fetchAppList(),
-                this.fetchAllCloudArea(),
                 this.fetchActionScope(),
             ]).finally(() => {
                 this.isLoading = false;
             });
+            this.ipSelectorConfig = {
+                panelList: ['staticTopo', 'manualInput'],
+            };
             this.rules = {
                 ipStr: [
                     {
@@ -246,18 +224,6 @@
                     });
             },
             /**
-             * @desc 获取云区域列表
-             */
-            fetchAllCloudArea () {
-                return WhiteIpService.getAllCloudArea()
-                    .then((data) => {
-                        this.cloudAreaList = data;
-                        if (this.formData.cloudAreaId === '') {
-                            this.formData.cloudAreaId = this.cloudAreaList[0].id;
-                        }
-                    });
-            },
-            /**
              * @desc 获取生效范围列表
              */
             fetchActionScope () {
@@ -266,11 +232,15 @@
                         this.actionScope = data;
                     });
             },
+            
             handleShowIpSelector () {
                 this.isShowIpSelector = true;
             },
             handleColseIpSelector () {
                 this.isShowIpSelector = false;
+            },
+            handleIpSelectorChange (data) {
+                this.formData.hostList = data.hostList;
             },
             handleRangeChange (value) {
                 if (value.length > 0) {
@@ -318,10 +288,6 @@
         .whole-business {
             margin-left: 10px;
         }
-    }
-
-    .input {
-        width: 495px;
     }
 
     .scope-checkbox {

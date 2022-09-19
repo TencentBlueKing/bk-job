@@ -57,23 +57,7 @@
                 align="left"
                 label="IP">
                 <template slot-scope="{ row }">
-                    <template v-if="row.hostList.length > 1">
-                        <bk-popover
-                            placement="right"
-                            theme="light">
-                            <span>{{ row.ip }}</span>
-                            <div slot="content">
-                                <p
-                                    v-for="(item, index) in row.hostList"
-                                    :key="index">
-                                    {{ item.ip }}
-                                </p>
-                            </div>
-                        </bk-popover>
-                    </template>
-                    <template v-else>
-                        <span>{{ row.ip }}</span>
-                    </template>
+                    <span>{{ row.ip }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
@@ -155,7 +139,7 @@
         <jb-sideslider
             :is-show.sync="isShowCreateWhiteIp"
             v-bind="operationSidesliderInfo"
-            :width="552">
+            :width="852">
             <operation
                 ref="whiteIp"
                 :data="editInfo"

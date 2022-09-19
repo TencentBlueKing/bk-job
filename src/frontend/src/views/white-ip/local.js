@@ -57,5 +57,7 @@ export default {
         操作: 'ACTIONS',
         删除: 'Delete',
         保存: 'Save',
+        选择主机: 'Select Hosts',
+        主机: 'Host',
     },
 };

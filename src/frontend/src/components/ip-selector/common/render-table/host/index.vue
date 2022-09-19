@@ -43,7 +43,7 @@
                             </template>
                             <th
                                 v-if="slots.action"
-                                style="width: 100px;" />
+                                style="width: 60px;" />
                             <th
                                 v-if="showSetting"
                                 style="width: 40px;">

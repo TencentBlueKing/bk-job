@@ -44,9 +44,6 @@ export default class WhiteIp extends Model {
     }
 
     get ip () {
-        if (this.hostList.length < 2) {
-            return this.hostList[0].ip;
-        }
         return `${I18n.t('共')}${this.hostList.length}${I18n.t('个')}`;
     }
 
