@@ -8,8 +8,6 @@
             .topo-node-filter,
             .topo-node-expand{
                 display: block !important;
-                width: auto !important;
-                height: auto !important;
             }
         }
     }
@@ -20,9 +18,7 @@
 
     .topo-node-filter,
     .topo-node-expand {
-        width: 0;
-        height: 0;
-        overflow: hidden;
+        display: none;
         padding: 0 3px;
         color: #979ba5;
 
