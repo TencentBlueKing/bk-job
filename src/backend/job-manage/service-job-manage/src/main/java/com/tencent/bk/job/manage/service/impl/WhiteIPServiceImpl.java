@@ -284,12 +284,6 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 ArrayUtil.toArray("scopeList", "scopeList cannot be null or empty"));
         }
-        Long cloudAreaId = createUpdateReq.getCloudAreaId();
-        if (null == cloudAreaId) {
-            log.warn("cloudAreaId cannot be null");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                ArrayUtil.toArray("cloudAreaId", "cloudAreaId cannot be null"));
-        }
         String remark = createUpdateReq.getRemark();
         if (null != remark && remark.length() > 100) {
             log.warn("remark cannot be null and length cannot be over 100");
@@ -310,7 +304,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         return new ArrayList<>(finalIpv4Set);
     }
 
-    private List<String> checkAndGetIpv4List(String paramName, List<String> ipv4List) {
+    private List<String> checkAndGetIpv4List(@SuppressWarnings("SameParameterValue") String paramName,
+                                             List<String> ipv4List) {
         //过滤空值
         ipv4List =
             ipv4List.stream().filter(ip -> !ip.trim().isEmpty()).collect(Collectors.toList());
@@ -323,22 +318,6 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             }
         });
         return ipv4List;
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private List<String> checkAndGetIpv6List(String paramName, List<String> ipv6List) {
-        //过滤空值
-        ipv6List =
-            ipv6List.stream().filter(ipv6 -> !ipv6.trim().isEmpty()).collect(Collectors.toList());
-        ipv6List.forEach(ipv6 -> {
-            if (!IpUtils.checkIpv6(ipv6.trim())) {
-                String msg = "contains invalid ipv6 format";
-                log.warn(msg);
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    ArrayUtil.toArray(paramName, msg));
-            }
-        });
-        return ipv6List;
     }
 
     private List<WhiteIPIPDTO> buildIpDtoList(Long cloudAreaId,
@@ -366,9 +345,11 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         List<String> notInDbCloudIpList = cloudIpList.stream()
             .filter(cloudIp -> !hostMap.containsKey(cloudIp))
             .collect(Collectors.toList());
-        List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByCloudIps(notInDbCloudIpList);
-        if (CollectionUtils.isNotEmpty(cmdbHostList)) {
-            cmdbHostList.forEach(hostDTO -> hostMap.put(hostDTO.getCloudIp(), hostDTO));
+        if (CollectionUtils.isNotEmpty(notInDbCloudIpList)) {
+            List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByCloudIps(notInDbCloudIpList);
+            if (CollectionUtils.isNotEmpty(cmdbHostList)) {
+                cmdbHostList.forEach(hostDTO -> hostMap.put(hostDTO.getCloudIp(), hostDTO));
+            }
         }
 
         // CMDB中也查不到的IP需要记录
@@ -407,9 +388,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         List<Long> hostIdList = hostList.stream().map(HostIdWithMeta::getHostId).collect(Collectors.toList());
         List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostInfoByHostIds(hostIdList);
         Map<Long, ApplicationHostDTO> hostMap = new HashMap<>();
-        hostDTOList.forEach(hostDTO -> {
-            hostMap.put(hostDTO.getHostId(), hostDTO);
-        });
+        hostDTOList.forEach(hostDTO -> hostMap.put(hostDTO.getHostId(), hostDTO));
 
         // 本地DB不存在的HostId从CMDB查询hostId
         List<Long> notInDbHostIdList = hostIdList.stream()

@@ -589,6 +589,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                      String scopeId,
                                                      HostDetailReq req) {
         Collection<Long> hostIds = req.getHostList().parallelStream()
+            .filter(hostIdWithMeta -> hostIdWithMeta.getHostId() != null)
             .map(HostIdWithMeta::getHostId)
             .collect(Collectors.toList());
         List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(appResourceScope, hostIds);

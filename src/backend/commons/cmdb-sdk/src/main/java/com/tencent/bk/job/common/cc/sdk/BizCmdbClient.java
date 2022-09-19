@@ -994,6 +994,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps) {
+        if (CollectionUtils.isEmpty(cloudIps)) {
+            return Collections.emptyList();
+        }
         ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");
@@ -1018,6 +1021,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s) {
+        if (CollectionUtils.isEmpty(cloudIpv6s)) {
+            return Collections.emptyList();
+        }
         ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");

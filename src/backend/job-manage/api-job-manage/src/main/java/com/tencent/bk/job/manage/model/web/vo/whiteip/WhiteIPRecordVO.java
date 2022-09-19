@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import io.swagger.annotations.ApiModel;
@@ -35,6 +35,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * IP白名单VO
@@ -48,6 +49,11 @@ public class WhiteIPRecordVO {
     private Long id;
     @ApiModelProperty("云区域ID")
     private Long cloudAreaId;
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @ApiModelProperty("兼容字段，请勿使用：IP列表")
+    private List<String> ipList;
+
     @ApiModelProperty("主机列表")
     private List<WhiteIPHostVO> hostList;
     @ApiModelProperty("生效范围")
@@ -66,4 +72,42 @@ public class WhiteIPRecordVO {
     @ApiModelProperty("最后一次更新时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public WhiteIPRecordVO(Long id,
+                           Long cloudAreaId,
+                           List<WhiteIPHostVO> hostList,
+                           List<ActionScopeVO> actionScopeList,
+                           List<AppVO> appList,
+                           String remark,
+                           String creator,
+                           Long createTime,
+                           String lastModifier,
+                           Long lastModifyTime) {
+        this.id = id;
+        this.cloudAreaId = cloudAreaId;
+        this.hostList = hostList;
+        this.actionScopeList = actionScopeList;
+        this.appList = appList;
+        this.remark = remark;
+        this.creator = creator;
+        this.createTime = createTime;
+        this.lastModifier = lastModifier;
+        this.lastModifyTime = lastModifyTime;
+        this.ipList = getIpListByHostList(hostList);
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setHostList(List<WhiteIPHostVO> hostList) {
+        this.hostList = hostList;
+        this.ipList = getIpListByHostList(hostList);
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public List<String> getIpListByHostList(List<WhiteIPHostVO> hostList) {
+        if (hostList != null) {
+            return hostList.stream().map(WhiteIPHostVO::getIpv4).collect(Collectors.toList());
+        }
+        return null;
+    }
 }
