@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.model.web.vo.whiteip;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -58,8 +57,16 @@ public class WhiteIPRecordVO {
     private List<WhiteIPHostVO> hostList;
     @ApiModelProperty("生效范围")
     private List<ActionScopeVO> actionScopeList;
-    @ApiModelProperty("业务")
-    private List<AppVO> appList;
+
+    @ApiModelProperty(value = "是否对所有资源范围生效，默认为false")
+    private boolean allScope = false;
+
+    @ApiModelProperty("生效的资源范围列表")
+    private List<ScopeVO> scopeList;
+
+    @ApiModelProperty("兼容字段，请勿使用：生效业务列表")
+    private List<ScopeVO> appList;
+
     @ApiModelProperty("备注")
     private String remark;
     @ApiModelProperty("创建人")
@@ -74,27 +81,9 @@ public class WhiteIPRecordVO {
     private Long lastModifyTime;
 
     @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    public WhiteIPRecordVO(Long id,
-                           Long cloudAreaId,
-                           List<WhiteIPHostVO> hostList,
-                           List<ActionScopeVO> actionScopeList,
-                           List<AppVO> appList,
-                           String remark,
-                           String creator,
-                           Long createTime,
-                           String lastModifier,
-                           Long lastModifyTime) {
-        this.id = id;
-        this.cloudAreaId = cloudAreaId;
-        this.hostList = hostList;
-        this.actionScopeList = actionScopeList;
-        this.appList = appList;
-        this.remark = remark;
-        this.creator = creator;
-        this.createTime = createTime;
-        this.lastModifier = lastModifier;
-        this.lastModifyTime = lastModifyTime;
-        this.ipList = getIpListByHostList(hostList);
+    public void setScopeList(List<ScopeVO> scopeList) {
+        this.scopeList = scopeList;
+        this.appList = scopeList;
     }
 
     @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
