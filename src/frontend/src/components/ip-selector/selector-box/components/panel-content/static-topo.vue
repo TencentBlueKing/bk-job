@@ -158,7 +158,7 @@
     const hostCheckedMap = shallowRef({});
     const nodeHostListSearch = ref('');
 
-    let selectedTopoNode;
+    let selectedTopoNodeData;
     let isInnerChange = false;
 
     const {
@@ -178,7 +178,7 @@
     } = useTreeLazy();
 
     // 判断 page-check 的状态
-    const syncPageCheckValue = () => {
+    const syncTablePageCheckValue = () => {
         setTimeout(() => {
             if (hostTableData.value.length > 0) {
                 pageCheckValue.value = 'page';
@@ -219,7 +219,7 @@
             result[hostItem.host_id] = hostItem;
             return result;
         }, {});
-        syncPageCheckValue();
+        syncTablePageCheckValue();
     }, {
         immediate: true,
     });
@@ -236,16 +236,16 @@
 
     // 获取选中节点的主机列表
     const fetchNodeHostList = () => {
-        if (!selectedTopoNode) {
+        if (!selectedTopoNodeData) {
             return;
         }
         isHostLoading.value = true;
         Manager.service.fetchTopologyHostsNodes({
             [Manager.nameStyle('nodeList')]: [
                 {
-                    [Manager.nameStyle('objectId')]: selectedTopoNode.object_id,
-                    [Manager.nameStyle('instanceId')]: selectedTopoNode.instance_id,
-                    [Manager.nameStyle('meta')]: selectedTopoNode.meta,
+                    [Manager.nameStyle('objectId')]: selectedTopoNodeData.object_id,
+                    [Manager.nameStyle('instanceId')]: selectedTopoNodeData.instance_id,
+                    [Manager.nameStyle('meta')]: selectedTopoNodeData.meta,
                 },
             ],
             [Manager.nameStyle('pageSize')]: pagination.limit,
@@ -254,7 +254,7 @@
         }).then((data) => {
             hostTableData.value = data.data;
             pagination.count = data.total;
-            syncPageCheckValue();
+            syncTablePageCheckValue();
         })
         .finally(() => {
             isHostLoading.value = false;
@@ -270,9 +270,9 @@
     const fetchNodeAllHostId = () => Manager.service.fetchTopologyHostIdsNodes({
         [Manager.nameStyle('nodeList')]: [
                 {
-                    [Manager.nameStyle('objectId')]: selectedTopoNode.object_id,
-                    [Manager.nameStyle('instanceId')]: selectedTopoNode.instance_id,
-                    [Manager.nameStyle('meta')]: selectedTopoNode.meta,
+                    [Manager.nameStyle('objectId')]: selectedTopoNodeData.object_id,
+                    [Manager.nameStyle('instanceId')]: selectedTopoNodeData.instance_id,
+                    [Manager.nameStyle('meta')]: selectedTopoNodeData.meta,
                 },
             ],
             [Manager.nameStyle('searchContent')]: nodeHostListSearch.value,
@@ -280,7 +280,8 @@
 
     // 选中节点
     const handleNodeSelect = (node) => {
-        selectedTopoNode = node.data.payload;
+        console.log('from handleNodeSelect = ', node);
+        selectedTopoNodeData = node.data.payload;
         fetchNodeHostList();
     };
 
@@ -329,7 +330,7 @@
             checkedMap[data.host_id] = data;
         }
         hostCheckedMap.value = checkedMap;
-        syncPageCheckValue();
+        syncTablePageCheckValue();
         triggerChange();
     };
 

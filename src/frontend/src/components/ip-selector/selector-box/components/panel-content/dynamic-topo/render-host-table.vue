@@ -50,7 +50,7 @@
         },
     });
 
-    let memoNode;
+    let memoNodeData;
 
     const tableOffetTop = 115;
     const {
@@ -71,9 +71,9 @@
         Manager.service.fetchTopologyHostsNodes({
             [Manager.nameStyle('nodeList')]: [
                 {
-                    [Manager.nameStyle('objectId')]: memoNode.object_id,
-                    [Manager.nameStyle('instanceId')]: memoNode.instance_id,
-                    [Manager.nameStyle('meta')]: memoNode.meta,
+                    [Manager.nameStyle('objectId')]: memoNodeData.object_id,
+                    [Manager.nameStyle('instanceId')]: memoNodeData.instance_id,
+                    [Manager.nameStyle('meta')]: memoNodeData.meta,
                 },
             ],
             [Manager.nameStyle('pageSize')]: pagination.limit,
@@ -91,7 +91,7 @@
     // 拓扑树选中节点
     watch(() => props.node, () => {
         pagination.current = 1;
-        memoNode = props.node;
+        memoNodeData = props.node;
         fetchNodeHostList();
     }, {
         immediate: true,
@@ -104,8 +104,8 @@
 
     // 切换子节点
     const handleChildNodeChange = (instanceId) => {
-        const selectNode = _.find(props.node.child, _ => _.instance_id === instanceId);
-        memoNode = selectNode || props.node;
+        const selectNodeData = _.find(props.node.child, _ => _.instance_id === instanceId);
+        memoNodeData = selectNodeData || props.node;
         pagination.current = 1;
         fetchNodeHostList();
     };

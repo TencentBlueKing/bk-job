@@ -120,6 +120,7 @@
         isLoading.value = true;
         Promise.resolve()
             .then(() => {
+                console.log('from adofa = ', props.node);
                 // 懒加载节点需异步获取子节点
                 if (props.node.lazy) {
                     return Manager.service.fetchTopologyHostCount({
