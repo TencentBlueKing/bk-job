@@ -54,24 +54,24 @@
             </div>
             <template #right>
                 <div class="table-box">
-                    <template v-if="selectedTopoNodeData.instance_name">
+                    <template v-if="selectedTopoNode.id">
                         <table-tab
                             :model-value="renderTableType"
                             @change="handleTableTypeChange">
                             <table-tab-item name="node">
-                                {{ selectedTopoNodeData.instance_name }} ({{ selectedTopoNodeData.child.length }})
+                                {{ selectedTopoNode.name }} ({{ selectedTopoNode.children.length }})
                             </table-tab-item>
                             <table-tab-item name="host">
-                                主机 ({{ selectedTopoNodeData.count }})
+                                主机 ({{ selectedTopoNode.data.payload.count }})
                             </table-tab-item>
                         </table-tab>
-                        <div :key="`${selectedTopoNodeData.object_id}${selectedTopoNodeData.instance_id}`">
+                        <div :key="selectedTopoNode.id">
                             <keep-alive>
                                 <component
                                     :is="renderTableCom"
                                     :checked-map="nodeCheckedMap"
                                     :data="renderNodeList"
-                                    :node="selectedTopoNodeData"
+                                    :node="selectedTopoNode"
                                     style="min-height: 200px;"
                                     @check-change="handleTableNodeCheckChange" />
                             </keep-alive>
@@ -151,7 +151,7 @@
     const nodeCheckedMap = shallowRef({});
 
     const renderNodeList = shallowRef([]);
-    const selectedTopoNodeData = shallowRef({});
+    const selectedTopoNode = shallowRef({});
 
     let isInnerChange = false;
 
@@ -237,7 +237,8 @@
     // 选择节点，查看节点的子节点和主机列表
     const handleNodeSelect = (node) => {
         renderTableType.value = 'node';
-        selectedTopoNodeData.value = node.data.payload;
+        selectedTopoNode.value = node;
+        console.log('from handleNodeSelect = ', node);
     };
 
     // 在拓扑树中选中节点

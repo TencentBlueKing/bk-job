@@ -1,38 +1,42 @@
 <template>
-    <div v-bkloading="{ isLoading }">
-        <template v-if="props.node.child.length > 0">
-            <bk-input
-                v-model="searchKey"
-                placeholder="请输入节点名称搜索"
-                style="margin: 12px 0;" />
-            <render-node-table
-                :agent-static="nodeAgentStaticMap"
-                :data="renderTableData"
-                :height="renderTableHeight"
-                @row-click="handleRowClick">
-                <template #header-selection>
-                    <table-page-check
-                        :disabled="renderTableData.length < 1"
-                        :value="pageCheckValue"
-                        @change="handlePageCheck" />
-                </template>
-                <template #selection="{ row }">
-                    <bk-checkbox :value="Boolean(checkedMap[genNodeKey(row.node)])" />
-                </template>
-            </render-node-table>
-            <bk-pagination
-                v-if="isShowPagination"
-                :show-limit="false"
-                v-bind="pagination"
-                @change="handlePaginationCurrentChange"
-                @limit-change="handlePaginationLimitChange" />
+    <div
+        v-bkloading="{ isLoading }"
+        style="min-height: 300px;">
+        <template v-if="!isChildrenLazyLoading">
+            <template v-if="props.node.children.length > 0">
+                <bk-input
+                    v-model="searchKey"
+                    placeholder="请输入节点名称搜索"
+                    style="margin: 12px 0;" />
+                <render-node-table
+                    :agent-static="nodeAgentStaticMap"
+                    :data="renderTableData"
+                    :height="renderTableHeight"
+                    @row-click="handleRowClick">
+                    <template #header-selection>
+                        <table-page-check
+                            :disabled="renderTableData.length < 1"
+                            :value="tablePageCheckValue"
+                            @change="handlePageCheck" />
+                    </template>
+                    <template #selection="{ row }">
+                        <bk-checkbox :value="Boolean(checkedMap[genNodeKey(row.node)])" />
+                    </template>
+                </render-node-table>
+                <bk-pagination
+                    v-if="isShowPagination"
+                    :show-limit="false"
+                    v-bind="pagination"
+                    @change="handlePaginationCurrentChange"
+                    @limit-change="handlePaginationLimitChange" />
+            </template>
+            <div
+                v-else-if="!isLoading"
+                style="padding-top: 120px; text-align: center;">
+                <img src="../../../../images/empty.svg">
+                <div>没有子节点</div>
+            </div>
         </template>
-        <div
-            v-else-if="!isLoading"
-            style="padding-top: 120px; text-align: center;">
-            <img src="../../../../images/empty.svg">
-            <div>没有子节点</div>
-        </div>
     </div>
 </template>
 <script>
@@ -71,8 +75,9 @@
 
     const emits = defineEmits(['check-change']);
 
+    const isChildrenLazyLoading = ref(false);
     const isLoading = ref(false);
-    const pageCheckValue = ref('');
+    const tablePageCheckValue = ref('');
 
     const tableData = shallowRef([]);
     const nodeAgentStaticMap = shallowRef({});
@@ -103,14 +108,14 @@
     const syncPageCheckValue = () => {
         setTimeout(() => {
             if (tableData.value.length > 0) {
-            pageCheckValue.value = 'page';
+            tablePageCheckValue.value = 'page';
             tableData.value.forEach((nodeItem) => {
                 if (!props.checkedMap[nodeItem.key]) {
-                    pageCheckValue.value = '';
+                    tablePageCheckValue.value = '';
                 }
             });
         } else {
-            pageCheckValue.value = '';
+            tablePageCheckValue.value = '';
         }
         });
     };
@@ -118,59 +123,51 @@
     // 获取分组路径、agent状态
     const fetchData = () => {
         isLoading.value = true;
-        Promise.resolve()
-            .then(() => {
-                console.log('from adofa = ', props.node);
-                // 懒加载节点需异步获取子节点
-                if (props.node.lazy) {
-                    return Manager.service.fetchTopologyHostCount({
-                        [Manager.nameStyle('objectId')]: props.node.object_id,
-                        [Manager.nameStyle('instanceId')]: props.node.instance_id,
-                        [Manager.nameStyle('meta')]: props.node.meta,
-                    });
-                }
-                return props.node.child;
-            })
-            .then((children) => {
-                const params = {
-                    [Manager.nameStyle('nodeList')]: children.map(item => ({
-                        [Manager.nameStyle('objectId')]: item.object_id,
-                        [Manager.nameStyle('instanceId')]: item.instance_id,
-                        [Manager.nameStyle('meta')]: item.meta,
-                    })),
+        const params = {
+            [Manager.nameStyle('nodeList')]: props.node.children.map((children) => {
+                const childrenData = children.data.payload;
+                return {
+                    [Manager.nameStyle('objectId')]: childrenData.object_id,
+                    [Manager.nameStyle('instanceId')]: childrenData.instance_id,
+                    [Manager.nameStyle('meta')]: childrenData.meta,
                 };
-                // 查询节点路径
-                Manager.service.fetchNodesQueryPath(params)
-                    .then((data) => {
-                        tableData.value = data.reduce((result, nodeStack) => {
-                            const namePath = nodeStack.map(nodeData => nodeData.instance_name).join('/');
-                            const tailNode = _.last(nodeStack);
-                            result.push({
-                                key: genNodeKey(tailNode),
-                                node: tailNode,
-                                namePath,
-                            });
-                            return result;
-                        }, []);
+            }),
+        };
+        // 查询节点路径
+        Manager.service.fetchNodesQueryPath(params)
+            .then((data) => {
+                tableData.value = data.reduce((result, nodeStack) => {
+                    const namePath = nodeStack.map(nodeData => nodeData.instance_name).join('/');
+                    const tailNode = _.last(nodeStack);
+                    result.push({
+                        key: genNodeKey(tailNode),
+                        node: tailNode,
+                        namePath,
+                    });
+                    return result;
+                }, []);
 
-                        syncPageCheckValue();
-                    })
-                    .finally(() => {
-                        isLoading.value = false;
-                    });
-                // 查询节点的 agent 状态
-                Manager.service.fetchHostAgentStatisticsNodes(params)
-                    .then((data) => {
-                        nodeAgentStaticMap.value = data.reduce((result, item) => {
-                            result[genNodeKey(item.node)] = item.agent_statistics;
-                            return result;
-                        }, {});
-                    });
+                syncPageCheckValue();
+            })
+            .finally(() => {
+                isLoading.value = false;
+            });
+        // 查询节点的 agent 状态
+        Manager.service.fetchHostAgentStatisticsNodes(params)
+            .then((data) => {
+                nodeAgentStaticMap.value = data.reduce((result, item) => {
+                    result[genNodeKey(item.node)] = item.agent_statistics;
+                    return result;
+                }, {});
             });
     };
 
-    watch(() => props.data, () => {
-        fetchData();
+    watch(() => [props.node, props.node.state.loading], ([node, lazyLoading]) => {
+        isChildrenLazyLoading.value = lazyLoading;
+        isLoading.value = lazyLoading;
+        if (!lazyLoading) {
+            fetchData();
+        }
     }, {
         immediate: true,
     });
@@ -203,7 +200,7 @@
                 newCheckedMap[nodeItem.key] = nodeItem.node;
             });
         }
-        pageCheckValue.value = checkValue;
+        tablePageCheckValue.value = checkValue;
         isInnerChange = true;
         emits('check-change', newCheckedMap);
     };

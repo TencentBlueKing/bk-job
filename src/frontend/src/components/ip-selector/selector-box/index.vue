@@ -186,6 +186,9 @@
                 lastDynamicGroupList.value = value;
                 break;
         }
+        if (!isDialogMode.value) {
+            handleSubmit();
+        }
     };
     // 清空所有
     const handleClearChange = () => {
