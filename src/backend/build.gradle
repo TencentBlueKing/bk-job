@@ -111,6 +111,8 @@ ext {
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.64")
     set('reflectionsVersion', "0.9.12")
+    set('cronUtilsVersion', "9.1.6")
+    set('otelJdbcVersion', "1.9.2-alpha")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersoin:" + bkjobVersion
@@ -245,6 +247,8 @@ subprojects {
             dependency "org.bouncycastle:bcprov-jdk15on:$bcprovVersion"
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
+            dependency "com.cronutils:cron-utils:$cronUtilsVersion"
+            dependency "io.opentelemetry.instrumentation:opentelemetry-jdbc:$otelJdbcVersion"
             dependencySet(group: "org.jooq", version: "$jooqVersion") {
                 entry "jooq"
                 entry "jooq-codegen"

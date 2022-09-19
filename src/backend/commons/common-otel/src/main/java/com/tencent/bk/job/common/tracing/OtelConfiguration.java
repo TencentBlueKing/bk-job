@@ -24,8 +24,12 @@
 
 package com.tencent.bk.job.common.tracing;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
@@ -87,5 +91,14 @@ class OtelConfiguration {
         }
         processors.forEach(sdkTracerProviderBuilder::addSpanProcessor);
         return sdkTracerProviderBuilder.build();
+    }
+
+    @Bean
+    OpenTelemetry otel(SdkTracerProvider tracerProvider, ContextPropagators contextPropagators) {
+        OpenTelemetry openTelemetry =
+            OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).setPropagators(contextPropagators).build();
+        GlobalOpenTelemetry.set(openTelemetry);
+        log.info("GlobalOpenTelemetry has been set");
+        return openTelemetry;
     }
 }

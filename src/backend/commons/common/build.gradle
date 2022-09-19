@@ -39,7 +39,7 @@ dependencies {
     implementation 'org.hibernate.validator:hibernate-validator'
     implementation 'jakarta.validation:jakarta.validation-api'
     implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'com.cronutils:cron-utils:9.1.6'
+    implementation 'com.cronutils:cron-utils'
     compileOnly 'org.springframework:spring-web'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

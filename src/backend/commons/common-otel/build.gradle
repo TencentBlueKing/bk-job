@@ -26,6 +26,7 @@ dependencies {
     api "org.springframework.cloud:spring-cloud-sleuth-api"
     api "org.springframework.cloud:spring-cloud-sleuth-otel"
     api "org.springframework.cloud:spring-cloud-sleuth-otel-autoconfigure"
+    api "io.opentelemetry.instrumentation:opentelemetry-jdbc"
     api "io.opentelemetry:opentelemetry-exporter-otlp-trace"
     // https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-extension-resources
     api 'io.opentelemetry:opentelemetry-sdk-extension-resources'
