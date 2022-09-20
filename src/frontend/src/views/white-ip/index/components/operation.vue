@@ -35,9 +35,10 @@
             <jb-form-item :label="$t('whiteIP.目标业务.label')">
                 <div class="app-wraper">
                     <bk-select
-                        v-model="scopeLocalKeyList"
+                        v-model="scopeValue"
                         class="app-select"
                         :clearable="false"
+                        :disabled="formData.allScope"
                         multiple
                         searchable>
                         <bk-option
@@ -46,17 +47,23 @@
                             :key="option.localKey"
                             :name="option.name" />
                     </bk-select>
+                    <bk-checkbox
+                        class="whole-business"
+                        :value="formData.allScope"
+                        @change="handleAllAPP">
+                        {{ $t('whiteIP.全业务') }}
+                    </bk-checkbox>
                 </div>
             </jb-form-item>
             <jb-form-item
-                :label="$t('whiteIP.主机')"
-                property="cloudAreaId"
+                :label="$t('whiteIP.IP')"
+                property="hostList"
                 required>
                 <bk-button @click="handleShowIpSelector">
-                    {{ $t('whiteIP.选择主机') }}
+                    {{ $t('whiteIP.添加服务器') }}
                 </bk-button>
                 <ip-selector
-                    :config="ipSelectorConfig"
+                    v-bind="ipSelectorConfig"
                     model="dialog"
                     :show-dialog="isShowIpSelector"
                     show-view
@@ -65,7 +72,7 @@
                     @close-dialog="handleColseIpSelector" />
             </jb-form-item>
             <jb-form-item
-                :label="$t('whiteIP.备注')"
+                :label="$t('whiteIP.备注.label')"
                 property="remark"
                 required>
                 <bk-input
@@ -95,22 +102,22 @@
 </template>
 <script>
     import AppManageService from '@service/app-manage';
+    import HostAllManageService from '@service/host-all-manage';
     import WhiteIpService from '@service/white-ip';
 
     import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         id: 0,
-        hostList: [],
-        // 生效范围
-        actionScopeIdList: [],
         // 业务ID
         scopeList: [],
+        allScope: false,
+        hostList: [],
         // 备注
         remark: '',
+        // 生效范围
+        actionScopeIdList: [],
     });
-
-    const getScopeLocalKey = scopeData => `#${scopeData.scopeType}#${scopeData.scopeId}`;
 
     export default {
         name: '',
@@ -124,8 +131,8 @@
             return {
                 isLoading: true,
                 formData: getDefaultData(),
+                scopeValue: [],
                 ipSelectorValue: {},
-                scopeLocalKeyList: [],
                 appList: [],
                 actionScope: [],
                 isShowIpSelector: false,
@@ -139,25 +146,25 @@
                     }
                     const {
                         id,
-                        actionScopeList,
-                        appList,
-                        remark,
+                        scopeList,
+                        allScope,
                         hostList,
+                        remark,
+                        actionScopeList,
                     } = data;
                     this.formData = {
                         ...this.formData,
                         id,
-                        actionScopeIdList: actionScopeList.map(item => item.id),
-                        scopeList: appList.map(item => ({
-                            type: item.scopeType,
-                            id: item.scopeId,
-                        })),
-                        remark,
+                        scopeList,
+                        allScope,
                         hostList,
+                        remark,
+                        actionScopeIdList: actionScopeList.map(item => item.id),
                     };
                     this.ipSelectorValue = {
                         hostList,
                     };
+                    this.scopeValue = this.formData.scopeList.map(item => `#${item.scopeType}#${item.scopeId}`);
                 },
                 immediate: true,
             },
@@ -170,14 +177,24 @@
                 this.isLoading = false;
             });
             this.ipSelectorConfig = {
-                panelList: ['staticTopo', 'manualInput'],
+                config: {
+                    panelList: ['staticTopo', 'manualInput'],
+                },
+                service: {
+                    fetchTopologyHostCount: HostAllManageService.fetchTopologyWithCount,
+                    fetchTopologyHostsNodes: HostAllManageService.fetchTopologyHost,
+                    fetchTopologyHostIdsNodes: HostAllManageService.fetchTopogyHostIdList,
+                    fetchHostsDetails: HostAllManageService.fetchHostInfoByHostId,
+                    fetchHostCheck: HostAllManageService.fetchInputParseHostList,
+                },
             };
+
             this.rules = {
-                ipStr: [
+                hostList: [
                     {
-                        required: true,
+                        validator: value => value.length > 0,
                         message: I18n.t('whiteIP.IP必填'),
-                        trigger: 'blur',
+                        trigger: 'change',
                     },
                 ],
                 remark: [
@@ -206,8 +223,9 @@
                     .then((data) => {
                         this.appList = data.map(item => ({
                             ...item,
-                            localKey: getScopeLocalKey(item),
+                            localKey: `#${item.scopeType}#${item.scopeId}`,
                         }));
+                        // 默认选中第一个
                         if (this.formData.scopeList.length < 1) {
                             const [
                                 {
@@ -215,12 +233,14 @@
                                     scopeId,
                                 },
                             ] = data;
-                            this.formData.scopeList = [{
-                                type: scopeType,
-                                id: scopeId,
-                            }];
+                            this.formData.scopeList = [
+                                {
+                                    scopeType,
+                                    scopeId,
+                                },
+                            ];
                         }
-                        this.scopeLocalKeyList = this.formData.scopeList.map(item => `#${item.type}#${item.id}`);
+                        this.scopeValue = this.formData.scopeList.map(item => `#${item.scopeType}#${item.scopeId}`);
                     });
             },
             /**
@@ -232,6 +252,11 @@
                         this.actionScope = data;
                     });
             },
+
+            // 切换全业务
+            handleAllAPP (value) {
+                this.formData.allScope = value;
+            },
             
             handleShowIpSelector () {
                 this.isShowIpSelector = true;
@@ -241,10 +266,13 @@
             },
             handleIpSelectorChange (data) {
                 this.formData.hostList = data.hostList;
+                if (data.hostList.length > 0) {
+                    this.$refs.whiteIpForm.clearError('actionScopeIdList');
+                }
             },
             handleRangeChange (value) {
                 if (value.length > 0) {
-                    this.$refs.whiteIpForm.clearError('actionScopeIdList');
+                    this.$refs.whiteIpForm.clearError('hostList');
                 }
             },
 
@@ -255,17 +283,22 @@
                         if (params.id < 1) {
                             delete params.id;
                         }
-                        params.scopeList = this.scopeLocalKeyList.map((scopeLocalKey) => {
-                            const [
-                                ,
-                                type,
-                                id,
-                            ] = scopeLocalKey.match(/^#([^#]+)#(.+)$/);
-                            return {
-                                type,
-                                id,
-                            };
-                        });
+                        if (params.allScopeh) {
+                            params.scopeList = [];
+                        } else {
+                            params.scopeList = this.scopeValue.map((scopeLocalKey) => {
+                                const [
+                                    ,
+                                    type,
+                                    id,
+                                ] = scopeLocalKey.match(/^#([^#]+)#(.+)$/);
+                                return {
+                                    type,
+                                    id,
+                                };
+                            });
+                        }
+                        
                         return WhiteIpService.whiteIpUpdate(params)
                             .then(() => {
                                 this.messageSuccess(this.formData.id ? I18n.t('whiteIP.编辑成功') : I18n.t('whiteIP.新建成功'));

@@ -31,8 +31,8 @@ export default class WhiteIp extends Model {
     constructor (payload) {
         super();
         this.actionScopeList = payload.actionScopeList;
-        this.appList = payload.appList || [];
-        this.cloudAreaId = payload.cloudAreaId;
+        this.scopeList = payload.scopeList || [];
+        this.allScope = Boolean(payload.allScope);
         this.createTime = payload.createTime;
         this.creator = payload.creator;
         this.id = payload.id;
@@ -43,15 +43,14 @@ export default class WhiteIp extends Model {
         this.canManage = payload.canManage;
     }
 
-    get ip () {
-        return `${I18n.t('共')}${this.hostList.length}${I18n.t('个')}`;
-    }
-
     get scopeText () {
         return this.actionScopeList.map(item => item.name).join('，');
     }
 
     get appText () {
-        return this.appList.map(_ => _.name).join('，');
+        if (this.scopeList.length < 1) {
+            return I18n.t('全业务');
+        }
+        return this.scopeList.map(_ => _.name).join('，');
     }
 }
