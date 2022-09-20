@@ -473,7 +473,6 @@
                 stepList = this.syncStepVariableRename(stepList, renameMap);
                 this.formData.variables = variableList;
                 this.formData.steps = stepList;
-                console.log('from vaerua cahnge = ', variableList);
             },
             /**
              * @desc 步骤更新
@@ -498,7 +497,6 @@
                         return;
                     }
                 }
-                console.log('from handel submit = ', _.cloneDeep(this.formData));
                 // 提交作业模板
                 // 再主动拉取作业模板对应的执行方案列表，判断执行方案是否为空和是否需要同步
                 this.isSubmiting = true;

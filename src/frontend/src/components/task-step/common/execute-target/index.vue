@@ -324,7 +324,6 @@
                 if (!taskHostNode.isEmpty) {
                     this.$refs.targetServerRef.clearValidator();
                 }
-                console.log('from execute target = ', taskHostNode);
                 this.$emit('on-change', Object.freeze(taskHostNode));
             },
             /**
@@ -340,7 +339,6 @@
             handleShowChooseIp () {
                 this.isShowChooseIp = true;
                 this.searchText = '';
-                console.log('asdadadad');
             },
             /**
              * @desc 选择全局变量

@@ -94,7 +94,6 @@ export default {
     },
     
     fetchTopologyHost (params) {
-        console.log('asdasd = ', params);
         return HostAllManageSource.getTopologyHost(params)
             .then(({ data }) => IpSelectrAdapter.topolopyHostsNodes(data));
     },
@@ -116,10 +115,7 @@ export default {
             .then(({ data }) => IpSelectrAdapter.hostAgentStatisticsDynamicGroups(data));
     },
     fetchInputParseHostList (params) {
-        return HostAllManageSource.getInputParseHostList({
-            ...params,
-            actionScope: window.IPInputScope,
-        })
+        return HostAllManageSource.getInputParseHostList(params)
             .then(({ data }) => IpSelectrAdapter.hostCheck(data));
     },
     fetchHostInfoByHostId (params) {

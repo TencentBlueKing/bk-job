@@ -136,7 +136,6 @@
                     this.hostNodeInfo = this.data.targetValue.hostNodeInfo;
                 }
                 this.originalHostNodeInfo = Object.freeze(_.cloneDeep(this.hostNodeInfo));
-                console.log('from hahahahah');
             },
             /**
              * @desc 外部调用——移除无效主机

@@ -222,19 +222,16 @@
         },
         mounted () {
             window.IPInputScope = 'SCRIPT_EXECUTE';
-            this.$once('hook:beforeDestroy', () => {
-                window.IPInputScope = '';
-            });
         },
         /**
          * @desc 销毁时清空脚本调试的数据
          */
         beforeDestroy () {
             debugScriptCache.clearItem();
+            window.IPInputScope = '';
         },
         methods: {
             handleIpChange (value) {
-                console.log('from ip chage = ', value);
                 this.ipSelectorData = value;
             },
             /**
