@@ -27,8 +27,12 @@
 
 <template functional>
     <div class="step-exection-status-bar">
-        <div v-if="props.data.name" class="title">
-            （<div class="title-text">{{ props.data.name }}</div>）
+        <div
+            v-if="props.data.name"
+            class="title">
+            （<div class="title-text">
+                {{ props.data.name }}
+            </div>）
         </div>
         <div class="status-box">
             <div class="status">

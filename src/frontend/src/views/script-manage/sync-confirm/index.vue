@@ -26,14 +26,16 @@
 -->
 
 <template>
-    <div class="script-manage-sync-confirm" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="script-manage-sync-confirm">
         <bk-input
+            v-model="value"
             class="search-input"
-            :placeholder="$t('script.搜索作业模板')"
             :clearable="true"
+            :placeholder="$t('script.搜索作业模板')"
             right-icon="bk-icon icon-search"
-            @change="handleInputChange"
-            v-model="value" />
+            @change="handleInputChange" />
         <div class="table-top">
             <span>{{ $t('script.同步作业模板') }}</span>
             <span class="table-selected"> ({{ $t('script.已选') }} {{ selectedList.length }}/{{ data.length }}个)</span>
@@ -42,18 +44,22 @@
             :data="tableData"
             row-class-name="template-script-record"
             @selection-change="handleSelectionChange">
-            <bk-table-column type="selection" width="60" />
+            <bk-table-column
+                type="selection"
+                width="60" />
             <bk-table-column
                 :label="$t('script.作业模板名称')"
                 prop="name"
                 sortable>
                 <template slot-scope="{ row }">
                     <bk-button
-                        text
                         class="job-template-name"
+                        text
                         @click="handleGoTemplateDetail(row.templateId)">
                         {{ row.templateName }}
-                        <Icon type="edit" class="template-link" />
+                        <Icon
+                            class="template-link"
+                            type="edit" />
                     </bk-button>
                 </template>
             </bk-table-column>
@@ -72,11 +78,11 @@
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('script.引用版本状态')"
-                prop="status"
-                :filters="statusFilters"
                 :filter-method="statusFilterMethod"
-                :filter-multiple="true">
+                :filter-multiple="true"
+                :filters="statusFilters"
+                :label="$t('script.引用版本状态')"
+                prop="status">
                 <template slot-scope="{ row }">
                     <span v-html="row.statusHtml" />
                 </template>
@@ -101,8 +107,8 @@
             </bk-button>
             <bk-button
                 class="w120"
-                theme="primary"
                 :disabled="selectedList.length === 0"
+                theme="primary"
                 @click="handleSync">
                 {{ $t('script.立即同步') }}
             </bk-button>
@@ -116,22 +122,27 @@
             :script-version-id="selectScriptVersionId" />
         <Diff
             v-if="showDiff"
-            format="side-by-side"
-            theme="dark"
             :data="diffList"
-            :old-version-id="selectScriptVersionId"
+            format="side-by-side"
             :new-version-id="lastVersionScriptInfo.scriptVersionId"
+            :old-version-id="selectScriptVersionId"
+            theme="dark"
             @close="handleDiffClose" />
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import ScriptService from '@service/script-manage';
+
     import PublicScriptService from '@service/public-script-manage';
+    import ScriptService from '@service/script-manage';
+
     import { checkPublicScript } from '@utils/assist';
+
     import Diff from '../common/diff';
+
     import ScriptDetail from './components/script-detail';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

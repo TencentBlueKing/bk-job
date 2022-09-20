@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import TaskHostNodeModel from '@model/task-host-node';
+
+import I18n from '@/i18n';
 
 const TYPE_STRING = 1;
 const TYPE_NAMESPACE = 2;

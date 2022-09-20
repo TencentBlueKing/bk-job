@@ -27,19 +27,21 @@
 
 <template>
     <search-select
-        class="jb-search-select"
         ref="searchSelect"
+        class="jb-search-select"
         v-bind="$attrs"
-        v-on="$listeners"
-        :placeholder="placeholder"
         :data="data"
+        :placeholder="placeholder"
         :show-condition="false"
         :values="searchValue"
+        v-on="$listeners"
         @change="handleChange" />
 </template>
 <script>
     import _ from 'lodash';
+
     import { userSearchCache } from '@utils/cache-helper';
+
     import SearchSelect from './search-select';
 
     const filterValue = (payload) => {

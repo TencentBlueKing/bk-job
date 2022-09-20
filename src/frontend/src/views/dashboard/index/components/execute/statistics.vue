@@ -55,8 +55,12 @@
                         {{ $t('dashboard.按执行耗时统计') }}
                     </div>
                 </template>
-                <div v-if="isDrillDown" class="tab-back">
-                    <span class="tab-back-action" @click="handleDimensionBack">
+                <div
+                    v-if="isDrillDown"
+                    class="tab-back">
+                    <span
+                        class="tab-back-action"
+                        @click="handleDimensionBack">
                         <Icon type="back1" />
                         {{ $t('dashboard.返回') }}
                     </span>
@@ -85,23 +89,29 @@
             </div>
         </div>
         <div v-bkloading="{ isLoading, opacity: 0.8 }">
-            <div ref="dashboard" style="width: 100%; height: 325px;" />
+            <div
+                ref="dashboard"
+                style="width: 100%; height: 325px;" />
         </div>
     </div>
 </template>
 <script>
 /* eslint-disable max-len */
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import StatisticsService from '@service/statistics';
     import echarts from 'lib/echarts.min.js';
+    import _ from 'lodash';
+
+    import StatisticsService from '@service/statistics';
+
     import {
         formatNumber,
         prettyDateFormat,
     } from '@utils/assist';
+
     import {
         chartsOptionsBase,
     } from '../common/assist';
+
+    import I18n from '@/i18n';
 
     const tooltipFormatter = (params) => {
         const generatorHtml = (data) => {

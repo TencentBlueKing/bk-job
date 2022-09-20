@@ -25,12 +25,15 @@
 
 /* eslint-disable no-param-reassign */
 import _ from 'lodash';
+
 import CrontabVariableModel from '@model/crontab/variable';
-import I18n from '@/i18n';
+
 import {
     prettyDateTimeFormat,
 } from '@utils/assist';
 import Translate from '@utils/cron/translate';
+
+import I18n from '@/i18n';
 
 const STATUS_NOTSTARTED = 0;
 const STATUS_SUCCESS = 1;

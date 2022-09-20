@@ -29,10 +29,11 @@
     <jb-router-view />
 </template>
 <script>
+    import Local from './local';
+
     import {
         loadLanguage,
     } from '@/i18n';
-    import Local from './local';
     loadLanguage(Local);
 
     export default {};

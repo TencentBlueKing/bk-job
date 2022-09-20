@@ -26,8 +26,12 @@
 -->
 
 <template>
-    <div class="history-record-box" v-bkloading="{ isLoading }">
-        <div v-if="!isLoading" class="history-record">
+    <div
+        v-bkloading="{ isLoading }"
+        class="history-record-box">
+        <div
+            v-if="!isLoading"
+            class="history-record">
             <template v-if="recordList.length > 0">
                 <scroll-faker>
                     <div
@@ -37,23 +41,32 @@
                         :class="record.statusClass"
                         @click="handleViewExecuteDetail(record)">
                         <div class="item-header">
-                            <div class="record-name">{{ record.name }}</div>
-                            <div class="record-label" v-html="record.statusDescHtml" />
+                            <div class="record-name">
+                                {{ record.name }}
+                            </div>
+                            <div
+                                class="record-label"
+                                v-html="record.statusDescHtml" />
                         </div>
                         <div class="item-body">
                             <span>{{ record.startTime }}</span>
                             <span class="record-operator">{{ record.operator }}</span>
-                            <div class="record-total-time">{{ record.totalTimeText }}</div>
+                            <div class="record-total-time">
+                                {{ record.totalTimeText }}
+                            </div>
                         </div>
                     </div>
                 </scroll-faker>
             </template>
-            <Empty v-else :title="$t('home.暂无执行记录')" class="record-empty" />
+            <Empty
+                v-else
+                class="record-empty"
+                :title="$t('home.暂无执行记录')" />
             <div class="record-actions">
                 <bk-radio-group
+                    class="record-filter"
                     :value="recordOperator"
-                    @change="handleRecordFilterChange"
-                    class="record-filter">
+                    @change="handleRecordFilterChange">
                     <bk-radio-button value="">
                         {{ $t('home.全部') }}
                     </bk-radio-button>
@@ -61,7 +74,9 @@
                         {{ $t('home.我执行') }}
                     </bk-radio-button>
                 </bk-radio-group>
-                <router-link :to="{ name: 'historyList' }" class="action-btn">
+                <router-link
+                    class="action-btn"
+                    :to="{ name: 'historyList' }">
                     {{ $t('home.更多') }}
                 </router-link>
             </div>
@@ -71,6 +86,7 @@
 <script>
     import TaskExecuteService from '@service/task-execute';
     import UserService from '@service/user';
+
     import Empty from '@components/empty';
 
     export default {

@@ -29,7 +29,11 @@
     <div class="dashboard-page">
         <div class="operation-bar">
             <div class="app-select">
-                <bk-button theme="primary" @click="handleScreenshot">{{ $t('dashboard.截图') }}</bk-button>
+                <bk-button
+                    theme="primary"
+                    @click="handleScreenshot">
+                    {{ $t('dashboard.截图') }}
+                </bk-button>
             </div>
             <div class="date-setting">
                 <div class="date-info">
@@ -38,9 +42,9 @@
                 </div>
                 <bk-date-picker
                     class="date-picker"
-                    :value="date"
-                    :placeholder="$t('dashboard.选择日期')"
                     :clearable="false"
+                    :placeholder="$t('dashboard.选择日期')"
+                    :value="date"
                     @change="handleDateChange" />
             </div>
         </div>
@@ -49,9 +53,13 @@
             ref="scroll"
             class="dashboard-container"
             style="height: calc(100vh - 161px);">
-            <div ref="content" class="dashboard-wraper">
+            <div
+                ref="content"
+                class="dashboard-wraper">
                 <div class="section-block">
-                    <div class="section-title">{{ $t('dashboard.业务类') }}</div>
+                    <div class="section-title">
+                        {{ $t('dashboard.业务类') }}
+                    </div>
                     <div class="section-content">
                         <div class="content-left">
                             <app-dashboard :date="date" />
@@ -63,7 +71,9 @@
                 </div>
                 <lower-component>
                     <div class="section-block">
-                        <div class="section-title">{{ $t('dashboard.资源类') }}</div>
+                        <div class="section-title">
+                            {{ $t('dashboard.资源类') }}
+                        </div>
                         <div class="section-content">
                             <div class="content-left">
                                 <template-dashboard :date="date" />
@@ -91,7 +101,9 @@
                 </lower-component>
                 <lower-component>
                     <div class="section-block">
-                        <div class="section-title">{{ $t('dashboard.执行类') }}</div>
+                        <div class="section-title">
+                            {{ $t('dashboard.执行类') }}
+                        </div>
                         <div class="section-content">
                             <execute-dashboard :date="date" />
                         </div>
@@ -103,16 +115,19 @@
 </template>
 <script>
     import html2canvas from 'html2canvas';
+
     import StatisticsService from '@service/statistics';
+
     import { prettyDateFormat } from '@utils/assist';
-    import AppDashboard from './components/app';
-    import PlatformDashboard from './components/platform';
-    import TemplateDashboard from './components/template';
-    import ScriptDashboard from './components/script';
-    import CrontabDashboard from './components/crontab';
-    import TagDashboard from './components/tag';
+
     import AccountDashboard from './components/account';
+    import AppDashboard from './components/app';
+    import CrontabDashboard from './components/crontab';
     import ExecuteDashboard from './components/execute';
+    import PlatformDashboard from './components/platform';
+    import ScriptDashboard from './components/script';
+    import TagDashboard from './components/tag';
+    import TemplateDashboard from './components/template';
 
     export default {
         name: '',

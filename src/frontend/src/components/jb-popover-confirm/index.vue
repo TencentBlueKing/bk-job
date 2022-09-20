@@ -28,29 +28,41 @@
 <template>
     <div class="jb-popover-confirm">
         <slot />
-        <div class="jb-popover-content" ref="popoverContent"
+        <div
+            ref="popoverContent"
+            class="jb-popover-content"
             :style="{
                 width: parsedWidth,
                 minWidth: parsedMinWidth,
             }">
-            <h2 class="confirm-title" ref="confirmTitle">
-                <slot name="title">{{ title }}</slot>
+            <h2
+                ref="confirmTitle"
+                class="confirm-title">
+                <slot name="title">
+                    {{ title }}
+                </slot>
             </h2>
-            <p class="confirm-content" ref="confirmContent">
-                <slot name="content">{{ content }}</slot>
+            <p
+                ref="confirmContent"
+                class="confirm-content">
+                <slot name="content">
+                    {{ content }}
+                </slot>
             </p>
             <div class="confirm-options">
                 <slot name="options">
-                    <bk-button class="confirm-option-button"
-                        theme="primary"
-                        size="small"
+                    <bk-button
+                        class="confirm-option-button"
                         :loading="pending"
+                        size="small"
+                        theme="primary"
                         @click="handleConfirm">
                         {{ confirmText }}
                     </bk-button>
-                    <bk-button class="confirm-option-button"
-                        size="small"
+                    <bk-button
+                        class="confirm-option-button"
                         :disabled="pending"
+                        size="small"
                         @click="handleCancel">
                         {{ cancelText }}
                     </bk-button>

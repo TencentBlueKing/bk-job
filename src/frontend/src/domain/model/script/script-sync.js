@@ -24,6 +24,7 @@
 */
 
 import Model from '@model/model';
+
 import I18n from '@/i18n';
 
 const STATUS_DRAFT = 0; // 未上线

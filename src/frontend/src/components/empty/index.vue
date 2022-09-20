@@ -28,13 +28,17 @@
 <template>
     <div class="job-empty">
         <template v-if="type === 'search'">
-            <img :style="styles" src="/static/images/search-empty.svg">
+            <img
+                src="/static/images/search-empty.svg"
+                :style="styles">
             <div class="job-empty-text">
                 <slot>{{ $t('搜索结果为空') }}</slot>
             </div>
         </template>
         <template v-else>
-            <img :style="styles" src="/static/images/empty.svg">
+            <img
+                src="/static/images/empty.svg"
+                :style="styles">
             <div class="job-empty-text">
                 <slot>{{ title }}</slot>
                 <slot name="desc" />

@@ -28,12 +28,13 @@
 <template>
     <source-file
         :data="fileSources"
-        :variable="variable"
         :field="field"
+        :variable="variable"
         @on-change="handleSourceFileChange" />
 </template>
 <script>
     import SourceFileVO from '@domain/variable-object/source-file';
+
     import SourceFile from '../../common/source-file';
 
     export default {

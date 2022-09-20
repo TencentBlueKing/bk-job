@@ -27,15 +27,15 @@
 
 <template>
     <bk-sideslider
-        class="jb-sideslider"
         ref="bkSideslider"
         v-bind="$attrs"
+        :before-close="beforeClose"
+        class="jb-sideslider"
         :is-show="isShow"
-        @update:isShow="close"
         quick-close
         transfer
         :width="mediaWidth"
-        :before-close="beforeClose">
+        @update:isShow="close">
         <template slot="header">
             <slot name="header">
                 {{ title }}
@@ -49,16 +49,18 @@
                     <slot />
                 </div>
             </template>
-            <template slot="footer" v-if="showFooter">
+            <template
+                v-if="showFooter"
+                slot="footer">
                 <div
                     ref="footer"
                     class="jb-sideslider-footer"
                     :style="footerStyles">
                     <slot name="footer">
                         <bk-button
-                            theme="primary"
                             class="mr10"
                             :loading="isSubmiting"
+                            theme="primary"
                             @click="handleSubmit">
                             {{ okText }}
                         </bk-button>
@@ -74,10 +76,12 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import {
         leaveConfirm,
     } from '@utils/assist';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'JbSideslider',

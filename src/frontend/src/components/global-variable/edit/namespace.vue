@@ -29,10 +29,10 @@
     <div :class="{ 'variable-value-error': isError }">
         <bk-input
             ref="input"
-            :value="value"
+            v-bk-tooltips="descPopover"
             :readonly="readonly"
-            @change="handleChange"
-            v-bk-tooltips="descPopover" />
+            :value="value"
+            @change="handleChange" />
         <p
             v-if="isError"
             class="variable-error">

@@ -26,9 +26,16 @@
 -->
 
 <template>
-    <div class="server-panel-dropdown-menu" @click.stop="" @mouseleave="handleHide">
+    <div
+        class="server-panel-dropdown-menu"
+        @click.stop=""
+        @mouseleave="handleHide">
         <slot />
-        <div class="server-dropdown-menu-content" ref="popoverContent" @mouseover="handleShow" @mouseleave="handleClose">
+        <div
+            ref="popoverContent"
+            class="server-dropdown-menu-content"
+            @mouseleave="handleClose"
+            @mouseover="handleShow">
             <slot name="menu" />
         </div>
     </div>

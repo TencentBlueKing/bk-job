@@ -26,15 +26,17 @@
 -->
 
 <template>
-    <Layout class="job-site" :class="{ loading }">
+    <Layout
+        class="job-site"
+        :class="{ loading }">
         <template #back>
             <router-back />
         </template>
         <template slot="headerRight">
             <bk-popover
-                theme="light site-header-dropdown"
+                :arrow="false"
                 style="margin-right: 8px;"
-                :arrow="false">
+                theme="light site-header-dropdown">
                 <div class="flag-box">
                     <Icon
                         id="siteLocal"
@@ -46,29 +48,52 @@
                         class="item"
                         :class="{ active: currentLangType === 'lang-en' }"
                         @click="handleToggleLang('en')">
-                        <Icon class="lang-flag" type="lang-en" />
+                        <Icon
+                            class="lang-flag"
+                            type="lang-en" />
                         <span>English</span>
                     </div>
                     <div
                         class="item"
                         :class="{ active: currentLangType === 'lang-zh' }"
                         @click="handleToggleLang('zh-CN')">
-                        <Icon class="lang-flag" type="lang-zh" />
+                        <Icon
+                            class="lang-flag"
+                            type="lang-zh" />
                         <span>中文</span>
                     </div>
                 </div>
             </bk-popover>
-            <bk-popover theme="light site-header-dropdown" style="margin-right: 14px;" :arrow="false">
+            <bk-popover
+                :arrow="false"
+                style="margin-right: 14px;"
+                theme="light site-header-dropdown">
                 <div class="flag-box">
-                    <Icon id="siteHelp" type="help-document-fill" />
+                    <Icon
+                        id="siteHelp"
+                        type="help-document-fill" />
                 </div>
                 <div slot="content">
-                    <div class="item" @click="handleLocationDocument">{{ $t('产品文档') }}</div>
-                    <div class="item" @click="handleShowSystemLog">{{ $t('版本日志') }}</div>
-                    <div class="item" @click="handleLocationFeedback">{{ $t('问题反馈') }}</div>
+                    <div
+                        class="item"
+                        @click="handleLocationDocument">
+                        {{ $t('产品文档') }}
+                    </div>
+                    <div
+                        class="item"
+                        @click="handleShowSystemLog">
+                        {{ $t('版本日志') }}
+                    </div>
+                    <div
+                        class="item"
+                        @click="handleLocationFeedback">
+                        {{ $t('问题反馈') }}
+                    </div>
                 </div>
             </bk-popover>
-            <bk-popover theme="light site-header-dropdown" :arrow="false">
+            <bk-popover
+                :arrow="false"
+                theme="light site-header-dropdown">
                 <div class="user-flag">
                     <span style="margin-right: 5px;">{{ currentUser.username }}</span>
                     <i class="bk-icon icon-down-shape" />
@@ -88,14 +113,19 @@
 </template>
 <script>
     import Cookie from 'js-cookie';
-    import I18n, { setLocale } from '@/i18n';
-    import UserService from '@service/user';
-    import QueryGlobalSettingService from '@service/query-global-setting';
+
     import LogoutService from '@service/logout';
+    import QueryGlobalSettingService from '@service/query-global-setting';
+    import UserService from '@service/user';
+
     import EventBus from '@utils/event-bus';
+
     import RouterBack from '@components/router-back';
     import SystemLog from '@components/system-log';
+
     import Layout from './layout-new';
+
+    import I18n, { setLocale } from '@/i18n';
 
     export default {
         name: 'App',

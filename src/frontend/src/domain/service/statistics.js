@@ -25,6 +25,7 @@
 
 /* eslint-disable no-param-reassign */
 import { formatNumber } from '@utils/assist';
+
 import StatisticsSource from '../source/statistics';
 
 export default {

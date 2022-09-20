@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div class="choose-ip-dynamic-group" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="choose-ip-dynamic-group">
         <div class="group-search">
             <bk-input
                 :placeholder="$t('搜索分组名称')"
@@ -34,10 +36,16 @@
                 @input="handleGroupSearch" />
         </div>
         <template v-if="!isLoading">
-            <div v-if="hasNotGroup" class="group-empty">
-                {{ $t('无数据') }}，<a :href="CMDBCreateGroupUrl" target="_blank">{{ $t('去创建') }}</a>
+            <div
+                v-if="hasNotGroup"
+                class="group-empty">
+                {{ $t('无数据') }}，<a
+                    :href="CMDBCreateGroupUrl"
+                    target="_blank">{{ $t('去创建') }}</a>
             </div>
-            <div v-else class="group-list">
+            <div
+                v-else
+                class="group-list">
                 <host-table :list="renderList">
                     <thead>
                         <tr>
@@ -48,35 +56,46 @@
                                         @click.native="handleToggleWholeAll" />
                                 </div>
                             </th>
-                            <th style="width: 450px;">{{ $t('分组名称') }}</th>
+                            <th style="width: 450px;">
+                                {{ $t('分组名称') }}
+                            </th>
                             <th>{{ $t('操作') }}</th>
                         </tr>
                     </thead>
                     <tbody v-if="renderList.length > 0">
-                        <template v-for="group in renderList">
-                            <tr class="group-row" :key="group.id">
-                                <td @click="handleGroupCheck(group.id)">
-                                    <bk-checkbox :checked="checkedMap[group.id]" />
-                                </td>
-                                <td @click="handleGroupCheck(group.id)">{{ group.name }}</td>
-                                <td>
-                                    <bk-button text @click="handlePreview(group)">{{ $t('预览') }}</bk-button>
-                                </td>
-                            </tr>
-                        </template>
+                        <tr
+                            v-for="group in renderList"
+                            :key="group.id"
+                            class="group-row">
+                            <td @click="handleGroupCheck(group.id)">
+                                <bk-checkbox :checked="checkedMap[group.id]" />
+                            </td>
+                            <td @click="handleGroupCheck(group.id)">
+                                {{ group.name }}
+                            </td>
+                            <td>
+                                <bk-button
+                                    text
+                                    @click="handlePreview(group)">
+                                    {{ $t('预览') }}
+                                </bk-button>
+                            </td>
+                        </tr>
                     </tbody>
                 </host-table>
-                <div v-if="pagination.pageSize > 0" style="padding: 16px 0;">
+                <div
+                    v-if="pagination.pageSize > 0"
+                    style="padding: 16px 0;">
                     <bk-pagination
-                        :count="pagination.total"
                         align="right"
-                        show-total-count
-                        :show-limit="false"
-                        :limit="pagination.pageSize"
+                        :count="pagination.total"
                         :current.sync="pagination.page"
+                        :limit="pagination.pageSize"
                         :limit-list="[pagination.pageSize]"
-                        @change="handlePageChange"
-                        small />
+                        :show-limit="false"
+                        show-total-count
+                        small
+                        @change="handlePageChange" />
                 </div>
             </div>
         </template>
@@ -84,11 +103,14 @@
 </template>
 <script>
     import _ from 'lodash';
-    import AppService from '@service/app-manage';
+
+    import HostManageService from '@service/host-manage';
     import QueryGlobalSettingService from '@service/query-global-setting';
+
     import {
         encodeRegexp,
     } from '@utils/assist';
+
     import HostTable from './host-table';
     
     export default {
@@ -169,7 +191,7 @@
              */
             fetchDynamicGroup () {
                 this.isLoading = true;
-                AppService.fetchDynamicGroup()
+                HostManageService.fetchDynamicGroup()
                     .then((data) => {
                         this.list = Object.freeze(data);
                         this.tempList = Object.freeze(data);

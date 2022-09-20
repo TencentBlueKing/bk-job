@@ -26,24 +26,30 @@
 -->
 
 <template>
-    <layout class="sync-plan-step3" :empty="isEmpty" :loading="isLoading">
+    <layout
+        class="sync-plan-step3"
+        :empty="isEmpty"
+        :loading="isLoading">
         <div class="layout-wraper">
             <div class="layout-left">
                 <scroll-faker>
                     <div
-                        class="job-tab"
                         v-for="timeTask in timeTaskList"
-                        :class="{ active: timeTask.id === currentTaskId }"
                         :key="timeTask.id"
+                        class="job-tab"
+                        :class="{ active: timeTask.id === currentTaskId }"
                         @click="handleTabChange(timeTask.id)">
                         <span class="job-name">{{ timeTask.name }}</span>
-                        <Icon v-if="timeTask.hasConfirm" type="check" class="job-check" />
+                        <Icon
+                            v-if="timeTask.hasConfirm"
+                            class="job-check"
+                            type="check" />
                         <div @click.stop="">
                             <bk-switcher
-                                :value="timeTask.enable"
                                 class="job-switch"
                                 size="small"
                                 theme="primary"
+                                :value="timeTask.enable"
                                 @change="value => handleEnableChange(timeTask.id, value)" />
                         </div>
                     </div>
@@ -52,24 +58,28 @@
             <div class="layout-right">
                 <scroll-faker>
                     <crontab-detail
+                        :key="detailInfo.id"
                         :data="detailInfo"
                         :variable-list="templateVariableList"
-                        :key="detailInfo.id"
                         @on-change="handleVariableChange"
                         @on-update-confirm="handleUpdateConfirm" />
                 </scroll-faker>
             </div>
         </div>
         <template #footer>
-            <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-            <bk-button @click="handleLast">{{ $t('template.上一步') }}</bk-button>
+            <bk-button @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
+            <bk-button @click="handleLast">
+                {{ $t('template.上一步') }}
+            </bk-button>
             <jb-popover-confirm
-                :title="$t('template.是否确认同步？')"
+                :confirm-handler="handleSubmit"
                 :content="$t('template.关联定时任务的调整将立即生效')"
-                :confirm-handler="handleSubmit">
+                :title="$t('template.是否确认同步？')">
                 <bk-button
-                    theme="primary"
-                    class="w120">
+                    class="w120"
+                    theme="primary">
                     {{ $t('template.立即同步') }}
                 </bk-button>
             </jb-popover-confirm>
@@ -77,15 +87,19 @@
     </layout>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskPlanService from '@service/task-plan';
     import TimeTaskService from '@service/time-task';
+
     import {
         leaveConfirm,
     } from '@utils/assist';
+
     import ScrollFaker from '@components/scroll-faker';
-    import Layout from '../components/layout';
+
     import CrontabDetail from '../components/crontab-detail';
+    import Layout from '../components/layout';
+
+    import I18n from '@/i18n';
 
     const generatorData = ({ id, name, enable }) => ({
         id,

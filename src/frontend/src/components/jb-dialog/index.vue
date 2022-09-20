@@ -29,26 +29,26 @@
     <bk-dialog
         ref="dialog"
         v-bind="$attrs"
-        v-on="$listeners"
-        :value="isShow"
-        :width="renderWidth"
+        :before-close="beforeClose"
         :draggable="false"
         :show-footer="showFooter"
         :title="title"
-        :before-close="beforeClose"
+        :value="isShow"
+        :width="renderWidth"
+        v-on="$listeners"
         @input="handleInputValue">
         <template v-if="isRender">
             <slot />
         </template>
         <template
-            #footer
-            v-if="showFooter">
+            v-if="showFooter"
+            #footer>
             <slot name="footer">
                 <div class="jb-dialog-footer">
                     <bk-button
-                        theme="primary"
                         class="mr10"
                         :loading="isSubmiting"
+                        theme="primary"
                         @click="handleConfirm">
                         {{ okText }}
                     </bk-button>
@@ -62,8 +62,9 @@
     </bk-dialog>
 </template>
 <script>
-    import I18n from '@/i18n';
     import { leaveConfirm } from '@utils/assist';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'JbDialog',

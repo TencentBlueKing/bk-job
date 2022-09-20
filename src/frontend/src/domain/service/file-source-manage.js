@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import FileSourceManageSource from '../source/file-source-manage';
 import FileSourceModel from '@model/file/file-source';
+
+import FileSourceManageSource from '../source/file-source-manage';
 
 export default {
     availableSourceList (params) {

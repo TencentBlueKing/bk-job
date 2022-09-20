@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div :class="classes" v-test="{ type: 'navigation', value: index }" @click="handleClick">
+    <div
+        v-test="{ type: 'navigation', value: index }"
+        :class="classes"
+        @click="handleClick">
         <slot />
     </div>
 </template>

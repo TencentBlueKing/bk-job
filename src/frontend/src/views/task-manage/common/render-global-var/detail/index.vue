@@ -32,25 +32,36 @@
                 v-for="(item, index) in describeMap"
                 :key="index"
                 class="variable-item">
-                <td class="info-label">{{ item.label }}</td>
+                <td class="info-label">
+                    {{ item.label }}
+                </td>
                 <td class="info-value">
-                    <jb-edit-textarea :field="item.filed" :value="data[item.filed]" readonly />
+                    <jb-edit-textarea
+                        :field="item.filed"
+                        readonly
+                        :value="data[item.filed]" />
                 </td>
             </tr>
         </table>
         <template v-if="data.isHost">
-            <server-panel
+            <!-- <server-panel
                 style="margin-top: 20px;"
                 detail-fullscreen
-                :host-node-info="data.defaultTargetValue.hostNodeInfo" />
+                :host-node-info="data.defaultTargetValue.hostNodeInfo" /> -->
+            <ip-selector
+                readonly
+                show-view
+                :value="data.defaultTargetValue.hostNodeInfo" />
         </template>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import GlobalVariableModel from '@model/task/global-variable';
-    import ServerPanel from '@components/choose-ip/server-panel';
+
+    // import ServerPanel from '@components/choose-ip/server-panel';
     import JbEditTextarea from '@components/jb-edit/textarea';
+
+    import I18n from '@/i18n';
 
     const type = () => ({ label: I18n.t('template.变量类型'), filed: 'typeText' });
     const name = () => ({ label: I18n.t('template.变量名称'), filed: 'name' });
@@ -71,7 +82,7 @@
     export default {
         name: 'GlobalVarView',
         components: {
-            ServerPanel,
+            // ServerPanel,
             JbEditTextarea,
         },
         props: {

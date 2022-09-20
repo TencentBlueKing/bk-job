@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div ref="layout" class="script-version-manage-layout">
+    <div
+        ref="layout"
+        class="script-version-manage-layout">
         <div class="layout-header">
             <div class="header-title">
                 <slot name="title" />

@@ -41,7 +41,9 @@
                     <span>）</span>
                 </span>
             </span>
-            <action-extend :list="list" copyable>
+            <action-extend
+                copyable
+                :list="list">
                 <template v-if="editable">
                     <div
                         class="action-item"
@@ -57,20 +59,21 @@
             </action-extend>
         </div>
         <host-table
-            :list="list"
             editable
             is-search
+            :list="list"
             @on-change="handleRemoveOne" />
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import HostTable from '../components/host-table';
     import ActionExtend from '../components/action-extend';
+    import HostTable from '../components/host-table';
     import {
         sortHost,
         statisticsHost,
     } from '../components/utils';
+
+    import I18n from '@/i18n';
     
     export default {
         name: '',

@@ -27,28 +27,28 @@
 
 <template>
     <div
+        v-bkloading="{ isLoading }"
         class="time-task-operation"
-        :class="{ loading: isLoading }"
-        v-bkloading="{ isLoading }">
+        :class="{ loading: isLoading }">
         <jb-form
             v-if="!isLoading"
-            :model="formData"
-            :rules="rules"
+            ref="timeTaskForm"
             form-type="vertical"
-            ref="timeTaskForm">
+            :model="formData"
+            :rules="rules">
             <jb-form-item
                 :label="$t('cron.任务名称.label')"
-                required
-                property="name">
+                property="name"
+                required>
                 <jb-input
-                    :placeholder="$t('cron.推荐按照该定时执行的实际场景来取名...')"
                     v-model="formData.name"
-                    :maxlength="60" />
+                    :maxlength="60"
+                    :placeholder="$t('cron.推荐按照该定时执行的实际场景来取名...')" />
             </jb-form-item>
             <jb-form-item
                 :label="$t('cron.执行策略.label')"
-                required
-                :property="strategyField">
+                :property="strategyField"
+                required>
                 <bk-radio-group
                     :value="strategy"
                     @change="handleStrategyChange">
@@ -64,13 +64,13 @@
                         v-if="strategy === 'once'"
                         left="40">
                         <bk-date-picker
-                            style="width: 100%;"
                             v-model="formData.executeTime"
-                            :transfer="true"
                             :clearable="false"
                             :options="dateOptions"
-                            type="datetime"
-                            :placeholder="$t('cron.选择日期时间')" />
+                            :placeholder="$t('cron.选择日期时间')"
+                            style="width: 100%;"
+                            :transfer="true"
+                            type="datetime" />
                     </render-strategy>
                     <render-strategy
                         v-else
@@ -83,93 +83,97 @@
             </jb-form-item>
             <form-item-factory
                 v-for="item in strategyFormItemList"
-                :name="item"
                 :key="item"
                 :form-data="formData"
+                :name="item"
                 @on-change="handleFormItemChange" />
             <jb-form-item
                 :label="$t('cron.作业模板')"
-                required
-                property="taskTemplateId">
+                property="taskTemplateId"
+                required>
                 <bk-select
                     v-model="formData.taskTemplateId"
-                    :placeholder="$t('cron.选择作业模板')"
                     :clearable="false"
-                    searchable
                     :loading="isTemplateLoading"
+                    :placeholder="$t('cron.选择作业模板')"
+                    searchable
                     @selected="handleTemplateChange">
                     <auth-option
                         v-for="option in templateList"
-                        :key="option.id"
                         :id="option.id"
+                        :key="option.id"
+                        auth="job_template/view"
                         :name="option.name"
                         :permission="option.canView"
-                        :resource-id="option.id"
-                        auth="job_template/view" />
+                        :resource-id="option.id" />
                 </bk-select>
             </jb-form-item>
             <jb-form-item
                 :label="$t('cron.执行方案')"
-                required
-                property="taskPlanId">
+                property="taskPlanId"
+                required>
                 <div
                     class="plan-select"
                     :class="hasPlan ? 'new-width' : ''">
                     <bk-select
                         v-model="formData.taskPlanId"
-                        :placeholder="$t('cron.选择执行方案')"
                         :clearable="false"
                         :disabled="!hasTemplate"
                         :loading="isPlanLoading"
+                        :placeholder="$t('cron.选择执行方案')"
                         searchable
                         @selected="handlePlanChange">
                         <auth-option
                             v-for="option in planList"
-                            :key="option.id"
                             :id="option.id"
+                            :key="option.id"
+                            auth="job_plan/view"
                             :name="option.name"
                             :permission="option.canView"
-                            :resource-id="option.id"
-                            auth="job_plan/view" />
+                            :resource-id="option.id" />
                     </bk-select>
                 </div>
-                <div class="plan-icon" v-if="hasPlan">
+                <div
+                    v-if="hasPlan"
+                    class="plan-icon">
                     <Icon
-                        type="audit"
                         v-bk-tooltips="$t('cron.查看执行方案')"
+                        type="audit"
                         @click="handleGoPlan" />
                 </div>
             </jb-form-item>
             <div
                 v-if="hasPlan"
-                class="global-variable-content"
-                v-bkloading="{ isLoading: isVariableLoading }">
+                v-bkloading="{ isLoading: isVariableLoading }"
+                class="global-variable-content">
                 <render-strategy left="70">
                     <span
                         v-if="isVariabelEmpty"
                         class="plan-variable-empty">
                         {{ $t('cron.该执行方案无全局变量') }}
                     </span>
-                    <global-variable-layout v-else type="vertical">
+                    <global-variable-layout
+                        v-else
+                        type="vertical">
                         <global-variable
-                            ref="usedVariable"
                             v-for="variable in usedList"
-                            value-width="100%"
-                            :type="variable.type"
                             :key="`${currentRenderPlanId}_${variable.id}_${variable.name}`"
-                            :data="variable" />
+                            ref="usedVariable"
+                            :data="variable"
+                            :type="variable.type"
+                            value-width="100%" />
                         <toggle-display
                             v-if="unusedList.length > 0"
                             :count="unusedList.length"
                             style="max-width: 960px; margin-top: 20px;">
                             <div style="margin-top: 20px;">
                                 <global-variable
-                                    ref="unusedVariable"
                                     v-for="variable in unusedList"
-                                    value-width="100%"
-                                    :type="variable.type"
                                     :key="`${currentRenderPlanId}_${variable.id}_${variable.name}`"
-                                    :data="variable" />
+                                    ref="unusedVariable"
+                                    :data="variable"
+                                    :type="variable.type"
+                                    value-width="100%" />
                             </div>
                         </toggle-display>
                     </global-variable-layout>
@@ -179,22 +183,27 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskService from '@service/task-manage';
     import TaskPlanService from '@service/task-plan';
     import TimeTaskService from '@service/time-task';
+
     import {
-        generatorDefaultCronTime,
         findUsedVariable,
+        generatorDefaultCronTime,
     } from '@utils/assist';
     import { timeTaskNameRule } from '@utils/validator';
-    import GlobalVariableLayout from '@components/global-variable/layout';
+
     import GlobalVariable from '@components/global-variable/edit';
+    import GlobalVariableLayout from '@components/global-variable/layout';
     import ToggleDisplay from '@components/global-variable/toggle-display';
     import JbInput from '@components/jb-input';
+
     import RenderStrategy from '../render-strategy';
-    import FormItemFactory from './form-item-strategy';
+
     import CronJob from './cron-job';
+    import FormItemFactory from './form-item-strategy';
+
+    import I18n from '@/i18n';
 
     const onceItemList = [
         'executeBeforeNotify',

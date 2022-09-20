@@ -28,27 +28,35 @@
 <template>
     <div class="task-export-step2-page">
         <div class="layout-wraper">
-            <div class="layout-left" v-bkloading="{ isLoading }">
+            <div
+                v-bkloading="{ isLoading }"
+                class="layout-left">
                 <scroll-faker>
                     <div
                         v-for="item in jobList"
-                        class="job-list"
-                        :key="item.id">
+                        :key="item.id"
+                        class="job-list">
                         <div
                             class="job-item"
                             :class="{ active: currentTemplateId === item.id }"
                             @click="handlePlanBasic(item.id)">
-                            <div class="text">[{{ item.id }}] {{ item.name }}</div>
+                            <div class="text">
+                                [{{ item.id }}] {{ item.name }}
+                            </div>
                         </div>
                     </div>
                 </scroll-faker>
             </div>
-            <div class="layout-right" v-bkloading="{ isLoading: isPlanLoading }">
+            <div
+                v-bkloading="{ isLoading: isPlanLoading }"
+                class="layout-right">
                 <scroll-faker>
                     <div
                         v-if="currentTemplateId"
                         class="content">
-                        <p class="title">{{ templateTitle }}</p>
+                        <p class="title">
+                            {{ templateTitle }}
+                        </p>
                         <div
                             v-if="renderPlanList.length > 0"
                             class="export-project">
@@ -65,17 +73,17 @@
                                     </bk-button>
                                     <bk-button
                                         v-else
-                                        @click="handleAllSelect"
-                                        text>
+                                        text
+                                        @click="handleAllSelect">
                                         {{ $t('template.全选') }}
                                     </bk-button>
                                 </div>
                             </div>
                             <div class="project-list">
                                 <div
-                                    class="item"
                                     v-for="item in renderPlanList"
                                     :key="item.id"
+                                    class="item"
                                     @click="handlePlanCheck(item.id)">
                                     <div
                                         class="top-middle"
@@ -96,8 +104,8 @@
                         </div>
                         <empty
                             v-if="renderPlanList.length < 1 && !isPlanLoading"
-                            :title="$t('template.暂无执行方案')"
-                            style="margin-top: 100px;" />
+                            style="margin-top: 100px;"
+                            :title="$t('template.暂无执行方案')" />
                     </div>
                 </scroll-faker>
             </div>
@@ -125,7 +133,9 @@
 <script>
     import TaskManageService from '@service/task-manage';
     import TaskPlanService from '@service/task-plan';
+
     import { taskExport } from '@utils/cache-helper';
+
     import Empty from '@components/empty';
 
     export default {

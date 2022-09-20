@@ -28,64 +28,102 @@
 <template>
     <div
         ref="wraper"
-        class="script-version-basic-box"
-        v-bkloading="{ isLoading }">
+        v-bkloading="{ isLoading }"
+        class="script-version-basic-box">
         <template v-if="data.id">
             <div class="script-type-flag">
                 <img :src="`/static/images/script/${data.typeName}.svg`">
             </div>
-            <div class="detail-column" style="width: 270px;">
+            <div
+                class="detail-column"
+                style="width: 270px;">
                 <div class="detail-col">
-                    <div class="item-label">{{ $t('script.脚本名：') }}</div>
+                    <div class="item-label">
+                        {{ $t('script.脚本名：') }}
+                    </div>
                     <div class="item-value">
                         <auth-component
                             auth="script/edit"
                             :resource-id="data.id">
                             <jb-edit-input
-                                style="width: 100%;"
                                 field="scriptName"
-                                :value="data.name"
-                                :remote-hander="val => handleUpdateScript('scriptName', val)" />
-                            <div slot="forbid">{{ data.name }}</div>
+                                :remote-hander="val => handleUpdateScript('scriptName', val)"
+                                style="width: 100%;"
+                                :value="data.name" />
+                            <div slot="forbid">
+                                {{ data.name }}
+                            </div>
                         </auth-component>
                     </div>
                 </div>
                 <div class="detail-col">
-                    <div class="item-label">{{ $t('script.更新人：') }}</div>
+                    <div class="item-label">
+                        {{ $t('script.更新人：') }}
+                    </div>
                     <div class="item-value">
-                        <div class="text-box" v-bk-overflow-tips>{{ data.lastModifyUser }}</div>
+                        <div
+                            v-bk-overflow-tips
+                            class="text-box">
+                            {{ data.lastModifyUser }}
+                        </div>
                     </div>
                 </div>
                 <div class="detail-col">
-                    <div class="item-label">{{ $t('script.创建人：') }}</div>
+                    <div class="item-label">
+                        {{ $t('script.创建人：') }}
+                    </div>
                     <div class="item-value">
-                        <div class="text-box" v-bk-overflow-tips>{{ data.creator }}</div>
+                        <div
+                            v-bk-overflow-tips
+                            class="text-box">
+                            {{ data.creator }}
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="detail-column" style="width: 282px;">
+            <div
+                class="detail-column"
+                style="width: 282px;">
                 <div class="detail-col">
-                    <div class="item-label">{{ $t('script.脚本语言：') }}</div>
+                    <div class="item-label">
+                        {{ $t('script.脚本语言：') }}
+                    </div>
                     <div class="item-value">
-                        <div class="text-box">{{ data.typeName }}</div>
+                        <div class="text-box">
+                            {{ data.typeName }}
+                        </div>
                     </div>
                 </div>
                 <div class="detail-col">
-                    <div class="item-label">{{ $t('script.更新时间：') }}</div>
+                    <div class="item-label">
+                        {{ $t('script.更新时间：') }}
+                    </div>
                     <div class="item-value">
-                        <div class="text-box" v-bk-overflow-tips>{{ data.lastModifyTime }}</div>
+                        <div
+                            v-bk-overflow-tips
+                            class="text-box">
+                            {{ data.lastModifyTime }}
+                        </div>
                     </div>
                 </div>
                 <div class="detail-col">
-                    <div class="item-label">{{ $t('script.创建时间：') }}</div>
-                    <div class="item-value" v-bk-overflow-tips>
-                        <div class="text-box">{{ data.createTime }}</div>
+                    <div class="item-label">
+                        {{ $t('script.创建时间：') }}
+                    </div>
+                    <div
+                        v-bk-overflow-tips
+                        class="item-value">
+                        <div class="text-box">
+                            {{ data.createTime }}
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="detail-column last">
                 <div class="detail-col">
-                    <div class="item-label">{{ $t('script.场景标签：') }}</div>
+                    <div class="item-label">
+                        {{ $t('script.场景标签：') }}
+                    </div>
                     <div class="item-value">
                         <auth-component
                             auth="script/edit"
@@ -93,24 +131,28 @@
                             <jb-edit-tag
                                 class="input"
                                 field="scriptTags"
+                                :remote-hander="val => handleUpdateScript('scriptTags', val)"
                                 :rows="1"
-                                :value="data.tags"
-                                :remote-hander="val => handleUpdateScript('scriptTags', val)" />
-                            <div slot="forbid">{{ data.tagText }}</div>
+                                :value="data.tags" />
+                            <div slot="forbid">
+                                {{ data.tagText }}
+                            </div>
                         </auth-component>
                     </div>
                 </div>
                 <div class="detail-col">
-                    <div class="item-label">{{ $t('script.脚本描述：') }}</div>
+                    <div class="item-label">
+                        {{ $t('script.脚本描述：') }}
+                    </div>
                     <div class="item-value">
                         <jb-edit-textarea
                             field="scriptDesc"
-                            single-row-render
-                            :placeholder="$t('script.在此处标注该脚本的备注和使用说明')"
                             :maxlength="500"
+                            :placeholder="$t('script.在此处标注该脚本的备注和使用说明')"
+                            :remote-hander="val => handleUpdateScript('scriptDesc', val)"
                             :rows="1"
-                            :value="data.description"
-                            :remote-hander="val => handleUpdateScript('scriptDesc', val)" />
+                            single-row-render
+                            :value="data.description" />
                     </div>
                 </div>
             </div>
@@ -118,9 +160,11 @@
     </div>
 </template>
 <script>
-    import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
+    import ScriptService from '@service/script-manage';
+
     import { checkPublicScript } from '@utils/assist';
+
     import JbEditInput from '@components/jb-edit/input';
     import JbEditTag from '@components/jb-edit/tag';
     import JbEditTextarea from '@components/jb-edit/textarea';

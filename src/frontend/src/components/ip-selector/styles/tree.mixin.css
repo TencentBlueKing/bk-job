@@ -1,0 +1,43 @@
+@mixin tree{
+    .topo-node-box {
+        display: flex;
+        padding-right: 3px;
+        font-size: 12px;
+        align-items: center;
+        &:hover{
+            .topo-node-filter,
+            .topo-node-expand{
+                display: block !important;
+            }
+        }
+    }
+
+    .topo-node-name {
+        display: block;
+    }
+
+    .topo-node-filter,
+    .topo-node-expand {
+        display: none;
+        padding: 0 3px;
+        color: #979ba5;
+
+        &:hover {
+            color: #3a84ff;
+        }
+    }
+
+    .topo-node-filter {
+        margin-left: 3px;
+    }
+
+    .topo-node-count {
+        height: 16px;
+        padding: 0 6px;
+        margin-left: auto;
+        line-height: 16px;
+        color: #979ba5;
+        background: #f0f1f5;
+        border-radius: 2px;
+    }
+}

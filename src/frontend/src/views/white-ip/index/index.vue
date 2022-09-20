@@ -29,114 +29,106 @@
     <div>
         <list-action-layout>
             <auth-button
-                theme="primary"
+                v-test="{ type: 'button', value: 'createWhiteIP' }"
                 auth="whitelist/create"
-                @click="handleCreate"
                 class="w120"
-                v-test="{ type: 'button', value: 'createWhiteIP' }">
+                theme="primary"
+                @click="handleCreate">
                 {{ $t('whiteIP.新建') }}
             </auth-button>
             <template #right>
                 <jb-search-select
                     ref="search"
-                    @on-change="handleSearch"
                     :data="searchSelect"
                     :placeholder="$t('whiteIP.搜索IP，生效范围，目标业务')"
-                    style="width: 480px;" />
+                    style="width: 480px;"
+                    @on-change="handleSearch" />
             </template>
         </list-action-layout>
         <render-list
             ref="list"
+            v-test="{ type: 'list', value: 'whiteIP' }"
             :data-source="getWhiteList"
-            :size="tableSize"
             :search-control="() => $refs.search"
-            v-test="{ type: 'list', value: 'whiteIP' }">
+            :size="tableSize">
             <bk-table-column
                 v-if="allRenderColumnMap.ip"
-                label="IP"
                 key="IP"
-                align="left">
+                align="left"
+                label="IP">
                 <template slot-scope="{ row }">
-                    <template v-if="row.hostList.length > 1">
-                        <bk-popover placement="right" theme="light">
-                            <span>{{ row.ip }}</span>
-                            <div slot="content">
-                                <p
-                                    v-for="(item, index) in row.hostList"
-                                    :key="index">
-                                    {{ item.ip }}
-                                </p>
-                            </div>
-                        </bk-popover>
-                    </template>
-                    <template v-else>
-                        <span>{{ row.ip }}</span>
-                    </template>
+                    <render-host-list :data="row.hostList" />
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.scopeText"
-                :label="$t('whiteIP.生效范围.colHead')"
-                prop="scopeText"
                 key="scopeText"
-                align="left" />
+                align="left"
+                :label="$t('whiteIP.生效范围.colHead')"
+                prop="scopeText" />
             <bk-table-column
                 v-if="allRenderColumnMap.appText"
-                :label="$t('whiteIP.目标业务.colHead')"
-                prop="appText"
                 key="appText"
-                align="left" />
+                align="left"
+                :label="$t('whiteIP.目标业务.colHead')"
+                prop="appText" />
+            <bk-table-column
+                v-if="allRenderColumnMap.remark"
+                key="remark"
+                align="left"
+                :label="$t('whiteIP.备注.colHead')"
+                prop="remark" />
             <bk-table-column
                 v-if="allRenderColumnMap.creator"
-                :label="$t('whiteIP.创建人')"
-                prop="creator"
                 key="creator"
-                align="left" />
+                align="left"
+                :label="$t('whiteIP.创建人')"
+                prop="creator" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
-                :label="$t('whiteIP.创建时间')"
-                prop="createTime"
                 key="createTime"
-                align="left" />
+                align="left"
+                :label="$t('whiteIP.创建时间')"
+                prop="createTime" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifier"
-                :label="$t('whiteIP.更新人')"
-                prop="lastModifier"
                 key="lastModifier"
-                align="left" />
+                align="left"
+                :label="$t('whiteIP.更新人')"
+                prop="lastModifier" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
-                :label="$t('whiteIP.更新时间')"
-                prop="lastModifyTime"
                 key="lastModifyTime"
-                align="left" />
+                align="left"
+                :label="$t('whiteIP.更新时间')"
+                prop="lastModifyTime" />
             <bk-table-column
-                :label="$t('whiteIP.操作')"
-                :resizable="false"
-                prop="action"
                 key="action"
+                align="left"
                 fixed="right"
-                width="150"
-                align="left">
+                :label="$t('whiteIP.操作')"
+                prop="action"
+                :resizable="false"
+                width="150">
                 <template slot-scope="{ row }">
                     <auth-button
+                        v-test="{ type: 'button', value: 'createWhiteIP' }"
+                        auth="whitelist/edit"
                         class="mr10"
                         :permission="row.canManage"
-                        auth="whitelist/edit"
                         text
-                        @click="handleEdit(row)"
-                        v-test="{ type: 'button', value: 'createWhiteIP' }">
+                        @click="handleEdit(row)">
                         {{ $t('whiteIP.编辑') }}
                     </auth-button>
                     <jb-popover-confirm
-                        :title="$t('whiteIP.确定删除该IP白名单？')"
+                        :confirm-handler="() => handleDelete(row)"
                         :content="$t('whiteIP.删除后不可恢复，请谨慎操作！')"
-                        :confirm-handler="() => handleDelete(row)">
+                        :title="$t('whiteIP.确定删除该IP白名单？')">
                         <auth-button
-                            :permission="row.canManage"
+                            v-test="{ type: 'button', value: 'deleteWhiteIP' }"
                             auth="whitelist/delete"
-                            text
-                            v-test="{ type: 'button', value: 'deleteWhiteIP' }">
+                            :permission="row.canManage"
+                            text>
                             {{ $t('whiteIP.删除') }}
                         </auth-button>
                     </jb-popover-confirm>
@@ -153,7 +145,7 @@
         <jb-sideslider
             :is-show.sync="isShowCreateWhiteIp"
             v-bind="operationSidesliderInfo"
-            :width="552">
+            :width="852">
             <operation
                 ref="whiteIp"
                 :data="editInfo"
@@ -162,19 +154,24 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import AppManageService from '@service/app-manage';
-    import WhiteIpService from '@service/white-ip';
     import NotifyService from '@service/notify';
+    import WhiteIpService from '@service/white-ip';
+
     import {
         listColumnsCache,
     } from '@utils/cache-helper';
-    import ListActionLayout from '@components/list-action-layout';
-    import RenderList from '@components/render-list';
+
+    import JbPopoverConfirm from '@components/jb-popover-confirm';
     import JbSearchSelect from '@components/jb-search-select';
     import JbSideslider from '@components/jb-sideslider';
-    import JbPopoverConfirm from '@components/jb-popover-confirm';
+    import ListActionLayout from '@components/list-action-layout';
+    import RenderList from '@components/render-list';
+
     import Operation from './components/operation';
+    import RenderHostList from './components/render-host-list.vue';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'white_ip_list_columns';
 
@@ -183,6 +180,7 @@
         components: {
             ListActionLayout,
             RenderList,
+            RenderHostList,
             JbSearchSelect,
             JbSideslider,
             JbPopoverConfirm,
@@ -261,6 +259,10 @@
                     id: 'appText',
                     label: I18n.t('whiteIP.目标业务.colHead'),
                     disabled: true,
+                },
+                {
+                    id: 'remark',
+                    label: I18n.t('whiteIP.备注.colHead'),
                 },
                 {
                     id: 'creator',

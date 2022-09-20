@@ -30,101 +30,101 @@
         <list-action-layout>
             <jb-search-select
                 ref="search"
-                @on-change="handleSearch"
                 :data="searchSelect"
                 :placeholder="$t('detectRecords.搜索拦截ID，表达式，业务，执行人，执行方式，调用方，动作…')"
-                style="width: 480px;" />
+                style="width: 480px;"
+                @on-change="handleSearch" />
             <template #right>
                 <bk-date-picker
                     ref="datePicker"
-                    :value="defaultDateTime"
+                    :clearable="false"
                     :placeholder="$t('detectRecords.选择日期')"
+                    :shortcut-close="true"
                     :shortcuts="shortcuts"
                     type="datetimerange"
-                    :shortcut-close="true"
-                    :use-shortcut-text="true"
-                    :clearable="false"
                     up-to-now
+                    :use-shortcut-text="true"
+                    :value="defaultDateTime"
                     @change="handleDateChange" />
             </template>
         </list-action-layout>
         <render-list
             ref="list"
-            :size="tableSize"
+            v-test="{ type: 'list', value: 'detectRecord' }"
             :data-source="fetchDetectRecordsList"
             :search-control="() => $refs.search"
-            v-test="{ type: 'list', value: 'detectRecord' }">
+            :size="tableSize">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
+                key="id"
+                align="left"
                 label="ID"
                 prop="id"
-                key="id"
-                width="80"
-                align="left">
+                width="80">
                 <template slot-scope="{ row }">
                     {{ row.id }}
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.ruleExpression"
-                :label="$t('detectRecords.表达式.colHead')"
-                prop="ruleExpression"
                 key="ruleExpression"
                 align="left"
+                :label="$t('detectRecords.表达式.colHead')"
+                prop="ruleExpression"
                 show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.appId"
+                key="scopeName"
+                align="left"
                 :label="$t('detectRecords.业务.colHead')"
                 prop="scopeName"
-                key="scopeName"
-                width="200"
-                align="left">
+                width="200">
                 <template slot-scope="{ row }">
                     <span>[{{ row.scopeId }}] {{ row.scopeName }}</span>
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.operator"
+                key="operator"
+                align="left"
                 :label="$t('detectRecords.执行人.colHead')"
                 prop="operator"
-                key="operator"
-                width="140"
-                align="left" />
+                width="140" />
             <bk-table-column
                 v-if="allRenderColumnMap.statusDesc"
+                key="createTime"
+                align="left"
                 :label="$t('detectRecords.执行时间')"
                 prop="createTime"
-                key="createTime"
-                width="200"
-                align="left">
+                width="200">
                 <template slot-scope="{ row }">
                     {{ row.getCreatTimes }}
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.startupMode"
+                key="startupMode"
+                align="left"
                 :label="$t('detectRecords.执行方式.colHead')"
                 prop="startupMode"
-                key="startupMode"
-                width="140"
-                align="left">
+                width="140">
                 <template slot-scope="{ row }">
                     {{ row.getStartupModeHtml }}
                 </template>
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.client"
+                key="client"
+                align="left"
                 :label="$t('detectRecords.调用方.colHead')"
                 prop="client"
-                key="client"
-                width="150"
-                align="left" />
+                width="150" />
             <bk-table-column
                 v-if="allRenderColumnMap.action"
-                :label="$t('detectRecords.动作.colHead')"
-                :render-header="renderPatternHeader"
-                prop="mode"
                 key="mode"
+                :label="$t('detectRecords.动作.colHead')"
+                prop="mode"
+                :render-header="renderPatternHeader"
                 width="150">
                 <template slot-scope="{ row }">
                     <span v-html="row.getActionHtml" />
@@ -132,26 +132,26 @@
             </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.scriptLanguage"
+                key="scriptLanguage"
+                align="left"
                 :label="$t('detectRecords.脚本语言.colHead')"
                 prop="scriptLanguage"
-                key="scriptLanguage"
-                width="150"
-                align="left">
+                width="150">
                 <template slot-scope="{ row }">
                     {{ row.getSctiptTypeHtml }}
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('detectRecords.操作')"
                 key="action"
-                fixed="right"
                 align="left"
+                fixed="right"
+                :label="$t('detectRecords.操作')"
                 width="100">
                 <template slot-scope="{ row }">
                     <bk-button
+                        v-test="{ type: 'button', value: 'viewDetectScript' }"
                         text
-                        @click="handleShowScriptContent(row)"
-                        v-test="{ type: 'button', value: 'viewDetectScript' }">
+                        @click="handleShowScriptContent(row)">
                         {{ $t('detectRecords.查看脚本') }}
                     </bk-button>
                 </template>
@@ -166,8 +166,8 @@
         </render-list>
         <jb-sideslider
             :is-show.sync="isShowScriptContent"
-            :title="$t('detectRecords.脚本内容')"
             :show-footer="false"
+            :title="$t('detectRecords.脚本内容')"
             :width="900">
             <render-script-content :data="scriptData" />
         </jb-sideslider>
@@ -175,26 +175,30 @@
 </template>
 
 <script>
-    import I18n from '@/i18n';
+    import AppManageService from '@service/app-manage';
+    import DangerousRecordService from '@service/dangerous-record';
+    import NotifyService from '@service/notify';
+
     import {
         prettyDateTimeFormat,
     } from '@utils/assist';
     import {
         listColumnsCache,
     } from '@utils/cache-helper';
-    import NotifyService from '@service/notify';
-    import AppManageService from '@service/app-manage';
-    import DangerousRecordService from '@service/dangerous-record';
-    import RenderList from '@components/render-list';
-    import JbSideslider from '@components/jb-sideslider';
+
     import JbSearchSelect from '@components/jb-search-select';
+    import JbSideslider from '@components/jb-sideslider';
     import ListActionLayout from '@components/list-action-layout';
+    import RenderList from '@components/render-list';
+
     import RenderScriptContent from './components/render-script-content';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'detect_records_list_columns';
 
     export default {
-        name: 'detectRecordsList',
+        name: 'DetectRecordsList',
         components: {
             RenderList,
             JbSideslider,

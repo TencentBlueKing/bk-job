@@ -29,7 +29,9 @@
     <tbody class="create-server-file">
         <tr v-if="hasSaved">
             <td colspan="4">
-                <bk-button text @click="handleAddNew">
+                <bk-button
+                    text
+                    @click="handleAddNew">
                     <Icon type="plus" />
                     {{ $t('添加一行') }}
                 </bk-button>
@@ -39,14 +41,18 @@
         <tr v-else>
             <td>
                 <edit-file-path
-                    :value="serverFile.fileLocation"
                     mode="input"
+                    :value="serverFile.fileLocation"
                     @on-change="handleFileChange" />
             </td>
             <template v-if="serverFile.isHostEmpty">
                 <td>
-                    <div class="server-add-only-host-btn" @click="handleShowChooseIp">
-                        <Icon type="plus" class="add-flag" />
+                    <div
+                        class="server-add-only-host-btn"
+                        @click="handleShowChooseIp">
+                        <Icon
+                            class="add-flag"
+                            type="plus" />
                         {{ $t('添加服务器') }}
                     </div>
                 </td>
@@ -54,7 +60,9 @@
             </template>
             <template v-else>
                 <td>
-                    <div class="server-edit-btn" @click="handleShowChooseIp">
+                    <div
+                        class="server-edit-btn"
+                        @click="handleShowChooseIp">
                         <div v-html="serverFile.serverDesc" />
                     </div>
                 </td>
@@ -63,24 +71,33 @@
             <td>
                 <account-select
                     class="account-add-btn"
-                    :value="serverFile.account"
                     type="system"
+                    :value="serverFile.account"
                     @change="handleAccountChange" />
             </td>
             <td>
                 <bk-button
+                    :disabled="serverFile.isDisableSave"
                     text
-                    @click="handlerSave"
-                    :disabled="serverFile.isDisableSave">
+                    @click="handlerSave">
                     {{ $t('保存') }}
                 </bk-button>
-                <bk-button text @click="handlerCancel">{{ $t('取消') }}</bk-button>
+                <bk-button
+                    text
+                    @click="handlerCancel">
+                    {{ $t('取消') }}
+                </bk-button>
             </td>
         </tr>
-        <choose-ip
+        <!-- <choose-ip
             ref="chooseIp"
             v-model="isShowChooseIp"
-            @on-change="handleHostChange" />
+            @on-change="handleHostChange" /> -->
+        <ip-selector
+            ref="ipSelector"
+            :show-dialog="isShowChooseIp"
+            @change="handleHostChange"
+            @close-dialog="handleCloseIpSelector" />
     </tbody>
 </template>
 <script>
@@ -88,12 +105,16 @@
     import {
         mapMutations,
     } from 'vuex';
-    import SourceFileVO from '@domain/variable-object/source-file';
+
     import {
         findParent,
     } from '@utils/vdom';
-    import ChooseIp from '@components/choose-ip';
+
+    // import ChooseIp from '@components/choose-ip';
     import AccountSelect from '@components/account-select';
+
+    import SourceFileVO from '@domain/variable-object/source-file';
+
     import EditFilePath from '../../components/edit-file-path';
 
     const generatorDefault = () => new SourceFileVO({
@@ -105,7 +126,7 @@
     export default {
         name: '',
         components: {
-            ChooseIp,
+            // ChooseIp,
             AccountSelect,
             EditFilePath,
         },
@@ -158,6 +179,9 @@
             handleShowChooseIp () {
                 this.isShowChooseIp = true;
             },
+            handleCloseIpSelector () {
+                this.isShowChooseIp = false;
+            },
             /**
              * @desc 服务器账号更新
              * @param {Number} accountId 主机值
@@ -196,7 +220,7 @@
             handlerCancel () {
                 this.$emit('on-cancel');
                 this.serverFile = generatorDefault();
-                this.$refs.chooseIp.reset();
+                this.$refs.ipSelector.resetValue();
                 this.hasSaved = true;
                 setTimeout(() => {
                     this.editNewSourceFile(false);

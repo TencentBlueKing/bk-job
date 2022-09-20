@@ -31,13 +31,43 @@
             :height="392"
             :width="546"
             v-bind="$attrs">
-            <rect x="20" y="38" width="2" height="327" />
-            <rect x="0" y="70" width="546" height="42" rx="21" />
-            <rect x="0" y="140" width="546" height="42" rx="21" />
-            <rect x="0" y="210" width="546" height="42" rx="21" />
-            <rect x="0" y="280" width="546" height="42" rx="21" />
-            <circle cx="21" cy="21" r="21" />
-            <circle cx="21" cy="371" r="21" />
+            <rect
+                height="327"
+                width="2"
+                x="20"
+                y="38" />
+            <rect
+                height="42"
+                rx="21"
+                width="546"
+                x="0"
+                y="70" />
+            <rect
+                height="42"
+                rx="21"
+                width="546"
+                x="0"
+                y="140" />
+            <rect
+                height="42"
+                rx="21"
+                width="546"
+                x="0"
+                y="210" />
+            <rect
+                height="42"
+                rx="21"
+                width="546"
+                x="0"
+                y="280" />
+            <circle
+                cx="21"
+                cy="21"
+                r="21" />
+            <circle
+                cx="21"
+                cy="371"
+                r="21" />
         </content-loader>
     </div>
 </template>

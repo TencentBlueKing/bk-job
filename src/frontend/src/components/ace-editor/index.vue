@@ -26,56 +26,62 @@
 -->
 
 <template>
-    <div ref="aceEditor" class="jd-ace-editor" :style="{ height: `${height}px` }">
+    <div
+        ref="aceEditor"
+        class="jd-ace-editor"
+        :style="{ height: `${height}px` }">
         <div
             ref="contentWrapper"
+            v-bkloading="{ isLoading: isLoading, opacity: 0.2 }"
             class="jb-ace-content"
             :class="{ readonly }"
-            :style="boxStyle"
-            v-bkloading="{ isLoading: isLoading, opacity: 0.2 }">
+            :style="boxStyle">
             <div
                 v-if="showTabHeader"
                 class="jb-ace-title"
                 :style="{ height: `${tabHeight}px` }">
-                <template v-for="(val, key) in tabList">
-                    <div
-                        class="jb-ace-mode-item"
-                        @click="handleLangChange(key)"
-                        :key="val"
-                        :class="{ 'active': currentLang === key }">
-                        {{ key }}
-                    </div>
-                </template>
+                <div
+                    v-for="(val, key) in tabList"
+                    :key="val"
+                    class="jb-ace-mode-item"
+                    :class="{ 'active': currentLang === key }"
+                    @click="handleLangChange(key)">
+                    {{ key }}
+                </div>
             </div>
             <div class="jb-ace-main">
                 <div class="ace-edit-content">
-                    <div :id="selfId" :style="editorStyle" />
+                    <div
+                        :id="selfId"
+                        :style="editorStyle" />
                 </div>
                 <div class="right-side-panel">
                     <slot name="side" />
                 </div>
             </div>
-            <div class="jb-ace-action" :style="{ height: `${tabHeight}px` }">
+            <div
+                class="jb-ace-action"
+                :style="{ height: `${tabHeight}px` }">
                 <slot name="action" />
                 <template v-if="!readonly && !isFullScreen">
                     <Icon
+                        v-bk-tooltips="$t('上传脚本')"
                         type="upload"
-                        @click="handleUploadScript"
-                        v-bk-tooltips="$t('上传脚本')" />
+                        @click="handleUploadScript" />
                     <Icon
+                        v-bk-tooltips="$t('历史缓存')"
                         type="history"
-                        @click.stop="handleShowHistory"
-                        v-bk-tooltips="$t('历史缓存')" />
+                        @click.stop="handleShowHistory" />
                 </template>
                 <Icon
                     v-if="!isFullScreen"
-                    type="full-screen"
                     v-bk-tooltips="$t('全屏')"
+                    type="full-screen"
                     @click="handleFullScreen" />
                 <Icon
                     v-if="isFullScreen"
-                    type="un-full-screen"
                     v-bk-tooltips="$t('还原')"
+                    type="un-full-screen"
                     @click="handleExitFullScreen" />
             </div>
             <div
@@ -85,32 +91,68 @@
                 @click.stop="">
                 <div class="panel-header">
                     <div>{{ $t('历史缓存') }}</div>
-                    <div class="save-btn" @click.stop="handleSaveHistory">{{ $t('手动保存') }}</div>
+                    <div
+                        class="save-btn"
+                        @click.stop="handleSaveHistory">
+                        {{ $t('手动保存') }}
+                    </div>
                 </div>
-                <div v-if="historyList.length > 0" style="max-height: 250px;">
+                <div
+                    v-if="historyList.length > 0"
+                    style="max-height: 250px;">
                     <scroll-faker>
                         <div class="panel-body">
-                            <div v-for="item in historyList" :key="item.name" class="item">
-                                <div class="history-name" v-bk-overflow-tips>{{ item.name }}</div>
-                                <div class="history-action" @click="handleChangeValueFromHistory(item)">{{ $t('载入') }}</div>
+                            <div
+                                v-for="item in historyList"
+                                :key="item.name"
+                                class="item">
+                                <div
+                                    v-bk-overflow-tips
+                                    class="history-name">
+                                    {{ item.name }}
+                                </div>
+                                <div
+                                    class="history-action"
+                                    @click="handleChangeValueFromHistory(item)">
+                                    {{ $t('载入') }}
+                                </div>
                             </div>
                         </div>
                     </scroll-faker>
                 </div>
-                <empty v-else class="history-empty" :width="100" />
+                <empty
+                    v-else
+                    class="history-empty"
+                    :width="100" />
             </div>
             <input
                 ref="upload"
-                type="file"
                 style="position: absolute; width: 0; height: 0;"
+                type="file"
                 @change="handleStartUpload">
         </div>
     </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import { Base64 } from 'js-base64';
     import ace from 'ace/ace';
+    import { Base64 } from 'js-base64';
+    import _ from 'lodash';
+
+    import PublicScriptService from '@service/public-script-manage';
+    import ScriptService from '@service/script-manage';
+    import ScriptTemplateService from '@service/script-template';
+    import UserService from '@service/user';
+
+    import {
+        formatScriptTypeValue,
+        prettyDateTimeFormat,
+    } from '@utils/assist';
+
+    import Empty from '@components/empty';
+    import ScrollFaker from '@components/scroll-faker';
+
+    import DefaultScript from './default-script';
+
     import 'ace/mode-sh';
     import 'ace/snippets/sh';
     import 'ace/mode-batchfile';
@@ -129,17 +171,6 @@
     import 'ace/ext-keybinding_menu';
     import 'ace/ext-elastic_tabstops_lite';
     import I18n from '@/i18n';
-    import ScriptTemplateService from '@service/script-template';
-    import ScriptService from '@service/script-manage';
-    import PublicScriptService from '@service/public-script-manage';
-    import UserService from '@service/user';
-    import ScrollFaker from '@components/scroll-faker';
-    import Empty from '@components/empty';
-    import {
-        formatScriptTypeValue,
-        prettyDateTimeFormat,
-    } from '@utils/assist';
-    import DefaultScript from './default-script';
 
     export const builtInScript = Object.keys(DefaultScript).reduce((result, item) => {
         result[item] = Base64.encode(DefaultScript[item]);

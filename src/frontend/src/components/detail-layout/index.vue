@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div ref="detailLayout" class="jb-detail-layout" :class="[mode, layout]">
+    <div
+        ref="detailLayout"
+        class="jb-detail-layout"
+        :class="[mode, layout]">
         <slot />
     </div>
 </template>

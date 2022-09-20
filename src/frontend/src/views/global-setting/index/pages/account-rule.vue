@@ -26,42 +26,61 @@
 -->
 
 <template>
-    <div class="page-account-rule" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="page-account-rule">
         <smart-action offset-target="expression-input">
             <div class="wraper">
-                <div v-for="(rule, index) in currentRules" :key="index" class="account-block">
-                    <div class="name">{{ rule.osTypeText }}</div>
+                <div
+                    v-for="(rule, index) in currentRules"
+                    :key="index"
+                    class="account-block">
+                    <div class="name">
+                        {{ rule.osTypeText }}
+                    </div>
                     <div class="expression-input">
                         <bk-input
-                            :value="rule.expression"
                             :placeholder="$t('setting.请输入命名规则')"
+                            :value="rule.expression"
                             @change="value => handleChange('expression', value, index)" />
                     </div>
                     <div class="rule">
                         <bk-input
-                            :value="rule.description"
                             :placeholder="$t('setting.请输入命名规则提醒文案')"
+                            :value="rule.description"
                             @change="value => handleChange('description', value, index)" />
                     </div>
-                    <bk-button text class="reset" @click="handleReset(index)">{{ $t('setting.恢复默认') }}</bk-button>
+                    <bk-button
+                        class="reset"
+                        text
+                        @click="handleReset(index)">
+                        {{ $t('setting.恢复默认') }}
+                    </bk-button>
                 </div>
             </div>
             <template #action>
                 <bk-button
-                    theme="primary"
-                    :loading="isSubmitting"
                     class="w120 mr10"
-                    @click="handleSave">{{ $t('setting.保存') }}</bk-button>
-                <bk-button @click="handleResetAll">{{ $t('setting.重置') }}</bk-button>
+                    :loading="isSubmitting"
+                    theme="primary"
+                    @click="handleSave">
+                    {{ $t('setting.保存') }}
+                </bk-button>
+                <bk-button @click="handleResetAll">
+                    {{ $t('setting.重置') }}
+                </bk-button>
             </template>
         </smart-action>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import _ from 'lodash';
+
     import GlobalSettingService from '@service/global-setting';
+
     import SmartAction from '@components/smart-action';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

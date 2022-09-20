@@ -42,50 +42,52 @@
                 </bk-button>
                 <template #right>
                     <jb-search-select
-                        @on-change="handleSearch"
                         :data="searchSelect"
                         :placeholder="$t('script.直接输入 版本号 或 更新人 进行全局模糊搜索')"
                         :show-condition="false"
-                        style="width: 420px;" />
+                        style="width: 420px;"
+                        @on-change="handleSearch" />
                 </template>
             </list-action-layout>
             <div ref="list">
-                <layout :flod="isListFlod" @on-flod="handleLayoutFlod">
+                <layout
+                    :flod="isListFlod"
+                    @on-flod="handleLayoutFlod">
                     <bk-table
                         v-if="tableHeight"
                         class="script-version-list"
                         :data="renderList"
-                        :outer-border="false"
                         :max-height="tableHeight"
-                        @row-click="handleRowSelect"
-                        @sort-change="handleSortChange"
+                        :outer-border="false"
+                        :row-class-name="rowClassName"
                         :size="tableSize"
-                        :row-class-name="rowClassName">
+                        @row-click="handleRowSelect"
+                        @sort-change="handleSortChange">
                         <bk-table-column
                             key="selection"
-                            width="47"
                             align="center"
-                            :resizable="false">
+                            :resizable="false"
+                            width="47">
                             <template slot-scope="{ row }">
                                 <bk-checkbox
-                                    :disabled="!isRowSelectable(row)"
                                     :checked="isRowChecked(row)"
+                                    :disabled="!isRowSelectable(row)"
                                     @change="checked => handleSelectionChange(row, checked)" />
                             </template>
                         </bk-table-column>
                         <bk-table-column
                             v-if="allColumnMap.scriptVersionId"
-                            :label="$t('script.版本 ID')"
-                            prop="scriptVersionId"
                             key="scriptVersionId"
                             align="left"
+                            :label="$t('script.版本 ID')"
+                            prop="scriptVersionId"
                             width="100" />
                         <bk-table-column
                             v-if="allColumnMap.version"
-                            :label="$t('script.版本号.colHead')"
-                            prop="version"
                             key="version"
                             align="left"
+                            :label="$t('script.版本号.colHead')"
+                            prop="version"
                             show-overflow-tooltip
                             :sortable="true">
                             <template slot-scope="{ row }">
@@ -94,19 +96,19 @@
                         </bk-table-column>
                         <bk-table-column
                             v-if="allColumnMap.relatedTaskNum"
+                            key="relatedTaskNum"
+                            align="right"
                             :label="$t('script.被引用.colHead')"
                             prop="relatedTaskNum"
-                            key="relatedTaskNum"
                             :render-header="renderHeader"
-                            align="right"
                             width="150">
                             <template slot-scope="{ row }">
                                 <bk-button
-                                    class="mr20"
-                                    text
                                     v-bk-tooltips.allowHtml="`
                                     <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
                                     <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
+                                    class="mr20"
+                                    text
                                     @click="handleShowRelated(row)">
                                     <span>
                                         {{ row.relatedTaskTemplateNum }}
@@ -120,27 +122,27 @@
                         </bk-table-column>
                         <bk-table-column
                             v-if="allColumnMap.lastModifyUser"
-                            :label="$t('script.更新人.colHead')"
-                            prop="lastModifyUser"
                             key="lastModifyUser"
                             align="left"
+                            :label="$t('script.更新人.colHead')"
+                            prop="lastModifyUser"
                             width="160" />
                         <bk-table-column
                             v-if="allColumnMap.lastModifyTime"
-                            :label="$t('script.更新时间')"
-                            prop="lastModifyTime"
                             key="lastModifyTime"
                             align="left"
-                            width="200"
-                            :sortable="true" />
+                            :label="$t('script.更新时间')"
+                            prop="lastModifyTime"
+                            :sortable="true"
+                            width="200" />
                         <bk-table-column
                             v-if="allColumnMap.statusDesc"
-                            :label="$t('script.状态')"
-                            prop="statusDesc"
                             key="statusDesc"
                             align="left"
-                            width="120"
-                            :sortable="true">
+                            :label="$t('script.状态')"
+                            prop="statusDesc"
+                            :sortable="true"
+                            width="120">
                             <template slot-scope="{ row }">
                                 <span v-html="row.statusHtml" />
                                 <Icon
@@ -151,24 +153,26 @@
                         </bk-table-column>
                         <bk-table-column
                             v-if="!isListFlod"
-                            :label="$t('script.操作')"
-                            prop="action"
                             key="action"
                             align="left"
+                            :label="$t('script.操作')"
+                            prop="action"
                             width="200">
-                            <div slot-scope="{ row }" @click.stop="">
+                            <div
+                                slot-scope="{ row }"
+                                @click.stop="">
                                 <jb-popover-confirm
                                     v-if="!row.isOnline"
                                     class="mr10"
-                                    :title="$t('script.确定上线该版本？')"
+                                    :confirm-handler="() => handleOnline(row.id, row.scriptVersionId)"
                                     :content="$t('script.上线后，之前的线上版本将被置为「已下线」状态，但不影响作业使用')"
                                     :disabled="row.isDisabledOnline"
-                                    :confirm-handler="() => handleOnline(row.id, row.scriptVersionId)">
+                                    :title="$t('script.确定上线该版本？')">
                                     <auth-button
-                                        :permission="row.canManage"
-                                        :resource-id="row.id"
                                         auth="script/edit"
                                         :disabled="row.isDisabledOnline"
+                                        :permission="row.canManage"
+                                        :resource-id="row.id"
                                         text>
                                         {{ $t('script.上线') }}
                                     </auth-button>
@@ -176,23 +180,23 @@
                                 <jb-popover-confirm
                                     v-if="row.isOnline"
                                     class="mr10"
-                                    :title="$t('script.确定禁用该版本？')"
+                                    :confirm-handler="() => handleOffline(row.id, row.scriptVersionId)"
                                     :content="$t('script.一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！')"
-                                    :confirm-handler="() => handleOffline(row.id, row.scriptVersionId)">
+                                    :title="$t('script.确定禁用该版本？')">
                                     <auth-button
+                                        auth="script/edit"
                                         :permission="row.canManage"
                                         :resource-id="row.id"
-                                        auth="script/edit"
                                         text>
                                         {{ $t('script.禁用') }}
                                     </auth-button>
                                 </jb-popover-confirm>
                                 <auth-button
                                     v-if="row.isDraft"
+                                    auth="script/edit"
                                     class="mr10"
                                     :permission="row.canManage"
                                     :resource-id="row.id"
-                                    auth="script/edit"
                                     text
                                     @click="handleEdit(row)">
                                     {{ $t('script.编辑') }}
@@ -202,10 +206,10 @@
                                     class="mr10"
                                     :tippy-tips="isCopyCreateDisabled ? $t('script.已有[未上线]版本') : ''">
                                     <auth-button
-                                        :permission="row.canClone"
-                                        :resource-id="row.id"
                                         auth="script/clone"
                                         :disabled="isCopyCreateDisabled"
+                                        :permission="row.canClone"
+                                        :resource-id="row.id"
                                         text
                                         @click="handleToggleCopyCreate(row)">
                                         {{ $t('script.复制并新建') }}
@@ -213,11 +217,11 @@
                                 </span>
                                 <auth-button
                                     v-if="row.isOnline"
-                                    text
-                                    :permission="row.canManage"
                                     auth="script/execute"
-                                    :resource-id="row.id"
                                     :disabled="row.isExecuteDisable"
+                                    :permission="row.canManage"
+                                    :resource-id="row.id"
+                                    text
                                     @click="handleGoExce(row)">
                                     {{ $t('script.去执行') }}
                                 </auth-button>
@@ -226,25 +230,25 @@
                                     :tippy-tips="!row.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
                                     <auth-button
                                         v-if="row.isOnline"
-                                        :permission="row.canManage"
-                                        :resource-id="row.id"
                                         auth="script/edit"
                                         class="ml10"
                                         :disabled="!row.syncEnabled"
-                                        @click="handleSync(row)"
-                                        text>
+                                        :permission="row.canManage"
+                                        :resource-id="row.id"
+                                        text
+                                        @click="handleSync(row)">
                                         {{ $t('script.同步') }}
                                     </auth-button>
                                 </span>
                                 <jb-popover-confirm
                                     v-if="row.isVersionEnableRemove"
-                                    :title="$t('script.确定删除该版本？')"
+                                    :confirm-handler="() => handleRemove(row.scriptVersionId)"
                                     :content="$t('script.删除后不可恢复，请谨慎操作！')"
-                                    :confirm-handler="() => handleRemove(row.scriptVersionId)">
+                                    :title="$t('script.确定删除该版本？')">
                                     <auth-button
+                                        auth="script/delete"
                                         :permission="row.canManage"
                                         :resource-id="row.id"
-                                        auth="script/delete"
                                         text>
                                         {{ $t('script.删除') }}
                                     </auth-button>
@@ -262,31 +266,33 @@
                     <template slot="flod">
                         <component
                             :is="curCom"
-                            :script-version-list="data"
                             :script-info="selectVersion"
-                            @on-edit-change="handleScriptChangeSubmit"
-                            @on-go-copy-create="handleToggleCopyCreate"
-                            @on-go-edit="handleToggleEdit"
-                            @on-delete="handleDeleteSubmit"
-                            @on-create-change="handleCreateValueChange"
+                            :script-version-list="data"
                             @on-create="handleCreateSubmit"
                             @on-create-cancel="handleCreateCancel"
+                            @on-create-change="handleCreateValueChange"
+                            @on-delete="handleDeleteSubmit"
                             @on-edit="handleEditSubmit"
-                            @on-edit-cancel="handleEditCancel" />
+                            @on-edit-cancel="handleEditCancel"
+                            @on-edit-change="handleScriptChangeSubmit"
+                            @on-go-copy-create="handleToggleCopyCreate"
+                            @on-go-edit="handleToggleEdit" />
                     </template>
                 </layout>
             </div>
         </div>
         <div style="display: none;">
-            <div id="newVersionDisableActions" style="padding: 16px 12px;">
+            <div
+                id="newVersionDisableActions"
+                style="padding: 16px 12px;">
                 <div style="margin-bottom: 17px; font-size: 14px; line-height: 22px; color: #313238;">
                     {{ $t('script.已有[未上线]版本') }}
                 </div>
                 <div>
                     <bk-button
-                        theme="primary"
                         size="small"
                         style="margin-right: 8px;"
+                        theme="primary"
                         @click="handleEditDraftVersion">
                         {{ $t('script.前往编辑') }}
                     </bk-button>
@@ -303,16 +309,16 @@
         </element-teleport>
         <Diff
             v-if="showDiff"
-            :title="$t('script.版本对比')"
             :data="dataMemo"
-            :old-version-id="diffInfo.oldVersionId"
             :new-version-id="diffInfo.newVersionId"
-            @on-change="handleDiffVersionChange"
-            @close="handleDiffClose" />
+            :old-version-id="diffInfo.oldVersionId"
+            :title="$t('script.版本对比')"
+            @close="handleDiffClose"
+            @on-change="handleDiffVersionChange" />
         <jb-sideslider
             :is-show.sync="showRelated"
-            :show-footer="false"
             quick-close
+            :show-footer="false"
             :title="$t('script.被引用.label')"
             :width="695">
             <script-related-info
@@ -322,9 +328,9 @@
         <jb-dialog
             v-model="isShowNewVersion"
             header-position="left"
-            :title="$t('script.新建版本')"
-            :ok-text="$t('script.确定')"
             :mask-close="false"
+            :ok-text="$t('script.确定')"
+            :title="$t('script.新建版本')"
             :width="480">
             <new-version
                 :version-list="data"
@@ -334,32 +340,39 @@
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import Tippy from 'bk-magic-vue/lib/utils/tippy';
-    import I18n from '@/i18n';
-    import ScriptService from '@service/script-manage';
-    import PublicScriptService from '@service/public-script-manage';
+    import _ from 'lodash';
+
     import NotifyService from '@service/notify';
+    import PublicScriptService from '@service/public-script-manage';
+    import ScriptService from '@service/script-manage';
+
     import ScriptModel from '@model/script/script';
-    import JbSearchSelect from '@components/jb-search-select';
-    import ListActionLayout from '@components/list-action-layout';
-    import JbPopoverConfirm from '@components/jb-popover-confirm';
+
     import {
         checkPublicScript,
-        leaveConfirm,
-        getOffset,
-        genDefaultScriptVersion,
         encodeRegexp,
+        genDefaultScriptVersion,
+        getOffset,
+        leaveConfirm,
     } from '@utils/assist';
     import { listColumnsCache } from '@utils/cache-helper';
-    import ScriptRelatedInfo from '../common/script-related-info';
+
+    import JbPopoverConfirm from '@components/jb-popover-confirm';
+    import JbSearchSelect from '@components/jb-search-select';
+    import ListActionLayout from '@components/list-action-layout';
+
+    import CopyCreate from '../common/copy-create';
     import DetailScript from '../common/detail/index';
     import Edit from '../common/edit';
-    import CopyCreate from '../common/copy-create';
-    import Layout from './components/layout';
-    import ScriptBasic from './components/script-basic';
+    import ScriptRelatedInfo from '../common/script-related-info';
+
     import Diff from './components/diff';
+    import Layout from './components/layout';
     import NewVersion from './components/new-version';
+    import ScriptBasic from './components/script-basic';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'script_version_list_columns';
 

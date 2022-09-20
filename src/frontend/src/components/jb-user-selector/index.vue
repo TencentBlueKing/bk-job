@@ -27,29 +27,33 @@
 
 <template>
     <div
+        v-bkloading="{ isLoading }"
         class="jb-user-selector"
-        :class="{ disabled: isLoading }"
-        v-bkloading="{ isLoading }">
+        :class="{ disabled: isLoading }">
         <user-selector
             v-if="!isLoading"
             v-bind="$attrs"
-            :value="defaultValue"
-            :disabled-users="disabledUsers"
-            :list-scroll-height="300"
-            :history-key="historyKey"
             :default-alternate="formatDefaultAlternate"
+            :disabled-users="disabledUsers"
             :fuzzy-search-method="handleFuzzySearch"
-            :render-tag="renderTag"
+            :history-key="historyKey"
+            :list-scroll-height="300"
             :render-list="renterMerberItem"
+            :render-tag="renderTag"
+            :value="defaultValue"
             @change="handleChange" />
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import NotifyService from '@service/notify';
+
     import { encodeRegexp } from '@utils/assist';
+
     import UserSelector from '@blueking/user-selector';
+
+    import I18n from '@/i18n';
 
     const CACHE_KEY = 'job-user-selector-cache';
 

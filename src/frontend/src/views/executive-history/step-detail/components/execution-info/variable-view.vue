@@ -27,22 +27,30 @@
 
 <template>
     <div
-        class="step-execute-variable-view"
-        v-bkloading="{ isLoading: isLoading, opacity: .1 }">
+        v-bkloading="{ isLoading: isLoading, opacity: .1 }"
+        class="step-execute-variable-view">
         <scroll-faker theme="dark">
             <table>
                 <thead>
                     <tr>
-                        <td style="width: 90px;">{{ $t('history.变量名称') }}</td>
-                        <td style="width: 90px;">{{ $t('history.变量类型') }}</td>
+                        <td style="width: 90px;">
+                            {{ $t('history.变量名称') }}
+                        </td>
+                        <td style="width: 90px;">
+                            {{ $t('history.变量类型') }}
+                        </td>
                         <td>{{ $t('history.变量值') }}</td>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(item, index) in variableList" :key="index">
+                    <tr
+                        v-for="(item, index) in variableList"
+                        :key="index">
                         <td>{{ item.name }}</td>
                         <td>{{ item.typeText }}</td>
-                        <td class="variable-value">{{ item.value }}</td>
+                        <td class="variable-value">
+                            {{ item.value }}
+                        </td>
                     </tr>
                 </tbody>
             </table>

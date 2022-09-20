@@ -34,17 +34,19 @@
                 @mouseleave="handleMouseleave">
                 <bk-input
                     ref="input"
+                    :max="86400"
+                    :min="1"
+                    :palceholder="$t('此处留空将默认为7200s')"
+                    :precision="0"
                     type="number"
                     :value="formData[field]"
-                    :palceholder="$t('此处留空将默认为7200s')"
-                    :min="1"
-                    :max="86400"
-                    :precision="0"
-                    @focus="handleInputFocus"
                     @blur="handleInputBlur"
-                    @change="handleChange">
+                    @change="handleChange"
+                    @focus="handleInputFocus">
                     <template slot="append">
-                        <div class="group-text">s</div>
+                        <div class="group-text">
+                            s
+                        </div>
                     </template>
                 </bk-input>
             </div>
@@ -52,8 +54,8 @@
         <div style="display: none;">
             <div
                 ref="tips"
-                @mouseleave="handleMouseleave"
-                @mouseenter="handleTipsMouseenter">
+                @mouseenter="handleTipsMouseenter"
+                @mouseleave="handleMouseleave">
                 {{ $t('允许最小 1s，最大为 86400s') }}
             </div>
         </div>

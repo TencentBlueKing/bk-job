@@ -37,9 +37,9 @@
     </div>
 </template>
 <script>
-    import TotalCount from './total-count';
     import FailCount from './fail-count';
     import Statistics from './statistics';
+    import TotalCount from './total-count';
 
     export default {
         name: '',

@@ -26,59 +26,86 @@
 -->
 
 <template>
-    <div class="notify-set-manange" v-bkloading="{ isLoading }">
-        <jb-form v-if="!isLoading" :model="formData" class="wraper">
-            <div class="block-title">{{ $t('setting.用户可选择的通知渠道') }}：</div>
+    <div
+        v-bkloading="{ isLoading }"
+        class="notify-set-manange">
+        <jb-form
+            v-if="!isLoading"
+            class="wraper"
+            :model="formData">
+            <div class="block-title">
+                {{ $t('setting.用户可选择的通知渠道') }}：
+            </div>
             <notify-channel
-                :channle-list="channleList"
                 :channel-code="formData.channelCode"
-                :handle-toggle-channel="handleToggleChannel"
-                :handle-edit-template="handleEditTemplate" />
+                :channle-list="channleList"
+                :handle-edit-template="handleEditTemplate"
+                :handle-toggle-channel="handleToggleChannel" />
             <div class="backlist block-title">
                 <span v-bk-tooltips="backlistConfig">{{ $t('setting.通讯黑名单') }}:</span>
             </div>
             <div>
                 <jb-user-selector
                     :placeholder="$t('setting.请输入')"
-                    :user="formData.users"
                     :show-role="false"
+                    :user="formData.users"
                     @on-change="handleBlackListChange" />
             </div>
             <div class="action-box">
                 <bk-button
-                    theme="primary"
-                    :loading="isSubmiting"
                     class="w120 mr10"
+                    :loading="isSubmiting"
+                    theme="primary"
                     @click="handleSave">
                     {{ $t('setting.保存') }}
                 </bk-button>
-                <bk-button @click="handleReset">{{ $t('setting.重置') }}</bk-button>
+                <bk-button @click="handleReset">
+                    {{ $t('setting.重置') }}
+                </bk-button>
             </div>
         </jb-form>
-        <jb-sideslider :is-show.sync="showTemplateEdit" :title="$t('setting.消息模板编辑')" :width="680">
-            <edit-of-template ref="editTemplate" :data="templateDetail" @on-change="handleNotifyContent" />
+        <jb-sideslider
+            :is-show.sync="showTemplateEdit"
+            :title="$t('setting.消息模板编辑')"
+            :width="680">
+            <edit-of-template
+                ref="editTemplate"
+                :data="templateDetail"
+                @on-change="handleNotifyContent" />
             <template #footer>
                 <bk-button
-                    theme="primary"
                     class="slider-action"
                     :loading="isSaveLoading"
+                    theme="primary"
                     @click="handleTriggerSave">
                     {{ $t('setting.保存') }}
                 </bk-button>
-                <bk-button class="slider-action" @click="handleTriggerReset">{{ $t('setting.重置') }}</bk-button>
-                <bk-button class="slider-action" @click="handleTriggerInit">{{ $t('setting.初始化') }}</bk-button>
+                <bk-button
+                    class="slider-action"
+                    @click="handleTriggerReset">
+                    {{ $t('setting.重置') }}
+                </bk-button>
+                <bk-button
+                    class="slider-action"
+                    @click="handleTriggerInit">
+                    {{ $t('setting.初始化') }}
+                </bk-button>
             </template>
         </jb-sideslider>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import _ from 'lodash';
+
     import GlobalSettingService from '@service/global-setting';
-    import NotifyChannel from '../components/notify-channel-table';
+
     import JbSideslider from '@components/jb-sideslider';
-    import editOfTemplate from '../components/edit-of-template';
     import JbUserSelector from '@components/jb-user-selector';
+
+    import editOfTemplate from '../components/edit-of-template';
+    import NotifyChannel from '../components/notify-channel-table';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'NotifyManage',

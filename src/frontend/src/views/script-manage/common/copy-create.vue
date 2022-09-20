@@ -27,51 +27,56 @@
 
 <template>
     <layout class="script-manage-copy-create-box">
-        <div slot="title">{{ $t('script.新建脚本') }}</div>
+        <div slot="title">
+            {{ $t('script.新建脚本') }}
+        </div>
         <template slot="sub-header">
             <Icon
-                type="upload"
-                @click="handleUploadScript"
                 v-bk-tooltips="$t('上传脚本')"
-                v-test="{ type: 'button', value: 'uploadScript' }" />
+                v-test="{ type: 'button', value: 'uploadScript' }"
+                type="upload"
+                @click="handleUploadScript" />
             <Icon
-                type="history"
-                @click.stop="handleShowHistory"
                 v-bk-tooltips="$t('历史缓存')"
-                v-test="{ type: 'button', value: 'scriptEditHistory' }" />
+                v-test="{ type: 'button', value: 'scriptEditHistory' }"
+                type="history"
+                @click.stop="handleShowHistory" />
             <Icon
-                type="full-screen"
                 v-bk-tooltips="$t('全屏')"
-                @click="handleFullScreen"
-                v-test="{ type: 'button', value: 'scriptEditFullscreen' }" />
+                v-test="{ type: 'button', value: 'scriptEditFullscreen' }"
+                type="full-screen"
+                @click="handleFullScreen" />
         </template>
         <div slot="left">
             <jb-form
                 ref="form"
-                :model="formData"
+                v-test="{ type: 'form', value: 'copyCreateScript' }"
                 form-type="vertical"
-                :rules="rules"
-                v-test="{ type: 'form', value: 'copyCreateScript' }">
+                :model="formData"
+                :rules="rules">
                 <jb-form-item
                     :label="$t('script.版本号.label')"
-                    required
-                    property="version">
+                    property="version"
+                    required>
                     <div class="script-version">
                         <jb-input
-                            :value="formData.version"
-                            :placeholder="$t('script.输入版本号')"
                             :maxlength="30"
+                            :placeholder="$t('script.输入版本号')"
                             property="version"
+                            :value="formData.version"
                             @change="handleVersionChange" />
-                        <Icon type="new-dark" svg class="new-flag" />
+                        <Icon
+                            class="new-flag"
+                            svg
+                            type="new-dark" />
                     </div>
                 </jb-form-item>
                 <jb-form-item :label="$t('script.版本日志')">
                     <bk-input
                         v-model="formData.versionDesc"
-                        type="textarea"
                         :maxlength="100"
-                        :rows="5" />
+                        :rows="5"
+                        type="textarea" />
                 </jb-form-item>
             </jb-form>
         </div>
@@ -80,29 +85,29 @@
                 v-if="contentHeight > 0"
                 ref="aceEditor"
                 v-model="formData.content"
-                :lang="formData.typeName"
                 :height="contentHeight"
+                :lang="formData.typeName"
                 :options="formData.typeName"
                 @on-mode-change="handleTypeChange" />
         </div>
         <template #footer>
             <bk-button
+                v-test="{ type: 'button', value: 'copyCreateScriptSubmit' }"
                 class="w120 mr10"
                 :loading="isSubmiting"
                 theme="primary"
-                @click="handleSubmit"
-                v-test="{ type: 'button', value: 'copyCreateScriptSubmit' }">
+                @click="handleSubmit">
                 {{ $t('script.提交') }}
             </bk-button>
             <bk-button
+                v-test="{ type: 'button', value: 'debugScript' }"
                 class="mr10"
-                @click="handleDebugScript"
-                v-test="{ type: 'button', value: 'debugScript' }">
+                @click="handleDebugScript">
                 {{ $t('script.调试') }}
             </bk-button>
             <bk-button
-                @click="handleCancel"
-                v-test="{ type: 'button', value: 'copyCreateScriptCancel' }">
+                v-test="{ type: 'button', value: 'copyCreateScriptCancel' }"
+                @click="handleCancel">
                 {{ $t('script.取消') }}
             </bk-button>
         </template>
@@ -110,22 +115,27 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import ScriptManageService from '@service/script-manage';
+
     import PublicScriptManageService from '@service/public-script-manage';
-    import JbInput from '@components/jb-input';
-    import AceEditor from '@components/ace-editor';
+    import ScriptManageService from '@service/script-manage';
+
     import {
+        checkPublicScript,
         formatScriptTypeValue,
         genDefaultScriptVersion,
-        checkPublicScript,
         getOffset,
         leaveConfirm,
         scriptErrorConfirm,
     } from '@utils/assist';
     import { debugScriptCache } from '@utils/cache-helper';
     import { scriptVersionRule } from '@utils/validator';
+
+    import AceEditor from '@components/ace-editor';
+    import JbInput from '@components/jb-input';
+
     import Layout from './components/layout';
+
+    import I18n from '@/i18n';
 
     const genDefaultFormData = () => ({
         id: '',

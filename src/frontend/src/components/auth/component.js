@@ -24,10 +24,11 @@
 */
 
 import PermissionCheckService from '@service/permission-check';
+
+import './style.css';
 import {
     permissionDialog,
 } from '@/common/bkmagic';
-import './style.css';
 
 export default {
     props: {

@@ -1,0 +1,124 @@
+@font-face {
+	font-family: "bk-ipselector";
+	src: url("fonts/iconcool.svg#iconcool") format("svg"),
+url("fonts/iconcool.ttf") format("truetype"),
+url("fonts/iconcool.woff") format("woff"),
+url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+.bk-ipselector-icon {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'bk-ipselector' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  text-align: center;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.bk-ipselector-jiantou:before {
+	content: "\e124";
+}
+.bk-ipselector-add-fill:before {
+	content: "\e110";
+}
+.bk-ipselector-reduce-fill:before {
+	content: "\e10f";
+}
+.bk-ipselector-set-fill:before {
+	content: "\e128";
+}
+.bk-ipselector-jump-link:before {
+	content: "\e111";
+}
+.bk-ipselector-info-circle:before {
+	content: "\e11f";
+}
+.bk-ipselector-close-line-2:before {
+	content: "\e125";
+}
+.bk-ipselector-loading:before {
+	content: "\e127";
+}
+.bk-ipselector-abnormal:before {
+	content: "\e113";
+}
+.bk-ipselector-normal:before {
+	content: "\e114";
+}
+.bk-ipselector-unknown:before {
+	content: "\e118";
+}
+.bk-ipselector-invisible1:before {
+	content: "\e102";
+}
+.bk-ipselector-visible1:before {
+	content: "\e103";
+}
+.bk-ipselector-sync-waiting-01:before {
+	content: "\e115";
+}
+.bk-ipselector-ip-audit:before {
+	content: "\e10e";
+}
+.bk-ipselector-delete:before {
+	content: "\e10d";
+}
+.bk-ipselector-shangxiachengkai:before {
+	content: "\e101";
+}
+.bk-ipselector-ketuodong:before {
+	content: "\e104";
+}
+.bk-ipselector-shanchu:before {
+	content: "\e105";
+}
+.bk-ipselector-xinzeng:before {
+	content: "\e108";
+}
+.bk-ipselector-shixiao:before {
+	content: "\e109";
+}
+.bk-ipselector-shangxiachengkai-2:before {
+	content: "\e10a";
+}
+.bk-ipselector-more:before {
+	content: "\e10b";
+}
+.bk-ipselector-miaobianqianhuangse:before {
+	content: "\e10c";
+}
+.bk-ipselector-drag:before {
+	content: "\e11a";
+}
+.bk-ipselector-open:before {
+	content: "\e11b";
+}
+.bk-ipselector-close:before {
+	content: "\e119";
+}
+.bk-ipselector-copy:before {
+	content: "\e11d";
+}
+.bk-ipselector-set:before {
+	content: "\e11e";
+}
+.bk-ipselector-close-line:before {
+	content: "\e120";
+}
+.bk-ipselector-open-line:before {
+	content: "\e121";
+}
+.bk-ipselector-select:before {
+	content: "\e122";
+}
+.bk-ipselector-sort:before {
+	content: "\e123";
+}

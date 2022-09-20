@@ -28,27 +28,29 @@
 <template>
     <Layout class="template-list-page">
         <template #tag>
-            <tag-panel ref="tagPanelRef" @on-change="handleTagPlanChange" />
+            <tag-panel
+                ref="tagPanelRef"
+                @on-change="handleTagPlanChange" />
         </template>
         <list-action-layout>
             <auth-button
-                theme="primary"
+                v-test="{ type: 'button', value: 'templateCreate' }"
                 auth="job_template/create"
                 class="w120 mr10"
-                @click="handleCreate"
-                v-test="{ type: 'button', value: 'templateCreate' }">
+                theme="primary"
+                @click="handleCreate">
                 {{ $t('template.新建') }}
             </auth-button>
             <bk-badge
                 class="mr10"
                 theme="#3a84ff"
-                :visible="backupInfo.importJob.length > 0"
-                :val="backupInfo.importJob.length">
+                :val="backupInfo.importJob.length"
+                :visible="backupInfo.importJob.length > 0">
                 <span :tippy-tips="backupInfo.importJob.length > 0 ? $t('template.有一项导入任务正在进行中') : ''">
                     <auth-button
+                        v-test="{ type: 'button', value: 'templateImport' }"
                         auth="job_template/create"
-                        @click="handleImport"
-                        v-test="{ type: 'button', value: 'templateImport' }">
+                        @click="handleImport">
                         {{ $t('template.导入') }}
                     </auth-button>
                 </span>
@@ -56,21 +58,21 @@
             <bk-badge
                 class="mr10"
                 theme="#3a84ff"
-                :visible="backupInfo.exportJob.length > 0"
-                :val="backupInfo.exportJob.length">
+                :val="backupInfo.exportJob.length"
+                :visible="backupInfo.exportJob.length > 0">
                 <span :tippy-tips="backupInfo.exportJob.length > 0 ? $t('template.有一项导出任务正在进行中') : ''">
                     <bk-button
-                        @click="handleExport"
+                        v-test="{ type: 'button', value: 'templateExport' }"
                         :disabled="isExportJobDisable"
-                        v-test="{ type: 'button', value: 'templateExport' }">
+                        @click="handleExport">
                         {{ $t('template.导出') }}
                     </bk-button>
                 </span>
             </bk-badge>
             <bk-button
+                v-test="{ type: 'button', value: 'templateTagEdit' }"
                 :disabled="isBatchEditTagDisabled"
-                @click="handleBatchEditTag"
-                v-test="{ type: 'button', value: 'templateTagEdit' }">
+                @click="handleBatchEditTag">
                 {{ $t('template.编辑标签') }}
             </bk-button>
             <template #right>
@@ -81,47 +83,49 @@
                     :placeholder="$t('template.输入 作业模板名、标签名 或 更新人 进行搜索...')"
                     style="width: 420px;"
                     @on-change="handleSearch" />
-                <bk-button @click="handleMyTask">{{ $t('template.我的作业') }}</bk-button>
+                <bk-button @click="handleMyTask">
+                    {{ $t('template.我的作业') }}
+                </bk-button>
             </template>
         </list-action-layout>
         <div class="task-list-wraper">
             <render-list
                 ref="list"
+                v-test="{ type: 'list', value: 'template' }"
                 :data-source="listDataSource"
+                :search-control="() => $refs.search"
                 selectable
                 :size="tableSize"
-                :search-control="() => $refs.search"
-                @on-selection-change="handleSelection"
-                v-test="{ type: 'list', value: 'template' }">
+                @on-selection-change="handleSelection">
                 <bk-table-column
                     v-if="allRenderColumnMap.id"
-                    label="ID"
-                    width="120"
-                    prop="id"
                     key="id"
-                    align="left" />
+                    align="left"
+                    label="ID"
+                    prop="id"
+                    width="120" />
                 <bk-table-column
                     v-if="allRenderColumnMap.name"
+                    key="name"
+                    align="left"
                     class-name="task-name-column"
                     :label="$t('template.作业模板名称')"
-                    prop="name"
                     min-width="300"
-                    key="name"
-                    align="left">
+                    prop="name">
                     <template slot-scope="{ row }">
                         <auth-component
-                            :permission="row.canView"
                             auth="job_template/view"
+                            :permission="row.canView"
                             :resource-id="row.id">
                             <div class="task-name-box">
                                 <Icon
-                                    type="collection"
                                     class="task-collection"
                                     :class="row.favored ? 'favored' : 'unfavored'"
+                                    type="collection"
                                     @click="handleCollection(row)" />
                                 <router-link
-                                    class="task-name-text"
                                     v-bk-overflow-tips
+                                    class="task-name-text"
                                     :to="{
                                         name: 'templateDetail',
                                         params: {
@@ -147,12 +151,12 @@
                                 slot="forbid"
                                 class="task-name-box">
                                 <Icon
-                                    type="collection"
                                     class="task-collection"
-                                    :class="row.favored ? 'favored' : 'unfavored'" />
+                                    :class="row.favored ? 'favored' : 'unfavored'"
+                                    type="collection" />
                                 <span
-                                    class="task-name-text"
-                                    v-bk-overflow-tips>
+                                    v-bk-overflow-tips
+                                    class="task-name-text">
                                     {{ row.name }}
                                 </span>
                                 <span>
@@ -164,140 +168,142 @@
                 </bk-table-column>
                 <bk-table-column
                     v-if="allRenderColumnMap.tags"
+                    key="tags"
+                    align="left"
+                    class-name="edit-tag-column"
                     :label="$t('template.场景标签.colHead')"
                     prop="tags"
-                    key="tags"
-                    width="200"
-                    align="left"
-                    class-name="edit-tag-column">
+                    width="200">
                     <template slot-scope="{ row }">
                         <auth-component
-                            :permission="row.canEdit"
                             auth="job_template/edit"
+                            :permission="row.canEdit"
                             :resource-id="row.id">
                             <jb-edit-tag
                                 :key="row.id"
                                 field="tags"
-                                :value="row.tags"
+                                :remote-hander="val => handleUpdateTask(row, val)"
                                 shortcurt
-                                :remote-hander="val => handleUpdateTask(row, val)" />
-                            <div slot="forbid">{{ row.tagText }}</div>
+                                :value="row.tags" />
+                            <div slot="forbid">
+                                {{ row.tagText }}
+                            </div>
                         </auth-component>
                     </template>
                 </bk-table-column>
                 <bk-table-column
                     v-if="allRenderColumnMap.statusText"
-                    :label="$t('template.状态')"
-                    width="100"
-                    prop="statusText"
                     key="statusText"
-                    align="left" />
+                    align="left"
+                    :label="$t('template.状态')"
+                    prop="statusText"
+                    width="100" />
                 <bk-table-column
                     v-if="allRenderColumnMap.creator"
-                    :label="$t('template.创建人')"
-                    width="120"
-                    prop="creator"
                     key="creator"
-                    align="left" />
+                    align="left"
+                    :label="$t('template.创建人')"
+                    prop="creator"
+                    width="120" />
                 <bk-table-column
                     v-if="allRenderColumnMap.createTime"
+                    key="createTime"
+                    align="left"
                     :label="$t('template.创建时间')"
                     prop="createTime"
-                    key="createTime"
-                    width="180"
-                    align="left" />
+                    width="180" />
                 <bk-table-column
                     v-if="allRenderColumnMap.lastModifyUser"
-                    :label="$t('template.更新人.colHead')"
-                    width="160"
-                    prop="lastModifyUser"
                     key="lastModifyUser"
-                    align="left" />
+                    align="left"
+                    :label="$t('template.更新人.colHead')"
+                    prop="lastModifyUser"
+                    width="160" />
                 <bk-table-column
                     v-if="allRenderColumnMap.lastModifyTime"
-                    :label="$t('template.更新时间')"
-                    width="180"
-                    prop="lastModifyTime"
                     key="lastModifyTime"
-                    align="left" />
+                    align="left"
+                    :label="$t('template.更新时间')"
+                    prop="lastModifyTime"
+                    width="180" />
                 <bk-table-column
                     key="action"
-                    :resizable="false"
                     fixed="right"
                     :label="$t('template.操作')"
+                    :resizable="false"
                     width="130">
                     <template slot-scope="{ row }">
                         <router-link
+                            v-test="{ type: 'link', value: 'planDetail' }"
                             class="mr10"
                             :to="{
                                 name: 'viewPlan',
                                 params: { templateId: row.id },
-                            }"
-                            v-test="{ type: 'link', value: 'planDetail' }">
+                            }">
                             {{ $t('template.执行方案.label') }}
                         </router-link>
                         <router-link
+                            v-test="{ type: 'link', value: 'debugTemplate' }"
                             class="mr10"
                             :to="{
                                 name: 'debugPlan',
                                 params: { id: row.id },
                                 query: { from: 'taskList' },
-                            }"
-                            v-test="{ type: 'link', value: 'debugTemplate' }">
+                            }">
                             {{ $t('template.调试') }}
                         </router-link>
                         <list-operation-extend>
                             <auth-component
-                                :permission="row.canEdit"
                                 auth="job_template/edit"
+                                :permission="row.canEdit"
                                 :resource-id="row.id">
                                 <div
+                                    v-test="{ type: 'button', value: 'editTemplate' }"
                                     class="action-item"
-                                    @click="handleEdit(row.id)"
-                                    v-test="{ type: 'button', value: 'editTemplate' }">
+                                    @click="handleEdit(row.id)">
                                     {{ $t('template.编辑') }}
                                 </div>
                                 <div
-                                    class="action-item"
                                     slot="forbid"
-                                    v-test="{ type: 'button', value: 'editTemplate' }">
+                                    v-test="{ type: 'button', value: 'editTemplate' }"
+                                    class="action-item">
                                     {{ $t('template.编辑') }}
                                 </div>
                             </auth-component>
                             <auth-component
-                                :permission="row.canCreate && row.canView"
                                 auth="job_template/clone"
+                                :permission="row.canCreate && row.canView"
                                 :resource-id="row.id">
                                 <div
+                                    v-test="{ type: 'button', value: 'cloneTemplate' }"
                                     class="action-item"
-                                    @click="handleClone(row.id)"
-                                    v-test="{ type: 'button', value: 'cloneTemplate' }">
+                                    @click="handleClone(row.id)">
                                     {{ $t('template.克隆') }}
                                 </div>
                                 <div
-                                    class="action-item"
                                     slot="forbid"
-                                    v-test="{ type: 'button', value: 'cloneTemplate' }">
+                                    v-test="{ type: 'button', value: 'cloneTemplate' }"
+                                    class="action-item">
                                     {{ $t('template.克隆') }}
                                 </div>
                             </auth-component>
                             <jb-popover-confirm
-                                :title="$t('template.确定删除该作业？')"
+                                :confirm-handler="() => handleDelete(row.id)"
                                 :content="$t('template.注意！模板下关联的所有执行方案也将被清除')"
-                                :confirm-handler="() => handleDelete(row.id)">
+                                :title="$t('template.确定删除该作业？')">
                                 <auth-component
-                                    :permission="row.canDelete"
                                     auth="job_template/delete"
+                                    :permission="row.canDelete"
                                     :resource-id="row.id">
                                     <div
-                                        class="action-item"
-                                        v-test="{ type: 'button', value: 'deleteTemplate' }">
+                                        v-test="{ type: 'button', value: 'deleteTemplate' }"
+                                        class="action-item">
                                         {{ $t('template.删除') }}
                                     </div>
                                     <div
-                                        class="action-item"
                                         slot="forbid"
-                                        v-test="{ type: 'button', value: 'deleteTemplate' }">
+                                        v-test="{ type: 'button', value: 'deleteTemplate' }"
+                                        class="action-item">
                                         {{ $t('template.删除') }}
                                     </div>
                                 </auth-component>
@@ -316,9 +322,9 @@
         </div>
         <jb-dialog
             v-model="isShowBatchEdit"
-            :title="$t('template.编辑标签')"
             header-position="left"
             :ok-text="$t('template.确定')"
+            :title="$t('template.编辑标签')"
             :width="480">
             <batch-edit-tag
                 v-if="isShowBatchEdit"
@@ -328,25 +334,29 @@
     </Layout>
 </template>
 <script>
-    import I18n from '@/i18n';
+    import BackupService from '@service/backup';
+    import NotifyService from '@service/notify';
     import TagManageService from '@service/tag-manage';
     import TaskService from '@service/task-manage';
-    import BackupService from '@service/backup';
     import UserService from '@service/user';
-    import NotifyService from '@service/notify';
+
     import {
-        taskExport,
         listColumnsCache,
+        taskExport,
     } from '@utils/cache-helper';
+
     import JbEditTag from '@components/jb-edit/tag';
-    import ListActionLayout from '@components/list-action-layout';
-    import RenderList from '@components/render-list';
-    import ListOperationExtend from '@components/list-operation-extend';
-    import JbSearchSelect from '@components/jb-search-select';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
+    import JbSearchSelect from '@components/jb-search-select';
+    import ListActionLayout from '@components/list-action-layout';
+    import ListOperationExtend from '@components/list-operation-extend';
+    import RenderList from '@components/render-list';
+
+    import BatchEditTag from './components/batch-edit-tag.vue';
     import Layout from './components/layout';
     import TagPanel from './components/tag-panel';
-    import BatchEditTag from './components/batch-edit-tag.vue';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'task_list_columns';
     

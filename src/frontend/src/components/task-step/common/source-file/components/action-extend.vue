@@ -26,14 +26,17 @@
 -->
 
 <template>
-    <div class="source-file-action-extend" @click.stop="" @mouseleave="handleHide">
+    <div
+        class="source-file-action-extend"
+        @click.stop=""
+        @mouseleave="handleHide">
         <Icon type="more" />
         <div
             ref="popoverContent"
             class="source-file-action-content"
             @click="handleWraperClick"
-            @mouseover="handleShow"
-            @mouseleave="handleClose">
+            @mouseleave="handleClose"
+            @mouseover="handleShow">
             <slot />
         </div>
     </div>

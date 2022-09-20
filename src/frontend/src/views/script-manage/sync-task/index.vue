@@ -26,9 +26,15 @@
 -->
 
 <template>
-    <div class="script-manage-sync-task-page" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="script-manage-sync-task-page">
         <div class="retry-btn">
-            <bk-button :disabled="isRetryAllDisable" @click="handleAllRetry">{{ $t('script.全部重试') }}</bk-button>
+            <bk-button
+                :disabled="isRetryAllDisable"
+                @click="handleAllRetry">
+                {{ $t('script.全部重试') }}
+            </bk-button>
         </div>
         <div class="table-top">
             {{ $t('script.同步作业模板') }}
@@ -36,7 +42,9 @@
                 （{{ $t('script.共') }} {{ data.length }} {{ $t('script.个.result') }}）
             </span>
         </div>
-        <bk-table :data="data" row-class-name="sync-script-record">
+        <bk-table
+            :data="data"
+            row-class-name="sync-script-record">
             <bk-table-column
                 :label="$t('script.作业模板名称')"
                 prop="name"
@@ -51,12 +59,18 @@
                             },
                         }">
                         {{ row.templateName }}
-                        <Icon type="edit" class="template-link" />
+                        <Icon
+                            class="template-link"
+                            type="edit" />
                     </router-link>
                 </template>
             </bk-table-column>
-            <bk-table-column :label="$t('script.步骤名称')" prop="stepName" />
-            <bk-table-column :label="$t('script.引用的版本号')" prop="version">
+            <bk-table-column
+                :label="$t('script.步骤名称')"
+                prop="stepName" />
+            <bk-table-column
+                :label="$t('script.引用的版本号')"
+                prop="version">
                 <template slot-scope="{ row }">
                     <bk-button
                         text
@@ -66,27 +80,30 @@
                 </template>
             </bk-table-column>
             <bk-table-column
-                :label="$t('script.引用版本状态')"
-                prop="status"
-                :filters="statusFilters"
                 :filter-method="statusFilterMethod"
-                :filter-multiple="true">
+                :filter-multiple="true"
+                :filters="statusFilters"
+                :label="$t('script.引用版本状态')"
+                prop="status">
                 <template slot-scope="{ row }">
                     <span v-html="row.statusHtml" />
                 </template>
             </bk-table-column>
             <bk-table-column
                 :label="$t('script.状态')"
-                width="350"
-                prop="syncStatus">
+                prop="syncStatus"
+                width="350">
                 <template slot-scope="{ row, $index }">
-                    <Icon :type="row.syncIcon" svg class="mr10" />
+                    <Icon
+                        class="mr10"
+                        svg
+                        :type="row.syncIcon" />
                     <span>{{ row.syncStatusMsg }}</span>
                     <bk-button
                         v-if="row.isSyncFailed"
-                        :tippy-tips="row.failMsg"
-                        text
                         style="margin-left: 15px;"
+                        text
+                        :tippy-tips="row.failMsg"
                         @click="handleRetry(row, $index)">
                         {{ $t('script.重试') }}
                     </bk-button>
@@ -101,7 +118,9 @@
                 {{ $t('script.完成') }}
             </bk-button>
         </div>
-        <script-detail :is-show.sync="isShowDetail" :script-version-id="selectScriptVersionId" />
+        <script-detail
+            :is-show.sync="isShowDetail"
+            :script-version-id="selectScriptVersionId" />
         <element-teleport v-if="lastVersionScriptInfo.version">
             <span> - {{ $t('script.同步至') }}</span>
             <span>{{ lastVersionScriptInfo.version }}</span>
@@ -109,15 +128,18 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
+    import PublicScriptService from '@service/public-script-manage';
+    import ScriptService from '@service/script-manage';
+    import TaskPlanService from '@service/task-plan';
+
     import {
         checkPublicScript,
         leaveConfirm,
     } from '@utils/assist';
-    import ScriptService from '@service/script-manage';
-    import PublicScriptService from '@service/public-script-manage';
-    import TaskPlanService from '@service/task-plan';
+
     import ScriptDetail from './components/script-detail';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

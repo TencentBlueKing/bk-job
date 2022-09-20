@@ -30,8 +30,8 @@
         <jb-form-item
             ref="item"
             :label="$t('源文件')"
-            required
             :property="field"
+            required
             :rules="rules">
             <div>
                 <bk-button
@@ -57,34 +57,47 @@
                 <span class="source-file-tips">
                     {{ $t('添加本地文件会有同名文件覆盖风险') }}
                     <Icon
-                        type="info"
+                        v-bk-tooltips="uploadFileTipsConfig"
                         class="tips-flag"
-                        v-bk-tooltips="uploadFileTipsConfig" />
+                        type="info" />
                 </span>
             </div>
             <view-file
                 v-show="showFileView"
-                v-model="isAddServerFile"
                 ref="serverFileView"
+                v-model="isAddServerFile"
                 class="source-file-view"
                 :data="sourceFileList"
                 v-bind="$attrs"
                 @on-change="handleSourceFileChange" />
         </jb-form-item>
-        <div id="uploadFileTips" class="upload-file-tips">
-            <div class="row">{{ $t('支持中文文件名，本地上传文件大小不能超过') }} {{ fileMaxUploadSize }}</div>
-            <div class="row">{{ $t('文件名支持使用通配符，如： /tmp/jobsvr_2020*.log') }}</div>
-            <div class="row">{{ $t('文件名支持正则表达式写法以匹配多个文件，文件名前 需加 REGEX: 前缀，如：/tmp/REGEX:myfile-[A-Za-z]{0,10}.tar.gz') }}</div>
-            <div class="row">{{ $t('如需分发文件目录，文件名请以/结束') }}</div>
+        <div
+            id="uploadFileTips"
+            class="upload-file-tips">
+            <div class="row">
+                {{ $t('支持中文文件名，本地上传文件大小不能超过') }} {{ fileMaxUploadSize }}
+            </div>
+            <div class="row">
+                {{ $t('文件名支持使用通配符，如： /tmp/jobsvr_2020*.log') }}
+            </div>
+            <div class="row">
+                {{ $t('文件名支持正则表达式写法以匹配多个文件，文件名前 需加 REGEX: 前缀，如：/tmp/REGEX:myfile-[A-Za-z]{0,10}.tar.gz') }}
+            </div>
+            <div class="row">
+                {{ $t('如需分发文件目录，文件名请以/结束') }}
+            </div>
         </div>
     </div>
 </template>
 <script>
     import _ from 'lodash';
     import { mapMutations } from 'vuex';
-    import I18n from '@/i18n';
+
     import QuertGlobalSettingService from '@service/query-global-setting';
+
     import ViewFile from './view';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'SourceFileBase',

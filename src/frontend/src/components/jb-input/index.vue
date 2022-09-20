@@ -26,14 +26,16 @@
 -->
 
 <template>
-    <div class="jb-input" ref="jbInput">
+    <div
+        ref="jbInput"
+        class="jb-input">
         <bk-input
             ref="input"
             :value="localValue"
-            @input="handleInput"
+            v-bind="$attrs"
             @blur="handleBlur"
-            @keyup="handleKeyup"
-            v-bind="$attrs" />
+            @input="handleInput"
+            @keyup="handleKeyup" />
         <span
             v-if="maxlength > 0"
             ref="number"

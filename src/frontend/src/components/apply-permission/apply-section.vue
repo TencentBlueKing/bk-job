@@ -26,12 +26,25 @@
 -->
 
 <template>
-    <div v-if="isNotPermission" class="apply-permission-page">
+    <div
+        v-if="isNotPermission"
+        class="apply-permission-page">
         <div class="page-main">
             <ask-permission :permission-list="authResult.requiredPermissions" />
             <div class="footer">
-                <bk-button theme="primary" class="mr10" @click="handleApply" v-if="isAppleFlag">{{ applyText }}</bk-button>
-                <bk-button theme="primary" @click="handleReload" v-else>{{ appliedText }}</bk-button>
+                <bk-button
+                    v-if="isAppleFlag"
+                    class="mr10"
+                    theme="primary"
+                    @click="handleApply">
+                    {{ applyText }}
+                </bk-button>
+                <bk-button
+                    v-else
+                    theme="primary"
+                    @click="handleReload">
+                    {{ appliedText }}
+                </bk-button>
             </div>
         </div>
     </div>
@@ -41,8 +54,10 @@
 </template>
 <script>
     import EventBus from '@utils/event-bus';
-    import I18n from '@/i18n';
+
     import AskPermission from './index';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

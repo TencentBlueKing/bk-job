@@ -26,13 +26,22 @@
 -->
 
 <template>
-    <div class="jb-edit-tag" :class="{ shortcurt }" @click.stop="">
+    <div
+        class="jb-edit-tag"
+        :class="{ shortcurt }"
+        @click.stop="">
         <div
             v-if="!isEditing"
             class="render-value-box"
             @click.stop="handleTextClick">
-            <div ref="content" class="value-text" v-bk-overflow-tips tag-edit-tag>
-                <slot v-bind:value="text">{{ text || '--' }}</slot>
+            <div
+                ref="content"
+                v-bk-overflow-tips
+                class="value-text"
+                tag-edit-tag>
+                <slot :value="text">
+                    {{ text || '--' }}
+                </slot>
             </div>
             <template v-if="!isLoading">
                 <div
@@ -40,23 +49,32 @@
                     class="tag-shortcurt-box"
                     @click.stop="">
                     <div class="shortcurt-action-btn">
-                        <Icon type="copy" @click="handleCopy" />
-                        <Icon type="paste" class="paste-btn" @click="handlePaste" />
+                        <Icon
+                            type="copy"
+                            @click="handleCopy" />
+                        <Icon
+                            class="paste-btn"
+                            type="paste"
+                            @click="handlePaste" />
                     </div>
                 </div>
-                <div v-else class="tag-normal-box">
+                <div
+                    v-else
+                    class="tag-normal-box">
                     <Icon
-                        type="edit-2"
                         class="edit-action"
+                        type="edit-2"
                         @click.self.stop="handleEdit" />
                 </div>
             </template>
             <Icon
                 v-if="isLoading"
-                type="loading-circle"
-                class="tag-edit-loading" />
+                class="tag-edit-loading"
+                type="loading-circle" />
         </div>
-        <div v-else class="edit-value-box">
+        <div
+            v-else
+            class="edit-value-box">
             <jb-tag-select
                 ref="tagSelect"
                 :value="localValue"
@@ -66,9 +84,12 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import { execCopy } from '@utils/assist';
+
     import JbTagSelect from '@components/jb-tag-select';
+
+    import I18n from '@/i18n';
 
     let copyMemo = [];
 

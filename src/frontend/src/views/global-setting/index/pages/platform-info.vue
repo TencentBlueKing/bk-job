@@ -26,40 +26,53 @@
 -->
 
 <template>
-    <div class="page-platform-info" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="page-platform-info">
         <smart-action offset-target="bk-form-content">
             <div class="wraper">
-                <jb-form ref="platformForm" :model="formData" :rules="rules">
-                    <bk-popover placement="top" :width="320" theme="light" :distance="-10">
+                <jb-form
+                    ref="platformForm"
+                    :model="formData"
+                    :rules="rules">
+                    <bk-popover
+                        :distance="-10"
+                        placement="top"
+                        theme="light"
+                        :width="320">
                         <div class="backlist block-title">
                             <span>{{ $t('setting.网页 Title 设置:') }}</span>
                         </div>
-                        <div slot="content" class="title-example-popover">
-                            <img src="/static/images/title-example.png" class="example-image">
+                        <div
+                            slot="content"
+                            class="title-example-popover">
+                            <img
+                                class="example-image"
+                                src="/static/images/title-example.png">
                         </div>
                     </bk-popover>
                     <hgroup>
                         <jb-form-item
                             :label="$t('setting.平台名称')"
-                            required
-                            property="titleHead">
+                            property="titleHead"
+                            required>
                             <jb-input
-                                style="width: 240px;"
-                                v-model="formData.titleHead" />
+                                v-model="formData.titleHead"
+                                style="width: 240px;" />
                         </jb-form-item>
                         <jb-form-item
+                            class="title-separator-item"
                             :label="$t('setting.分隔符')"
-                            required
                             property="titleSeparator"
-                            class="title-separator-item">
+                            required>
                             <jb-input
-                                style="width: 240px;"
-                                v-model="formData.titleSeparator" />
+                                v-model="formData.titleSeparator"
+                                style="width: 240px;" />
                         </jb-form-item>
                         <bk-button
-                            text
-                            size="small"
                             class="reset"
+                            size="small"
+                            text
                             @click="handleRestore">
                             {{ $t('setting.恢复默认') }}
                         </bk-button>
@@ -69,8 +82,8 @@
                     </div>
                     <jb-form-item :label="$t('setting.联系方式')">
                         <jb-input
-                            style="width: 680px;"
-                            v-model="formData.footerLink" />
+                            v-model="formData.footerLink"
+                            style="width: 680px;" />
                     </jb-form-item>
                     <jb-form-item :label="$t('setting.版权信息')">
                         <jb-input
@@ -80,21 +93,28 @@
             </div>
             <template #action>
                 <bk-button
-                    theme="primary"
-                    :loading="isSubmitting"
                     class="w120 mr10"
-                    @click="handleSave">{{ $t('setting.保存') }}</bk-button>
-                <bk-button @click="handleReset">{{ $t('setting.重置') }}</bk-button>
+                    :loading="isSubmitting"
+                    theme="primary"
+                    @click="handleSave">
+                    {{ $t('setting.保存') }}
+                </bk-button>
+                <bk-button @click="handleReset">
+                    {{ $t('setting.重置') }}
+                </bk-button>
             </template>
         </smart-action>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import _ from 'lodash';
+
     import GlobalSettingService from '@service/global-setting';
-    import SmartAction from '@components/smart-action';
+
     import JbInput from '@components/jb-input';
+    import SmartAction from '@components/smart-action';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         titleHead: '',

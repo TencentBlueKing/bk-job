@@ -28,11 +28,14 @@
 <template>
     <div class="export-task-step3-page">
         <div class="form">
-            <jb-form :model="formData" :rules="rules" ref="form">
+            <jb-form
+                ref="form"
+                :model="formData"
+                :rules="rules">
                 <jb-form-item
                     :label="$t('template.压缩包名')"
-                    required
-                    property="packageName">
+                    property="packageName"
+                    required>
                     <bk-input
                         v-model="formData.packageName"
                         :maxlength="40"
@@ -40,56 +43,66 @@
                 </jb-form-item>
                 <jb-form-item
                     :label="$t('template.密文变量值处理')"
-                    required
-                    property="secretHandler">
+                    property="secretHandler"
+                    required>
                     <bk-select
                         v-model="formData.secretHandler"
                         :clearable="false">
-                        <bk-option :id="1" :name="$t('template.保存为空值')" />
-                        <bk-option :id="2" :name="$t('template.保存真实值')" />
+                        <bk-option
+                            :id="1"
+                            :name="$t('template.保存为空值')" />
+                        <bk-option
+                            :id="2"
+                            :name="$t('template.保存真实值')" />
                     </bk-select>
                 </jb-form-item>
                 <jb-form-item
                     :label="$t('template.文件加密')"
-                    required
-                    property="isEncrypt">
+                    property="isEncrypt"
+                    required>
                     <div class="encrypt-wraper">
                         <bk-radio-group v-model="formData.isEncrypt">
-                            <bk-radio :value="1">{{ $t('template.是') }}</bk-radio>
-                            <bk-radio :value="2">{{ $t('template.否') }}</bk-radio>
+                            <bk-radio :value="1">
+                                {{ $t('template.是') }}
+                            </bk-radio>
+                            <bk-radio :value="2">
+                                {{ $t('template.否') }}
+                            </bk-radio>
                         </bk-radio-group>
                     </div>
                 </jb-form-item>
                 <div v-show="isPasswordRequired">
                     <jb-form-item
                         :label="$t('template.密码设置')"
-                        :required="isPasswordRequired"
-                        property="password">
+                        property="password"
+                        :required="isPasswordRequired">
                         <bk-input
                             v-model="formData.password"
-                            type="password"
                             v-bk-tooltips="htmlConfig"
-                            :placeholder="$t('template.请设置6-20个字符密码')" />
+                            :placeholder="$t('template.请设置6-20个字符密码')"
+                            type="password" />
                     </jb-form-item>
                     <jb-form-item
                         :label="$t('template.二次确认')"
-                        :required="isPasswordRequired"
-                        property="confirmPassword">
+                        property="confirmPassword"
+                        :required="isPasswordRequired">
                         <bk-input
                             v-model="formData.confirmPassword"
-                            type="password"
-                            :placeholder="$t('template.请输入同样的密码，以确认密码准确')" />
+                            :placeholder="$t('template.请输入同样的密码，以确认密码准确')"
+                            type="password" />
                     </jb-form-item>
                 </div>
                 <jb-form-item
                     :label="$t('template.文件有效期')"
-                    required
-                    property="expireTime">
-                    <bk-radio-group v-model="formData.expireTime" class="expire-time-box">
+                    property="expireTime"
+                    required>
+                    <bk-radio-group
+                        v-model="formData.expireTime"
+                        class="expire-time-box">
                         <bk-radio-button
                             v-for="item in expireTimeList"
-                            :value="item.id"
-                            :key="item.id">
+                            :key="item.id"
+                            :value="item.id">
                             {{ item.name }}
                         </bk-radio-button>
                     </bk-radio-group>
@@ -99,7 +112,9 @@
                     class="expire-time-custom"
                     label=" "
                     property="customNum">
-                    <bk-input v-model="formData.customNum" :placeholder="$t('template.请输入整数，不可超过365')">
+                    <bk-input
+                        v-model="formData.customNum"
+                        :placeholder="$t('template.请输入整数，不可超过365')">
                         <template slot="append">
                             <div class="group-text">
                                 <span class="text">{{ $t('template.天') }}</span>
@@ -109,22 +124,48 @@
                 </jb-form-item>
             </jb-form>
         </div>
-        <div id="html-config-password" class="html-config-password">
-            <div class="item" :class="{ active: passwordLengthResult }">{{ $t('template.长度6-20个字符') }}</div>
-            <div class="item" :class="{ active: passwordFormatResult }">{{ $t('template.必须包含英文字母、数字和特殊符号') }}</div>
+        <div
+            id="html-config-password"
+            class="html-config-password">
+            <div
+                class="item"
+                :class="{ active: passwordLengthResult }">
+                {{ $t('template.长度6-20个字符') }}
+            </div>
+            <div
+                class="item"
+                :class="{ active: passwordFormatResult }">
+                {{ $t('template.必须包含英文字母、数字和特殊符号') }}
+            </div>
         </div>
         <div class="action-footer">
-            <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-            <bk-button class="mr10" @click="handleLast">{{ $t('template.上一步') }}</bk-button>
-            <bk-button class="w120" theme="primary" :loading="isSubmiting" @click="handleNext">{{ $t('template.下一步') }}</bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleLast">
+                {{ $t('template.上一步') }}
+            </bk-button>
+            <bk-button
+                class="w120"
+                :loading="isSubmiting"
+                theme="primary"
+                @click="handleNext">
+                {{ $t('template.下一步') }}
+            </bk-button>
         </div>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import BackupService from '@service/backup';
+
     import { genDefaultName } from '@utils/assist';
     import { taskExport } from '@utils/cache-helper';
+
+    import I18n from '@/i18n';
 
     export default {
         data () {

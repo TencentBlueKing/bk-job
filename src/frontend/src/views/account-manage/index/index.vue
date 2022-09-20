@@ -29,11 +29,11 @@
     <div>
         <list-action-layout>
             <auth-button
-                style="width: 120px;"
+                v-test="{ type: 'button', value: 'createAccount' }"
                 auth="account/create"
+                style="width: 120px;"
                 theme="primary"
-                @click="handleAdd"
-                v-test="{ type: 'button', value: 'createAccount' }">
+                @click="handleAdd">
                 {{ $t('account.新建') }}
             </auth-button>
             <template #right>
@@ -47,106 +47,106 @@
         </list-action-layout>
         <render-list
             ref="list"
+            v-test="{ type: 'list', value: 'account' }"
             :data-source="dataSource"
-            :size="tableSize"
             :search-control="() => $refs.search"
-            v-test="{ type: 'list', value: 'account' }">
+            :size="tableSize">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
+                key="id"
+                align="left"
                 label="ID"
                 prop="id"
-                key="id"
                 sortable
-                width="80"
-                align="left" />
+                width="80" />
             <bk-table-column
                 v-if="allRenderColumnMap.alias"
-                :label="$t('account.账号别名.colHead')"
-                prop="alias"
                 key="alias"
+                align="left"
+                :label="$t('account.账号别名.colHead')"
                 min-width="180"
-                sortable
-                align="left" />
+                prop="alias"
+                sortable />
             <bk-table-column
                 v-if="allRenderColumnMap.account"
-                :label="$t('account.账号名称.colHead')"
-                prop="account"
                 key="account"
+                align="left"
+                :label="$t('account.账号名称.colHead')"
                 min-width="180"
-                sortable
-                align="left" />
+                prop="account"
+                sortable />
             <bk-table-column
                 v-if="allRenderColumnMap.categoryName"
+                key="categoryName"
+                align="left"
                 :label="$t('account.账号用途.colHead')"
                 prop="categoryName"
-                key="categoryName"
-                width="120"
                 sortable
-                align="left" />
+                width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.typeName"
+                key="typeName"
+                align="left"
                 :label="$t('account.账号类型.colHead')"
                 prop="typeName"
-                key="typeName"
-                width="120"
                 sortable
-                align="left" />
+                width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.creator"
+                key="creator"
+                align="left"
                 :label="$t('account.创建人')"
                 prop="creator"
-                key="creator"
-                width="120"
-                align="left" />
+                width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
+                key="createTime"
+                align="left"
                 :label="$t('account.创建时间')"
                 prop="createTime"
-                key="createTime"
-                width="180"
-                align="left" />
+                width="180" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyUser"
+                key="lastModifyUser"
+                align="left"
                 :label="$t('account.更新人.colHead')"
                 prop="lastModifyUser"
-                key="lastModifyUser"
-                width="120"
-                align="left" />
+                width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
+                key="lastModifyTime"
+                align="left"
                 :label="$t('account.更新时间')"
                 prop="lastModifyTime"
-                key="lastModifyTime"
-                width="180"
-                align="left" />
+                width="180" />
             <bk-table-column
-                :label="$t('account.操作')"
-                :resizable="false"
                 key="action"
                 fixed="right"
+                :label="$t('account.操作')"
+                :resizable="false"
                 width="120">
                 <template slot-scope="{ row }">
                     <auth-button
-                        class="mr10"
-                        theme="primary"
-                        :permission="row.canManage"
+                        v-test="{ type: 'button', value: 'editAccount' }"
                         auth="account/edit"
+                        class="mr10"
+                        :permission="row.canManage"
                         :resource-id="row.id"
                         text
-                        @click="handleEdit(row)"
-                        v-test="{ type: 'button', value: 'editAccount' }">
+                        theme="primary"
+                        @click="handleEdit(row)">
                         {{ $t('account.编辑') }}
                     </auth-button>
                     <jb-popover-confirm
-                        :title="$t('account.确定删除该账号？')"
+                        :confirm-handler="() => handleDelete(row.id)"
                         :content="$t('account.删除后不可恢复，请谨慎操作！')"
-                        :confirm-handler="() => handleDelete(row.id)">
+                        :title="$t('account.确定删除该账号？')">
                         <auth-button
-                            text
-                            :permission="row.canManage"
+                            v-test="{ type: 'button', value: 'deleteAccount' }"
                             auth="account/delete"
+                            :permission="row.canManage"
                             :resource-id="row.id"
-                            v-test="{ type: 'button', value: 'deleteAccount' }">
+                            text>
                             {{ $t('account.删除') }}
                         </auth-button>
                     </jb-popover-confirm>
@@ -171,14 +171,18 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import AccountService from '@service/account-manage';
     import NotifyService from '@service/notify';
+
     import { listColumnsCache } from '@utils/cache-helper';
+
+    import JbSearchSelect from '@components/jb-search-select';
     import ListActionLayout from '@components/list-action-layout';
     import RenderList from '@components/render-list';
-    import JbSearchSelect from '@components/jb-search-select';
+
     import Operation from './components/operation';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'account_manage_columns';
 

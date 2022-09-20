@@ -29,25 +29,25 @@
     <div class="task-manage-plan-page">
         <list-action-layout>
             <bk-button
-                theme="primary"
+                v-test="{ type: 'button', value: 'createPlan' }"
                 class="w120"
-                @click="handleCreatePlan"
-                v-test="{ type: 'button', value: 'createPlan' }">
+                theme="primary"
+                @click="handleCreatePlan">
                 {{ $t('template.新建') }}
             </bk-button>
             <span v-bk-tooltips="batchSyncDisableTips">
                 <bk-button
+                    v-test="{ type: 'button', value: 'batchSyncPlan' }"
                     :disabled="!!batchSyncDisableTips"
-                    @click="handleSyncBatch"
-                    v-test="{ type: 'button', value: 'batchSyncPlan' }">
+                    @click="handleSyncBatch">
                     {{ $t('template.批量同步') }}
                 </bk-button>
             </span>
             <span v-bk-tooltips="batchEditGlobalVariableTips">
                 <bk-button
+                    v-test="{ type: 'button', value: 'batchEditPlanValue' }"
                     :disabled="!!batchEditGlobalVariableTips"
-                    @click="handleBatchEditGlobalVariable"
-                    v-test="{ type: 'button', value: 'batchEditPlanValue' }">
+                    @click="handleBatchEditGlobalVariable">
                     {{ $t('template.批量编辑变量值') }}
                 </bk-button>
             </span>
@@ -59,53 +59,59 @@
                     :placeholder="$t('template.输入 ID、执行方案名、作业模板名、更新人 或 创建人 进行搜索...')"
                     style="width: 420px;"
                     @on-change="handleSearch" />
-                <bk-button @click="handleMyPlan">{{ $t('template.我的方案') }}</bk-button>
+                <bk-button @click="handleMyPlan">
+                    {{ $t('template.我的方案') }}
+                </bk-button>
             </template>
         </list-action-layout>
-        <layout :flod="isListFlod" @on-flod="handleLayoutFlod">
+        <layout
+            :flod="isListFlod"
+            @on-flod="handleLayoutFlod">
             <render-list
                 ref="list"
+                v-test="{ type: 'list', value: 'plan' }"
                 :data-source="listDataSource"
+                :outer-border="false"
+                :pagination-small="paginationSmall"
+                :row-class-name="caclRowClassName"
                 :search-control="() => $refs.search"
                 selectable
-                :outer-border="false"
                 :size="tableSize"
-                :row-class-name="caclRowClassName"
-                :pagination-small="paginationSmall"
-                @on-selection-change="handleSelection"
-                v-test="{ type: 'list', value: 'plan' }">
+                @on-selection-change="handleSelection">
                 <div
                     v-if="isCreatePlan"
                     slot="prepend"
                     class="create-plan-placeholder"
                     :class="{ active: selectPlanInfo.id === -1 }">
-                    <div class="name-box">{{ newPlanName || '--' }}</div>
+                    <div class="name-box">
+                        {{ newPlanName || '--' }}
+                    </div>
                     <Icon
-                        type="new-3"
+                        style="font-size: 26px; color: #ff9c01;"
                         svg
-                        style="font-size: 26px; color: #ff9c01;" />
+                        type="new-3" />
                 </div>
                 <bk-table-column
                     v-if="allRenderColumnMap.id"
+                    key="id"
+                    align="left"
                     label="ID"
                     prop="id"
-                    key="id"
-                    width="120"
-                    align="left" />
+                    width="120" />
                 <bk-table-column
                     v-if="allRenderColumnMap.name"
-                    :label="$t('template.执行方案名称')"
-                    prop="name"
-                    min-width="300"
                     key="name"
                     align="left"
-                    class-name="plan-name-column">
+                    class-name="plan-name-column"
+                    :label="$t('template.执行方案名称')"
+                    min-width="300"
+                    prop="name">
                     <template slot-scope="{ row }">
                         <auth-component
-                            style="width: 100%;"
-                            :permission="row.canView"
                             auth="job_plan/view"
-                            :resource-id="row.id">
+                            :permission="row.canView"
+                            :resource-id="row.id"
+                            style="width: 100%;">
                             <div
                                 class="plan-name-box"
                                 :class="{
@@ -114,42 +120,43 @@
                                 @click="handlePlanSelect(row)">
                                 <div class="name-wraper">
                                     <div
-                                        class="name-text"
-                                        v-bk-overflow-tips>
+                                        v-bk-overflow-tips
+                                        class="name-text">
                                         {{ row.name }}
                                     </div>
                                     <router-link
                                         v-if="row.cronJobCount > 0"
+                                        v-bk-tooltips.html="`
+                                            <div>${$t('template.有')} ${row.cronJobCount} ${$t('template.个定时任务')}</div>
+                                            <div>${$t('template.点击前往查看')}</div>
+                                        `"
                                         class="cron-job-tag"
+                                        target="_blank"
                                         :to="{
                                             name: 'cronList',
                                             query: {
                                                 planId: row.id,
                                             },
-                                        }"
-                                        target="_blank"
-                                        v-bk-tooltips.html="`
-                                            <div>${$t('template.有')} ${row.cronJobCount} ${$t('template.个定时任务')}</div>
-                                            <div>${$t('template.点击前往查看')}</div>
-                                        `">
-                                        <Icon type="job-timing" svg />
+                                        }">
+                                        <Icon
+                                            svg
+                                            type="job-timing" />
                                         <span style="margin-left: 2px;">{{ row.cronJobCount }}</span>
                                     </router-link>
                                     <span
                                         v-if="row.needUpdate"
                                         class="update-flag">
                                         <Icon
+                                            svg
                                             :tippy-tips="$t('template.未同步')"
-                                            type="sync-8"
-                                            svg />
+                                            type="sync-8" />
                                     </span>
-                                    
                                 </div>
                                 <Icon
-                                    @click.stop="handleCollection(row)"
-                                    type="collection"
                                     class="collection-flag"
-                                    :class="{ favored: row.favored }" />
+                                    :class="{ favored: row.favored }"
+                                    type="collection"
+                                    @click.stop="handleCollection(row)" />
                                 <Icon
                                     v-if="selectPlanInfo.id === row.id"
                                     class="select-flag"
@@ -163,145 +170,148 @@
                                 }">
                                 <div class="name-wraper">
                                     <div
-                                        class="name-text"
-                                        v-bk-overflow-tips>
+                                        v-bk-overflow-tips
+                                        class="name-text">
                                         {{ row.name }}
                                     </div>
                                     <span
                                         v-if="row.cronJobCount > 0"
-                                        class="cron-job-tag"
                                         v-bk-tooltips.html="`
                                             <div>${$t('template.有')} ${row.cronJobCount} ${$t('template.个定时任务')}</div>
                                             <div>${$t('template.点击前往查看')}</div>
-                                        `">
-                                        <Icon type="job-timing" svg />
+                                        `"
+                                        class="cron-job-tag">
+                                        <Icon
+                                            svg
+                                            type="job-timing" />
                                         <span style="margin-left: 2px;">{{ row.cronJobCount }}</span>
                                     </span>
                                     <span
                                         v-if="row.needUpdate"
                                         class="update-flag">
                                         <Icon
+                                            svg
                                             :tippy-tips="$t('template.未同步')"
-                                            type="sync-8"
-                                            svg />
+                                            type="sync-8" />
                                     </span>
                                 </div>
                                 <Icon
-                                    type="collection"
                                     class="collection-flag"
-                                    :class="{ favored: row.favored }" />
+                                    :class="{ favored: row.favored }"
+                                    type="collection"
+                                    @click.stop="handleCollection(row)" />
                             </div>
                         </auth-component>
                     </template>
                 </bk-table-column>
                 <bk-table-column
                     v-if="allRenderColumnMap.templateName"
-                    :label="$t('template.所属作业模板')"
-                    prop="templateName"
-                    min-width="200"
                     key="templateName"
-                    show-overflow-tooltip
-                    align="left" />
+                    align="left"
+                    :label="$t('template.所属作业模板')"
+                    min-width="200"
+                    prop="templateName"
+                    show-overflow-tooltip />
                 <bk-table-column
                     v-if="allRenderColumnMap.lastModifyUser"
+                    key="lastModifyUser"
+                    align="left"
                     :label="$t('template.更新人.colHead')"
                     prop="lastModifyUser"
-                    key="lastModifyUser"
-                    width="160"
-                    align="left" />
+                    width="160" />
                 <bk-table-column
                     v-if="allRenderColumnMap.lastModifyTime"
+                    key="lastModifyTime"
+                    align="left"
                     :label="$t('template.更新时间')"
                     prop="lastModifyTime"
-                    key="lastModifyTime"
-                    width="180"
-                    align="left" />
+                    width="180" />
                 <bk-table-column
                     v-if="allRenderColumnMap.creator"
+                    key="creator"
+                    align="left"
                     :label="$t('template.创建人')"
                     prop="creator"
-                    key="creator"
-                    width="120"
-                    align="left" />
+                    width="120" />
                 <bk-table-column
                     v-if="allRenderColumnMap.createTime"
+                    key="createTime"
+                    align="left"
                     :label="$t('template.创建时间')"
                     prop="createTime"
-                    key="createTime"
-                    width="180"
-                    align="left" />
+                    width="180" />
                 <bk-table-column
                     v-if="!isListFlod"
-                    :resizable="false"
+                    key="action"
+                    align="left"
+                    fixed="right"
                     :label="$t('template.操作')"
                     prop="statusText"
-                    fixed="right"
-                    key="action"
-                    width="120"
-                    align="left">
+                    :resizable="false"
+                    width="120">
                     <template slot-scope="{ row }">
                         <bk-button
-                            text
-                            @click="handleExecute(row)"
+                            v-test="{ type: 'button', value: 'execPlan' }"
                             class="mr10"
-                            v-test="{ type: 'button', value: 'execPlan' }">
+                            text
+                            @click="handleExecute(row)">
                             {{ $t('template.去执行') }}
                         </bk-button>
                         <span :tippy-tips="row.needUpdate ? '' : $t('template.无需同步')">
                             <auth-button
-                                :permission="row.canEdit"
+                                v-test="{ type: 'button', value: 'syncPlan' }"
                                 auth="job_plan/sync"
+                                class="mr10"
+                                :disabled="!row.needUpdate"
+                                :permission="row.canEdit"
                                 :resource-id="row.id"
                                 text
-                                @click="handleUpdate(row)"
-                                :disabled="!row.needUpdate"
-                                class="mr10"
-                                v-test="{ type: 'button', value: 'syncPlan' }">
+                                @click="handleUpdate(row)">
                                 {{ $t('template.去同步') }}
                             </auth-button>
                         </span>
                         <list-operation-extend>
                             <div
+                                v-test="{ type: 'link', value: 'createCrontab' }"
                                 class="action-item"
-                                @click="handleGoCreateCronJob(row)"
-                                v-test="{ type: 'link', value: 'createCrontab' }">
+                                @click="handleGoCreateCronJob(row)">
                                 {{ $t('template.定时执行') }}
                             </div>
                             <auth-component
-                                :permission="row.canEdit"
                                 auth="job_plan/edit"
+                                :permission="row.canEdit"
                                 :resource-id="row.id">
                                 <div
+                                    v-test="{ type: 'button', value: 'editPlan' }"
                                     class="action-item"
-                                    @click="handleEdit(row)"
-                                    v-test="{ type: 'button', value: 'editPlan' }">
+                                    @click="handleEdit(row)">
                                     {{ $t('template.编辑') }}
                                 </div>
                                 <div
-                                    class="action-item"
                                     slot="forbid"
-                                    v-test="{ type: 'button', value: 'editPlan' }">
+                                    v-test="{ type: 'button', value: 'editPlan' }"
+                                    class="action-item">
                                     {{ $t('template.编辑') }}
                                 </div>
                             </auth-component>
                             <jb-popover-confirm
                                 class="action-del"
-                                :title="$t('template.确定删除该执行方案？')"
+                                :confirm-handler="() => handleDelete(row)"
                                 :content="$t('template.若已设置了定时任务，需要先删除才能操作')"
-                                :confirm-handler="() => handleDelete(row)">
+                                :title="$t('template.确定删除该执行方案？')">
                                 <auth-component
-                                    :permission="row.canDelete"
                                     auth="job_plan/delete"
+                                    :permission="row.canDelete"
                                     :resource-id="row.id">
                                     <div
-                                        class="action-item"
-                                        v-test="{ type: 'button', value: 'deletePlan' }">
+                                        v-test="{ type: 'button', value: 'deletePlan' }"
+                                        class="action-item">
                                         {{ $t('template.删除') }}
                                     </div>
                                     <div
                                         slot="forbid"
-                                        class="action-item"
-                                        v-test="{ type: 'button', value: 'deletePlan' }">
+                                        v-test="{ type: 'button', value: 'deletePlan' }"
+                                        class="action-item">
                                         {{ $t('template.删除') }}
                                     </div>
                                 </auth-component>
@@ -309,7 +319,9 @@
                         </list-operation-extend>
                     </template>
                 </bk-table-column>
-                <bk-table-column v-if="!isListFlod" type="setting">
+                <bk-table-column
+                    v-if="!isListFlod"
+                    type="setting">
                     <bk-table-setting-content
                         :fields="tableColumn"
                         :selected="selectedTableColumn"
@@ -324,20 +336,24 @@
                     v-bind="selectPlanInfo"
                     :bottom-offset="20"
                     :first-plan="isFirstTemplatePlan"
-                    @on-name-change="handleCreatePlanNameChange"
                     @on-create="handleCreateSubmit"
+                    @on-delete="handlePlanDelete"
                     @on-edit="handleShowPlanEdit"
                     @on-edit-cancle="handleEditCancle"
                     @on-edit-success="handleEditSuccess"
-                    @on-delete="handlePlanDelete" />
+                    @on-name-change="handleCreatePlanNameChange" />
             </template>
         </layout>
-        <lower-component level="custom" :custom="isShowTemplateSelect">
+        <lower-component
+            :custom="isShowTemplateSelect"
+            level="custom">
             <template-select
                 v-model="isShowTemplateSelect"
                 @on-change="handleTemplateChange" />
         </lower-component>
-        <lower-component level="custom" :custom="isShowBatchGlobalVariable">
+        <lower-component
+            :custom="isShowBatchGlobalVariable"
+            level="custom">
             <batch-edit-global-variable
                 v-model="isShowBatchGlobalVariable"
                 :data="listSelect"
@@ -352,23 +368,28 @@
      * 用于作业模板详情展示指定作业模板的执行方案（固定搜索项作业模板名称）
      * 用执行方案列表展示所有执行方案列表
     */
-    import I18n from '@/i18n';
-    import UserService from '@service/user';
     import NotifyService from '@service/notify';
-    import ExecPlanService from '@service/task-plan';
     import TaskExecuteService from '@service/task-execute';
-    import ListActionLayout from '@components/list-action-layout';
-    import RenderList from '@components/render-list';
-    import JbSearchSelect from '@components/jb-search-select';
-    import ListOperationExtend from '@components/list-operation-extend';
-    import { listColumnsCache } from '@utils/cache-helper';
+    import ExecPlanService from '@service/task-plan';
+    import UserService from '@service/user';
+
     import { leaveConfirm } from '@utils/assist';
+    import { listColumnsCache } from '@utils/cache-helper';
+
+    import JbSearchSelect from '@components/jb-search-select';
+    import ListActionLayout from '@components/list-action-layout';
+    import ListOperationExtend from '@components/list-operation-extend';
+    import RenderList from '@components/render-list';
+
+    import PlanCreate from '../create';
     import PlanDetail from '../detail';
     import PlanEdit from '../edit';
-    import PlanCreate from '../create';
+
+    import BatchEditGlobalVariable from './components/batch-edit-gobal-variable';
     import Layout from './components/layout';
     import TemplateSelect from './components/template-select';
-    import BatchEditGlobalVariable from './components/batch-edit-gobal-variable';
+
+    import I18n from '@/i18n';
 
     const TABLE_COLUMN_CACHE = 'task_plan_list_columns';
 

@@ -32,25 +32,37 @@
                 class="tab-item"
                 :class="{ active: listTab === 'launch' }"
                 @click="handleTabChange('launch')">
-                <div class="tab-name">{{ $t('cron.任务正常启动') }}</div>
+                <div class="tab-name">
+                    {{ $t('cron.任务正常启动') }}
+                </div>
                 <Icon
                     v-if="isLaunchLoading"
-                    type="sync-pending"
+                    class="loading-flag"
                     svg
-                    class="loading-flag" />
-                <div v-else class="tab-nums">{{ launchNums }}</div>
+                    type="sync-pending" />
+                <div
+                    v-else
+                    class="tab-nums">
+                    {{ launchNums }}
+                </div>
             </div>
             <div
                 class="tab-item"
                 :class="{ active: listTab === 'unlaunch' }"
                 @click="handleTabChange('unlaunch')">
-                <div class="tab-name">{{ $t('cron.任务未能启动') }}</div>
+                <div class="tab-name">
+                    {{ $t('cron.任务未能启动') }}
+                </div>
                 <Icon
                     v-if="isUnlaunchLoading"
-                    type="sync-pending"
+                    class="loading-flag"
                     svg
-                    class="loading-flag" />
-                <div v-else class="tab-nums">{{ unLaunchNums }}</div>
+                    type="sync-pending" />
+                <div
+                    v-else
+                    class="tab-nums">
+                    {{ unLaunchNums }}
+                </div>
             </div>
         </div>
         <component
@@ -63,6 +75,7 @@
 <script>
     import TaskExecuteService from '@service/task-execute';
     import TimeTaskService from '@service/time-task';
+
     import LaunchList from './launch-list';
     import UnlaunchList from './unlaunch-list';
 

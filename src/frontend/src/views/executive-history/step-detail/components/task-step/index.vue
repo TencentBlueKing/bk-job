@@ -32,9 +32,9 @@
             [data.displayStyle]: true,
             active: data.stepInstanceId === activeId,
         }"
+        @click="handleSelect"
         @mouseenter="handleShowPopover"
-        @mouseleave="handleHidePopover"
-        @click="handleSelect">
+        @mouseleave="handleHidePopover">
         <div class="step-wraper">
             <div class="step-icon">
                 <Icon :type="data.icon" />
@@ -44,22 +44,25 @@
                 class="loading-progress"
                 src="/static/images/task-loading.png">
         </div>
-        <Icon :type="data.lastStepIcon" svg class="step-next" />
+        <Icon
+            class="step-next"
+            svg
+            :type="data.lastStepIcon" />
         <component
+            :is="popoverCom"
             v-show="isShowPopover"
             ref="popover"
-            :is="popoverCom"
-            :data="data"
             :class="['task-status-bar-step-popover', arrowPlacement]"
+            :data="data"
             :style="popoverStyles"
-            @on-update="handleTaskStatusUpdate"
-            @on-close="handleClosePopover" />
+            @on-close="handleClosePopover"
+            @on-update="handleTaskStatusUpdate" />
     </div>
 </template>
 <script>
     import ApprovalView from './view/approval';
-    import NormalView from './view/normal';
     import NotStartView from './view/no-start';
+    import NormalView from './view/normal';
 
     let activeHandler = null;
 

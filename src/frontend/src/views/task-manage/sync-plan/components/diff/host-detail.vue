@@ -26,43 +26,51 @@
 -->
 
 <template>
-    <div class="step-view-global-variable" @click="handlerView">
-        <Icon class="type-flag" type="audit" />
+    <div
+        class="step-view-global-variable"
+        @click="handlerView">
+        <Icon
+            class="type-flag"
+            type="audit" />
         <jb-dialog
             v-model="isShowDetail"
-            :title="title"
-            :width="1020"
+            class="host-variable-detail-dialog"
             :ok-text="$t('template.关闭')"
-            class="host-variable-detail-dialog">
+            :title="title"
+            :width="1020">
             <template #header>
                 <div>{{ title }}</div>
                 <div class="display-diff">
                     <template v-if="diffEnable">
                         <bk-switcher
-                            :value="isShowDiff"
-                            theme="primary"
                             size="large"
+                            theme="primary"
+                            :value="isShowDiff"
                             @change="handleToggleDiff" />
                     </template>
                     <template v-else>
                         <bk-switcher
-                            :value="false"
                             v-bk-tooltips="$t('template.无差异')"
                             disabled
+                            size="large"
                             theme="primary"
-                            size="large" />
+                            :value="false" />
                     </template>
                     {{ $t('template.显示差异') }}
                 </div>
             </template>
             <div class="content-wraper">
                 <scroll-faker>
-                    <server-panel
+                    <!-- <server-panel
                         detail-mode="dialog"
                         :host-node-info="hostNodeInfo"
                         :node-diff="nodeDiff"
                         :host-diff="hostDiff"
-                        :group-diff="groupDiff" />
+                        :group-diff="groupDiff" /> -->
+                    <ip-selector
+                        readonly
+                        show-view
+                        :value="hostNodeInfo" />
                 </scroll-faker>
             </div>
         </jb-dialog>
@@ -70,19 +78,23 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskHostNodeModel from '@model/task-host-node';
+
     import {
         findParent,
     } from '@utils/vdom';
+
     import ScrollFaker from '@components/scroll-faker';
-    import ServerPanel from '@components/choose-ip/server-panel';
+
+    import I18n from '@/i18n';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
         name: 'StepViewGlobalVariable',
         components: {
             ScrollFaker,
-            ServerPanel,
+            // ServerPanel,
         },
         props: {
             type: {
@@ -108,8 +120,8 @@
                 isShowDiff: false,
                 hostNodeInfo: {
                     dynamicGroupList: [],
-                    ipList: [],
-                    topoNodeList: [],
+                    hostList: [],
+                    nodeList: [],
                 },
                 nodeDiff: {},
                 hostDiff: {},
@@ -160,40 +172,40 @@
                 
                 // 对比节点
                 const nodeDiffMap = {};
-                const topoNodeList = [];
+                const nodeList = [];
                 const genNodeId = node => `${node.type}_${node.id}`;
-                templateValue.topoNodeList.forEach((node) => {
+                templateValue.nodeList.forEach((node) => {
                     nodeDiffMap[genNodeId(node)] = 'new';
-                    topoNodeList.push(node);
+                    nodeList.push(node);
                 });
-                planValue.topoNodeList.forEach((node) => {
+                planValue.nodeList.forEach((node) => {
                     if (nodeDiffMap[genNodeId(node)]) {
                         nodeDiffMap[genNodeId(node)] = 'normal';
                     } else {
                         nodeDiffMap[genNodeId(node)] = 'delete';
-                        topoNodeList.push(node);
+                        nodeList.push(node);
                     }
                 });
-                this.composeNode = Object.freeze(topoNodeList);
+                this.composeNode = Object.freeze(nodeList);
                 this.diffNodeMemo = Object.freeze(nodeDiffMap);
                 
                 // 对比主机
                 const hostDiffMap = {};
-                const ipList = [];
+                const hostList = [];
                 const genHostId = host => `${host.cloudAreaInfo.id}_${host.ip}`;
-                templateValue.ipList.forEach((host) => {
+                templateValue.hostList.forEach((host) => {
                     hostDiffMap[genHostId(host)] = 'new';
-                    ipList.push(host);
+                    hostList.push(host);
                 });
-                planValue.ipList.forEach((host) => {
+                planValue.hostList.forEach((host) => {
                     if (hostDiffMap[genHostId(host)]) {
                         hostDiffMap[genHostId(host)] = 'normal';
                     } else {
                         hostDiffMap[genHostId(host)] = 'delete';
-                        ipList.push(host);
+                        hostList.push(host);
                     }
                 });
-                this.composeHost = Object.freeze(ipList);
+                this.composeHost = Object.freeze(hostList);
                 this.diffHostMemo = Object.freeze(hostDiffMap);
 
                 // 对比分组
@@ -218,11 +230,11 @@
             handlerView () {
                 // const {
                 //     dynamicGroupList,
-                //     ipList,
-                //     topoNodeList
+                //     hostList,
+                //     nodeList
                 // } = this.data.hostNodeInfo
-                // this.node = Object.freeze(topoNodeList)
-                // this.host = Object.freeze(ipList)
+                // this.node = Object.freeze(nodeList)
+                // this.host = Object.freeze(hostList)
                 // this.dynamicGroup = Object.freeze(dynamicGroupList)
                 this.hostNodeInfo = Object.freeze(this.data.hostNodeInfo);
                 this.nodeDiff = {};
@@ -234,8 +246,8 @@
                 if (value) {
                     this.hostNodeInfo = Object.freeze({
                         dynamicGroupList: this.composeGroup,
-                        ipList: this.composeHost,
-                        topoNodeList: this.composeNode,
+                        hostList: this.composeHost,
+                        nodeList: this.composeNode,
                     });
                     // this.node = this.composeNode
                     this.nodeDiff = this.diffNodeMemo;

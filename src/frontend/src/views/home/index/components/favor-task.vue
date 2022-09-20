@@ -26,16 +26,25 @@
 -->
 
 <template>
-    <div class="favor-task-box" ref="container" v-bkloading="{ isLoading }">
+    <div
+        ref="container"
+        v-bkloading="{ isLoading }"
+        class="favor-task-box">
         <template v-if="!isLoading">
-            <bk-table v-if="favorList.length > 0" :data="favorList" :height="height">
-                <bk-table-column prop="name" :label="$t('home.作业模板名称')" show-overflow-tooltip>
+            <bk-table
+                v-if="favorList.length > 0"
+                :data="favorList"
+                :height="height">
+                <bk-table-column
+                    :label="$t('home.作业模板名称')"
+                    prop="name"
+                    show-overflow-tooltip>
                     <template slot-scope="{ row }">
                         <auth-router-link
-                            :permission="row.canView"
                             auth="job_template/view"
-                            :resource-id="row.id"
                             class="task-name-text"
+                            :permission="row.canView"
+                            :resource-id="row.id"
                             :to="{
                                 name: 'templateDetail',
                                 params: {
@@ -47,24 +56,27 @@
                     </template>
                 </bk-table-column>
                 <bk-table-column
-                    width="100"
+                    :label="$t('home.状态')"
                     prop="status"
-                    :label="$t('home.状态')">
+                    width="100">
                     {{ $t('home.已上线') }}
                 </bk-table-column>
                 <bk-table-column
-                    width="180"
+                    :label="$t('home.更新人')"
                     prop="lastModifyUser"
-                    :label="$t('home.更新人')" />
+                    width="180" />
                 <bk-table-column
-                    width="180"
+                    :label="$t('home.更新时间')"
                     prop="lastModifyTime"
-                    :label="$t('home.更新时间')" />
-                <bk-table-column :label="$t('home.操作')" width="200" class-name="task-action">
+                    width="180" />
+                <bk-table-column
+                    class-name="task-action"
+                    :label="$t('home.操作')"
+                    width="200">
                     <template slot-scope="{ row }">
                         <auth-router-link
-                            :permission="row.canView"
                             auth="job_template/view"
+                            :permission="row.canView"
                             :resource-id="row.id"
                             :to="{
                                 name: 'viewPlan',
@@ -75,8 +87,8 @@
                             {{ $t('home.执行方案') }}
                         </auth-router-link>
                         <auth-router-link
-                            :permission="row.canDebug"
                             auth="job_template/debug"
+                            :permission="row.canDebug"
                             :resource-id="row.id"
                             :to="{
                                 name: 'debugPlan',
@@ -87,8 +99,8 @@
                             {{ $t('home.调试') }}
                         </auth-router-link>
                         <auth-router-link
-                            :permission="row.canEdit"
                             auth="job_template/edit"
+                            :permission="row.canEdit"
                             :resource-id="row.id"
                             :to="{
                                 name: 'templateEdit',
@@ -101,10 +113,18 @@
                     </template>
                 </bk-table-column>
             </bk-table>
-            <div v-else class="list-empty">
-                <img class="empty-flag" src="/static/images/favor-task-empty.png">
-                <div style="margin-top: 12px; font-size: 14px; color: #63656e;">{{ $t('home.暂无收藏的作业') }}</div>
-                <div style="margin-top: 10px; font-size: 12px; color: #979ba5;">{{ $t('home.将鼠标悬浮到作业模板行，点击收藏图标') }}</div>
+            <div
+                v-else
+                class="list-empty">
+                <img
+                    class="empty-flag"
+                    src="/static/images/favor-task-empty.png">
+                <div style="margin-top: 12px; font-size: 14px; color: #63656e;">
+                    {{ $t('home.暂无收藏的作业') }}
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #979ba5;">
+                    {{ $t('home.将鼠标悬浮到作业模板行，点击收藏图标') }}
+                </div>
             </div>
         </template>
     </div>

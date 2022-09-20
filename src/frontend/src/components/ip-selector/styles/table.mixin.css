@@ -1,0 +1,73 @@
+@mixin table {
+    table {
+        width: 100%;
+        font-size: 12px;
+        text-align: left;
+        table-layout: fixed;
+        
+    
+        th,
+        td {
+            height: 40px;
+            padding: 0 10px;
+            border-bottom: 1px solid #dcdee5;
+            background: #fff;
+            .cell{
+                display: flex;
+                align-items: center;
+            }
+            .cell-text {
+                height: 20px;
+                overflow: hidden;
+                line-height: 20px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .cell-append{
+                display: flex;
+                height: 20px;
+                line-height: 20px;
+                align-items: center;
+            }
+        }
+    
+        th {
+            font-weight: normal;
+            color: #313238;
+            background: #f0f1f5;
+            user-select: none;
+    
+            &:hover {
+                background: #eaebf0;
+            }
+        }
+    
+        td {
+            color: #63656e;
+            cursor: pointer;
+        }
+    
+        tr {
+            &:hover {
+                td {
+                    background-color: #f5f7fa;
+                }
+            }
+        }
+        .columu-fixed{
+            position: sticky;
+        }
+    }
+    .bk-page{
+        padding-left: 10px;
+        margin-top: 8px;
+        .bk-page-total-small{
+            height: 34px !important;
+            line-height: 34px !important;
+            margin-top: 2px !important;
+        }
+    }
+    .bk-button-text{
+        font-size: 12px;
+    }
+}

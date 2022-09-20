@@ -27,8 +27,14 @@
 
 <template>
     <div>
-        <jb-form ref="varHostForm" :model="formData" :rules="rules">
-            <jb-form-item :label="$t('template.变量名称')" required :property="'name'">
+        <jb-form
+            ref="varHostForm"
+            :model="formData"
+            :rules="rules">
+            <jb-form-item
+                :label="$t('template.变量名称')"
+                :property="'name'"
+                required>
                 <jb-input
                     v-model="formData.name"
                     :maxlength="30"
@@ -36,62 +42,81 @@
             </jb-form-item>
             <jb-form-item
                 ref="defaultTargetValue"
-                :label="$t('template.初始值')"
                 :desc="$t('template.仅作用于创建执行方案时的初始变量值，后续更改不会同步到执行方案')"
+                :label="$t('template.初始值')"
                 property="defaultTargetValue">
                 <div>
-                    <bk-button class="mr10" @click="handleOpenChooseIp">
+                    <bk-button
+                        class="mr10"
+                        @click="handleOpenChooseIp">
                         <Icon type="plus" />
                         {{ $t('template.选择主机') }}
                     </bk-button>
-                    <bk-button v-if="isShowClear" @click="handleClearDefault">
+                    <bk-button
+                        v-if="isShowClear"
+                        @click="handleClearDefault">
                         {{ $t('template.清空') }}
                     </bk-button>
                 </div>
-                <server-panel
+                <!-- <server-panel
                     v-if="isShowClear"
                     class="view-server-panel"
                     :host-node-info="formData.defaultTargetValue.hostNodeInfo"
                     editable
                     detail-fullscreen
-                    @on-change="handleHostChange" />
+                    @on-change="handleHostChange" /> -->
+                <ip-selector
+                    :original-value="originalHostNodeInfo"
+                    :show-dialog="isShowChooseIp"
+                    show-view
+                    :value="formData.defaultTargetValue.hostNodeInfo"
+                    @change="handleHostChange"
+                    @close-dialog="handleCloseIPSelector" />
             </jb-form-item>
             <jb-form-item :label="$t('template.变量描述')">
                 <bk-input
                     v-model="formData.description"
+                    maxlength="100"
                     :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息 [可选]')"
-                    type="textarea"
-                    maxlength="100" />
+                    type="textarea" />
             </jb-form-item>
             <jb-form-item style="margin-bottom: 0;">
-                <bk-checkbox v-model="formData.required" :true-value="1" :false-value="0">
+                <bk-checkbox
+                    v-model="formData.required"
+                    :false-value="0"
+                    :true-value="1">
                     {{ $t('template.执行时必填') }}
                 </bk-checkbox>
             </jb-form-item>
         </jb-form>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-            @on-change="handleHostChange" />
+            @on-change="handleHostChange" /> -->
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
+    import _ from 'lodash';
+
     import TaskGlobalVariableModel from '@model/task/global-variable';
     import TaskHostNodeModel from '@model/task-host-node';
+
     import {
         globalVariableNameRule,
     } from '@utils/validator';
+
     import JbInput from '@components/jb-input';
-    import ChooseIp from '@components/choose-ip';
-    import ServerPanel from '@components/choose-ip/server-panel';
+
+    import I18n from '@/i18n';
+    // import ChooseIp from '@components/choose-ip';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
         name: 'VarHost',
         components: {
             JbInput,
-            ChooseIp,
-            ServerPanel,
+            // ChooseIp,
+            // ServerPanel,
         },
         props: {
             variable: {
@@ -119,6 +144,7 @@
             },
         },
         created () {
+            this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
             this.rules = {
                 name: [
                     {
@@ -152,6 +178,9 @@
              */
             handleOpenChooseIp () {
                 this.isShowChooseIp = true;
+            },
+            handleCloseIPSelector () {
+                this.isShowChooseIp = false;
             },
             /**
              * @desc 清空主机信息

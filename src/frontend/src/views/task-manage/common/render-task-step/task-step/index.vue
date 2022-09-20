@@ -28,8 +28,8 @@
 <template>
     <div class="task-step-operation-wraper">
         <resize-layout
-            :right-width="366"
             :right-fixed="true"
+            :right-width="366"
             :style="layoutStyles">
             <div
                 ref="container"
@@ -41,24 +41,24 @@
                         :label="$t('template.步骤类型')"
                         required>
                         <bk-radio-group
-                            :value="stepType"
                             class="step-type-radio form-item-content"
+                            :value="stepType"
                             @change="handleTypeChange">
                             <bk-radio-button
-                                :value="1"
-                                :disabled="isStepTypeReadOnly">
+                                :disabled="isStepTypeReadOnly"
+                                :value="1">
                                 <Icon type="add-script" />
                                 <span>{{ $t('template.执行脚本') }}</span>
                             </bk-radio-button>
                             <bk-radio-button
-                                :value="2"
-                                :disabled="isStepTypeReadOnly">
+                                :disabled="isStepTypeReadOnly"
+                                :value="2">
                                 <Icon type="add-file" />
                                 <span>{{ $t('template.分发文件') }}</span>
                             </bk-radio-button>
                             <bk-radio-button
-                                :value="3"
-                                :disabled="isStepTypeReadOnly">
+                                :disabled="isStepTypeReadOnly"
+                                :value="3">
                                 <Icon type="add-approval" />
                                 <span>{{ $t('template.人工确认') }}</span>
                             </bk-radio-button>
@@ -66,14 +66,14 @@
                     </bk-form-item>
                 </jb-form>
                 <component
-                    ref="handler"
                     :is="stepCom"
+                    ref="handler"
                     :data="stepData"
                     v-bind="$attrs"
                     v-on="$listeners" />
                 <bk-button
-                    text
                     class="variable-guide-btn"
+                    text
                     @click="handleShowVariableGuide">
                     <Icon type="book" />
                     {{ $t('template.变量使用指引') }}
@@ -85,21 +85,25 @@
                     @on-close="handleHideVariableGuide" />
             </div>
         </resize-layout>
-        
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskStepModel from '@model/task/task-step';
-    import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
-    import ResizeLayout from '@components/resize-layout';
+
     import {
         genDefaultName,
     } from '@utils/assist';
+
+    import ResizeLayout from '@components/resize-layout';
+
+    import StepApproval from './components/approval';
     import StepDistroFile from './components/distro-file';
     import StepExecScript from './components/exec-script';
-    import StepApproval from './components/approval';
+
+    import I18n from '@/i18n';
+    import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
 
     const dataFieldMap = {
         1: 'scriptStepInfo',

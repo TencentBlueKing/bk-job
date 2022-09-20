@@ -27,41 +27,46 @@
 
 <template>
     <jb-dialog
-        :value="value"
         class="choose-source-file"
-        header-position="left"
         :esc-close="false"
+        header-position="left"
         :mask-close="false"
-        :width="1200"
         :title="$t('选择文件源文件')"
+        :value="value"
+        :width="1200"
         @input="handleCancle">
         <div v-bkloading="{ isLoading }">
             <component
-                v-if="value"
                 :is="panelCom"
+                v-if="value"
                 class="dialog-content"
-                :file-source-id="fileSourceId"
                 :file-location="fileLocation"
-                @on-source-change="handleSourceChange"
-                @on-file-change="handelFileChange" />
+                :file-source-id="fileSourceId"
+                @on-file-change="handelFileChange"
+                @on-source-change="handleSourceChange" />
         </div>
         <template #footer>
             <bk-button
                 class="mr10"
-                theme="primary"
                 :disabled="isSelectedEmpty"
+                theme="primary"
                 @click="handleSubmit">
                 <span>{{ $t('添加') }}</span>
-                <span v-if="!isSelectedEmpty" class="result-nums">{{ fileLocation.length }}</span>
+                <span
+                    v-if="!isSelectedEmpty"
+                    class="result-nums">{{ fileLocation.length }}</span>
             </bk-button>
-            <bk-button @click="handleCancle">{{ $t('取消') }}</bk-button>
+            <bk-button @click="handleCancle">
+                {{ $t('取消') }}
+            </bk-button>
         </template>
     </jb-dialog>
 </template>
 <script>
     import SourceFileVO from '@domain/variable-object/source-file';
-    import SelectFileSource from './select-file-source';
+
     import SelectFile from './select-file';
+    import SelectFileSource from './select-file-source';
 
     const SELECT_FILE_SOURCE = 'selectFileSource';
     const SELECT_FILE = 'selectFile';

@@ -27,46 +27,62 @@
 
 <template>
     <card-layout
+        v-bkloading="{ isLoading, opacity: 0.8 }"
         class="template-step-card"
-        :title="$t('dashboard.作业步骤类型使用占比')"
-        v-bkloading="{ isLoading, opacity: 0.8 }">
+        :title="$t('dashboard.作业步骤类型使用占比')">
         <div class="wraper">
-            <div ref="dashboard" style="width: 180px; height: 180px;" />
+            <div
+                ref="dashboard"
+                style="width: 180px; height: 180px;" />
             <div class="data-info">
                 <div class="row">
-                    <div class="data-label" @mouseover="handleMouseover($t('dashboard.文件分发'))">
+                    <div
+                        class="data-label"
+                        @mouseover="handleMouseover($t('dashboard.文件分发'))">
                         <div :style="calcItemCircleStyles('fileStep')" />
                         <div>{{ $t('dashboard.文件分发') }}</div>
                     </div>
                     <div class="data-content">
-                        <div class="content-item" @mouseover="handleMouseover($t('dashboard.本地文件源'))">
+                        <div
+                            class="content-item"
+                            @mouseover="handleMouseover($t('dashboard.本地文件源'))">
                             <div class="local-file-dot" />
                             <div>{{ $t('dashboard.本地文件源') }}</div>
                         </div>
-                        <div class="content-item" @mouseover="handleMouseover($t('dashboard.服务器文件源'))">
+                        <div
+                            class="content-item"
+                            @mouseover="handleMouseover($t('dashboard.服务器文件源'))">
                             <div class="server-file-dot" />
                             <div>{{ $t('dashboard.服务器文件源') }}</div>
                         </div>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="data-label" @mouseover="handleMouseover($t('dashboard.脚本执行'))">
+                    <div
+                        class="data-label"
+                        @mouseover="handleMouseover($t('dashboard.脚本执行'))">
                         <div :style="calcItemCircleStyles('scriptStep')" />
                         <div>{{ $t('dashboard.脚本执行') }}</div>
                     </div>
                     <div class="data-content">
-                        <div class="content-item" @mouseover="handleMouseover($t('dashboard.手工录入'))">
+                        <div
+                            class="content-item"
+                            @mouseover="handleMouseover($t('dashboard.手工录入'))">
                             <div class="local-script-dot" />
                             <div>{{ $t('dashboard.手工录入') }}</div>
                         </div>
-                        <div class="content-item" @mouseover="handleMouseover($t('dashboard.脚本引用'))">
+                        <div
+                            class="content-item"
+                            @mouseover="handleMouseover($t('dashboard.脚本引用'))">
                             <div class="refer-script-dot" />
                             <div>{{ $t('dashboard.脚本引用') }}</div>
                         </div>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="data-label" @mouseover="handleMouseover($t('dashboard.人工确认'))">
+                    <div
+                        class="data-label"
+                        @mouseover="handleMouseover($t('dashboard.人工确认'))">
                         <div :style="calcItemCircleStyles('confirmStep')" />
                         <div>{{ $t('dashboard.人工确认') }}</div>
                     </div>
@@ -76,14 +92,17 @@
     </card-layout>
 </template>
 <script>
-    import _ from 'lodash';
     import echarts from 'lib/echarts.min.js';
-    import I18n from '@/i18n';
+    import _ from 'lodash';
+
     import StatisticsService from '@service/statistics';
+
     import CardLayout from '../card-layout';
     import {
         chartsOptionsBase,
     } from '../common/assist';
+
+    import I18n from '@/i18n';
 
     const colorMap = {
         fileStep: '#3157A3',

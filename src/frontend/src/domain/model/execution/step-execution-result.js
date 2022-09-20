@@ -24,10 +24,12 @@
 */
 
 import _ from 'lodash';
+
+import ResultGroup from '@model/execution/step-execution-result-group';
+
 import {
     transformTimeFriendly,
 } from '@utils/assist';
-import ResultGroup from '@model/execution/step-execution-result-group';
 
 // 执行状态
 const STATUS_PENDING = 1;

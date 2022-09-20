@@ -32,20 +32,24 @@
             @on-init="handleTaskInit">
             <rolling-batch
                 v-if="data.isRollingTask"
-                :value="params.batch"
                 :data="data"
+                :value="params.batch"
                 @change="handleBatchChange"
                 @on-confirm="operationCode => handleStatusUpdate(operationCode)" />
             <div class="step-info-header">
                 <div class="step-info-wraper">
-                    <div class="step-type-text">{{ stepTypeText }}</div>
+                    <div class="step-type-text">
+                        {{ stepTypeText }}
+                    </div>
                     <div class="step-name-box">
-                        <div class="step-name-text">{{ data.name }}</div>
+                        <div class="step-name-text">
+                            {{ data.name }}
+                        </div>
                         <execution-history-select
                             ref="executionHistorySelect"
-                            :step-instance-id="params.id"
-                            :retry-count="params.retryCount"
                             :batch="params.batch"
+                            :retry-count="params.retryCount"
+                            :step-instance-id="params.id"
                             @on-change="handleRetryCountChange" />
                     </div>
                 </div>
@@ -55,10 +59,10 @@
                     class="step-action-box">
                     <step-action
                         v-for="action in data.actions"
-                        :name="action"
                         :key="action"
+                        :confirm-handler="operationCode => handleStatusUpdate(operationCode)"
                         display-style="step-detail"
-                        :confirm-handler="operationCode => handleStatusUpdate(operationCode)" />
+                        :name="action" />
                 </div>
                 <div class="log-search-box">
                     <compose-form-item>
@@ -66,94 +70,111 @@
                             v-model="searchModel"
                             :clearable="false"
                             style="width: 100px;">
-                            <bk-option id="log" :name="$t('history.搜索日志')" />
-                            <bk-option id="ip" :name="$t('history.搜索 IP')" />
+                            <bk-option
+                                id="log"
+                                :name="$t('history.搜索日志')" />
+                            <bk-option
+                                id="ip"
+                                :name="$t('history.搜索 IP')" />
                         </bk-select>
                         <bk-input
                             v-if="searchModel === 'log'"
-                            :value="params.keyword"
                             key="log"
                             :disabled="isFile"
-                            :tippy-tips="isFile ? $t('history.分发文件步骤不支持日志搜索') : ''"
                             right-icon="bk-icon icon-search"
                             style="width: 292px;"
+                            :tippy-tips="isFile ? $t('history.分发文件步骤不支持日志搜索') : ''"
+                            :value="params.keyword"
                             @keyup="handleLogSearch" />
                         <bk-input
                             v-if="searchModel === 'ip'"
-                            :value="params.searchIp"
                             key="ip"
                             right-icon="bk-icon icon-search"
                             style="width: 292px;"
+                            :value="params.searchIp"
                             @keyup="handleIPSearch" />
                     </compose-form-item>
-                    <div v-if="isLogSearching" class="search-loading">
-                        <Icon class="loading-flag" type="loading" />
+                    <div
+                        v-if="isLogSearching"
+                        class="search-loading">
+                        <Icon
+                            class="loading-flag"
+                            type="loading" />
                     </div>
-                    <div v-if="isIPSearching" class="search-loading">
-                        <Icon class="loading-flag" type="loading" />
+                    <div
+                        v-if="isIPSearching"
+                        class="search-loading">
+                        <Icon
+                            class="loading-flag"
+                            type="loading" />
                     </div>
                 </div>
                 <export-log
-                    :step-instance-id="params.id"
-                    :is-file="isFile" />
+                    :is-file="isFile"
+                    :step-instance-id="params.id" />
                 <div class="task-instance-action">
                     <view-global-variable
                         v-if="isTask"
                         :task-instance-id="taskInstanceId" />
                     <view-operation-record :task-instance-id="taskInstanceId" />
                     <view-step-info
-                        :task-instance-id="taskInstanceId"
-                        :step-instance-id="params.id" />
+                        :step-instance-id="params.id"
+                        :task-instance-id="taskInstanceId" />
                 </div>
             </div>
             <!-- 主机分组 -->
             <group-tab
-                :value="currentGroup"
                 :data="data.resultGroups"
+                :value="currentGroup"
                 @on-change="handelGroupChange" />
             <div
                 ref="detailContainer"
                 class="detail-container"
                 :style="defailContainerStyles">
-                <div class="container-left" v-bkloading="{ isLoading: isHostLoading }">
+                <div
+                    v-bkloading="{ isLoading: isHostLoading }"
+                    class="container-left">
                     <!-- 主机列表 -->
                     <!-- eslint-disable max-len -->
                     <ip-list
-                        :name="`${data.stepInstanceId}_${dispalyGroup.groupName}_${params.retryCount}_${params.keyword}_${params.searchIp}`"
-                        :total="dispalyGroup.agentTaskSize"
-                        :list-loading="isLoading"
-                        :pagination-loading="paginationChangeLoading"
                         :data="dispalyGroup.agentTaskExecutionDetail"
+                        :list-loading="isLoading"
+                        :name="`${data.stepInstanceId}_${dispalyGroup.groupName}_${params.retryCount}_${params.keyword}_${params.searchIp}`"
+                        :pagination-loading="paginationChangeLoading"
                         :search-value="`${params.keyword}_${params.searchIp}`"
-                        @on-pagination-change="handlePaginationChange"
-                        @on-copy="handleCopyHost"
-                        @on-sort="handleSort"
+                        :total="dispalyGroup.agentTaskSize"
+                        @on-change="handleHostChange"
                         @on-clear-search="handleClearSearch"
-                        @on-change="handleHostChange" />
+                        @on-copy="handleCopyHost"
+                        @on-pagination-change="handlePaginationChange"
+                        @on-sort="handleSort" />
                 </div>
                 <div class="container-right">
                     <!-- 执行日志 -->
                     <execution-info
                         v-if="data.stepInstanceId"
-                        :name="`${params.id}_${params.retryCount}_${dispalyGroup.groupName}_${currentHost.ip}_${params.keyword}`"
-                        :step-instance-id="data.stepInstanceId"
-                        :retry-count="params.retryCount"
                         :host="currentHost"
-                        :log-filter="params.keyword"
                         :is-file="isFile"
                         :is-task="isTask"
+                        :log-filter="params.keyword"
+                        :name="`${params.id}_${params.retryCount}_${dispalyGroup.groupName}_${currentHost.ip}_${params.keyword}`"
+                        :retry-count="params.retryCount"
+                        :step-instance-id="data.stepInstanceId"
                         @on-search="handleLogSearch" />
                 </div>
             </div>
         </task-status>
         <!-- 步骤执行操作——强制终止 -->
-        <execution-status-bar v-if="data.name" type="step" :data="data">
+        <execution-status-bar
+            v-if="data.name"
+            :data="data"
+            type="step">
             <step-action
                 v-if="data.isForcedEnable"
-                name="forced"
-                display-style="step-detail"
                 key="forced"
                 :confirm-handler="handleForceTask"
+                display-style="step-detail"
+                name="forced"
                 @on-cancel="handleCancelForceTask"
                 @on-show="handleStartForceTask" />
         </execution-status-bar>
@@ -161,25 +182,31 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskExecuteService from '@service/task-execute';
+
     import {
         execCopy,
     } from '@utils/assist';
+
     import ComposeFormItem from '@components/compose-form-item';
+
     import ExecutionStatusBar from '../common/execution-status-bar';
     import StepAction from '../common/step-action';
-    import RollingBatch from './components/rolling-batch';
-    import TaskStatus from './components/task-status';
+
     import ExecutionHistorySelect from './components/execution-history-select';
-    import GroupTab from './components/group-tab';
-    import IpList from './components/ip-list';
     import ExecutionInfo from './components/execution-info';
     import ExportLog from './components/export-log';
+    import GroupTab from './components/group-tab';
+    import IpList from './components/ip-list';
+    import mixins from './components/mixins';
+    import RollingBatch from './components/rolling-batch';
+    import TaskStatus from './components/task-status';
     import ViewGlobalVariable from './components/view-global-variable';
     import ViewOperationRecord from './components/view-operation-record';
     import ViewStepInfo from './components/view-step-info';
-    import mixins from './components/mixins';
+
+    import I18n from '@/i18n';
 
     const appendURLParams = (params = {}) => {
         const curSearchParams = new URLSearchParams(window.location.search);

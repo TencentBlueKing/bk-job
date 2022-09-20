@@ -29,7 +29,9 @@
     <layout class="script-manage-detail-box">
         <div slot="title">
             <span>{{ scriptInfo.version }}</span>
-            <span class="script-status" v-html="scriptInfo.statusHtml" />
+            <span
+                class="script-status"
+                v-html="scriptInfo.statusHtml" />
         </div>
         <template slot="sub-header">
             <span style="font-size: 12px; color: #63656e;">
@@ -39,38 +41,41 @@
             </span>
             <Icon
                 v-if="contentTab === 'content'"
-                type="full-screen"
                 v-bk-tooltips="$t('全屏')"
-                @click="handleFullScreen"
-                v-test="{ type: 'button', value: 'scriptEditFullscreen' }" />
+                v-test="{ type: 'button', value: 'scriptEditFullscreen' }"
+                type="full-screen"
+                @click="handleFullScreen" />
         </template>
         <div class="content-tab">
             <div
+                v-test="{ type: 'button', value: 'scriptContentTab' }"
                 class="content-tab-item"
                 :class="{ active: contentTab === 'content' }"
-                @click="handleChangeDispaly('content')"
-                v-test="{ type: 'button', value: 'scriptContentTab' }">
+                @click="handleChangeDispaly('content')">
                 {{ $t('script.脚本内容') }}
             </div>
             <div
+                v-test="{ type: 'button', value: 'scriptVersionLogTab' }"
                 class="content-tab-item"
                 :class="{ active: contentTab === 'log' }"
-                @click="handleChangeDispaly('log')"
-                v-test="{ type: 'button', value: 'scriptVersionLogTab' }">
+                @click="handleChangeDispaly('log')">
                 {{ $t('script.版本日志') }}
             </div>
         </div>
         <div class="version-content">
-            <div ref="content" class="content-dispaly" :style="contentStyles">
+            <div
+                ref="content"
+                class="content-dispaly"
+                :style="contentStyles">
                 <keep-alive v-if="contentHeight > 0">
                     <component
-                        ref="aceEditor"
                         :is="contentCom"
-                        readonly
+                        ref="aceEditor"
                         :height="contentHeight"
-                        :value="scriptInfo.content"
                         :lang="scriptInfo.typeName"
                         :options="scriptInfo.typeName"
+                        readonly
+                        :value="scriptInfo.content"
                         :version-desc="scriptInfo.versionDesc" />
                 </keep-alive>
             </div>
@@ -79,32 +84,32 @@
             <auth-button
                 v-if="scriptInfo.isOnline"
                 key="execute"
-                :permission="scriptInfo.canManage"
+                v-test="{ type: 'button', value: 'execScript' }"
                 auth="script/execute"
-                :resource-id="scriptInfo.id"
                 class="w120 mr10"
-                theme="primary"
                 :loading="isExceLoading"
-                @click="handleGoExce"
-                v-test="{ type: 'button', value: 'execScript' }">
+                :permission="scriptInfo.canManage"
+                :resource-id="scriptInfo.id"
+                theme="primary"
+                @click="handleGoExce">
                 {{ $t('script.去执行') }}
             </auth-button>
             <jb-popover-confirm
                 v-if="!scriptInfo.isOnline"
                 key="online"
                 class="mr10"
-                :title="$t('script.确定上线该版本？')"
+                :confirm-handler="handleOnline"
                 :content="$t('script.上线后，之前的线上版本将被置为「已下线」状态，但不影响作业使用')"
                 :disabled="scriptInfo.isDisabledOnline"
-                :confirm-handler="handleOnline">
+                :title="$t('script.确定上线该版本？')">
                 <auth-button
-                    :permission="scriptInfo.canManage"
-                    :resource-id="scriptInfo.id"
+                    v-test="{ type: 'button', value: 'onlineScript' }"
                     auth="script/edit"
-                    theme="primary"
                     class="w120"
                     :disabled="scriptInfo.isDisabledOnline"
-                    v-test="{ type: 'button', value: 'onlineScript' }">
+                    :permission="scriptInfo.canManage"
+                    :resource-id="scriptInfo.id"
+                    theme="primary">
                     {{ $t('script.上线') }}
                 </auth-button>
             </jb-popover-confirm>
@@ -113,20 +118,20 @@
                 key="create"
                 :tippy-tips="isCopyCreateDisabled ? $t('script.已有[未上线]版本') : ''">
                 <auth-button
+                    v-test="{ type: 'button', value: 'copyCreateScript' }"
+                    auth="script/clone"
+                    class="w120 mr10"
+                    :disabled="isCopyCreateDisabled"
                     :permission="scriptInfo.canClone"
                     :resource-id="scriptInfo.id"
-                    auth="script/clone"
-                    :disabled="isCopyCreateDisabled"
-                    class="w120 mr10"
-                    @click="handleCopyAndCreate(scriptInfo)"
-                    v-test="{ type: 'button', value: 'copyCreateScript' }">
+                    @click="handleCopyAndCreate(scriptInfo)">
                     {{ $t('script.复制并新建') }}
                 </auth-button>
             </span>
             <bk-button
+                v-test="{ type: 'button', value: 'debugScript' }"
                 class="mr10"
-                @click="handleDebugScript"
-                v-test="{ type: 'button', value: 'debugScript' }">
+                @click="handleDebugScript">
                 {{ $t('script.调试') }}
             </bk-button>
             <span
@@ -135,53 +140,53 @@
                 class="mr10"
                 :tippy-tips="!scriptInfo.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
                 <auth-button
-                    :permission="scriptInfo.canManage"
-                    :resource-id="scriptInfo.id"
+                    v-test="{ type: 'button', value: 'syncScript' }"
                     auth="script/edit"
                     :disabled="!scriptInfo.syncEnabled"
-                    @click="handleGoSync"
-                    v-test="{ type: 'button', value: 'syncScript' }">
+                    :permission="scriptInfo.canManage"
+                    :resource-id="scriptInfo.id"
+                    @click="handleGoSync">
                     {{ $t('script.同步') }}
                 </auth-button>
             </span>
             <auth-button
                 v-if="scriptInfo.isDraft"
                 key="edit"
-                :permission="scriptInfo.canManage"
-                :resource-id="scriptInfo.id"
+                v-test="{ type: 'button', value: 'editScript' }"
                 auth="script/edit"
                 class="mr10"
-                @click="handleEdit(scriptInfo)"
-                v-test="{ type: 'button', value: 'editScript' }">
+                :permission="scriptInfo.canManage"
+                :resource-id="scriptInfo.id"
+                @click="handleEdit(scriptInfo)">
                 {{ $t('script.编辑') }}
             </auth-button>
             <jb-popover-confirm
                 v-if="scriptInfo.isVersionEnableRemove"
                 key="delete"
                 class="mr10"
-                :title="$t('script.确定删除该版本？')"
+                :confirm-handler="handleRemove"
                 :content="$t('script.删除后不可恢复，请谨慎操作！')"
-                :confirm-handler="handleRemove">
+                :title="$t('script.确定删除该版本？')">
                 <auth-button
-                    :permission="scriptInfo.canManage"
-                    :resource-id="scriptInfo.id"
+                    v-test="{ type: 'button', value: 'deleteScript' }"
                     auth="script/delete"
-                    v-test="{ type: 'button', value: 'deleteScript' }">
+                    :permission="scriptInfo.canManage"
+                    :resource-id="scriptInfo.id">
                     {{ $t('script.删除') }}
                 </auth-button>
             </jb-popover-confirm>
             <jb-popover-confirm
                 v-if="scriptInfo.isOnline"
                 key="offline"
-                style="margin-left: auto;"
-                :title="$t('script.确定禁用该版本？')"
+                :confirm-handler="handleOffline"
                 :content="$t('script.一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！')"
-                :confirm-handler="handleOffline">
+                style="margin-left: auto;"
+                :title="$t('script.确定禁用该版本？')">
                 <auth-button
-                    :permission="scriptInfo.canManage"
-                    :resource-id="scriptInfo.id"
+                    v-test="{ type: 'button', value: 'offlineScript' }"
                     auth="script/edit"
-                    v-test="{ type: 'button', value: 'offlineScript' }">
+                    :permission="scriptInfo.canManage"
+                    :resource-id="scriptInfo.id">
                     {{ $t('script.禁用') }}
                 </auth-button>
             </jb-popover-confirm>
@@ -190,20 +195,26 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import ScriptService from '@service/script-manage';
+
     import PublicScriptService from '@service/public-script-manage';
+    import ScriptService from '@service/script-manage';
+
     import {
         checkPublicScript,
         getOffset,
     } from '@utils/assist';
     import { debugScriptCache } from '@utils/cache-helper';
+
     import AceEditor from '@components/ace-editor';
     import DetailLayout from '@components/detail-layout';
     import DetailItem from '@components/detail-layout/item';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
+
     import Layout from '../components/layout';
+
     import RenderLog from './components/render-log';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',
