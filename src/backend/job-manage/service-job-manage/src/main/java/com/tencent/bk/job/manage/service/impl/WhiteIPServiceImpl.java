@@ -137,7 +137,10 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     private List<Long> getEffectiveAppIdList(Long appId) {
         List<Long> effectiveAppIds = new ArrayList<>();
         effectiveAppIds.add(JobConstants.DEFAULT_ALL_BIZ_SET_ID);
-        if (appId != null && !appId.equals(JobConstants.DEFAULT_ALL_BIZ_SET_ID)) {
+        effectiveAppIds.add(JobConstants.PUBLIC_APP_ID);
+        if (appId != null
+            && !appId.equals(JobConstants.DEFAULT_ALL_BIZ_SET_ID)
+            && !appId.equals(JobConstants.PUBLIC_APP_ID)) {
             effectiveAppIds.add(appId);
         }
         return effectiveAppIds;
