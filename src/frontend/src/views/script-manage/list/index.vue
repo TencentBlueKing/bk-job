@@ -616,6 +616,7 @@
                     id: scriptData.id,
                 }).then(() => {
                     this.fetchData();
+                    this.$refs.tagPanelRef.init();
                     this.messageSuccess(I18n.t('script.删除成功'));
                     return true;
                 });
