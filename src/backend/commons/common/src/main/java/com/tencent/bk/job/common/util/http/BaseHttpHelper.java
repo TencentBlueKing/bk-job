@@ -70,6 +70,10 @@ public class BaseHttpHelper implements HttpHelper {
         } catch (IOException e) {
             log.error("Get request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("url={},headers={}", url, header);
+            }
         }
     }
 
@@ -82,13 +86,20 @@ public class BaseHttpHelper implements HttpHelper {
         if (header != null && header.length > 0) {
             get.setHeaders(header);
         }
+        int httpStatusCode = -1;
+        String respStr = null;
         try (CloseableHttpResponse response = getHttpClient().execute(get)) {
-            int httpStatusCode = response.getStatusLine().getStatusCode();
+            httpStatusCode = response.getStatusLine().getStatusCode();
             HttpEntity entity = response.getEntity();
-            return Pair.of(httpStatusCode, EntityUtils.toString(entity, CHARSET));
+            respStr = EntityUtils.toString(entity, CHARSET);
+            return Pair.of(httpStatusCode, respStr);
         } catch (IOException e) {
             log.error("Get request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug("url={},headers={},httpStatusCode={},respStr={}", url, header, httpStatusCode, respStr);
+            }
         }
     }
 
@@ -99,30 +110,42 @@ public class BaseHttpHelper implements HttpHelper {
         post.setHeader("Connection", "Keep-Alive");
         post.setHeaders(headers);
         post.setEntity(requestEntity);
+        int httpStatusCode = -1;
+        String respStr = null;
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(post)) {
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode != HttpStatus.SC_OK) {
+            httpStatusCode = httpResponse.getStatusLine().getStatusCode();
+            if (httpStatusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
                 HttpEntity entity = httpResponse.getEntity();
-                String content = "";
                 if (entity != null && entity.getContent() != null) {
-                    content = new String(EntityUtils.toByteArray(entity), CHARSET);
+                    respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
                 }
                 log.warn(
-                    "Post request fail, statusCode={}, errorReason={}, body={}, url={}, headers={}",
-                    statusCode,
+                    "Post request fail, httpStatusCode={}, errorReason={}, body={}, url={}, headers={}",
+                    httpStatusCode,
                     message,
-                    content,
+                    respStr,
                     url,
                     headers
                 );
                 throw new InternalException(message, ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
-            return Pair.of(statusCode, EntityUtils.toByteArray(entity));
+            return Pair.of(httpStatusCode, EntityUtils.toByteArray(entity));
         } catch (IOException e) {
             log.error("Post request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                    "url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
+                    url,
+                    headers,
+                    requestEntity,
+                    httpStatusCode,
+                    respStr
+                );
+            }
         }
     }
 
@@ -133,19 +156,37 @@ public class BaseHttpHelper implements HttpHelper {
         put.setHeader("Connection", "Keep-Alive");
         put.setHeaders(headers);
         put.setEntity(requestEntity);
+        int httpStatusCode = -1;
+        String respStr = null;
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(put)) {
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            httpStatusCode = httpResponse.getStatusLine().getStatusCode();
             HttpEntity entity = httpResponse.getEntity();
-            String content = new String(EntityUtils.toByteArray(entity), CHARSET);
-            if (statusCode != HttpStatus.SC_OK) {
+            respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
+            if (httpStatusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.info("Put request fail, statusCode={}, errorReason={}, content={}", statusCode, message, content);
+                log.warn(
+                    "Put request fail, httpStatusCode={}, errorReason={}, respStr={}",
+                    httpStatusCode,
+                    message,
+                    respStr
+                );
                 throw new InternalException(message, ErrorCode.API_ERROR);
             }
-            return Pair.of(statusCode, content);
+            return Pair.of(httpStatusCode, respStr);
         } catch (IOException e) {
             log.error("Put request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                    "url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
+                    url,
+                    headers,
+                    requestEntity,
+                    httpStatusCode,
+                    respStr
+                );
+            }
         }
     }
 
@@ -163,23 +204,38 @@ public class BaseHttpHelper implements HttpHelper {
             delete.setEntity(requestEntity);
         }
         delete.setHeaders(headers);
+        int httpStatusCode = -1;
+        String respStr = null;
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(delete)) {
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode != HttpStatus.SC_OK) {
+            httpStatusCode = httpResponse.getStatusLine().getStatusCode();
+            if (httpStatusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.info("Delete request fail, url={}, statusCode={}, errorReason={}", url, statusCode, message);
-                throw new InternalException(String.format("url=%s,statusCode=%s" +
-                    "，message=%s", url, statusCode, message), ErrorCode.API_ERROR);
+                log.info("Delete request fail, url={}, httpStatusCode={}, errorReason={}", url, httpStatusCode,
+                    message);
+                throw new InternalException(String.format("url=%s,httpStatusCode=%s" +
+                    "，message=%s", url, httpStatusCode, message), ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
             byte[] respBytes = EntityUtils.toByteArray(entity);
             if (respBytes == null) {
                 return null;
             }
-            return Pair.of(statusCode, new String(respBytes, CHARSET));
+            respStr = new String(respBytes, CHARSET);
+            return Pair.of(httpStatusCode, respStr);
         } catch (IOException e) {
             log.error("Delete request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                    "url={},headers={},body={},httpStatusCode={},respStr={}",
+                    url,
+                    headers,
+                    content,
+                    httpStatusCode,
+                    respStr
+                );
+            }
         }
     }
 
