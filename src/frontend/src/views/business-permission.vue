@@ -59,7 +59,19 @@
                     </div>
                     <div class="feature-box">
                         <div class="feature-title">{{ $t('申请已有业务权限 / 创建新的业务') }}</div>
-                        <div>{{ $t('不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择 申请已有业务的权限，亦或是 新建 一个全新的业务。') }}</div>
+                        <div>
+                            {{ $t('不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择') }}
+                            <a @click="handleGoApplyPermission">
+                                {{ $t('申请已有业务的权限') }}
+                            </a>
+                            {{ $t('，亦或是') }}
+                            <a
+                                target="_blank"
+                                :href="`${relatedSystemUrls.BK_CMDB_ROOT_URL}/#/resource/business`">
+                                {{ $t('新建') }}
+                            </a>
+                            {{ $t('一个全新的业务。') }}
+                        </div>
                     </div>
                 </div>
                 <div class="divide-line" />
