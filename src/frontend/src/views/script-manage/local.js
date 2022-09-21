@@ -184,5 +184,6 @@ export default {
         编辑标签成功: 'New tag has been created',
         '已有[未上线]版本': '「Stand-by」version is exists',
         新建版本成功: 'New script version has been created',
+        标签名更新成功: 'Tag has been renamed',
     },
 };
