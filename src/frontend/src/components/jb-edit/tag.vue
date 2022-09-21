@@ -40,8 +40,15 @@
                     class="tag-shortcurt-box"
                     @click.stop="">
                     <div class="shortcurt-action-btn">
-                        <Icon type="copy" @click="handleCopy" />
-                        <Icon type="paste" class="paste-btn" @click="handlePaste" />
+                        <Icon
+                            v-bk-tooltips="$t('复制')"
+                            type="copy"
+                            @click="handleCopy" />
+                        <Icon
+                            v-bk-tooltips="$t('粘贴')"
+                            type="paste"
+                            class="paste-btn"
+                            @click="handlePaste" />
                     </div>
                 </div>
                 <div v-else class="tag-normal-box">

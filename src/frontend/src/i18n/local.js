@@ -557,5 +557,7 @@ export default {
     立即查看: 'here',
     了解更多细节: '',
     管理脚本各个版本的内容和状态: 'Manage the versions of script',
+    复制: 'Copy',
+    粘贴: 'Paste',
 
 };
