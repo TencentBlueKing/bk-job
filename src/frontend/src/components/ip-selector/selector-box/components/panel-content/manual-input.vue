@@ -386,6 +386,7 @@
 <style lang="postcss">
     .ip-selector-manual-input {
         .custom-input {
+            padding-right: 16px;
             padding-left: 16px;
 
             .custom-input-parse-error {
