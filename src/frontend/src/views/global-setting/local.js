@@ -42,7 +42,7 @@ export default {
         账号命名规则保存成功: 'Naming Rules change has been saved.',
         用户可选择的通知渠道: 'User-selectable notification type',
         通讯黑名单: 'Ban List',
-        '「通讯黑名单」的人员将不会接收到任何来自作业平台的消息': 'The user in ban-list will not able to select.',
+        '“通讯黑名单”的人员将不会接收到任何来自作业平台的消息': 'The user in ban-list will not able to select.',
         保存通知渠道失败: 'Saving notification type failed...',
         保存黑名单失败: 'Saving Ban-list failed...',
         保存成功: 'The change has been saved.',
