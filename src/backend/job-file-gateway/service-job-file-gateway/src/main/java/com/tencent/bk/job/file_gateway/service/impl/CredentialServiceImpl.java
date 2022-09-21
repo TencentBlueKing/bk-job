@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.client.ServiceCredentialResourceClient;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
 import com.tencent.bk.job.manage.model.credential.CommonCredential;
@@ -58,7 +59,7 @@ public class CredentialServiceImpl implements CredentialService {
             commonCredential.setType(credentialDTO.getType());
             return commonCredential;
         } catch (Exception e) {
-            log.error("credential not valid:{}", credentialDTO, e);
+            log.error("credential not valid:{}", JsonUtils.toJsonWithoutSkippedFields(credentialDTO), e);
             return null;
         }
     }

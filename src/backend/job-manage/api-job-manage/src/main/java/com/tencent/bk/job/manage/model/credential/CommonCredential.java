@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.credential;
 
+import com.tencent.bk.job.common.util.json.SkipLogFields;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,9 +35,12 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode
 public class CommonCredential {
+    @SkipLogFields
     String accessKey;
+    @SkipLogFields
     String secretKey;
     String username;
+    @SkipLogFields
     String password;
     /**
      * 类型
