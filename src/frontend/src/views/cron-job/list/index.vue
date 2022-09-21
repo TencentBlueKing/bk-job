@@ -81,6 +81,30 @@
                 </template>
             </bk-table-column>
             <bk-table-column
+                v-if="allRenderColumnMap.taskPlanId"
+                :label="$t('cron.执行方案ID')"
+                prop="taskPlanId"
+                key="taskPlanId"
+                width="120"
+                align="left">
+                <template slot-scope="{ row }">
+                    <router-link
+                        :to="{
+                            name: 'viewPlan',
+                            params: {
+                                templateId: row.taskTemplateId,
+                            },
+                            query: {
+                                from: 'cronJob',
+                                viewPlanId: row.taskPlanId,
+                            },
+                        }"
+                        target="_blank">
+                        {{ row.taskPlanId }}
+                    </router-link>
+                </template>
+            </bk-table-column>
+            <bk-table-column
                 v-if="allRenderColumnMap.planName"
                 :label="$t('cron.执行方案名称')"
                 key="planName"
@@ -105,7 +129,8 @@
                                 from: 'cronJob',
                                 viewPlanId: row.taskPlanId,
                             },
-                        }">
+                        }"
+                        target="_blank">
                         {{ row.taskPlanName }}
                     </router-link>
                 </template>
@@ -418,6 +443,10 @@
                     id: 'name',
                     label: I18n.t('cron.任务名称.colHead'),
                     disabled: true,
+                },
+                {
+                    id: 'taskPlanId',
+                    label: I18n.t('cron.执行方案ID'),
                 },
                 {
                     id: 'planName',
