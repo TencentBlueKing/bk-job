@@ -34,8 +34,12 @@ public enum ScriptTypeEnum {
     /**
      * 脚本类型枚举类
      */
-    SHELL(1, "shell", ".sh"), BAT(2, "bat", ".bat"), PERL(3, "perl", ".pl"), PYTHON(4, "python", ".py"),
-    POWERSHELL(5, "powershell", ".ps1"), SQL(6, "sql", ".sql");
+    SHELL(1, "shell", ".sh"),
+    BAT(2, "bat", ".bat"),
+    PERL(3, "perl", ".pl"),
+    PYTHON(4, "python", ".py"),
+    POWERSHELL(5, "powershell", ".ps1"),
+    SQL(6, "sql", ".sql");
 
     private final Integer value;
     private final String name;

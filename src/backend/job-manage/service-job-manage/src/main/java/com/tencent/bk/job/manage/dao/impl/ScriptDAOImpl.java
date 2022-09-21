@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
+import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.JobUUID;
@@ -87,25 +88,27 @@ public class ScriptDAOImpl implements ScriptDAO {
             String orderField = baseSearchCondition.getOrderField();
             if ("name".equals(orderField)) {
                 //升序
-                if (baseSearchCondition.getOrder() == 1) {
+                if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {
                     orderFields.add(TB_SCRIPT.NAME.asc());
                 } else {
                     orderFields.add(TB_SCRIPT.NAME.desc());
                 }
             } else if ("type".equals(orderField)) {
-                if (baseSearchCondition.getOrder() == 1) {
-                    orderFields.add(TB_SCRIPT.TYPE.asc());
+                // ScriptTypeEnum
+                if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {
+                    // 按照脚本语言名称字典顺序排序.Bat(2)->Perl(3)->Powershell(5)->Python(4)->Shell(1)->SQL(6)
+                    orderFields.add(DSL.field("field({0},2,3,5,4,1,6)", TB_SCRIPT.TYPE).asc());
                 } else {
-                    orderFields.add(TB_SCRIPT.TYPE.desc());
+                    orderFields.add(DSL.field("field({0},2,3,5,4,1,6)", TB_SCRIPT.TYPE).desc());
                 }
             } else if ("creator".equals(orderField)) {
-                if (baseSearchCondition.getOrder() == 1) {
+                if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {
                     orderFields.add(TB_SCRIPT.CREATOR.asc());
                 } else {
                     orderFields.add(TB_SCRIPT.CREATOR.desc());
                 }
             } else if ("lastModifyTime".equals(orderField)) {
-                if (baseSearchCondition.getOrder() == 1) {
+                if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {
                     orderFields.add(TB_SCRIPT.LAST_MODIFY_TIME.asc());
                 } else {
                     orderFields.add(TB_SCRIPT.LAST_MODIFY_TIME.desc());
