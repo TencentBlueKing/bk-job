@@ -237,7 +237,7 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         String reqStr = "{}";
         if (reqBody != null) {
-            reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
+            reqStr = JsonUtils.toJson(reqBody);
         }
         String respStr = null;
         long start = System.nanoTime();
