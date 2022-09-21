@@ -115,7 +115,7 @@
                 <div style="margin-top: 10px;">
                     <span>{{ $t('了解更多关于作业平台产品的功能介绍，点击前往') }}</span>
                     <a
-                        :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}`"
+                        :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/markdown/作业平台/产品白皮书/Introduction/What-is-Job.md`"
                         target="_blank">
                         <span>{{ $t('产品文档') }}</span>
                         <Icon type="link" />
