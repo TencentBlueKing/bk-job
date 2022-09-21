@@ -261,6 +261,7 @@
             },
         },
         created () {
+            window.changeConfirm = false;
             this.publicScript = checkPublicScript(this.$route);
             this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
             window.addEventListener('resize', this.init);

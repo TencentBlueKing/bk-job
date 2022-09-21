@@ -382,6 +382,7 @@
                 isListFlod: false,
                 isShowNewVersion: false,
                 showDiff: false,
+                dataMemo: [],
                 data: [],
                 dataAppendList: [],
                 scriptDetailInfo: {},
