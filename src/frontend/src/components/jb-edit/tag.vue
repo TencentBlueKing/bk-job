@@ -240,6 +240,7 @@
                     return;
                 }
                 copyMemo = _.cloneDeep(this.localValue);
+                console.log('form copyMemocopyMemo = ', copyMemo);
                 execCopy(this.text);
             },
             /**
@@ -253,12 +254,10 @@
                     });
                     return;
                 }
-                this.localValue = [
-                    ...new Set([
-                        ...this.localValue,
-                        ...copyMemo,
-                    ]),
-                ];
+                this.localValue = _.uniqBy([
+                    ...this.localValue,
+                    ...copyMemo,
+                ], _ => _.id);
                 this.triggerRemote();
             },
         },
