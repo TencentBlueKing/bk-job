@@ -221,7 +221,9 @@
                                     @click="handleGoExce(row)">
                                     {{ $t('script.去执行') }}
                                 </auth-button>
-                                <span :tippy-tips="!row.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
+                                <span
+                                    v-if="!publicScript"
+                                    :tippy-tips="!row.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
                                     <auth-button
                                         v-if="row.isOnline"
                                         :permission="row.canManage"

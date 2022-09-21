@@ -130,7 +130,7 @@
                 {{ $t('script.调试') }}
             </bk-button>
             <span
-                v-if="scriptInfo.isOnline"
+                v-if="!publicScript && scriptInfo.isOnline"
                 key="sync"
                 class="mr10"
                 :tippy-tips="!scriptInfo.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
