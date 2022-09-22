@@ -56,7 +56,7 @@
                 label="ID"
                 prop="id"
                 key="id"
-                sortable
+                sortable="custom"
                 width="80"
                 align="left" />
             <bk-table-column
@@ -65,7 +65,7 @@
                 prop="alias"
                 key="alias"
                 min-width="180"
-                sortable
+                sortable="custom"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.account"
@@ -73,7 +73,7 @@
                 prop="account"
                 key="account"
                 min-width="180"
-                sortable
+                sortable="custom"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.categoryName"
@@ -81,7 +81,7 @@
                 prop="categoryName"
                 key="categoryName"
                 width="120"
-                sortable
+                sortable="custom"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.typeName"
@@ -89,7 +89,7 @@
                 prop="typeName"
                 key="typeName"
                 width="120"
-                sortable
+                sortable="custom"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.creator"

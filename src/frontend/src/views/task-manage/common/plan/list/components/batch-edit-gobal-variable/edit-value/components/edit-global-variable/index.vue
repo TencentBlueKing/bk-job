@@ -90,8 +90,9 @@
         .remove-flag {
             position: absolute;
             top: 0;
-            left: -5px;
+            left: 5px;
             display: none;
+            padding: 0 10px;
             font-size: 14px;
             color: #c4c6cc;
             cursor: pointer;

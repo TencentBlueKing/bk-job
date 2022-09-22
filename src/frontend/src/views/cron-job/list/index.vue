@@ -62,7 +62,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.name"
                 :label="$t('cron.任务名称.colHead')"
-                sortable
+                sortable="custom"
                 prop="name"
                 key="name"
                 align="left"
@@ -78,6 +78,30 @@
                         </span>
                         <span slot="forbid">{{ row.name }}</span>
                     </auth-component>
+                </template>
+            </bk-table-column>
+            <bk-table-column
+                v-if="allRenderColumnMap.taskPlanId"
+                :label="$t('cron.执行方案ID')"
+                prop="taskPlanId"
+                key="taskPlanId"
+                width="120"
+                align="left">
+                <template slot-scope="{ row }">
+                    <router-link
+                        :to="{
+                            name: 'viewPlan',
+                            params: {
+                                templateId: row.taskTemplateId,
+                            },
+                            query: {
+                                from: 'cronJob',
+                                viewPlanId: row.taskPlanId,
+                            },
+                        }"
+                        target="_blank">
+                        {{ row.taskPlanId }}
+                    </router-link>
                 </template>
             </bk-table-column>
             <bk-table-column
@@ -105,7 +129,8 @@
                                 from: 'cronJob',
                                 viewPlanId: row.taskPlanId,
                             },
-                        }">
+                        }"
+                        target="_blank">
                         {{ row.taskPlanName }}
                     </router-link>
                 </template>
@@ -142,7 +167,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyUser"
                 :label="$t('cron.更新人.colHead')"
-                sortable
+                sortable="custom"
                 prop="lastModifyUser"
                 key="lastModifyUser"
                 width="140"
@@ -157,7 +182,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.lastExecuteStatus"
                 :label="$t('cron.最新执行结果')"
-                sortable
+                sortable="custom"
                 prop="lastExecuteStatus"
                 key="lastExecuteStatus"
                 width="150"
@@ -418,6 +443,10 @@
                     id: 'name',
                     label: I18n.t('cron.任务名称.colHead'),
                     disabled: true,
+                },
+                {
+                    id: 'taskPlanId',
+                    label: I18n.t('cron.执行方案ID'),
                 },
                 {
                     id: 'planName',
