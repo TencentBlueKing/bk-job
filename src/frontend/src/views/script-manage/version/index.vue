@@ -221,7 +221,9 @@
                                     @click="handleGoExce(row)">
                                     {{ $t('script.去执行') }}
                                 </auth-button>
-                                <span :tippy-tips="!row.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
+                                <span
+                                    v-if="!publicScript"
+                                    :tippy-tips="!row.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
                                     <auth-button
                                         v-if="row.isOnline"
                                         :permission="row.canManage"
@@ -356,7 +358,7 @@
     import CopyCreate from '../common/copy-create';
     import Layout from './components/layout';
     import ScriptBasic from './components/script-basic';
-    import Diff from './components/diff';
+    import Diff from '../common/diff';
     import NewVersion from './components/new-version';
 
     const TABLE_COLUMN_CACHE = 'script_version_list_columns';
@@ -382,6 +384,7 @@
                 isListFlod: false,
                 isShowNewVersion: false,
                 showDiff: false,
+                dataMemo: [],
                 data: [],
                 dataAppendList: [],
                 scriptDetailInfo: {},

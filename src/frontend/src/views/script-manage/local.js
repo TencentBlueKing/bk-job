@@ -139,7 +139,7 @@ export default {
         未上线: 'Stand-by',
         已下线: 'Offline',
         已禁用: 'Banned',
-        所有关联作业模板已是当前版本: 'Associated Job Templates are already using current version',
+        '暂无关联作业，或已是当前版本。': 'No associated jobs, or it\'s already using current version.',
         '部分作业模板同步失败，请留意': 'Some of Job Template is sync failed',
         同步至: 'Update to',
         将覆盖其它条件: 'override other conditions',
@@ -183,5 +183,7 @@ export default {
         新建标签: 'New',
         编辑标签成功: 'New tag has been created',
         '已有[未上线]版本': '「Stand-by」version is exists',
+        新建版本成功: 'New script version has been created',
+        标签名更新成功: 'Tag has been renamed',
     },
 };
