@@ -144,6 +144,7 @@
                 selectNums: 0,
                 params: {},
                 pagination: {
+                    showTotalCount: true,
                     count: 0,
                     current: 1,
                     limit: 10,

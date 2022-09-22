@@ -47,7 +47,6 @@
                 enter-trigger
                 :maxlength="60"
                 behavior="simplicity"
-                @input="handleInput"
                 @submit="handleSubmit" />
             <i
                 v-if="errorInfo"
@@ -73,10 +72,9 @@
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import TaskPlanService from '@service/task-plan';
     import I18n from '@/i18n';
-    import { calcTextWidth, getOffset } from '@utils/assist';
+    import { getOffset } from '@utils/assist';
     import { planNameRule } from '@utils/validator';
 
     export default {
@@ -131,26 +129,14 @@
                 this.isSubmiting = false;
                 this.isEditing = true;
                 this.errorInfo = '';
-                this.inputWidth = this.$refs.text.getBoundingClientRect().width;
+                const windowClienWidth = window.innerWidth;
+                const { left } = getOffset(this.$refs.box);
+                this.inputWidth = windowClienWidth - left - 230;
                 // 输入框自动获取焦点
                 setTimeout(() => {
                     this.$refs.input.$el.querySelector('.bk-form-input').focus();
                 });
             },
-            /**
-             * @desc 用户输入时自适应输入框宽度
-             * @param { String } value 输入值
-             */
-            handleInput: _.throttle(function (value) {
-                const windowClienWidth = window.innerWidth;
-                const offset = 60;
-                const width = calcTextWidth(value, this.$refs.box) + offset;
-                const { left } = getOffset(this.$refs.box);
-                const maxWidth = windowClienWidth - left - 230;
-                if (width <= maxWidth && width > this.inputWidth) {
-                    this.inputWidth = width;
-                }
-            }, 60),
             /**
              * @desc 提交编辑值
              */
@@ -200,7 +186,10 @@
                         this.isEditing = false;
                         this.$emit('on-edit-success');
                         this.messageSuccess(I18n.t('template.执行方案名称编辑成功'));
-                    });
+                    })
+                        .finally(() => {
+                            this.isSubmiting = false;
+                        });
                 });
             },
         },
