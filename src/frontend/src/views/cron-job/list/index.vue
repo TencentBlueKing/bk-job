@@ -62,7 +62,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.name"
                 :label="$t('cron.任务名称.colHead')"
-                sortable
+                sortable="custom"
                 prop="name"
                 key="name"
                 align="left"
@@ -167,7 +167,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyUser"
                 :label="$t('cron.更新人.colHead')"
-                sortable
+                sortable="custom"
                 prop="lastModifyUser"
                 key="lastModifyUser"
                 width="140"
@@ -182,7 +182,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.lastExecuteStatus"
                 :label="$t('cron.最新执行结果')"
-                sortable
+                sortable="custom"
                 prop="lastExecuteStatus"
                 key="lastExecuteStatus"
                 width="150"

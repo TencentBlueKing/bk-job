@@ -64,7 +64,7 @@
             </bk-table-column>
             <bk-table-column
                 :label="$t('ticket.凭证名称')"
-                sortable
+                sortable="custom"
                 prop="name"
                 key="name"
                 align="left"

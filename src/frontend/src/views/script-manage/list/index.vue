@@ -73,7 +73,7 @@
                 prop="name"
                 key="name"
                 :min-width="300"
-                sortable
+                sortable="custom"
                 align="left">
                 <template slot-scope="{ row }">
                     <auth-component
@@ -100,7 +100,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.type"
                 :label="$t('script.脚本语言')"
-                sortable
+                sortable="custom"
                 prop="type"
                 key="type"
                 width="120"
@@ -111,7 +111,7 @@
             </bk-table-column>
             <bk-table-column
                 :label="$t('script.场景标签.colHead')"
-                sortable
+                sortable="custom"
                 prop="tags"
                 key="tags"
                 width="200"
@@ -169,7 +169,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.creator"
                 :label="$t('script.创建人.colHead')"
-                sortable
+                sortable="custom"
                 show-overflow-tooltip
                 prop="creator"
                 key="creator"

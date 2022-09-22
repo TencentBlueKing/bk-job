@@ -45,7 +45,7 @@
             </bk-table-column>
             <bk-table-column
                 :label="$t('ticket.文件源别名')"
-                sortable
+                sortable="custom"
                 align="left"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
@@ -72,7 +72,7 @@
             </bk-table-column>
             <bk-table-column
                 :label="$t('ticket.文件源标识')"
-                sortable
+                sortable="custom"
                 align="left"
                 width="160"
                 show-overflow-tooltip
