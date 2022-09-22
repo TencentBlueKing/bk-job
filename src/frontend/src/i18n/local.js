@@ -563,5 +563,5 @@ export default {
     管理脚本各个版本的内容和状态: 'Manage the versions of script',
     复制: 'Copy',
     粘贴: 'Paste',
-
+    快速执行详情: 'Quick Launch Details',
 };
