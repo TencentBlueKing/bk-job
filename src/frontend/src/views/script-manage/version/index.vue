@@ -223,7 +223,7 @@
                                 </auth-button>
                                 <span
                                     v-if="!publicScript"
-                                    :tippy-tips="!row.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
+                                    :tippy-tips="!row.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
                                     <auth-button
                                         v-if="row.isOnline"
                                         :permission="row.canManage"
