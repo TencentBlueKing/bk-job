@@ -35,6 +35,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
@@ -57,7 +58,7 @@ public class BaseHttpHelper implements HttpHelper {
     }
 
     @Override
-    public CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header) {
+    public Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header) {
         HttpGet get = new HttpGet(url);
         if (keepAlive) {
             get.setHeader("Connection", "Keep-Alive");
@@ -66,12 +67,11 @@ public class BaseHttpHelper implements HttpHelper {
             get.setHeaders(header);
         }
         try {
-            return getHttpClient().execute(get);
+            return Pair.of(get, getHttpClient().execute(get));
         } catch (IOException e) {
             log.error("Get request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
-            get.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug("getRawResp,url={},headers={}", url, header);
             }

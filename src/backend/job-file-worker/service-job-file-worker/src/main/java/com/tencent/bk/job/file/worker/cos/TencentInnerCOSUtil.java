@@ -45,6 +45,7 @@ import com.tencent.cos.region.Region;
 import com.tencent.cos.utils.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.methods.HttpRequestBase;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -137,11 +138,11 @@ public class TencentInnerCOSUtil {
         }
     }
 
-    public static Pair<InputStream, Long> getFileInputStream(String accessKey,
-                                                             String secretKey,
-                                                             String regionName,
-                                                             String bucketName,
-                                                             String key) {
+    public static Pair<InputStream, HttpRequestBase> getFileInputStream(String accessKey,
+                                                                        String secretKey,
+                                                                        String regionName,
+                                                                        String bucketName,
+                                                                        String key) {
         log.info("getFileInputStream, regionName={},bucketName={},key={}", regionName, bucketName, key);
         COSClient cosClient = getCOSClient(accessKey, secretKey, regionName);
         try {
@@ -154,7 +155,7 @@ public class TencentInnerCOSUtil {
                     }
                 );
             }
-            return Pair.of(cosObject.getObjectContent(), cosObject.getObjectMetadata().getContentLength());
+            return Pair.of(cosObject.getObjectContent(), null);
         } finally {
             cosClient.shutdown();
         }

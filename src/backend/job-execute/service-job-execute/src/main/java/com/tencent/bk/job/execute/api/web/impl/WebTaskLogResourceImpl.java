@@ -49,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -222,7 +223,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         }
         try {
             log.debug("get {} fileInputStream from artifactory", exportInfo.getZipFileName());
-            Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(
+            Pair<InputStream, HttpRequestBase> pair = artifactoryClient.getFileInputStream(
                 artifactoryConfig.getArtifactoryJobProject(),
                 logExportConfig.getLogExportRepo(),
                 exportInfo.getZipFileName()
