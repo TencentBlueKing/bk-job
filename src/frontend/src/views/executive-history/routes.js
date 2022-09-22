@@ -56,6 +56,16 @@ export default {
             },
         },
         {
+            path: 'quick-launch/:taskInstanceId',
+            name: 'quickLaunchStep',
+            component: () => import('@views/executive-history/step-detail'),
+            meta: {
+                title: I18n.t('快速执行详情'),
+                full: true,
+                skeleton: 'taskStepExecutiveDetail',
+            },
+        },
+        {
             path: 'step/:taskInstanceId',
             name: 'historyStep',
             component: () => import('@views/executive-history/step-detail'),

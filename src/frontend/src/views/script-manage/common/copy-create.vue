@@ -312,11 +312,11 @@
                         this.scriptManageServiceHandler.scriptUpdate({
                             ...this.formData,
                         }).then((data) => {
+                            window.changeConfirm = false;
                             this.$emit('on-create', {
                                 scriptVersionId: data.scriptVersionId,
                             });
-                            window.changeConfirm = false;
-                            this.messageSuccess(I18n.t('script.操作成功'));
+                            this.messageSuccess(I18n.t('script.新建版本成功'));
                         });
                     })
                     .finally(() => {
