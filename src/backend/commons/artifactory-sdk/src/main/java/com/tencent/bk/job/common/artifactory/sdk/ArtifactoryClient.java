@@ -415,7 +415,7 @@ public class ArtifactoryClient {
         req.setPath(filePath);
         String url = StringUtil.replacePathVariables(URL_DOWNLOAD_GENERIC_FILE, req);
         url = getCompleteUrl(url);
-        CloseableHttpResponse resp = null;
+        CloseableHttpResponse resp;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "download:" + URL_DOWNLOAD_GENERIC_FILE));
@@ -438,13 +438,6 @@ public class ArtifactoryClient {
             log.error("Fail to getFileInputStream", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
         } finally {
-            try {
-                if (resp != null) {
-                    resp.close();
-                }
-            } catch (IOException e) {
-                log.error("Fail to close connection", e);
-            }
             HttpMetricUtil.clearHttpMetric();
         }
     }

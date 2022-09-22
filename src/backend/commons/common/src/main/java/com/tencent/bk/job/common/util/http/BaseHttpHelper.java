@@ -71,6 +71,7 @@ public class BaseHttpHelper implements HttpHelper {
             log.error("Get request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
+            get.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug("getRawResp,url={},headers={}", url, header);
             }
@@ -97,6 +98,7 @@ public class BaseHttpHelper implements HttpHelper {
             log.error("Get request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
+            get.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
                     "get:keepAlive={},url={},headers={},httpStatusCode={},respStr={}",
@@ -143,6 +145,7 @@ public class BaseHttpHelper implements HttpHelper {
             log.error("Post request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
+            post.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
                     "post:url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
@@ -184,6 +187,7 @@ public class BaseHttpHelper implements HttpHelper {
             log.error("Put request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
+            put.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
                     "put:url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
@@ -233,6 +237,7 @@ public class BaseHttpHelper implements HttpHelper {
             log.error("Delete request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
+            delete.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
                     "delete:url={},headers={},body={},httpStatusCode={},respStr={}",
