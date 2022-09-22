@@ -27,9 +27,11 @@ package com.tencent.bk.job.common.util.http;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHeader;
 
@@ -138,7 +140,7 @@ public class ExtHttpHelper {
         return httpHelper.get(keepAlive, url, header).getRight();
     }
 
-    public CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header) {
+    public Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header) {
         return httpHelper.getRawResp(keepAlive, url, header);
     }
 

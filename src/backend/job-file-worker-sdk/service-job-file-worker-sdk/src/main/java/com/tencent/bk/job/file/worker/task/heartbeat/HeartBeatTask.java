@@ -104,10 +104,11 @@ public class HeartBeatTask {
         HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, getWorkerInfo());
         String respStr;
         try {
-            log.info(String.format("url=%s,body=%s,headers=%s", url, req.getBody(),
-                JsonUtils.toJson(req.getHeaders())));
+            if (log.isDebugEnabled()) {
+                log.debug("url={},body={},headers={}", url, req.getBody(), JsonUtils.toJson(req.getHeaders()));
+            }
             respStr = httpHelper.post(url, req.getBody(), req.getHeaders());
-            log.info(String.format("respStr=%s", respStr));
+            log.debug("respStr={}", respStr);
         } catch (Exception e) {
             log.error("Fail to request file-gateway:", e);
         }

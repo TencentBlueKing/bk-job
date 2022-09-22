@@ -51,6 +51,7 @@ public class JsonUtils {
 
     /**
      * 序列化时忽略bean中的某些字段,字段需要使用SkipLogFields注解
+     * 注意：只对第一层的字段生效，嵌套的不生效
      *
      * @param bean
      * @return
