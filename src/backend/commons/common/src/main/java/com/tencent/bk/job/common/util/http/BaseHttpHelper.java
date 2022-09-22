@@ -72,7 +72,7 @@ public class BaseHttpHelper implements HttpHelper {
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug("url={},headers={}", url, header);
+                log.debug("getRawResp,url={},headers={}", url, header);
             }
         }
     }
@@ -98,7 +98,14 @@ public class BaseHttpHelper implements HttpHelper {
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug("url={},headers={},httpStatusCode={},respStr={}", url, header, httpStatusCode, respStr);
+                log.debug(
+                    "get:keepAlive={},url={},headers={},httpStatusCode={},respStr={}",
+                    keepAlive,
+                    url,
+                    header,
+                    httpStatusCode,
+                    respStr
+                );
             }
         }
     }
@@ -138,7 +145,7 @@ public class BaseHttpHelper implements HttpHelper {
         } finally {
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
+                    "post:url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
                     url,
                     headers,
                     requestEntity,
@@ -179,7 +186,7 @@ public class BaseHttpHelper implements HttpHelper {
         } finally {
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
+                    "put:url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
                     url,
                     headers,
                     requestEntity,
@@ -228,7 +235,7 @@ public class BaseHttpHelper implements HttpHelper {
         } finally {
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "url={},headers={},body={},httpStatusCode={},respStr={}",
+                    "delete:url={},headers={},body={},httpStatusCode={},respStr={}",
                     url,
                     headers,
                     content,
