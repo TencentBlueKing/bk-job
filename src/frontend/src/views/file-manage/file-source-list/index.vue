@@ -58,7 +58,6 @@
             </bk-table-column>
             <bk-table-column
                 :label="$t('file.文件源别名.colHead')"
-                sortable="custom"
                 align="left"
                 prop="alias"
                 key="alias"
@@ -85,7 +84,6 @@
             <bk-table-column
                 v-if="allRenderColumnMap.code"
                 :label="$t('file.文件源标识.colHead')"
-                sortable="custom"
                 align="left"
                 show-overflow-tooltip
                 prop="code"
