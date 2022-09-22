@@ -358,7 +358,7 @@
     import CopyCreate from '../common/copy-create';
     import Layout from './components/layout';
     import ScriptBasic from './components/script-basic';
-    import Diff from './components/diff';
+    import Diff from '../common/diff';
     import NewVersion from './components/new-version';
 
     const TABLE_COLUMN_CACHE = 'script_version_list_columns';
