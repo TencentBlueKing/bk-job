@@ -291,11 +291,17 @@
         cursor: pointer;
         border-radius: 2px;
 
-        &.shortcurt:hover {
-            background: #e1e2e6;
+        &.shortcurt {
+            .render-value-box {
+                padding-left: 4px;
+            }
 
-            .shortcurt-action-btn {
-                display: flex;
+            &:hover {
+                background: #e1e2e6;
+
+                .shortcurt-action-btn {
+                    display: flex;
+                }
             }
         }
 
@@ -311,7 +317,6 @@
         .render-value-box {
             display: flex;
             height: 30px;
-            padding-left: 4px;
             line-height: 30px;
             align-items: center;
         }
