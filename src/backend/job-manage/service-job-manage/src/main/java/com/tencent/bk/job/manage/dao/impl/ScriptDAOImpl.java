@@ -55,6 +55,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -94,12 +95,14 @@ public class ScriptDAOImpl implements ScriptDAO {
                     orderFields.add(TB_SCRIPT.NAME.desc());
                 }
             } else if ("type".equals(orderField)) {
-                // ScriptTypeEnum
+                String sortExpr = Arrays.stream(ScriptTypeEnum.getScriptTypeNameAscSort())
+                    .map(scriptTypeEnum -> scriptTypeEnum.getValue().toString())
+                    .reduce((a, b) -> a + "," + b)
+                    .orElse("");
                 if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {
-                    // 按照脚本语言名称字典顺序排序.Bat(2)->Perl(3)->Powershell(5)->Python(4)->Shell(1)->SQL(6)
-                    orderFields.add(DSL.field("field({0},2,3,5,4,1,6)", TB_SCRIPT.TYPE).asc());
+                    orderFields.add(DSL.field("field({0}," + sortExpr + ")", TB_SCRIPT.TYPE).asc());
                 } else {
-                    orderFields.add(DSL.field("field({0},2,3,5,4,1,6)", TB_SCRIPT.TYPE).desc());
+                    orderFields.add(DSL.field("field({0}," + sortExpr + ")", TB_SCRIPT.TYPE).desc());
                 }
             } else if ("creator".equals(orderField)) {
                 if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {

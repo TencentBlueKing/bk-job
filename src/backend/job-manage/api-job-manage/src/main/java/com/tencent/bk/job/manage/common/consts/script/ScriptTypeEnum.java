@@ -102,4 +102,16 @@ public enum ScriptTypeEnum {
             return "";
         }
     }
+
+    /**
+     * 获取脚本类型的字典名称的排序
+     *
+     * @return 排序
+     */
+    public static ScriptTypeEnum[] getScriptTypeNameAscSort() {
+        // 按照脚本语言名称字典顺序排序.Bat(2)->Perl(3)->Powershell(5)->Python(4)->Shell(1)->SQL(6)
+        return new ScriptTypeEnum[]{
+            BAT, PERL, POWERSHELL, PYTHON, SHELL, SQL
+        };
+    }
 }
