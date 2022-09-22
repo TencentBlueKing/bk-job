@@ -193,10 +193,10 @@
 
     // 同步拓扑树数据
     watch(() => props.topoTreeData, () => {
-        if (props.topoTreeData.legnth < 1) {
-            return;
-        }
         nextTick(() => {
+            if (props.topoTreeData.legnth < 1) {
+                return;
+            }
             const [rootFirstNode] = props.topoTreeData;
             treeRef.value.setSelected(rootFirstNode.id, {
                 emitEvent: true,
