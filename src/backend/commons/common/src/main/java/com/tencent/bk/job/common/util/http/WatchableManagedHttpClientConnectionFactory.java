@@ -35,7 +35,7 @@ public class WatchableManagedHttpClientConnectionFactory extends ManagedHttpClie
     @Override
     public ManagedHttpClientConnection create(final HttpRoute route, final ConnectionConfig config) {
         ManagedHttpClientConnection connection = super.create(route, config);
-        log.info("created connection,route={},id={}", route, connection.getId());
+        log.debug("created connection,route={},id={}", route, connection.getId());
         return connection;
     }
 }

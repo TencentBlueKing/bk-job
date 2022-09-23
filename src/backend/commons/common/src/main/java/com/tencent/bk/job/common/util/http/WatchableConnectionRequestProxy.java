@@ -84,7 +84,7 @@ public class WatchableConnectionRequestProxy implements ConnectionRequest {
             HttpClientConnection connection = delegate.get(timeout, timeUnit);
             if (connection instanceof ManagedHttpClientConnection) {
                 ManagedHttpClientConnection manageConnection = (ManagedHttpClientConnection) connection;
-                log.info("get connection success:id={}", manageConnection.getId());
+                log.debug("get connection success:id={}", manageConnection.getId());
             }
             return connection;
         } catch (Exception e) {
