@@ -76,14 +76,16 @@
             </jb-form>
         </div>
         <div ref="content">
-            <ace-editor
-                v-if="contentHeight > 0"
-                ref="aceEditor"
-                v-model="formData.content"
-                :lang="formData.typeName"
-                :height="contentHeight"
-                :options="formData.typeName"
-                @on-mode-change="handleTypeChange" />
+            <jb-form :model="formData">
+                <ace-editor
+                    v-if="contentHeight > 0"
+                    ref="aceEditor"
+                    v-model="formData.content"
+                    :lang="formData.typeName"
+                    :height="contentHeight"
+                    :options="formData.typeName"
+                    @on-mode-change="handleTypeChange" />
+            </jb-form>
         </div>
         <template #footer>
             <bk-button
