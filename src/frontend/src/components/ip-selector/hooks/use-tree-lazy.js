@@ -1,8 +1,21 @@
 import Manager from '../manager';
 import { transformTopoTree } from '../utils';
 
+const getLeafIdList = childrenList => childrenList.reduce((result, item) => {
+    if (item.children.length < 1) {
+        result.push(item.id);
+    }
+    return result;
+}, []);
+
 export default (lazyLoadedSuccessCallback = () => {}) => {
-    const lazyDisabledCallbak = node => !(node.data.payload.lazy && node.data.children.length < 1);
+    let isLazy = false;
+    const lazyDisabledCallbak = (node) => {
+        if (node.data.payload.lazy) {
+            isLazy = true;
+        }
+        return !isLazy;
+    };
 
     const lazyMethodCallback = node => Promise.resolve()
         .then(() => {
@@ -13,14 +26,18 @@ export default (lazyLoadedSuccessCallback = () => {}) => {
                     [Manager.nameStyle('instanceId')]: nodeInfoData.instance_id,
                     [Manager.nameStyle('meta')]: nodeInfoData.meta,
                 })
-                    .then(data => ({
-                        data: transformTopoTree(data),
-                        leaf: [],
-                    }));
+                    .then((data) => {
+                        const childData = transformTopoTree(data);
+                        return {
+                            data: childData,
+                            leaf: getLeafIdList(childData),
+                        };
+                    });
             }
+            
             return {
                 data: node.data.children,
-                leaf: [],
+                leaf: getLeafIdList(node.data.children),
             };
         })
         .finally(() => {

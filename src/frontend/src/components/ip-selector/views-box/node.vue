@@ -38,7 +38,7 @@
                     <td style="width: 30%;">
                         <div class="cell">
                             <div class="cell-text">
-                                {{ tableDataNamePathMap[genNodeKey(row)] || `#${row.instance_id}` }}
+                                {{ nodeNamePathMap[genNodeKey(row)] || `#${row.instance_id}` }}
                             </div>
                             <diff-tag :value="diffMap[genNodeKey(row)]" />
                         </div>
@@ -75,7 +75,7 @@
             v-model="isShowNodeHostList"
             :draggable="false"
             header-position="left"
-            :title="`动态拓扑主机预览`"
+            :title="`【${nodeNamePathMap[genNodeKey(selectedNode)]}】动态拓扑主机预览`"
             :width="dialogWidth">
             <node-host-list
                 v-if="selectedNode"
@@ -128,7 +128,7 @@
     const isLoading = ref(false);
     const isAgentStatisticsLoading = ref(false);
     const tableData = shallowRef([]);
-    const tableDataNamePathMap = shallowRef({});
+    const nodeNamePathMap = shallowRef({});
     const nodeAgentStaticMap = shallowRef({});
 
     const validNodeList = shallowRef([]);
@@ -138,7 +138,7 @@
     const resultList = shallowRef([]);
 
     const isShowNodeHostList = ref(false);
-    const selectedNode = shallowRef();
+    const selectedNode = shallowRef({});
     const diffMap = shallowRef({});
     const newNodeNum = ref(0);
 
@@ -170,13 +170,13 @@
         Manager.service.fetchNodesQueryPath(params)
             .then((data) => {
                 const validData = [];
-                const nodeNamePathMap = {};
+                const namePathMap = {};
                 data.forEach((item) => {
                     const tailNode = _.last(item);
                     validData.push(tailNode);
-                    nodeNamePathMap[genNodeKey(tailNode)] = item.map(nodeData => nodeData.instance_name).join('/');
+                    namePathMap[genNodeKey(tailNode)] = item.map(nodeData => nodeData.instance_name).join('/');
                 });
-                tableDataNamePathMap.value = nodeNamePathMap;
+                nodeNamePathMap.value = namePathMap;
                 validNodeList.value = validData;
             })
             .finally(() => {
@@ -266,6 +266,8 @@
     const handleShowHostList = (node) => {
         isShowNodeHostList.value = true;
         selectedNode.value = node;
+
+        console.log('from nshost list = ', nodeNamePathMap, selectedNode);
     };
 
     const handleHideHostList = () => {

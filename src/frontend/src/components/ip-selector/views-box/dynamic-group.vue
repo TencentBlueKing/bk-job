@@ -76,10 +76,9 @@
             v-model="isShowHostList"
             :draggable="false"
             header-position="left"
-            :title="`动态拓扑主机预览`"
+            :title="`【${selectedDynamicGroup.name}】动态分组主机预览`"
             :width="dialogWidth">
             <host-list
-                v-if="selectedDynamicGroup"
                 :dynamic-group="selectedDynamicGroup" />
             <template #footer>
                 <bk-button
@@ -135,7 +134,7 @@
     const resultList = shallowRef([]);
 
     const isShowHostList = ref(false);
-    const selectedDynamicGroup = shallowRef();
+    const selectedDynamicGroup = shallowRef({});
 
     let isInnerChange = false;
 

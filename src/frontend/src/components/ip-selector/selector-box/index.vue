@@ -99,6 +99,8 @@
         'cancel',
     ]);
 
+    window.ipManager = Manager;
+
     const panelType = ref('');
     
     const isTopoDataLoading = ref(true);

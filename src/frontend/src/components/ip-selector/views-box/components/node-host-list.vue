@@ -1,7 +1,7 @@
 <template>
     <div
         v-bkloading="{ isLoading }"
-        :style="styles">
+        style="min-height: 500px;">
         <div style="padding: 8px 0;">
             <bk-button
                 :loading="isCopyFaildLoading"
@@ -23,11 +23,10 @@
 </template>
 <script setup>
     import {
-        computed,
-        onMounted,
         reactive,
         ref,
         shallowRef,
+        watch,
     } from 'vue';
 
     import RenderHostTable from '../../common/render-table/host';
@@ -61,10 +60,6 @@
     const isCopyAllLoading = ref(false);
     const tableData = shallowRef([]);
 
-    const styles = computed(() => ({
-        height: `${contentHeight.value}px`,
-    }));
-
     const requestHandler = (params = {}) => Manager.service.fetchTopologyHostsNodes({
         [Manager.nameStyle('nodeList')]: [{
             [Manager.nameStyle('objectId')]: props.node.object_id,
@@ -88,6 +83,12 @@
             isLoading.value = false;
         });
     };
+
+    watch(() => props.node, () => {
+        if (props.node.object_id) {
+            fetchNodeHostList();
+        }
+    });
 
     const handeCopeAllFailedIP = () => {
         isCopyFaildLoading.value = true;
@@ -125,8 +126,4 @@
         pagination.limit = currentPagination.limit;
         fetchNodeHostList();
     };
-
-    onMounted(() => {
-        fetchNodeHostList();
-    });
 </script>
