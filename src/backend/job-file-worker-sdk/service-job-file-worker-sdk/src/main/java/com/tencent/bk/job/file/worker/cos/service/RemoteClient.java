@@ -27,7 +27,6 @@ package com.tencent.bk.job.file.worker.cos.service;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 
 import java.io.InputStream;
