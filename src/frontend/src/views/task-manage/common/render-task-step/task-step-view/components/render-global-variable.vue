@@ -132,7 +132,10 @@
         }
 
         .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner {
+            height: 40px;
+            padding-left: 24px;
             font-size: 20px;
+            line-height: 40px;
             color: #000;
             text-align: left;
         }
