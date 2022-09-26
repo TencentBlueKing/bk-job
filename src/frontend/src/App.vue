@@ -215,7 +215,7 @@
             handleToggleLang (lang) {
                 Cookie.set('blueking_language', lang, {
                     expires: 3600,
-                    domain: window.location.hostname.replace(/.*(\.[^.]+\.[^.]+$)/, '$1'),
+                    domain: window.location.hostname.replace(/^[^.]+(.*)$/, '$1'),
                 });
                 setLocale(lang);
             },
