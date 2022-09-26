@@ -171,7 +171,7 @@
                 </auth-button>
             </jb-popover-confirm>
             <jb-popover-confirm
-                v-if="scriptInfo.isOnline"
+                v-if="scriptInfo.isBanable"
                 key="offline"
                 style="margin-left: auto;"
                 :title="$t('script.确定禁用该版本？')"
