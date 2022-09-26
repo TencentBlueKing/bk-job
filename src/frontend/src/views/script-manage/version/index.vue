@@ -174,7 +174,7 @@
                                     </auth-button>
                                 </jb-popover-confirm>
                                 <jb-popover-confirm
-                                    v-if="row.isOnline"
+                                    v-if="row.isBanable"
                                     class="mr10"
                                     :title="$t('script.确定禁用该版本？')"
                                     :content="$t('script.一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！')"
