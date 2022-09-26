@@ -109,7 +109,7 @@
             }
             const realRule = rule.toLowerCase();
             // . 开头，中间不允许出现空格
-            if (!/^\.[a-z]+(.[a-z]+)*$/.test(realRule)) {
+            if (!/^\.[a-zA-Z]+(.[a-zA-Z_-]+)*$/.test(realRule)) {
                 errorStack.push(realRule);
                 return;
             }
@@ -135,7 +135,7 @@
             }, []).join('；');
             suffixError += renameError;
         }
-        return suffixError ? `${I18n.t('setting..开头，后面跟上不超过24个英文字符，中间不允许出现空格：')}${suffixError}` : '';
+        return suffixError ? `${I18n.t('setting..开头，后面跟上数字、字母、横杠(-)、下划线(_)：')}${suffixError}` : '';
     };
 
     export default {
