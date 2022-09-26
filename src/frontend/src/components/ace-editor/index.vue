@@ -297,11 +297,13 @@
         watch: {
             value: {
                 handler (value) {
+                    this.editor.getSession().setAnnotations([]);
                     // 只读模式没有默认值，直接使用输入值
                     if (this.readonly) {
                         this.editor.setValue(Base64.decode(value));
                         this.editor.clearSelection();
                         this.syntaxCheck(value);
+                        return;
                     }
                     // 外部传入空置直接清空编辑器
                     if (value === '' && this.content !== '') {
@@ -804,7 +806,11 @@
         }
 
         .readonly {
-            filter: grayscale(0%) brightness(80%) saturate(70%) opacity(95%);
+            .jb-ace-title,
+            .ace_gutter,
+            .ace_content {
+                filter: grayscale(0%) brightness(80%) saturate(70%) opacity(95%);
+            }
 
             .jb-ace-mode-item {
                 cursor: default;
@@ -817,7 +823,6 @@
         font-size: 14px;
         color: #fff;
         background: #202024;
-        box-shadow: 0 2px 4px 0 "rgba(0, 0, 0, 16%)";
 
         .jb-ace-mode-item {
             display: flex;
