@@ -125,7 +125,11 @@
 
     watch(() => props.isShow, () => {
         if (props.isShow) {
-            handleChange(panelSortList.value[0]);
+            if (props.uniqueType) {
+                handleChange(props.uniqueType);
+            } else {
+                handleChange(panelSortList.value[0]);
+            }
         }
     });
 

@@ -165,7 +165,7 @@
             lastHostList.value = hostList;
             lastNodeList.value = nodeList;
             lastDynamicGroupList.value = dynamicGroupList;
-            }
+        }
     }, {
         immediate: true,
     });
