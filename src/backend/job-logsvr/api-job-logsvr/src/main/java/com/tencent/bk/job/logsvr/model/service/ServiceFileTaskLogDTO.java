@@ -52,16 +52,16 @@ public class ServiceFileTaskLogDTO {
     private Integer mode;
 
     /**
-     * 目标IP
+     * 目标主机（云区域ID:IPv4)
      */
     @JsonProperty("destIp")
     private String destIp;
 
     /**
-     * 用于展示的目标IP
+     * 目标主机（云区域ID:IPv6)
      */
-    @JsonProperty("displayDestIp")
-    private String displayDestIp;
+    @JsonProperty("destIpv6")
+    private String destIpv6;
 
     /**
      * 目标主机ID
@@ -76,10 +76,16 @@ public class ServiceFileTaskLogDTO {
     private String destFile;
 
     /**
-     * 文件源IP
+     * 文件源主机(云区域ID:IPv4)
      */
     @JsonProperty("srcIp")
     private String srcIp;
+
+    /**
+     * 文件源主机(云区域ID:IPv6)
+     */
+    @JsonProperty("srcIpv6")
+    private String srcIpv6;
 
     /**
      * 文件源主机ID
@@ -144,9 +150,11 @@ public class ServiceFileTaskLogDTO {
     public ServiceFileTaskLogDTO(Integer mode,
                                  Long destHostId,
                                  String destIp,
+                                 String destIpv6,
                                  String destFile,
                                  Long srcHostId,
                                  String srcIp,
+                                 String srcIpv6,
                                  String displaySrcIp,
                                  String srcFile,
                                  String displaySrcFile,
@@ -159,9 +167,11 @@ public class ServiceFileTaskLogDTO {
         this.mode = mode;
         this.destHostId = destHostId;
         this.destIp = destIp;
+        this.destIpv6 = destIpv6;
         this.destFile = destFile;
         this.srcHostId = srcHostId;
         this.srcIp = srcIp;
+        this.srcIpv6 = srcIpv6;
         this.displaySrcIp = displaySrcIp;
         this.srcFile = srcFile;
         this.displaySrcFile = displaySrcFile;

@@ -95,7 +95,7 @@ public class LogServiceImpl implements LogService {
         String jobCreateDate = taskHostLogs.get(0).getJobCreateDate();
         String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
         List<Document> scriptLogDocList = taskHostLogs.stream()
-            .map(taskIpLog -> buildScriptLogDoc(taskIpLog.getScriptTaskLog())).collect(Collectors.toList());
+            .map(taskHostLog -> buildScriptLogDoc(taskHostLog.getScriptTaskLog())).collect(Collectors.toList());
         List<List<Document>> batchDocList = BatchUtil.buildBatchList(scriptLogDocList, BATCH_SIZE);
         long start = System.currentTimeMillis();
         batchDocList.parallelStream().forEach(docs ->
@@ -190,6 +190,9 @@ public class LogServiceImpl implements LogService {
         if (StringUtils.isNotEmpty(scriptTaskLog.getIp())) {
             doc.put("ip", scriptTaskLog.getIp());
         }
+        if (StringUtils.isNotEmpty(scriptTaskLog.getIpv6())) {
+            doc.put("ipv6", scriptTaskLog.getIpv6());
+        }
         doc.put("content", scriptTaskLog.getContent());
         doc.put("offset", scriptTaskLog.getOffset());
         return doc;
@@ -247,6 +250,7 @@ public class LogServiceImpl implements LogService {
             setDBObject.append("hostId", hostId);
         }
         if (StringUtils.isNotEmpty(ip)) {
+            // tmp: 发布完成后不需要写入
             setDBObject.append("ip", ip);
         }
         if (batch != null && batch > 0) {
@@ -258,6 +262,9 @@ public class LogServiceImpl implements LogService {
         if (StringUtils.isNotEmpty(fileTaskLog.getSrcIp())) {
             setDBObject.append("srcIp", fileTaskLog.getSrcIp());
         }
+        if (StringUtils.isNotEmpty(fileTaskLog.getSrcIpv6())) {
+            setDBObject.append("srcIpv6", fileTaskLog.getSrcIpv6());
+        }
         if (StringUtils.isNotEmpty(fileTaskLog.getDisplaySrcIp())) {
             setDBObject.append("displaySrcIp", fileTaskLog.getDisplaySrcIp());
         }
@@ -266,6 +273,15 @@ public class LogServiceImpl implements LogService {
         }
         if (StringUtils.isNotEmpty(fileTaskLog.getDisplaySrcFile())) {
             setDBObject.append("displaySrcFile", fileTaskLog.getDisplaySrcFile());
+        }
+        if (fileTaskLog.getDestHostId() != null) {
+            setDBObject.append("destHostId", fileTaskLog.getDestHostId());
+        }
+        if (StringUtils.isNotEmpty(fileTaskLog.getSrcIp())) {
+            setDBObject.append("destIp", fileTaskLog.getDestIp());
+        }
+        if (StringUtils.isNotEmpty(fileTaskLog.getSrcIpv6())) {
+            setDBObject.append("destIpv6", fileTaskLog.getDestIpv6());
         }
         if (StringUtils.isNotEmpty(fileTaskLog.getDestFile())) {
             setDBObject.append("destFile", fileTaskLog.getDestFile());
@@ -454,6 +470,7 @@ public class LogServiceImpl implements LogService {
         taskHostLog.setBatch(batch);
         taskHostLog.setHostId(scriptLogs.get(0).getHostId());
         taskHostLog.setIp(scriptLogs.get(0).getIp());
+        taskHostLog.setIpv6(scriptLogs.get(0).getIpv6());
 
         scriptLogs.sort(ScriptTaskLogDoc.LOG_OFFSET_COMPARATOR);
         taskHostLog.setScriptContent(scriptLogs.stream().map(ScriptTaskLogDoc::getContent).collect(Collectors.joining("")));

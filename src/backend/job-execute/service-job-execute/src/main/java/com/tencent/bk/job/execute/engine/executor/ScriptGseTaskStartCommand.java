@@ -665,7 +665,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         List<ServiceScriptLogDTO> scriptLogs = new ArrayList<>(targetAgentTaskMap.size());
         for (AgentTaskDTO agentTask : targetAgentTaskMap.values()) {
             // 日志输出
-            ServiceScriptLogDTO scriptLog = logService.buildSystemScriptLog(agentTask.getHost(), errorMsg,
+            ServiceScriptLogDTO scriptLog = logService.buildSystemScriptLog(agentTask.getHost().getHostId(), errorMsg,
                 agentTask.getScriptLogOffset() + errorMsgLength, now);
             scriptLogs.add(scriptLog);
 

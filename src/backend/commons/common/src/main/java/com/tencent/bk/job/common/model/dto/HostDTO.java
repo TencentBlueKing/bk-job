@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -45,7 +44,6 @@ import java.util.Objects;
  */
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @ToString
@@ -76,19 +74,14 @@ public class HostDTO implements Cloneable {
     private String bkCloudName;
 
     /**
-     * 主机IP - ipv4
+     * 主机IP - IPv4
      */
     @JsonProperty("ip")
     private String ip;
 
-    /**
-     * 主机显示IP
-     */
-    @JsonProperty("displayIp")
-    private String displayIp;
 
     /**
-     * 主机IP - ipv6
+     * 主机IP - IPv6
      */
     @JsonProperty("ipv6")
     private String ipv6;
@@ -99,6 +92,7 @@ public class HostDTO implements Cloneable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer alive;
 
+    @Deprecated
     public HostDTO(Long bkCloudId, String ip) {
         this.bkCloudId = bkCloudId;
         this.ip = ip;
@@ -110,13 +104,7 @@ public class HostDTO implements Cloneable {
         return hostDTO;
     }
 
-    public static HostDTO fromHostIdAndAgentId(Long hostId, String agentId) {
-        HostDTO hostDTO = new HostDTO();
-        hostDTO.setHostId(hostId);
-        hostDTO.setAgentId(agentId);
-        return hostDTO;
-    }
-
+    @Deprecated
     public static HostDTO fromHostIdAndCloudIp(Long hostId, String cloudIp) {
         HostDTO hostDTO = new HostDTO();
         hostDTO.setHostId(hostId);
@@ -129,6 +117,7 @@ public class HostDTO implements Cloneable {
         return hostDTO;
     }
 
+    @Deprecated
     public static HostDTO fromCloudIp(String cloudIp) {
         if (!IpUtils.checkCloudIp(cloudIp)) {
             throw new IllegalArgumentException("Invalid cloudIp : " + cloudIp);
@@ -137,6 +126,7 @@ public class HostDTO implements Cloneable {
         return new HostDTO(Long.valueOf(ipProps[0]), ipProps[1]);
     }
 
+    @Deprecated
     public static HostDTO fromHostIdOrCloudIp(Long hostId, String cloudIp) {
         HostDTO host = new HostDTO();
         host.setHostId(hostId);
@@ -148,25 +138,25 @@ public class HostDTO implements Cloneable {
         return host;
     }
 
-
-    public static HostDTO fromHostIdOrCloudIp(Long hostId, Long bkCloudId, String ip) {
-        HostDTO host = new HostDTO();
-        host.setHostId(hostId);
-        host.setBkCloudId(bkCloudId);
-        host.setIp(ip);
-        return host;
-    }
-
+    /**
+     * 返回主机 云区域:ipv4
+     */
     public String toCloudIp() {
-        return bkCloudId + ":" + ip;
+        if (StringUtils.isEmpty(ip)) {
+            return null;
+        } else {
+            return bkCloudId + ":" + ip;
+        }
     }
 
-    @JsonIgnore
-    public String getDisplayIp() {
-        if (StringUtils.isNotEmpty(displayIp)) {
-            return displayIp;
+    /**
+     * 返回主机 云区域:ipv6
+     */
+    public String toCloudIpv6() {
+        if (StringUtils.isEmpty(ipv6)) {
+            return null;
         } else {
-            return ip;
+            return bkCloudId + ":" + ipv6;
         }
     }
 
@@ -253,6 +243,7 @@ public class HostDTO implements Cloneable {
             return toCloudIp();
         }
     }
+
     /**
      * 获取主机的唯一KEY，用于去重等操作
      *

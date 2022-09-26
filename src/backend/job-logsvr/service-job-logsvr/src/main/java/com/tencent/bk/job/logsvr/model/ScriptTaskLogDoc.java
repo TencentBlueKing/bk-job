@@ -26,7 +26,6 @@ package com.tencent.bk.job.logsvr.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -62,12 +61,17 @@ public class ScriptTaskLogDoc {
     @Field("batch")
     private Integer batch;
     /**
-     * 执行任务的主机ip
+     * 执行任务的主机ipv4
      */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostId替换", version = "3.7.x")
     @JsonProperty("ip")
     @Field("ip")
     private String ip;
+    /**
+     * 执行任务的主机ipv6
+     */
+    @JsonProperty("ipv6")
+    @Field("ipv6")
+    private String ipv6;
     /**
      * 执行任务的主机hostId
      */

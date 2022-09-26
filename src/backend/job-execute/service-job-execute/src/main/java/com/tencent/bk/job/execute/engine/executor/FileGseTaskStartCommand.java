@@ -262,8 +262,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch, sourceHost.getHostId(),
                 sourceHost.getAgentId());
             agentTask.setActualExecuteCount(executeCount);
-            agentTask.setCloudIp(sourceHost.toCloudIp());
-            agentTask.setDisplayIp(sourceHost.getDisplayIp());
             agentTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
             agentTask.setStatus(AgentTaskStatusEnum.WAITING);
             agentTask.setGseTaskId(gseTask.getId());
@@ -343,9 +341,11 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                         null,
                         null,
                         null,
+                        null,
                         sourceHostId,
                         file.getHost().toCloudIp(),
-                        file.getHost().toCloudIp(),
+                        file.getHost().toCloudIpv6(),
+                        file.isHiddenSourceHost() ? "" : ,
                         file.getStandardFilePath(),
                         file.getDisplayFilePath(),
                         "--",
@@ -371,7 +371,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                             getDestPath(file),
                             sourceHostId,
                             file.getHost().toCloudIp(),
-                            file.getHost().toCloudIp(),
+                            file.getHost().toCloudIpv6(),
                             file.getStandardFilePath(),
                             file.getDisplayFilePath(),
                             "--",
