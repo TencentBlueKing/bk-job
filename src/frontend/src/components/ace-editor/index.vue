@@ -301,6 +301,7 @@
                     if (this.readonly) {
                         this.editor.setValue(Base64.decode(value));
                         this.editor.clearSelection();
+                        this.syntaxCheck(value);
                     }
                     // 外部传入空置直接清空编辑器
                     if (value === '' && this.content !== '') {
