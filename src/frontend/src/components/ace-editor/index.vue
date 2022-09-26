@@ -806,7 +806,11 @@
         }
 
         .readonly {
-            filter: grayscale(0%) brightness(80%) saturate(70%) opacity(95%);
+            .jb-ace-title,
+            .ace_gutter,
+            .ace_content {
+                filter: grayscale(0%) brightness(80%) saturate(70%) opacity(95%);
+            }
 
             .jb-ace-mode-item {
                 cursor: default;
@@ -819,7 +823,6 @@
         font-size: 14px;
         color: #fff;
         background: #202024;
-        box-shadow: 0 2px 4px 0 "rgba(0, 0, 0, 16%)";
 
         .jb-ace-mode-item {
             display: flex;
