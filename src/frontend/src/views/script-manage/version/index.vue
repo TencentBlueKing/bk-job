@@ -174,7 +174,7 @@
                                     </auth-button>
                                 </jb-popover-confirm>
                                 <jb-popover-confirm
-                                    v-if="row.isOnline"
+                                    v-if="row.isBanable"
                                     class="mr10"
                                     :title="$t('script.确定禁用该版本？')"
                                     :content="$t('script.一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！')"
@@ -221,7 +221,9 @@
                                     @click="handleGoExce(row)">
                                     {{ $t('script.去执行') }}
                                 </auth-button>
-                                <span :tippy-tips="!row.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
+                                <span
+                                    v-if="!publicScript"
+                                    :tippy-tips="!row.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
                                     <auth-button
                                         v-if="row.isOnline"
                                         :permission="row.canManage"
@@ -356,7 +358,7 @@
     import CopyCreate from '../common/copy-create';
     import Layout from './components/layout';
     import ScriptBasic from './components/script-basic';
-    import Diff from './components/diff';
+    import Diff from '../common/diff';
     import NewVersion from './components/new-version';
 
     const TABLE_COLUMN_CACHE = 'script_version_list_columns';
@@ -382,6 +384,7 @@
                 isListFlod: false,
                 isShowNewVersion: false,
                 showDiff: false,
+                dataMemo: [],
                 data: [],
                 dataAppendList: [],
                 scriptDetailInfo: {},

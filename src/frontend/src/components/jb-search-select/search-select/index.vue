@@ -65,12 +65,12 @@
                         @input="handleInputChange"
                         @keydown="handleInputKeydown" />
                 </div>
-                <div
+                <!-- <div
                     v-if="focused"
                     v-once
                     style="margin-top: 4px; font-size: 12px; line-height: 22px; color: #c4c6cc;">
                     {{ inputTips }}
-                </div>
+                </div> -->
             </div>
             <div class="search-nextfix">
                 <i

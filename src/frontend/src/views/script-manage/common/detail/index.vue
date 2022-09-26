@@ -130,10 +130,10 @@
                 {{ $t('script.调试') }}
             </bk-button>
             <span
-                v-if="scriptInfo.isOnline"
+                v-if="!publicScript && scriptInfo.isOnline"
                 key="sync"
                 class="mr10"
-                :tippy-tips="!scriptInfo.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
+                :tippy-tips="!scriptInfo.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
                 <auth-button
                     :permission="scriptInfo.canManage"
                     :resource-id="scriptInfo.id"
@@ -171,7 +171,7 @@
                 </auth-button>
             </jb-popover-confirm>
             <jb-popover-confirm
-                v-if="scriptInfo.isOnline"
+                v-if="scriptInfo.isBanable"
                 key="offline"
                 style="margin-left: auto;"
                 :title="$t('script.确定禁用该版本？')"
@@ -261,8 +261,10 @@
             },
         },
         created () {
+            window.changeConfirm = false;
             this.publicScript = checkPublicScript(this.$route);
             this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
+
             window.addEventListener('resize', this.init);
             this.$once('hook:beforeDestroy', () => {
                 window.removeEventListener('resize', this.init);
