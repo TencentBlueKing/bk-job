@@ -26,13 +26,11 @@ package com.tencent.bk.job.manage.common.consts;
 
 /**
  * JOB资源状态
- *
- * @date 2019/09/19
  */
 
 public enum JobResourceStatusEnum {
     /**
-     * 未上线-草稿
+     * 未上线
      */
     DRAFT(0),
     /**
@@ -48,7 +46,7 @@ public enum JobResourceStatusEnum {
      */
     DISABLED(3);
 
-    private int status;
+    private final int status;
 
     JobResourceStatusEnum(int status) {
         this.status = status;
@@ -67,7 +65,7 @@ public enum JobResourceStatusEnum {
         } else if (status == OFFLINE.getValue()) {
             return OFFLINE;
         } else {
-            return null;
+            throw new IllegalArgumentException("No JobResourceStatusEnum constant: " + status);
         }
     }
 
