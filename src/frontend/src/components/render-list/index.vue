@@ -29,6 +29,9 @@
     <div
         ref="renderList"
         class="jb-render-list"
+        :class="{
+            'table-empty': data.length < 1,
+        }"
         v-test="{ type: 'data', value: 'table' }"
         v-bkloading="{ isLoading }">
         <bk-table
@@ -537,6 +540,12 @@
 </script>
 <style lang="postcss">
     .jb-render-list {
+        &.table-empty {
+            .bk-table-fixed-right {
+                bottom: 0 !important;
+            }
+        }
+
         .bk-table-pagination-wrapper {
             background: #fff;
         }
