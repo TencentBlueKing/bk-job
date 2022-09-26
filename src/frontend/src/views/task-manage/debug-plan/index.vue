@@ -27,9 +27,17 @@
 
 <template>
     <div>
-        <smart-action class="edit-execute-plan" offset-target="detail-content">
+        <smart-action
+            class="dubug-exex-plan-page"
+            offset-target="detail-content">
             <detail-layout mode="see">
-                <detail-item :label="$t('template.全局变量：')" class="gloval-var-item">
+                <detail-item label="">
+                    <div
+                        class="detail-item-title"
+                        style="margin-bottom: 8px;">
+                        <span>{{ $t('template.全局变量.label') }}</span>
+                        <span>（ {{ variableList.length }} / {{ selectedVariable.length }} ）</span>
+                    </div>
                     <render-global-var
                         :list="variableList"
                         :select-value="selectedVariable"
@@ -37,8 +45,12 @@
                 </detail-item>
                 <detail-item label="" class="task-step-item">
                     <div class="task-step-selection">
-                        <!-- eslint-disable-next-line max-len -->
-                        <div>{{ $t('template.选择要调试的步骤') }}（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</div>
+                        <div
+                            class="detail-item-title"
+                            style="margin-bottom: 14px;">
+                            <span>{{ $t('template.选择要调试的步骤') }}</span>
+                            <span>（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</span>
+                        </div>
                         <div class="step-check">
                             <bk-button
                                 v-if="hasSelectAll"
@@ -193,7 +205,7 @@
                         this.isExecuting = false;
                     });
             },
-            
+
             /**
              * @desc 选择模板步骤
              * @param {String} payload 模板步骤
@@ -254,7 +266,7 @@
                         this.isExecuting = false;
                     });
             },
-            
+
             /**
              * @desc 取消调试
              */
@@ -285,25 +297,23 @@
 <style lang='postcss'>
     @import "@/css/mixins/media";
 
-    .edit-execute-plan {
+    .dubug-exex-plan-page {
         padding-bottom: 20px;
 
-        .gloval-var-item {
-            margin-top: 20px;
+        .detail-item-title {
+            font-size: 16px;
+            line-height: 21px;
+            color: #313238;
         }
 
         .task-step-item {
-            margin-top: 20px;
+            margin-top: 40px;
             margin-bottom: 20px;
         }
 
         .task-step-selection {
             display: flex;
             width: 500px;
-            margin-bottom: 14px;
-            font-size: 16px;
-            line-height: 21px;
-            color: #313238;
 
             .step-check {
                 margin-left: auto;

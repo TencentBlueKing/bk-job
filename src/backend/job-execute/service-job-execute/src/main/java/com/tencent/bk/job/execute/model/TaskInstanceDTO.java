@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -84,14 +85,14 @@ public class TaskInstanceDTO {
     private Integer startupMode;
 
     /**
-     * 当前执行步骤id
+     * 当前执行的步骤实例ID
      */
-    private long currentStepId;
+    private long currentStepInstanceId;
 
     /**
      * 状态
      */
-    private Integer status;
+    private RunStatusEnum status;
 
     /**
      * 开始时间
@@ -139,6 +140,13 @@ public class TaskInstanceDTO {
      * 变量
      */
     private List<TaskVariableDTO> variables;
+
+    /**
+     * 判断是否为执行方案实例
+     */
+    public boolean isPlanInstance() {
+        return this.taskId > 0;
+    }
 
 
 }

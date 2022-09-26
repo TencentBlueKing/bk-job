@@ -26,46 +26,19 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskLogRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.GseTaskLog;
 import org.jooq.generated.tables.records.GseTaskLogRecord;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
- * @since 18/3/2021 20:13
+ * gse_task_log 表归档
  */
 public class GseTaskLogArchivist extends AbstractArchivist<GseTaskLogRecord> {
 
-    public GseTaskLogArchivist(JobExecuteDAO jobExecuteDAO,
+    public GseTaskLogArchivist(GseTaskLogRecordDAO executeRecordDAO,
                                ExecuteArchiveDAO executeArchiveDAO,
                                ArchiveProgressService archiveProgressService) {
-        this.jobExecuteDAO = jobExecuteDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
-        this.archiveProgressService = archiveProgressService;
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
         this.deleteIdStepSize = 10_000;
-        this.setTableName("gse_task_log");
-    }
-
-    @Override
-    public List<GseTaskLogRecord> listRecord(Long start, Long stop) {
-        return jobExecuteDAO.listGseTaskLog(start, stop);
-    }
-
-    @Override
-    protected int batchInsert(List<GseTaskLogRecord> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(jobExecuteDAO.getGseTaskLogFields(), recordList, 1000);
-    }
-
-    @Override
-    protected int deleteRecord(Long start, Long stop) {
-        return jobExecuteDAO.deleteGseTaskLog(start, stop);
-    }
-
-    @Override
-    protected long getFirstInstanceId() {
-        return jobExecuteDAO.getFirstInstanceId(GseTaskLog.GSE_TASK_LOG, GseTaskLog.GSE_TASK_LOG.STEP_INSTANCE_ID);
     }
 }

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.gse.model;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -35,7 +35,7 @@ import java.util.List;
 @Setter
 @ToString
 public class GseProcessInfoDTO {
-    private List<IpDTO> ipList;
+    private List<HostDTO> ipList;
 
     private String userName;
 

@@ -106,10 +106,7 @@
 
     .variable-use-guide {
         position: relative;
-        width: 366px;
         height: 100%;
-        background: #fff;
-        border-left: 1px solid #dcdee5;
 
         .header {
             padding-top: 16px;

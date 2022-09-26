@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -45,7 +45,7 @@ public class DynamicServerGroupDTO implements Cloneable {
     /**
      * 动态分组对应的静态IP
      */
-    private List<IpDTO> ipList;
+    private List<HostDTO> ipList;
 
     public DynamicServerGroupDTO(String groupId) {
         this.groupId = groupId;
@@ -55,7 +55,7 @@ public class DynamicServerGroupDTO implements Cloneable {
         DynamicServerGroupDTO cloneServerGroup = new DynamicServerGroupDTO();
         cloneServerGroup.setGroupId(groupId);
         if (ipList != null) {
-            List<IpDTO> cloneIpList = new ArrayList<>(ipList.size());
+            List<HostDTO> cloneIpList = new ArrayList<>(ipList.size());
             ipList.forEach(ip -> cloneIpList.add(ip.clone()));
             cloneServerGroup.setIpList(cloneIpList);
         }

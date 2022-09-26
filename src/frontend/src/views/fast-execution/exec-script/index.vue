@@ -27,78 +27,95 @@
 
 <template>
     <div class="exec-script-page" v-bkloading="{ isLoading }">
-        <smart-action offset-target="bk-form-content">
-            <jb-form
-                class="fast-execution-script-form"
-                ref="execScriptForm"
-                v-test="{ type: 'form', value: 'executeScript' }"
-                :model="formData">
-                <item-factory
-                    name="scriptName"
-                    field="name"
-                    :label="$t('execution.脚本名称')"
-                    :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位...')"
-                    :form-data="formData"
-                    @on-change="handleChange" />
-                <item-factory
-                    name="scriptSourceOfExecution"
-                    script-source-field="scriptSource"
-                    content-field="content"
-                    language-field="scriptLanguage"
-                    script-id-field="scriptId"
-                    script-version-id-field="scriptVersionId"
-                    :form-data="formData"
-                    @on-reset="handleReset" />
-                <item-factory
-                    :key="reset"
-                    name="scriptContent"
-                    script-source-field="scriptSource"
-                    content-field="content"
-                    language-field="scriptLanguage"
-                    :form-data="formData"
-                    @on-change="handleChange" />
-                <item-factory
-                    name="scriptParam"
-                    param-field="scriptParam"
-                    secure-field="secureParam"
-                    :form-data="formData"
-                    @on-change="handleChange" />
-                <item-factory
-                    name="scriptTimeout"
-                    field="timeout"
-                    :form-data="formData"
-                    @on-change="handleChange" />
-                <item-factory
-                    name="scriptAccount"
-                    field="account"
-                    script-language-field="scriptLanguage"
-                    :form-data="formData"
-                    @on-change="handleChange" />
-                <item-factory
-                    name="executeTargetOfExecution"
-                    field="targetServers"
-                    :form-data="formData"
-                    @on-change="handleChange" />
-            </jb-form>
-            <template #action>
-                <div style="display: flex;">
-                    <bk-button
-                        class="w120 mr10"
-                        :loading="isSubmiting"
-                        theme="primary"
-                        @click="handleSubmit"
-                        v-test="{ type: 'button', value: 'fastExecuteScriptSubmit' }">
-                        {{ $t('execution.执行') }}
-                    </bk-button>
-                    <bk-button
-                        @click="handleCancel"
-                        v-test="{ type: 'button', value: 'fastExecuteScriptCancel' }">
-                        {{ $t('execution.重置') }}
-                    </bk-button>
-                </div>
-            </template>
-        </smart-action>
-        <div v-if="historyList.length > 0" class="execution-history" :class="{ active: isShowHistory }">
+        <resize-layout
+            class="exec-scipt-content"
+            :right-width="366"
+            :right-fixed="true">
+            <smart-action offset-target="bk-form-content">
+                <jb-form
+                    class="fast-execution-script-form"
+                    ref="execScriptForm"
+                    v-test="{ type: 'form', value: 'executeScript' }"
+                    :model="formData">
+                    <item-factory
+                        name="scriptName"
+                        field="name"
+                        :label="$t('execution.脚本名称')"
+                        :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位...')"
+                        :form-data="formData"
+                        @on-change="handleChange" />
+                    <item-factory
+                        name="scriptSourceOfExecution"
+                        script-source-field="scriptSource"
+                        content-field="content"
+                        language-field="scriptLanguage"
+                        script-id-field="scriptId"
+                        script-version-id-field="scriptVersionId"
+                        :form-data="formData"
+                        @on-reset="handleReset" />
+                    <item-factory
+                        :key="reset"
+                        name="scriptContent"
+                        script-source-field="scriptSource"
+                        content-field="content"
+                        language-field="scriptLanguage"
+                        :form-data="formData"
+                        @on-change="handleChange" />
+                    <item-factory
+                        name="scriptParam"
+                        param-field="scriptParam"
+                        secure-field="secureParam"
+                        :form-data="formData"
+                        @on-change="handleChange" />
+                    <item-factory
+                        name="scriptTimeout"
+                        field="timeout"
+                        :form-data="formData"
+                        @on-change="handleChange" />
+                    <item-factory
+                        name="scriptAccount"
+                        field="account"
+                        script-language-field="scriptLanguage"
+                        :form-data="formData"
+                        @on-change="handleChange" />
+                    <item-factory
+                        name="executeTargetOfExecution"
+                        field="targetServers"
+                        :form-data="formData"
+                        @on-change="handleChange" />
+                    <item-factory
+                        name="rolling"
+                        enabled-field="rollingEnabled"
+                        expr-field="rollingExpr"
+                        mode-field="rollingMode"
+                        :form-data="formData"
+                        @on-reset="handleReset"
+                        @on-change="handleChange" />
+                </jb-form>
+                <template #action>
+                    <div style="display: flex;">
+                        <bk-button
+                            class="w120 mr10"
+                            :loading="isSubmiting"
+                            theme="primary"
+                            @click="handleSubmit"
+                            v-test="{ type: 'button', value: 'fastExecuteScriptSubmit' }">
+                            {{ $t('execution.执行') }}
+                        </bk-button>
+                        <bk-button
+                            @click="handleCancel"
+                            v-test="{ type: 'button', value: 'fastExecuteScriptCancel' }">
+                            {{ $t('execution.重置') }}
+                        </bk-button>
+                    </div>
+                </template>
+            </smart-action>
+            <div slot="right" id="rollingExprGuide" />
+        </resize-layout>
+        <div
+            v-if="historyList.length > 0"
+            class="submit-history-record"
+            :class="{ active: isShowHistory }">
             <div class="toggle-btn" @click="handleShowHistory">
                 <Icon class="toggle-flag" type="angle-double-left" />
                 <div class="recent-result">{{ $t('execution.最近结果') }}</div>
@@ -122,6 +139,7 @@
     import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
     import ItemFactory from '@components/task-step/script/item-factory';
+    import ResizeLayout from '@components/resize-layout';
     import {
         genDefaultName,
         scriptErrorConfirm,
@@ -155,12 +173,23 @@
         account: '',
         // 目标服务器
         targetServers: new TaskHostNodeModel({}),
+        // 开启滚动
+        rollingEnabled: false,
+        // 滚动执行配置，编辑时拍平
+        // 提交时合并
+        // rollingConfig: {
+        //     expr: '10%',
+        //     mode: 1,
+        // }
+        rollingExpr: '',
+        rollingMode: 1,
     });
 
     export default {
         name: '',
         components: {
             ItemFactory,
+            ResizeLayout,
         },
         data () {
             return {
@@ -198,6 +227,14 @@
                     this.isLoading = true;
                 }).then((data) => {
                     const {
+                        name,
+                        rollingEnabled,
+                        rollingConfig: {
+                            expr: rollingExpr,
+                            mode: rollingMode,
+                        },
+                    } = data.stepInfo;
+                    const {
                         account,
                         content,
                         ignoreError,
@@ -213,7 +250,7 @@
 
                     this.formData = {
                         ...this.formData,
-                        name: data.stepInfo.name,
+                        name,
                         account,
                         content,
                         ignoreError,
@@ -225,6 +262,9 @@
                         secureParam,
                         timeout,
                         targetServers: executeTarget,
+                        rollingEnabled,
+                        rollingExpr,
+                        rollingMode,
                     };
                 })
                     .finally(() => {
@@ -246,7 +286,8 @@
                 if (model === 'debugScript') {
                     const debugScriptContent = debugScriptCache.getItem();
                     if (debugScriptContent) {
-                        this.formData.content = debugScriptContent;
+                        this.formData.scriptLanguage = debugScriptContent.type;
+                        this.formData.content = debugScriptContent.content;
                     }
                     return;
                 }
@@ -358,6 +399,9 @@
                             timeout,
                             account,
                             targetServers,
+                            rollingEnabled,
+                            rollingExpr,
+                            rollingMode,
                         } = this.formData;
 
                         const params = {
@@ -372,6 +416,11 @@
                             timeout,
                             account,
                             targetServers,
+                            rollingEnabled,
+                            rollingConfig: {
+                                expr: rollingExpr,
+                                mode: rollingMode,
+                            },
                         };
                         // 重做时需要带上taskInstanceId，主要处理敏感参数
                         // 标记是重做任务
@@ -428,7 +477,12 @@
     }
 
     .exec-script-page {
+        .exec-scipt-content {
+            height: calc(100vh - 104px);
+        }
+
         .fast-execution-script-form {
+            padding: 20px 24px 0;
             margin-bottom: 10px;
 
             .bk-select {
@@ -456,7 +510,7 @@
             }
         }
 
-        .execution-history {
+        .submit-history-record {
             position: fixed;
             top: 127px;
             right: 0;

@@ -24,31 +24,31 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
 /**
  * Agent任务执行结果分组
  */
-@Data
-public class AgentTaskResultGroupDTO {
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+public class AgentTaskResultGroupDTO extends AgentTaskResultGroupBaseDTO {
     /**
-     * 结果类型
+     * Agent任务
      */
-    private IpStatus resultType;
-    /**
-     * 用户脚本输出的tag
-     */
-    private String tag;
-    /**
-     * 分组下的ip数目
-     */
-    private Integer count;
-    /**
-     * ip列表
-     */
-    private List<IpDTO> ipList;
+    private List<AgentTaskDetailDTO> agentTasks;
+
+    public AgentTaskResultGroupDTO(Integer status, String tag) {
+        super(status, tag);
+    }
+
+    public AgentTaskResultGroupDTO(AgentTaskResultGroupBaseDTO baseResultGroup) {
+        super(baseResultGroup);
+    }
 }

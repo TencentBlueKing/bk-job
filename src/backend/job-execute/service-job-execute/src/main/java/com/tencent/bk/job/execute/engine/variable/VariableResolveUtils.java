@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.variable;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Collection;
@@ -40,12 +40,12 @@ public class VariableResolveUtils {
      * @param hosts 主机列表
      * @return 主机值
      */
-    public static String formatHosts(Collection<IpDTO> hosts) {
+    public static String formatHosts(Collection<HostDTO> hosts) {
         if (CollectionUtils.isEmpty(hosts)) {
             return null;
         }
         StringJoiner joiner = new StringJoiner(",");
-        hosts.forEach(host -> joiner.add(host.convertToStrIp()));
+        hosts.forEach(host -> joiner.add(host.toCloudIp()));
         return joiner.toString();
     }
 }

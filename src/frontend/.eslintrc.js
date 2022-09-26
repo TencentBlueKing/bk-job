@@ -50,9 +50,12 @@ module.exports = {
     },
     // add your custom rules hered
     rules: {
+        // 要求或禁止末尾逗号
         'comma-dangle': ['error', 'always-multiline'],
+        // 强制在代码块中使用一致的大括号风格
         // https://eslint.org/docs/rules/brace-style
         'brace-style': ['error', '1tbs', { allowSingleLine: false }],
+        // 强制在 parseInt() 使用基数参数
         radix: 'error',
         'no-restricted-properties': [2],
         'no-case-declarations': 'error',

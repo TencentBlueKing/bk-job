@@ -82,14 +82,4 @@ public enum ExecuteStatusEnum {
         }
         return resultList;
     }
-
-    public static ExecuteStatusVO getVO(ExecuteStatusEnum executeStatus) {
-        return new ExecuteStatusVO(executeStatus.name(), I18nUtil.getI18nMessage(executeStatus.getI18nCode()));
-    }
-
-    public static ExecuteStatusVO getVO(int status) {
-        ExecuteStatusEnum executeStatus = ExecuteStatusEnum.get(status);
-        if (executeStatus == null) return null;
-        return new ExecuteStatusVO(executeStatus.name(), I18nUtil.getI18nMessage(executeStatus.getI18nCode()));
-    }
 }

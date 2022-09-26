@@ -38,7 +38,7 @@ timeSec=`date +'%s'`
 LOG=/tmp/result_${SCRIPT_NAME}_${timeSec}.log
 
 if [ ${PORT} -gt 0 ]; then
-    HOST_AND_PORT=`netstat -ntl | grep ${PORT} | awk '{print $4}'`
+    HOST_AND_PORT=`netstat -ntl | grep ":${PORT} " | awk '{print $4}'`
     HOST=${HOST_AND_PORT%:${PORT}}
     if [ ${HOST} = '0.0.0.0' -o ${HOST} = '::' ];then
         HOST='127.0.0.1'

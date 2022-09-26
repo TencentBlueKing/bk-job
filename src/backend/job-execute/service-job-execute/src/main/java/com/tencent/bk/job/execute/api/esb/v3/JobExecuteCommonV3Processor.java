@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
@@ -73,8 +73,8 @@ public class JobExecuteCommonV3Processor {
             serversDTO.setDynamicServerGroups(dynamicServerGroups);
         }
         if (CollectionUtils.isNotEmpty(server.getIps())) {
-            List<IpDTO> staticIpList = new ArrayList<>();
-            server.getIps().forEach(ip -> staticIpList.add(new IpDTO(ip.getCloudAreaId(), ip.getIp())));
+            List<HostDTO> staticIpList = new ArrayList<>();
+            server.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
             serversDTO.setStaticIpList(staticIpList);
         }
         return serversDTO;

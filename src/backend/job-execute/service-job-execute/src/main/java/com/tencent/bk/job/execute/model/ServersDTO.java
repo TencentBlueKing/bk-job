@@ -24,13 +24,19 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.StringJoiner;
 
 @Data
+@PersistenceObject
 public class ServersDTO implements Cloneable {
     /**
      * 如果目标服务器是通过全局变量-主机列表定义的，variable 表示变量 name
@@ -39,7 +45,7 @@ public class ServersDTO implements Cloneable {
     /**
      * 用户选择的服务器ip列表（静态）
      */
-    private List<IpDTO> staticIpList;
+    private List<HostDTO> staticIpList;
 
     /**
      * 服务器动态分组列表
@@ -54,12 +60,12 @@ public class ServersDTO implements Cloneable {
     /**
      * 服务器（动态分组、静态ip、动态topo节点）等对应的所有ip的集合
      */
-    private List<IpDTO> ipList;
+    private List<HostDTO> ipList;
 
     /**
      * 非法服务器
      */
-    private List<IpDTO> invalidIpList;
+    private List<HostDTO> invalidIpList;
 
     /**
      * 非法动态分组
@@ -88,7 +94,7 @@ public class ServersDTO implements Cloneable {
             return null;
         }
         StringJoiner sj = new StringJoiner(",");
-        ipList.forEach(ipDTO -> sj.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()));
+        ipList.forEach(ipDTO -> sj.add(ipDTO.getBkCloudId() + ":" + ipDTO.getIp()));
         return sj.toString();
     }
 
@@ -96,7 +102,7 @@ public class ServersDTO implements Cloneable {
         ServersDTO cloneServersDTO = new ServersDTO();
         cloneServersDTO.setVariable(variable);
         if (staticIpList != null) {
-            List<IpDTO> cloneStaticIpList = new ArrayList<>(staticIpList.size());
+            List<HostDTO> cloneStaticIpList = new ArrayList<>(staticIpList.size());
             staticIpList.forEach(staticIp -> cloneStaticIpList.add(staticIp.clone()));
             cloneServersDTO.setStaticIpList(cloneStaticIpList);
         }
@@ -109,12 +115,12 @@ public class ServersDTO implements Cloneable {
             cloneServersDTO.setTopoNodes(topoNodes);
         }
         if (ipList != null) {
-            List<IpDTO> cloneIpList = new ArrayList<>(ipList.size());
+            List<HostDTO> cloneIpList = new ArrayList<>(ipList.size());
             ipList.forEach(ip -> cloneIpList.add(ip.clone()));
             cloneServersDTO.setIpList(cloneIpList);
         }
         if (invalidIpList != null) {
-            List<IpDTO> cloneIpList = new ArrayList<>(invalidIpList.size());
+            List<HostDTO> cloneIpList = new ArrayList<>(invalidIpList.size());
             invalidIpList.forEach(ip -> cloneIpList.add(ip.clone()));
             cloneServersDTO.setInvalidIpList(cloneIpList);
         }
@@ -172,7 +178,7 @@ public class ServersDTO implements Cloneable {
         return this;
     }
 
-    public void addStaticIps(Collection<IpDTO> ips) {
+    public void addStaticIps(Collection<HostDTO> ips) {
         if (staticIpList == null) {
             staticIpList = new ArrayList<>();
         }

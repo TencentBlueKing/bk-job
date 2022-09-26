@@ -37,9 +37,17 @@
                 name="local"
                 :active="activeResult">
                 <span>
-                    <span>{{ $t('已选择.result') }}<span class="number strong">{{ localFileList.length }}</span>{{ $t('个本地文件') }}</span>
+                    <span>
+                        <span>{{ $t('已选择.result') }}</span>
+                        <span class="number strong">{{ localFileList.length }}</span>
+                        <span>{{ $t('个本地文件') }}</span>
+                    </span>
                     <action-extend>
-                        <div class="action-item" @click="handleRemoveAllLocal">{{ $t('移除全部') }}</div>
+                        <div
+                            class="action-item"
+                            @click="handleRemoveAllLocal">
+                            {{ $t('移除全部') }}
+                        </div>
                     </action-extend>
                 </span>
                 <template #content>
@@ -55,7 +63,11 @@
                 content-hidden-type="hidden"
                 name="source"
                 :active="activeResult">
-                <span>{{ $t('已选择.result') }}<span class="number strong">{{ sourceFileList.length }}</span>{{ $t('个源文件文件') }}</span>
+                <span>
+                    <span>{{ $t('已选择.result') }}</span>
+                    <span class="number strong">{{ sourceFileList.length }}</span>
+                    <span>{{ $t('个源文件文件') }}</span>
+                </span>
                 <template #content>
                     <source-file
                         ref="sourceFile"
@@ -68,7 +80,11 @@
                 content-hidden-type="hidden"
                 name="server"
                 :active="activeResult">
-                <span>{{ $t('已选择.result') }}<span class="number strong">{{ serverFileList.length }}</span>{{ $t('个服务器文件') }}</span>
+                <span>
+                    <span>{{ $t('已选择.result') }}</span>
+                    <span class="number strong">{{ serverFileList.length }}</span>
+                    <span>{{ $t('个服务器文件') }}</span>
+                </span>
                 <template #content>
                     <server-file
                         v-bind="$attrs"
@@ -195,7 +211,11 @@
         methods: {
             trigger () {
                 this.isInnerChange = true;
-                this.$emit('on-change', [...this.localFileList, ...this.serverFileList, ...this.sourceFileList]);
+                this.$emit('on-change', [
+                    ...this.localFileList,
+                    ...this.serverFileList,
+                    ...this.sourceFileList,
+                ]);
             },
             /**
              * @desc 隐藏添加服务器文件输入框
@@ -259,115 +279,115 @@
     };
 </script>
 <style lang='postcss'>
-.source-file-edit-view-box {
-    flex: 1;
+    .source-file-edit-view-box {
+        flex: 1;
 
-    table {
-        width: 100%;
-        background: #fff;
-        table-layout: fixed;
+        table {
+            width: 100%;
+            background: #fff;
+            table-layout: fixed;
 
-        tr:nth-child(n + 2) {
+            tr:nth-child(n + 2) {
+                td {
+                    border-top: 1px solid #dcdee5;
+                }
+            }
+
+            th,
             td {
-                border-top: 1px solid #dcdee5;
+                height: 41px;
+                padding: 5px 10px;
+                font-size: 12px;
+                text-align: left;
+                box-sizing: border-box;
+
+                &:first-child {
+                    width: 40%;
+                    padding-left: 60px;
+                }
+
+                &:nth-child(2) {
+                    width: 15%;
+                }
+
+                &:nth-child(4) {
+                    width: 20%;
+                }
+
+                &:last-child {
+                    width: 105px !important;
+                    text-align: left;
+
+                    .bk-button-text ~ .bk-button-text {
+                        margin-left: 10px;
+                    }
+                }
+            }
+
+            th {
+                font-weight: normal;
+                color: #313238;
+                border-bottom: 1px solid #dcdee5;
+            }
+
+            td {
+                line-height: 18px;
+                color: #63656e;
+                word-break: break-all;
             }
         }
 
-        th,
-        td {
-            height: 41px;
-            padding: 5px 10px;
-            font-size: 12px;
-            text-align: left;
-            box-sizing: border-box;
+        &.normal {
+            .render-server-agent {
+                .agent-text {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
 
-            &:first-child {
-                width: 40%;
-                padding-left: 60px;
+                .splite {
+                    display: none;
+                }
             }
 
-            &:nth-child(2) {
-                width: 15%;
+            .upload-progress {
+                position: absolute;
+                width: 160px;
             }
 
-            &:nth-child(4) {
-                width: 20%;
+            .file-server-agent,
+            .server-edit-btn,
+            .file-edit-server {
+                white-space: pre;
+            }
+        }
+        /* stylelint-disable selector-class-pattern */
+        &.onlyHost {
+            th,
+            td {
+                &:nth-child(3) {
+                    width: 20%;
+                }
             }
 
-            &:last-child {
-                width: 105px !important;
-                text-align: left;
+            .upload-progress {
+                position: absolute;
+                width: 257px;
+            }
 
-                .bk-button-text ~ .bk-button-text {
-                    margin-left: 10px;
+            .sep-location {
+                &::before {
+                    content: "，";
                 }
             }
         }
 
-        th {
-            font-weight: normal;
-            color: #313238;
-            border-bottom: 1px solid #dcdee5;
+        .bk-table-empty-block {
+            display: none;
         }
 
-        td {
-            line-height: 18px;
-            color: #63656e;
-            word-break: break-all;
+        .bk-button,
+        .bk-button-text {
+            font-size: 12px;
         }
     }
-
-    &.normal {
-        .render-server-agent {
-            .agent-text {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .splite {
-                display: none;
-            }
-        }
-
-        .upload-progress {
-            position: absolute;
-            width: 160px;
-        }
-
-        .file-server-agent,
-        .server-edit-btn,
-        .file-edit-server {
-            white-space: pre;
-        }
-    }
-    /* stylelint-disable selector-class-pattern */
-    &.onlyHost {
-        th,
-        td {
-            &:nth-child(3) {
-                width: 20%;
-            }
-        }
-
-        .upload-progress {
-            position: absolute;
-            width: 257px;
-        }
-
-        .sep-location {
-            &::before {
-                content: "，";
-            }
-        }
-    }
-
-    .bk-table-empty-block {
-        display: none;
-    }
-
-    .bk-button,
-    .bk-button-text {
-        font-size: 12px;
-    }
-}
 </style>

@@ -56,7 +56,7 @@ public class OperationLogDAOImpl implements OperationLogDAO {
         Record record = ctx.insertInto(TABLE, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR,
             TABLE.CREATE_TIME, TABLE.DETAIL)
             .values(operationLog.getTaskInstanceId(),
-                JooqDataTypeUtil.getByteFromInteger(operationLog.getOperationEnum().getValue()),
+                JooqDataTypeUtil.toByte(operationLog.getOperationEnum().getValue()),
                 operationLog.getOperator(),
                 operationLog.getCreateTime(),
                 JsonUtils.toJson(operationLog.getDetail()))
@@ -85,7 +85,7 @@ public class OperationLogDAOImpl implements OperationLogDAO {
         OperationLogDTO opLog = new OperationLogDTO();
         opLog.setId(record.get(TABLE.ID));
         opLog.setTaskInstanceId(record.get(TABLE.TASK_INSTANCE_ID));
-        opLog.setOperationEnum(UserOperationEnum.valueOf(JooqDataTypeUtil.getIntegerFromByte(record.get(TABLE.OP_CODE))));
+        opLog.setOperationEnum(UserOperationEnum.valueOf(JooqDataTypeUtil.toInteger(record.get(TABLE.OP_CODE))));
         opLog.setCreateTime(record.get(TABLE.CREATE_TIME));
         opLog.setOperator(record.get(TABLE.OPERATOR));
         String detail = record.get(TABLE.DETAIL);

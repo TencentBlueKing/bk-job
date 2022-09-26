@@ -30,6 +30,7 @@ const STATUS_ALL_RETRY = 5;
 export default class OperationLog {
     constructor (payload) {
         this.id = payload.id;
+        this.batch = payload.batch;
         this.taskInstanceId = payload.taskInstanceId;
         this.operator = payload.operator;
         this.operationName = payload.operationName;

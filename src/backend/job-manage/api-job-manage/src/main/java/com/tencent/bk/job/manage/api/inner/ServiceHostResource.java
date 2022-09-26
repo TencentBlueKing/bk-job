@@ -26,9 +26,9 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
@@ -72,15 +72,14 @@ public interface ServiceHostResource {
     );
 
     /**
-     * 检查主机是否在业务下
+     * 获取业务下的主机并返回主机详情
      *
      * @param appId Job业务ID
      * @param req   请求
-     * @return 非法的主机
      */
     @ApiOperation(value = "检查主机是否在业务下", produces = "application/json")
-    @PostMapping("/app/{appId}/host/checkAppHosts")
-    InternalResponse<List<IpDTO>> checkAppHosts(
+    @PostMapping("/app/{appId}/host/batchGet")
+    InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(
         @PathVariable("appId") Long appId,
         @RequestBody ServiceCheckAppHostsReq req
     );

@@ -156,4 +156,3 @@ public class FileSourceVO {
     @ApiModelProperty("是否可以查看")
     private Boolean canView;
 }
-

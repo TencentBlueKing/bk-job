@@ -59,7 +59,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     public void saveVariableValues(StepInstanceVariableValuesDTO variableValues) {
         ctx.insertInto(TABLE, FIELDS)
                 .values(variableValues.getTaskInstanceId(), variableValues.getStepInstanceId(),
-                        variableValues.getExecuteCount(), JooqDataTypeUtil.getByteFromInteger(variableValues.getType()),
+                        variableValues.getExecuteCount(), JooqDataTypeUtil.toByte(variableValues.getType()),
                         JsonUtils.toJson(variableValues))
                 .execute();
     }
@@ -71,7 +71,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
                 .from(TABLE)
                 .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(TABLE.EXECUTE_COUNT.eq(executeCount))
-                .and(TABLE.TYPE.eq(JooqDataTypeUtil.getByteFromInteger(variableValueType.getValue())))
+                .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(variableValueType.getValue())))
                 .limit(1)
                 .fetchOne();
         return extract(record);
@@ -102,7 +102,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
         Result result = ctx.select(FIELDS)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .and(TABLE.TYPE.eq(JooqDataTypeUtil.getByteFromInteger(VariableValueTypeEnum.OUTPUT.getValue())))
+            .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(VariableValueTypeEnum.OUTPUT.getValue())))
             .orderBy(TABLE.STEP_INSTANCE_ID.asc(), TABLE.EXECUTE_COUNT.asc())
             .fetch();
 
@@ -120,7 +120,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(TABLE.STEP_INSTANCE_ID.lt(stepInstanceId))
-            .and(TABLE.TYPE.eq(JooqDataTypeUtil.getByteFromInteger(VariableValueTypeEnum.OUTPUT.getValue())))
+            .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(VariableValueTypeEnum.OUTPUT.getValue())))
             .orderBy(TABLE.STEP_INSTANCE_ID.asc(), TABLE.EXECUTE_COUNT.asc())
             .fetch();
 

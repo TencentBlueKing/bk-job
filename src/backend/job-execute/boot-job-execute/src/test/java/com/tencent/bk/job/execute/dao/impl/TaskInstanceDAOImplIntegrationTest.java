@@ -73,7 +73,7 @@ class TaskInstanceDAOImplIntegrationTest {
         assertThat(taskInstance.getCreateTime()).isEqualTo(1572868800000L);
         assertThat(taskInstance.getStartTime()).isEqualTo(1572868800000L);
         assertThat(taskInstance.getEndTime()).isEqualTo(1572868801000L);
-        assertThat(taskInstance.getStatus()).isEqualTo(3);
+        assertThat(taskInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS);
         assertThat(taskInstance.getTotalTime()).isEqualTo(1111L);
         assertThat(taskInstance.getStartupMode()).isEqualTo(1);
         assertThat(taskInstance.getCallbackUrl()).isEqualTo("http://bkjob.com");
@@ -90,7 +90,7 @@ class TaskInstanceDAOImplIntegrationTest {
         taskInstance.setOperator("user1");
         taskInstance.setType(TaskTypeEnum.NORMAL.getValue());
         taskInstance.setCreateTime(1572955200000L);
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
         taskInstance.setCallbackUrl("http://bkjob.com");
         taskInstance.setAppCode("bk_monitor");
@@ -109,7 +109,7 @@ class TaskInstanceDAOImplIntegrationTest {
         assertThat(returnTaskInstance.getCreateTime()).isEqualTo(1572955200000L);
         assertThat(returnTaskInstance.getStartTime()).isNull();
         assertThat(returnTaskInstance.getEndTime()).isNull();
-        assertThat(returnTaskInstance.getStatus()).isEqualTo(RunStatusEnum.BLANK.getValue());
+        assertThat(returnTaskInstance.getStatus()).isEqualTo(RunStatusEnum.BLANK);
         assertThat(returnTaskInstance.getStartupMode()).isEqualTo(TaskStartupModeEnum.API.getValue());
         assertThat(returnTaskInstance.getCallbackUrl()).isEqualTo("http://bkjob.com");
         assertThat(taskInstance.getAppCode()).isEqualTo("bk_monitor");
@@ -128,13 +128,11 @@ class TaskInstanceDAOImplIntegrationTest {
     @Test
     void testUpdateTaskStatus() {
         long taskInstanceId = 2L;
-        int status = RunStatusEnum.ABNORMAL_STATE.getValue();
-
-        taskInstanceDAO.updateTaskStatus(taskInstanceId, status);
+        taskInstanceDAO.updateTaskStatus(taskInstanceId, RunStatusEnum.ABNORMAL_STATE.getValue());
 
         TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
         assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
-        assertThat(taskInstanceDTO.getStatus()).isEqualTo(status);
+        assertThat(taskInstanceDTO.getStatus()).isEqualTo(RunStatusEnum.ABNORMAL_STATE);
     }
 
     @Test
@@ -170,7 +168,7 @@ class TaskInstanceDAOImplIntegrationTest {
         TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
 
         assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
-        assertThat(taskInstanceDTO.getCurrentStepId()).isEqualTo(stepInstanceId);
+        assertThat(taskInstanceDTO.getCurrentStepInstanceId()).isEqualTo(stepInstanceId);
 
 
     }
@@ -185,7 +183,7 @@ class TaskInstanceDAOImplIntegrationTest {
         assertThat(taskInstanceDTO.getStartTime()).isNull();
         assertThat(taskInstanceDTO.getEndTime()).isNull();
         assertThat(taskInstanceDTO.getTotalTime()).isNull();
-        assertThat(taskInstanceDTO.getCurrentStepId()).isEqualTo(0L);
+        assertThat(taskInstanceDTO.getCurrentStepInstanceId()).isEqualTo(0L);
     }
 
     @Test
@@ -306,20 +304,20 @@ class TaskInstanceDAOImplIntegrationTest {
         assertThat(taskInstanceDTO.getStartTime()).isEqualTo(startTime);
         assertThat(taskInstanceDTO.getEndTime()).isEqualTo(endTime);
         assertThat(taskInstanceDTO.getTotalTime()).isEqualTo(totalTime);
-        assertThat(taskInstanceDTO.getStatus()).isEqualTo(RunStatusEnum.SUCCESS.getValue());
+        assertThat(taskInstanceDTO.getStatus()).isEqualTo(RunStatusEnum.SUCCESS);
     }
 
     @Test
     void testResetTaskExecuteInfoForResume() {
         long taskInstanceId = 2L;
 
-        taskInstanceDAO.resetTaskExecuteInfoForResume(taskInstanceId);
+        taskInstanceDAO.resetTaskExecuteInfoForRetry(taskInstanceId);
 
         TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
         assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
         assertThat(taskInstanceDTO.getEndTime()).isNull();
         assertThat(taskInstanceDTO.getTotalTime()).isNull();
-        assertThat(taskInstanceDTO.getStatus()).isEqualTo(RunStatusEnum.RUNNING.getValue());
+        assertThat(taskInstanceDTO.getStatus()).isEqualTo(RunStatusEnum.RUNNING);
     }
 
 }

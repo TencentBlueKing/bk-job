@@ -1,11 +1,17 @@
 #! /bin/sh
 
+echo "KUBERNETES_NAMESPACE=$KUBERNETES_NAMESPACE"
+echo "BK_JOB_HOME=$BK_JOB_HOME"
+echo "BK_JOB_APP_NAME=$BK_JOB_APP_NAME"
 echo "BK_JOB_STORAGE_BASE_DIR=$BK_JOB_STORAGE_BASE_DIR"
 echo "BK_JOB_STORAGE_OUTER_DIR=$BK_JOB_STORAGE_OUTER_DIR"
 echo "BK_JOB_STORAGE_LOCAL_DIR=$BK_JOB_STORAGE_LOCAL_DIR"
-echo "BK_JOB_APP_NAME=$BK_JOB_APP_NAME"
-echo "KUBERNETES_NAMESPACE=$KUBERNETES_NAMESPACE"
 echo "BK_JOB_POD_NAME=$BK_JOB_POD_NAME"
+echo "BK_JOB_NODE_IP=$BK_JOB_NODE_IP"
+echo "OTEL_TRACE_ENABLED=$OTEL_TRACE_ENABLED"
+echo "OTEL_TRACE_REPORT_ENABLED=$OTEL_TRACE_REPORT_ENABLED"
+echo "OTEL_TRACE_REPORT_ENDPOINT_URL=$OTEL_TRACE_REPORT_ENDPOINT_URL"
+echo "OTEL_TRACE_REPORT_BK_DATA_TOKEN=$OTEL_TRACE_REPORT_BK_DATA_TOKEN"
 
 # 创建本地临时文件目录
 mkdir -p "$BK_JOB_STORAGE_LOCAL_DIR"
@@ -27,7 +33,28 @@ chmod 666 "$BK_JOB_LOG_DIR"
 ln -s $BK_JOB_LOG_BASE_DIR /data/logs
 ls $BK_JOB_LOG_BASE_DIR
 
+# 创建file-worker工作空间
+if [[ "$BK_JOB_FILE_WORKER_WORKSPACE_DIR" != "" ]];then
+    echo "BK_JOB_FILE_WORKER_WORKSPACE_DIR=$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
+    mkdir -p "$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
+    chmod 666 "$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
+fi
+
+# OpenTelemetry相关参数
+OTEL_OPTS=""
+if [[ "$OTEL_TRACE_ENABLED" == "true" ]];then
+    OTEL_OPTS="-javaagent:${BK_JOB_HOME}/opentelemetry-javaagent.jar"
+    OTEL_OPTS="$OTEL_OPTS -Dotel.metrics.exporter=none"
+    if [[ "$OTEL_TRACE_REPORT_ENABLED" == "true" ]];then
+        OTEL_OPTS="$OTEL_OPTS -Dotel.exporter.otlp.endpoint=$OTEL_TRACE_REPORT_ENDPOINT_URL"
+        OTEL_OPTS="$OTEL_OPTS -Dotel.resource.attributes=service.name=$BK_JOB_APP_NAME,bk.data.token=$OTEL_TRACE_REPORT_BK_DATA_TOKEN"
+    else
+        OTEL_OPTS="$OTEL_OPTS -Dotel.traces.exporter=none"
+    fi
+fi
+
 java -server \
+     $OTEL_OPTS \
      -Dfile.encoding=UTF-8 \
      -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
      -Xloggc:$BK_JOB_LOG_DIR/gc.log \

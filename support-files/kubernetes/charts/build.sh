@@ -90,6 +90,10 @@ while (( $# > 0 )); do
     esac
     shift
 done
+# 替换Chart.yaml与values.yaml中的版本号
+sed -i "s/{{CHART_VERSION}}/${VERSION}/g" "${WORKING_DIR}/bk-job/Chart.yaml"
+sed -i "s/{{APP_VERSION}}/${APP_VERSION}/g" "${WORKING_DIR}/bk-job/Chart.yaml"
+sed -i "s/{{APP_VERSION}}/${APP_VERSION}/g" "${WORKING_DIR}/bk-job/values.yaml"
 
 helm package bkjob --version $VERSION --app-version $APP_VERSION
 if [[ $PUSH -eq 1 ]] ; then

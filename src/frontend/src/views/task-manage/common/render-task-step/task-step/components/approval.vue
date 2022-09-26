@@ -70,9 +70,7 @@
                 </bk-checkbox-group>
             </div>
         </jb-form-item>
-        <jb-form-item
-            :label="$t('template.确认描述')"
-            style="margin-bottom: 0;">
+        <jb-form-item :label="$t('template.确认描述')">
             <bk-input
                 v-model="formData.approvalMessage"
                 class="input"

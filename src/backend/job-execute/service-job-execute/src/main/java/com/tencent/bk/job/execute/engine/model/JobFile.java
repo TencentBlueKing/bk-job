@@ -24,31 +24,27 @@
 
 package com.tencent.bk.job.execute.engine.model;
 
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.util.FilePathUtils;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.Data;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Objects;
-
 /**
- * 分发的单个文件信息（一个IP+一个Path），含用户输入的原始路径、解析后的真实路径、用于展示的路径等信息
+ * 分发的单个文件信息，含用户输入的原始路径、解析后的真实路径、用于展示的路径等信息
  */
 @Data
 @ToString(exclude = {"password"})
 public class JobFile {
     /**
-     * 是否本地文件
+     * 文件类型
      */
-    private boolean localUploadFile;
+    private TaskFileTypeEnum fileType;
     /**
-     * 是否包含敏感信息
+     * 源文件主机
      */
-    private boolean sensitive;
-    /**
-     * 文件源主机ip
-     */
-    private String cloudAreaIdAndIp;
+    private HostDTO host;
     /**
      * 文件路径(用户输入)
      */
@@ -97,43 +93,55 @@ public class JobFile {
     private String uniqueKey;
 
     /**
-     * @param cloudAreaIdAndIp 云区域:IP
-     * @param dir              目录名称
-     * @param fileName         文件名
+     * @param fileType        文件类型
+     * @param host            源文件主机
+     * @param filePath        文件路径
+     * @param dir             目录名称
+     * @param fileName        文件名
+     * @param account         源文件账号
+     * @param password        源文件密码
+     * @param displayFilePath 要展示的文件路径
      */
-    public JobFile(String cloudAreaIdAndIp, String dir, String fileName) {
-        this.cloudAreaIdAndIp = cloudAreaIdAndIp;
-        this.dir = dir;
-        this.fileName = fileName;
-    }
-
-    /**
-     * @param isLocalUploadFile 是否本地文件
-     * @param cloudAreaIdAndIp  云区域:IP
-     * @param filePath          文件路径
-     * @param dir               目录名称
-     * @param fileName          文件名
-     * @param account           源文件账号
-     * @param password          源文件密码
-     * @param displayFilePath   要展示的文件路径
-     */
-    public JobFile(boolean isLocalUploadFile, String cloudAreaIdAndIp, String filePath, String dir,
-                   String fileName, String account, String password, String displayFilePath) {
-        this.localUploadFile = isLocalUploadFile;
-        this.cloudAreaIdAndIp = cloudAreaIdAndIp;
+    public JobFile(TaskFileTypeEnum fileType,
+                   HostDTO host,
+                   String filePath,
+                   String dir,
+                   String fileName,
+                   String account,
+                   String password,
+                   String displayFilePath) {
+        this.fileType = fileType;
+        this.host = host;
         this.filePath = filePath;
         this.dir = dir;
         this.fileName = fileName;
         this.account = account;
         this.password = password;
         this.displayFilePath = displayFilePath;
-        this.sensitive = this.localUploadFile;
     }
 
-    public JobFile(boolean isLocalUploadFile, String cloudAreaIdAndIp, String filePath, String displayFilePath,
-                   String dir, String fileName, Long appId, Long accountId, String accountAlias) {
-        this.localUploadFile = isLocalUploadFile;
-        this.cloudAreaIdAndIp = cloudAreaIdAndIp;
+    /**
+     * @param fileType        文件类型
+     * @param host            源文件主机
+     * @param filePath        文件路径
+     * @param displayFilePath 要展示的文件路径
+     * @param dir             目录名称
+     * @param fileName        文件名
+     * @param appId           业务ID
+     * @param accountId       账号ID
+     * @param accountAlias    账号别名
+     */
+    public JobFile(TaskFileTypeEnum fileType,
+                   HostDTO host,
+                   String filePath,
+                   String displayFilePath,
+                   String dir,
+                   String fileName,
+                   Long appId,
+                   Long accountId,
+                   String accountAlias) {
+        this.fileType = fileType;
+        this.host = host;
         this.filePath = filePath;
         this.displayFilePath = displayFilePath;
         this.dir = dir;
@@ -141,7 +149,6 @@ public class JobFile {
         this.appId = appId;
         this.accountId = accountId;
         this.accountAlias = accountAlias;
-        this.sensitive = this.localUploadFile;
     }
 
     @Override
@@ -157,45 +164,31 @@ public class JobFile {
         }
         JobFile target = (JobFile) obj;
 
-        if (this.cloudAreaIdAndIp == null || target.cloudAreaIdAndIp == null
-            || !this.cloudAreaIdAndIp.equals(target.cloudAreaIdAndIp)) {
-            return false;
-        }
-        if (this.dir == null || target.dir == null || !this.dir.equals(target.dir)) {
-            return false;
-        }
-        if (this.fileName == null || target.fileName == null) {
-            return false;
-        }
-        return this.fileName.equals(target.fileName);
+        return this.getUniqueKey().equals(target.getUniqueKey());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(cloudAreaIdAndIp, dir, fileName, account);
+        return getUniqueKey().hashCode();
     }
 
-    public String getDisplayFilePath() {
-        if (!StringUtils.isEmpty(this.displayFilePath)) {
-            return this.displayFilePath;
-        }
-        if (localUploadFile) {
-            this.displayFilePath = this.fileName;
-        } else {
-            this.displayFilePath = this.filePath;
-        }
-        return this.displayFilePath;
-    }
-
-    public String getFileUniqueKey() {
+    /**
+     * 获取文件的唯一KEY，用于去重等操作
+     *
+     * @return 文件KEY
+     */
+    public String getUniqueKey() {
         if (!StringUtils.isEmpty(this.uniqueKey)) {
             return this.uniqueKey;
         }
-        if (localUploadFile) {
-            this.uniqueKey = fileName;
-        } else {
-            this.uniqueKey = getCloudAreaIdAndIp() + ":" + getStandardFilePath();
+        StringBuilder sb = new StringBuilder();
+        sb.append(fileType.name()).append(":");
+        if (fileType == TaskFileTypeEnum.SERVER) {
+            // 远程文件分发，需要源主机信息才能唯一确定一个源文件
+            sb.append(host.getUniqueKey()).append(":");
         }
+        sb.append(getStandardFilePath());
+        this.uniqueKey = sb.toString();
         return this.uniqueKey;
     }
 
