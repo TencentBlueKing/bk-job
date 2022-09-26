@@ -23,6 +23,7 @@
  * IN THE SOFTWARE.
 */
 
+/* eslint-disable max-len */
 export default {
     namespace: 'setting',
     message: {
@@ -129,6 +130,6 @@ export default {
         设置允许范围: 'Allowed From',
         设置禁止范围: 'Limited From',
         不允许为空: 'is required',
-        '.开头，后面跟上不超过24个英文字符，中间不允许出现空格：': 'Start with dot(.), followed by lowercase up to 24 characters: ',
+        '.开头，后面跟上数字、字母、横杠(-)、下划线(_)：': 'Start with dot(.), followed by lowercase / numbers / _ or -, up to 24 characters ',
     },
 };
