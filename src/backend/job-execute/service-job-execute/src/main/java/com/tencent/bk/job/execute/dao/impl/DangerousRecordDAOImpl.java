@@ -99,10 +99,10 @@ public class DangerousRecordDAOImpl implements DangerousRecordDAO {
             conditions.add(T.OPERATOR.eq(query.getOperator()));
         }
         if (query.getStartupMode() != null) {
-            conditions.add(T.STARTUP_MODE.eq(JooqDataTypeUtil.getByteFromInteger(query.getStartupMode())));
+            conditions.add(T.STARTUP_MODE.eq(JooqDataTypeUtil.toByte(query.getStartupMode())));
         }
         if (query.getAction() != null) {
-            conditions.add(T.ACTION.eq(JooqDataTypeUtil.getByteFromInteger(query.getAction())));
+            conditions.add(T.ACTION.eq(JooqDataTypeUtil.toByte(query.getAction())));
         }
         if (StringUtils.isNotEmpty(query.getClient())) {
             conditions.add(T.CLIENT.eq(query.getClient()));
@@ -138,10 +138,10 @@ public class DangerousRecordDAOImpl implements DangerousRecordDAO {
         dangerousRecord.setAppName(record.get(T.APP_NAME));
         dangerousRecord.setOperator(record.get(T.OPERATOR));
         dangerousRecord.setCreateTime(record.get(T.CREATE_TIME));
-        dangerousRecord.setStartupMode(JooqDataTypeUtil.getIntegerFromByte(record.get(T.STARTUP_MODE)));
+        dangerousRecord.setStartupMode(JooqDataTypeUtil.toInteger(record.get(T.STARTUP_MODE)));
         dangerousRecord.setClient(record.get(T.CLIENT));
-        dangerousRecord.setAction(JooqDataTypeUtil.getIntegerFromByte(record.get(T.ACTION)));
-        dangerousRecord.setScriptLanguage(JooqDataTypeUtil.getIntegerFromByte(record.get(T.SCRIPT_LANGUAGE)));
+        dangerousRecord.setAction(JooqDataTypeUtil.toInteger(record.get(T.ACTION)));
+        dangerousRecord.setScriptLanguage(JooqDataTypeUtil.toInteger(record.get(T.SCRIPT_LANGUAGE)));
         dangerousRecord.setScriptContent(record.get(T.SCRIPT_CONTENT));
         dangerousRecord.setCheckResult(JsonUtils.fromJson(record.get(T.CHECK_RESULT),
             new TypeReference<ScriptCheckResultDTO>() {
@@ -163,12 +163,12 @@ public class DangerousRecordDAOImpl implements DangerousRecordDAO {
                 record.getAppId(),
                 record.getAppName(),
                 record.getOperator(),
-                JooqDataTypeUtil.getByteFromInteger(record.getScriptLanguage()),
+                JooqDataTypeUtil.toByte(record.getScriptLanguage()),
                 record.getScriptContent(),
                 record.getCreateTime(),
-                JooqDataTypeUtil.getByteFromInteger(record.getStartupMode()),
+                JooqDataTypeUtil.toByte(record.getStartupMode()),
                 record.getClient(),
-                JooqDataTypeUtil.getByteFromInteger(record.getAction()), JsonUtils.toJson(record.getCheckResult()),
+                JooqDataTypeUtil.toByte(record.getAction()), JsonUtils.toJson(record.getCheckResult()),
                 record.getExtData() == null ? "" : JsonUtils.toJson(record.getExtData()))
             .execute();
         return count > 0;

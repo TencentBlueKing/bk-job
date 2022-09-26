@@ -26,13 +26,12 @@ package com.tencent.bk.job.common.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -85,30 +84,6 @@ public class ApplicationDTO {
      */
     private ApplicationAttrsDO attrs;
 
-    /**
-     * 初始运维部门Id
-     */
-    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    private Long operateDeptId;
-
-    /**
-     * cmdb业务/业务集运维
-     */
-    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    private String maintainers;
-
-    /**
-     * 业务集子业务ID
-     */
-    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    private List<Long> subBizIds;
-
-    /**
-     * 业务类型
-     */
-    @CompatibleImplementation(explain = "兼容字段，等业务集全部迁移到cmdb之后可以删除", version = "3.6.x")
-    private AppTypeEnum appType;
-
     @JsonIgnore
     public boolean isBiz() {
         return scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ;
@@ -144,13 +119,10 @@ public class ApplicationDTO {
     }
 
     public List<Long> getSubBizIds() {
-        // 业务集已迁移到cmdb
         if (attrs != null) {
-            return attrs.getSubBizIds();
+            return attrs.getSubBizIds() == null ? Collections.emptyList() : attrs.getSubBizIds();
         } else {
-            // 业务集还未迁移到cmdb，继续使用原来Job业务集配置的子业务;兼容方法，理论上不应该发生调用，此处日志仅用于排查，后续删除
-            log.info("Get sub biz ids using field subBizIds");
-            return subBizIds;
+            return Collections.emptyList();
         }
     }
 

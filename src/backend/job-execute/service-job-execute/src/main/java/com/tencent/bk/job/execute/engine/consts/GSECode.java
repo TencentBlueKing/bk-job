@@ -32,7 +32,7 @@ public interface GSECode {
     /**
      * Agent异常
      */
-    public static final Integer AGENT_DOWN = 117;
+    Integer AGENT_DOWN = 117;
 
     /**
      * 运行脚本执行状态

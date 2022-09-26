@@ -29,6 +29,10 @@ class WebGlobal {
     getVersionLog () {
         return Request.get(`${window.location.origin}/static/bundledVersionLog.json`);
     }
+
+    getVersionENLog () {
+        return Request.get(`${window.location.origin}/static/bundledVersionLog_en.json`);
+    }
 }
 
 export default new WebGlobal();

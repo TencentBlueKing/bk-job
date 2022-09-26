@@ -78,6 +78,7 @@
                 detail-fullscreen
                 :host-node-info="stepInfo.executeTarget.hostNodeInfo" />
         </detail-item>
+        <slot />
     </div>
 </template>
 <script>

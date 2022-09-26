@@ -653,7 +653,7 @@ public class ImportJobExecutor {
     private void fixScript(ImportJobInfoDTO importJob, Map<String, Map<Long, ServiceScriptDTO>> linkScriptContentMap,
                            List<TaskStepVO> stepList) {
         for (TaskStepVO taskStep : stepList) {
-            if (TaskStepTypeEnum.SCRIPT.getType() == taskStep.getType()) {
+            if (TaskStepTypeEnum.SCRIPT.getValue() == taskStep.getType()) {
                 TaskScriptStepVO scriptStepInfo = taskStep.getScriptStepInfo();
                 if (TaskScriptSourceEnum.CITING.getType() == scriptStepInfo.getScriptSource()
                     || TaskScriptSourceEnum.PUBLIC.getType() == scriptStepInfo.getScriptSource()) {

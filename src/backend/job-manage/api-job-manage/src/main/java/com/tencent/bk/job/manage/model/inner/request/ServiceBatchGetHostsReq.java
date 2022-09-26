@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner.request;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,9 +40,9 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 public class ServiceBatchGetHostsReq {
-    List<IpDTO> hosts;
+    List<HostDTO> hosts;
 
-    public ServiceBatchGetHostsReq(List<IpDTO> hosts) {
+    public ServiceBatchGetHostsReq(List<HostDTO> hosts) {
         this.hosts = hosts;
     }
 }

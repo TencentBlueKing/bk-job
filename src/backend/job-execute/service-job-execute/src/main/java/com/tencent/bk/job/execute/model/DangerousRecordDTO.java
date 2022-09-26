@@ -117,9 +117,7 @@ public class DangerousRecordDTO {
         recordVO.setScopeType(resourceScope.getType().getValue());
         recordVO.setScopeId(resourceScope.getId());
 
-        // TODO:发布后去除
         recordVO.setAppName(appName);
-        recordVO.setScopeName(appName);
         recordVO.setCreateTime(createTime);
         if (checkResult != null && CollectionUtils.isNotEmpty(checkResult.getResults())) {
             recordVO.setCheckResultItems(checkResult.getResults().stream().map(scriptCheckItem -> {

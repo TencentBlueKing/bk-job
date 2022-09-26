@@ -222,7 +222,7 @@
                                     {{ $t('script.去执行') }}
                                 </auth-button>
                                 <span
-                                    v-if="!publicScript"
+                                    v-if="!isPublicScript"
                                     :tippy-tips="!row.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
                                     <auth-button
                                         v-if="row.isOnline"
@@ -230,9 +230,9 @@
                                         :resource-id="row.id"
                                         auth="script/edit"
                                         class="ml10"
+                                        text
                                         :disabled="!row.syncEnabled"
-                                        @click="handleSync(row)"
-                                        text>
+                                        @click="handleSync(row)">
                                         {{ $t('script.同步') }}
                                     </auth-button>
                                 </span>
@@ -508,8 +508,8 @@
             // 缓存脚本版本的完整数据列表——用于脚本搜索
             this.dataMemo = [];
 
-            this.publicScript = checkPublicScript(this.$route);
-            this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
+            this.isPublicScript = checkPublicScript(this.$route);
+            this.serviceHandler = this.isPublicScript ? PublicScriptService : ScriptService;
             this.scriptId = this.$route.params.id;
 
             this.fetchData(true);
@@ -823,7 +823,7 @@
              * @param {Object} row 脚本数据
              */
             handleSync (row) {
-                const routerName = this.publicScript ? 'scriptPublicSync' : 'scriptSync';
+                const routerName = this.isPublicScript ? 'scriptPublicSync' : 'scriptSync';
                 
                 this.$router.push({
                     name: routerName,
@@ -1006,7 +1006,7 @@
              * @desc 路由回退
              */
             routerBack () {
-                if (this.publicScript) {
+                if (this.isPublicScript) {
                     this.$router.push({
                         name: 'publicScriptList',
                     });

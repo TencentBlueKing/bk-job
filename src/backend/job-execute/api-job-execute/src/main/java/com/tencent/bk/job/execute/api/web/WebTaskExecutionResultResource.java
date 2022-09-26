@@ -121,7 +121,6 @@ public interface WebTaskExecutionResultResource {
             String ip
     );
 
-    @ApiOperation(value = "获取作业执行信息", produces = "application/json")
     @GetMapping(value = {"/task-execution-result/{taskInstanceId}"})
     Response<TaskExecuteResultVO> getTaskExecutionResult(
         @ApiParam("用户名，网关自动传入")
@@ -163,8 +162,9 @@ public interface WebTaskExecutionResultResource {
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
         @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
-        @PathVariable(value = "executeCount", required = false)
-            Integer executeCount,
+        @PathVariable(value = "executeCount", required = false) Integer executeCount,
+        @ApiParam(value = "滚动执行批次。如果不传表示返回最新批次，传入0表示返回全部批次", name = "batch")
+        @RequestParam(value = "batch", required = false) Integer batch,
         @ApiParam(value = "任务执行结果", name = "resultType")
         @RequestParam(value = "resultType", required = false)
             Integer resultType,
@@ -204,8 +204,9 @@ public interface WebTaskExecutionResultResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "任务实例ID", name = "taskInstanceId", required = true)
-        @PathVariable("taskInstanceId")
-            Long taskInstanceId,
+        @PathVariable("taskInstanceId") Long taskInstanceId,
+        @ApiParam(value = "滚动执行批次", name = "batch")
+        @RequestParam(value = "batch", required = false) Integer batch,
         @ApiParam(value = "任务执行结果", name = "resultType")
         @RequestParam(value = "resultType", required = false)
             Integer resultType,
@@ -245,7 +246,9 @@ public interface WebTaskExecutionResultResource {
         @PathVariable("executeCount")
             Integer executeCount,
         @ApiParam(value = "IP，格式为云区域ID:IP,比如1:10.10.10.10", name = "ip", required = true)
-        @PathVariable("ip") String ip
+        @PathVariable("ip") String ip,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false) Integer batch
     );
 
     @ApiOperation(value = "获取文件分发步骤IP对应的日志", produces = "application/json")
@@ -274,7 +277,10 @@ public interface WebTaskExecutionResultResource {
             String ip,
         @ApiParam(value = "文件任务上传下载标识,upload-上传,download-下载", name = "mode", required = true)
         @RequestParam(value = "mode")
-            String mode
+            String mode,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false)
+            Integer batch
     );
 
     @ApiOperation(value = "获取文件分发步骤文件任务ID对应的执行日志", produces = "application/json")
@@ -298,6 +304,9 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
         @PathVariable("executeCount")
             Integer executeCount,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false)
+            Integer batch,
         @ApiParam(value = "文件任务ID列表", name = "taskIds", required = true)
         @RequestBody
             List<String> taskIds
@@ -345,8 +354,9 @@ public interface WebTaskExecutionResultResource {
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
         @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
-        @PathVariable("executeCount")
-            Integer executeCount,
+        @PathVariable("executeCount") Integer executeCount,
+        @ApiParam(value = "滚动执行批次，该步骤为滚动步骤时并且用户指定了批次的场景下需要传入该参数", name = "batch")
+        @RequestParam(value = "batch", required = false) Integer batch,
         @ApiParam(value = "任务执行结果", name = "resultType", required = true)
         @RequestParam(value = "resultType")
             Integer resultType,
@@ -375,7 +385,10 @@ public interface WebTaskExecutionResultResource {
             String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
-            Long stepInstanceId
+            Long stepInstanceId,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false)
+            Integer batch
     );
 
 }

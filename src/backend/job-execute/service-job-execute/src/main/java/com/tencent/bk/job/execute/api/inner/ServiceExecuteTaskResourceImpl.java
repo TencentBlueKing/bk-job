@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -82,8 +81,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskExecuteParam executeParam = buildExecuteParam(request);
-        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(executeParam);
-        taskExecuteService.startTask(taskInstanceDTO.getId());
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(executeParam);
 
         ServiceTaskExecuteResult result = new ServiceTaskExecuteResult();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -130,11 +128,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             return null;
         }
         ServersDTO serversDTO = new ServersDTO();
-        if (servers.getIps() != null) {
-            List<IpDTO> staticIpList = new ArrayList<>();
-            servers.getIps().forEach(ip -> staticIpList.add(new IpDTO(ip.getCloudAreaId(), ip.getIp())));
-            serversDTO.setStaticIpList(staticIpList);
-        }
+        serversDTO.setStaticIpList(servers.getIps());
         if (servers.getDynamicGroupIds() != null) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
             servers.getDynamicGroupIds()

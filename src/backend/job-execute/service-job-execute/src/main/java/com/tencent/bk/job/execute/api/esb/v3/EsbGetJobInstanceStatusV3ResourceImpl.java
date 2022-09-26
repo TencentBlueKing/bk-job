@@ -35,19 +35,22 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -56,15 +59,18 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
     implements EsbGetJobInstanceStatusV3Resource {
 
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskLogService gseTaskLogService;
     private final AppScopeMappingService appScopeMappingService;
+    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final FileAgentTaskService fileAgentTaskService;
 
-    public EsbGetJobInstanceStatusV3ResourceImpl(GseTaskLogService gseTaskLogService,
-                                                 TaskInstanceService taskInstanceService,
-                                                 AppScopeMappingService appScopeMappingService) {
-        this.gseTaskLogService = gseTaskLogService;
+    public EsbGetJobInstanceStatusV3ResourceImpl(TaskInstanceService taskInstanceService,
+                                                 AppScopeMappingService appScopeMappingService,
+                                                 ScriptAgentTaskService scriptAgentTaskService,
+                                                 FileAgentTaskService fileAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
+        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.fileAgentTaskService = fileAgentTaskService;
     }
 
     @Override
@@ -110,7 +116,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
                                                                    List<StepInstanceBaseDTO> stepInstances,
                                                                    boolean isReturnIpResult) {
         EsbJobInstanceStatusV3DTO jobInstanceStatus = new EsbJobInstanceStatusV3DTO();
-        jobInstanceStatus.setFinished(RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(taskInstance.getStatus())));
+        jobInstanceStatus.setFinished(RunStatusEnum.isFinishedStatus(taskInstance.getStatus()));
 
         EsbJobInstanceStatusV3DTO.JobInstance jobInstance = new EsbJobInstanceStatusV3DTO.JobInstance();
         EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskInstance.getAppId(), jobInstance);
@@ -119,7 +125,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
         jobInstance.setCreateTime(taskInstance.getCreateTime());
         jobInstance.setStartTime(taskInstance.getStartTime());
         jobInstance.setEndTime(taskInstance.getEndTime());
-        jobInstance.setStatus(taskInstance.getStatus());
+        jobInstance.setStatus(taskInstance.getStatus().getValue());
         jobInstance.setTotalTime(taskInstance.getTotalTime());
         jobInstanceStatus.setJobInstance(jobInstance);
 
@@ -133,25 +139,37 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
             stepInst.setStartTime(stepInstance.getStartTime());
             stepInst.setType(stepInstance.getExecuteType());
             stepInst.setExecuteCount(stepInstance.getExecuteCount());
-            stepInst.setStatus(stepInstance.getStatus());
+            stepInst.setStatus(stepInstance.getStatus().getValue());
             stepInst.setTotalTime(stepInstance.getTotalTime());
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<GseTaskIpLogDTO> ipLogList = gseTaskLogService.getIpLog(stepInstance.getId(),
-                    stepInstance.getExecuteCount(), true);
-                if (CollectionUtils.isNotEmpty(ipLogList)) {
-                    for (GseTaskIpLogDTO ipLog : ipLogList) {
+                List<AgentTaskDetailDTO> agentTaskList = null;
+                if (stepInstance.isScriptStep()) {
+                    agentTaskList = scriptAgentTaskService.listAgentTaskDetail(stepInstance,
+                        stepInstance.getExecuteCount(), null);
+                } else if (stepInstance.isFileStep()) {
+                    agentTaskList = fileAgentTaskService.listAgentTaskDetail(stepInstance,
+                        stepInstance.getExecuteCount(), null);
+                    if (CollectionUtils.isNotEmpty(agentTaskList)) {
+                        // 如果是文件分发任务，只返回目标Agent结果
+                        agentTaskList = agentTaskList.stream()
+                            .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
+                            .collect(Collectors.toList());
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(agentTaskList)) {
+                    for (AgentTaskDetailDTO agentTask : agentTaskList) {
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
-                        stepIpResult.setCloudAreaId(ipLog.getCloudAreaId());
-                        stepIpResult.setIp(ipLog.getIp());
-                        stepIpResult.setExitCode(ipLog.getExitCode());
-                        stepIpResult.setErrorCode(ipLog.getErrCode());
-                        stepIpResult.setStartTime(ipLog.getStartTime());
-                        stepIpResult.setEndTime(ipLog.getEndTime());
-                        stepIpResult.setTotalTime(ipLog.getTotalTime());
-                        stepIpResult.setTag(ipLog.getTag());
-                        stepIpResult.setStatus(ipLog.getStatus());
+                        stepIpResult.setCloudAreaId(agentTask.getBkCloudId());
+                        stepIpResult.setIp(agentTask.getIp());
+                        stepIpResult.setExitCode(agentTask.getExitCode());
+                        stepIpResult.setErrorCode(agentTask.getErrorCode());
+                        stepIpResult.setStartTime(agentTask.getStartTime());
+                        stepIpResult.setEndTime(agentTask.getEndTime());
+                        stepIpResult.setTotalTime(agentTask.getTotalTime());
+                        stepIpResult.setTag(agentTask.getTag());
+                        stepIpResult.setStatus(agentTask.getStatus().getValue());
                         stepIpResults.add(stepIpResult);
                     }
                 }

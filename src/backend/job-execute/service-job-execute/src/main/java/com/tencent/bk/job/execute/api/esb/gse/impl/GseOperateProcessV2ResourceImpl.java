@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.api.esb.gse.GseOperateProcessV2Resource;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.gse.GseApiExecutor;
@@ -68,7 +68,7 @@ public class GseOperateProcessV2ResourceImpl implements GseOperateProcessV2Resou
         List<GseProcessInfoDTO> gseProcessInfos = new ArrayList<>();
         for (EsbProcessInfoDTO processInfo : request.getProcessInfos()) {
             GseProcessInfoDTO gseProcessInfo = new GseProcessInfoDTO();
-            gseProcessInfo.setIpList(processInfo.getIpList().stream().map(ipDTO -> new IpDTO(ipDTO.getCloudAreaId(),
+            gseProcessInfo.setIpList(processInfo.getIpList().stream().map(ipDTO -> new HostDTO(ipDTO.getBkCloudId(),
                 ipDTO.getIp())).collect(Collectors.toList()));
             String setupPath = processInfo.getSetupPath();
             String procName = processInfo.getProcName();

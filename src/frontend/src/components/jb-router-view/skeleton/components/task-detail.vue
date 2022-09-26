@@ -26,7 +26,7 @@
 -->
 
 <template>
-    <div>
+    <div style="padding: 20px 24px;">
         <content-loader
             :height="439"
             :width="maxWidth"

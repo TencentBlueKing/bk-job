@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -48,7 +48,7 @@ public class DynamicServerTopoNodeDTO implements Cloneable {
     /**
      * 分布式拓扑节点对应的静态IP
      */
-    private List<IpDTO> ipList;
+    private List<HostDTO> ipList;
 
     public DynamicServerTopoNodeDTO(long topoNodeId, String nodeType) {
         this.topoNodeId = topoNodeId;
@@ -74,7 +74,7 @@ public class DynamicServerTopoNodeDTO implements Cloneable {
         cloneTopoNode.setNodeType(nodeType);
         cloneTopoNode.setTopoNodeId(topoNodeId);
         if (ipList != null) {
-            List<IpDTO> cloneIpList = new ArrayList<>(ipList.size());
+            List<HostDTO> cloneIpList = new ArrayList<>(ipList.size());
             ipList.forEach(ip -> cloneIpList.add(ip.clone()));
             cloneTopoNode.setIpList(cloneIpList);
         }

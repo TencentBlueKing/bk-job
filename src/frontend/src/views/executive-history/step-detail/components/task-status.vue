@@ -81,9 +81,6 @@
     import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
     import {
-        buildURLParams,
-    } from '@utils/assist';
-    import {
         execScriptHistory,
         pushFileHistory,
     } from '@utils/cache-helper';
@@ -176,6 +173,7 @@
                         this.stepInstanceId = stepInstanceId;
                         this.retryCount = retryCount;
                     }
+                    
                     this.currentStepInstanceId = this.stepInstanceId;
                     this.$emit('on-init', {
                         taskInstanceId: this.taskInstanceId,
@@ -270,12 +268,6 @@
                 
                 const { stepInstanceId, retryCount } = step;
                 this.currentStepInstanceId = stepInstanceId;
-                const query = buildURLParams({
-                    ...this.$route.query,
-                    stepInstanceId,
-                    retryCount,
-                });
-                window.history.replaceState({}, '', `?${query}`);
                 
                 this.$emit('on-init', {
                     stepInstanceId,

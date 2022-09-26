@@ -87,13 +87,13 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
                 fileSourceTaskLog.getStartTime(),
                 fileSourceTaskLog.getEndTime(),
                 fileSourceTaskLog.getTotalTime(),
-                JooqDataTypeUtil.getByteFromInteger(fileSourceTaskLog.getStatus()),
+                JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus()),
                 fileSourceTaskLog.getFileSourceBatchTaskId())
             .onDuplicateKeyUpdate()
             .set(t.START_TIME, fileSourceTaskLog.getStartTime())
             .set(t.END_TIME, fileSourceTaskLog.getEndTime())
             .set(t.TOTAL_TIME, fileSourceTaskLog.getTotalTime())
-            .set(t.STATUS, JooqDataTypeUtil.getByteFromInteger(fileSourceTaskLog.getStatus())).set(t.FILE_SOURCE_BATCH_TASK_ID, fileSourceTaskLog.getFileSourceBatchTaskId())
+            .set(t.STATUS, JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus())).set(t.FILE_SOURCE_BATCH_TASK_ID, fileSourceTaskLog.getFileSourceBatchTaskId())
             .execute();
     }
 

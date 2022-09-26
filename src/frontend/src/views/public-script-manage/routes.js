@@ -46,7 +46,7 @@ export default {
                 pageTitle: I18n.t('公共脚本'),
                 public: true,
                 full: true,
-                skeleton: 'list',
+                skeleton: 'taskList',
             },
         },
         {

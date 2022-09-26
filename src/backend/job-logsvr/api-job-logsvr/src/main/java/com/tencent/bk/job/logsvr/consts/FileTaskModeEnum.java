@@ -28,14 +28,12 @@ package com.tencent.bk.job.logsvr.consts;
  * 文件分发任务模式
  */
 public enum FileTaskModeEnum {
-    UPLOAD(0, "upload"), DOWNLOAD(1, "download");
+    UPLOAD(0), DOWNLOAD(1);
 
     private final Integer value;
-    private final String name;
 
-    FileTaskModeEnum(Integer val, String name) {
+    FileTaskModeEnum(Integer val) {
         this.value = val;
-        this.name = name;
     }
 
     public static FileTaskModeEnum getFileTaskMode(Integer mode) {

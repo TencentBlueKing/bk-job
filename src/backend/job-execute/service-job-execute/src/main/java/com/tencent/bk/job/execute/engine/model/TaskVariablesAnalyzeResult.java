@@ -32,8 +32,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- *全局变量分析结果
+/**
+ * 全局变量分析结果
  */
 @Getter
 @ToString
@@ -43,10 +43,10 @@ public class TaskVariablesAnalyzeResult {
     private boolean existOnlyConstVar = true;  //作业中是否仅存在常量
     private boolean existNamespaceVar = false; //是否存在命名空间变量
     private boolean existChangeableGlobalVar = false; //是否存在可赋值全局变量
-    private List<String> allVarNames = new ArrayList<>(); // 所有变量列表
-    private List<String> constVarNames = new ArrayList<>(); // 常量列表
-    private List<String> namespaceVarNames = new ArrayList<>(); // 命名空间变量列表
-    private List<String> changeableGlobalVarNames = new ArrayList<>(); // 赋值可变变量列表
+    private final List<String> allVarNames = new ArrayList<>(); // 所有变量列表
+    private final List<String> constVarNames = new ArrayList<>(); // 常量列表
+    private final List<String> namespaceVarNames = new ArrayList<>(); // 命名空间变量列表
+    private final List<String> changeableGlobalVarNames = new ArrayList<>(); // 赋值可变变量列表
 
     public TaskVariablesAnalyzeResult(List<TaskVariableDTO> taskVars) {
         if (CollectionUtils.isEmpty(taskVars)) {

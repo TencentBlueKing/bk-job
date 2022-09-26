@@ -24,7 +24,9 @@
 */
 
 module.exports = {
-    extends: 'stylelint-config-standard',
+    extends: [
+        'stylelint-config-standard',
+    ],
     customSyntax: 'postcss-html',
     plugins: [
         'stylelint-scss',

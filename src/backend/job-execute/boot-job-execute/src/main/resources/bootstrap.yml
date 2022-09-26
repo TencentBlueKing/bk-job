@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: job-execute
   cloud:
     kubernetes:
       config:

@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.manager.host;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.db.CacheHostDO;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +48,6 @@ public class HostCache {
 
     private final RedisTemplate redisTemplate;
     private final AppScopeMappingService appScopeMappingService;
-    private final String HOST_KEY_PREFIX = "job:manage:host:";
 
     @Autowired
     public HostCache(@Qualifier("jsonRedisTemplate") RedisTemplate<Object, Object> redisTemplate,
@@ -59,13 +57,28 @@ public class HostCache {
     }
 
     /**
-     * 批量查询缓存的主机
+     * 批量根据ip查询缓存的主机
      *
-     * @param hosts 主机列表
+     * @param cloudIps 主机ip(云区域+IP)列表
      * @return 缓存的主机列表, 按照传入的hosts排序。如果该主机不存在，List中对应索引的值为null
      */
-    public List<CacheHostDO> batchGetHosts(List<IpDTO> hosts) {
-        List<String> hostKeys = hosts.stream().map(this::buildHostKey).collect(Collectors.toList());
+    public List<CacheHostDO> batchGetHostsByIps(List<String> cloudIps) {
+        List<String> hostKeys = cloudIps.stream().map(this::buildHostIpKey).collect(Collectors.toList());
+        return getHostsByKeys(hostKeys);
+    }
+
+    /**
+     * 批量根据hostId查询缓存的主机
+     *
+     * @param hostIds 主机ID列表
+     * @return 缓存的主机列表, 按照传入的hosts排序。如果该主机不存在，List中对应索引的值为null
+     */
+    public List<CacheHostDO> batchGetHostsByHostIds(List<Long> hostIds) {
+        List<String> hostKeys = hostIds.stream().map(this::buildHostIdKey).collect(Collectors.toList());
+        return getHostsByKeys(hostKeys);
+    }
+
+    private List<CacheHostDO> getHostsByKeys(List<String> hostKeys) {
         try {
             return (List<CacheHostDO>) redisTemplate.opsForValue().multiGet(hostKeys);
         } catch (Exception e) {
@@ -80,8 +93,10 @@ public class HostCache {
      * @param applicationHostDTO 主机
      */
     public void deleteHost(ApplicationHostDTO applicationHostDTO) {
-        String hostKey = buildHostKey(applicationHostDTO);
-        redisTemplate.delete(hostKey);
+        String hostIpKey = buildHostIpKey(applicationHostDTO);
+        String hostIdKey = buildHostIdKey(applicationHostDTO);
+        redisTemplate.delete(hostIpKey);
+        redisTemplate.delete(hostIdKey);
     }
 
     /**
@@ -90,7 +105,6 @@ public class HostCache {
      * @param applicationHostDTO 主机
      */
     public void addOrUpdateHost(ApplicationHostDTO applicationHostDTO) {
-        String hostKey = buildHostKey(applicationHostDTO);
         CacheHostDO cacheHost = new CacheHostDO();
         cacheHost.setBizId(applicationHostDTO.getBizId());
         if (applicationHostDTO.getAppId() == null) {
@@ -102,7 +116,10 @@ public class HostCache {
         cacheHost.setCloudAreaId(applicationHostDTO.getCloudAreaId());
         cacheHost.setIp(applicationHostDTO.getIp());
         cacheHost.setHostId(applicationHostDTO.getHostId());
-        redisTemplate.opsForValue().set(hostKey, cacheHost, 1, TimeUnit.DAYS);
+        String hostIpKey = buildHostIpKey(applicationHostDTO);
+        String hostIdKey = buildHostIdKey(applicationHostDTO);
+        redisTemplate.opsForValue().set(hostIpKey, cacheHost, 1, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(hostIdKey, cacheHost, 1, TimeUnit.DAYS);
     }
 
     /**
@@ -114,18 +131,25 @@ public class HostCache {
         hosts.forEach(this::addOrUpdateHost);
     }
 
-    private String buildHostKey(ApplicationHostDTO applicationHostDTO) {
-        return buildHostKey(applicationHostDTO.getCloudAreaId(),
+
+    private String buildHostIpKey(ApplicationHostDTO applicationHostDTO) {
+        return buildHostIpKey(applicationHostDTO.getCloudAreaId(),
             applicationHostDTO.getIp());
     }
 
-    private String buildHostKey(IpDTO host) {
-        String cloudIp = host.getCloudAreaId() + ":" + host.getIp();
-        return HOST_KEY_PREFIX + cloudIp;
+    private String buildHostIdKey(ApplicationHostDTO applicationHostDTO) {
+        return buildHostIdKey(applicationHostDTO.getHostId());
     }
 
-    private String buildHostKey(Long cloudAreaId, String ip) {
-        String cloudIp = cloudAreaId + ":" + ip;
-        return HOST_KEY_PREFIX + cloudIp;
+    private String buildHostIpKey(String cloudIp) {
+        return "job:manage:host:" + cloudIp;
+    }
+
+    private String buildHostIdKey(long hostId) {
+        return "job:manage:host:hostId:" + hostId;
+    }
+
+    private String buildHostIpKey(Long bkCloudId, String ip) {
+        return buildHostIpKey(bkCloudId + ":" + ip);
     }
 }

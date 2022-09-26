@@ -64,15 +64,8 @@ public class DangerousRecordVO {
     /**
      * 业务名称
      */
-    @Deprecated
     @ApiModelProperty("业务名称")
     private String appName;
-
-    /**
-     * 资源范围名称
-     */
-    @ApiModelProperty("资源范围名称")
-    private String scopeName;
     /**
      * 执行人
      */

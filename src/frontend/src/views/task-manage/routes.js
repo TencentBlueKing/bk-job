@@ -62,6 +62,7 @@ export default {
             component: () => import('@views/task-manage/template-operation'),
             meta: {
                 title: I18n.t('新建作业模板'),
+                full: true,
             },
         },
         {
@@ -89,6 +90,7 @@ export default {
             component: () => import('@views/task-manage/template-operation'),
             meta: {
                 title: I18n.t('编辑作业模板'),
+                full: true,
                 skeleton: 'taskDetail',
             },
         },

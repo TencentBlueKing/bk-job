@@ -47,6 +47,7 @@ import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -114,8 +115,9 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
 
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
         StepInstanceDTO stepInstance = buildFastFileStepInstance(request);
-        long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
-        taskExecuteService.startTask(taskInstanceId);
+        long taskInstanceId = taskExecuteService.executeFastTask(
+            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+        );
 
         EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
         jobExecuteInfo.setTaskInstanceId(taskInstanceId);
@@ -217,11 +219,11 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         taskInstance.setCronTaskId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setAppId(request.getAppId());
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
         taskInstance.setOperator(request.getUserName());
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
         taskInstance.setAppCode(request.getAppCode());
@@ -247,7 +249,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
         stepInstance.setOperator(request.getUserName());
-        stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
         stepInstance.setTimeout(request.getTimeout() == null ?
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());

@@ -27,9 +27,7 @@
 
 <template>
     <div ref="root">
-        <div>
-            <slot />
-        </div>
+        <slot />
         <div
             ref="placeholder"
             :style="placeholderStyles"

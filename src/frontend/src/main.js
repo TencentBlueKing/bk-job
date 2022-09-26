@@ -38,13 +38,18 @@ import '@/css/app.css';
 import App from '@/App';
 import IframeApp from '@/iframe-app';
 import i18n from '@/i18n';
-import '@icon/style.css';
-import '@icon/iconcool.js';
+
+import '@bk-icon/style.css';
+import '@bk-icon/iconcool.js';
 
 /**
  * @desc 启动打印当前系统信息
  */
-console.log(process.env.JOB_WELCOME);
+console.log(
+    process.env.JOB_WELCOME,
+    'font-weight: 900; color: #3a84ff',
+    'font-weight: 900; color: #2DCB8D;',
+);
 
 /**
  * @desc 页面数据的编辑状态

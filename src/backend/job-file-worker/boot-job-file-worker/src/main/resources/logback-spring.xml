@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
-    <property name="LOG_PATTERN"
-              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%X{traceId}|%X{spanId}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
+    <contextName>logback</contextName>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+
+    <property name="FILE_LOG_PATTERN"
+              value="${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-[yyyy-MM-dd HH:mm:ss.SSS]}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
     <property name="BK_LOG_DIR_FILE_WORKER" value="${BK_LOG_DIR}/${job.file.worker.instance-name:-job-file-worker}"/>
     <property name="FILE_WORKER_LOG_FILE" value="${BK_LOG_DIR_FILE_WORKER}/worker.log"/>
     <property name="ERROR_LOG_FILE" value="${BK_LOG_DIR_FILE_WORKER}/error.log"/>
-    <contextName>logback</contextName>
 
     <appender name="file-worker-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${FILE_WORKER_LOG_FILE}</file>
@@ -17,7 +19,7 @@
             <totalSizeCap>10GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
@@ -30,13 +32,13 @@
             <totalSizeCap>10GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>utf8</charset>
         </encoder>
     </appender>
