@@ -297,11 +297,13 @@
         watch: {
             value: {
                 handler (value) {
+                    this.editor.getSession().setAnnotations([]);
                     // 只读模式没有默认值，直接使用输入值
                     if (this.readonly) {
                         this.editor.setValue(Base64.decode(value));
                         this.editor.clearSelection();
                         this.syntaxCheck(value);
+                        return;
                     }
                     // 外部传入空置直接清空编辑器
                     if (value === '' && this.content !== '') {
