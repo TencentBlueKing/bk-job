@@ -634,7 +634,8 @@ public class ScriptServiceImpl implements ScriptService {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
-        if (!scriptVersionToBeDisabled.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
+        if (!scriptVersionToBeDisabled.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())
+            && !scriptVersionToBeDisabled.getStatus().equals(JobResourceStatusEnum.OFFLINE.getValue())) {
             log.warn("Disable script, scriptVersion:{}, status:{} could not disable", scriptVersionId,
                 scriptVersionToBeDisabled.getStatus());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);

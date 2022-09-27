@@ -22,21 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.common.util.http;
 
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.file.worker.model.FileMetaData;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.client.methods.HttpRequestBase;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 
-import java.io.InputStream;
-
-public interface RemoteClient {
-
-    FileMetaData getFileMetaData(String filePath);
-
-    Pair<InputStream, HttpRequestBase> getFileInputStream(String filePath) throws ServiceException;
-
-    void shutdown();
-
+@Slf4j
+public class WatchableManagedHttpClientConnectionFactory extends ManagedHttpClientConnectionFactory {
+    @Override
+    public ManagedHttpClientConnection create(final HttpRoute route, final ConnectionConfig config) {
+        ManagedHttpClientConnection connection = super.create(route, config);
+        log.debug("created connection,route={},id={}", route, connection.getId());
+        return connection;
+    }
 }

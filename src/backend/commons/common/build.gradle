@@ -34,7 +34,7 @@ dependencies {
     implementation 'io.springfox:springfox-swagger2'
     implementation 'net.sf.dozer:dozer'
     implementation 'net.sourceforge.jchardet:jchardet'
-    implementation 'org.apache.httpcomponents:httpclient'
+    api 'org.apache.httpcomponents:httpclient'
     implementation 'org.springframework:spring-jdbc'
     implementation 'org.hibernate.validator:hibernate-validator'
     implementation 'jakarta.validation:jakarta.validation-api'
