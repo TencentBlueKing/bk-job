@@ -412,7 +412,7 @@
 
             .bk-textarea-wrapper,
             .bk-form-textarea {
-                height: 100%;
+                height: 100% !important;
             }
 
             textarea {

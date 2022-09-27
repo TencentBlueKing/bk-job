@@ -29,7 +29,7 @@
                             </div>
                             <template v-if="nodeItem.level === 0">
                                 <div
-                                    :key="isHidedEmptyNode"
+                                    :key="`filter_${isHidedEmptyNode}`"
                                     v-bk-tooltips="`${isHidedEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点'}`"
                                     class="topo-node-filter"
                                     :style="{
@@ -40,7 +40,8 @@
                                 </div>
                             </template>
                             <div
-                                v-if="!nodeItem.isLeaf"
+                                v-if="calcShowExpanded(nodeItem)"
+                                :key="`expanded_${nodeItem.expanded}`"
                                 v-bk-tooltips="`${nodeItem.expanded ? '收起所有节点' : '展开所有节点'}`"
                                 class="topo-node-expand"
                                 @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
@@ -166,6 +167,7 @@
     } = useTreeFilter(treeRef);
 
     const {
+        calcShowExpanded,
         toggleExpanded: handleToggleTopoTreeExpanded,
     } = useTreeExpanded(treeRef);
 
