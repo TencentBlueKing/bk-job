@@ -29,6 +29,7 @@
                             </div>
                             <template v-if="nodeItem.level === 0">
                                 <div
+                                    :key="isHidedEmptyNode"
                                     v-bk-tooltips="`${isHidedEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点'}`"
                                     class="topo-node-filter"
                                     :style="{

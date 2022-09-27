@@ -19,7 +19,9 @@
                             active: selectGroupId === item.id
                         }"
                         @click="handleGroupSelect(item)">
-                        <div @click.stop="">
+                        <div
+                            style="line-height: 0;"
+                            @click.stop=";">
                             <bk-checkbox
                                 :checked="Boolean(dynamicGroupCheckedMap[item.id])"
                                 :value="item.id"
