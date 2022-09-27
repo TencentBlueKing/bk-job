@@ -197,8 +197,7 @@ build_backend_module () {
     fi
     rm -rf tmp/*
     cp $BACKEND_DIR/release/$SERVICE-$VERSION.jar tmp/$SERVICE.jar
-    cp $SUPPORT_FILES_DIR/javaagent/opentelemetry-javaagent.jar tmp/
-    cp backend/startup.sh tmp/
+    cp backend/startup.sh backend/tini tmp/
     docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/$SERVICE:$VERSION

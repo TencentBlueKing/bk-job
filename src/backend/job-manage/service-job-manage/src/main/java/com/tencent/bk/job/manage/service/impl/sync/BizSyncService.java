@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
@@ -50,8 +51,9 @@ public class BizSyncService extends BasicAppSyncService {
     public BizSyncService(DSLContext dslContext,
                           ApplicationDAO applicationDAO,
                           ApplicationHostDAO applicationHostDAO,
-                          ApplicationService applicationService) {
-        super(dslContext, applicationDAO, applicationHostDAO, applicationService);
+                          ApplicationService applicationService,
+                          IBizCmdbClient bizCmdbClient) {
+        super(dslContext, applicationDAO, applicationHostDAO, applicationService, bizCmdbClient);
         this.applicationDAO = applicationDAO;
     }
 

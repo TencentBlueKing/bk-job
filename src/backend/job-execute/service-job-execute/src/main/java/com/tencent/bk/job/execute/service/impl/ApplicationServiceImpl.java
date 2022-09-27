@@ -30,14 +30,12 @@ import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@DependsOn({"cmdbConfigSetter"})
 @Service
 @Slf4j
 public class ApplicationServiceImpl implements ApplicationService {

@@ -31,16 +31,16 @@ public class TaskInstanceRecordDAO extends AbstractExecuteRecordDAO<TaskInstance
         return TABLE.ID;
     }
 
-    public Long getMaxNeedArchiveTaskInstanceId(Long endTime) {
-        Record1<Long> maxNeedTaskInstanceIdRecord =
+    public Long getMaxId(Long endTime) {
+        Record1<Long> record =
             context.select(max(TABLE.ID))
                 .from(TABLE)
                 .where(TABLE.CREATE_TIME.lessOrEqual(endTime))
                 .fetchOne();
-        if (maxNeedTaskInstanceIdRecord != null) {
-            Long maxNeedTaskInstanceId = (Long) maxNeedTaskInstanceIdRecord.get(0);
-            if (maxNeedTaskInstanceId != null) {
-                return maxNeedTaskInstanceId;
+        if (record != null) {
+            Long maxId = (Long) record.get(0);
+            if (maxId != null) {
+                return maxId;
             }
         }
         return 0L;
