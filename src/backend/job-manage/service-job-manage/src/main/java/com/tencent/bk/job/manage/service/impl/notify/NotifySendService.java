@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
-import brave.Tracing;
-import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
@@ -34,65 +32,49 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
 public class NotifySendService {
 
     //发通知专用线程池
-    private final TraceableExecutorService notifySendExecutor;
-
+    private final ThreadPoolExecutor notifySendExecutor;
     private final WatchableSendMsgService watchableSendMsgService;
     private final EsbUserInfoDAO esbUserInfoDAO;
 
     @Autowired
     public NotifySendService(WatchableSendMsgService watchableSendMsgService,
                              EsbUserInfoDAO esbUserInfoDAO,
-                             Tracing tracing,
+                             @Qualifier("notifySendExecutor") ThreadPoolExecutor notifySendExecutor,
                              MeterRegistry meterRegistry) {
         this.watchableSendMsgService = watchableSendMsgService;
         this.esbUserInfoDAO = esbUserInfoDAO;
-        notifySendExecutor = new TraceableExecutorService(
-            new ThreadPoolExecutor(
-                5,
-                30,
-                60L,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(10)
-            ),
-            tracing
-        );
+        this.notifySendExecutor = notifySendExecutor;
         measureNotifySendExecutor(meterRegistry);
     }
 
     private void measureNotifySendExecutor(MeterRegistry meterRegistry) {
-        ExecutorService executorService = notifySendExecutor.getDelegateExecutorService();
-        if (executorService instanceof ThreadPoolExecutor) {
-            ThreadPoolExecutor notifySendExecutor = (ThreadPoolExecutor) executorService;
-            meterRegistry.gauge(
-                MetricsConstants.NAME_NOTIFY_POOL_SIZE,
-                Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
-                    MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
-                notifySendExecutor,
-                ThreadPoolExecutor::getPoolSize
-            );
-            meterRegistry.gauge(
-                MetricsConstants.NAME_NOTIFY_QUEUE_SIZE,
-                Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
-                    MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
-                notifySendExecutor,
-                threadPoolExecutor -> threadPoolExecutor.getQueue().size()
-            );
-        }
+        meterRegistry.gauge(
+            MetricsConstants.NAME_NOTIFY_POOL_SIZE,
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
+            notifySendExecutor,
+            ThreadPoolExecutor::getPoolSize
+        );
+        meterRegistry.gauge(
+            MetricsConstants.NAME_NOTIFY_QUEUE_SIZE,
+            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE,
+                MetricsConstants.TAG_VALUE_MODULE_NOTIFY)),
+            notifySendExecutor,
+            threadPoolExecutor -> threadPoolExecutor.getQueue().size()
+        );
     }
 
     private SendNotifyTask buildSendTask(Long appId,
@@ -112,7 +94,8 @@ public class NotifySendService {
         return task;
     }
 
-    public void sendUserChannelNotify(Long appId, Set<String> receivers, String channel, String title, String content) {
+    public void asyncSendUserChannelNotify(Long appId, Set<String> receivers, String channel, String title,
+                                           String content) {
         if (CollectionUtils.isEmpty(receivers)) {
             log.warn("receivers is empty of channel {}, do not send notification", channel);
             return;
@@ -127,7 +110,30 @@ public class NotifySendService {
         notifySendExecutor.submit(buildSendTask(appId, receivers, channel, title, content));
     }
 
-    public void sendNotifyMessages(Long appId, Map<String, Set<String>> channelUsersMap, String title, String content) {
-        channelUsersMap.forEach((channel, userSet) -> sendUserChannelNotify(appId, userSet, channel, title, content));
+    public void sendUserChannelNotify(Long appId,
+                                      Set<String> receivers,
+                                      String channel,
+                                      String title,
+                                      String content) {
+        if (CollectionUtils.isEmpty(receivers)) {
+            log.warn("receivers is empty of channel {}, do not send notification", channel);
+            return;
+        }
+        watchableSendMsgService.sendMsg(
+            appId,
+            System.currentTimeMillis(),
+            channel,
+            null,
+            receivers,
+            title,
+            content
+        );
+    }
+
+    public void asyncSendNotifyMessages(Long appId, Map<String, Set<String>> channelUsersMap, String title,
+                                        String content) {
+        channelUsersMap.forEach((channel, userSet) ->
+            asyncSendUserChannelNotify(appId, userSet, channel, title, content)
+        );
     }
 }

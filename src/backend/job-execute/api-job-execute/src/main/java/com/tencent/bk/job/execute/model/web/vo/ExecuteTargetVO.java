@@ -41,4 +41,5 @@ public class ExecuteTargetVO {
     @ApiModelProperty(value = "主机节点列表")
     @JsonProperty("hostNodeInfo")
     private ExecuteServersVO hostNodeInfo;
+
 }

@@ -24,19 +24,20 @@
 
 dependencies {
     api project(":commons:common-i18n")
+    api project(":commons:common-otel")
     api project(":job-file-worker-sdk:api-job-file-worker-sdk")
-    implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "ch.qos.logback:logback-core"
-    implementation "ch.qos.logback:logback-classic"
-    implementation "org.slf4j:slf4j-api"
-    implementation "org.apache.commons:commons-collections4"
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation group: 'org.apache.thrift', name: 'libthrift'
-    implementation "commons-io:commons-io"
-    implementation "commons-codec:commons-codec"
-    implementation 'io.springfox:springfox-swagger2'
-    implementation 'io.springfox:springfox-swagger-ui'
-    implementation 'net.coobird:thumbnailator:0.4.14'
+    api "org.springframework.boot:spring-boot-starter-web"
+    api "ch.qos.logback:logback-core"
+    api "ch.qos.logback:logback-classic"
+    api "org.slf4j:slf4j-api"
+    api "org.apache.commons:commons-collections4"
+    api 'org.apache.httpcomponents:httpclient'
+    api group: 'org.apache.thrift', name: 'libthrift'
+    api "commons-io:commons-io"
+    api "commons-codec:commons-codec"
+    api 'io.springfox:springfox-swagger2'
+    api 'io.springfox:springfox-swagger-ui'
+    api 'net.coobird:thumbnailator:0.4.14'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.commons:commons-lang3'
 }

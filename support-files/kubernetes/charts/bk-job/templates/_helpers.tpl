@@ -206,6 +206,20 @@ Return the MariaDB secret name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return the JDBC MySQL Driver Class
+*/}}
+{{- define "job.jdbcMysqlDriverClass" -}}
+{{- printf "io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver" -}}
+{{- end -}}
+
+{{/*
+Return the JDBC MySQL scheme
+*/}}
+{{- define "job.jdbcMysqlScheme" -}}
+{{- printf "jdbc:otel:mysql" -}}
+{{- end -}}
+
 
 {{/*
 Fully qualified app name for Redis
@@ -510,6 +524,13 @@ Return the Job Storage Env Content
   value: {{ .Values.persistence.localStorage.path }}
 - name: BK_JOB_STORAGE_LOCAL_DIR
   value: {{ .Values.persistence.localStorage.path }}/local
+{{- end -}}
+
+{{/*
+Return the Job Common Env Content
+*/}}
+{{- define "job.common.env" -}}
+{{ include "job.storage.env" . }}
 {{- end -}}
 
 {{/*

@@ -585,17 +585,27 @@
                             id: taskInstance.id,
                         },
                     });
-                    return;
+                } else if (taskInstance.isScript || taskInstance.isFile) {
+                    this.$router.push({
+                        name: 'quickLaunchStep',
+                        params: {
+                            taskInstanceId: taskInstance.id,
+                        },
+                        query: {
+                            from: 'historyList',
+                        },
+                    });
+                } else {
+                    this.$router.push({
+                        name: 'historyStep',
+                        params: {
+                            taskInstanceId: taskInstance.id,
+                        },
+                        query: {
+                            from: 'historyList',
+                        },
+                    });
                 }
-                this.$router.push({
-                    name: 'historyStep',
-                    params: {
-                        taskInstanceId: taskInstance.id,
-                    },
-                    query: {
-                        from: 'historyList',
-                    },
-                });
             },
             /**
              * @desc 重做执行任务

@@ -52,7 +52,6 @@ import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +65,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@DependsOn({"cmdbConfigSetter"})
 @Slf4j
 public class HostServiceImpl implements HostService {
     private final WhiteIpResourceClient whiteIpResourceClient;
@@ -134,7 +132,7 @@ public class HostServiceImpl implements HostService {
     public List<String> getHostAllowedAction(long appId, HostDTO host) {
         try {
             InternalResponse<List<String>> resp = whiteIpResourceClient.getWhiteIPActionScopes(appId, host.getIp(),
-                host.getBkCloudId());
+                host.getBkCloudId(), host.getHostId());
             if (!resp.isSuccess()) {
                 log.warn("Get white ip action scopes return fail resp, appId:{}, host:{}", appId,
                     host.toCloudIp());
@@ -235,6 +233,9 @@ public class HostServiceImpl implements HostService {
             }
             String singleIp = chooseOneIpPreferAlive(hostCloudId.getInstanceId(), hostProp.getIp());
             HostDTO host = new HostDTO(hostCloudId.getInstanceId(), singleIp);
+            host.setHostId(hostProp.getId());
+            host.setIpv6(hostProp.getIpv6());
+            host.setAgentId(hostProp.getAgentId());
             hostList.add(host);
         }
         log.info("Get hosts by groupId, appId={}, groupId={}, hosts={}", appId, groupId, hostList);
@@ -252,8 +253,11 @@ public class HostServiceImpl implements HostService {
             return ips;
         }
         for (ApplicationHostDTO hostProp : appHosts) {
-            HostDTO ip = new HostDTO(hostProp.getCloudAreaId(), hostProp.getIp());
-            ips.add(ip);
+            HostDTO host = new HostDTO(hostProp.getCloudAreaId(), hostProp.getIp());
+            host.setHostId(hostProp.getHostId());
+            host.setIpv6(hostProp.getIpv6());
+            host.setAgentId(hostProp.getAgentId());
+            ips.add(host);
         }
         log.info("Get hosts by cc topo nodes, appId={}, nodes={}, hosts={}", appId, ccInstances, ips);
         return ips;

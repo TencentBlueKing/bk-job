@@ -54,6 +54,5 @@ public interface IPaasClient {
     /**
      * ESB发通知信息接口
      */
-    boolean sendMsg(String msgType, String sender, Set<String> receivers, String title, String content)
-        throws Exception;
+    void sendMsg(String msgType, String sender, Set<String> receivers, String title, String content);
 }

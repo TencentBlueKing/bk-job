@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
@@ -58,6 +57,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.util.StopWatch;
 
 import java.util.HashMap;
@@ -125,7 +125,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 JobExecuteConfig jobExecuteConfig,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 GseTasksExceptionCounter gseTasksExceptionCounter,
-                                Tracing tracing,
+                                Tracer tracer,
                                 GseClient gseClient,
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
@@ -136,7 +136,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             accountService,
             gseTaskService,
             agentTaskService,
-            tracing,
+            tracer,
             gseClient,
             taskInstance,
             stepInstance,
@@ -223,11 +223,25 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     }
 
     private void initTargetAgentTasks() {
-        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount, batch);
+        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        fillIpForAgentTasks(agentTasks);
         agentTasks.stream()
             .filter(AgentTaskDTO::isTarget)
             .forEach(agentTask -> this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask));
     }
+
+    protected void fillIpForAgentTasks(List<AgentTaskDTO> agentTasks) {
+        Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
+        agentTasks.forEach(agentTask -> {
+            if (agentTask.getHostId() != null) {
+                HostDTO host = hosts.get(agentTask.getHostId());
+                if (host != null) {
+                    agentTask.setCloudIp(host.toCloudIp());
+                }
+            }
+        });
+    }
+
 
     private void initVariables() {
         if (taskInstance.isPlanInstance()) {
@@ -278,7 +292,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         if (totalTime != null) {
             gseTask.setTotalTime(totalTime);
         }
-        gseTaskService.saveGseTask(gseTask);
+        gseTaskService.updateGseTask(gseTask);
     }
 
     /**

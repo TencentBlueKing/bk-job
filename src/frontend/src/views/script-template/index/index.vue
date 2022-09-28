@@ -242,7 +242,7 @@
                     scriptContent: this.scriptContent,
                 }).then(() => {
                     window.changeConfirm = false;
-                    this.templateMap[this.scriptLanguage] = this.scriptLanguage;
+                    this.templateMap[this.scriptLanguage] = this.scriptContent;
                     this.messageSuccess(I18n.t('scriptTemplate.保存成功'));
                 })
                     .finally(() => {

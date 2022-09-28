@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: job-gateway
   main:
     allow-bean-definition-overriding: true
   profiles:

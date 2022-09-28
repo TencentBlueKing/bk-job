@@ -32,6 +32,14 @@ spring:
   cloud:
     config:
       enabled: false
+  quartz:
+    thread-pool:
+      core-pool-size: 3
+      max-pool-size: 5
+      keep-alive-seconds: 60
+      queue-capacity: 3
+      waitfor-tasks-tocomplete-onshutdown: true
+      await-termination-seconds: 900
 job:
   security:
     service:

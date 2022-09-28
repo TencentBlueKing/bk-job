@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.GseClient;
@@ -63,6 +62,7 @@ import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
@@ -92,7 +92,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final AgentService agentService;
     private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
-    private final Tracing tracing;
+    private final Tracer tracer;
     private final ExecuteMonitor executeMonitor;
     private final StorageSystemConfig storageSystemConfig;
     private final JobExecuteConfig jobExecuteConfig;
@@ -148,7 +148,7 @@ public class GseTaskManager implements SmartLifecycle {
                           AgentService agentService,
                           ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                           GseTasksExceptionCounter gseTasksExceptionCounter,
-                          Tracing tracing,
+                          Tracer tracer,
                           ExecuteMonitor executeMonitor,
                           JobExecuteConfig jobExecuteConfig,
                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
@@ -171,7 +171,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.agentService = agentService;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
-        this.tracing = tracing;
+        this.tracer = tracer;
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
@@ -226,7 +226,7 @@ public class GseTaskManager implements SmartLifecycle {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
                     + "stepInstanceId:{}", taskInstance.getId(), stepInstance.getId());
                 gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
-                gseTaskService.saveGseTask(gseTask);
+                gseTaskService.updateGseTask(gseTask);
                 taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
                     EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
                         stepInstance.getBatch(), gseTask.getId())));
@@ -261,14 +261,7 @@ public class GseTaskManager implements SmartLifecycle {
     }
 
     private String buildGseTaskLockKey(GseTaskDTO gseTask) {
-        String lockKey = "job:running:gse:task:";
-        if (gseTask.getId() != null) {
-            lockKey = lockKey + gseTask.getId();
-        } else {
-            // tmp: 兼容GSE_TASK数据,发布完成后删除
-            lockKey = lockKey + "step:" + gseTask.getStepInstanceId();
-        }
-        return lockKey;
+        return "job:running:gse:task:" + gseTask.getId();
     }
 
     /**
@@ -340,7 +333,7 @@ public class GseTaskManager implements SmartLifecycle {
                 taskEvictPolicyExecutor,
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
-                tracing,
+                tracer,
                 gseClient,
                 requestId,
                 taskInstance,
@@ -367,7 +360,7 @@ public class GseTaskManager implements SmartLifecycle {
                 taskEvictPolicyExecutor,
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
-                tracing,
+                tracer,
                 gseClient,
                 requestId,
                 taskInstance,
@@ -393,7 +386,7 @@ public class GseTaskManager implements SmartLifecycle {
                 taskEvictPolicyExecutor,
                 gseTasksExceptionCounter,
                 stepInstanceService,
-                tracing,
+                tracer,
                 gseClient,
                 requestId,
                 taskInstance,
@@ -472,7 +465,7 @@ public class GseTaskManager implements SmartLifecycle {
                 accountService,
                 gseTaskService,
                 scriptAgentTaskService,
-                tracing,
+                tracer,
                 gseClient,
                 taskInstance,
                 stepInstance,
@@ -485,7 +478,7 @@ public class GseTaskManager implements SmartLifecycle {
                 accountService,
                 gseTaskService,
                 fileAgentTaskService,
-                tracing,
+                tracer,
                 gseClient,
                 taskInstance,
                 stepInstance,

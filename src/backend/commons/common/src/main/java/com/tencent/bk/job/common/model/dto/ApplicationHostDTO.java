@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -40,10 +44,12 @@ import java.util.stream.Collectors;
 /**
  * 主机
  */
+@PersistenceObject
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ApplicationHostDTO {
 
     /**
@@ -76,17 +82,26 @@ public class ApplicationHostDTO {
      */
     private String displayIp;
     /**
-     * 主机描述
+     * 主机名称
      */
-    private String ipDesc;
+    private String hostName;
     /**
-     * 主机Agent状态
+     * 主机Agent状态值
      */
-    private Boolean gseAgentAlive;
+    private Integer gseAgentStatus = null;
+    /**
+     * 主机Agent是否正常
+     */
+    private Boolean gseAgentAlive = false;
     /**
      * 云区域ID
      */
     private Long cloudAreaId;
+    /**
+     * 云区域名称
+     */
+    @JsonIgnore
+    private String cloudAreaName;
     /**
      * 云区域+ip
      */
@@ -95,12 +110,27 @@ public class ApplicationHostDTO {
     /**
      * 操作系统
      */
-    private String os;
+    private String osName;
 
     /**
      * 操作系统类型
      */
     private String osType;
+
+    /**
+     * 操作系统类型名称
+     */
+    private String osTypeName;
+
+    /**
+     * 所属云厂商ID
+     */
+    private String cloudVendorId;
+
+    /**
+     * 所属云厂商名称
+     */
+    private String cloudVendorName;
 
     /**
      * 集群ID
@@ -122,16 +152,83 @@ public class ApplicationHostDTO {
      */
     private List<String> ipList = new ArrayList<>();
 
+    public void setCloudAreaId(Long cloudAreaId) {
+        this.cloudAreaId = cloudAreaId;
+    }
+
+    public String getCloudVendorId() {
+        if (cloudVendorId != null && cloudVendorId.length() > 64) {
+            return cloudVendorId.substring(0, 64);
+        }
+        return cloudVendorId;
+    }
+
+    public void setGseAgentStatus(Integer gseAgentStatus) {
+        this.gseAgentStatus = gseAgentStatus;
+        this.gseAgentAlive = gseAgentStatus != null && gseAgentStatus == 2;
+    }
+
+    public void setGseAgentAlive(Boolean gseAgentAlive) {
+        this.gseAgentAlive = gseAgentAlive;
+        if (gseAgentAlive != null && gseAgentAlive) {
+            // 取值参考AgentStateStatusEnum
+            this.gseAgentStatus = 2;
+        } else {
+            this.gseAgentStatus = -2;
+        }
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    private Integer getAgentAliveValue() {
+        return gseAgentAlive == null ? 0 : (gseAgentAlive ? 1 : 0);
+    }
+
+    private static boolean isGseAgentAlive(HostInfoVO hostInfoVO) {
+        if (hostInfoVO.getAlive() != null) {
+            return hostInfoVO.getAlive() == 1;
+        }
+        return false;
+    }
+
+    public static ApplicationHostDTO fromVO(HostInfoVO hostInfoVO) {
+        if (hostInfoVO == null) {
+            return null;
+        }
+        ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
+        hostInfoDTO.setHostId(hostInfoVO.getHostId());
+        hostInfoDTO.setIp(hostInfoVO.getIp());
+        hostInfoDTO.setDisplayIp(hostInfoVO.getDisplayIp());
+        hostInfoDTO.setHostName(hostInfoVO.getHostName());
+        if (hostInfoVO.getAgentStatus() != null) {
+            hostInfoDTO.setGseAgentStatus(hostInfoVO.getAgentStatus());
+        } else {
+            hostInfoDTO.setGseAgentAlive(isGseAgentAlive(hostInfoVO));
+        }
+        if (hostInfoVO.getCloudArea() != null) {
+            hostInfoDTO.setCloudAreaId(hostInfoVO.getCloudArea().getId());
+            hostInfoDTO.setCloudAreaName(hostInfoVO.getCloudArea().getName());
+        }
+        hostInfoDTO.setOsName(hostInfoVO.getOsName());
+        hostInfoDTO.setOsTypeName(hostInfoVO.getOsTypeName());
+        hostInfoDTO.setAgentId(hostInfoVO.getAgentId());
+        hostInfoDTO.setCloudVendorName(hostInfoVO.getCloudVendorName());
+        return hostInfoDTO;
+    }
+
     public HostInfoVO toVO() {
         HostInfoVO hostInfoVO = new HostInfoVO();
         hostInfoVO.setHostId(hostId);
-        hostInfoVO.setCloudAreaInfo(new CloudAreaInfoVO(cloudAreaId, null));
+        hostInfoVO.setCloudArea(new CloudAreaInfoVO(cloudAreaId, cloudAreaName));
         hostInfoVO.setIp(ip);
         hostInfoVO.setIpv6(ipv6);
         hostInfoVO.setDisplayIp(displayIp);
-        hostInfoVO.setIpDesc(ipDesc);
-        hostInfoVO.setOs(os);
-        hostInfoVO.setAlive(gseAgentAlive == null ? 0 : (gseAgentAlive ? 1 : 0));
+        hostInfoVO.setHostName(hostName);
+        hostInfoVO.setOsName(osName);
+        hostInfoVO.setOsTypeName(osTypeName);
+        hostInfoVO.setAgentStatus(gseAgentStatus);
+        hostInfoVO.setAlive(getAgentAliveValue());
+        hostInfoVO.setAgentId(agentId);
+        hostInfoVO.setCloudVendorName(cloudVendorName);
         return hostInfoVO;
     }
 

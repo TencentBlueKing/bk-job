@@ -24,29 +24,53 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @ApiModel("主机检查请求报文")
 public class HostCheckReq {
 
+    @Deprecated
     @ApiModelProperty(value = "应用场景：脚本执行/文件分发")
     ActionScopeEnum actionScope;
 
-    @CompatibleImplementation(explain = "兼容IPv6版本发布过程接口调用", version = "3.7.0")
-    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip")
-    List<String> ipList = new ArrayList<>();
+    @ApiModelProperty(value = "应用场景：脚本执行/文件分发")
+    Map<String, Object> meta = new HashMap<>();
 
     @ApiModelProperty(value = "hostId列表", required = true)
     List<Long> hostIdList = new ArrayList<>();
 
+    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip或ip")
+    List<String> ipList = new ArrayList<>();
+
+    @ApiModelProperty(value = "IPv6列表，单个IPv6格式：cloudAreaId:ipv6或ipv6")
+    List<String> ipv6List = new ArrayList<>();
+
+    @ApiModelProperty(value = "关键字列表，可匹配主机名称")
+    List<String> keyList = new ArrayList<>();
+
+    public ActionScopeEnum getActionScope() {
+        String actionScopeName = (String) meta.get("actionScope");
+        if (actionScopeName == null) {
+            return null;
+        }
+        return ActionScopeEnum.valueOf(actionScopeName);
+    }
+
+    public void setActionScope(ActionScopeEnum actionScope) {
+        this.actionScope = actionScope;
+        if (actionScope != null) {
+            this.meta.put("actionScope", actionScope.name());
+        }
+    }
 }
 
 

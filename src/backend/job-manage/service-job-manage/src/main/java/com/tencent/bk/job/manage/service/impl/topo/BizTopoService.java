@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,14 +60,14 @@ public class BizTopoService {
      * @return 模块ID列表
      */
     public List<Long> findAllModuleIdsOfNodes(Long bizId,
-                                              List<AppTopologyTreeNode> appTopoNodeList) {
+                                              List<BizTopoNode> appTopoNodeList) {
         if (appTopoNodeList == null || appTopoNodeList.isEmpty()) {
             return Collections.emptyList();
         }
         List<Long> moduleIds = new ArrayList<>();
         // 查业务拓扑树
         InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
-        for (AppTopologyTreeNode treeNode : appTopoNodeList) {
+        for (BizTopoNode treeNode : appTopoNodeList) {
             CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
             // 查拓扑节点完整信息
             InstanceTopologyDTO completeNode = TopologyUtil.findNodeFromTopo(appTopologyTree, ccInstanceDTO);

@@ -108,7 +108,6 @@
                 trigger: 'mouseenter',
                 content: '#targetPathTips',
                 placement: 'right-start',
-                delay: [0, 10000000],
             };
         },
         methods: {

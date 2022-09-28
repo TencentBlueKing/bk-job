@@ -61,12 +61,10 @@
                 width="60" />
             <bk-table-column
                 key="name"
-                align="left"
-                :label="$t('tag.标签名.colHead')"
                 min-width="200"
                 prop="name"
                 show-overflow-tooltip
-                sortable />
+                sortable="custom" />
             <bk-table-column
                 v-if="allRenderColumnMap.description"
                 key="descriptionText"

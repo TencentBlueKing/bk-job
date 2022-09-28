@@ -71,6 +71,10 @@ public enum AgentStatusEnum {
         }
     }
 
+    public static boolean isAgentAlive(AgentState agentState) {
+        return fromAgentState(agentState) == ALIVE;
+    }
+
     public int getValue() {
         return status;
     }

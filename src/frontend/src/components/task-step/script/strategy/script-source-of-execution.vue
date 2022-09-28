@@ -74,7 +74,8 @@
                         :placeholder="$t('选择引用脚本')"
                         searchable
                         :value="formData[scriptVersionIdField]"
-                        @change="handleScriptVersionIdChange">
+                        @change="handleScriptVersionIdChange"
+                        @toggle="handleClick">
                         <auth-option
                             v-for="option in scripListDisplay"
                             :id="option.scriptVersionId"
@@ -277,6 +278,10 @@
                 this.scriptSource = 'refer';
                 // 如果是引用脚本，还需初始化引用类型
                 this.referType = this.formData[this.scriptSourceField];
+            },
+            handleClick () {
+                this.fetchScriptList();
+                this.fetchPublicScriptList();
             },
             /**
              * @desc 更新脚本来源

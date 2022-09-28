@@ -133,7 +133,6 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         return ValidateResult.pass();
     }
 
-
     private void buildScriptLogs(EsbIpLogsV3DTO ipLogs,
                                  StepInstanceBaseDTO stepInstance,
                                  List<HostDTO> queryHosts) {

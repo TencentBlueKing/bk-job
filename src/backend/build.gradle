@@ -70,6 +70,7 @@ ext {
     set("springBootVersion", "2.4.6")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
     set('springCloudVersion', "2020.0.3")
+    set('springCloudOtelVersion', "1.0.0-M13")
     // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
     set('swaggerVersion', "2.9.2")
     set('junitVersion', "5.5.2")
@@ -110,6 +111,9 @@ ext {
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.64")
     set('reflectionsVersion', "0.9.12")
+    set('cronUtilsVersion', "9.1.6")
+    set('commonsValidatorVersion', "1.6")
+    set('otelJdbcVersion', "1.9.2-alpha")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersoin:" + bkjobVersion
@@ -154,6 +158,12 @@ allprojects {
         mavenLocal()
         maven { url mavenRepoUrl }
         maven { url "https://plugins.gradle.org/m2/" }
+        maven {
+            url "https://repo.spring.io/snapshot"
+        }
+        maven {
+            url "https://repo.spring.io/milestone"
+        }
         mavenCentral()
     }
 }
@@ -198,6 +208,7 @@ subprojects {
             imports {
                 mavenBom "org.springframework.boot:spring-boot-dependencies:$springBootVersion"
                 mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+                mavenBom "org.springframework.cloud:spring-cloud-sleuth-otel-dependencies:${springCloudOtelVersion}"
             }
             dependency "org.junit.jupiter:junit-jupiter:$junitVersion"
             dependency "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
@@ -237,6 +248,9 @@ subprojects {
             dependency "org.bouncycastle:bcprov-jdk15on:$bcprovVersion"
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
+            dependency "com.cronutils:cron-utils:$cronUtilsVersion"
+            dependency "commons-validator:commons-validator:$commonsValidatorVersion"
+            dependency "io.opentelemetry.instrumentation:opentelemetry-jdbc:$otelJdbcVersion"
             dependencySet(group: "org.jooq", version: "$jooqVersion") {
                 entry "jooq"
                 entry "jooq-codegen"
@@ -262,6 +276,7 @@ subprojects {
     configurations {
         all*.exclude group: 'junit', module: 'junit'
         all*.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        all*.exclude group: 'org.springframework.cloud', module: 'spring-cloud-sleuth-brave'
     }
 }
 apply plugin: TaskTreePlugin

@@ -167,7 +167,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
-                gseClient,
+            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -313,7 +313,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         watch.stop();
 
         watch.start("saveGseAgentTasks");
-        batchSaveChangedGseAgentTasks();
+        batchSaveChangedGseAgentTasks(targetAgentTasks.values());
         watch.stop();
 
         GseTaskExecuteResult rst = analyseExecuteResult();
@@ -543,6 +543,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             hostVariableValues.setHostId(agentTask.getHostId());
             hostVariableValues.setAgentId(entry.getKey());
             hostVariableValues.setValues(paramValues);
+            hostVariableValues.setIp(agentTask.getCloudIp());
             hostVariableValuesList.add(hostVariableValues);
         }
         return hostVariableValuesList;
@@ -561,8 +562,16 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     }
 
     private void dealAgentFinish(String agentId, ScriptAgentTaskResult agentTaskResult, AgentTaskDTO agentTask) {
-        dealAgentFinish(agentId, agentTaskResult.getStartTime(), agentTaskResult.getEndTime(), agentTask);
-        agentTask.setExitCode(agentTaskResult.getExitCode());
+        dealTargetAgentFinish(agentId, agentTaskResult.getStartTime(), agentTaskResult.getEndTime(), agentTask);
+        agentTask.setExitCode(getExitCode(agentTaskResult.getExitCode()));
+    }
+
+    private int getExitCode(int exitCode) {
+        if (exitCode >= 256) {
+            return exitCode / 256;
+        } else {
+            return exitCode;
+        }
     }
 
     /**

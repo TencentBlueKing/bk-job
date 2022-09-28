@@ -24,15 +24,19 @@
 
 package com.tencent.bk.job.common.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,20 +47,26 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TaskHostNodeVO {
 
-    @ApiModelProperty("机器 IP 列表")
+    @ApiModelProperty("机器列表")
+    private List<HostInfoVO> hostList;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @ApiModelProperty("机器IP列表")
     private List<HostInfoVO> ipList;
 
     @ApiModelProperty("节点 ID")
+    private List<TargetNodeVO> nodeList;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @ApiModelProperty("节点 ID")
     private List<TargetNodeVO> topoNodeList;
 
-    @ApiModelProperty("动态分组 ID")
-    private List<String> dynamicGroupList;
+    @ApiModelProperty("动态分组")
+    private List<Object> dynamicGroupList;
 
     public boolean validate(boolean isCreate) {
         boolean allEmpty = true;
-        if (CollectionUtils.isNotEmpty(topoNodeList)) {
+        if (CollectionUtils.isNotEmpty(nodeList)) {
             allEmpty = false;
-            for (TargetNodeVO targetNodeVO : topoNodeList) {
+            for (TargetNodeVO targetNodeVO : nodeList) {
                 if (!targetNodeVO.validate(isCreate)) {
                     JobContextUtil.addDebugMessage("Host node info validate failed!");
                     return false;
@@ -65,16 +75,16 @@ public class TaskHostNodeVO {
         }
         if (CollectionUtils.isNotEmpty(dynamicGroupList)) {
             allEmpty = false;
-            for (String dynamicGroup : dynamicGroupList) {
-                if (!StringUtils.isNoneBlank(dynamicGroup)) {
+            for (Object dynamicGroup : dynamicGroupList) {
+                if (dynamicGroup == null) {
                     JobContextUtil.addDebugMessage("Host dynamic group id is empty!");
                     return false;
                 }
             }
         }
-        if (CollectionUtils.isNotEmpty(ipList)) {
+        if (CollectionUtils.isNotEmpty(hostList)) {
             allEmpty = false;
-            for (HostInfoVO hostInfoVO : ipList) {
+            for (HostInfoVO hostInfoVO : hostList) {
                 if (!hostInfoVO.validate(isCreate)) {
                     JobContextUtil.addDebugMessage("Host info validate failed!");
                     return false;
@@ -82,5 +92,63 @@ public class TaskHostNodeVO {
             }
         }
         return !allEmpty;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setHostList(List<HostInfoVO> hostList) {
+        this.hostList = hostList;
+        this.ipList = hostList;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setIpList(List<HostInfoVO> ipList) {
+        this.ipList = ipList;
+        this.hostList = ipList;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setNodeList(List<TargetNodeVO> nodeList) {
+        this.nodeList = nodeList;
+        this.topoNodeList = nodeList;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setTopoNodeList(List<TargetNodeVO> topoNodeList) {
+        this.topoNodeList = topoNodeList;
+        this.nodeList = topoNodeList;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改实现", version = "3.8.0")
+    @JsonIgnore
+    public List<String> getDynamicGroupIdList() {
+        if (org.springframework.util.CollectionUtils.isEmpty(dynamicGroupList)) {
+            return Collections.emptyList();
+        }
+        List<String> dynamicGroupIdList = new ArrayList<>();
+        for (Object dynamicGroup : dynamicGroupList) {
+            if (dynamicGroup instanceof String) {
+                dynamicGroupIdList.add((String) dynamicGroup);
+            } else {
+                DynamicGroupIdWithMeta dynamicGroupIdWithMeta = JsonUtils.fromJson(
+                    JsonUtils.toJson(dynamicGroup),
+                    new TypeReference<DynamicGroupIdWithMeta>() {
+                    }
+                );
+                dynamicGroupIdList.add(dynamicGroupIdWithMeta.getId());
+            }
+        }
+        return dynamicGroupIdList;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改实现", version = "3.8.0")
+    public void setDynamicGroupIdList(List<String> dynamicGroupIdList) {
+        if (dynamicGroupIdList == null) {
+            return;
+        }
+        List<Object> dynamicGroupList = new ArrayList<>();
+        for (String id : dynamicGroupIdList) {
+            dynamicGroupList.add(new DynamicGroupIdWithMeta(id, null));
+        }
+        this.dynamicGroupList = dynamicGroupList;
     }
 }

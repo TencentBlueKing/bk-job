@@ -41,7 +41,7 @@ import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.HostService;
@@ -75,7 +75,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             String msg = "topo node of bizset not supported yet";
             throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
         }
-        List<AppTopologyTreeNode> treeNodeList = req.getTreeNodeList();
+        List<BizTopoNode> treeNodeList = req.getTreeNodeList();
         List<NodeInfoVO> nodeInfoVOList = hostService.getBizHostsByNode(
             JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
             appDTO.getBizIdIfBizApp(),
@@ -86,7 +86,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
             serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
             serviceHostStatusDTO.setIp(hostInfoVO.getIp());
-            serviceHostStatusDTO.setAlive(hostInfoVO.getAlive());
+            serviceHostStatusDTO.setAlive(hostInfoVO.getAgentStatus());
             if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
                 hostStatusDTOList.add(serviceHostStatusDTO);
             }
@@ -140,12 +140,6 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             }
         });
         return InternalResponse.buildSuccessResp(hostStatusDTOList);
-    }
-
-    @Override
-    public InternalResponse<List<HostDTO>> checkAppHosts(Long appId,
-                                                         ServiceCheckAppHostsReq req) {
-        return InternalResponse.buildSuccessResp(hostService.checkAppHosts(appId, req.getHosts()));
     }
 
     @Override

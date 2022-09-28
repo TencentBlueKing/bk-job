@@ -30,7 +30,10 @@
         ref="renderList"
         v-bkloading="{ isLoading }"
         v-test="{ type: 'data', value: 'table' }"
-        class="jb-render-list">
+        class="jb-render-list"
+        :class="{
+            'table-empty': data.length < 1,
+        }">
         <bk-table
             v-if="isRendered"
             v-bind="$attrs"
@@ -159,6 +162,7 @@
                 selectNums: 0,
                 params: {},
                 pagination: {
+                    showTotalCount: true,
                     count: 0,
                     current: 1,
                     limit: 10,
@@ -551,6 +555,12 @@
 </script>
 <style lang="postcss">
     .jb-render-list {
+        &.table-empty {
+            .bk-table-fixed-right {
+                bottom: 0 !important;
+            }
+        }
+
         .bk-table-pagination-wrapper {
             background: #fff;
         }

@@ -67,8 +67,8 @@ public class SendNotifyTask implements Runnable {
             return;
         }
         try {
-            boolean sendResult = sendMsgWithRetry();
-            if (sendResult) {
+            boolean result = sendMsgWithRetry();
+            if (result) {
                 logSendSuccess();
             } else {
                 handleSendFail(null);
@@ -82,22 +82,27 @@ public class SendNotifyTask implements Runnable {
         log.warn("receivers is null or empty, skip, msgType={},title={}", msgType, title);
     }
 
-    private boolean sendMsgWithRetry() throws Exception {
+    private boolean sendMsgWithRetry() {
         int count = 0;
-        boolean sendResult = false;
-        while (!sendResult && count < NOTIFY_MAX_RETRY_COUNT) {
+        boolean result = false;
+        while (!result && count < NOTIFY_MAX_RETRY_COUNT) {
             count += 1;
-            sendResult = watchableSendMsgService.sendMsg(
-                appId,
-                createTimeMillis,
-                msgType,
-                sender,
-                receivers,
-                title,
-                content
-            );
+            try {
+                watchableSendMsgService.sendMsg(
+                    appId,
+                    createTimeMillis,
+                    msgType,
+                    sender,
+                    receivers,
+                    title,
+                    content
+                );
+                result = true;
+            } catch (Exception e) {
+                log.error("Fail to sendMsg", e);
+            }
         }
-        return sendResult;
+        return result;
     }
 
     private void logSendSuccess() {
@@ -111,9 +116,9 @@ public class SendNotifyTask implements Runnable {
             logIgnoreToSend();
             return;
         }
-        FormattingTuple msg = MessageFormatter.format(
+        FormattingTuple msg = MessageFormatter.arrayFormat(
             "Fail to send notify:({},{},{},{})",
-            new String[]{
+            new Object[]{
                 String.join(",", receivers),
                 msgType,
                 title,

@@ -113,42 +113,57 @@
                     min-width="300"
                     prop="name">
                     <template slot-scope="{ row }">
-                        <div class="task-name-box">
-                            <Icon
-                                class="task-collection"
-                                :class="row.favored ? 'favored' : 'unfavored'"
-                                type="collection"
-                                @click="handleCollection(row)" />
-                            <auth-router-link
-                                v-bk-overflow-tips
-                                auth="job_template/view"
-                                class="task-name-text"
-                                :permission="row.canView"
-                                :resource-id="row.id"
-                                :to="{
-                                    name: 'templateDetail',
-                                    params: {
-                                        id: row.id,
-                                    },
-                                }">
-                                {{ row.name }}
-                            </auth-router-link>
-                            <auth-router-link
-                                auth="job_template/view"
-                                :permission="row.canView"
-                                :resource-id="row.id"
-                                :to="{
-                                    name: 'templateDetail',
-                                    params: {
-                                        id: row.id,
-                                    },
-                                    query: {
-                                        mode: 'scriptUpdate',
-                                    },
-                                }">
-                                <span v-html="row.scriptStatusHtml" />
-                            </auth-router-link>
-                        </div>
+                        <auth-component
+                            auth="job_template/view"
+                            :permission="row.canView"
+                            :resource-id="row.id">
+                            <div class="task-name-box">
+                                <Icon
+                                    class="task-collection"
+                                    :class="row.favored ? 'favored' : 'unfavored'"
+                                    type="collection"
+                                    @click="handleCollection(row)" />
+                                <router-link
+                                    v-bk-overflow-tips
+                                    class="task-name-text"
+                                    :to="{
+                                        name: 'templateDetail',
+                                        params: {
+                                            id: row.id,
+                                        },
+                                    }">
+                                    {{ row.name }}
+                                </router-link>
+                                <router-link
+                                    :to="{
+                                        name: 'templateDetail',
+                                        params: {
+                                            id: row.id,
+                                        },
+                                        query: {
+                                            mode: 'scriptUpdate',
+                                        },
+                                    }">
+                                    <span v-html="row.scriptStatusHtml" />
+                                </router-link>
+                            </div>
+                            <div
+                                slot="forbid"
+                                class="task-name-box">
+                                <Icon
+                                    class="task-collection"
+                                    :class="row.favored ? 'favored' : 'unfavored'"
+                                    type="collection" />
+                                <span
+                                    v-bk-overflow-tips
+                                    class="task-name-text">
+                                    {{ row.name }}
+                                </span>
+                                <span>
+                                    <span v-html="row.scriptStatusHtml" />
+                                </span>
+                            </div>
+                        </auth-component>
                     </template>
                 </bk-table-column>
                 <bk-table-column
@@ -448,7 +463,6 @@
                     name: I18n.t('template.场景标签.colHead'),
                     id: 'tags',
                     remoteMethod: TagManageService.fetchTagOfSearch,
-                    remoteExecuteImmediate: true,
                 },
                 {
                     name: I18n.t('template.更新人.colHead'),

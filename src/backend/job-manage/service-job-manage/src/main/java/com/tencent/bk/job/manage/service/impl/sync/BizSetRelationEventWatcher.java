@@ -1,6 +1,5 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import brave.Tracing;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
@@ -14,6 +13,7 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -31,11 +31,11 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
 
     @Autowired
     public BizSetRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
-                                      Tracing tracing,
+                                      Tracer tracer,
                                       ApplicationService applicationService,
                                       BizSetService bizSetService,
                                       BizSetCmdbClient bizSetCmdbClient) {
-        super("bizSetRelation", redisTemplate, tracing);
+        super("bizSetRelation", redisTemplate, tracer);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
@@ -68,7 +68,6 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
                     if (cacheApplication == null || cacheApplication.isDeleted()) {
                         return;
                     }
-                    cacheApplication.setSubBizIds(latestSubBizIds);
                     ApplicationAttrsDO attrs = cacheApplication.getAttrs();
                     if (attrs != null) {
                         attrs.setSubBizIds(latestSubBizIds);

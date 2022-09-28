@@ -24,16 +24,10 @@
 
 package com.tencent.bk.job.upgrader.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -58,26 +52,11 @@ public class AppInfo {
     private String name;
 
     /**
-     * 业务类型
-     */
-    private Integer appType;
-
-    /**
      * 运维
      */
     private String maintainers;
 
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
     private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
 
     /**
      * 时区
@@ -94,18 +73,4 @@ public class AppInfo {
      */
     private ApplicationAttrsDO attrs;
 
-    /**
-     * 是否是全业务
-     */
-    @CompatibleImplementation(explain = "兼容方法，等业务集全部迁移到cmdb之后需要移除对appType的判断", version = "3.6.x")
-    @JsonIgnore
-    public boolean isAllBizSet() {
-        return appType == AppTypeEnum.ALL_APP.getValue()
-            || (ResourceScopeTypeEnum.BIZ_SET.getValue().equals(scopeType)
-            && attrs != null && attrs.getMatchAllBiz() != null && attrs.getMatchAllBiz());
-    }
-
-    public String getIdAndName() {
-        return "(" + getId() + "," + getName() + ")";
-    }
 }

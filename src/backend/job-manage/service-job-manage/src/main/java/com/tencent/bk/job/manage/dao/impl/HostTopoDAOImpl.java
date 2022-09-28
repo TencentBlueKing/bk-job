@@ -197,8 +197,10 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         return listHostTopoByConditions(dslContext, conditions, null, null);
     }
 
-    private List<HostTopoDTO> listHostTopoByConditions(DSLContext dslContext, Collection<Condition> conditions,
-                                                       Long start, Long limit) {
+    private List<HostTopoDTO> listHostTopoByConditions(DSLContext dslContext,
+                                                       Collection<Condition> conditions,
+                                                       Long start,
+                                                       Long limit) {
         val query = dslContext.selectFrom(defaultTable)
             .where(conditions);
         val sql = query.getSQL(ParamType.INLINED);
@@ -265,11 +267,17 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public List<HostTopoDTO> listHostTopoByModuleIds(DSLContext dslContext, Collection<Long> moduleIds, Long start,
+    public List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds) {
+        return listHostTopoByModuleIds(moduleIds, null, null);
+    }
+
+    @Override
+    public List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds,
+                                                     Long start,
                                                      Long limit) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.MODULE_ID.in(moduleIds));
-        return listHostTopoByConditions(dslContext, conditions, start, limit);
+        return listHostTopoByConditions(defaultContext, conditions, start, limit);
     }
 
     private List<Long> listHostIdByConditions(Collection<Condition> conditions) {

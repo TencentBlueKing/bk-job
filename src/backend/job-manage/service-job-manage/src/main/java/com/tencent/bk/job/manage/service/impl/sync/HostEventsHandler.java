@@ -28,7 +28,9 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
@@ -44,6 +46,7 @@ import org.slf4j.helpers.MessageFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
@@ -138,22 +141,37 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
 
     private void updateIpAndAgentStatus(ApplicationHostDTO hostInfoDTO) {
         if (StringUtils.isNotBlank(hostInfoDTO.getAgentId())) {
-            hostInfoDTO.setGseAgentAlive(agentStateClient.getAgentAliveStatus(hostInfoDTO.getAgentId()));
+            AgentState agentState = agentStateClient.getAgentState(hostInfoDTO.getAgentId());
+            if (agentState != null) {
+                hostInfoDTO.setGseAgentStatus(agentState.getStatusCode());
+            }
         } else {
             // 处理多IP的情况
-            hostInfoDTO.setGseAgentAlive(false);
             String multiIp = hostInfoDTO.getDisplayIp();
             List<String> agentIdList = buildAgentIdByMultiIp(hostInfoDTO.getCloudAreaId(), multiIp);
             if (CollectionUtils.isEmpty(agentIdList)) {
                 return;
             }
-            String validAgentId = agentStateClient.chooseOneAgentIdPreferAlive(agentIdList);
-            if (StringUtils.isBlank(validAgentId)) {
+            Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+            String validAgentId = agentIdList.get(0);
+            AgentState validAgentState = agentStateMap.get(validAgentId);
+            for (Map.Entry<String, AgentState> entry : agentStateMap.entrySet()) {
+                String agentId = entry.getKey();
+                AgentState agentState = entry.getValue();
+                if (AgentStatusEnum.isAgentAlive(agentState)) {
+                    validAgentId = agentId;
+                    validAgentState = agentState;
+                    break;
+                }
+            }
+            if (!AgentStatusEnum.isAgentAlive(validAgentState)) {
                 log.warn("cannot find agent alive of multiIp:{}", multiIp);
                 return;
             }
             hostInfoDTO.setIp(validAgentId.split(":")[1]);
-            hostInfoDTO.setGseAgentAlive(true);
+            if (validAgentState != null) {
+                hostInfoDTO.setGseAgentStatus(validAgentState.getStatusCode());
+            }
         }
     }
 

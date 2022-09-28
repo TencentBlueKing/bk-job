@@ -35,11 +35,11 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
+import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 
 import java.util.Collection;
 import java.util.List;
@@ -127,9 +127,9 @@ public interface HostService {
                                               AppResourceScope appResourceScope,
                                               ListHostByBizTopologyNodesReq req);
 
-    List<AppTopologyTreeNode> getAppTopologyTreeNodeDetail(String username,
-                                                           AppResourceScope appResourceScope,
-                                                           List<AppTopologyTreeNode> treeNodeList);
+    List<BizTopoNode> getAppTopologyTreeNodeDetail(String username,
+                                                   AppResourceScope appResourceScope,
+                                                   List<BizTopoNode> treeNodeList);
 
     List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
                                                       Long bizId,
@@ -137,7 +137,7 @@ public interface HostService {
 
     List<NodeInfoVO> getBizHostsByNode(String username,
                                        Long bizId,
-                                       List<AppTopologyTreeNode> treeNodeList);
+                                       List<BizTopoNode> treeNodeList);
 
     /**
      * 获取业务下动态分组列表
@@ -175,24 +175,11 @@ public interface HostService {
 
     List<HostInfoVO> listHostByAppTopologyNodes(String username,
                                                 Long appId,
-                                                List<AppTopologyTreeNode> appTopoNodeList);
+                                                List<BizTopoNode> appTopoNodeList);
 
     AgentStatistics getAgentStatistics(String username,
                                        Long appId,
                                        AgentStatisticsReq agentStatisticsReq);
-
-    Boolean existsHost(Long bizId, String ip);
-
-    /**
-     * 检查主机是否在业务下
-     *
-     * TMP: 兼容方法，发布完成之后删除
-     *
-     * @param appId Job业务ID
-     * @param hosts 被检查的主机
-     * @return 非法的主机
-     */
-    List<HostDTO> checkAppHosts(Long appId, List<HostDTO> hosts);
 
     /**
      * 获取业务下的主机
@@ -214,7 +201,7 @@ public interface HostService {
      * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
      *
      * @param hostIds 主机ID列表
-     * @return 主机
+     * @return 主机 Map<hostId, host>
      */
     Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds);
 
@@ -225,4 +212,12 @@ public interface HostService {
      * @return 主机
      */
     ApplicationHostDTO getHostByIp(String cloudIp);
+
+    /**
+     * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
+     *
+     * @param cloudIps 主机云区域+ip列表
+     * @return 主机 Map<hostId, host>
+     */
+    Map<String, ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps);
 }

@@ -178,10 +178,10 @@
                                     </auth-button>
                                 </jb-popover-confirm>
                                 <jb-popover-confirm
-                                    v-if="row.isOnline"
+                                    v-if="row.isBanable"
                                     class="mr10"
                                     :confirm-handler="() => handleOffline(row.id, row.scriptVersionId)"
-                                    :content="$t('script.一旦禁用成功，线上引用该版本的作业脚本步骤都会执行失败，请务必谨慎操作！')"
+                                    :content="$t('script.一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！')"
                                     :title="$t('script.确定禁用该版本？')">
                                     <auth-button
                                         auth="script/edit"
@@ -227,7 +227,7 @@
                                 </auth-button>
                                 <span
                                     v-if="!isPublicScript"
-                                    :tippy-tips="!row.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
+                                    :tippy-tips="!row.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
                                     <auth-button
                                         v-if="row.isOnline"
                                         auth="script/edit"
@@ -364,10 +364,10 @@
 
     import CopyCreate from '../common/copy-create';
     import DetailScript from '../common/detail/index';
+    import Diff from '../common/diff';
     import Edit from '../common/edit';
     import ScriptRelatedInfo from '../common/script-related-info';
 
-    import Diff from './components/diff';
     import Layout from './components/layout';
     import NewVersion from './components/new-version';
     import ScriptBasic from './components/script-basic';
@@ -397,6 +397,7 @@
                 isListFlod: false,
                 isShowNewVersion: false,
                 showDiff: false,
+                dataMemo: [],
                 data: [],
                 dataAppendList: [],
                 scriptDetailInfo: {},

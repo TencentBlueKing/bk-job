@@ -65,7 +65,7 @@ spec:
           image: {{ include "job-file-worker.image" . }}
           imagePullPolicy: {{ .Values.fileWorkerConfig.image.pullPolicy }}
           env:
-            {{- include "job.storage.env" . | nindent 12 }}
+            {{- include "job.common.env" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-file-worker"
             - name: BK_JOB_JVM_OPTION

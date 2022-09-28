@@ -35,6 +35,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ServiceWhiteIPInfo {
+    private Long hostId;
     private Long cloudId;
     private String ip;
     private boolean isForAllApp;
@@ -45,6 +46,7 @@ public class ServiceWhiteIPInfo {
     @Override
     public String toString() {
         return "ServiceWhiteIPInfo{" +
+            "hostId=" + hostId +
             "cloudId=" + cloudId +
             ", ip='" + ip + '\'' +
             ", isForAllApp=" + isForAllApp +

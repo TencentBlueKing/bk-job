@@ -173,18 +173,18 @@ public class LogServiceImpl implements LogService {
                 stepInstanceId, actualExecuteCount, batch, host);
             throw new InternalException(resp.getCode());
         }
-        return convertToScriptIpLogContent(resp.getData(), agentTask);
+        return convertToScriptIpLogContent(stepInstanceId, executeCount, resp.getData(), agentTask);
     }
 
-    private ScriptHostLogContent convertToScriptIpLogContent(ServiceHostLogDTO logDTO, AgentTaskDTO gseTaskIpLog) {
-        if (logDTO == null) {
-            return null;
-        }
-        AgentTaskStatusEnum agentTaskStatus = gseTaskIpLog.getStatus();
-        String scriptContent = logDTO.getScriptLog() != null ?
+    private ScriptHostLogContent convertToScriptIpLogContent(long stepInstanceId, int executeCount,
+                                                             ServiceHostLogDTO logDTO, AgentTaskDTO agentTask) {
+        // 日志是否拉取完成
+        boolean isFinished = agentTask.getStatus().isFinished();
+        String scriptContent = logDTO != null && logDTO.getScriptLog() != null ?
             logDTO.getScriptLog().getContent() : "";
-        return new ScriptHostLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(), logDTO.getHostId(),
-            logDTO.getIp(), scriptContent, agentTaskStatus.isFinished());
+        Long hostId = logDTO != null ? logDTO.getHostId() : null;
+        String ip = logDTO != null ? logDTO.getIp() : null;
+        return new ScriptHostLogContent(stepInstanceId, executeCount, hostId, ip, scriptContent, isFinished);
     }
 
     @Override
@@ -201,6 +201,7 @@ public class LogServiceImpl implements LogService {
         if (isQueryByHostIdCondition(stepInstance)) {
             query.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
         } else {
+            // 兼容历史数据的查询（使用ip，没有hostId)
             query.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
         }
 

@@ -57,7 +57,7 @@
                 align="left"
                 label="ID"
                 prop="id"
-                sortable
+                sortable="custom"
                 width="80" />
             <bk-table-column
                 v-if="allRenderColumnMap.alias"
@@ -66,7 +66,7 @@
                 :label="$t('account.账号别名.colHead')"
                 min-width="180"
                 prop="alias"
-                sortable />
+                sortable="custom" />
             <bk-table-column
                 v-if="allRenderColumnMap.account"
                 key="account"
@@ -74,14 +74,14 @@
                 :label="$t('account.账号名称.colHead')"
                 min-width="180"
                 prop="account"
-                sortable />
+                sortable="custom" />
             <bk-table-column
                 v-if="allRenderColumnMap.categoryName"
                 key="categoryName"
                 align="left"
                 :label="$t('account.账号用途.colHead')"
                 prop="categoryName"
-                sortable
+                sortable="custom"
                 width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.typeName"
@@ -89,7 +89,7 @@
                 align="left"
                 :label="$t('account.账号类型.colHead')"
                 prop="typeName"
-                sortable
+                sortable="custom"
                 width="120" />
             <bk-table-column
                 v-if="allRenderColumnMap.creator"

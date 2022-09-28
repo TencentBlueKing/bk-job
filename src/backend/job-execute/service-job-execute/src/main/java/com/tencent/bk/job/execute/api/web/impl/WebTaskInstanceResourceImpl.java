@@ -54,7 +54,6 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.converter.TaskInstanceConverter;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteApprovalStepVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteCloudAreaInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileStepVO;
@@ -305,14 +304,13 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             List<ExecuteHostVO> hosts = new ArrayList<>();
             for (HostDTO ip : serversDTO.getIpList()) {
                 ExecuteHostVO host = new ExecuteHostVO();
-                ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getBkCloudId(), ip.getIp());
                 host.setHostId(ip.getHostId());
                 host.setIp(ip.getIp());
                 host.setAlive(ip.getAlive());
-                host.setCloudAreaInfo(cloudAreaInfoVO);
+                host.setCloudId(ip.getBkCloudId());
                 hosts.add(host);
             }
-            taskHostNodeVO.setIpList(hosts);
+            taskHostNodeVO.setHostList(hosts);
             targetServer.setHostNodeInfo(taskHostNodeVO);
         }
         return targetServer;
@@ -361,14 +359,14 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 List<ExecuteHostVO> hosts = new ArrayList<>(servers.getIpList().size());
                 for (HostDTO ip : servers.getIpList()) {
                     ExecuteHostVO host = new ExecuteHostVO();
+                    host.setHostId(ip.getHostId());
                     host.setIp(ip.getIp());
+                    host.setIpv6(ip.getIpv6());
                     host.setAlive(ip.getAlive());
-                    ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getBkCloudId(),
-                        hostService.getCloudAreaName(ip.getBkCloudId()));
-                    host.setCloudAreaInfo(cloudAreaInfoVO);
+                    host.setCloudId(ip.getBkCloudId());
                     hosts.add(host);
                 }
-                taskHostNodeVO.setIpList(hosts);
+                taskHostNodeVO.setHostList(hosts);
                 taskTargetVO.setHostNodeInfo(taskHostNodeVO);
             }
             vo.setTargetValue(taskTargetVO);

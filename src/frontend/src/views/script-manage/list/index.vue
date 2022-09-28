@@ -74,7 +74,7 @@
                 :label="$t('script.脚本名称.colHead')"
                 :min-width="300"
                 prop="name"
-                sortable>
+                sortable="custom">
                 <template slot-scope="{ row }">
                     <auth-component
                         auth="script/view"
@@ -103,7 +103,7 @@
                 align="left"
                 :label="$t('script.脚本语言')"
                 prop="type"
-                sortable
+                sortable="custom"
                 width="120">
                 <template slot-scope="{ row }">
                     <span>{{ row.typeName }}</span>
@@ -115,7 +115,7 @@
                 class-name="edit-tag-column"
                 :label="$t('script.场景标签.colHead')"
                 prop="tags"
-                sortable
+                sortable="custom"
                 width="200">
                 <template slot-scope="{ row }">
                     <auth-component
@@ -175,7 +175,7 @@
                 :label="$t('script.创建人.colHead')"
                 prop="creator"
                 show-overflow-tooltip
-                sortable
+                sortable="custom"
                 width="140" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
@@ -623,6 +623,7 @@
                     id: scriptData.id,
                 }).then(() => {
                     this.fetchData();
+                    this.$refs.tagPanelRef.init();
                     this.messageSuccess(I18n.t('script.删除成功'));
                     return true;
                 });

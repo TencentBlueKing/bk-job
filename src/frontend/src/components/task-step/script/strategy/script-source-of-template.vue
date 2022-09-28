@@ -70,6 +70,7 @@
                         </bk-option>
                     </bk-select>
                     <bk-select
+                        ref="scriptSelect"
                         :clearable="false"
                         :placeholder="$t('选择引用脚本')"
                         searchable
@@ -267,6 +268,15 @@
                     this.$refs.scriptId.clearValidator();
                 }
             },
+            // 需要同步的脚本默认展开脚本列表
+            scriptListDisplay () {
+                if (this.scriptListDisplay.length > 1 && !this.hasShowScriptSelect) {
+                    setTimeout(() => {
+                        this.hasShowScriptSelect = true;
+                        this.$refs.scriptSelect.$el.querySelector('.bk-select-name').click();
+                    }, 30);
+                }
+            },
         },
         created () {
             this.scriptListMemo = [];
@@ -274,6 +284,8 @@
             this.initScriptContent();
             this.fetchScriptList();
             this.fetchPublicScriptList();
+
+            this.hasShowScriptSelect = false;
         },
         methods: {
             /**

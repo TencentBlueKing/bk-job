@@ -68,7 +68,7 @@
     const defaultValue = (defaultField = I18n.t('template.初始值')) => ({ label: defaultField, filed: 'valueText' });
     const description = () => ({ label: I18n.t('template.变量描述'), filed: 'description' });
     const changeable = () => ({ label: I18n.t('template.赋值可变'), filed: 'changeableText' });
-    const required = () => ({ label: I18n.t('template.必填'), filed: 'requiredText' });
+    const required = () => ({ label: I18n.t('template.执行时必填'), filed: 'requiredText' });
 
     const generateVariableDescribeMap = (defaultField = I18n.t('template.初始值')) => ({
         [GlobalVariableModel.TYPE_STRING]: [type(), name(), defaultValue(defaultField), description(), changeable(), required()],

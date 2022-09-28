@@ -37,6 +37,8 @@
                 :arrow="false"
                 style="margin-right: 8px;"
                 theme="light site-header-dropdown">
+                :arrow="false"
+                :tippy-options="{ hideOnClick: false }">
                 <div class="flag-box">
                     <Icon
                         id="siteLocal"
@@ -67,7 +69,8 @@
             <bk-popover
                 :arrow="false"
                 style="margin-right: 14px;"
-                theme="light site-header-dropdown">
+                theme="light site-header-dropdown"
+                :tippy-options="{ hideOnClick: false }">
                 <div class="flag-box">
                     <Icon
                         id="siteHelp"
@@ -93,7 +96,8 @@
             </bk-popover>
             <bk-popover
                 :arrow="false"
-                theme="light site-header-dropdown">
+                theme="light site-header-dropdown"
+                :tippy-options="{ hideOnClick: false }">
                 <div class="user-flag">
                     <span style="margin-right: 5px;">{{ currentUser.username }}</span>
                     <i class="bk-icon icon-down-shape" />
@@ -237,7 +241,7 @@
             handleToggleLang (lang) {
                 Cookie.set('blueking_language', lang, {
                     expires: 3600,
-                    domain: window.location.hostname.replace(/.*(\.[^.]+\.[^.]+$)/, '$1'),
+                    domain: window.location.hostname.replace(/^[^.]+(.*)$/, '$1'),
                 });
                 setLocale(lang);
             },
@@ -251,11 +255,11 @@
              * @desc 打开产品文档
              */
             handleLocationDocument () {
-                if (!this.relatedSystemUrls.BK_DOC_JOB_ROOT_URL) {
+                if (!this.relatedSystemUrls.BK_DOC_CENTER_ROOT_URL) {
                     this.messageError(I18n.t('网络错误，请刷新页面重试'));
                     return;
                 }
-                window.open(this.relatedSystemUrls.BK_DOC_JOB_ROOT_URL);
+                window.open(`${this.relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/作业平台/产品白皮书/Introduction/What-is-Job.md`);
             },
             /**
              * @desc 打开问题反馈

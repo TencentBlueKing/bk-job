@@ -47,7 +47,7 @@
                 align="left"
                 :label="$t('ticket.文件源别名')"
                 show-overflow-tooltip
-                sortable>
+                sortable="custom">
                 <template slot-scope="{ row }">
                     <auth-router-link
                         v-if="row.isAvailable"
@@ -77,7 +77,7 @@
                 :label="$t('ticket.文件源标识')"
                 prop="code"
                 show-overflow-tooltip
-                sortable
+                sortable="custom"
                 width="160" />
             <bk-table-column
                 :label="$t('ticket.状态')"

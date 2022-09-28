@@ -27,9 +27,11 @@ package com.tencent.bk.job.common.util.http;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHeader;
 
@@ -38,11 +40,10 @@ import java.util.List;
 
 @Slf4j
 public class ExtHttpHelper {
-    private final String CHARSET = "UTF-8";
 
     private final HttpHelper httpHelper;
 
-    protected ExtHttpHelper(HttpHelper httpHelper) {
+    public ExtHttpHelper(HttpHelper httpHelper) {
         this.httpHelper = httpHelper;
     }
 
@@ -55,6 +56,7 @@ public class ExtHttpHelper {
      * @return
      */
     public String post(String url, String content, Header... headers) {
+        String CHARSET = "UTF-8";
         return post(url, CHARSET, content, headers);
     }
 
@@ -75,7 +77,9 @@ public class ExtHttpHelper {
      */
     public String post(String url, String charset, String content, Header... headers) {
         try {
-            byte[] resp = post(url, new ByteArrayEntity(content.getBytes(charset)), headers);
+            byte[] resp = post(url,
+                new ByteArrayEntity(content == null ? "".getBytes() : content.getBytes(charset)),
+                headers);
             if (null == resp) {
                 return null;
             }
@@ -138,7 +142,7 @@ public class ExtHttpHelper {
         return httpHelper.get(keepAlive, url, header).getRight();
     }
 
-    public CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header) {
+    public Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header) {
         return httpHelper.getRawResp(keepAlive, url, header);
     }
 

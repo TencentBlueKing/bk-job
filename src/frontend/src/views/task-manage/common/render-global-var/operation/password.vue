@@ -98,23 +98,7 @@
         data () {
             return {
                 formData: { ...this.data },
-                passwordIcon: [],
             };
-        },
-        watch: {
-            data: {
-                handler (data) {
-                    if (data.name) {
-                        this.passwordIcon = [];
-                    } else {
-                        this.passwordIcon = [
-                            'icon-eye-slash',
-                        ];
-                    }
-                },
-                immediate: true,
-            },
-            
         },
         created () {
             this.rules = {

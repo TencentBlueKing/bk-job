@@ -42,6 +42,8 @@ import org.jooq.SelectLimitPercentStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.TableField;
 import org.jooq.UpdateConditionStep;
+import org.jooq.UpdateSetMoreStep;
+import org.jooq.UpdateSetStep;
 import org.jooq.generated.tables.GseFileAgentTask;
 import org.jooq.generated.tables.records.GseFileAgentTaskRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.tencent.bk.job.common.constant.Order.DESCENDING;
@@ -318,6 +321,10 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
 
     @Override
     public List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId) {
+        if (gseTaskId == null || gseTaskId <= 0) {
+            return Collections.emptyList();
+        }
+
         List<AgentTaskDTO> agentTaskList = new ArrayList<>();
 
         Result<?> result = CTX.select(ALL_FIELDS)
@@ -350,11 +357,34 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public void updateActualExecuteCount(long stepInstanceId, Integer batch, int actualExecuteCount) {
+    public void updateAgentTaskFields(long stepInstanceId,
+                                      int executeCount,
+                                      Integer batch,
+                                      Integer actualExecuteCount,
+                                      Long gseTaskId) {
+        UpdateSetStep<GseFileAgentTaskRecord> updateSetStep = CTX.update(T_GSE_FILE_AGENT_TASK);
+        boolean needUpdate = false;
+        if (actualExecuteCount != null) {
+            updateSetStep = updateSetStep.set(T_GSE_FILE_AGENT_TASK.ACTUAL_EXECUTE_COUNT,
+                actualExecuteCount.shortValue());
+            needUpdate = true;
+        }
+        if (gseTaskId != null) {
+            updateSetStep = updateSetStep.set(T_GSE_FILE_AGENT_TASK.GSE_TASK_ID, gseTaskId);
+            needUpdate = true;
+        }
+
+        if (!needUpdate) {
+            return;
+        }
+
+        UpdateSetMoreStep<GseFileAgentTaskRecord> updateSetMoreStep =
+            (UpdateSetMoreStep<GseFileAgentTaskRecord>) updateSetStep;
+
         UpdateConditionStep<GseFileAgentTaskRecord> updateConditionStep =
-            CTX.update(T_GSE_FILE_AGENT_TASK)
-                .set(T_GSE_FILE_AGENT_TASK.ACTUAL_EXECUTE_COUNT, (short) actualExecuteCount)
-                .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
+            updateSetMoreStep
+                .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount));
         if (batch != null) {
             updateConditionStep.and(T_GSE_FILE_AGENT_TASK.BATCH.eq(batch.shortValue()));
         }

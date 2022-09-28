@@ -178,11 +178,11 @@ public class HostDTO implements Cloneable {
         hostInfoVO.setHostId(hostDTO.getHostId());
         hostInfoVO.setIp(hostDTO.getIp());
         hostInfoVO.setIpv6(hostDTO.getIpv6());
-        hostInfoVO.setAlive(hostDTO.getAlive());
+        hostInfoVO.setAgentStatus(hostDTO.getAlive());
         CloudAreaInfoVO cloudAreaInfo = new CloudAreaInfoVO();
         cloudAreaInfo.setId(hostDTO.getBkCloudId());
         cloudAreaInfo.setName(hostDTO.getBkCloudName());
-        hostInfoVO.setCloudAreaInfo(cloudAreaInfo);
+        hostInfoVO.setCloudArea(cloudAreaInfo);
         return hostInfoVO;
     }
 
@@ -194,12 +194,12 @@ public class HostDTO implements Cloneable {
         hostDTO.setHostId(hostInfoVO.getHostId());
         hostDTO.setIp(hostInfoVO.getIp());
         hostDTO.setIpv6(hostInfoVO.getIpv6());
-        CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudAreaInfo();
+        CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudArea();
         if (cloudAreaInfo != null) {
             hostDTO.setBkCloudId(cloudAreaInfo.getId());
             hostDTO.setBkCloudName(cloudAreaInfo.getName());
         }
-        hostDTO.setAlive(hostInfoVO.getAlive());
+        hostDTO.setAlive(hostInfoVO.getAgentStatus());
         return hostDTO;
     }
 

@@ -86,14 +86,14 @@ public class PaaSServiceImpl implements PaaSService {
 
     @Override
     @EsbApiTimed
-    public boolean sendMsg(
+    public void sendMsg(
         String msgType,
         String sender,
         Set<String> receivers,
         String title,
         String content
-    ) throws Exception {
+    ) {
         IPaasClient paasClient = getClientWithCurrentLang();
-        return paasClient.sendMsg(msgType, sender, receivers, title, content);
+        paasClient.sendMsg(msgType, sender, receivers, title, content);
     }
 }

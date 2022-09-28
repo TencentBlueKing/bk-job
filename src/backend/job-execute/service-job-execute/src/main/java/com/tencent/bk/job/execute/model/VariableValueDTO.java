@@ -26,12 +26,14 @@ package com.tencent.bk.job.execute.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
  * 步骤变量值
  */
+@PersistenceObject
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -123,10 +123,9 @@
         <Diff
             v-if="showDiff"
             :data="diffList"
-            format="side-by-side"
             :new-version-id="lastVersionScriptInfo.scriptVersionId"
             :old-version-id="selectScriptVersionId"
-            theme="dark"
+            :title="$t('script.版本对比')"
             @close="handleDiffClose" />
     </div>
 </template>
@@ -138,7 +137,7 @@
 
     import { checkPublicScript } from '@utils/assist';
 
-    import Diff from '../common/diff';
+    import Diff from '../common/diff.vue';
 
     import ScriptDetail from './components/script-detail';
 

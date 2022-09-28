@@ -24,12 +24,13 @@
 
 package com.tencent.bk.job.gateway.filter.global;
 
-import brave.Tracer;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -49,11 +50,23 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        String traceId = tracer.currentSpan().context().traceIdString();
-        ServerHttpRequest request = exchange.getRequest();
-        ServerHttpResponse response = exchange.getResponse();
-        response.getHeaders().add(JobCommonHeaders.REQUEST_ID, traceId);
-        return chain.filter(exchange.mutate().request(request).build());
+        Span span = tracer.currentSpan();
+        if (span == null) {
+            span = tracer.nextSpan();
+            span.start();
+        }
+        try (Tracer.SpanInScope ignore = tracer.withSpan(span)) {
+            String traceId = span.context().traceId();
+            ServerHttpRequest request = exchange.getRequest();
+            ServerHttpResponse response = exchange.getResponse();
+            response.getHeaders().add(JobCommonHeaders.REQUEST_ID, traceId);
+            return chain.filter(exchange.mutate().request(request).build());
+        } catch (Exception e) {
+            span.error(e);
+            throw e;
+        } finally {
+            span.end();
+        }
     }
 
     @Override

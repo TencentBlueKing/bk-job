@@ -24,82 +24,20 @@
 
 package com.tencent.bk.job.manage;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 /**
  * 业务与资源范围转换
  */
 @Slf4j
-public class AppScopeMappingServiceImpl implements AppScopeMappingService {
-
-    /**
-     * appId 与 resourceScope 的映射关系缓存
-     * 由于appId与resourceScope映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
-     */
-    private final LoadingCache<Long, ResourceScope> appIdAndScopeCache =
-        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
-            .build(new CacheLoader<Long, ResourceScope>() {
-                       @Override
-                       public ResourceScope load(Long appId) {
-                           ServiceApplicationDTO app = applicationResource.queryAppById(appId);
-                           if (app == null) {
-                               throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
-                           }
-                           if (StringUtils.isEmpty(app.getScopeType()) || StringUtils.isEmpty(app.getScopeId())) {
-                               // 如果查询到的业务缺少scopeType|scopeId参数，抛出异常避免缓存非法数据
-                               log.error("Empty scopeType|scopeId for application, reject cache!");
-                               throw new InternalException("Empty scopeType|scopeId for application", ErrorCode.INTERNAL_ERROR);
-                           }
-                           return new ResourceScope(app.getScopeType(), app.getScopeId());
-                       }
-                   }
-            );
-
-    /**
-     * resourceScope 与 appId 的映射关系缓存
-     * 由于resourceScope与appId映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
-     */
-    private final LoadingCache<ResourceScope, Long> scopeAndAppIdCache =
-        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
-            .build(new CacheLoader<ResourceScope, Long>() {
-                       @Override
-                       public Long load(ResourceScope resourceScope) {
-                           ServiceApplicationDTO app = applicationResource.queryAppByScope(
-                               resourceScope.getType().getValue(),
-                               resourceScope.getId());
-                           if (app == null) {
-                               throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
-                           }
-                           if (app.getId() == null) {
-                               // 如果查询到的业务缺少ID参数，抛出异常避免缓存非法数据
-                               log.error("Empty appId for application, reject cache!");
-                               throw new InternalException("Empty appId for application", ErrorCode.INTERNAL_ERROR);
-                           }
-                           return app.getId();
-                       }
-                   }
-            );
-
+public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappingService {
 
     private final ServiceApplicationResource applicationResource;
 
@@ -107,84 +45,34 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
         this.applicationResource = applicationResource;
     }
 
-    public Long getAppIdByScope(ResourceScope resourceScope) {
-        try {
-            return scopeAndAppIdCache.get(resourceScope);
-        } catch (ExecutionException e) {
-            // 处理被CacheLoader包装的原始异常
-            log.error("Get appId from cache error", e);
-            throw new InternalException("Get appId from cache error", e, ErrorCode.INTERNAL_ERROR);
-        } catch (UncheckedExecutionException e) {
-            // 处理被CacheLoader包装的原始异常
-            Throwable t = e.getCause();
-            if (t instanceof ServiceException) {
-                throw (ServiceException) e.getCause();
-            } else {
-                log.error("Get appId from cache error", e);
-                throw new InternalException("Get appId from cache error", e, ErrorCode.INTERNAL_ERROR);
-            }
+    @Override
+    public Long queryAppByScope(ResourceScope resourceScope) throws NotFoundException {
+        ServiceApplicationDTO app = applicationResource.queryAppByScope(
+            resourceScope.getType().getValue(), resourceScope.getId());
+        if (app == null) {
+            log.error("App not found, query scope: {}", resourceScope);
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
         }
-    }
-
-    @Override
-    public Long getAppIdByScope(String scopeType, String scopeId) {
-        return getAppIdByScope(new ResourceScope(scopeType, scopeId));
-    }
-
-    public ResourceScope getScopeByAppId(Long appId) {
-        try {
-            return appIdAndScopeCache.get(appId);
-        } catch (ExecutionException e) {
-            // 处理被CacheLoader包装的原始异常
-            log.error("Get scope from cache error", e);
-            throw new InternalException("Get scope from cache error", e, ErrorCode.INTERNAL_ERROR);
-        } catch (UncheckedExecutionException e) {
-            // 处理被CacheLoader包装的原始异常
-            Throwable t = e.getCause();
-            if (t instanceof ServiceException) {
-                throw (ServiceException) e.getCause();
-            } else {
-                log.error("Get scope from cache error", e);
-                throw new InternalException("Get scope from cache error", e, ErrorCode.INTERNAL_ERROR);
-            }
+        if (app.getId() == null) {
+            // 如果查询到的业务缺少ID参数，抛出异常避免缓存非法数据
+            log.error("Empty appId for application, reject cache!");
+            throw new InternalException("Empty appId for application", ErrorCode.INTERNAL_ERROR);
         }
+        return app.getId();
     }
 
     @Override
-    public AppResourceScope getAppResourceScope(Long appId, String scopeType, String scopeId) {
-        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new AppResourceScope(scopeType, scopeId, getAppIdByScope(scopeType, scopeId));
-        } else {
-            ResourceScope resourceScope = getScopeByAppId(appId);
-            return new AppResourceScope(appId, resourceScope);
+    public ResourceScope queryScopeByAppId(Long appId) throws NotFoundException {
+        ServiceApplicationDTO app = applicationResource.queryAppById(appId);
+        if (app == null) {
+            log.error("App not found, query appId: {}", appId);
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
         }
-    }
-
-    @Override
-    public AppResourceScope getAppResourceScope(String scopeType, String scopeId) {
-        return new AppResourceScope(scopeType, scopeId, getAppIdByScope(scopeType, scopeId));
-    }
-
-    public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
-        Map<Long, ResourceScope> mapping = new HashMap<>();
-        appIds.forEach(appId -> {
-            ResourceScope resourceScope = getScopeByAppId(appId);
-            if (resourceScope != null) {
-                mapping.put(appId, resourceScope);
-            }
-        });
-        return mapping;
-    }
-
-    @Override
-    public Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList) {
-        Map<ResourceScope, Long> mapping = new HashMap<>();
-        scopeList.forEach(scope -> {
-            Long appId = getAppIdByScope(scope);
-            if (appId != null) {
-                mapping.put(scope, appId);
-            }
-        });
-        return mapping;
+        if (StringUtils.isEmpty(app.getScopeType()) || StringUtils.isEmpty(app.getScopeId())) {
+            // 如果查询到的业务缺少scopeType|scopeId参数，抛出异常避免缓存非法数据
+            log.error("Empty scopeType|scopeId for application, reject cache!");
+            throw new InternalException("Empty scopeType|scopeId for application", ErrorCode.INTERNAL_ERROR);
+        }
+        return new ResourceScope(app.getScopeType(), app.getScopeId());
     }
 }

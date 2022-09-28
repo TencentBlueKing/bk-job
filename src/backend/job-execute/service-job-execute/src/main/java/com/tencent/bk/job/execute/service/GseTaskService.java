@@ -39,6 +39,14 @@ public interface GseTaskService {
     Long saveGseTask(GseTaskDTO gseTask);
 
     /**
+     * 更新 GSE 任务
+     *
+     * @param gseTask GSE 任务
+     * @return 是否更新成功
+     */
+    boolean updateGseTask(GseTaskDTO gseTask);
+
+    /**
      * 获取 GSE 任务
      *
      * @param stepInstanceId 步骤实例ID

@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
@@ -69,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * 执行引擎事件处理-任务恢复
@@ -147,18 +145,11 @@ public class ResultHandleResumeListener {
     @StreamListener(TaskResultHandleResumeProcessor.INPUT)
     public void handleEvent(ResultHandleTaskResumeEvent event) {
         log.info("Receive gse task result handle task resume event: {}", event);
-        GseTaskDTO gseTask;
-        if (event.getGseTaskId() != null) {
-            gseTask = gseTaskService.getGseTask(event.getGseTaskId());
-        } else {
-            // tmp: 兼容使用stepInstance+executeCount+batch来唯一指定GseTask的场景,发布完成后删除
-            gseTask = gseTaskService.getGseTask(event.getStepInstanceId(), event.getExecuteCount(), event.getBatch());
-        }
-
+        GseTaskDTO gseTask = gseTaskService.getGseTask(event.getGseTaskId());
         long stepInstanceId = gseTask.getStepInstanceId();
-
         String requestId = StringUtils.isNotEmpty(event.getRequestId()) ? event.getRequestId()
             : UUID.randomUUID().toString();
+
         try {
             StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
@@ -192,18 +183,7 @@ public class ResultHandleResumeListener {
                                   GseTaskDTO gseTask,
                                   String requestId) {
         Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-        List<AgentTaskDTO> agentTasks;
-        if (gseTask.getId() != null) {
-            agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-        } else {
-            // tmp: 兼容旧的调度任务，发布完成后删除
-            agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(),
-                stepInstance.getExecuteCount(), null);
-            // 仅包含本次执行的主机
-            agentTasks = agentTasks.stream()
-                .filter(agentTask -> AgentTaskStatusEnum.LAST_SUCCESS != agentTask.getStatus())
-                .collect(Collectors.toList());
-        }
+        List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         agentTasks.forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
 
         ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
@@ -245,18 +225,7 @@ public class ResultHandleResumeListener {
 
         Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
         Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
-        List<AgentTaskDTO> agentTasks;
-        if (gseTask.getId() != null) {
-            agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-        } else {
-            // TMP: 兼容旧的调度任务，发布完成后删除
-            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(),
-                stepInstance.getExecuteCount(), null);
-            // 仅包含本次执行的主机
-            agentTasks = agentTasks.stream()
-                .filter(agentTask -> AgentTaskStatusEnum.LAST_SUCCESS != agentTask.getStatus())
-                .collect(Collectors.toList());
-        }
+        List<AgentTaskDTO> agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         agentTasks.forEach(agentTask -> {
             if (agentTask.isTarget()) {
                 targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);

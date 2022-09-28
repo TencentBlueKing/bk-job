@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
@@ -51,17 +54,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @since 2/12/2019 20:59
+ * 执行目标主机
  */
+@PersistenceObject
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TaskTargetDTO {
 
+    @JsonProperty("variable")
     private String variable;
 
+    @JsonProperty("hostNodeList")
     private TaskHostNodeDTO hostNodeList;
 
     public static TaskTargetVO toVO(TaskTargetDTO executeTarget) {
@@ -100,9 +107,9 @@ public class TaskTargetDTO {
                 hostNode.setIp(host.getIp());
                 hostNode.setIpv6(host.getIpv6());
                 hostNode.setDisplayIp(host.getDisplayIp());
-                hostNode.setOs(host.getOs());
+                hostNode.setOsName(host.getOsName());
                 hostNode.setOsType(host.getOsType());
-                hostNode.setGseAgentAlive(host.getGseAgentAlive());
+                hostNode.setGseAgentStatus(host.getGseAgentStatus());
             });
         }
     }
