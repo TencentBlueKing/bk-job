@@ -29,7 +29,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * 文件分发执行日志
@@ -94,10 +93,10 @@ public class ServiceFileTaskLogDTO {
     private Long srcHostId;
 
     /**
-     * 文件源IP - 显示
+     * 源文件类型
      */
-    @JsonProperty("displaySrcIp")
-    private String displaySrcIp;
+    @JsonProperty("srcFileType")
+    private Integer srcFileType;
 
     /**
      * 源文件路径 - 真实路径
@@ -155,7 +154,7 @@ public class ServiceFileTaskLogDTO {
                                  Long srcHostId,
                                  String srcIp,
                                  String srcIpv6,
-                                 String displaySrcIp,
+                                 Integer srcFileType,
                                  String srcFile,
                                  String displaySrcFile,
                                  String size,
@@ -172,7 +171,7 @@ public class ServiceFileTaskLogDTO {
         this.srcHostId = srcHostId;
         this.srcIp = srcIp;
         this.srcIpv6 = srcIpv6;
-        this.displaySrcIp = displaySrcIp;
+        this.srcFileType = srcFileType;
         this.srcFile = srcFile;
         this.displaySrcFile = displaySrcFile;
         this.size = size;
@@ -181,14 +180,6 @@ public class ServiceFileTaskLogDTO {
         this.speed = speed;
         this.process = process;
         this.content = content;
-    }
-
-    public String getDisplaySrcIp() {
-        if (StringUtils.isNotEmpty(this.displaySrcIp)) {
-            return this.displaySrcIp;
-        } else {
-            return this.srcIp;
-        }
     }
 }
 

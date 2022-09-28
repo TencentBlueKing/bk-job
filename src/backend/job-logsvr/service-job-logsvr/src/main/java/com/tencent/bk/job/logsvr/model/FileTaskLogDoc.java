@@ -96,13 +96,6 @@ public class FileTaskLogDoc {
     private Long srcHostId;
 
     /**
-     * 文件源主机显示名称 - 隐藏敏感信息（比如本地分发文件的job的server地址)
-     */
-    @JsonProperty("displaySrcIp")
-    @Field("displaySrcIp")
-    private String displaySrcIp;
-
-    /**
      * 目标主机(云区域:IPv4)
      */
     @JsonProperty("destIp")
@@ -143,6 +136,13 @@ public class FileTaskLogDoc {
     @JsonProperty("srcFile")
     @Field("srcFile")
     private String srcFile;
+
+    /**
+     * 源文件类型
+     */
+    @JsonProperty("srcFileType")
+    @Field("srcFileType")
+    private Integer srcFileType;
 
     /**
      * 文件大小
@@ -203,13 +203,13 @@ public class FileTaskLogDoc {
             fileLog.setSrcIpv6(serviceFileLog.getSrcIpv6());
             fileLog.setSrcFile(serviceFileLog.getSrcFile());
             fileLog.setDisplaySrcFile(serviceFileLog.getDisplaySrcFile());
-            fileLog.setDisplaySrcIp(serviceFileLog.getDisplaySrcIp());
+            fileLog.setSrcFileType(serviceFileLog.getSrcFileType());
         } else if (FileTaskModeEnum.DOWNLOAD.getValue().equals(serviceFileLog.getMode())) {
             fileLog.setHostId(serviceFileLog.getDestHostId());
             fileLog.setIp(serviceFileLog.getDestIp()); // tmp: 发布完成之后不再需要写入ip字段，可以删除
             fileLog.setSrcIp(serviceFileLog.getSrcIp());
             fileLog.setSrcHostId(serviceFileLog.getSrcHostId());
-            fileLog.setDisplaySrcIp(serviceFileLog.getDisplaySrcIp());
+            fileLog.setSrcFileType(serviceFileLog.getSrcFileType());
             fileLog.setSrcFile(serviceFileLog.getSrcFile());
             fileLog.setDisplaySrcFile(serviceFileLog.getDisplaySrcFile());
             fileLog.setDestHostId(serviceFileLog.getDestHostId());
@@ -239,7 +239,7 @@ public class FileTaskLogDoc {
         fileLog.setSrcHostId(srcHostId);
         fileLog.setSrcIp(srcIp);
         fileLog.setSrcIpv6(srcIpv6);
-        fileLog.setDisplaySrcIp(displaySrcIp);
+        fileLog.setSrcFileType(srcFileType);
         fileLog.setDisplaySrcFile(displaySrcFile);
         fileLog.setSrcFile(srcFile);
         if (FileTaskModeEnum.DOWNLOAD.getValue().equals(mode)) {

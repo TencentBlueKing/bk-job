@@ -46,10 +46,6 @@ public class JobFile {
      */
     private HostDTO host;
     /**
-     * 是否隐藏源主机信息（本地文件分发等场景需要隐藏job自己的服务器)
-     */
-    private boolean hiddenSourceHost;
-    /**
      * 文件路径(用户输入)
      */
     private String filePath;
@@ -116,7 +112,6 @@ public class JobFile {
                    String displayFilePath) {
         this.fileType = fileType;
         this.host = host;
-        this.hiddenSourceHost = this.fileType != TaskFileTypeEnum.SERVER;
         this.filePath = filePath;
         this.dir = dir;
         this.fileName = fileName;
@@ -147,7 +142,6 @@ public class JobFile {
                    String accountAlias) {
         this.fileType = fileType;
         this.host = host;
-        this.hiddenSourceHost = this.fileType != TaskFileTypeEnum.SERVER;
         this.filePath = filePath;
         this.displayFilePath = displayFilePath;
         this.dir = dir;
