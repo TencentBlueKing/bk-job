@@ -19,7 +19,7 @@ export default (
         current: 1,
         limit: 10,
         small: true,
-        showTotalCount: true,
+        showTotalCount: false,
         align: 'right',
         ...paginationDefault,
     });

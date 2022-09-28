@@ -19,7 +19,9 @@
                             active: selectGroupId === item.id
                         }"
                         @click="handleGroupSelect(item)">
-                        <div @click.stop="">
+                        <div
+                            style="line-height: 0;"
+                            @click.stop=";">
                             <bk-checkbox
                                 :checked="Boolean(dynamicGroupCheckedMap[item.id])"
                                 :value="item.id"
@@ -59,9 +61,9 @@
                 <div
                     v-bkloading="{ isLoading: isHostListLoading }"
                     class="table-box">
-                    <bk-input
+                    <!-- <bk-input
                         placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
-                        style="margin-bottom: 12px;" />
+                        style="margin-bottom: 12px;" /> -->
                     <render-host-table
                         :data="hostTableData"
                         :height="renderTableHeight"
@@ -116,7 +118,7 @@
         'change',
     ]);
 
-    const tableOffetTop = 60;
+    const tableOffetTop = 20;
     const {
         contentHeight: dialogContentHeight,
     } = useDialogSize();

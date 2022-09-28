@@ -11,18 +11,16 @@
         <template v-else>
             <template v-if="data">
                 <div
-                    class="statistics-item"
+                    class="statistics-item statistics-item-btn"
                     @click="handleClick('')">
                     共<span class="bk-ip-selector-number">{{ data.total_count }}</span>台主机
                 </div>
                 <div
-                    class="statistics-item"
-                    @click="handleClick('normal')">
+                    class="statistics-item">
                     正常<span class="bk-ip-selector-number-success">{{ data.alive_count }}</span>台
                 </div>
                 <div
-                    class="statistics-item"
-                    @click="handleClick('abnormal')">
+                    class="statistics-item">
                     异常<span class="bk-ip-selector-number-error">{{ data.not_alive_count }}</span>台
                 </div>
             </template>
@@ -61,12 +59,14 @@
             border-radius: 2px;
             align-items: center;
 
-            &:hover {
-                background: #eaebf0;
-            }
-
             & ~ & {
                 margin-left: 2px;
+            }
+        }
+
+        .statistics-item-btn {
+            &:hover {
+                background: #eaebf0;
             }
         }
 

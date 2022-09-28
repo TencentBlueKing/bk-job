@@ -1,7 +1,7 @@
 <template>
     <div
         v-bkloading="{ isLoading }"
-        :style="styles">
+        style="min-height: 500px;">
         <div style="padding: 8px 0;">
             <bk-button
                 :loading="isCopyFaildLoading"
@@ -23,11 +23,10 @@
 </template>
 <script setup>
     import {
-        computed,
-        onMounted,
         reactive,
         ref,
         shallowRef,
+        watch,
     } from 'vue';
 
     import RenderHostTable from '../../common/render-table/host';
@@ -61,10 +60,6 @@
 
     const pagination = reactive(getPaginationDefault(contentHeight.value));
 
-    const styles = computed(() => ({
-        height: `${contentHeight.value}px`,
-    }));
-
     const requestHandler = (params = {}) => Manager.service.fetchHostsDynamicGroup({
             [Manager.nameStyle('id')]: props.dynamicGroup.id,
             [Manager.nameStyle('pageSize')]: pagination.limit,
@@ -83,6 +78,12 @@
             isLoading.value = false;
         });
     };
+
+    watch(() => props.dynamicGroup, () => {
+        if (props.dynamicGroup.id) {
+            fetchDynamicGroupHostList();
+        }
+    });
 
     const handeCopeAllFailedIP = () => {
         isCopyFaildLoading.value = true;
@@ -120,8 +121,4 @@
         pagination.limit = currentPagination.limit;
         fetchDynamicGroupHostList();
     };
-
-    onMounted(() => {
-        fetchDynamicGroupHostList();
-    });
 </script>

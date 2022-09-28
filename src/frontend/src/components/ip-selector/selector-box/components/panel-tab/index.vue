@@ -119,14 +119,16 @@
     })
     .finally(() => {
         setTimeout(() => {
-            handleChange(panelSortList.value[0]);
+            handleChange(props.uniqueType ? props.uniqueType : panelSortList.value[0]);
         });
     });
 
     watch(() => props.isShow, () => {
-        if (props.isShow) {
-            handleChange(panelSortList.value[0]);
-        }
+        setTimeout(() => {
+            if (props.isShow) {
+                handleChange(props.uniqueType ? props.uniqueType : panelSortList.value[0]);
+            }
+        });
     });
 
     const handleSortChange = (data) => {

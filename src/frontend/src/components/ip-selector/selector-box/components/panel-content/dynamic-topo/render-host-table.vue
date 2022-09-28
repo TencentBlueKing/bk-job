@@ -91,7 +91,7 @@
     // 拓扑树选中节点
     watch(() => props.node, () => {
         pagination.current = 1;
-        memoNodeData = props.node;
+        memoNodeData = props.node.data.payload;
         fetchNodeHostList();
     }, {
         immediate: true,

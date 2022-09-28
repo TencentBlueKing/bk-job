@@ -12,7 +12,8 @@
                     placeholder="请输入 IP / IPv6 或主机名称，如（192.168.1.112 或 ebd4:3e1::e13），带云区域请使用冒号分隔，如：0:192.168.9.10
 多个可使用换行，空格或；，｜ ”分隔"
                     :style="manualInputStyles"
-                    type="textarea" />
+                    type="textarea"
+                    @change="handleManualInputChange" />
                 <div class="custom-input-parse-error">
                     <span v-if="errorInputStack.length > 0">
                         <span style="padding-right: 2px; font-weight: bold;">
@@ -316,10 +317,13 @@
         });
     };
 
-    // 清空输入框
-    const handleClearManualInput = () => {
+    const handleManualInputChange = () => {
         invalidInputStack.value = [];
         errorInputStack.value = [];
+    };
+
+    // 清空输入框、输入框内容有改动清空输入框
+    const handleClearManualInput = () => {
         manualInputText.value = '';
     };
 
@@ -386,6 +390,7 @@
 <style lang="postcss">
     .ip-selector-manual-input {
         .custom-input {
+            padding-right: 16px;
             padding-left: 16px;
 
             .custom-input-parse-error {
@@ -407,7 +412,7 @@
 
             .bk-textarea-wrapper,
             .bk-form-textarea {
-                height: 100%;
+                height: 100% !important;
             }
 
             textarea {

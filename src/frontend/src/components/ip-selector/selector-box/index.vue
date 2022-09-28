@@ -99,6 +99,8 @@
         'cancel',
     ]);
 
+    window.ipManager = Manager;
+
     const panelType = ref('');
     
     const isTopoDataLoading = ref(true);
@@ -163,7 +165,7 @@
             lastHostList.value = hostList;
             lastNodeList.value = nodeList;
             lastDynamicGroupList.value = dynamicGroupList;
-            }
+        }
     }, {
         immediate: true,
     });
@@ -195,6 +197,7 @@
         lastHostList.value = [];
         lastNodeList.value = [];
         lastDynamicGroupList.value = [];
+        handleSubmit();
     };
     // 提交编辑
     const handleSubmit = () => {
@@ -210,31 +213,72 @@
     };
 </script>
 <style lang="postcss">
-    .bk-ip-selector-box {
-        background: #fff;
+.bk-ip-selector-box {
+    background: #fff;
 
-        &.section {
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
-        }
+    &.section {
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+    }
 
-        .bk-dialog {
-            .bk-dialog-tool {
-                display: none;
+    &.dialog {
+        .bk-dialog-wrapper {
+            text-align: center;
+
+            &::after {
+                display: inline-block;
+                width: 1px;
+                height: 100%;
+                vertical-align: middle;
+                content: "";
             }
 
-            .bk-dialog-body {
-                padding: 0;
+            .bk-dialog {
+                top: unset;
+                display: inline-block;
+                margin: unset;
+                text-align: initial;
+                vertical-align: middle;
+
+                &.bk-dialog-fullscreen {
+                    top: 0;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                }
+
+                &.bk-info-box {
+                    .bk-dialog-content-drag {
+                        position: relative;
+                    }
+                }
+
+                .bk-dialog-tool {
+                    display: none;
+                }
+
+                .bk-dialog-body {
+                    padding: 0;
+                }
             }
-        }
 
-        .container-layout {
-            display: flex;
-            color: #63656e;
+            .header-on-left {
+                padding-bottom: 0 !important;
+            }
 
-            .layout-left {
-                flex: 1;
+            .bk-dialog-content {
+                width: 100%;
             }
         }
     }
+
+    .container-layout {
+        display: flex;
+        color: #63656e;
+
+        .layout-left {
+            flex: 1;
+        }
+    }
+}
 </style>

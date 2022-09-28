@@ -119,9 +119,11 @@
     });
 
     onMounted(() => {
-        mergeLocalService(props.service);
-        mergeLocalConfig(props.config);
-        localMounted.value = true;
+        setTimeout(() => {
+            mergeLocalService(props.service);
+            mergeLocalConfig(props.config);
+            localMounted.value = true;
+        });
     });
     onBeforeUnmount(() => {
         mergeLocalService({});

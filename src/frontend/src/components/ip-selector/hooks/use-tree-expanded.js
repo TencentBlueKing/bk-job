@@ -24,7 +24,21 @@ export default (treeRef) => {
         });
     };
 
+    const calcShowExpanded = (node) => {
+        if (node.isLeaf) {
+            return false;
+        }
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < node.children.length; i++) {
+            if (!node.children[i].isLeaf) {
+                return true;
+            }
+        }
+        return false;
+    };
+
     return {
         toggleExpanded,
+        calcShowExpanded,
     };
 };
