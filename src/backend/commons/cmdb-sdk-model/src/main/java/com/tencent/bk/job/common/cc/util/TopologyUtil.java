@@ -28,8 +28,14 @@ import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,9 +53,7 @@ public class TopologyUtil {
         log.info(prefix + "(" + appTopology.getObjectId() + "," + appTopology.getInstanceId() + ")");
         List<InstanceTopologyDTO> childs = appTopology.getChild();
         if (childs != null && !childs.isEmpty()) {
-            childs.forEach(child -> {
-                printTopo(prefix + "\t", child);
-            });
+            childs.forEach(child -> printTopo(prefix + "\t", child));
         }
     }
 
@@ -60,9 +64,7 @@ public class TopologyUtil {
         } else {
             List<InstanceTopologyDTO> childList = appTopology.getChild();
             if (childList != null) {
-                childList.forEach(child -> {
-                    moduleIdList.addAll(findModuleIdsFromTopo(child));
-                });
+                childList.forEach(child -> moduleIdList.addAll(findModuleIdsFromTopo(child)));
             }
         }
         return moduleIdList;
@@ -71,9 +73,9 @@ public class TopologyUtil {
     /**
      * 从业务拓扑树中找到某个节点
      *
-     * @param appTopology
-     * @param ccInstanceDTO
-     * @return
+     * @param appTopology   业务拓扑树
+     * @param ccInstanceDTO 要查找的节点
+     * @return 查找到的子拓扑树
      */
     public static InstanceTopologyDTO findNodeFromTopo(InstanceTopologyDTO appTopology, CcInstanceDTO ccInstanceDTO) {
         if (appTopology == null) {
@@ -91,17 +93,15 @@ public class TopologyUtil {
                 return null;
             }
         } else {
-            if (appTopology.getChild() == null || appTopology.getChild().isEmpty()) {
-                return null;
-            } else {
+            if (CollectionUtils.isNotEmpty(appTopology.getChild())) {
                 for (InstanceTopologyDTO child : appTopology.getChild()) {
                     InstanceTopologyDTO resultNode = findNodeFromTopo(child, ccInstanceDTO);
                     if (resultNode != null) {
                         return resultNode;
                     }
                 }
-                return null;
             }
+            return null;
         }
     }
 
@@ -154,9 +154,9 @@ public class TopologyUtil {
     /**
      * 将低一级的子节点合并入拓扑树中
      *
-     * @param tp
-     * @param child
-     * @return
+     * @param tp    拓扑树
+     * @param child 要合入的子节点
+     * @return 合入后的拓扑树
      */
     private static InstanceTopologyDTO mergeChildIntoTopology(InstanceTopologyDTO tp, InstanceTopologyDTO child) {
         if (child == null) {
@@ -180,15 +180,14 @@ public class TopologyUtil {
     /**
      * 合并两颗层级相差小于2的拓扑树
      *
-     * @param topologyDTOs
-     * @return
+     * @param topologyDTOs 要合并的拓扑树数组
+     * @return 合并后的拓扑树
      */
     public static InstanceTopologyDTO mergeTopology(InstanceTopologyDTO... topologyDTOs) {
         try {
             return mergeTopologyIndeed(topologyDTOs);
         } catch (Exception e) {
-            for (int i = 0; i < topologyDTOs.length; i++) {
-                InstanceTopologyDTO topologyDTO = topologyDTOs[i];
+            for (InstanceTopologyDTO topologyDTO : topologyDTOs) {
                 TopologyUtil.printTopo(topologyDTO);
                 log.info("==============================");
             }
@@ -216,20 +215,18 @@ public class TopologyUtil {
             if (tp1.getObjectId().equals(tp2.getObjectId())) {
                 //但实例不同，无法合并
                 if (!tp1.getInstanceId().equals(tp2.getInstanceId())) {
-                    throw new RuntimeException("can not merge differnt instances of same level");
+                    throw new RuntimeException("can not merge different instances of same level");
                 } else {
-                    if (tp2.getChild() == null || tp2.getChild().isEmpty()) {
-                        return tp1;
-                    } else {
+                    if (CollectionUtils.isNotEmpty(tp2.getChild())) {
                         for (InstanceTopologyDTO child2 : tp2.getChild()) {
                             tp1 = mergeChildIntoTopology(tp1, child2);
                         }
-                        return tp1;
                     }
+                    return tp1;
                 }
             } else if (Math.abs(weightMap.get(tp1.getObjectId()) - weightMap.get(tp2.getObjectId())) >= 2) {
                 //相差两级及以上无法合并
-                throw new RuntimeException("can not merge differnt instances beyond 2 levels");
+                throw new RuntimeException("can not merge different instances beyond 2 levels");
             } else {
                 //根节点相差一级
                 if (weightMap.get(tp1.getObjectId()) < weightMap.get(tp2.getObjectId())) {
