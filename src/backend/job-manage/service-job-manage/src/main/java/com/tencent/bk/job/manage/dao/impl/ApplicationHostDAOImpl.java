@@ -52,6 +52,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
@@ -65,7 +66,9 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -97,17 +100,17 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.CLOUD_IP
     };
 
-    private final DSLContext context;
+    private final DSLContext defaultContext;
     private final ApplicationDAO applicationDAO;
     private final HostTopoDAO hostTopoDAO;
     private final TopologyHelper topologyHelper;
 
     @Autowired
-    public ApplicationHostDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context,
+    public ApplicationHostDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext defaultContext,
                                   ApplicationDAO applicationDAO,
                                   HostTopoDAO hostTopoDAO,
                                   TopologyHelper topologyHelper) {
-        this.context = context;
+        this.defaultContext = defaultContext;
         this.applicationDAO = applicationDAO;
         this.topologyHelper = topologyHelper;
         this.hostTopoDAO = hostTopoDAO;
@@ -117,7 +120,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public ApplicationHostDTO getHostById(Long hostId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(hostId)));
-        Record record = context.select(ALL_FIELDS).from(TABLE).where(conditions).fetchOne();
+        Record record = defaultContext.select(ALL_FIELDS).from(TABLE).where(conditions).fetchOne();
         return extractData(record);
     }
 
@@ -150,6 +153,14 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<Long> listHostIdNotUpdated(long bizId, LocalDateTime maxUpdateTime) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
+        conditions.add(TABLE.LAST_MODIFY_TIME.cast(LocalDateTime.class).lessThan(maxUpdateTime));
+        return listHostIdByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoByBizId(long bizId) {
         List<Condition> conditions = buildBizIdCondition(bizId);
         return listHostInfoByConditions(conditions);
@@ -164,12 +175,26 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return listHostInfoByConditions(conditions, null, null);
     }
 
+    private List<Long> listHostIdByConditions(Collection<Condition> conditions) {
+        if (conditions == null) {
+            conditions = Collections.emptyList();
+        }
+        val query = defaultContext.select(TABLE.HOST_ID)
+            .from(TABLE)
+            .where(conditions);
+        if (log.isDebugEnabled()) {
+            log.debug("SQL={}", query.getSQL(ParamType.INLINED));
+        }
+        Result<Record1<ULong>> records = query.fetch();
+        return records.stream().map(record -> record.get(0, Long.class)).collect(Collectors.toList());
+    }
+
     private List<ApplicationHostDTO> listHostInfoByConditions(Collection<Condition> conditions, Long start,
                                                               Long limit) {
         if (conditions == null) {
             conditions = Collections.emptyList();
         }
-        val query = context.select(ALL_FIELDS)
+        val query = defaultContext.select(ALL_FIELDS)
             .from(TABLE)
             .where(conditions)
             .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
@@ -300,7 +325,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             conditions.add(condition);
         }
         val query =
-            context
+            defaultContext
                 .selectDistinct(tHost.HOST_ID)
                 .select(tHost.IS_AGENT_ALIVE)
                 .from(tHost)
@@ -339,7 +364,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         conditions.add(TABLE.CLOUD_AREA_ID.eq(ULong.valueOf(cloudAreaId)));
         conditions.add(TABLE.IP.in(ips));
 
-        Result<Record> result = context
+        Result<Record> result = defaultContext
             .select(ALL_FIELDS)
             .from(TABLE)
             .where(conditions)
@@ -365,7 +390,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        Result<Record> result = context.select(ALL_FIELDS)
+        Result<Record> result = defaultContext.select(ALL_FIELDS)
             .from(TABLE)
             .where(conditions)
             .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc())
@@ -790,6 +815,23 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum[0];
     }
 
+    @Transactional
+    @Override
+    public int batchDeleteHostById(List<Long> hostIdList) {
+        if (CollectionUtils.isEmpty(hostIdList)) {
+            return 0;
+        }
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(
+            TABLE.HOST_ID.in(hostIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList()))
+        );
+        int deletedRelationNum = hostTopoDAO.batchDeleteHostTopo(defaultContext, hostIdList);
+        log.info("{} host relation deleted", deletedRelationNum);
+        return defaultContext.deleteFrom(TABLE)
+            .where(conditions)
+            .execute();
+    }
+
     @Override
     public int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> hostIdList) {
         int[] affectedNum = new int[]{0};
@@ -857,7 +899,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
         conditions.add(TABLE.CLOUD_AREA_ID.eq(ULong.valueOf(cloudAreaId)));
         conditions.add(TABLE.IP.eq(ip));
-        Record record = context
+        Record record = defaultContext
             .select(ALL_FIELDS)
             .from(TABLE)
             .where(conditions)
@@ -919,7 +961,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (conditions == null) {
             conditions = Collections.emptyList();
         }
-        return context.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
+        return defaultContext.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
     }
 
     private List<Condition> buildBizIdCondition(long bizId) {
@@ -972,7 +1014,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
 
     private List<ApplicationHostDTO> queryHostsByCondition(List<Condition> conditions) {
         Result<Record> result =
-            context.select(ALL_FIELDS)
+            defaultContext.select(ALL_FIELDS)
                 .from(TABLE)
                 .where(conditions)
                 .fetch();

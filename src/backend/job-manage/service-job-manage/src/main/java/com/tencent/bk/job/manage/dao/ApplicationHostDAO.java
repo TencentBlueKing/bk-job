@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import org.jooq.DSLContext;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,15 @@ public interface ApplicationHostDAO {
     ApplicationHostDTO getHostById(Long hostId);
 
     List<ApplicationHostDTO> listHostInfoByIps(Long bizId, List<String> ips);
+
+    /**
+     * 查询近期未更新的主机ID
+     *
+     * @param bizId         主机所属业务ID
+     * @param maxUpdateTime 最大更新时间，查出最近更新时间在此时间之前的主机
+     * @return 主机ID列表
+     */
+    List<Long> listHostIdNotUpdated(long bizId, LocalDateTime maxUpdateTime);
 
     List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
 
@@ -100,6 +110,14 @@ public interface ApplicationHostDAO {
 
 
     int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long hostId);
+
+    /**
+     * 根据传入的主机ID批量删除主机
+     *
+     * @param hostIdList 要删除的主机ID列表
+     * @return 删除的主机数量
+     */
+    int batchDeleteHostById(List<Long> hostIdList);
 
     /**
      * 根据传入的业务ID与主机ID批量删除主机

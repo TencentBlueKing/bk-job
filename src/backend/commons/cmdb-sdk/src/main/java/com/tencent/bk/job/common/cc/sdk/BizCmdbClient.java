@@ -1108,7 +1108,16 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<ApplicationHostDTO> listHostsByHostIds(List<Long> hostIds) {
-        return null;
+        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        PropertyFilterDTO condition = new PropertyFilterDTO();
+        condition.setCondition("AND");
+        BaseRuleDTO ipRule = new BaseRuleDTO();
+        ipRule.setField("bk_host_id");
+        ipRule.setOperator("in");
+        ipRule.setValue(hostIds);
+        condition.addRule(ipRule);
+        req.setCondition(condition);
+        return listHostsWithoutBiz(req);
     }
 
     @Override
