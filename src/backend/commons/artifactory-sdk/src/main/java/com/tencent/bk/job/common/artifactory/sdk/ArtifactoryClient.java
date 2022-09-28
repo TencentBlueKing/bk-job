@@ -70,6 +70,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHeader;
@@ -237,7 +238,7 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         String reqStr = "{}";
         if (reqBody != null) {
-            reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
+            reqStr = JsonUtils.toJson(reqBody);
         }
         String respStr = null;
         long start = System.nanoTime();
@@ -402,13 +403,13 @@ public class ArtifactoryClient {
         return nodeDTO;
     }
 
-    public Pair<InputStream, Long> getFileInputStream(String filePath) throws ServiceException {
+    public Pair<InputStream, HttpRequestBase> getFileInputStream(String filePath) throws ServiceException {
         List<String> pathList = parsePath(filePath);
         return getFileInputStream(pathList.get(0), pathList.get(1), pathList.get(2));
     }
 
-    public Pair<InputStream, Long> getFileInputStream(String projectId, String repoName,
-                                                      String filePath) throws ServiceException {
+    public Pair<InputStream, HttpRequestBase> getFileInputStream(String projectId, String repoName,
+                                                                 String filePath) throws ServiceException {
         DownloadGenericFileReq req = new DownloadGenericFileReq();
         req.setProject(projectId);
         req.setRepo(repoName);
@@ -419,17 +420,10 @@ public class ArtifactoryClient {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "download:" + URL_DOWNLOAD_GENERIC_FILE));
-            resp = longHttpHelper.getRawResp(false, url, getJsonHeaders());
-            Header contentLengthHeader = resp.getFirstHeader("Content-Length");
-            Long contentLength = null;
-            if (contentLengthHeader != null && StringUtils.isNotBlank(contentLengthHeader.getValue())) {
-                contentLength = Long.parseLong(contentLengthHeader.getValue());
-                log.debug("Content-Length from header:{}", contentLengthHeader.getValue());
-            } else {
-                log.debug("Content-Length from header is null or blank");
-            }
+            Pair<HttpRequestBase, CloseableHttpResponse> pair = longHttpHelper.getRawResp(false, url, getJsonHeaders());
+            resp = pair.getRight();
             if (resp.getStatusLine() != null && resp.getStatusLine().getStatusCode() == 200) {
-                return Pair.of(resp.getEntity().getContent(), contentLength);
+                return Pair.of(resp.getEntity().getContent(), pair.getLeft());
             } else {
                 log.info("resp.statusLine={},resp.entity={}", resp.getStatusLine(), resp.getEntity());
                 throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);

@@ -298,7 +298,7 @@
                 this.timeTravel();
 
                 // 步骤执行详情历史编辑——从历史缓存数据中查找对应数据的formData
-                if (from === 'historyStep') {
+                if (from === 'quickLaunchStep') {
                     let historyRecord = null;
                     if (this.taskInstanceId) {
                         // 有指定taskInstanceId
@@ -351,7 +351,7 @@
              */
             handleGoHistoryDetail (task) {
                 this.$router.push({
-                    name: 'historyStep',
+                    name: 'quickLaunchStep',
                     params: {
                         taskInstanceId: task.taskInstanceId,
                     },
@@ -433,7 +433,7 @@
                             .then((data) => {
                                 window.changeConfirm = false;
                                 this.$router.push({
-                                    name: 'historyStep',
+                                    name: 'quickLaunchStep',
                                     params: {
                                         taskInstanceId: data.taskInstanceId,
                                     },

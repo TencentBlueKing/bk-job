@@ -30,7 +30,7 @@ package com.tencent.bk.job.common.constant;
 public enum Order {
     DESCENDING(0), ASCENDING(1);
 
-    private int order;
+    private final int order;
 
     Order(int order) {
         this.order = order;

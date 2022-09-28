@@ -88,7 +88,6 @@
                     {{ $t('template.提交') }}
                 </bk-button>
                 <bk-button
-                    theme="primary"
                     class="mr10"
                     @click="handleChangeStep(1)">
                     {{ $t('template.上一步') }}

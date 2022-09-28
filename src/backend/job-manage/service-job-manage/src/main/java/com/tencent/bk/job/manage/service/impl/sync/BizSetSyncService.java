@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import com.tencent.bk.job.common.cc.model.bizset.BizInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
@@ -63,9 +64,10 @@ public class BizSetSyncService extends BasicAppSyncService {
                              ApplicationDAO applicationDAO,
                              ApplicationHostDAO applicationHostDAO,
                              ApplicationService applicationService,
+                             IBizCmdbClient bizCmdbClient,
                              IBizSetCmdbClient bizSetCmdbClient,
                              BizSetService bizSetService) {
-        super(dslContext, applicationDAO, applicationHostDAO, applicationService);
+        super(dslContext, applicationDAO, applicationHostDAO, applicationService, bizCmdbClient);
         this.applicationDAO = applicationDAO;
         this.bizSetCmdbClient = bizSetCmdbClient;
         this.bizSetService = bizSetService;

@@ -122,7 +122,6 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
             currentSpan = tracer.nextSpan().start();
         }
         spanInScope = tracer.withSpan(currentSpan);
-        log.debug("currentSpan={}", currentSpan);
         String traceId = currentSpan.context().traceId();
         JobContextUtil.setRequestId(traceId);
     }

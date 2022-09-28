@@ -59,7 +59,19 @@
                     </div>
                     <div class="feature-box">
                         <div class="feature-title">{{ $t('申请已有业务权限 / 创建新的业务') }}</div>
-                        <div>{{ $t('不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择 申请已有业务的权限，亦或是 新建 一个全新的业务。') }}</div>
+                        <div>
+                            {{ $t('不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择') }}
+                            <a @click="handleGoApplyPermission">
+                                {{ $t('申请已有业务的权限') }}
+                            </a>
+                            {{ $t('，亦或是') }}
+                            <a
+                                target="_blank"
+                                :href="`${relatedSystemUrls.BK_CMDB_ROOT_URL}/#/resource/business`">
+                                {{ $t('新建') }}
+                            </a>
+                            {{ $t('一个全新的业务。') }}
+                        </div>
                     </div>
                 </div>
                 <div class="divide-line" />
@@ -103,7 +115,7 @@
                 <div style="margin-top: 10px;">
                     <span>{{ $t('了解更多关于作业平台产品的功能介绍，点击前往') }}</span>
                     <a
-                        :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}`"
+                        :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/markdown/作业平台/产品白皮书/Introduction/What-is-Job.md`"
                         target="_blank">
                         <span>{{ $t('产品文档') }}</span>
                         <Icon type="link" />

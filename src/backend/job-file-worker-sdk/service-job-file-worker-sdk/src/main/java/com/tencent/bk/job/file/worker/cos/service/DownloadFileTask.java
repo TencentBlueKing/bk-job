@@ -33,6 +33,7 @@ import com.tencent.bk.job.file.worker.model.FileMetaData;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.methods.HttpRequestBase;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,6 +92,7 @@ class DownloadFileTask extends Thread {
         AtomicInteger process
     ) throws ServiceException {
         InputStream ins = null;
+        HttpRequestBase req = null;
         try {
             String fileMd5 = "";
             String currentMd5 = "";
@@ -102,12 +104,9 @@ class DownloadFileTask extends Thread {
                 long fileSize = metaData.getSize();
                 fileMd5 = metaData.getMd5();
                 fileSizeWrapper.set(fileSize);
-                Pair<InputStream, Long> pair = remoteClient.getFileInputStream(filePath);
+                Pair<InputStream, HttpRequestBase> pair = remoteClient.getFileInputStream(filePath);
                 ins = pair.getLeft();
-                Long length = pair.getRight();
-                if (length != null && length != fileSize) {
-                    log.warn("{},fileSize={},ins length={}", filePath, fileSize, length);
-                }
+                req = pair.getRight();
                 currentMd5 = FileUtil.writeInsToFile(ins, targetPath, fileSize, speed, process);
                 if (fileMd5 == null) {
                     log.warn("No Md5 in metadata, do not check,key={},targetPath={},fileMd5={},currentMd5={}",
@@ -141,6 +140,9 @@ class DownloadFileTask extends Thread {
                 } catch (IOException e) {
                     log.warn("Fail to close inputStream", e);
                 }
+            }
+            if (req != null) {
+                req.releaseConnection();
             }
             remoteClient.shutdown();
         }

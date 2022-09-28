@@ -55,6 +55,9 @@ public class MetaDataService {
 
     private String loadResizedBase64ImageFromResource(String path) {
         InputStream ins = this.getClass().getClassLoader().getResourceAsStream(path);
+        if (ins == null) {
+            return null;
+        }
         ByteArrayOutputStream tmpBos = new ByteArrayOutputStream();
         String suffix = "png";
         int i = path.lastIndexOf(".");
@@ -80,12 +83,11 @@ public class MetaDataService {
         return null;
     }
 
-    private FileWorkerConfig parseFileSourceIcon(FileWorkerConfig fileWorkerConfig) {
+    private void parseFileSourceIcon(FileWorkerConfig fileWorkerConfig) {
         List<FileSourceMetaData> fileSourceMetaDataList = fileWorkerConfig.getFileSourceMetaDataList();
         for (FileSourceMetaData fileSourceMetaData : fileSourceMetaDataList) {
             fileSourceMetaData.setIconBase64(loadResizedBase64ImageFromResource(fileSourceMetaData.getIconPath()));
         }
-        return fileWorkerConfig;
     }
 
     public FileWorkerConfig getFileWorkerConfig() {
@@ -99,7 +101,7 @@ public class MetaDataService {
             }
             br = new BufferedReader(new InputStreamReader(ins, StandardCharsets.UTF_8));
             StringBuilder jsonStrBuilder = new StringBuilder();
-            String line = null;
+            String line;
             do {
                 line = br.readLine();
                 jsonStrBuilder.append(line);
@@ -136,9 +138,9 @@ public class MetaDataService {
     /**
      * 根据根节点类型查询子节点元信息
      *
-     * @param fileSourceTypeCode
-     * @param parentNodeType
-     * @return
+     * @param fileSourceTypeCode 文件源类型码
+     * @param parentNodeType     父节点类型
+     * @return 子节点信息
      */
     public FileTreeNodeDef getChildFileNodeMetaDataByParent(String fileSourceTypeCode, String parentNodeType) {
         if (StringUtils.isBlank(fileSourceTypeCode)) {

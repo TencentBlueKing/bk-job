@@ -160,6 +160,7 @@
                     triggerPoliciesList,
                 }).then(() => {
                     this.messageSuccess(I18n.t('notify.保存成功'));
+                    window.changeConfirm = false;
                     return this.fetchPoliciesList();
                 })
                     .finally(() => {
@@ -171,6 +172,7 @@
              */
             handleCancel () {
                 this.$refs.setting.forEach(item => item.reset());
+                window.changeConfirm = false;
             },
         },
     };

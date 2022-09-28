@@ -528,7 +528,11 @@ export default {
     '作业平台的核心功能包括面向服务器操作系统的命令执行、文件分发，以及将多个操作组合成作业流程，并支持设置定时执行。': 'The core functions of the Job include command execution for server operating systems, file distribution, and combining multiple operations into job processes, and support for setting up timed execution.',
     申请业务权限: 'Apply Business Permission',
     '申请已有业务权限 / 创建新的业务': 'Apply for business permission or Create one',
-    '不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择 申请已有业务的权限，亦或是 新建 一个全新的业务。': 'The resources of different teams on the job platform are separated by "Business", which is created and managed by the CMDB platform, and you can choose to request the permission of an existing business or create a new one.',
+    '不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择': 'The resources of different teams on the job platform are separated by "Business", which is created and managed by the CMDB platform, and you can choose to ',
+    申请已有业务的权限: 'Apply Business Permission',
+    '，亦或是': ' or ',
+    ' 新建 ': 'create now.',
+    '一个全新的业务。': '',
     开始使用作业平台: 'Getting Started with Job',
     作业平台的目标服务器信息同样来自: 'The target host of the job platform also comes from the ',
     配置平台: 'CMDB',
@@ -563,5 +567,7 @@ export default {
     请确定是否要继续执行: 'Are you sure want to continue to run?',
     继续执行: 'YES',
     立即取消: 'CANCEL',
-
+    复制: 'Copy',
+    粘贴: 'Paste',
+    快速执行详情: 'Quick Launch Details',
 };

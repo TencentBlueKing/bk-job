@@ -45,12 +45,12 @@ import com.tencent.bk.job.manage.service.ScriptService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,10 +65,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     private final NoResourceScopeAuthService noResourceScopeAuthService;
     private final AppAuthService appAuthService;
     private final ScriptService scriptService;
-
-    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
-        5, 5, 30, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>());
+    private final ThreadPoolExecutor adminAuthExecutor;
 
     @Autowired
     public WebGlobalSettingsQueryResourceImpl(GlobalSettingsService globalSettingsService,
@@ -76,13 +73,15 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                                               JobManageConfig jobManageConfig,
                                               NoResourceScopeAuthService noResourceScopeAuthService,
                                               AppAuthService appAuthService,
-                                              ScriptService scriptService) {
+                                              ScriptService scriptService,
+                                              @Qualifier("adminAuthExecutor") ThreadPoolExecutor adminAuthExecutor) {
         this.globalSettingsService = globalSettingsService;
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
         this.noResourceScopeAuthService = noResourceScopeAuthService;
         this.appAuthService = appAuthService;
         this.scriptService = scriptService;
+        this.adminAuthExecutor = adminAuthExecutor;
     }
 
     @Override
@@ -99,7 +98,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     public Response<Boolean> isAdmin(String username) {
         AtomicBoolean flag = new AtomicBoolean(false);
         CountDownLatch latch = new CountDownLatch(9);
-        executor.submit(() -> {
+        adminAuthExecutor.submit(() -> {
             try {
                 AuthResult createWhiteListAuthResultVO = noResourceScopeAuthService.authCreateWhiteList(username);
                 flag.set(flag.get() || createWhiteListAuthResultVO.isPass());
@@ -109,7 +108,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                 latch.countDown();
             }
         });
-        executor.submit(() -> {
+        adminAuthExecutor.submit(() -> {
             try {
                 AuthResult manageWhiteListAuthResultVO = noResourceScopeAuthService.authManageWhiteList(username);
                 flag.set(flag.get() || manageWhiteListAuthResultVO.isPass());
@@ -119,7 +118,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                 latch.countDown();
             }
         });
-        executor.submit(() -> {
+        adminAuthExecutor.submit(() -> {
             try {
                 AuthResult createPublicScriptAuthResultVO = noResourceScopeAuthService.authCreatePublicScript(username);
                 flag.set(flag.get() || createPublicScriptAuthResultVO.isPass());
@@ -129,7 +128,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                 latch.countDown();
             }
         });
-        executor.submit(() -> {
+        adminAuthExecutor.submit(() -> {
             try {
                 // 是否能管理某些公共脚本
                 List<String> canManagePublicScriptIds =
@@ -144,7 +143,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                 latch.countDown();
             }
         });
-        executor.submit(() -> {
+        adminAuthExecutor.submit(() -> {
             try {
                 AuthResult globalSettingsAuthResultVO = noResourceScopeAuthService.authGlobalSetting(username);
                 flag.set(flag.get() || globalSettingsAuthResultVO.isPass());
@@ -154,7 +153,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                 latch.countDown();
             }
         });
-        executor.submit(() -> {
+        adminAuthExecutor.submit(() -> {
             try {
                 AuthResult authResult = noResourceScopeAuthService.authViewDashBoard(username,
                     AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
@@ -165,7 +164,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                 latch.countDown();
             }
         });
-        executor.submit(() -> {
+        adminAuthExecutor.submit(() -> {
             try {
                 AuthResult serviceInfoAuthResultVO = noResourceScopeAuthService.authViewServiceState(username);
                 flag.set(flag.get() || serviceInfoAuthResultVO.isPass());
@@ -175,7 +174,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                 latch.countDown();
             }
         });
-        executor.submit(() -> {
+        adminAuthExecutor.submit(() -> {
             try {
                 AuthResult highRiskRuleAuthResultVO = noResourceScopeAuthService.authHighRiskDetectRule(username);
                 flag.set(flag.get() || highRiskRuleAuthResultVO.isPass());
@@ -185,7 +184,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                 latch.countDown();
             }
         });
-        executor.submit(() -> {
+        adminAuthExecutor.submit(() -> {
             try {
                 AuthResult highRiskRecordAuthResultVO = noResourceScopeAuthService.authHighRiskDetectRecord(username);
                 flag.set(flag.get() || highRiskRecordAuthResultVO.isPass());
@@ -252,6 +251,6 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
 
     @Override
     public void destroy() {
-        executor.shutdown();
+        adminAuthExecutor.shutdown();
     }
 }

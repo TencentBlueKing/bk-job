@@ -24,12 +24,10 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
@@ -51,7 +49,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -66,10 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @since 19/1/2021 12:01
@@ -79,7 +74,7 @@ import java.util.concurrent.TimeUnit;
 public class LogExportServiceImpl implements LogExportService {
     private static final String EXPORT_KEY_PREFIX = "execute:log:export:";
     private final LogService logService;
-    private final TraceableExecutorService logExportExecutor;
+    private final ExecutorService logExportExecutor;
     private final StringRedisTemplate redisTemplate;
     private final TaskInstanceService taskInstanceService;
     private final ArtifactoryClient artifactoryClient;
@@ -89,13 +84,13 @@ public class LogExportServiceImpl implements LogExportService {
 
     @Autowired
     public LogExportServiceImpl(LogService logService,
-                                Tracer tracer,
                                 StringRedisTemplate redisTemplate,
                                 TaskInstanceService taskInstanceService,
                                 ArtifactoryClient artifactoryClient,
                                 ArtifactoryConfig artifactoryConfig,
                                 LogExportConfig logExportConfig,
-                                ScriptAgentTaskService scriptAgentTaskService) {
+                                ScriptAgentTaskService scriptAgentTaskService,
+                                @Qualifier("logExportExecutor") ExecutorService logExportExecutor) {
         this.logService = logService;
         this.redisTemplate = redisTemplate;
         this.taskInstanceService = taskInstanceService;
@@ -103,9 +98,7 @@ public class LogExportServiceImpl implements LogExportService {
         this.artifactoryConfig = artifactoryConfig;
         this.logExportConfig = logExportConfig;
         this.scriptAgentTaskService = scriptAgentTaskService;
-        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("log-export-thread-%d").build();
-        this.logExportExecutor = new TraceableExecutorService(new ThreadPoolExecutor(10,
-            100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), threadFactory), tracer);
+        this.logExportExecutor = logExportExecutor;
     }
 
     @Override
