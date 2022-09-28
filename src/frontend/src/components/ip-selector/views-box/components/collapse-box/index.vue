@@ -12,7 +12,7 @@
             </div>
         </div>
         <div
-            v-if="isShow"
+            v-show="isShow"
             class="box-content">
             <slot />
         </div>
