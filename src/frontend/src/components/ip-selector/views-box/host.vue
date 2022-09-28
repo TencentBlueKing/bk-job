@@ -294,6 +294,7 @@
 
     .ip-selector-view-host {
         @include table;
+        @include view-table;
 
         table {
             th {

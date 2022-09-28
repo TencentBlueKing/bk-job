@@ -7,7 +7,9 @@
                 class="arrow-flag"
                 :class="{ 'is-show': isShow }"
                 type="close" />
-            <slot name="title" />
+            <div class="box-header-text">
+                <slot name="title" />
+            </div>
         </div>
         <div
             v-if="isShow"
@@ -44,14 +46,9 @@
             align-items: center;
             background: #eff1f5;
             user-select: none;
-        }
-
-        .box-title {
-            display: flex;
-            align-items: center;
 
             .arrow-flag {
-                margin-right: 4px;
+                margin-right: 16px;
                 transform: rotateZ(90deg);
                 transition: all 0.15s;
 
@@ -59,6 +56,10 @@
                     transform: rotateZ(0);
                 }
             }
+        }
+
+        .box-header-text {
+            display: flex;
         }
 
         .box-content {

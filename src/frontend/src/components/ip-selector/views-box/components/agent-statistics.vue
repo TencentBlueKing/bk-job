@@ -64,12 +64,6 @@
             }
         }
 
-        .statistics-item-btn {
-            &:hover {
-                background: #eaebf0;
-            }
-        }
-
         .bk-ip-selector-number,
         .bk-ip-selector-number-success,
         .bk-ip-selector-number-error {

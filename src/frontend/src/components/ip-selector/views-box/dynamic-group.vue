@@ -35,7 +35,9 @@
                     v-for="row in renderData"
                     :key="row.id"
                     :class="diffMap[row.id]">
-                    <td style="width: 30%;">
+                    <td
+                        style="width: 30%;"
+                        @click="handleShowHostList(row)">
                         <div class="cell">
                             <div class="cell-text">
                                 {{ row.name || `#${row.id}` }}
@@ -43,11 +45,10 @@
                             <diff-tag :value="diffMap[row.id]" />
                         </div>
                     </td>
-                    <td>
+                    <td @click="handleShowHostList(row)">
                         <render-agent-statistics
                             :data="agentStaticMap[row.id]"
-                            :loading="isAgentStatisticsLoading"
-                            @select="handleShowHostList(row)" />
+                            :loading="isAgentStatisticsLoading" />
                     </td>
                     <td
                         v-if="!context.readonly"
@@ -56,7 +57,7 @@
                             v-if="diffMap[row.id] !== 'remove'"
                             text
                             theme="primary"
-                            @click="handleRemove(row)">
+                            @click.stop="handleRemove(row)">
                             删除
                         </bk-button>
                     </td>
@@ -270,5 +271,6 @@
 
     .ip-selector-view-dynamic-group {
         @include table;
+        @include view-table;
     }
 </style>

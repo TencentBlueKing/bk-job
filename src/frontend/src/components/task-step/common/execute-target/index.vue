@@ -137,8 +137,10 @@
                     @on-change="handleHostChange" /> -->
             <ip-selector
                 ref="ipSelector"
+                mode="section"
                 :show-dialog="isShowChooseIp"
                 show-view
+                style="height: 1000px;"
                 :value="localHost"
                 :view-search-key="searchText"
                 @change="handleHostChange"

@@ -71,3 +71,14 @@
         font-size: 12px;
     }
 }
+
+@mixin view-table{
+    table {
+        th,
+        td {
+            &:first-child {
+                padding-left: 48px;
+            }
+        }
+    }
+}

@@ -35,7 +35,9 @@
                     v-for="row in renderData"
                     :key="row.id"
                     :class="diffMap[genNodeKey(row)]">
-                    <td style="width: 30%;">
+                    <td
+                        style="width: 30%;"
+                        @click="handleShowHostList(row)">
                         <div class="cell">
                             <div class="cell-text">
                                 {{ nodeNamePathMap[genNodeKey(row)] || `#${row.instance_id}` }}
@@ -46,8 +48,7 @@
                     <td>
                         <render-agent-statistics
                             :data="nodeAgentStaticMap[genNodeKey(row)]"
-                            :loading="isAgentStatisticsLoading"
-                            @select="handleShowHostList(row)" />
+                            :loading="isAgentStatisticsLoading" />
                     </td>
                     <td
                         v-if="!context.readonly"
@@ -285,5 +286,6 @@
 
     .ip-selector-view-node {
         @include table;
+        @include view-table;
     }
 </style>
