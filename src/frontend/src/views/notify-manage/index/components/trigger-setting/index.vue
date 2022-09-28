@@ -137,6 +137,7 @@
              */
             handleResourceTypeChange (resourceTypeList) {
                 this.localValue.resourceTypeList = resourceTypeList;
+                window.changeConfirm = true;
             },
             /**
              * @desc 设置通知对象
@@ -149,6 +150,7 @@
                 }
                 this.localValue.extraObserverList = extraObserverList;
                 this.localValue.roleList = roleList;
+                window.changeConfirm = true;
             },
             /**
              * @desc 设置通知方式
@@ -157,6 +159,7 @@
              */
             handleNotifyWayChange (executeStatus, channelList) {
                 this.localValue.resourceStatusChannelMap[executeStatus] = channelList;
+                window.changeConfirm = true;
             },
         },
     };

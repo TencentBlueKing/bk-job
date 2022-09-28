@@ -152,7 +152,6 @@ fi
 cp -r support-files/bk-cmdb/ release/job/support-files/
 cp -r support-files/bkiam/ release/job/support-files/
 cp -r support-files/dependJarInfo/ release/job/support-files/
-cp support-files/javaagent/* release/job/backend/
 # Package dependJarLists
 if [[ -d "support-files/dependJarLists/" ]]; then
   cp -r support-files/dependJarLists/ release/job/support-files/

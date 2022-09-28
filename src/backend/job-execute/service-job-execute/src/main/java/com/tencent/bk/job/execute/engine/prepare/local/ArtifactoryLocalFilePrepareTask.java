@@ -36,6 +36,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -46,7 +47,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -67,27 +67,8 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     private final String artifactoryRepo;
     private final String jobStorageRootPath;
     private final List<Future<Boolean>> futureList = new ArrayList<>();
-    public static ThreadPoolExecutor threadPoolExecutor = null;
+    private final ThreadPoolExecutor threadPoolExecutor;
     public static FinalResultHandler finalResultHandler = null;
-
-    public static void init(int concurrency) {
-        if (threadPoolExecutor == null) {
-            threadPoolExecutor = new ThreadPoolExecutor(
-                concurrency,
-                concurrency,
-                180L,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(100),
-                (r, executor) -> {
-                    //使用请求的线程直接拉取数据
-                    log.error(
-                        "download localupload file from artifactory runnable rejected," +
-                            " use current thread({}), plz add more threads",
-                        Thread.currentThread().getName());
-                    r.run();
-                });
-        }
-    }
 
     public ArtifactoryLocalFilePrepareTask(
         Long stepInstanceId,
@@ -97,7 +78,8 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         ArtifactoryClient artifactoryClient,
         String artifactoryProject,
         String artifactoryRepo,
-        String jobStorageRootPath
+        String jobStorageRootPath,
+        ThreadPoolExecutor threadPoolExecutor
     ) {
         this.stepInstanceId = stepInstanceId;
         this.isForRetry = isForRetry;
@@ -107,6 +89,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         this.artifactoryProject = artifactoryProject;
         this.artifactoryRepo = artifactoryRepo;
         this.jobStorageRootPath = jobStorageRootPath;
+        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     @Override
@@ -236,26 +219,13 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
                 );
                 return false;
             }
-            Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(
+            Pair<InputStream, HttpRequestBase> pair = artifactoryClient.getFileInputStream(
                 artifactoryProject,
                 artifactoryRepo,
                 filePath
             );
             InputStream ins = pair.getLeft();
-            Long length = pair.getRight();
             Long fileSize = nodeDTO.getSize();
-            if (fileSize != null && !fileSize.equals(length)) {
-                log.warn(
-                    "[{}]:{},ins length={},node.size={}",
-                    stepInstanceId,
-                    filePath,
-                    length,
-                    nodeDTO.getSize()
-                );
-            }
-            if (fileSize == null || fileSize <= 0) {
-                fileSize = length;
-            }
             // 保存到本地临时目录
             AtomicInteger speed = new AtomicInteger(0);
             AtomicInteger process = new AtomicInteger(0);

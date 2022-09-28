@@ -40,21 +40,7 @@ if [[ "$BK_JOB_FILE_WORKER_WORKSPACE_DIR" != "" ]];then
     chmod 666 "$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
 fi
 
-# OpenTelemetry相关参数
-OTEL_OPTS=""
-if [[ "$OTEL_TRACE_ENABLED" == "true" ]];then
-    OTEL_OPTS="-javaagent:${BK_JOB_HOME}/opentelemetry-javaagent.jar"
-    OTEL_OPTS="$OTEL_OPTS -Dotel.metrics.exporter=none"
-    if [[ "$OTEL_TRACE_REPORT_ENABLED" == "true" ]];then
-        OTEL_OPTS="$OTEL_OPTS -Dotel.exporter.otlp.endpoint=$OTEL_TRACE_REPORT_ENDPOINT_URL"
-        OTEL_OPTS="$OTEL_OPTS -Dotel.resource.attributes=service.name=$BK_JOB_APP_NAME,bk.data.token=$OTEL_TRACE_REPORT_BK_DATA_TOKEN"
-    else
-        OTEL_OPTS="$OTEL_OPTS -Dotel.traces.exporter=none"
-    fi
-fi
-
 exec java -server \
-     $OTEL_OPTS \
      -Dfile.encoding=UTF-8 \
      -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
      -Xloggc:$BK_JOB_LOG_DIR/gc.log \

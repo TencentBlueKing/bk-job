@@ -1,0 +1,15 @@
+version: v2.0
+  
+resources:
+  repositories:
+    - repository: ci_templates/public/codecc
+      name: codecc
+  
+stages:
+  - name: "stage1"
+    check-out:
+      gates:
+      - template: commonGate.yml@codecc
+    jobs:
+      template:
+      - name: openScan.yml@codecc

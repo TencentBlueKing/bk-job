@@ -68,13 +68,15 @@
             </jb-form>
         </div>
         <div ref="content">
-            <ace-editor
-                ref="aceEditor"
-                v-model="formData.content"
-                :lang="formData.typeName"
-                :height="contentHeight"
-                :readonly="!scriptInfo.isDraft"
-                :options="formData.typeName" />
+            <jb-form :model="formData">
+                <ace-editor
+                    ref="aceEditor"
+                    v-model="formData.content"
+                    :lang="formData.typeName"
+                    :height="contentHeight"
+                    :readonly="!scriptInfo.isDraft"
+                    :options="formData.typeName" />
+            </jb-form>
         </div>
         <template #footer>
             <bk-button

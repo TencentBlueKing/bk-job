@@ -53,6 +53,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.concurrent.ExecutorService;
+
 @Configuration
 @EnableScheduling
 @Slf4j
@@ -217,6 +219,7 @@ public class ArchivistAutoConfig {
         @Autowired(required = false) RollingConfigRecordDAO rollingConfigRecordDAO,
         @Autowired(required = false) ExecuteArchiveDAO executeArchiveDAO,
         ArchiveProgressService archiveProgressService,
+        @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
         ArchiveConfig archiveConfig) {
 
         log.info("Init JobExecuteArchiveManage");
@@ -239,7 +242,7 @@ public class ArchivistAutoConfig {
             rollingConfigRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
-            archiveConfig
-        );
+            archiveConfig,
+            archiveExecutor);
     }
 }

@@ -38,7 +38,7 @@
                         <Icon
                             v-bk-tooltips="{
                                 theme: 'light',
-                                content: $t('setting.规则的顺位越高，表示执行优先度越高'),
+                                content: $t('setting.规则的排序越靠前，表示检测优先级越高'),
                             }"
                             class="action-tips"
                             type="info" />

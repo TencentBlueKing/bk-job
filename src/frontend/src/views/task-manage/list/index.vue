@@ -109,42 +109,57 @@
                     key="name"
                     align="left">
                     <template slot-scope="{ row }">
-                        <div class="task-name-box">
-                            <Icon
-                                type="collection"
-                                class="task-collection"
-                                :class="row.favored ? 'favored' : 'unfavored'"
-                                @click="handleCollection(row)" />
-                            <auth-router-link
-                                class="task-name-text"
-                                v-bk-overflow-tips
-                                :permission="row.canView"
-                                auth="job_template/view"
-                                :resource-id="row.id"
-                                :to="{
-                                    name: 'templateDetail',
-                                    params: {
-                                        id: row.id,
-                                    },
-                                }">
-                                {{ row.name }}
-                            </auth-router-link>
-                            <auth-router-link
-                                :permission="row.canView"
-                                auth="job_template/view"
-                                :resource-id="row.id"
-                                :to="{
-                                    name: 'templateDetail',
-                                    params: {
-                                        id: row.id,
-                                    },
-                                    query: {
-                                        mode: 'scriptUpdate',
-                                    },
-                                }">
-                                <span v-html="row.scriptStatusHtml" />
-                            </auth-router-link>
-                        </div>
+                        <auth-component
+                            :permission="row.canView"
+                            auth="job_template/view"
+                            :resource-id="row.id">
+                            <div class="task-name-box">
+                                <Icon
+                                    type="collection"
+                                    class="task-collection"
+                                    :class="row.favored ? 'favored' : 'unfavored'"
+                                    @click="handleCollection(row)" />
+                                <router-link
+                                    class="task-name-text"
+                                    v-bk-overflow-tips
+                                    :to="{
+                                        name: 'templateDetail',
+                                        params: {
+                                            id: row.id,
+                                        },
+                                    }">
+                                    {{ row.name }}
+                                </router-link>
+                                <router-link
+                                    :to="{
+                                        name: 'templateDetail',
+                                        params: {
+                                            id: row.id,
+                                        },
+                                        query: {
+                                            mode: 'scriptUpdate',
+                                        },
+                                    }">
+                                    <span v-html="row.scriptStatusHtml" />
+                                </router-link>
+                            </div>
+                            <div
+                                slot="forbid"
+                                class="task-name-box">
+                                <Icon
+                                    type="collection"
+                                    class="task-collection"
+                                    :class="row.favored ? 'favored' : 'unfavored'" />
+                                <span
+                                    class="task-name-text"
+                                    v-bk-overflow-tips>
+                                    {{ row.name }}
+                                </span>
+                                <span>
+                                    <span v-html="row.scriptStatusHtml" />
+                                </span>
+                            </div>
+                        </auth-component>
                     </template>
                 </bk-table-column>
                 <bk-table-column

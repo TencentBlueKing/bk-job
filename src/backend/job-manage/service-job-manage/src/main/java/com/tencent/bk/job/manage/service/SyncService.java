@@ -47,8 +47,6 @@ public interface SyncService {
 
     Long getLastFinishTimeSyncAgentStatus();
 
-    ThreadPoolExecutor getSyncAppExecutor();
-
     ThreadPoolExecutor getSyncHostExecutor();
 
     ThreadPoolExecutor getSyncAgentStatusExecutor();
