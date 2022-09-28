@@ -197,6 +197,7 @@
         lastHostList.value = [];
         lastNodeList.value = [];
         lastDynamicGroupList.value = [];
+        handleSubmit();
     };
     // 提交编辑
     const handleSubmit = () => {
