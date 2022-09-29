@@ -28,11 +28,9 @@ import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import org.jooq.DSLContext;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @since 4/11/2019 15:01
@@ -41,17 +39,15 @@ public interface ApplicationHostDAO {
 
     // 查询类操作
 
-    boolean existsHost(DSLContext dslContext, long bizId, String ip);
+    boolean existsHost(long bizId, String ip);
 
-    boolean existAppHostInfoByHostId(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
+    boolean existAppHostInfoByHostId(ApplicationHostDTO applicationHostDTO);
 
-    boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId);
+    boolean existAppHostInfoByHostId(Long hostId);
 
     ApplicationHostDTO getHostById(Long hostId);
 
-    ApplicationHostDTO getLatestHost(DSLContext dslContext, long bizId, long cloudAreaId, String ip);
-
-    List<ApplicationHostDTO> listHostInfoByIps(Long bizId, List<String> ips);
+    ApplicationHostDTO getLatestHost(long bizId, long cloudAreaId, String ip);
 
     /**
      * 查询近期未更新的主机ID
@@ -71,23 +67,27 @@ public interface ApplicationHostDAO {
 
     List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds);
 
-    List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
+    List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,
+                                                          Collection<Long> moduleIds,
                                                           Collection<Long> cloudAreaIds,
-                                                          List<String> searchContents, Integer agentStatus,
-                                                          Long start, Long limit);
+                                                          List<String> searchContents,
+                                                          Integer agentStatus,
+                                                          Long start,
+                                                          Long limit);
 
     List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips);
 
     List<ApplicationHostDTO> listHostInfoByBizAndCloudIPs(Collection<Long> bizIds, Collection<String> cloudIPs);
 
-    List<ApplicationHostDTO> listHostInfoBySourceAndIps(long cloudAreaId, Set<String> ips);
-
     PageData<ApplicationHostDTO> listHostInfoByPage(ApplicationHostDTO applicationHostInfoCondition,
                                                     BaseSearchCondition baseSearchCondition);
 
     // count类操作
-    Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
-                                       Collection<Long> cloudAreaIds, List<String> searchContents, Integer agentStatus);
+    Long countHostInfoBySearchContents(Collection<Long> bizIds,
+                                       Collection<Long> moduleIds,
+                                       Collection<Long> cloudAreaIds,
+                                       List<String> searchContents,
+                                       Integer agentStatus);
 
     /**
      * 根据ID与Agent状态查询主机数量
@@ -98,7 +98,7 @@ public interface ApplicationHostDAO {
      */
     Long countHostByIdAndStatus(Collection<Long> hostIds, AgentStatusEnum agentStatus);
 
-    long countHostsByBizIds(DSLContext dslContext, Collection<Long> bizIds);
+    long countHostsByBizIds(Collection<Long> bizIds);
 
     long countAllHosts();
 
@@ -113,28 +113,25 @@ public interface ApplicationHostDAO {
 
     // 新增、更新类操作
 
-    int insertHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
+    int insertHostWithoutTopo(ApplicationHostDTO applicationHostDTO);
 
-    int insertOrUpdateHost(DSLContext dslContext, ApplicationHostDTO hostDTO);
+    void insertOrUpdateHost(ApplicationHostDTO hostDTO);
 
-    int batchInsertAppHostInfo(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
+    int batchInsertAppHostInfo(List<ApplicationHostDTO> applicationHostDTOList);
 
-    int updateHostAttrsById(DSLContext dslContext, ApplicationHostDTO applicationHostDTO);
+    void updateHostAttrsById(ApplicationHostDTO applicationHostDTO);
 
-    int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId, ApplicationHostDTO applicationHostDTO);
+    void updateBizHostInfoByHostId(Long bizId, ApplicationHostDTO applicationHostDTO);
 
-    int updateBizHostInfoByHostId(DSLContext dslContext,
-                                  Long bizId,
-                                  ApplicationHostDTO applicationHostDTO,
-                                  boolean updateTopo);
+    int updateBizHostInfoByHostId(Long bizId, ApplicationHostDTO applicationHostDTO, boolean updateTopo);
 
-    int batchUpdateBizHostInfoByHostId(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList);
+    int batchUpdateBizHostInfoByHostId(List<ApplicationHostDTO> applicationHostDTOList);
 
-    int syncHostTopo(DSLContext dslContext, Long hostId);
+    int syncHostTopo(Long hostId);
 
     // 删除类操作
 
-    int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long hostId);
+    int deleteBizHostInfoById(Long bizId, Long hostId);
 
     /**
      * 根据传入的主机ID批量删除主机
@@ -147,19 +144,17 @@ public interface ApplicationHostDAO {
     /**
      * 根据传入的业务ID与主机ID批量删除主机
      *
-     * @param dslContext DB操作上下文
      * @param bizId      业务ID
      * @param hostIdList 要删除的主机ID列表
      * @return 删除的主机数量
      */
-    int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> hostIdList);
+    int batchDeleteBizHostInfoById(Long bizId, List<Long> hostIdList);
 
     /**
      * 删除某个业务下的全部主机，用于业务被删除后清理主机
      *
-     * @param dslContext DB操作上下文
-     * @param bizId      业务ID
+     * @param bizId 业务ID
      * @return 删除的主机数量
      */
-    int deleteBizHostInfoByBizId(DSLContext dslContext, long bizId);
+    int deleteBizHostInfoByBizId(long bizId);
 }
