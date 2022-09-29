@@ -20,7 +20,7 @@ BEGIN
                     AND TABLE_NAME = 'host'
                     AND COLUMN_NAME = 'last_modify_time') THEN
         ALTER TABLE host
-            ADD COLUMN last_modify_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+            ADD COLUMN last_modify_time bigint(20) UNSIGNED NULL DEFAULT NULL COMMENT '最近更新时间';
     END IF;
 
     COMMIT;

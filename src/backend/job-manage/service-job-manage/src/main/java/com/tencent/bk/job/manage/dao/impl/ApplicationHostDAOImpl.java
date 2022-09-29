@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
+import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
@@ -68,7 +69,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -153,10 +153,19 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<Long> listHostIdNotUpdated(long bizId, LocalDateTime maxUpdateTime) {
+    public List<Long> listHostId(long bizId, long minUpdateTimeMills, long maxUpdateTimeMills) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
-        conditions.add(TABLE.LAST_MODIFY_TIME.cast(LocalDateTime.class).lessThan(maxUpdateTime));
+        conditions.add(TABLE.LAST_MODIFY_TIME.greaterThan(JooqDataTypeUtil.buildULong(minUpdateTimeMills)));
+        conditions.add(TABLE.LAST_MODIFY_TIME.lessThan(JooqDataTypeUtil.buildULong(maxUpdateTimeMills)));
+        return listHostIdByConditions(conditions);
+    }
+
+    @Override
+    public List<Long> listHostIdWithNullLastModifyTime(long bizId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
+        conditions.add(TABLE.LAST_MODIFY_TIME.isNull());
         return listHostIdByConditions(conditions);
     }
 
@@ -495,7 +504,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.OS_TYPE,
                 TABLE.MODULE_TYPE,
                 TABLE.IS_AGENT_ALIVE,
-                TABLE.CLOUD_IP
+                TABLE.CLOUD_IP,
+                TABLE.LAST_MODIFY_TIME
             ).values(
                 ULong.valueOf(applicationHostDTO.getHostId()),
                 bizId,
@@ -509,7 +519,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 osType,
                 finalModuleTypeStr,
                 gseAgentAlive,
-                cloudIp
+                cloudIp,
+                JooqDataTypeUtil.buildULong(System.currentTimeMillis())
             );
             try {
                 result[0] = query.onDuplicateKeyUpdate()
@@ -566,9 +577,11 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     TABLE.OS_TYPE,
                     TABLE.MODULE_TYPE,
                     TABLE.IS_AGENT_ALIVE,
-                    TABLE.CLOUD_IP
+                    TABLE.CLOUD_IP,
+                    TABLE.LAST_MODIFY_TIME
                 ).values(
                     (ULong) null,
+                    null,
                     null,
                     null,
                     null,
@@ -599,7 +612,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         applicationHostDTO.getOsType(),
                         applicationHostDTO.getModuleTypeStr(),
                         UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0),
-                        applicationHostDTO.getCloudIp()
+                        applicationHostDTO.getCloudIp(),
+                        JooqDataTypeUtil.buildULong(System.currentTimeMillis())
                     );
                     hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
                 }
@@ -677,6 +691,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .set(TABLE.OS, applicationHostDTO.getOs())
             .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
             .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getAgentStatusValue()))
+            .set(TABLE.LAST_MODIFY_TIME, JooqDataTypeUtil.buildULong(System.currentTimeMillis()))
             .where(conditions);
         try {
             return query.execute();
@@ -724,6 +739,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                 .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
                 .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
+                .set(TABLE.LAST_MODIFY_TIME, JooqDataTypeUtil.buildULong(System.currentTimeMillis()))
                 .where(conditions);
             try {
                 affectedNum[0] = query.execute();
@@ -775,6 +791,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                         .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
                         .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
                         .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0))
+                        .set(TABLE.LAST_MODIFY_TIME, JooqDataTypeUtil.buildULong(System.currentTimeMillis()))
                         .where(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())))
                         .and(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getBizId())))
                     );

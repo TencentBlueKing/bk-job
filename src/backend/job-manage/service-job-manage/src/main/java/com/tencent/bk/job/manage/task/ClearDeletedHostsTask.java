@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -104,11 +103,16 @@ public class ClearDeletedHostsTask {
     }
 
     private void clearDeletedHosts() {
-        // 1.查出不属于任何业务且最近半小时内未更新的主机ID进行check
-        List<Long> hostIdList = applicationHostDAO.listHostIdNotUpdated(
+        // 1.查出不属于任何业务且近期未更新的主机ID进行check
+        // 单个业务可能的最大主机同步时间：30min
+        long bizHostsMaxSyncTimeMills = 30 * 60 * 1000L;
+        List<Long> hostIdList = applicationHostDAO.listHostId(
             JobConstants.PUBLIC_APP_ID,
-            LocalDateTime.now().minusMinutes(30)
+            0,
+            System.currentTimeMillis() - bizHostsMaxSyncTimeMills
         );
+        // 不属于任何业务且最近更新时间为null的历史遗留数据
+        hostIdList.addAll(applicationHostDAO.listHostIdWithNullLastModifyTime(JobConstants.PUBLIC_APP_ID));
         if (CollectionUtils.isEmpty(hostIdList)) {
             log.info("no deleted hosts found, finish");
             return;
