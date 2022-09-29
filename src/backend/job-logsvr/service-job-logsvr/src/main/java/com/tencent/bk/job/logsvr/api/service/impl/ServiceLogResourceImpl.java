@@ -73,7 +73,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
 
         List<TaskHostLog> taskHostLogs =
             request.getLogs().stream()
-                .map(log -> convertToTaskLog(
+                .map(log -> convertToTaskHostLog(
                     request.getLogType(),
                     request.getJobCreateDate(),
                     log.getStepInstanceId(),
@@ -90,16 +90,16 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         return InternalResponse.buildSuccessResp(null);
     }
 
-    private TaskHostLog convertToTaskLog(Integer logType,
-                                         String jobCreateDate,
-                                         long stepInstanceId,
-                                         int executeCount,
-                                         Integer batch,
-                                         Long hostId,
-                                         String ip,
-                                         String ipv6,
-                                         ServiceScriptLogDTO scriptLog,
-                                         List<ServiceFileTaskLogDTO> serviceFileTaskLogs) {
+    private TaskHostLog convertToTaskHostLog(Integer logType,
+                                             String jobCreateDate,
+                                             long stepInstanceId,
+                                             int executeCount,
+                                             Integer batch,
+                                             Long hostId,
+                                             String ip,
+                                             String ipv6,
+                                             ServiceScriptLogDTO scriptLog,
+                                             List<ServiceFileTaskLogDTO> fileTaskLogs) {
         TaskHostLog taskHostLog = new TaskHostLog();
         taskHostLog.setLogType(logType);
         taskHostLog.setStepInstanceId(stepInstanceId);
@@ -110,13 +110,13 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         taskHostLog.setIpv6(ipv6);
         taskHostLog.setJobCreateDate(jobCreateDate);
         if (scriptLog != null) {
-            taskHostLog.setScriptTaskLog(new ScriptTaskLogDoc(stepInstanceId, executeCount, batch, hostId, ip,
+            taskHostLog.setScriptTaskLog(new ScriptTaskLogDoc(stepInstanceId, executeCount, batch, hostId, ip, ipv6,
                 scriptLog.getContent(), scriptLog.getOffset()));
         }
-        if (CollectionUtils.isNotEmpty(serviceFileTaskLogs)) {
-            List<FileTaskLogDoc> fileTaskLogs = serviceFileTaskLogs.stream()
+        if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
+            List<FileTaskLogDoc> fileTaskLogDocs = fileTaskLogs.stream()
                 .map(FileTaskLogDoc::convert).collect(Collectors.toList());
-            taskHostLog.setFileTaskLogs(fileTaskLogs);
+            taskHostLog.setFileTaskLogs(fileTaskLogDocs);
         }
         return taskHostLog;
     }

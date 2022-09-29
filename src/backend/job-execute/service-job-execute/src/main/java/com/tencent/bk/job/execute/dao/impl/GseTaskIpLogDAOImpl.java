@@ -233,7 +233,6 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         agentTask.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(t.EXECUTE_COUNT));
         agentTask.setCloudIp(record.get(t.IP));
-        agentTask.setDisplayIp(record.get(t.DISPLAY_IP));
         agentTask.setAgentId(record.get(t.IP));
         agentTask.setStatus(AgentTaskStatusEnum.valueOf(record.get(t.STATUS)));
         agentTask.setStartTime(record.get(t.START_TIME));

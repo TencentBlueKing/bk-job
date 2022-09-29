@@ -25,7 +25,6 @@
 package com.tencent.bk.job.logsvr.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -45,49 +44,41 @@ public class ScriptTaskLogDoc {
     /**
      * 作业步骤实例ID
      */
-    @JsonProperty("stepId")
     @Field("stepId")
     private Long stepInstanceId;
     /**
      * 执行次数
      */
-    @JsonProperty("executeCount")
     @Field("executeCount")
     private Integer executeCount;
     /**
      * 滚动执行批次
      */
-    @JsonProperty("batch")
     @Field("batch")
     private Integer batch;
     /**
      * 执行任务的主机ipv4
      */
-    @JsonProperty("ip")
     @Field("ip")
     private String ip;
     /**
      * 执行任务的主机ipv6
      */
-    @JsonProperty("ipv6")
     @Field("ipv6")
     private String ipv6;
     /**
      * 执行任务的主机hostId
      */
-    @JsonProperty("hostId")
     @Field("hostId")
     private Long hostId;
     /**
      * 日志内容
      */
-    @JsonProperty("content")
     @Field("content")
     private String content;
     /**
-     * 日志偏移 - 字节
+     * 日志偏移 - 单位(byte)
      */
-    @JsonProperty("offset")
     @Field("offset")
     private Integer offset;
 
@@ -96,6 +87,7 @@ public class ScriptTaskLogDoc {
                             Integer batch,
                             Long hostId,
                             String ip,
+                            String ipv6,
                             String content,
                             Integer offset) {
         this.stepInstanceId = stepInstanceId;
@@ -103,6 +95,7 @@ public class ScriptTaskLogDoc {
         this.batch = batch;
         this.hostId = hostId;
         this.ip = ip;
+        this.ipv6 = ipv6;
         this.content = content;
         this.offset = offset;
     }

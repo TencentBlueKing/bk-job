@@ -105,19 +105,6 @@ public class HostDTO implements Cloneable {
     }
 
     @Deprecated
-    public static HostDTO fromHostIdAndCloudIp(Long hostId, String cloudIp) {
-        HostDTO hostDTO = new HostDTO();
-        hostDTO.setHostId(hostId);
-        if (StringUtils.isNotBlank(cloudIp)) {
-            String[] ipProps = cloudIp.split(IpUtils.COLON);
-            hostDTO.setBkCloudId(Long.valueOf(ipProps[0]));
-            hostDTO.setIp(ipProps[1]);
-        }
-
-        return hostDTO;
-    }
-
-    @Deprecated
     public static HostDTO fromCloudIp(String cloudIp) {
         if (!IpUtils.checkCloudIp(cloudIp)) {
             throw new IllegalArgumentException("Invalid cloudIp : " + cloudIp);
@@ -135,6 +122,15 @@ public class HostDTO implements Cloneable {
             host.setBkCloudId(Long.valueOf(ipProps[0]));
             host.setIp(ipProps[1]);
         }
+        return host;
+    }
+
+    @Deprecated
+    public static HostDTO fromHostIdOrCloudIp(Long hostId, Long bkCloudId, String ip) {
+        HostDTO host = new HostDTO();
+        host.setHostId(hostId);
+        host.setBkCloudId(bkCloudId);
+        host.setIp(ip);
         return host;
     }
 

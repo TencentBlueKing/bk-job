@@ -247,14 +247,6 @@ public class ApplicationHostDTO {
         return agentIdList;
     }
 
-    public static List<String> buildIpList(List<ApplicationHostDTO> hosts) {
-        List<String> ipList = new ArrayList<>();
-        for (ApplicationHostDTO host : hosts) {
-            ipList.add(host.getCloudAreaId() + ":" + host.getIp());
-        }
-        return ipList;
-    }
-
     public String getCloudIp() {
         if (StringUtils.isNotBlank(cloudIp)) {
             return cloudIp;
@@ -296,8 +288,18 @@ public class ApplicationHostDTO {
         host.setHostId(hostId);
         host.setBkCloudId(cloudAreaId);
         host.setIp(ip);
+        host.setIpv6(extractFirstIp(ipv6));
         host.setAgentId(agentId);
+        host.setAlive(getAgentAliveValue());
         return host;
+    }
+
+    private String extractFirstIp(String ip) {
+        if (StringUtils.isNotEmpty(ip) && ip.contains(",")) {
+            return ip.split(",")[0];
+        } else {
+            return ip;
+        }
     }
 
 }

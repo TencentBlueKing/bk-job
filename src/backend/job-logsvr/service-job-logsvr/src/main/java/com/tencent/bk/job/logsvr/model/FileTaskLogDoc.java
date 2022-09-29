@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.logsvr.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
@@ -41,21 +39,33 @@ import java.util.List;
  * 文件任务执行日志 - MongoDB Doc
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @Document
 public class FileTaskLogDoc {
     /**
+     * 步骤实例ID
+     */
+    @Field(FileTaskLogDocField.STEP_ID)
+    private Long stepId;
+    /**
+     * 执行次数
+     */
+    @Field(FileTaskLogDocField.EXECUTE_COUNT)
+    private Integer executeCount;
+    /**
+     * 滚动执行批次
+     */
+    @Field(FileTaskLogDocField.BATCH)
+    private Integer batch;
+    /**
      * 任务ID
      */
-    @JsonProperty("taskId")
-    @Field("taskId")
+    @Field(FileTaskLogDocField.TASK_ID)
     private String taskId;
 
     /**
      * 文件任务模式，mode: 0-upload;1-download
      */
-    @JsonProperty("mode")
-    @Field("mode")
+    @Field(FileTaskLogDocField.MODE)
     private Integer mode;
 
     /**
@@ -63,131 +73,113 @@ public class FileTaskLogDoc {
      */
     @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，仅用于查询历史数据的时候使用", version = ">3.7.x")
     @Deprecated
-    @JsonProperty("ip")
-    @Field("ip")
+    @Field(FileTaskLogDocField.IP)
     private String ip;
 
     /**
      * hostId。当mode=0时,hostId=上传源hostId;mode=1时,hostId=下载目标hostId
      */
-    @JsonProperty("hostId")
-    @Field("hostId")
+    @Field(FileTaskLogDocField.HOST_ID)
     private Long hostId;
 
     /**
      * 文件源主机(云区域:IPv4)
      */
-    @JsonProperty("srcIp")
-    @Field("srcIp")
+    @Field(FileTaskLogDocField.SRC_IP)
     private String srcIp;
 
     /**
      * 文件源主机(云区域:IPv6)
      */
-    @JsonProperty("srcIpv6")
-    @Field("srcIpv6")
+    @Field(FileTaskLogDocField.SRC_IPV6)
     private String srcIpv6;
 
     /**
      * 文件源主机ID
      */
-    @JsonProperty("srcHostId")
-    @Field("srcHostId")
+    @Field(FileTaskLogDocField.SRC_HOST_ID)
     private Long srcHostId;
 
     /**
      * 目标主机(云区域:IPv4)
      */
-    @JsonProperty("destIp")
-    @Field("destIp")
+    @Field(FileTaskLogDocField.DEST_IP)
     private String destIp;
 
     /**
      * 目标主机(云区域:IPv6)
      */
-    @JsonProperty("destIpv6")
-    @Field("destIpv6")
+    @Field(FileTaskLogDocField.DEST_IPV6)
     private String destIpv6;
 
     /**
      * 目标主机主机ID
      */
-    @JsonProperty("destHostId")
-    @Field("destHostId")
+    @Field(FileTaskLogDocField.DEST_HOST_ID)
     private Long destHostId;
 
     /**
      * 目标文件路径
      */
-    @JsonProperty("destFile")
-    @Field("destFile")
+    @Field(FileTaskLogDocField.DEST_FILE)
     private String destFile;
 
     /**
      * 源文件路径 - 用于显示
      */
-    @JsonProperty("displaySrcFile")
-    @Field("displaySrcFile")
+    @Field(FileTaskLogDocField.DISPLAY_SRC_FILE)
     private String displaySrcFile;
 
     /**
      * 源文件路径 - 真实路径
      */
-    @JsonProperty("srcFile")
-    @Field("srcFile")
+    @Field(FileTaskLogDocField.SRC_FILE)
     private String srcFile;
 
     /**
      * 源文件类型
      */
-    @JsonProperty("srcFileType")
-    @Field("srcFileType")
+    @Field(FileTaskLogDocField.SRC_FILE_TYPE)
     private Integer srcFileType;
 
     /**
      * 文件大小
      */
-    @JsonProperty("size")
-    @Field("size")
+    @Field(FileTaskLogDocField.SIZE)
     private String size;
 
     /**
      * 文件任务状态
      */
-    @JsonProperty("status")
-    @Field("status")
+    @Field(FileTaskLogDocField.STATUS)
     private Integer status;
 
     /**
      * 文件任务状态描述
      */
-    @JsonProperty("statusDesc")
-    @Field("statusDesc")
+    @Field(FileTaskLogDocField.STATUS_DESC)
     private String statusDesc;
 
     /**
      * 速度
      */
-    @JsonProperty("speed")
-    @Field("speed")
+    @Field(FileTaskLogDocField.SPEED)
     private String speed;
 
     /**
      * 进度
      */
-    @JsonProperty("process")
-    @Field("process")
+    @Field(FileTaskLogDocField.PROCESS)
     private String process;
 
     /**
-     * 日志内容在mongodb中按照list的方式存储，与mongodb中的字段contentList对应
+     * 日志内容在mongodb中按照list的方式存储
      */
-    @JsonProperty("contentList")
-    @Field("contentList")
+    @Field(FileTaskLogDocField.CONTENT_LIST)
     private List<String> contentList;
 
     /**
-     * 日志内容。该字段不会写入到db，仅用于存储拼接处理后的日志的内容
+     * 拼接处理后的日志的内容。该字段不会写入到db
      */
     private String content;
 
@@ -198,25 +190,23 @@ public class FileTaskLogDoc {
         if (FileTaskModeEnum.UPLOAD.getValue().equals(serviceFileLog.getMode())) {
             fileLog.setIp(serviceFileLog.getSrcIp()); // tmp: 发布完成之后不再需要写入ip字段，可以删除
             fileLog.setHostId(serviceFileLog.getSrcHostId());
-            fileLog.setSrcHostId(serviceFileLog.getSrcHostId());
-            fileLog.setSrcIp(serviceFileLog.getSrcIp());
-            fileLog.setSrcIpv6(serviceFileLog.getSrcIpv6());
-            fileLog.setSrcFile(serviceFileLog.getSrcFile());
-            fileLog.setDisplaySrcFile(serviceFileLog.getDisplaySrcFile());
-            fileLog.setSrcFileType(serviceFileLog.getSrcFileType());
         } else if (FileTaskModeEnum.DOWNLOAD.getValue().equals(serviceFileLog.getMode())) {
             fileLog.setHostId(serviceFileLog.getDestHostId());
             fileLog.setIp(serviceFileLog.getDestIp()); // tmp: 发布完成之后不再需要写入ip字段，可以删除
-            fileLog.setSrcIp(serviceFileLog.getSrcIp());
-            fileLog.setSrcHostId(serviceFileLog.getSrcHostId());
-            fileLog.setSrcFileType(serviceFileLog.getSrcFileType());
-            fileLog.setSrcFile(serviceFileLog.getSrcFile());
-            fileLog.setDisplaySrcFile(serviceFileLog.getDisplaySrcFile());
+            // dest
             fileLog.setDestHostId(serviceFileLog.getDestHostId());
             fileLog.setDestIp(serviceFileLog.getDestIp());
             fileLog.setDestIpv6(serviceFileLog.getDestIpv6());
             fileLog.setDestFile(serviceFileLog.getDestFile());
         }
+        // source
+        fileLog.setSrcHostId(serviceFileLog.getSrcHostId());
+        fileLog.setSrcIp(serviceFileLog.getSrcIp());
+        fileLog.setSrcIpv6(serviceFileLog.getSrcIpv6());
+        fileLog.setSrcFile(serviceFileLog.getSrcFile());
+        fileLog.setDisplaySrcFile(serviceFileLog.getDisplaySrcFile());
+        fileLog.setSrcFileType(serviceFileLog.getSrcFileType());
+
         fileLog.setSize(serviceFileLog.getSize());
         fileLog.setProcess(serviceFileLog.getProcess());
         fileLog.setSpeed(serviceFileLog.getSpeed());

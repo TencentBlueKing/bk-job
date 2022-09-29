@@ -58,10 +58,10 @@ public class JobSrcFileUtils {
      * @param targetFileName 文件分发到目标主机的对应名称
      * @return 源文件路径与目标文件路径的映射关系
      */
-    public static Map<String, FileDest> buildSourceDestPathMapping(Set<JobFile> srcFiles,
-                                                                   String targetDir,
-                                                                   String targetFileName) {
-        Map<String, FileDest> sourceDestPathMap = new HashMap<>();
+    public static Map<JobFile, FileDest> buildSourceDestPathMapping(Set<JobFile> srcFiles,
+                                                                    String targetDir,
+                                                                    String targetFileName) {
+        Map<JobFile, FileDest> sourceDestPathMap = new HashMap<>();
         String standardTargetDir = FilePathUtils.standardizedDirPath(targetDir);
         long currentTime = System.currentTimeMillis();
         for (JobFile srcFile : srcFiles) {
@@ -74,11 +74,11 @@ public class JobSrcFileUtils {
         return sourceDestPathMap;
     }
 
-    private static void addSourceDestPathMapping(Map<String, FileDest> sourceDestPathMap,
+    private static void addSourceDestPathMapping(Map<JobFile, FileDest> sourceDestPathMap,
                                                  JobFile sourceFile,
                                                  String destDirPath,
                                                  String destName) {
-        sourceDestPathMap.put(sourceFile.getUniqueKey(), buildFileDest(sourceFile, destDirPath, destName));
+        sourceDestPathMap.put(sourceFile, buildFileDest(sourceFile, destDirPath, destName));
     }
 
     private static FileDest buildFileDest(JobFile sourceFile, String destDirPath, String destName) {
@@ -109,8 +109,8 @@ public class JobSrcFileUtils {
      * @param jobStorageRootDir job共享存储根目录
      * @return 多个要分发的源文件信息集合
      */
-    public static Set<JobFile> parseSendFileList(StepInstanceDTO stepInstance, HostDTO localHost,
-                                                 String jobStorageRootDir) {
+    public static Set<JobFile> parseSrcFiles(StepInstanceDTO stepInstance, HostDTO localHost,
+                                             String jobStorageRootDir) {
         Set<JobFile> sendFiles = Sets.newHashSet();
         for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
             List<FileDetailDTO> files = fileSource.getFiles();
