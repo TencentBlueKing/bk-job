@@ -63,14 +63,6 @@ public interface ApplicationHostDAO {
      */
     List<Long> listHostId(long bizId, long minUpdateTimeMills, long maxUpdateTimeMills);
 
-    /**
-     * 查询最近更新时间为Null的主机ID
-     *
-     * @param bizId 主机所属业务ID
-     * @return 主机ID列表
-     */
-    List<Long> listHostIdWithNullLastModifyTime(long bizId);
-
     List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
 
     List<ApplicationHostDTO> listAllHostInfo(Long start, Long limit);

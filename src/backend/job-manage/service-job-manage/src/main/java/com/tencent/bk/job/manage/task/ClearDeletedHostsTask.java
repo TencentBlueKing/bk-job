@@ -111,8 +111,6 @@ public class ClearDeletedHostsTask {
             0,
             System.currentTimeMillis() - bizHostsMaxSyncTimeMills
         );
-        // 不属于任何业务且最近更新时间为null的历史遗留数据
-        hostIdList.addAll(applicationHostDAO.listHostIdWithNullLastModifyTime(JobConstants.PUBLIC_APP_ID));
         if (CollectionUtils.isEmpty(hostIdList)) {
             log.info("no deleted hosts found, finish");
             return;

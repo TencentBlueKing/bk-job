@@ -21,6 +21,7 @@ BEGIN
                     AND COLUMN_NAME = 'last_modify_time') THEN
         ALTER TABLE host
             ADD COLUMN last_modify_time bigint(20) UNSIGNED NULL DEFAULT NULL COMMENT '最近更新时间';
+        UPDATE host SET last_modify_time=1000 * unix_timestamp(row_update_time);
     END IF;
 
     COMMIT;

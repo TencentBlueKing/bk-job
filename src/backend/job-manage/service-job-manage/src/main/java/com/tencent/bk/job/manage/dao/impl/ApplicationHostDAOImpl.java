@@ -162,14 +162,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<Long> listHostIdWithNullLastModifyTime(long bizId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
-        conditions.add(TABLE.LAST_MODIFY_TIME.isNull());
-        return listHostIdByConditions(conditions);
-    }
-
-    @Override
     public List<ApplicationHostDTO> listHostInfoByBizId(long bizId) {
         List<Condition> conditions = buildBizIdCondition(bizId);
         return listHostInfoByConditions(conditions);
