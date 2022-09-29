@@ -44,12 +44,6 @@ public class AgentTaskExecutionVO {
     @ApiModelProperty("Agent对应的主机ID")
     private Long hostId;
 
-    @ApiModelProperty("主机对应的云区域ID:ip, 兼容老版本历史数据使用")
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，后续版本可能删除",
-        version = "> 3.7.x")
-    private String cloudIp;
-
     @ApiModelProperty("Agent ipv4")
     private String ip;
 
