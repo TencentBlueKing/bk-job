@@ -36,6 +36,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -218,26 +219,13 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
                 );
                 return false;
             }
-            Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(
+            Pair<InputStream, HttpRequestBase> pair = artifactoryClient.getFileInputStream(
                 artifactoryProject,
                 artifactoryRepo,
                 filePath
             );
             InputStream ins = pair.getLeft();
-            Long length = pair.getRight();
             Long fileSize = nodeDTO.getSize();
-            if (fileSize != null && !fileSize.equals(length)) {
-                log.warn(
-                    "[{}]:{},ins length={},node.size={}",
-                    stepInstanceId,
-                    filePath,
-                    length,
-                    nodeDTO.getSize()
-                );
-            }
-            if (fileSize == null || fileSize <= 0) {
-                fileSize = length;
-            }
             // 保存到本地临时目录
             AtomicInteger speed = new AtomicInteger(0);
             AtomicInteger process = new AtomicInteger(0);

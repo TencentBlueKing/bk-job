@@ -204,8 +204,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                          ThreadPoolExecutor longTermThreadPoolExecutor,
                          FlowController flowController,
                          MeterRegistry meterRegistry) {
-        super(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(), bkApiConfig.getAppSecret(), lang,
-            bkApiConfig.isUseEsbTestEnv());
+        super(
+            bkApiConfig.getEsbUrl(),
+            bkApiConfig.getAppCode(),
+            bkApiConfig.getAppSecret(),
+            lang,
+            bkApiConfig.isUseEsbTestEnv()
+        );
         this.cmdbConfig = cmdbConfig;
         this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
         this.threadPoolExecutor = threadPoolExecutor;

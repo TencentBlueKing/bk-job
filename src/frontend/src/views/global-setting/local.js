@@ -23,6 +23,7 @@
  * IN THE SOFTWARE.
 */
 
+/* eslint-disable max-len */
 export default {
     namespace: 'setting',
     message: {
@@ -42,7 +43,7 @@ export default {
         账号命名规则保存成功: 'Naming Rules change has been saved.',
         用户可选择的通知渠道: 'User-selectable notification type',
         通讯黑名单: 'Ban List',
-        '「通讯黑名单」的人员将不会接收到任何来自作业平台的消息': 'The user in ban-list will not able to select.',
+        '“通讯黑名单”的人员将不会接收到任何来自作业平台的消息': 'The user in ban-list will not able to select.',
         保存通知渠道失败: 'Saving notification type failed...',
         保存黑名单失败: 'Saving Ban-list failed...',
         保存成功: 'The change has been saved.',
@@ -129,6 +130,6 @@ export default {
         设置允许范围: 'Allowed From',
         设置禁止范围: 'Limited From',
         不允许为空: 'is required',
-        '.开头，后面跟上不超过24个英文字符，中间不允许出现空格：': 'Start with dot(.), followed by lowercase up to 24 characters: ',
+        '.开头，后面跟上数字、字母、横杠(-)、下划线(_)：': 'Start with dot(.), followed by lowercase / numbers / _ or -, up to 24 characters ',
     },
 };

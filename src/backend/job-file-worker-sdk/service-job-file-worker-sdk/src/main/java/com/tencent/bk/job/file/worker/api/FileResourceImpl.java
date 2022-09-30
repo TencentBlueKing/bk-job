@@ -53,13 +53,13 @@ public class FileResourceImpl implements FileResource {
 
     @Override
     public InternalResponse<FileNodesDTO> listFileNode(ListFileNodeReq req) {
-        log.info("req={}", JsonUtils.toJson(req));
+        log.info("req={}", JsonUtils.toJsonWithoutSkippedFields(req));
         return fileResource.listFileNode(req);
     }
 
     @Override
     public InternalResponse<Boolean> executeAction(ExecuteActionReq req) {
-        log.info("req={}", JsonUtils.toJson(req));
+        log.info("req={}", JsonUtils.toJsonWithoutSkippedFields(req));
         return fileResource.executeAction(req);
     }
 }
