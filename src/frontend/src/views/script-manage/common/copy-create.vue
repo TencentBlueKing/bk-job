@@ -76,14 +76,16 @@
             </jb-form>
         </div>
         <div ref="content">
-            <ace-editor
-                v-if="contentHeight > 0"
-                ref="aceEditor"
-                v-model="formData.content"
-                :lang="formData.typeName"
-                :height="contentHeight"
-                :options="formData.typeName"
-                @on-mode-change="handleTypeChange" />
+            <jb-form :model="formData">
+                <ace-editor
+                    v-if="contentHeight > 0"
+                    ref="aceEditor"
+                    v-model="formData.content"
+                    :lang="formData.typeName"
+                    :height="contentHeight"
+                    :options="formData.typeName"
+                    @on-mode-change="handleTypeChange" />
+            </jb-form>
         </div>
         <template #footer>
             <bk-button
@@ -312,11 +314,11 @@
                         this.scriptManageServiceHandler.scriptUpdate({
                             ...this.formData,
                         }).then((data) => {
+                            window.changeConfirm = false;
                             this.$emit('on-create', {
                                 scriptVersionId: data.scriptVersionId,
                             });
-                            window.changeConfirm = false;
-                            this.messageSuccess(I18n.t('script.操作成功'));
+                            this.messageSuccess(I18n.t('script.新建版本成功'));
                         });
                     })
                     .finally(() => {

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file.worker.api;
 
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.cos.service.FileTaskService;
 import com.tencent.bk.job.file.worker.cos.service.RemoteClient;
 import com.tencent.bk.job.file.worker.cos.service.ThreadCommandBus;
@@ -50,7 +51,9 @@ public abstract class FileTaskResourceImpl implements RemoteClientAccess, FileTa
 
     @Override
     public Response<Integer> downloadFiles(DownloadFilesTaskReq req) {
-        log.debug("req={}", req);
+        if (log.isDebugEnabled()) {
+            log.debug("req={}", JsonUtils.toJsonWithoutSkippedFields(req));
+        }
         RemoteClient remoteClient = getRemoteClient(req);
         return Response.buildSuccessResp(fileTaskService.downloadFiles(remoteClient, req.getTaskId(),
             req.getFilePathList(), req.getFilePrefix()));

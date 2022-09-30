@@ -27,6 +27,7 @@ package com.tencent.bk.job.file.worker.cos.service;
 import com.tencent.bk.job.file.worker.cos.JobTencentInnerCOSClient;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.methods.HttpRequestBase;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class COSRemoteClient implements RemoteClient {
     }
 
     @Override
-    public Pair<InputStream, Long> getFileInputStream(String filePath) {
+    public Pair<InputStream, HttpRequestBase> getFileInputStream(String filePath) {
         List<String> pathList = parsePath(filePath);
         return jobTencentInnerCOSClient.getFileInputStream(pathList.get(0), pathList.get(1));
     }

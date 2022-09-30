@@ -31,6 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
 
 import java.util.AbstractList;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +50,7 @@ public class WatchableHttpHelper implements HttpHelper {
     }
 
     @Override
-    public CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header) {
+    public Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header) {
         return httpHelper.getRawResp(keepAlive, url, header);
     }
 

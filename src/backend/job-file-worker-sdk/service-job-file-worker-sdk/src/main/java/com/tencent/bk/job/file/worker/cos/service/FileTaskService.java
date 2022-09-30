@@ -29,6 +29,7 @@ import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -36,7 +37,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -44,27 +47,20 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class FileTaskService {
 
-    private static final ThreadPoolExecutor fileTaskExecutor = new ThreadPoolExecutor(20, 50, 1, TimeUnit.MINUTES,
-        new LinkedBlockingQueue<>(1000), new RejectedExecutionHandler() {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            log.error("fileTaskWorkerPool rejected a task, use current thread now, plz add more threads");
-            r.run();
-        }
-    });
-    private static final ThreadPoolExecutor watchingTaskExecutor = new ThreadPoolExecutor(20, 50, 1, TimeUnit.MINUTES
-        , new LinkedBlockingQueue<>(1000), new RejectedExecutionHandler() {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            log.error("watchingTaskExecutor rejected a task, ignore, plz add more threads");
-        }
-    });
+    private final ThreadPoolExecutor fileTaskExecutor;
+    private final ThreadPoolExecutor watchingTaskExecutor;
     private static final ConcurrentHashMap<String, Future<?>> fileTaskMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, Future<?>> watchingTaskMap = new ConcurrentHashMap<>();
     private final WorkerConfig workerConfig;
     private final TaskReporter taskReporter;
+
     @Autowired
-    public FileTaskService(WorkerConfig workerConfig, TaskReporter taskReporter) {
+    public FileTaskService(@Qualifier("fileTaskExecutor") ThreadPoolExecutor fileTaskExecutor,
+                           @Qualifier("watchingTaskExecutor") ThreadPoolExecutor watchingTaskExecutor,
+                           WorkerConfig workerConfig,
+                           TaskReporter taskReporter) {
+        this.fileTaskExecutor = fileTaskExecutor;
+        this.watchingTaskExecutor = watchingTaskExecutor;
         this.workerConfig = workerConfig;
         this.taskReporter = taskReporter;
     }

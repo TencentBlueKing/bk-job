@@ -3,9 +3,9 @@ spring:
     name: job-backup
   datasource:
     job-backup:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
       type: com.zaxxer.hikari.HikariDataSource
-      jdbc-url: jdbc:mysql://__BK_JOB_BACKUP_MYSQL_HOST__:__BK_JOB_BACKUP_MYSQL_PORT__/job_backup?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_BACKUP_MYSQL_HOST__:__BK_JOB_BACKUP_MYSQL_PORT__/job_backup?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       username: __BK_JOB_BACKUP_MYSQL_USERNAME__
       password: __BK_JOB_BACKUP_MYSQL_PASSWORD__
       maximum-pool-size: 20
@@ -14,9 +14,9 @@ spring:
       poolName: "job-backup"
       validationTimeout: 5000
     job-execute-db:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
       type: com.zaxxer.hikari.HikariDataSource
-      jdbc-url: jdbc:mysql://__BK_JOB_EXECUTE_MYSQL_HOST__:__BK_JOB_EXECUTE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_EXECUTE_MYSQL_HOST__:__BK_JOB_EXECUTE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
       username: __BK_JOB_EXECUTE_MYSQL_USERNAME__
       password: __BK_JOB_EXECUTE_MYSQL_PASSWORD__
       maximum-pool-size: 10
@@ -26,9 +26,9 @@ spring:
       validationTimeout: 5000
     # 执行数据归档DB配置，若需开启数据归档请去除注释并添加相应环境变量进行配置
     #job-execute-archive:
-      #driver-class-name: com.mysql.cj.jdbc.Driver
+      #driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
       #type: com.zaxxer.hikari.HikariDataSource
-      #jdbc-url: jdbc:mysql://__BK_JOB_EXECUTE_ARCHIVE_MYSQL_HOST__:__BK_JOB_EXECUTE_ARCHIVE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+      #jdbc-url: jdbc:otel:mysql://__BK_JOB_EXECUTE_ARCHIVE_MYSQL_HOST__:__BK_JOB_EXECUTE_ARCHIVE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
       #username: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_USERNAME__
       #password: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_PASSWORD__
       #maximum-pool-size: 10

@@ -42,13 +42,15 @@ public class MeasureServiceImpl {
         // 同步线程池监控：Agent状态
         meterRegistry.gauge(
             CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_POOL_SIZE,
-            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE, CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
+            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE,
+                CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
             quartzTaskExecutor,
             taskExecutor -> taskExecutor.getThreadPoolExecutor().getPoolSize()
         );
         meterRegistry.gauge(
             CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE, CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
+            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE,
+                CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
             quartzTaskExecutor,
             taskExecutor -> taskExecutor.getThreadPoolExecutor().getQueue().size()
         );

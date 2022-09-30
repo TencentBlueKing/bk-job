@@ -314,7 +314,7 @@ public interface WebScriptResource {
             Long scriptVersionId
     );
 
-    @ApiOperation(value = "下线脚本", produces = "application/json")
+    @ApiOperation(value = "禁用脚本", produces = "application/json")
     @PutMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/{scriptVersionId}/disable")
     Response disableScriptVersion(
         @ApiParam("用户名，网关自动传入")

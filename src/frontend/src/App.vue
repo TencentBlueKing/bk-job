@@ -34,7 +34,8 @@
             <bk-popover
                 theme="light site-header-dropdown"
                 style="margin-right: 8px;"
-                :arrow="false">
+                :arrow="false"
+                :tippy-options="{ hideOnClick: false }">
                 <div class="flag-box">
                     <Icon
                         id="siteLocal"
@@ -58,7 +59,11 @@
                     </div>
                 </div>
             </bk-popover>
-            <bk-popover theme="light site-header-dropdown" style="margin-right: 14px;" :arrow="false">
+            <bk-popover
+                theme="light site-header-dropdown"
+                style="margin-right: 14px;"
+                :arrow="false"
+                :tippy-options="{ hideOnClick: false }">
                 <div class="flag-box">
                     <Icon id="siteHelp" type="help-document-fill" />
                 </div>
@@ -68,7 +73,10 @@
                     <div class="item" @click="handleLocationFeedback">{{ $t('问题反馈') }}</div>
                 </div>
             </bk-popover>
-            <bk-popover theme="light site-header-dropdown" :arrow="false">
+            <bk-popover
+                theme="light site-header-dropdown"
+                :arrow="false"
+                :tippy-options="{ hideOnClick: false }">
                 <div class="user-flag">
                     <span style="margin-right: 5px;">{{ currentUser.username }}</span>
                     <i class="bk-icon icon-down-shape" />
@@ -207,7 +215,7 @@
             handleToggleLang (lang) {
                 Cookie.set('blueking_language', lang, {
                     expires: 3600,
-                    domain: window.location.hostname.replace(/.*(\.[^.]+\.[^.]+$)/, '$1'),
+                    domain: window.location.hostname.replace(/^[^.]+(.*)$/, '$1'),
                 });
                 setLocale(lang);
             },

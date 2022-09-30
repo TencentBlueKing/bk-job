@@ -130,7 +130,7 @@
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
     import { checkPublicScript } from '@utils/assist';
-    import Diff from '../common/diff';
+    import Diff from '../common/diff.vue';
     import ScriptDetail from './components/script-detail';
 
     export default {

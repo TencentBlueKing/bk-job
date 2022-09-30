@@ -112,6 +112,7 @@ ext {
     set('bcprovVersion', "1.64")
     set('reflectionsVersion', "0.9.12")
     set('cronUtilsVersion', "9.1.6")
+    set('otelJdbcVersion', "1.9.2-alpha")
     set('commonsValidatorVersion', "1.6")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
@@ -248,6 +249,7 @@ subprojects {
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
             dependency "com.cronutils:cron-utils:$cronUtilsVersion"
+            dependency "io.opentelemetry.instrumentation:opentelemetry-jdbc:$otelJdbcVersion"
             dependency "commons-validator:commons-validator:$commonsValidatorVersion"
             dependencySet(group: "org.jooq", version: "$jooqVersion") {
                 entry "jooq"

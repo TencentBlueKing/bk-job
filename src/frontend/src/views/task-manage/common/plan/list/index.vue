@@ -162,24 +162,21 @@
                                     active: selectPlanInfo.id === row.id,
                                 }">
                                 <div class="name-wraper">
-                                    <div class="name-text" v-bk-overflow-tips>{{ row.name }}</div>
-                                    <router-link
+                                    <div
+                                        class="name-text"
+                                        v-bk-overflow-tips>
+                                        {{ row.name }}
+                                    </div>
+                                    <span
                                         v-if="row.cronJobCount > 0"
                                         class="cron-job-tag"
-                                        :to="{
-                                            name: 'cronList',
-                                            query: {
-                                                planId: row.id,
-                                            },
-                                        }"
-                                        target="_blank"
                                         v-bk-tooltips.html="`
                                             <div>${$t('template.有')} ${row.cronJobCount} ${$t('template.个定时任务')}</div>
                                             <div>${$t('template.点击前往查看')}</div>
                                         `">
                                         <Icon type="job-timing" svg />
                                         <span style="margin-left: 2px;">{{ row.cronJobCount }}</span>
-                                    </router-link>
+                                    </span>
                                     <span
                                         v-if="row.needUpdate"
                                         class="update-flag">
@@ -188,10 +185,8 @@
                                             type="sync-8"
                                             svg />
                                     </span>
-                                    
                                 </div>
                                 <Icon
-                                    @click.stop="handleCollection(row)"
                                     type="collection"
                                     class="collection-flag"
                                     :class="{ favored: row.favored }" />

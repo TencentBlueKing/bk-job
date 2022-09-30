@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.metrics;
 
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.redis.util.RedisSlideWindowFlowController;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -44,22 +43,22 @@ public class StaticMetricsConfig {
 
     @Autowired
     public StaticMetricsConfig(
+        ThreadPoolExecutor cmdbThreadPoolExecutor,
         MeterRegistry meterRegistry,
         RedisSlideWindowFlowController cmdbGlobalFlowController
     ) {
         // CMDB请求线程池大小
-        ThreadPoolExecutor cmdbQueryThreadPool = BizCmdbClient.threadPoolExecutor;
         meterRegistry.gauge(
             MetricsConstants.NAME_CMDB_QUERY_POOL_SIZE,
             Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB)),
-            cmdbQueryThreadPool,
+            cmdbThreadPoolExecutor,
             ThreadPoolExecutor::getPoolSize
         );
         // CMDB请求线程池队列大小
         meterRegistry.gauge(
             MetricsConstants.NAME_CMDB_QUERY_QUEUE_SIZE,
             Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB)),
-            cmdbQueryThreadPool,
+            cmdbThreadPoolExecutor,
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );
         try {
