@@ -22,37 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.manage.runner;
 
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import com.tencent.bk.job.manage.task.ClearDeletedHostsTask;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.List;
+/**
+ * 进程启动时立即执行一次无效主机清理
+ */
+@Slf4j
+@Component
+public class ClearDeletedHostsRunner implements CommandLineRunner {
 
-public interface HostTopoDAO {
-    void insertHostTopo(HostTopoDTO hostTopoDTO);
+    private final ClearDeletedHostsTask clearDeletedHostsTask;
 
-    int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList);
+    @Autowired
+    public ClearDeletedHostsRunner(ClearDeletedHostsTask clearDeletedHostsTask) {
+        this.clearDeletedHostsTask = clearDeletedHostsTask;
+    }
 
-    void deleteHostTopoByHostId(Long appId, Long hostId);
-
-    void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId);
-
-    int batchDeleteHostTopo(List<Long> hostIdList);
-
-    int batchDeleteHostTopo(Long bizId, List<Long> hostIdList);
-
-    int countHostTopo(Long bizId, Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostId(Long hostId);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
-
-    /**
-     * 根据CMDB业务IDs查询下属主机ID列表
-     *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
-     */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
+    @Override
+    public void run(String... args) {
+        new Thread(clearDeletedHostsTask::execute).start();
+    }
 }

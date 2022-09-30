@@ -42,7 +42,6 @@ import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
@@ -68,7 +67,6 @@ public class HostWatchThread extends Thread {
         }
     }
 
-    private final DSLContext dslContext;
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final QueryAgentStatusClient queryAgentStatusClient;
@@ -80,13 +78,11 @@ public class HostWatchThread extends Thread {
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private String cursor = null;
 
-    public HostWatchThread(DSLContext dslContext,
-                           ApplicationService applicationService,
+    public HostWatchThread(ApplicationService applicationService,
                            ApplicationHostDAO applicationHostDAO,
                            QueryAgentStatusClient queryAgentStatusClient,
                            RedisTemplate<String, String> redisTemplate,
                            HostCache hostCache) {
-        this.dslContext = dslContext;
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
@@ -100,7 +96,6 @@ public class HostWatchThread extends Thread {
     private HostEventsHandler buildHostEventsHandler() {
         return new HostEventsHandler(
             appHostEventQueue,
-            dslContext,
             applicationService,
             applicationHostDAO,
             queryAgentStatusClient,
