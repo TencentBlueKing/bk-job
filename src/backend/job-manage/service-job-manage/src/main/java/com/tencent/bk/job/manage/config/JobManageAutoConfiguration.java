@@ -25,8 +25,6 @@
 package com.tencent.bk.job.manage.config;
 
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import com.tencent.bk.job.common.cc.config.CmdbConfig;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.encrypt.Encryptor;
 import com.tencent.bk.job.common.encrypt.RSAEncryptor;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
@@ -48,18 +46,6 @@ public class JobManageAutoConfiguration {
             artifactoryConfig.getArtifactoryJobUsername(),
             artifactoryConfig.getArtifactoryJobPassword(),
             meterRegistry);
-    }
-
-    @Bean
-    public CmdbConfigSetter cmdbConfigSetter(@Autowired CmdbConfig cmdbConfig) {
-        BizCmdbClient.setCcConfig(cmdbConfig);
-        BizCmdbClient.init();
-        return new CmdbConfigSetter();
-    }
-
-    static class CmdbConfigSetter {
-        CmdbConfigSetter() {
-        }
     }
 
     @Bean

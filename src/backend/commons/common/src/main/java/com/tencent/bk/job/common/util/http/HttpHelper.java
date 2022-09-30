@@ -28,10 +28,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
 
 public interface HttpHelper {
 
-    CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header);
+    Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header);
 
     Pair<Integer, String> get(boolean keepAlive, String url, Header[] header);
 

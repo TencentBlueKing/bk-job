@@ -24,49 +24,12 @@
 
 package com.tencent.bk.job.common.cc.sdk;
 
-import com.google.common.collect.Maps;
-import com.tencent.bk.job.common.cc.config.CmdbConfig;
-import com.tencent.bk.job.common.esb.config.BkApiConfig;
-import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.DependsOn;
-
-import java.util.Map;
 
 @Slf4j
-@DependsOn({"applicationContextRegister", "cmdbConfigSetter"})
 public class CmdbClientFactory {
-
-    private static final Map<String, IBizCmdbClient> CMDB_CLIENT_MAPS = Maps.newHashMap();
-
-    static {
-        BkApiConfig bkApiConfig;
-        CmdbConfig cmdbConfig;
-        MeterRegistry meterRegistry;
-        try {
-            bkApiConfig = ApplicationContextRegister.getBean(BkApiConfig.class);
-            cmdbConfig = ApplicationContextRegister.getBean(CmdbConfig.class);
-            meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
-        } catch (Throwable e) {
-            log.error("Error while initialize bk config!", e);
-            throw e;
-        }
-        CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_ZH_CN,
-            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.CN, meterRegistry)
-        );
-        CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_EN,
-            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.EN, meterRegistry)
-        );
-        CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_ZH,
-            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.CN, meterRegistry)
-        );
-        CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_EN_US,
-            new BizCmdbClient(bkApiConfig, cmdbConfig, EsbLang.EN, meterRegistry)
-        );
-    }
 
     public static IBizCmdbClient getCmdbClient() {
         return getCmdbClient(LocaleUtils.LANG_EN_US);
@@ -76,10 +39,12 @@ public class CmdbClientFactory {
         if (language == null) {
             language = LocaleUtils.LANG_EN_US;
         }
-        IBizCmdbClient icmdbClient = CMDB_CLIENT_MAPS.get(language);
-        if (icmdbClient == null) {
-            icmdbClient = CMDB_CLIENT_MAPS.get(LocaleUtils.LANG_EN_US);
+        switch (language) {
+            case LocaleUtils.LANG_ZH:
+            case LocaleUtils.LANG_ZH_CN:
+                return ApplicationContextRegister.getBean("cnBizCmdbClient", IBizCmdbClient.class);
+            default:
+                return ApplicationContextRegister.getBean(IBizCmdbClient.class);
         }
-        return icmdbClient;
     }
 }

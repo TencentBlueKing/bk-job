@@ -30,13 +30,13 @@
         class="script-list-tag-edit"
         :class="{
             'active': value === id,
-            'display': !canEdit,
-            'edit': canEdit,
+            'display': !isEditable,
+            'edit': isEditable,
             'edit-error': !!error,
         }"
         @click.stop="">
         <Icon :type="icon" class="tag-flag" />
-        <template v-if="!isEditable">
+        <template v-if="!isEditing">
             <div
                 class="tag-name"
                 v-bk-tooltips="{
@@ -57,7 +57,7 @@
                 <span class="tag-num">{{ count }}</span>
             </div>
             <auth-component
-                v-if="canEdit"
+                v-if="isEditable"
                 auth="tag/edit"
                 :resource-id="id">
                 <div class="edit-action" @click="handleEdit">
@@ -104,6 +104,7 @@
     import _ from 'lodash';
     import I18n from '@/i18n';
     import { tagNameRule } from '@utils/validator';
+    import { checkPublicScript } from '@utils/assist';
 
     export default {
         name: '',
@@ -147,7 +148,7 @@
         data () {
             return {
                 displayName: this.name,
-                isEditable: false,
+                isEditing: false,
                 error: '',
             };
         },
@@ -177,6 +178,9 @@
             },
         },
         created () {
+            // 公共脚本
+            this.isPublicScript = checkPublicScript(this.$route);
+            this.isEditable = !this.isPublicScript && this.canEdit;
             this.sefId = `tag_${_.random(1, 1000)}_${Date.now()}`;
         },
         mounted () {
@@ -198,7 +202,7 @@
              */
             triggerChange () {
                 if (this.displayName === this.name) {
-                    this.isEditable = false;
+                    this.isEditing = false;
                     return;
                 }
                 if (this.displayName === '') {
@@ -215,7 +219,7 @@
                 }
                 this.error = '';
 
-                this.isEditable = false;
+                this.isEditing = false;
                 
                 this.$emit('on-edit', {
                     id: this.id,
@@ -227,7 +231,7 @@
              */
             handleEdit () {
                 document.body.click();
-                this.isEditable = true;
+                this.isEditing = true;
                 this.$nextTick(() => {
                     this.$refs.input.focus();
                 });
@@ -248,7 +252,7 @@
              * @desc Enter 触发值更新
              */
             handleEnter (value, event) {
-                if (!this.isEditable) return;
+                if (!this.isEditing) return;
                 if (event.key === 'Enter' && event.keyCode === 13) {
                     this.triggerChange();
                 }
@@ -257,13 +261,13 @@
              * @desc 取消编辑状态
              */
             hideEdit () {
-                if (!this.isEditable) {
+                if (!this.isEditing) {
                     return;
                 }
                 if (this.error) {
                     return;
                 }
-                this.isEditable = false;
+                this.isEditing = false;
             },
         },
     };

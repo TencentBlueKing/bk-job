@@ -158,13 +158,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private static final ConcurrentHashMap<Long, Pair<InstanceTopologyDTO, Long>> bizInternalTopoMap =
         new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Long, ReentrantLock> bizInternalTopoLockMap = new ConcurrentHashMap<>();
-    public static ThreadPoolExecutor threadPoolExecutor = null;
-    public static ThreadPoolExecutor longTermThreadPoolExecutor = null;
-    public static CmdbConfig cmdbConfig = null;
+    private final ThreadPoolExecutor threadPoolExecutor;
+    private final ThreadPoolExecutor longTermThreadPoolExecutor;
+    private final CmdbConfig cmdbConfig;
     /**
      * 对整个应用中所有的CMDB调用进行限流
      */
-    private static FlowController globalFlowController = null;
+    private final FlowController globalFlowController;
 
     static {
         interfaceNameMap.put(SEARCH_BIZ_INST_TOPO, "search_biz_inst_topo");
@@ -191,51 +191,32 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
             build(new CacheLoader<Long, InstanceTopologyDTO>() {
                       @Override
-                      public InstanceTopologyDTO load(Long bizId) {
+                      public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
                           return getBizInstCompleteTopology(bizId);
                       }
                   }
             );
 
-    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, MeterRegistry meterRegistry) {
-        this(bkApiConfig, cmdbConfig, null, meterRegistry);
-    }
-
-    public BizCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, String lang, MeterRegistry meterRegistry) {
-        super(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(), bkApiConfig.getAppSecret(), lang,
-            bkApiConfig.isUseEsbTestEnv());
+    public BizCmdbClient(BkApiConfig bkApiConfig,
+                         CmdbConfig cmdbConfig,
+                         String lang,
+                         ThreadPoolExecutor threadPoolExecutor,
+                         ThreadPoolExecutor longTermThreadPoolExecutor,
+                         FlowController flowController,
+                         MeterRegistry meterRegistry) {
+        super(
+            bkApiConfig.getEsbUrl(),
+            bkApiConfig.getAppCode(),
+            bkApiConfig.getAppSecret(),
+            lang,
+            bkApiConfig.isUseEsbTestEnv()
+        );
+        this.cmdbConfig = cmdbConfig;
         this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
+        this.threadPoolExecutor = threadPoolExecutor;
+        this.longTermThreadPoolExecutor = longTermThreadPoolExecutor;
+        this.globalFlowController = flowController;
         this.meterRegistry = meterRegistry;
-    }
-
-    public static void setGlobalFlowController(FlowController flowController) {
-        globalFlowController = flowController;
-    }
-
-    private static void initThreadPoolExecutor(int cmdbQueryThreadsNum, int longTermCmdbQueryThreadsNum) {
-        threadPoolExecutor = new ThreadPoolExecutor(cmdbQueryThreadsNum, cmdbQueryThreadsNum, 180L, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(cmdbQueryThreadsNum * 4), (r, executor) -> {
-            //使用请求的线程直接拉取数据
-            log.error("cmdb request runnable rejected, use current thread({}), plz add more threads",
-                Thread.currentThread().getName());
-            r.run();
-        });
-        longTermThreadPoolExecutor = new ThreadPoolExecutor(longTermCmdbQueryThreadsNum, longTermCmdbQueryThreadsNum,
-            180L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(longTermCmdbQueryThreadsNum * 4), (r, executor) -> {
-            //使用请求的线程直接拉取数据
-            log.warn("cmdb long term request runnable rejected, use current thread({}), plz add more threads",
-                Thread.currentThread().getName());
-            r.run();
-        });
-    }
-
-    public static void init() {
-        initThreadPoolExecutor(cmdbConfig.getCmdbQueryThreadsNum(),
-            cmdbConfig.getFindHostRelationLongTermConcurrency());
-    }
-
-    public static void setCcConfig(CmdbConfig cmdbConfig) {
-        BizCmdbClient.cmdbConfig = cmdbConfig;
     }
 
     @Override
@@ -246,7 +227,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         } else {
             InstanceTopologyDTO topologyDTO = getBizInstTopologyWithoutInternalTopo(bizId);
             InstanceTopologyDTO internalTopologyDTO = getBizInternalModule(bizId);
-            completeTopologyDTO = TopologyUtil.mergeTopology(topologyDTO, internalTopologyDTO);
+            internalTopologyDTO.setObjectName(topologyDTO.getObjectName());
+            internalTopologyDTO.setInstanceName(topologyDTO.getInstanceName());
+            completeTopologyDTO = TopologyUtil.mergeTopology(internalTopologyDTO, topologyDTO);
         }
         return completeTopologyDTO;
     }
@@ -410,28 +393,33 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             GET_BIZ_INTERNAL_MODULE, req, new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
             });
         GetBizInternalModuleResult setInfo = esbResp.getData();
-        //将结果转换为Topo树
-        InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
-        instanceTopologyDTO.setObjectId("set");
-        instanceTopologyDTO.setObjectName("Set");
-        instanceTopologyDTO.setInstanceId(setInfo.getSetId());
-        instanceTopologyDTO.setInstanceName(setInfo.getSetName());
+        //将结果转换为拓扑树
+        InstanceTopologyDTO setNode = new InstanceTopologyDTO();
+        setNode.setObjectId("set");
+        setNode.setObjectName("Set");
+        setNode.setInstanceId(setInfo.getSetId());
+        setNode.setInstanceName(setInfo.getSetName());
         List<InstanceTopologyDTO> childList = new ArrayList<>();
         List<GetBizInternalModuleResult.Module> modules = setInfo.getModule();
         if (modules != null && !modules.isEmpty()) {
-            modules.forEach(module -> {
+            for (GetBizInternalModuleResult.Module module : modules) {
                 InstanceTopologyDTO childModule = new InstanceTopologyDTO();
                 childModule.setObjectId("module");
                 childModule.setObjectName("Module");
                 childModule.setInstanceId(module.getModuleId());
                 childModule.setInstanceName(module.getModuleName());
                 childList.add(childModule);
-            });
+            }
         }
-        instanceTopologyDTO.setChild(childList);
-        return instanceTopologyDTO;
+        setNode.setChild(childList);
+        InstanceTopologyDTO bizNode = new InstanceTopologyDTO();
+        bizNode.setObjectId("biz");
+        bizNode.setInstanceId(bizId);
+        childList = new ArrayList<>();
+        childList.add(setNode);
+        bizNode.setChild(childList);
+        return bizNode;
     }
-
 
     @Override
     public List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList) {
@@ -546,15 +534,15 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 FindModuleHostRelationTask task = new FindModuleHostRelationTask(resultQueue,
                     genFindModuleHostRelationReq(bizId, moduleIdList, start, limit),
                     JobContextUtil.getRequestId());
+                Future<?> future;
                 if (totalCount > 10000) {
                     //主机数太多，防止将CMDB拉挂了
-                    Future<?> future = longTermThreadPoolExecutor.submit(task);
-                    futures.add(future);
+                    future = longTermThreadPoolExecutor.submit(task);
                 } else {
                     // 默认采用多个并发线程拉取
-                    Future<?> future = threadPoolExecutor.submit(task);
-                    futures.add(future);
+                    future = threadPoolExecutor.submit(task);
                 }
+                futures.add(future);
                 totalCount -= limit;
             }
             futures.forEach(it -> {
@@ -1018,6 +1006,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps) {
+        if (CollectionUtils.isEmpty(cloudIps)) {
+            return Collections.emptyList();
+        }
         ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");
@@ -1042,6 +1033,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s) {
+        if (CollectionUtils.isEmpty(cloudIpv6s)) {
+            return Collections.emptyList();
+        }
         ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");

@@ -32,7 +32,7 @@ export default {
         脚本类型: 'SCRIPT TYPE',
         动作: 'ACTION',
         操作: 'ACTIONS',
-        '规则的顺位越高，表示执行优先度越高': 'The higher the order of the rules, the higher the detect priority',
+        '规则的排序越靠前，表示检测优先级越高': 'The higher the order of the rules, the higher the detect priority',
         上移: 'Up',
         下移: 'Down',
         删除: 'Delete',

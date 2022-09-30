@@ -39,10 +39,10 @@ import java.util.Map;
 public class HostCheckReq {
 
     @Deprecated
-    @ApiModelProperty(value = "应用场景：脚本执行/文件分发")
+    @ApiModelProperty(value = "兼容字段，请勿使用：应用场景：脚本执行/文件分发")
     ActionScopeEnum actionScope;
 
-    @ApiModelProperty(value = "应用场景：脚本执行/文件分发")
+    @ApiModelProperty(value = "应用场景：脚本执行/文件分发，Key为actionScope，Value分别为SCRIPT_EXECUTE/FILE_DISTRIBUTION")
     Map<String, Object> meta = new HashMap<>();
 
     @ApiModelProperty(value = "hostId列表", required = true)

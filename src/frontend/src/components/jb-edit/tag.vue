@@ -40,8 +40,15 @@
                     class="tag-shortcurt-box"
                     @click.stop="">
                     <div class="shortcurt-action-btn">
-                        <Icon type="copy" @click="handleCopy" />
-                        <Icon type="paste" class="paste-btn" @click="handlePaste" />
+                        <Icon
+                            v-bk-tooltips="$t('复制')"
+                            type="copy"
+                            @click="handleCopy" />
+                        <Icon
+                            v-bk-tooltips="$t('粘贴')"
+                            type="paste"
+                            class="paste-btn"
+                            @click="handlePaste" />
                     </div>
                 </div>
                 <div v-else class="tag-normal-box">
@@ -233,6 +240,7 @@
                     return;
                 }
                 copyMemo = _.cloneDeep(this.localValue);
+                console.log('form copyMemocopyMemo = ', copyMemo);
                 execCopy(this.text);
             },
             /**
@@ -246,12 +254,10 @@
                     });
                     return;
                 }
-                this.localValue = [
-                    ...new Set([
-                        ...this.localValue,
-                        ...copyMemo,
-                    ]),
-                ];
+                this.localValue = _.uniqBy([
+                    ...this.localValue,
+                    ...copyMemo,
+                ], _ => _.id);
                 this.triggerRemote();
             },
         },
@@ -285,11 +291,17 @@
         cursor: pointer;
         border-radius: 2px;
 
-        &.shortcurt:hover {
-            background: #e1e2e6;
+        &.shortcurt {
+            .render-value-box {
+                padding-left: 4px;
+            }
 
-            .shortcurt-action-btn {
-                display: flex;
+            &:hover {
+                background: #e1e2e6;
+
+                .shortcurt-action-btn {
+                    display: flex;
+                }
             }
         }
 
@@ -305,7 +317,6 @@
         .render-value-box {
             display: flex;
             height: 30px;
-            padding-left: 4px;
             line-height: 30px;
             align-items: center;
         }

@@ -24,36 +24,28 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
-import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.service.TopoService;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 
-@DependsOn({"cmdbConfigSetter"})
 @Service
 @Slf4j
 public class TopoServiceImpl implements TopoService {
-    private final BizCmdbClient ccClient;
+
+    private final BizCmdbClient bizCmdbClient;
 
     @Autowired
-    public TopoServiceImpl(
-        BkApiConfig bkApiConfig,
-        CmdbConfig cmdbConfig,
-        MeterRegistry meterRegistry
-    ) {
-        ccClient = new BizCmdbClient(bkApiConfig, cmdbConfig, meterRegistry);
+    public TopoServiceImpl(BizCmdbClient bizCmdbClient) {
+        this.bizCmdbClient = bizCmdbClient;
     }
 
     @Override
@@ -61,7 +53,7 @@ public class TopoServiceImpl implements TopoService {
         GetTopoNodePathReq req = new GetTopoNodePathReq();
         req.setBizId(appId);
         topoNodes.forEach(topoNode -> req.add(topoNode.getNodeType(), topoNode.getTopoNodeId()));
-        List<InstanceTopologyDTO> hierarchyNodes = ccClient.getTopoInstancePath(req);
+        List<InstanceTopologyDTO> hierarchyNodes = bizCmdbClient.getTopoInstancePath(req);
         log.debug("Get topo node hierarchy, req:{}, result:{}", req, hierarchyNodes);
         if (CustomCollectionUtils.isEmptyCollection(hierarchyNodes)) {
             return Collections.emptyList();

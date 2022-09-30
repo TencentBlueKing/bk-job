@@ -670,7 +670,7 @@
                     this.$router.push({
                         name: 'fastExecuteScript',
                         query: {
-                            from: 'historyStep',
+                            from: this.$route.name,
                         },
                     });
                     return;
@@ -679,7 +679,7 @@
                     this.$router.push({
                         name: 'fastPushFile',
                         query: {
-                            from: 'historyStep',
+                            from: this.$route.name,
                         },
                     });
                     return;

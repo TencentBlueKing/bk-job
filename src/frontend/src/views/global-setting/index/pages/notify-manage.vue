@@ -110,7 +110,7 @@
             this.backlistConfig = {
                 width: 202,
                 placement: 'top',
-                content: I18n.t('setting.「通讯黑名单」的人员将不会接收到任何来自作业平台的消息'),
+                content: I18n.t('setting.“通讯黑名单”的人员将不会接收到任何来自作业平台的消息'),
             };
             this.fetchAllChannelConfig();
             this.fetchAllUserBlacklist();

@@ -25,7 +25,6 @@
 dependencies {
     api project(':commons:common')
     api project(':commons:common-i18n')
-    api project(':commons:cmdb-sdk')
     api project(':commons:common-iam')
     api project(':job-execute:api-job-execute')
     api(project(":commons:common-api"))

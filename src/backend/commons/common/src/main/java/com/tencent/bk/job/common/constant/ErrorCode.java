@@ -187,6 +187,8 @@ public class ErrorCode {
     public static final int SCOPE_NOT_EXIST = 1243051;
     // IP（含云区域ID）在CMDB中不存在:{0}
     public static final int IP_NOT_EXIST_IN_CMDB = 1243052;
+    // 主机ID在CMDB中不存在:{0}
+    public static final int HOST_ID_NOT_EXIST_IN_CMDB = 1243053;
     // 作业管理 end
 
     // 作业执行 start

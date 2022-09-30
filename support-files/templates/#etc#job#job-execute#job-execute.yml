@@ -120,9 +120,9 @@ spring:
               maxConcurrency: 10
   datasource:
     job-execute:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
       type: com.zaxxer.hikari.HikariDataSource
-      jdbc-url: jdbc:mysql://__BK_JOB_EXECUTE_MYSQL_HOST__:__BK_JOB_EXECUTE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_EXECUTE_MYSQL_HOST__:__BK_JOB_EXECUTE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       username: __BK_JOB_EXECUTE_MYSQL_USERNAME__
       password: __BK_JOB_EXECUTE_MYSQL_PASSWORD__
       maximum-pool-size: 100

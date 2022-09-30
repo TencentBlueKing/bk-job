@@ -328,17 +328,16 @@ public class WebHostResourceImpl implements WebHostResource {
         List<List<CcTopologyNodeVO>> resultList = new ArrayList<>();
         for (List<InstanceTopologyDTO> instanceTopologyDTOS : pathList) {
             if (instanceTopologyDTOS == null) {
-                resultList.add(null);
-            } else {
-                resultList.add(instanceTopologyDTOS.stream().map(it -> {
-                    CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
-                    ccTopologyNodeVO.setObjectId(it.getObjectId());
-                    ccTopologyNodeVO.setObjectName(it.getObjectName());
-                    ccTopologyNodeVO.setInstanceId(it.getInstanceId());
-                    ccTopologyNodeVO.setInstanceName(it.getInstanceName());
-                    return ccTopologyNodeVO;
-                }).collect(Collectors.toList()));
+                continue;
             }
+            resultList.add(instanceTopologyDTOS.stream().map(it -> {
+                CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
+                ccTopologyNodeVO.setObjectId(it.getObjectId());
+                ccTopologyNodeVO.setObjectName(it.getObjectName());
+                ccTopologyNodeVO.setInstanceId(it.getInstanceId());
+                ccTopologyNodeVO.setInstanceName(it.getInstanceName());
+                return ccTopologyNodeVO;
+            }).collect(Collectors.toList()));
         }
         return Response.buildSuccessResp(resultList);
     }
@@ -590,6 +589,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                      String scopeId,
                                                      HostDetailReq req) {
         Collection<Long> hostIds = req.getHostList().parallelStream()
+            .filter(hostIdWithMeta -> hostIdWithMeta.getHostId() != null)
             .map(HostIdWithMeta::getHostId)
             .collect(Collectors.toList());
         List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(appResourceScope, hostIds);

@@ -63,7 +63,7 @@
                 :label="$t('tag.标签名.colHead')"
                 prop="name"
                 key="name"
-                sortable
+                sortable="custom"
                 min-width="200"
                 show-overflow-tooltip
                 align="left" />

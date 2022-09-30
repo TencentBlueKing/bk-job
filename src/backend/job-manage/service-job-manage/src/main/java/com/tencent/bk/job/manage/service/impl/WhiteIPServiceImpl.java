@@ -60,9 +60,10 @@ import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.HostIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
-import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
+import com.tencent.bk.job.manage.model.web.vo.whiteip.ScopeVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.WhiteIPService;
@@ -70,9 +71,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
-import org.jooq.tools.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -81,6 +80,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -137,7 +137,10 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     private List<Long> getEffectiveAppIdList(Long appId) {
         List<Long> effectiveAppIds = new ArrayList<>();
         effectiveAppIds.add(JobConstants.DEFAULT_ALL_BIZ_SET_ID);
-        if (appId != null && !appId.equals(JobConstants.DEFAULT_ALL_BIZ_SET_ID)) {
+        effectiveAppIds.add(JobConstants.PUBLIC_APP_ID);
+        if (appId != null
+            && !appId.equals(JobConstants.DEFAULT_ALL_BIZ_SET_ID)
+            && !appId.equals(JobConstants.PUBLIC_APP_ID)) {
             effectiveAppIds.add(appId);
         }
         return effectiveAppIds;
@@ -277,18 +280,12 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         );
     }
 
-    private Pair<List<String>, List<String>> checkReqAndGetIpList(WhiteIPRecordCreateUpdateReq createUpdateReq) {
+    private List<String> checkReqAndGetIpList(WhiteIPRecordCreateUpdateReq createUpdateReq) {
         List<ResourceScope> scopeList = createUpdateReq.getScopeList();
-        if (null == scopeList || scopeList.isEmpty()) {
+        if (!createUpdateReq.isAllScope() && (null == scopeList || scopeList.isEmpty())) {
             log.warn("scopeList cannot be null or empty");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 ArrayUtil.toArray("scopeList", "scopeList cannot be null or empty"));
-        }
-        Long cloudAreaId = createUpdateReq.getCloudAreaId();
-        if (null == cloudAreaId) {
-            log.warn("cloudAreaId cannot be null");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                ArrayUtil.toArray("cloudAreaId", "cloudAreaId cannot be null"));
         }
         String remark = createUpdateReq.getRemark();
         if (null != remark && remark.length() > 100) {
@@ -297,15 +294,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                 ArrayUtil.toArray("remark", "remark cannot be null and length cannot be over 100"));
         }
         String ipStr = createUpdateReq.getIpStr();
-        List<String> ipList = createUpdateReq.getIpList();
-        List<String> ipv6List = createUpdateReq.getIpv6List();
         Set<String> finalIpv4Set = new HashSet<>();
-        if (StringUtils.isBlank(ipStr) && CollectionUtils.isEmpty(ipList) && CollectionUtils.isEmpty(ipv6List)) {
-            String msg = "ipStr,ipList,ipv6List cannot be null or empty at the same time";
-            log.warn(msg);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                ArrayUtil.toArray("ipStr,ipList,ipv6List", msg));
-        }
         if (ipStr != null) {
             if (ipStr.length() > 5000) {
                 log.warn("length of ipStr cannot be over 5000");
@@ -315,12 +304,11 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                 finalIpv4Set.addAll(checkAndGetIpv4List("ipStr", ipListFromIpStr));
             }
         }
-        finalIpv4Set.addAll(checkAndGetIpv4List("ipList", ipList));
-        Set<String> finalIpv6Set = new HashSet<>(checkAndGetIpv6List("ipv6List", ipv6List));
-        return Pair.of(new ArrayList<>(finalIpv4Set), new ArrayList<>(finalIpv6Set));
+        return new ArrayList<>(finalIpv4Set);
     }
 
-    private List<String> checkAndGetIpv4List(String paramName, List<String> ipv4List) {
+    private List<String> checkAndGetIpv4List(@SuppressWarnings("SameParameterValue") String paramName,
+                                             List<String> ipv4List) {
         //过滤空值
         ipv4List =
             ipv4List.stream().filter(ip -> !ip.trim().isEmpty()).collect(Collectors.toList());
@@ -335,29 +323,13 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         return ipv4List;
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private List<String> checkAndGetIpv6List(String paramName, List<String> ipv6List) {
-        //过滤空值
-        ipv6List =
-            ipv6List.stream().filter(ipv6 -> !ipv6.trim().isEmpty()).collect(Collectors.toList());
-        ipv6List.forEach(ipv6 -> {
-            if (!IpUtils.checkIpv6(ipv6.trim())) {
-                String msg = "contains invalid ipv6 format";
-                log.warn(msg);
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    ArrayUtil.toArray(paramName, msg));
-            }
-        });
-        return ipv6List;
-    }
-
     private List<WhiteIPIPDTO> buildIpDtoList(Long cloudAreaId,
                                               List<String> ipv4List,
-                                              List<String> ipv6List,
+                                              List<HostIdWithMeta> hostList,
                                               String username) {
         List<WhiteIPIPDTO> finalIpDtoList = new ArrayList<>();
         finalIpDtoList.addAll(buildIpv4DtoList(cloudAreaId, ipv4List, username));
-        finalIpDtoList.addAll(buildIpv6DtoList(cloudAreaId, ipv6List, username));
+        finalIpDtoList.addAll(buildHostDtoList(hostList, username));
         return finalIpDtoList;
     }
 
@@ -376,9 +348,11 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         List<String> notInDbCloudIpList = cloudIpList.stream()
             .filter(cloudIp -> !hostMap.containsKey(cloudIp))
             .collect(Collectors.toList());
-        List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByCloudIps(notInDbCloudIpList);
-        if (CollectionUtils.isNotEmpty(cmdbHostList)) {
-            cmdbHostList.forEach(hostDTO -> hostMap.put(hostDTO.getCloudIp(), hostDTO));
+        if (CollectionUtils.isNotEmpty(notInDbCloudIpList)) {
+            List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByCloudIps(notInDbCloudIpList);
+            if (CollectionUtils.isNotEmpty(cmdbHostList)) {
+                cmdbHostList.forEach(hostDTO -> hostMap.put(hostDTO.getCloudIp(), hostDTO));
+            }
         }
 
         // CMDB中也查不到的IP需要记录
@@ -408,51 +382,46 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         }).collect(Collectors.toList());
     }
 
-    private List<WhiteIPIPDTO> buildIpv6DtoList(Long cloudAreaId,
-                                                List<String> ipv6List,
+    private List<WhiteIPIPDTO> buildHostDtoList(List<HostIdWithMeta> hostList,
                                                 String username) {
-        // 根据IP查询hostId、IPv6信息
+        if (CollectionUtils.isEmpty(hostList)) {
+            return Collections.emptyList();
+        }
         // 从本地DB查询
-        List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostsByIpv6s(ipv6List);
-        Map<String, ApplicationHostDTO> hostMap = new HashMap<>();
-        hostDTOList.forEach(hostDTO -> {
-            if (hostDTO.getCloudAreaId().equals(cloudAreaId)) {
-                hostMap.put(hostDTO.getIpv6(), hostDTO);
-            }
-        });
+        List<Long> hostIdList = hostList.stream().map(HostIdWithMeta::getHostId).collect(Collectors.toList());
+        List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostInfoByHostIds(hostIdList);
+        Map<Long, ApplicationHostDTO> hostMap = new HashMap<>();
+        hostDTOList.forEach(hostDTO -> hostMap.put(hostDTO.getHostId(), hostDTO));
 
-        // 本地DB不存在的IP从CMDB查询hostId
-        List<String> notInDbIpv6List = ipv6List.stream()
-            .filter(ipv6 -> !hostMap.containsKey(ipv6))
+        // 本地DB不存在的HostId从CMDB查询hostId
+        List<Long> notInDbHostIdList = hostIdList.stream()
+            .filter(hostId -> !hostMap.containsKey(hostId))
             .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(notInDbIpv6List)) {
-            List<String> cloudIpv6List = notInDbIpv6List.stream()
-                .map(ipv6 -> cloudAreaId + ":" + ipv6)
-                .collect(Collectors.toList());
-            List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByCloudIpv6s(cloudIpv6List);
+        if (CollectionUtils.isNotEmpty(notInDbHostIdList)) {
+            List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByHostIds(notInDbHostIdList);
             if (CollectionUtils.isNotEmpty(cmdbHostList)) {
-                cmdbHostList.forEach(hostDTO -> hostMap.put(hostDTO.getIpv6(), hostDTO));
+                cmdbHostList.forEach(hostDTO -> hostMap.put(hostDTO.getHostId(), hostDTO));
             }
             // CMDB中也查不到的IP需要记录
-            cloudIpv6List.removeIf(hostMap::containsKey);
-            if (!cloudIpv6List.isEmpty()) {
-                log.warn("Cannot find cloudIpv6s in db/cmdb:{}", cloudIpv6List);
+            notInDbHostIdList.removeIf(hostMap::containsKey);
+            if (!notInDbHostIdList.isEmpty()) {
+                log.warn("Cannot find hostIds in db/cmdb:{}", notInDbHostIdList);
                 throw new InvalidParamException(
-                    ErrorCode.IP_NOT_EXIST_IN_CMDB,
-                    StringUtil.concatCollection(cloudIpv6List)
+                    ErrorCode.HOST_ID_NOT_EXIST_IN_CMDB,
+                    StringUtil.concatCollection(notInDbHostIdList)
                 );
             }
         }
 
-        return ipv6List.stream().map(ipv6 -> {
-            ApplicationHostDTO hostDTO = hostMap.get(ipv6);
+        return hostIdList.stream().map(hostId -> {
+            ApplicationHostDTO hostDTO = hostMap.get(hostId);
             return new WhiteIPIPDTO(
                 null,
                 null,
-                cloudAreaId,
-                hostDTO == null ? null : hostDTO.getHostId(),
-                hostDTO == null ? null : hostDTO.getIp(),
-                ipv6,
+                hostDTO.getCloudAreaId(),
+                hostDTO.getHostId(),
+                hostDTO.getIp(),
+                hostDTO.getIpv6(),
                 username,
                 System.currentTimeMillis(),
                 username,
@@ -461,28 +430,38 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         }).collect(Collectors.toList());
     }
 
+    private List<Long> parseTargetAppIds(WhiteIPRecordCreateUpdateReq createUpdateReq) {
+        List<Long> appIdList;
+        if (createUpdateReq.isAllScope()) {
+            // 对所有业务生效
+            appIdList = Collections.singletonList(JobConstants.PUBLIC_APP_ID);
+        } else {
+            List<ResourceScope> scopeList = createUpdateReq.getScopeList();
+            Map<ResourceScope, Long> scopeAppIdMap = appScopeMappingService.getAppIdByScopeList(scopeList);
+            appIdList = scopeList.parallelStream()
+                .map(scope -> {
+                    Long appId = scopeAppIdMap.get(scope);
+                    if (appId == null) {
+                        String msg = "Cannot find appId by scope " + scope;
+                        throw new InternalException(msg, ErrorCode.INTERNAL_ERROR);
+                    }
+                    return appId;
+                }).collect(Collectors.toList());
+        }
+        return appIdList;
+    }
+
     @Override
     public Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
         LOG.infoWithRequestId("Input(" + username + "," + createUpdateReq.toString() + ")");
         // 1.参数校验、预处理
-        Pair<List<String>, List<String>> ipListPair = checkReqAndGetIpList(createUpdateReq);
-        List<String> ipv4List = ipListPair.getLeft();
-        List<String> ipv6List = ipListPair.getRight();
+        List<String> ipv4List = checkReqAndGetIpList(createUpdateReq);
+        List<HostIdWithMeta> hostList = createUpdateReq.getHostList();
         // 2.appId转换
-        List<ResourceScope> scopeList = createUpdateReq.getScopeList();
-        Map<ResourceScope, Long> scopeAppIdMap = appScopeMappingService.getAppIdByScopeList(scopeList);
-        List<Long> appIdList = scopeList.parallelStream()
-            .map(scope -> {
-                Long appId = scopeAppIdMap.get(scope);
-                if (appId == null) {
-                    String msg = "Cannot find appId by scope " + scope;
-                    throw new InternalException(msg, ErrorCode.INTERNAL_ERROR);
-                }
-                return appId;
-            }).collect(Collectors.toList());
+        List<Long> appIdList = parseTargetAppIds(createUpdateReq);
 
         List<Long> actionScopeIdList = createUpdateReq.getActionScopeIdList();
-        val ipDtoList = buildIpDtoList(createUpdateReq.getCloudAreaId(), ipv4List, ipv6List, username);
+        val ipDtoList = buildIpDtoList(createUpdateReq.getCloudAreaId(), ipv4List, hostList, username);
         val actionScopeDtoList = actionScopeIdList.stream().map(actionScopeId -> new WhiteIPActionScopeDTO(
             null,
             null,
@@ -525,6 +504,12 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         return recordId;
     }
 
+    private boolean isAllScope(List<Long> appIdList) {
+        return appIdList != null
+            && appIdList.size() > 0
+            && new HashSet<>(appIdList).contains(JobConstants.PUBLIC_APP_ID);
+    }
+
     @Override
     public WhiteIPRecordVO getWhiteIPDetailById(String username, Long id) {
         LOG.infoWithRequestId("Input(" + username + "," + id + ")");
@@ -533,31 +518,33 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         if (record.getIpList().size() > 0) {
             cloudAreaId = record.getIpList().get(0).getCloudAreaId();
         }
+        boolean allScope = isAllScope(record.getAppIdList());
         val applicationInfoList = applicationDAO.listAppsByAppIds(record.getAppIdList());
-        List<AppVO> appVOList = applicationInfoList.stream().map(it -> new AppVO(
-            it.getId(),
-            it.getScope().getType().getValue(),
-            it.getScope().getId(),
-            it.getName(),
-            null,
-            null,
-            null
-        )).collect(Collectors.toList());
-        return new WhiteIPRecordVO(
-            id,
-            cloudAreaId,
-            record.getIpList().stream().map(WhiteIPIPDTO::extractWhiteIPHostVO).collect(Collectors.toList()),
-            record.getActionScopeList().stream().map(actionScopeDTO -> {
-                val actionScopeId = actionScopeDTO.getActionScopeId();
-                return actionScopeDAO.getActionScopeVOById(actionScopeId);
-            }).collect(Collectors.toList()),
-            appVOList,
-            record.getRemark(),
-            record.getCreator(),
-            record.getCreateTime(),
-            record.getLastModifier(),
-            record.getLastModifyTime()
-        );
+        List<ScopeVO> scopeVOList = null;
+        if (!allScope) {
+            scopeVOList = applicationInfoList.stream().map(it -> new ScopeVO(
+                it.getScope().getType().getValue(),
+                it.getScope().getId(),
+                it.getName()
+            )).collect(Collectors.toList());
+        }
+        WhiteIPRecordVO whiteIPRecord = new WhiteIPRecordVO();
+        whiteIPRecord.setId(id);
+        whiteIPRecord.setCloudAreaId(cloudAreaId);
+        whiteIPRecord.setHostList(record.getIpList().stream().map(WhiteIPIPDTO::extractWhiteIPHostVO)
+            .collect(Collectors.toList()));
+        whiteIPRecord.setActionScopeList(record.getActionScopeList().stream().map(actionScopeDTO -> {
+            val actionScopeId = actionScopeDTO.getActionScopeId();
+            return actionScopeDAO.getActionScopeVOById(actionScopeId);
+        }).collect(Collectors.toList()));
+        whiteIPRecord.setAllScope(allScope);
+        whiteIPRecord.setScopeList(scopeVOList);
+        whiteIPRecord.setRemark(record.getRemark());
+        whiteIPRecord.setCreator(record.getCreator());
+        whiteIPRecord.setCreateTime(record.getCreateTime());
+        whiteIPRecord.setLastModifier(record.getLastModifier());
+        whiteIPRecord.setLastModifyTime(record.getLastModifyTime());
+        return whiteIPRecord;
     }
 
     @Override
@@ -643,7 +630,9 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             for (Long appId : appIdList) {
                 ApplicationDTO applicationDTO = applicationDTOMap.get(appId) == null ? null :
                     applicationDTOMap.get(appId).get(0);
-                isAllApp = applicationDTO != null && applicationDTO.isAllBizSet();
+                // TODO:兼容实现，数据迁移后去除全业务对所有业务生效
+                isAllApp = appId == JobConstants.PUBLIC_APP_ID
+                    || (applicationDTO != null && applicationDTO.isAllBizSet());
                 if (isAllApp) {
                     break;
                 }

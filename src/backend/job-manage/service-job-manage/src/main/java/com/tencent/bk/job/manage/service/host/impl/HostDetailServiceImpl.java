@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
-import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,17 +41,17 @@ import java.util.List;
 @Service
 public class HostDetailServiceImpl implements HostDetailService {
 
-    private final ScopeHostService scopeHostService;
+    private final WhiteIpAwareScopeHostService whiteIpAwareScopeHostService;
     private final AgentStatusService agentStatusService;
     private final CloudVendorService cloudVendorService;
     private final OsTypeService osTypeService;
 
     @Autowired
-    public HostDetailServiceImpl(ScopeHostService scopeHostService,
+    public HostDetailServiceImpl(WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
                                  AgentStatusService agentStatusService,
                                  CloudVendorService cloudVendorService,
                                  OsTypeService osTypeService) {
-        this.scopeHostService = scopeHostService;
+        this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.agentStatusService = agentStatusService;
         this.cloudVendorService = cloudVendorService;
         this.osTypeService = osTypeService;
@@ -59,7 +59,11 @@ public class HostDetailServiceImpl implements HostDetailService {
 
     @Override
     public List<ApplicationHostDTO> listHostDetails(AppResourceScope appResourceScope, Collection<Long> hostIds) {
-        List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIds(appResourceScope, hostIds);
+        List<ApplicationHostDTO> scopeHostList = whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByHostId(
+            appResourceScope,
+            null,
+            hostIds
+        );
         // 填充实时agent状态
         agentStatusService.fillRealTimeAgentStatus(scopeHostList);
         fillDetailForHosts(scopeHostList);
