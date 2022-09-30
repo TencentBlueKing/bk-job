@@ -50,7 +50,7 @@ import java.util.Map;
  * 对IP白名单数据中不存在hostId的数据使用CMDB中的完整数据补全hostId
  */
 @Slf4j
-@Component
+//@Component
 public class WhiteIpMakeUpInitListener implements ApplicationListener<ApplicationReadyEvent> {
 
     @Value("${job.whiteIp.makeUp.enabled:true}")

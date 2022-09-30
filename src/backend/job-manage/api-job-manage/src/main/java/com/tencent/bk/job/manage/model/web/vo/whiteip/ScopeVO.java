@@ -22,44 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.whiteip;
+package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.HostIdWithMeta;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * 资源范围VO
+ */
+@AllArgsConstructor
+@NoArgsConstructor
+@ApiModel("资源范围")
 @Data
-@ApiModel("IP白名单记录创建请求")
-public class WhiteIPRecordCreateUpdateReq {
-
-    @ApiModelProperty(value = "ID,更新IP白名单记录的时候需要传入，新建时不需要")
-    private Long id;
-
-    @ApiModelProperty(value = "是否对所有资源范围生效，默认为false")
-    private boolean allScope = false;
-
-    @ApiModelProperty(value = "多个资源范围列表")
-    private List<ResourceScope> scopeList;
-
-    @ApiModelProperty(value = "兼容字段，请勿再使用：云区域ID")
-    private Long cloudAreaId;
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
-    @ApiModelProperty(value = "兼容字段，请勿再使用：IPs(换行分隔)")
-    private String ipStr;
-
-    @ApiModelProperty(value = "主机列表", required = true)
-    private List<HostIdWithMeta> hostList = new ArrayList<>();
-
-    @ApiModelProperty(value = "备注", required = true)
-    private String remark;
-
-    @ApiModelProperty(value = "生效范围（id列表）", required = true)
-    private List<Long> actionScopeIdList;
+public class ScopeVO {
+    @ApiModelProperty("资源范围类型")
+    private String scopeType;
+    @ApiModelProperty("资源范围ID")
+    private String scopeId;
+    @ApiModelProperty("业务名称")
+    private String name;
 }

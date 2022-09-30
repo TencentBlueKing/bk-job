@@ -25,11 +25,13 @@
 package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -49,5 +51,13 @@ public class WhiteIPHostVO {
 
     @ApiModelProperty("主机 IPv6")
     private String ipv6;
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public String getIpv4() {
+        if (StringUtils.isBlank(ip)) {
+            return "";
+        }
+        return ip;
+    }
 
 }
