@@ -56,7 +56,6 @@ public class CloudAreaService {
     private static IBizCmdbClient bizCmdbClient;
     private static List<CcCloudAreaInfoDTO> fullCloudAreaInfoList;
 
-
     public CloudAreaService(IBizCmdbClient bizCmdbClient) {
         CloudAreaService.bizCmdbClient = bizCmdbClient;
         CloudAreaNameCacheThread cloudAreaNameCacheThread = new CloudAreaNameCacheThread();

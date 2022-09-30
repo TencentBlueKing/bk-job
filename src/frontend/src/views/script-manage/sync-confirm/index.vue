@@ -116,8 +116,7 @@
             :script-version-id="selectScriptVersionId" />
         <Diff
             v-if="showDiff"
-            format="side-by-side"
-            theme="dark"
+            :title="$t('script.版本对比')"
             :data="diffList"
             :old-version-id="selectScriptVersionId"
             :new-version-id="lastVersionScriptInfo.scriptVersionId"

@@ -249,8 +249,8 @@ subprojects {
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
             dependency "com.cronutils:cron-utils:$cronUtilsVersion"
-            dependency "io.opentelemetry.instrumentation:opentelemetry-jdbc:$otelJdbcVersion"
             dependency "commons-validator:commons-validator:$commonsValidatorVersion"
+            dependency "io.opentelemetry.instrumentation:opentelemetry-jdbc:$otelJdbcVersion"
             dependencySet(group: "org.jooq", version: "$jooqVersion") {
                 entry "jooq"
                 entry "jooq-codegen"
