@@ -38,7 +38,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -143,10 +142,9 @@ public class CloudAreaService {
         public void run() {
             this.setName("Cloud-Area-Info-Sync-Thread");
             while (true) {
-                String uuid = UUID.randomUUID().toString();
                 long start = System.currentTimeMillis();
                 try {
-                    log.debug("{}|Cloud area info syncing start...", uuid);
+                    log.debug("Cloud area info syncing start...");
                     List<CcCloudAreaInfoDTO> cloudAreaInfoList = getCloudAreaListFromCc();
                     if (CollectionUtils.isNotEmpty(cloudAreaInfoList)) {
                         Iterator<CcCloudAreaInfoDTO> cloudAreaInfoIterator = cloudAreaInfoList.iterator();
@@ -161,9 +159,9 @@ public class CloudAreaService {
                         }
                         fullCloudAreaInfoList = cloudAreaInfoList;
                     }
-                    log.debug("{}|Cloud area info syncing finished in {}!", uuid, System.currentTimeMillis() - start);
+                    log.debug("Cloud area info syncing finished in {}!", System.currentTimeMillis() - start);
                 } catch (Exception e) {
-                    log.error("{}|Error while process cloud area name!", uuid, e);
+                    log.error("Error while process cloud area name!", e);
                 }
                 try {
                     Thread.sleep(60_000L);
