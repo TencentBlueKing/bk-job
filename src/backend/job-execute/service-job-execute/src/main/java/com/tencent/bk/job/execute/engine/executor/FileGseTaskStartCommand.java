@@ -176,23 +176,19 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
      * 解析文件源
      */
     private void resolveFileSource() {
-        List<FileSourceDTO> resolvedFileSourceList =
-            CollectionUtils.isNotEmpty(stepInstance.getResolvedFileSourceList()) ?
-                stepInstance.getResolvedFileSourceList() : stepInstance.getFileSourceList();
-        if (CollectionUtils.isNotEmpty(resolvedFileSourceList)) {
-            for (FileSourceDTO fileSource : resolvedFileSourceList) {
+        List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+        if (CollectionUtils.isNotEmpty(fileSourceList)) {
+            for (FileSourceDTO fileSource : fileSourceList) {
                 if (fileSource.getFileType() == TaskFileTypeEnum.LOCAL.getType()
                     && fileSource.getServers() == null) {
                     fileSource.setServers(agentService.getLocalServersDTO());
                 }
             }
             // 解析源文件路径中的全局变量
-            resolveVariableForSourceFilePath(resolvedFileSourceList,
-                buildStringGlobalVarKV(stepInputVariables));
+            resolveVariableForSourceFilePath(fileSourceList, buildStringGlobalVarKV(stepInputVariables));
 
-            stepInstance.setResolvedFileSourceList(resolvedFileSourceList);
             taskInstanceService.updateResolvedSourceFile(stepInstance.getId(),
-                stepInstance.getResolvedFileSourceList());
+                stepInstance.getFileSourceList());
         }
     }
 

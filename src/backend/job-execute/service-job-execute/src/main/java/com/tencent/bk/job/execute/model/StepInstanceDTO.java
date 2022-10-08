@@ -114,10 +114,6 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
      */
     private List<FileSourceDTO> fileSourceList;
     /**
-     * 变量解析之后的文件传输的源文件
-     */
-    private List<FileSourceDTO> resolvedFileSourceList;
-    /**
      * 文件传输的目标目录
      */
     private String fileTargetPath;
@@ -210,7 +206,6 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.accountId = fileStepInstance.getAccountId();
         this.account = fileStepInstance.getAccount();
         this.fileSourceList = fileStepInstance.getFileSourceList();
-        this.resolvedFileSourceList = fileStepInstance.getResolvedFileSourceList();
         this.fileTargetPath = fileStepInstance.getFileTargetPath();
         this.fileTargetName = fileStepInstance.getFileTargetName();
         this.resolvedFileTargetPath = fileStepInstance.getResolvedFileTargetPath();

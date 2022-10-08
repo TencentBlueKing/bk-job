@@ -381,8 +381,6 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getFileSourceList()).isNotEmpty();
         assertThat(returnStepInstance.getFileSourceList().get(0).getFiles().get(0).getFilePath()).isEqualTo("/$" +
             "{log_dir}/1.log");
-        assertThat(returnStepInstance.getResolvedFileSourceList().get(0).getFiles().get(0).getResolvedFilePath())
-            .isEqualTo("/tmp/1.log");
         assertThat(returnStepInstance.getFileTargetPath()).isEqualTo("/${log_dir}/");
         assertThat(returnStepInstance.getFileTargetName()).isEqualTo("2.log");
         assertThat(returnStepInstance.getResolvedFileTargetPath()).isEqualTo("/tmp/");

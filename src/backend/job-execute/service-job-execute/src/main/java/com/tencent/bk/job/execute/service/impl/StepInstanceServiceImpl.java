@@ -82,13 +82,10 @@ public class StepInstanceServiceImpl implements StepInstanceService {
         if (stepInstance.isFileStep()) {
             List<FileSourceDTO> fileSourceList;
             if (stepInstance instanceof StepInstanceDTO) {
-                StepInstanceDTO fileStepInstance = (StepInstanceDTO) stepInstance;
-                fileSourceList = fileStepInstance.getResolvedFileSourceList() != null ?
-                    fileStepInstance.getResolvedFileSourceList() : fileStepInstance.getFileSourceList();
+                fileSourceList = ((StepInstanceDTO) stepInstance).getFileSourceList();
             } else {
                 FileStepInstanceDTO fileStepInstance = stepInstanceDAO.getFileStepInstance(stepInstance.getId());
-                fileSourceList = fileStepInstance.getResolvedFileSourceList() != null ?
-                    fileStepInstance.getResolvedFileSourceList() : fileStepInstance.getFileSourceList();
+                fileSourceList = fileStepInstance.getFileSourceList();
             }
 
             if (CollectionUtils.isNotEmpty(fileSourceList)) {
