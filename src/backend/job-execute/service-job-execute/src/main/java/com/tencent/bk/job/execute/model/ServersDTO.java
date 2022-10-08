@@ -62,28 +62,10 @@ public class ServersDTO implements Cloneable {
      */
     private List<HostDTO> ipList;
 
-    /**
-     * 非法服务器
-     */
-    private List<HostDTO> invalidIpList;
-
-    /**
-     * 非法动态分组
-     */
-    private List<DynamicServerGroupDTO> invalidDynamicServerGroups;
-
-    /**
-     * 非法topo节点
-     */
-    private List<DynamicServerTopoNodeDTO> invalidTopoNodes;
-
     public static ServersDTO emptyInstance() {
         ServersDTO serversDTO = new ServersDTO();
         serversDTO.setIpList(Collections.emptyList());
         serversDTO.setDynamicServerGroups(Collections.emptyList());
-        serversDTO.setInvalidDynamicServerGroups(Collections.emptyList());
-        serversDTO.setInvalidIpList(Collections.emptyList());
-        serversDTO.setInvalidTopoNodes(Collections.emptyList());
         serversDTO.setStaticIpList(Collections.emptyList());
         serversDTO.setTopoNodes(Collections.emptyList());
         return serversDTO;
@@ -118,22 +100,6 @@ public class ServersDTO implements Cloneable {
             List<HostDTO> cloneIpList = new ArrayList<>(ipList.size());
             ipList.forEach(ip -> cloneIpList.add(ip.clone()));
             cloneServersDTO.setIpList(cloneIpList);
-        }
-        if (invalidIpList != null) {
-            List<HostDTO> cloneIpList = new ArrayList<>(invalidIpList.size());
-            invalidIpList.forEach(ip -> cloneIpList.add(ip.clone()));
-            cloneServersDTO.setInvalidIpList(cloneIpList);
-        }
-        if (invalidDynamicServerGroups != null) {
-            List<DynamicServerGroupDTO> cloneInvalidDynamicServerGroups =
-                new ArrayList<>(invalidDynamicServerGroups.size());
-            invalidDynamicServerGroups.forEach(group -> cloneInvalidDynamicServerGroups.add(group.clone()));
-            cloneServersDTO.setInvalidDynamicServerGroups(cloneInvalidDynamicServerGroups);
-        }
-        if (invalidTopoNodes != null) {
-            List<DynamicServerTopoNodeDTO> cloneInvalidDynamicServerGroups = new ArrayList<>(invalidTopoNodes.size());
-            invalidTopoNodes.forEach(topo -> cloneInvalidDynamicServerGroups.add(topo.clone()));
-            cloneServersDTO.setInvalidTopoNodes(cloneInvalidDynamicServerGroups);
         }
         return cloneServersDTO;
     }
@@ -192,19 +158,5 @@ public class ServersDTO implements Cloneable {
         return CollectionUtils.isEmpty(this.staticIpList)
             && CollectionUtils.isEmpty(this.topoNodes)
             && CollectionUtils.isEmpty(this.dynamicServerGroups);
-    }
-
-    public void addInvalidDynamicServerGroup(DynamicServerGroupDTO serverGroup) {
-        if (this.invalidDynamicServerGroups == null) {
-            this.invalidDynamicServerGroups = new ArrayList<>();
-        }
-        this.invalidDynamicServerGroups.add(serverGroup);
-    }
-
-    public void addInvalidTopoNodeDTO(DynamicServerTopoNodeDTO topoNode) {
-        if (this.invalidTopoNodes == null) {
-            this.invalidTopoNodes = new ArrayList<>();
-        }
-        this.invalidTopoNodes.add(topoNode);
     }
 }

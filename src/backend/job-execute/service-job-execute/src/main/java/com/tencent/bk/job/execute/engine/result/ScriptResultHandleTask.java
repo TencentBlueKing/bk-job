@@ -611,7 +611,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         if (this.notStartedTargetAgentIds.isEmpty() && this.runningTargetAgentIds.isEmpty()) {
             int targetAgentNum = this.targetAgentIds.size();
             int successTargetAgentNum = this.successTargetAgentIds.size();
-            boolean isSuccess = !stepInstance.hasInvalidHost() && successTargetAgentNum == targetAgentNum;
+            boolean isSuccess = successTargetAgentNum == targetAgentNum;
             if (isSuccess) {
                 rst = GseTaskExecuteResult.SUCCESS;
             } else {

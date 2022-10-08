@@ -538,7 +538,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
         int targetAgentNum = this.targetAgentIds.size();
         int allSuccessAgentNum = this.successTargetAgentIds.size();
-        boolean isSuccess = !stepInstance.hasInvalidHost() && allSuccessAgentNum == targetAgentNum;
+        boolean isSuccess = allSuccessAgentNum == targetAgentNum;
 
         updateGseTaskExecutionInfo(result, isSuccess, endTime, gseTotalTime);
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,

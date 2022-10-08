@@ -98,7 +98,7 @@ public interface HostService {
      * @param ccInstances topo节点列表
      * @return 主机列表
      */
-    List<HostDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances);
+    List<HostDTO> getHostsByTopoNodes(long appId, List<CcInstanceDTO> ccInstances);
 
     /**
      * 获取主机云区域名称

@@ -28,7 +28,6 @@ import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.file.PathUtil;
-import com.tencent.bk.job.common.util.function.LambdasUtil;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
@@ -44,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * 源文件工具类
@@ -126,26 +124,22 @@ public class JobSrcFileUtils {
                 String accountAlias = fileSource.getAccountAlias();
                 // 远程文件
                 List<HostDTO> sourceHosts = fileSource.getServers().getIpList();
-                Set<HostDTO> invalidHosts = stepInstance.getInvalidHosts();
                 for (FileDetailDTO file : files) {
                     String filePath = StringUtils.isNotEmpty(file.getResolvedFilePath()) ? file.getResolvedFilePath()
                         : file.getFilePath();
                     Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(filePath);
                     String dir = fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    Predicate<HostDTO> predicate = LambdasUtil.not(invalidHosts::contains);
                     for (HostDTO sourceHost : sourceHosts) {
-                        if (predicate.test(sourceHost)) {
-                            // 第三方源文件的displayName不同
-                            if (isThirdFile) {
-                                sendFiles.add(new JobFile(TaskFileTypeEnum.FILE_SOURCE, sourceHost,
-                                    file.getThirdFilePathWithFileSourceName(),
-                                    file.getThirdFilePathWithFileSourceName(),
-                                    dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
-                            } else {
-                                sendFiles.add(new JobFile(TaskFileTypeEnum.SERVER, sourceHost, filePath, filePath, dir,
-                                    fileName, stepInstance.getAppId(), accountId, accountAlias));
-                            }
+                        // 第三方源文件的displayName不同
+                        if (isThirdFile) {
+                            sendFiles.add(new JobFile(TaskFileTypeEnum.FILE_SOURCE, sourceHost,
+                                file.getThirdFilePathWithFileSourceName(),
+                                file.getThirdFilePathWithFileSourceName(),
+                                dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
+                        } else {
+                            sendFiles.add(new JobFile(TaskFileTypeEnum.SERVER, sourceHost, filePath, filePath, dir,
+                                fileName, stepInstance.getAppId(), accountId, accountAlias));
                         }
                     }
 

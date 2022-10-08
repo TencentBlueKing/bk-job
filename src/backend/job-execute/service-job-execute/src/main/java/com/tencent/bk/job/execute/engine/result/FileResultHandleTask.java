@@ -394,7 +394,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             if (this.notStartedFileSourceAgentIds.isEmpty() && this.runningFileSourceAgentIds.isEmpty()) {
                 int successTargetIpNum = this.successTargetAgentIds.size();
                 int targetIPNum = this.targetAgentIds.size();
-                boolean isSuccess = !stepInstance.hasInvalidHost() && successTargetIpNum == targetIPNum;
+                boolean isSuccess = successTargetIpNum == targetIPNum;
                 if (isSuccess) {
                     rst = GseTaskExecuteResult.SUCCESS;
                 } else {
@@ -414,7 +414,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 if (System.currentTimeMillis() - this.downloadFinishedTime > 15_000L) {
                     int targetIPNum = this.targetAgentIds.size();
                     int successTargetIpNum = this.successTargetAgentIds.size();
-                    boolean isSuccess = !stepInstance.hasInvalidHost() && successTargetIpNum == targetIPNum;
+                    boolean isSuccess = successTargetIpNum == targetIPNum;
                     rst = isSuccess ? GseTaskExecuteResult.SUCCESS : GseTaskExecuteResult.FAILED;
                     log.info("[{}] AnalyseExecuteResult-> Result: finished. Download tasks are finished, " +
                             "but upload tasks are not finished after 15 seconds. Ignore upload tasks",
