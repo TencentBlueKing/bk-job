@@ -190,10 +190,6 @@ public class GSEFileTaskResult {
         return destCloudId + ":" + destIp;
     }
 
-    public boolean isDownloadMode() {
-        return FileDistModeEnum.DOWNLOAD.getValue().equals(this.mode);
-    }
-
     public String getStandardSourceFilePath() {
         if (standardSourceFilePath != null) {
             return standardSourceFilePath;
