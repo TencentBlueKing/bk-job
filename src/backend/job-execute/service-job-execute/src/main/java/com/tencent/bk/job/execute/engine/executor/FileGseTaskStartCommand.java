@@ -70,6 +70,7 @@ import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.sleuth.Tracer;
@@ -161,19 +162,44 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     protected void preExecute() {
         // 设置本地文件服务器的Agent Ip
         this.localAgentHost = agentService.getLocalAgentHost();
+        // 解析文件源
+        resolveFileSource();
         // 解析文件传输的源文件, 得到List<JobFile>
         parseSrcFiles();
+        // 解析目标路径中的变量
         resolvedTargetPathWithVariable();
+        // 初始化agent任务
         initFileSourceGseAgentTasks();
+    }
+
+    /**
+     * 解析文件源
+     */
+    private void resolveFileSource() {
+        List<FileSourceDTO> resolvedFileSourceList =
+            CollectionUtils.isNotEmpty(stepInstance.getResolvedFileSourceList()) ?
+                stepInstance.getResolvedFileSourceList() : stepInstance.getFileSourceList();
+        if (CollectionUtils.isNotEmpty(resolvedFileSourceList)) {
+            for (FileSourceDTO fileSource : resolvedFileSourceList) {
+                if (fileSource.getFileType() == TaskFileTypeEnum.LOCAL.getType()
+                    && fileSource.getServers() == null) {
+                    fileSource.setServers(agentService.getLocalServersDTO());
+                }
+            }
+            // 解析源文件路径中的全局变量
+            resolveVariableForSourceFilePath(resolvedFileSourceList,
+                buildStringGlobalVarKV(stepInputVariables));
+
+            stepInstance.setResolvedFileSourceList(resolvedFileSourceList);
+            taskInstanceService.updateResolvedSourceFile(stepInstance.getId(),
+                stepInstance.getResolvedFileSourceList());
+        }
     }
 
     /**
      * 解析源文件
      */
     private void parseSrcFiles() {
-        // 解析源文件路径中的全局变量
-        resolveVariableForSourceFilePath(stepInstance.getFileSourceList(),
-            buildStringGlobalVarKV(stepInputVariables));
         srcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, localAgentHost, fileStorageRootPath);
         // 设置源文件所在主机账号信息
         setAccountInfoForSourceFiles(srcFiles);
@@ -201,7 +227,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         if (stepInputGlobalVariableValueMap == null || stepInputGlobalVariableValueMap.isEmpty()) {
             return;
         }
-        boolean isContainsVar = false;
         for (FileSourceDTO fileSource : fileSources) {
             if (CollectionUtils.isNotEmpty(fileSource.getFiles())) {
                 for (FileDetailDTO file : fileSource.getFiles()) {
@@ -209,13 +234,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                         stepInputGlobalVariableValueMap);
                     if (!resolvedFilePath.equals(file.getFilePath())) {
                         file.setResolvedFilePath(resolvedFilePath);
-                        isContainsVar = true;
                     }
                 }
             }
-        }
-        if (isContainsVar) {
-            taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), stepInstance.getFileSourceList());
         }
     }
 
