@@ -226,7 +226,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         } else {
             InstanceTopologyDTO topologyDTO = getBizInstTopologyWithoutInternalTopo(bizId);
             InstanceTopologyDTO internalTopologyDTO = getBizInternalModule(bizId);
-            completeTopologyDTO = TopologyUtil.mergeTopology(topologyDTO, internalTopologyDTO);
+            internalTopologyDTO.setObjectName(topologyDTO.getObjectName());
+            internalTopologyDTO.setInstanceName(topologyDTO.getInstanceName());
+            completeTopologyDTO = TopologyUtil.mergeTopology(internalTopologyDTO, topologyDTO);
         }
         return completeTopologyDTO;
     }
@@ -390,28 +392,33 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             GET_BIZ_INTERNAL_MODULE, req, new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
             });
         GetBizInternalModuleResult setInfo = esbResp.getData();
-        //将结果转换为Topo树
-        InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
-        instanceTopologyDTO.setObjectId("set");
-        instanceTopologyDTO.setObjectName("Set");
-        instanceTopologyDTO.setInstanceId(setInfo.getSetId());
-        instanceTopologyDTO.setInstanceName(setInfo.getSetName());
+        //将结果转换为拓扑树
+        InstanceTopologyDTO setNode = new InstanceTopologyDTO();
+        setNode.setObjectId("set");
+        setNode.setObjectName("Set");
+        setNode.setInstanceId(setInfo.getSetId());
+        setNode.setInstanceName(setInfo.getSetName());
         List<InstanceTopologyDTO> childList = new ArrayList<>();
         List<GetBizInternalModuleResult.Module> modules = setInfo.getModule();
         if (modules != null && !modules.isEmpty()) {
-            modules.forEach(module -> {
+            for (GetBizInternalModuleResult.Module module : modules) {
                 InstanceTopologyDTO childModule = new InstanceTopologyDTO();
                 childModule.setObjectId("module");
                 childModule.setObjectName("Module");
                 childModule.setInstanceId(module.getModuleId());
                 childModule.setInstanceName(module.getModuleName());
                 childList.add(childModule);
-            });
+            }
         }
-        instanceTopologyDTO.setChild(childList);
-        return instanceTopologyDTO;
+        setNode.setChild(childList);
+        InstanceTopologyDTO bizNode = new InstanceTopologyDTO();
+        bizNode.setObjectId("biz");
+        bizNode.setInstanceId(bizId);
+        childList = new ArrayList<>();
+        childList.add(setNode);
+        bizNode.setChild(childList);
+        return bizNode;
     }
-
 
     @Override
     public List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList) {
