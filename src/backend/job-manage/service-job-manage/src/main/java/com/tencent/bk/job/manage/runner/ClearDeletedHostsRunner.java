@@ -22,21 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.config;
+package com.tencent.bk.job.manage.runner;
 
-import com.tencent.bk.job.common.redis.util.RedisSlideWindowFlowController;
+import com.tencent.bk.job.manage.task.ClearDeletedHostsTask;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
 
+/**
+ * 进程启动时立即执行一次无效主机清理
+ */
 @Slf4j
-@Configuration
-@Lazy(false)
-public class CMDBFlowControllerConfig {
+@Component
+public class ClearDeletedHostsRunner implements CommandLineRunner {
 
-    @Bean
-    public RedisSlideWindowFlowController cmdbGlobalFlowController() {
-        return new RedisSlideWindowFlowController();
+    private final ClearDeletedHostsTask clearDeletedHostsTask;
+
+    @Autowired
+    public ClearDeletedHostsRunner(ClearDeletedHostsTask clearDeletedHostsTask) {
+        this.clearDeletedHostsTask = clearDeletedHostsTask;
+    }
+
+    @Override
+    public void run(String... args) {
+        new Thread(clearDeletedHostsTask::execute).start();
     }
 }

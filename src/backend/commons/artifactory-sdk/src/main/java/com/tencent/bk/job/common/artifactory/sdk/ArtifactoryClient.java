@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.artifactory.model.dto.PageData;
 import com.tencent.bk.job.common.artifactory.model.dto.ProjectDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.RepoDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.TempUrlInfo;
-import com.tencent.bk.job.common.artifactory.model.dto.UserDetail;
 import com.tencent.bk.job.common.artifactory.model.req.ArtifactoryReq;
 import com.tencent.bk.job.common.artifactory.model.req.CheckRepoExistReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateProjectReq;
@@ -47,7 +46,6 @@ import com.tencent.bk.job.common.artifactory.model.req.ListProjectReq;
 import com.tencent.bk.job.common.artifactory.model.req.ListRepoPageReq;
 import com.tencent.bk.job.common.artifactory.model.req.QueryNodeDetailReq;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
-import com.tencent.bk.job.common.artifactory.model.req.UserDetailReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
@@ -74,12 +72,11 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHeader;
+import org.springframework.web.util.UriUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +96,6 @@ public class ArtifactoryClient {
     public static final String URL_QUERY_NODE_DETAIL = "/repository/api/node/detail/{projectId}/{repoName}/{fullPath}";
     public static final String URL_CREATE_TEMP_ACCESS_URL = "/generic/temporary/url/create";
     public static final String URL_CREATE_USER_TO_PROJECT = "/auth/api/user/create/project";
-    public static final String URL_USER_DETAIL = "/auth/api/user/detail/{userId}";
     public static final String URL_CREATE_PROJECT = "/repository/api/project/create";
     public static final String URL_CREATE_REPO = "/repository/api/repo/create";
     public static final String URL_CHECK_REPO_EXIST = "/repository/api/repo/exist/{projectId}/{repoName}";
@@ -130,11 +126,7 @@ public class ArtifactoryClient {
         }
         String[] pathArr = path.split("/");
         for (int i = 0; i < pathArr.length; i++) {
-            try {
-                pathArr[i] = URLEncoder.encode(pathArr[i], "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                log.warn("Fail to encode {}", pathArr[i]);
-            }
+            pathArr[i] = UriUtils.encodePath(pathArr[i], "UTF-8");
         }
         path = String.join("/", pathArr);
         return baseUrl + "/" + StringUtil.removePrefix(path, "/") + queryParamStr;
@@ -173,7 +165,7 @@ public class ArtifactoryClient {
         return headerList.toArray(headers);
     }
 
-    private String doHttpGet(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) throws IOException {
+    private String doHttpGet(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) {
         if (null == reqBody) {
             return httpHelper.get(url, getJsonHeaders());
         } else {
@@ -181,7 +173,7 @@ public class ArtifactoryClient {
         }
     }
 
-    private String doHttpPost(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) throws Exception {
+    private String doHttpPost(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) {
         if (null == reqBody) {
             return httpHelper.post(url, "{}", getJsonHeaders());
         } else {
@@ -189,7 +181,7 @@ public class ArtifactoryClient {
         }
     }
 
-    private String doHttpDelete(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) throws Exception {
+    private String doHttpDelete(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) {
         if (null == reqBody) {
             return httpHelper.delete(url, "{}", getJsonHeaders());
         } else {
@@ -240,7 +232,7 @@ public class ArtifactoryClient {
         if (reqBody != null) {
             reqStr = JsonUtils.toJson(reqBody);
         }
-        String respStr = null;
+        String respStr;
         long start = System.nanoTime();
         String status = "none";
         try {
@@ -347,6 +339,7 @@ public class ArtifactoryClient {
     }
 
     public Boolean deleteProject(String projectId) {
+        log.info("deleteProject:{}", projectId);
         throw new NotImplementedException("Not support feature", ErrorCode.NOT_SUPPORT_FEATURE);
     }
 
@@ -464,7 +457,7 @@ public class ArtifactoryClient {
         req.setPath(filePath);
         String url = StringUtil.replacePathVariables(URL_UPLOAD_GENERIC_FILE, req);
         url = getCompleteUrl(url);
-        String respStr = null;
+        String respStr;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "upload:" + URL_UPLOAD_GENERIC_FILE));
@@ -502,18 +495,6 @@ public class ArtifactoryClient {
             URL_CREATE_TEMP_ACCESS_URL,
             req,
             new TypeReference<ArtifactoryResp<List<TempUrlInfo>>>() {
-            },
-            httpHelper
-        );
-        return resp.getData();
-    }
-
-    public UserDetail userDetail(UserDetailReq req) {
-        ArtifactoryResp<UserDetail> resp = getArtifactoryRespByReq(
-            HttpGet.METHOD_NAME,
-            URL_USER_DETAIL,
-            req,
-            new TypeReference<ArtifactoryResp<UserDetail>>() {
             },
             httpHelper
         );

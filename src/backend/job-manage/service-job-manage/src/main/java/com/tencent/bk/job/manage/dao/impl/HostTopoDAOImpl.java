@@ -48,11 +48,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @Description
- * @Date 2020/2/28
- * @Version 1.0
- */
 @Repository
 @Slf4j
 public class HostTopoDAOImpl implements HostTopoDAO {
@@ -66,8 +61,8 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public int insertHostTopo(DSLContext dslContext, HostTopoDTO hostTopoDTO) {
-        val query = dslContext.insertInto(defaultTable,
+    public void insertHostTopo(HostTopoDTO hostTopoDTO) {
+        val query = defaultContext.insertInto(defaultTable,
             defaultTable.HOST_ID,
             defaultTable.APP_ID,
             defaultTable.SET_ID,
@@ -78,11 +73,11 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             hostTopoDTO.getSetId(),
             hostTopoDTO.getModuleId()
         ).onDuplicateKeyIgnore();
-        return query.execute();
+        query.execute();
     }
 
     @Override
-    public int batchInsertHostTopo(DSLContext dslContext, List<HostTopoDTO> hostTopoDTOList) {
+    public int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList) {
         int batchSize = 1000;
         int size = hostTopoDTOList.size();
         int start = 0;
@@ -96,7 +91,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
                 // 避免插入空数据
                 break;
             }
-            val insertQuery = dslContext.insertInto(defaultTable,
+            val insertQuery = defaultContext.insertInto(defaultTable,
                 defaultTable.HOST_ID,
                 defaultTable.APP_ID,
                 defaultTable.SET_ID,
@@ -107,7 +102,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
                 null,
                 null
             ).onDuplicateKeyIgnore();
-            BatchBindStep batchQuery = dslContext.batch(insertQuery);
+            BatchBindStep batchQuery = defaultContext.batch(insertQuery);
             for (HostTopoDTO hostTopoDTO : subList) {
                 batchQuery = batchQuery.bind(
                     ULong.valueOf(hostTopoDTO.getHostId()),
@@ -126,7 +121,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public int deleteHostTopoByHostId(DSLContext dslContext, Long appId, Long hostId) {
+    public void deleteHostTopoByHostId(Long appId, Long hostId) {
         List<Condition> conditions = new ArrayList<>();
         if (appId != null) {
             conditions.add(defaultTable.APP_ID.eq(ULong.valueOf(appId)));
@@ -134,14 +129,14 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         if (hostId != null) {
             conditions.add(defaultTable.HOST_ID.eq(ULong.valueOf(hostId)));
         }
-        return dslContext.deleteFrom(defaultTable).where(
+        defaultContext.deleteFrom(defaultTable).where(
             conditions
         ).execute();
     }
 
     @Override
-    public int deleteHostTopo(DSLContext dslContext, Long hostId, Long appId, Long setId, Long moduleId) {
-        return dslContext.deleteFrom(defaultTable)
+    public void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId) {
+        defaultContext.deleteFrom(defaultTable)
             .where(defaultTable.HOST_ID.eq(ULong.valueOf(hostId)))
             .and(defaultTable.APP_ID.eq(ULong.valueOf(appId)))
             .and(defaultTable.SET_ID.eq(setId))
@@ -150,7 +145,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public int batchDeleteHostTopo(DSLContext dslContext, Long bizId, List<Long> hostIdList) {
+    public int batchDeleteHostTopo(Long bizId, List<Long> hostIdList) {
         int batchSize = 1000;
         int maxQueryNum = 100;
         int size = hostIdList.size();
@@ -161,7 +156,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         do {
             end = Math.min(start + batchSize, size);
             List<Long> subList = hostIdList.subList(start, end);
-            DeleteConditionStep<HostTopoRecord> step = dslContext.deleteFrom(defaultTable)
+            DeleteConditionStep<HostTopoRecord> step = defaultContext.deleteFrom(defaultTable)
                 .where(defaultTable.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList())));
             if (bizId != null) {
                 step = step.and(defaultTable.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
@@ -169,7 +164,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             queryList.add(step);
             // SQL语句达到最大语句数量即执行
             if (queryList.size() >= maxQueryNum) {
-                int[] results = dslContext.batch(queryList).execute();
+                int[] results = defaultContext.batch(queryList).execute();
                 queryList.clear();
                 for (int result : results) {
                     affectedNum += result;
@@ -178,7 +173,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             start += batchSize;
         } while (end < size);
         if (!queryList.isEmpty()) {
-            int[] results = dslContext.batch(queryList).execute();
+            int[] results = defaultContext.batch(queryList).execute();
             for (int result : results) {
                 affectedNum += result;
             }
@@ -187,17 +182,16 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public int batchDeleteHostTopo(DSLContext dslContext, List<Long> hostIdList) {
-        return batchDeleteHostTopo(dslContext, null, hostIdList);
+    public int batchDeleteHostTopo(List<Long> hostIdList) {
+        return batchDeleteHostTopo(null, hostIdList);
     }
 
-    private List<HostTopoDTO> listHostTopoByConditions(DSLContext dslContext, Collection<Condition> conditions) {
-        return listHostTopoByConditions(dslContext, conditions, null, null);
+    private List<HostTopoDTO> listHostTopoByConditions(Collection<Condition> conditions) {
+        return listHostTopoByConditions(conditions, null, null);
     }
 
-    private List<HostTopoDTO> listHostTopoByConditions(DSLContext dslContext, Collection<Condition> conditions,
-                                                       Long start, Long limit) {
-        val query = dslContext.selectFrom(defaultTable)
+    private List<HostTopoDTO> listHostTopoByConditions(Collection<Condition> conditions, Long start, Long limit) {
+        val query = defaultContext.selectFrom(defaultTable)
             .where(conditions);
         val sql = query.getSQL(ParamType.INLINED);
         Result<HostTopoRecord> records;
@@ -222,15 +216,15 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @SuppressWarnings("all")
-    private int countHostTopoByConditions(DSLContext dslContext, Collection<Condition> conditions) {
-        return dslContext.selectCount()
+    private int countHostTopoByConditions(Collection<Condition> conditions) {
+        return defaultContext.selectCount()
             .from(defaultTable)
             .where(conditions)
             .fetchOne(0, Integer.class);
     }
 
     @Override
-    public int countHostTopo(DSLContext dslContext, Long bizId, Long hostId) {
+    public int countHostTopo(Long bizId, Long hostId) {
         List<Condition> conditions = new ArrayList<>();
         if (hostId != null) {
             conditions.add(defaultTable.HOST_ID.eq(ULong.valueOf(hostId)));
@@ -238,36 +232,22 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         if (bizId != null) {
             conditions.add(defaultTable.APP_ID.eq(ULong.valueOf(bizId)));
         }
-        return countHostTopoByConditions(dslContext, conditions);
+        return countHostTopoByConditions(conditions);
     }
 
     @Override
-    public List<HostTopoDTO> listHostTopoByHostId(DSLContext dslContext, Long hostId) {
+    public List<HostTopoDTO> listHostTopoByHostId(Long hostId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.HOST_ID.eq(ULong.valueOf(hostId)));
-        return listHostTopoByConditions(dslContext, conditions);
+        return listHostTopoByConditions(conditions);
     }
 
     @Override
-    public List<HostTopoDTO> listHostTopoBySetId(DSLContext dslContext, Long setId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(defaultTable.SET_ID.eq(setId));
-        return listHostTopoByConditions(dslContext, conditions);
-    }
-
-    @Override
-    public List<HostTopoDTO> listHostTopoByModuleId(DSLContext dslContext, Long moduleId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(defaultTable.MODULE_ID.eq(moduleId));
-        return listHostTopoByConditions(dslContext, conditions);
-    }
-
-    @Override
-    public List<HostTopoDTO> listHostTopoByModuleIds(DSLContext dslContext, Collection<Long> moduleIds, Long start,
+    public List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start,
                                                      Long limit) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.MODULE_ID.in(moduleIds));
-        return listHostTopoByConditions(dslContext, conditions, start, limit);
+        return listHostTopoByConditions(conditions, start, limit);
     }
 
     @Override

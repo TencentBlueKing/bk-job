@@ -25,34 +25,28 @@
 package com.tencent.bk.job.manage.dao;
 
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
-import org.jooq.DSLContext;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface HostTopoDAO {
-    int insertHostTopo(DSLContext dslContext, HostTopoDTO hostTopoDTO);
+    void insertHostTopo(HostTopoDTO hostTopoDTO);
 
-    int batchInsertHostTopo(DSLContext dslContext, List<HostTopoDTO> hostTopoDTOList);
+    int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList);
 
-    int deleteHostTopoByHostId(DSLContext dslContext, Long appId, Long hostId);
+    void deleteHostTopoByHostId(Long appId, Long hostId);
 
-    int deleteHostTopo(DSLContext dslContext, Long hostId, Long appId, Long setId, Long moduleId);
+    void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId);
 
-    int batchDeleteHostTopo(DSLContext dslContext, List<Long> hostIdList);
+    int batchDeleteHostTopo(List<Long> hostIdList);
 
-    int batchDeleteHostTopo(DSLContext dslContext, Long bizId, List<Long> hostIdList);
+    int batchDeleteHostTopo(Long bizId, List<Long> hostIdList);
 
-    int countHostTopo(DSLContext dslContext, Long bizId, Long hostId);
+    int countHostTopo(Long bizId, Long hostId);
 
-    List<HostTopoDTO> listHostTopoByHostId(DSLContext dslContext, Long hostId);
+    List<HostTopoDTO> listHostTopoByHostId(Long hostId);
 
-    List<HostTopoDTO> listHostTopoBySetId(DSLContext dslContext, Long setId);
-
-    List<HostTopoDTO> listHostTopoByModuleId(DSLContext dslContext, Long moduleId);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(DSLContext dslContext, Collection<Long> moduleIds, Long start,
-                                              Long limit);
+    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
 
     /**
      * 根据CMDB业务IDs查询下属主机ID列表
