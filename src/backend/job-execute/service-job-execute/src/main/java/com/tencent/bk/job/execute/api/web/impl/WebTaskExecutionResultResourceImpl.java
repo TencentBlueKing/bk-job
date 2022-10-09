@@ -821,15 +821,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         fileDistDetailVO.setTaskId(fileLog.getTaskId());
         fileDistDetailVO.setMode(fileLog.getMode());
         if (FileDistModeEnum.UPLOAD.getValue().equals(fileLog.getMode())) {
-            fileDistDetailVO.setSrcIp(fileLog.getSrcFileType() != null
-                && TaskFileTypeEnum.valueOf(fileLog.getSrcFileType()) != TaskFileTypeEnum.SERVER ?
-                "--" : fileLog.getSrcIp());
             fileDistDetailVO.setFileName(fileLog.getDisplaySrcFile());
         } else {
-            fileDistDetailVO.setSrcIp(fileLog.getSrcIp());
             fileDistDetailVO.setDestIp(fileLog.getDestIp());
             fileDistDetailVO.setFileName(fileLog.getDestFile());
         }
+        fileDistDetailVO.setSrcIp(fileLog.getSrcFileType() != null
+            && TaskFileTypeEnum.valueOf(fileLog.getSrcFileType()) != TaskFileTypeEnum.SERVER ?
+            "--" : fileLog.getSrcIp());
         fileDistDetailVO.setFileSize(fileLog.getSize());
         fileDistDetailVO.setProgress(fileLog.getProcess());
         fileDistDetailVO.setSpeed(fileLog.getSpeed());
