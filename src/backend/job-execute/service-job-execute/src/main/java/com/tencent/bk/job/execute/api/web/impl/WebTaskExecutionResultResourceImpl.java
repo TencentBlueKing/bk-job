@@ -95,6 +95,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
@@ -548,8 +549,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 for (AgentTaskDetailDTO agentTask : resultGroup.getAgentTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
                     agentTaskVO.setHostId(agentTask.getHostId());
+                    // tmp 发布兼容，发布完成后需要改成 agentTaskVO.setIp(agentTask.getIp());
                     agentTaskVO.setIp(agentTask.getCloudIp());
-                    agentTaskVO.setDisplayIp(agentTask.getDisplayIp());
+                    agentTaskVO.setDisplayIp(agentTask.getIp());
+                    agentTaskVO.setIpv6(agentTask.getIpv6());
                     agentTaskVO.setEndTime(agentTask.getEndTime());
                     agentTaskVO.setStartTime(agentTask.getStartTime());
                     agentTaskVO.setStatus(agentTask.getStatus().getValue());
@@ -818,13 +821,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         fileDistDetailVO.setTaskId(fileLog.getTaskId());
         fileDistDetailVO.setMode(fileLog.getMode());
         if (FileDistModeEnum.UPLOAD.getValue().equals(fileLog.getMode())) {
-            fileDistDetailVO.setSrcIp(fileLog.getDisplaySrcIp());
             fileDistDetailVO.setFileName(fileLog.getDisplaySrcFile());
         } else {
-            fileDistDetailVO.setSrcIp(fileLog.getDisplaySrcIp());
             fileDistDetailVO.setDestIp(fileLog.getDestIp());
             fileDistDetailVO.setFileName(fileLog.getDestFile());
         }
+        fileDistDetailVO.setSrcIp(fileLog.getSrcFileType() != null
+            && TaskFileTypeEnum.valueOf(fileLog.getSrcFileType()) != TaskFileTypeEnum.SERVER ?
+            "--" : fileLog.getSrcIp());
         fileDistDetailVO.setFileSize(fileLog.getSize());
         fileDistDetailVO.setProgress(fileLog.getProcess());
         fileDistDetailVO.setSpeed(fileLog.getSpeed());

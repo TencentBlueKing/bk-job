@@ -25,16 +25,11 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.function.LambdasUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 步骤实例
@@ -118,10 +113,6 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
      * 文件传输的源文件
      */
     private List<FileSourceDTO> fileSourceList;
-    /**
-     * 变量解析之后的文件传输的源文件
-     */
-    private List<FileSourceDTO> resolvedFileSourceList;
     /**
      * 文件传输的目标目录
      */
@@ -215,7 +206,6 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.accountId = fileStepInstance.getAccountId();
         this.account = fileStepInstance.getAccount();
         this.fileSourceList = fileStepInstance.getFileSourceList();
-        this.resolvedFileSourceList = fileStepInstance.getResolvedFileSourceList();
         this.fileTargetPath = fileStepInstance.getFileTargetPath();
         this.fileTargetName = fileStepInstance.getFileTargetName();
         this.resolvedFileTargetPath = fileStepInstance.getResolvedFileTargetPath();
@@ -234,49 +224,5 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.confirmUsers = confirmStepInstance.getConfirmUsers();
         this.confirmRoles = confirmStepInstance.getConfirmRoles();
         this.notifyChannels = confirmStepInstance.getNotifyChannels();
-    }
-
-    /**
-     * 返回步骤中不合法的主机
-     *
-     * @return 不合法的主机
-     */
-    public Set<HostDTO> getInvalidHosts() {
-        Set<HostDTO> invalidHosts = new HashSet<>();
-        if (CollectionUtils.isNotEmpty(this.targetServers.getInvalidIpList())) {
-            invalidHosts.addAll(this.targetServers.getInvalidIpList());
-        }
-        if (isFileStep() && CollectionUtils.isNotEmpty(this.fileSourceList)) {
-            this.fileSourceList.stream().filter(LambdasUtil.not(FileSourceDTO::isLocalUpload))
-                .forEach(fileSource -> {
-                    ServersDTO fileSourceServers = fileSource.getServers();
-                    if (fileSourceServers != null && CollectionUtils.isNotEmpty(fileSourceServers.getInvalidIpList())) {
-                        invalidHosts.addAll(fileSourceServers.getInvalidIpList());
-                    }
-                });
-
-        }
-        return invalidHosts;
-    }
-
-    /**
-     * 判断步骤是否包含非法主机
-     */
-    public boolean hasInvalidHost() {
-        boolean hasInvalidHost = false;
-        if (CollectionUtils.isNotEmpty(this.targetServers.getInvalidIpList())) {
-            return true;
-        }
-        if (isFileStep() && CollectionUtils.isNotEmpty(this.fileSourceList)) {
-            hasInvalidHost = this.fileSourceList.stream()
-                .filter(LambdasUtil.not(FileSourceDTO::isLocalUpload))
-                .anyMatch(fileSource -> {
-                    ServersDTO fileSourceServers = fileSource.getServers();
-                    return fileSourceServers != null
-                        && CollectionUtils.isNotEmpty(fileSourceServers.getInvalidIpList());
-                });
-
-        }
-        return hasInvalidHost;
     }
 }

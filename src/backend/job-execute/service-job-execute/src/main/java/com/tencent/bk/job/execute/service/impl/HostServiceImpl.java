@@ -243,7 +243,7 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<HostDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances) {
+    public List<HostDTO> getHostsByTopoNodes(long appId, List<CcInstanceDTO> ccInstances) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         long bizId = Long.parseLong(resourceScope.getId());

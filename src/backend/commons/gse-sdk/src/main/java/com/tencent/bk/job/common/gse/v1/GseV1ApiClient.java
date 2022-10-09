@@ -25,11 +25,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.constants.AgentStateStatusEnum;
-import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.constants.GseTaskTypeEnum;
-import com.tencent.bk.job.common.gse.util.FilePathUtils;
-import com.tencent.bk.job.common.gse.util.WindowsHelper;
 import com.tencent.bk.job.common.gse.v1.model.AgentStatusDTO;
 import com.tencent.bk.job.common.gse.v1.model.CopyFileRsp;
 import com.tencent.bk.job.common.gse.v1.model.GSEFileTaskResult;
@@ -50,15 +47,12 @@ import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ThreadUtils;
-import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -481,8 +475,9 @@ public class GseV1ApiClient implements IGseClient {
 
         boolean isStandardGSEProtocol = isStandardGSEProtocol(copyFileRsp.getGseFileTaskResult());
         if (!isStandardGSEProtocol) {
-            parseCopyFileRspFromResultKey(copyFileRsp, ipResult.getKey());
-            log.debug("Parse from resultKey, copyFileRsp: {}", copyFileRsp);
+            log.error("Not support agent file task result protocol version, please upgrade agent to 1.7.21+)");
+            throw new InternalException("Not support agent file task result protocol version",
+                ErrorCode.INTERNAL_ERROR);
         }
 
         return copyFileRsp;
@@ -498,80 +493,6 @@ public class GseV1ApiClient implements IGseClient {
             && fileTaskResult.getProtocolVersion() > 1;
     }
 
-    private void parseCopyFileRspFromResultKey(CopyFileRsp copyFileRsp, String resultKey) {
-        if (!(resultKey.startsWith(FileDistModeEnum.UPLOAD.getName())
-            || resultKey.startsWith(FileDistModeEnum.DOWNLOAD.getName()))) {
-            log.warn("Invalid resultKey: {}, ignore", resultKey);
-            return;
-        }
-
-        // 从key中提取任务信息
-        String[] taskProps = resultKey.split(":");
-        GSEFileTaskResult fileTaskResult = copyFileRsp.getGseFileTaskResult();
-        if (fileTaskResult == null) {
-            fileTaskResult = new GSEFileTaskResult();
-            copyFileRsp.setGseFileTaskResult(fileTaskResult);
-        }
-        if (fileTaskResult.getMode() == null) {
-            fileTaskResult.setMode(parseFileTaskModeFromKey(taskProps).getValue());
-        }
-        HostDTO cloudIp = parseCloudIpFromKey(taskProps);
-        if (FileDistModeEnum.DOWNLOAD.getValue().equals(fileTaskResult.getMode())) {
-            // 格式: "download:srcIpInt:srcIpInt:destFilePath:destCloudId:destIp"
-            fileTaskResult.setDestIp(cloudIp.getIp());
-            fileTaskResult.setDestCloudId(cloudIp.getBkCloudId());
-            // GSE BUG, srcIpInt可能为-1(download:-1:2130706433:/tmp/1.log:0:127.0.0.2)
-            String srcIpInt = "-1".equals(taskProps[1]) ? taskProps[2] : taskProps[1];
-            fileTaskResult.setSourceIp(IpUtils.revertIpFromNumericalStr(srcIpInt));
-            // GSE BUG, 只有源主机IP，没有云区域ID
-            fileTaskResult.setSourceCloudId(null);
-            // GSE BUG, 只有目标文件信息，没有源文件信息
-            String destFilePath = parseFilePathFromKey(taskProps);
-            Pair<String, String> dirAndFileName = FilePathUtils.parseDirAndFileName(destFilePath);
-            fileTaskResult.setDestDirPath(dirAndFileName.getLeft());
-            fileTaskResult.setDestFileName(dirAndFileName.getRight());
-        } else {
-            // 格式: "upload:srcIpInt:srcFilePath:srcCloudId:srcIp"
-            fileTaskResult.setSourceIp(cloudIp.getIp());
-            fileTaskResult.setSourceCloudId(cloudIp.getBkCloudId());
-            String sourceFilePath = parseFilePathFromKey(taskProps);
-            Pair<String, String> dirAndFileName = FilePathUtils.parseDirAndFileName(sourceFilePath);
-            fileTaskResult.setSrcDirPath(dirAndFileName.getLeft());
-            fileTaskResult.setSrcFileName(dirAndFileName.getRight());
-        }
-    }
-
-    private String parseFilePathFromKey(String[] taskProps) {
-        String filePath = taskProps[taskProps.length - 3];
-        if (taskProps.length > 4 && taskProps[taskProps.length - 4] != null) {
-            // 如果是正则的文件， /tmp/REGEX:abc.*.txt 这种有:，在key中会被分开，要拼回去
-            // GSE 的Redis Key问题 可能引入空格变=号，导致key被当成key=value, 所以要判断 taskProps.length > 4
-            // Windows路径包含:
-            if (taskProps[taskProps.length - 4].endsWith("REGEX")
-                || WindowsHelper.isWindowsDiskPartition(taskProps[taskProps.length - 4])) {
-                filePath = taskProps[taskProps.length - 4] + ":" + filePath;
-            }
-        }
-        return filePath;
-    }
-
-
-    private HostDTO parseCloudIpFromKey(String[] taskProps) {
-        String ip = taskProps[taskProps.length - 1];
-        long cloudAreaId = Long.parseLong(taskProps[taskProps.length - 2].trim());
-        return new HostDTO(cloudAreaId, ip);
-    }
-
-    private FileDistModeEnum parseFileTaskModeFromKey(String[] taskProps) {
-        String mode = taskProps[0];
-        if (FileDistModeEnum.UPLOAD.getName().equals(mode)) {
-            return FileDistModeEnum.UPLOAD;
-        } else if (FileDistModeEnum.DOWNLOAD.getName().equals(mode)) {
-            return FileDistModeEnum.DOWNLOAD;
-        } else {
-            throw new IllegalArgumentException("Invalid file dist mode: " + mode);
-        }
-    }
 
     @Override
     public GseTaskResponse terminateGseFileTask(TerminateGseTaskRequest request) {

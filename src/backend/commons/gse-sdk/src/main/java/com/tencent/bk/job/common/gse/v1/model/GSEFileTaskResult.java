@@ -180,12 +180,7 @@ public class GSEFileTaskResult {
 
 
     public String getSourceAgentId() {
-        if (sourceCloudId == null) {
-            // GSE 1.0 BUG(GSE Agent 版本低于1.7.6), download结果可能没有源云区域ID，需要在上层处理
-            return ":" + sourceIp;
-        } else {
-            return sourceCloudId + ":" + sourceIp;
-        }
+        return sourceCloudId + ":" + sourceIp;
     }
 
     public String getDestAgentId() {
@@ -193,10 +188,6 @@ public class GSEFileTaskResult {
             return null;
         }
         return destCloudId + ":" + destIp;
-    }
-
-    public boolean isDownloadMode() {
-        return FileDistModeEnum.DOWNLOAD.getValue().equals(this.mode);
     }
 
     public String getStandardSourceFilePath() {

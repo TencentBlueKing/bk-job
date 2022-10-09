@@ -40,11 +40,11 @@ public class GseTaskExecuteResult {
     public static final int RESULT_CODE_SUCCESS = 1;
     public static final int RESULT_CODE_FAILED = 2;
     public static final int RESULT_CODE_STOP_SUCCESS = 3;
-    public static final int RESULT_CODE_STOP_FAILED = 4;
+//    public static final int RESULT_CODE_STOP_FAILED = 4;
     /**
      * 任务被打断
      */
-    public static final int RESULT_CODE_INTERRUPTED = 5;
+//    public static final int RESULT_CODE_INTERRUPTED = 5;
     public static final int RESULT_CODE_RUNNING = 6;
     public static final int RESULT_CODE_SKIPPED = 7;
     /**
@@ -59,8 +59,8 @@ public class GseTaskExecuteResult {
     public static final GseTaskExecuteResult SUCCESS = new GseTaskExecuteResult(RESULT_CODE_SUCCESS);
     public static final GseTaskExecuteResult FAILED = new GseTaskExecuteResult(RESULT_CODE_FAILED);
     public static final GseTaskExecuteResult STOP_SUCCESS = new GseTaskExecuteResult(RESULT_CODE_STOP_SUCCESS);
-    public static final GseTaskExecuteResult STOP_FAILED = new GseTaskExecuteResult(RESULT_CODE_STOP_FAILED);
-    public static final GseTaskExecuteResult INTERRUPTED = new GseTaskExecuteResult(RESULT_CODE_INTERRUPTED);
+    //    public static final GseTaskExecuteResult STOP_FAILED = new GseTaskExecuteResult(RESULT_CODE_STOP_FAILED);
+//    public static final GseTaskExecuteResult INTERRUPTED = new GseTaskExecuteResult(RESULT_CODE_INTERRUPTED);
     public static final GseTaskExecuteResult RUNNING = new GseTaskExecuteResult(RESULT_CODE_RUNNING);
     public static final GseTaskExecuteResult SKIPPED = new GseTaskExecuteResult(RESULT_CODE_SKIPPED);
     public static final GseTaskExecuteResult DISCARDED = new GseTaskExecuteResult(RESULT_CODE_DISCARDED);
