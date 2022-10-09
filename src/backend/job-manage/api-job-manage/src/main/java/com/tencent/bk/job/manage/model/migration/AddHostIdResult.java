@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.migration;
+package com.tencent.bk.job.manage.model.migration;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -31,13 +31,17 @@ import com.tencent.bk.job.crontab.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -73,26 +77,59 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public void fillHosts(List<HostDTO> hostList) {
+    public int fillHosts(List<HostDTO> hostList) {
+        if (CollectionUtils.isEmpty(hostList)) {
+            return 0;
+        }
         InternalResponse<List<ServiceHostDTO>> resp =
             serviceHostResourceClient.batchGetHosts(new ServiceBatchGetHostsReq(hostList));
         List<ServiceHostDTO> serviceHostDTOList = resp.getData();
+        if (CollectionUtils.isEmpty(serviceHostDTOList)) {
+            log.info(
+                "cannot find any host details by {}",
+                hostList.stream().map(HostDTO::getUniqueKey).collect(Collectors.toList())
+            );
+            return 0;
+        }
         Map<Long, ServiceHostDTO> hostIdMap = new HashMap<>();
         Map<String, ServiceHostDTO> cloudIpMap = new HashMap<>();
         serviceHostDTOList.forEach(serviceHostDTO -> {
             hostIdMap.put(serviceHostDTO.getHostId(), serviceHostDTO);
             cloudIpMap.put(buildCloudIp(serviceHostDTO), serviceHostDTO);
         });
-        hostList.forEach(hostDTO -> {
+        int filledCount = 0;
+        Set<Long> noHostIds = new HashSet<>();
+        Set<String> noHostCloudIps = new HashSet<>();
+        for (HostDTO hostDTO : hostList) {
             Long hostId = hostDTO.getHostId();
             String cloudIp = buildCloudIp(hostDTO.getBkCloudId(), hostDTO.getIp());
             if (hostId != null) {
-                fillHostInfo(hostDTO, hostIdMap.get(hostId));
+                ServiceHostDTO serviceHostDTO = hostIdMap.get(hostId);
+                if (serviceHostDTO == null) {
+                    noHostIds.add(hostId);
+                } else {
+                    fillHostInfo(hostDTO, serviceHostDTO);
+                    filledCount += 1;
+                }
             } else if (StringUtils.isNotBlank(cloudIp)) {
-                fillHostInfo(hostDTO, cloudIpMap.get(cloudIp));
+                ServiceHostDTO serviceHostDTO = cloudIpMap.get(cloudIp);
+                if (serviceHostDTO == null) {
+                    noHostCloudIps.add(cloudIp);
+                } else {
+                    fillHostInfo(hostDTO, serviceHostDTO);
+                    filledCount += 1;
+                }
             } else {
                 log.warn("host does not contains hostId/cloudIp:{}", hostDTO);
             }
-        });
+        }
+        if (CollectionUtils.isNotEmpty(noHostIds) || CollectionUtils.isNotEmpty(noHostCloudIps)) {
+            log.info(
+                "cannot find host by cloudIps:{}, hostIds:{}, which may be removed from cmdb",
+                noHostCloudIps,
+                noHostIds
+            );
+        }
+        return filledCount;
     }
 }

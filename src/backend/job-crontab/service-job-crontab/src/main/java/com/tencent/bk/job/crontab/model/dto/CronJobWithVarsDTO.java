@@ -22,20 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.service;
+package com.tencent.bk.job.crontab.model.dto;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-public interface HostService {
+/**
+ * 含有基本信息与变量信息的定时任务实体
+ */
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class CronJobWithVarsDTO {
+    /**
+     * 定时任务 ID
+     */
+    private Long id;
 
     /**
-     * 通过hostId/IP查询主机信息并填充
-     *
-     * @param hostList 主机列表
-     * @return 实际填充的主机数量
+     * 业务 ID
      */
-    int fillHosts(List<HostDTO> hostList);
+    private Long appId;
+
+    /**
+     * 定时任务名称
+     */
+    private String name;
+
+    /**
+     * 变量值列表
+     */
+    private List<CronJobVariableDTO> variableValue;
 
 }

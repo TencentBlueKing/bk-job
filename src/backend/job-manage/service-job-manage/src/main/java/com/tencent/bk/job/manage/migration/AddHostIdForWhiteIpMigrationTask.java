@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPIPDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
+import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.migration.AddHostIdForWhiteIpMigrationTask;
 import com.tencent.bk.job.manage.migration.AddHostIdMigrationTask;
-import com.tencent.bk.job.manage.migration.AddHostIdResult;
+import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;

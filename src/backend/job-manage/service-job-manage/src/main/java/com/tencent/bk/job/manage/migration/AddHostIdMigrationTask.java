@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
+import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import com.tencent.bk.job.manage.service.host.HostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
