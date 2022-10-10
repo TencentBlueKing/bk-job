@@ -39,6 +39,7 @@ import com.tencent.bk.job.backup.archive.impl.StepInstanceRollingTaskArchivist;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceScriptArchivist;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchivist;
+import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchivist;
 import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
@@ -56,6 +57,7 @@ import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceRollingTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
@@ -91,6 +93,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
     private final GseFileAgentTaskArchivist gseFileAgentTaskArchivist;
     private final StepInstanceRollingTaskArchivist stepInstanceRollingTaskArchivist;
     private final RollingConfigArchivist rollingConfigArchivist;
+    private final TaskInstanceHostArchivist taskInstanceHostArchivist;
     private final ArchiveProgressService archiveProgressService;
 
 
@@ -115,6 +118,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                                    GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
                                    StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
                                    RollingConfigRecordDAO rollingConfigRecordDAO,
+                                   TaskInstanceHostRecordDAO taskInstanceHostRecordDAO,
                                    ExecuteArchiveDAO executeArchiveDAO,
                                    ArchiveProgressService archiveProgressService,
                                    ArchiveConfig archiveConfig,
@@ -152,6 +156,8 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         this.stepInstanceRollingTaskArchivist = new StepInstanceRollingTaskArchivist(stepInstanceRollingTaskRecordDAO,
             executeArchiveDAO, archiveProgressService);
         this.rollingConfigArchivist = new RollingConfigArchivist(rollingConfigRecordDAO, executeArchiveDAO,
+            archiveProgressService);
+        this.taskInstanceHostArchivist = new TaskInstanceHostArchivist(taskInstanceHostRecordDAO, executeArchiveDAO,
             archiveProgressService);
         this.archiveExecutor = archiveExecutor;
     }
@@ -264,7 +270,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
 
         private void archive(long maxNeedArchiveTaskInstanceId, long maxNeedArchiveStepInstanceId)
             throws InterruptedException {
-            CountDownLatch countDownLatch = new CountDownLatch(15);
+            CountDownLatch countDownLatch = new CountDownLatch(16);
             log.info("Submitting archive task...");
 
             // task_instance
@@ -314,6 +320,9 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 maxNeedArchiveStepInstanceId, countDownLatch));
             // rolling_config
             archiveExecutor.execute(() -> rollingConfigArchivist.archive(archiveConfig,
+                maxNeedArchiveTaskInstanceId, countDownLatch));
+            // task_instance_host
+            archiveExecutor.execute(() -> taskInstanceHostArchivist.archive(archiveConfig,
                 maxNeedArchiveTaskInstanceId, countDownLatch));
 
             log.info("Archive task submitted. Waiting for complete...");
