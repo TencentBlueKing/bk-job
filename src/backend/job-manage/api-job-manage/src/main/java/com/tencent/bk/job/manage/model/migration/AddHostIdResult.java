@@ -22,20 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.job;
+package com.tencent.bk.job.manage.model.migration;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * 作业模板、执行方案、IP白名单、定时任务等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性 - 请求
- */
 @Data
 @NoArgsConstructor
-public class AddHostIdMigrationReq {
-    private boolean dryRun;
+public class AddHostIdResult {
+    private String task;
+    private int totalRecords;
+    private int successRecords;
+    private boolean success;
 
-    public AddHostIdMigrationReq(boolean dryRun) {
-        this.dryRun = dryRun;
+    public AddHostIdResult(String task) {
+        this.task = task;
     }
 }

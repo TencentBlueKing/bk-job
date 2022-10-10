@@ -27,7 +27,9 @@ package com.tencent.bk.job.manage.api.migration.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.migration.AddHostIdForWhiteIpMigrationTask;
 import com.tencent.bk.job.manage.migration.AddHostIdMigrationTask;
+import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
@@ -41,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -54,17 +57,20 @@ public class MigrationResource {
     private final ResourceTagsMigrationTask resourceTagsMigrationTask;
     private final BizSetService bizSetService;
     private final AddHostIdMigrationTask addHostIdMigrationTask;
+    private final AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask;
 
     @Autowired
     public MigrationResource(
         EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask,
         ResourceTagsMigrationTask resourceTagsMigrationTask,
         BizSetService bizSetService,
-        AddHostIdMigrationTask addHostIdMigrationTask) {
+        AddHostIdMigrationTask addHostIdMigrationTask,
+        AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask) {
         this.encryptDbAccountPasswordMigrationTask = encryptDbAccountPasswordMigrationTask;
         this.resourceTagsMigrationTask = resourceTagsMigrationTask;
         this.bizSetService = bizSetService;
         this.addHostIdMigrationTask = addHostIdMigrationTask;
+        this.addHostIdForWhiteIpMigrationTask = addHostIdForWhiteIpMigrationTask;
     }
 
     /**
@@ -92,12 +98,14 @@ public class MigrationResource {
     }
 
     /**
-     * 作业模板、执行方案等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性
+     * IP白名单、作业模板、执行方案等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性
      */
     @PostMapping("/action/addHostIdMigrationTask")
     public Response<String> addHostIdMigrationTask(@RequestBody AddHostIdMigrationReq req) {
-        List<AddHostIdMigrationTask.AddHostIdResult> results = addHostIdMigrationTask.execute(req.isDryRun());
-        boolean success = results.stream().allMatch(AddHostIdMigrationTask.AddHostIdResult::isSuccess);
+        List<AddHostIdResult> results = new ArrayList<>();
+        results.add(addHostIdForWhiteIpMigrationTask.execute(req.isDryRun()));
+        results.addAll(addHostIdMigrationTask.execute(req.isDryRun()));
+        boolean success = results.stream().allMatch(AddHostIdResult::isSuccess);
         return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
             Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"AddHostIdMigrationTask",
                 JsonUtils.toJson(results)});

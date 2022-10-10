@@ -22,20 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.job;
+package com.tencent.bk.job.crontab.model.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
- * 作业模板、执行方案、IP白名单、定时任务等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性 - 请求
+ * 含有基本信息与变量信息的定时任务实体
  */
 @Data
+@EqualsAndHashCode
 @NoArgsConstructor
-public class AddHostIdMigrationReq {
-    private boolean dryRun;
+@AllArgsConstructor
+public class CronJobWithVarsDTO {
+    /**
+     * 定时任务 ID
+     */
+    private Long id;
 
-    public AddHostIdMigrationReq(boolean dryRun) {
-        this.dryRun = dryRun;
-    }
+    /**
+     * 业务 ID
+     */
+    private Long appId;
+
+    /**
+     * 定时任务名称
+     */
+    private String name;
+
+    /**
+     * 变量值列表
+     */
+    private List<CronJobVariableDTO> variableValue;
+
 }

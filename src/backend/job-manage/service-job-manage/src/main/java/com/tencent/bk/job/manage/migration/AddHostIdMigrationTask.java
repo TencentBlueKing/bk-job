@@ -30,9 +30,8 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
+import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import com.tencent.bk.job.manage.service.host.HostService;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -622,19 +621,6 @@ public class AddHostIdMigrationTask {
                     .where(TASK_PLAN_VARIABLE.ID.eq(ULong.valueOf(id)))
                     .and(TASK_PLAN_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())))
                     .execute());
-        }
-    }
-
-    @Data
-    @NoArgsConstructor
-    public static class AddHostIdResult {
-        private String task;
-        private int totalRecords;
-        private int successRecords;
-        private boolean success;
-
-        public AddHostIdResult(String task) {
-            this.task = task;
         }
     }
 
