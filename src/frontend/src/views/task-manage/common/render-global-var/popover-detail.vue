@@ -50,7 +50,7 @@
                 <detail-item :label="$t('template.变量描述：')">
                     {{ data.description || '--' }}
                 </detail-item>
-                <detail-item :label="$t('template.必填：')">
+                <detail-item :label="$t('template.执行时必填：')">
                     {{ data.requiredText }}
                 </detail-item>
                 <detail-item :label="$t('template.赋值可变：')">

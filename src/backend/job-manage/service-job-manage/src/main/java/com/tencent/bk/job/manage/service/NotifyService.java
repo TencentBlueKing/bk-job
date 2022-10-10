@@ -95,12 +95,12 @@ public interface NotifyService {
 
     PageTemplateVO getPageTemplate(String username);
 
-    Integer sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO);
+    Integer asyncSendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO);
 
-    Integer sendNotificationsToUsersByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
-                                              List<String> channelTypeList);
+    Integer asyncSendNotificationsByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
+                                            List<String> channelTypeList);
 
-    Integer sendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage);
+    Integer asyncSendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage);
 
     Integer sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO);
 

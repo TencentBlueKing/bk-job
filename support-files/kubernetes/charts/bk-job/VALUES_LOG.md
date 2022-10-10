@@ -1,5 +1,29 @@
 # chart values 更新日志
 
+## 0.3.0-rc.31
+1.增加Trace及数据上报至APM相关配置
+```shell script
+## Trace配置
+job:
+  trace:
+    report:
+      # 是否上报Trace数据至监控平台APM应用，默认不上报
+      enabled: false
+      # 监控平台中目标APM应用的PUSH URL
+      pushUrl: ""
+      # 监控平台中目标APM应用的SecureKey
+      secureKey: ""
+      # Trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
+      ratio: 0.1
+```
+2.fileWorker对应的Service端口默认值设置为与pod端口一致，避免混淆
+```shell script
+## job-file-worker文件源接入点配置
+fileWorkerConfig:
+  service:
+    port: 19810
+```
+
 ## 0.2.2-rc.1
 1.增加权限中心系统ID配置：
 ```shell script

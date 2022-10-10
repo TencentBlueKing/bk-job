@@ -39,6 +39,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
@@ -86,8 +87,15 @@ public class DbConfig {
 
     @Qualifier("job-manage-conn-provider")
     @Bean(name = "job-manage-conn-provider")
-    public ConnectionProvider connectionProvider(@Qualifier("job-manage-data-source") DataSource dataSource) {
+    public ConnectionProvider connectionProvider(@Qualifier("transactionAwareDataSource") DataSource dataSource) {
         return new DataSourceConnectionProvider(dataSource);
+    }
+
+    @Qualifier("transactionAwareDataSource")
+    @Bean(name = "transactionAwareDataSource")
+    public TransactionAwareDataSourceProxy
+    transactionAwareDataSourceProxy(@Qualifier("job-manage-data-source") DataSource dataSource) {
+        return new TransactionAwareDataSourceProxy(dataSource);
     }
 
 }

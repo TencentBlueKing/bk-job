@@ -71,7 +71,7 @@
                 <span class="value">{{ data.changeableText }}</span>
             </div>
             <div :class="diffValue.required">
-                <span class="label">{{ $t('template.必填：') }}</span>
+                <span class="label">{{ $t('template.执行时必填：') }}</span>
                 <span class="value">{{ data.requiredText }}</span>
             </div>
         </div>

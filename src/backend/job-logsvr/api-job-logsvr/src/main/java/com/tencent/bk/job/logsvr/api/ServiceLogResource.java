@@ -33,7 +33,6 @@ import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -58,18 +57,6 @@ import java.util.List;
 public interface ServiceLogResource {
 
     /**
-     * 保存执行日志
-     *
-     * @param request 保存日志请求
-     */
-    @ApiOperation("保存执行日志")
-    @PostMapping
-    InternalResponse<?> saveLog(
-        @ApiParam("保存日志请求报文")
-        @RequestBody ServiceSaveLogRequest request
-    );
-
-    /**
      * 批量保存执行日志
      *
      * @param request 保存日志请求
@@ -81,6 +68,7 @@ public interface ServiceLogResource {
         @RequestBody ServiceBatchSaveLogRequest request
     );
 
+    @Deprecated
     @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", version = "3.7.x")
     @ApiOperation("根据目标服务器IP获取脚本任务对应的执行日志")
     @GetMapping(value = {"/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
@@ -126,6 +114,7 @@ public interface ServiceLogResource {
     );
 
     @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", version = "3.7.x")
+    @Deprecated
     @ApiOperation("按照IP获取文件任务对应的执行日志")
     @GetMapping(value = {"/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
     InternalResponse<ServiceHostLogDTO> getFileHostLogByIp(
@@ -209,7 +198,7 @@ public interface ServiceLogResource {
      */
     @ApiOperation("根据脚本任务日志关键字获取对应的ip")
     @GetMapping("/keywordMatch/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
-    InternalResponse<List<HostDTO>> getIpsByKeyword(
+    InternalResponse<List<HostDTO>> questHostsByLogKeyword(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")

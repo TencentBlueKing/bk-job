@@ -345,6 +345,15 @@
                 window.open(router.href);
             },
             routerBack () {
+                if (this.formData.taskExecution.debugTask) {
+                    this.$router.push({
+                        name: 'templateDetail',
+                        params: {
+                            id: this.formData.taskExecution.templateId,
+                        },
+                    });
+                    return;
+                }
                 const { from } = this.$route.query;
                 if (from === 'viewPlan') {
                     this.$router.push({

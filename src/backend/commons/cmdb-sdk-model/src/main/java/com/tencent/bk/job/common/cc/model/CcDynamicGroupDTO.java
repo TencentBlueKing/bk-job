@@ -50,6 +50,9 @@ public class CcDynamicGroupDTO {
      */
     private String name;
 
+    @JsonProperty("last_time")
+    private String lastTime;
+
     @JsonProperty("bk_obj_id")
     private String objId;
 

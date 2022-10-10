@@ -148,4 +148,9 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     public String getTaskId() {
         return "FilePrepareControlTask-" + stepInstance.getId() + "_" + stepInstance.getExecuteCount();
     }
+
+    @Override
+    public String toString() {
+        return getTaskId();
+    }
 }

@@ -180,12 +180,7 @@ public class GSEFileTaskResult {
 
 
     public String getSourceAgentId() {
-        if (sourceCloudId == null) {
-            // GSE 1.0 BUG(GSE Agent 版本低于1.7.6), download结果可能没有源云区域ID，需要在上层处理
-            return ":" + sourceIp;
-        } else {
-            return sourceCloudId + ":" + sourceIp;
-        }
+        return sourceCloudId + ":" + sourceIp;
     }
 
     public String getDestAgentId() {
@@ -193,10 +188,6 @@ public class GSEFileTaskResult {
             return null;
         }
         return destCloudId + ":" + destIp;
-    }
-
-    public boolean isDownloadMode() {
-        return FileDistModeEnum.DOWNLOAD.getValue().equals(this.mode);
     }
 
     public String getStandardSourceFilePath() {
@@ -229,22 +220,23 @@ public class GSEFileTaskResult {
     }
 
     public String getTaskId() {
-        if (taskId != null) {
-            return taskId;
+        if (taskId == null) {
+            this.taskId = buildTaskId(mode, getSourceAgentId(), getStandardSourceFilePath(), getDestAgentId(),
+                getStandardDestFilePath());
         }
-        if (isDownloadMode()) {
-            if (StringUtils.isNotEmpty(sourceIp)) {
-                this.taskId = concat(mode.toString(), getSourceAgentId(), getStandardSourceFilePath(),
-                    getDestAgentId(), getStandardDestFilePath());
-            } else {
-                // GSE BUG, 兼容处理
-                this.taskId = concat(mode.toString(), "*", getStandardSourceFilePath(),
-                    getDestAgentId(), getStandardDestFilePath());
-            }
+        return taskId;
+    }
+
+    public String buildTaskId(Integer mode, String sourceAgentId, String sourceFilePath, String destAgentId,
+                                     String destFilePath) {
+        String taskId;
+        if (FileDistModeEnum.getFileDistMode(mode) == FileDistModeEnum.DOWNLOAD) {
+            taskId = concat(mode.toString(), sourceAgentId, FilePathUtils.standardizedGSEFilePath(sourceFilePath),
+                destAgentId, destFilePath);
         } else {
-            this.taskId = concat(mode.toString(), getSourceAgentId(), getStandardSourceFilePath());
+            taskId = concat(mode.toString(), sourceAgentId, FilePathUtils.standardizedGSEFilePath(sourceFilePath));
         }
-        return this.taskId;
+        return taskId;
     }
 
     private String concat(String... strArgs) {

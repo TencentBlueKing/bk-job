@@ -133,7 +133,6 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         return ValidateResult.pass();
     }
 
-
     private void buildScriptLogs(EsbIpLogsV3DTO ipLogs,
                                  StepInstanceBaseDTO stepInstance,
                                  List<HostDTO> queryHosts) {
@@ -204,8 +203,8 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
     private EsbFileLogV3DTO toEsbFileLogV3DTO(ServiceFileTaskLogDTO fileTaskLog) {
         EsbFileLogV3DTO fileLog = new EsbFileLogV3DTO();
         fileLog.setMode(fileTaskLog.getMode());
-        if (StringUtils.isNotBlank(fileTaskLog.getDisplaySrcIp())) {
-            EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDisplaySrcIp());
+        if (StringUtils.isNotBlank(fileTaskLog.getSrcIp())) {
+            EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getSrcIp());
             if (srcIp != null) {
                 fileLog.setSrcIp(srcIp);
             }

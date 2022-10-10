@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.whiteip.impl;
 
 import com.google.common.collect.Lists;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -41,8 +42,8 @@ import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPAppRelDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
-import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
+import com.tencent.bk.job.manage.model.web.vo.whiteip.ScopeVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -70,10 +71,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -139,10 +142,11 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     @SuppressWarnings("all")
+    @Transactional
     @Override
-    public Long insertWhiteIPRecord(DSLContext dslContext, WhiteIPRecordDTO whiteIPRecordDTO) {
+    public Long insertWhiteIPRecord(DSLContext context, WhiteIPRecordDTO whiteIPRecordDTO) {
         //插入Record表
-        final Record record = dslContext.insertInto(
+        final Record record = context.insertInto(
             T_WHITE_IP_RECORD,
             T_WHITE_IP_RECORD.REMARK,
             T_WHITE_IP_RECORD.CREATOR,
@@ -159,10 +163,10 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         val recordId = record.get(T_WHITE_IP_RECORD.ID);
         //插入Record-App关联表
         whiteIPRecordDTO.getAppIdList().forEach(appId ->
-            whiteIPAppRelDAO.insertWhiteIPAppRel(dslContext, whiteIPRecordDTO.getCreator(), recordId, appId));
+            whiteIPAppRelDAO.insertWhiteIPAppRel(context, whiteIPRecordDTO.getCreator(), recordId, appId));
         //插入IP表
         whiteIPRecordDTO.getIpList().forEach(ip ->
-            whiteIPIPDAO.insertWhiteIPIP(dslContext, new WhiteIPIPDTO(
+            whiteIPIPDAO.insertWhiteIPIP(new WhiteIPIPDTO(
                 null,
                 recordId,
                 ip.getCloudAreaId(),
@@ -177,7 +181,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         );
         //插入ActionScope表
         whiteIPRecordDTO.getActionScopeList().forEach(actionScope ->
-            whiteIPActionScopeDAO.insertWhiteIPActionScope(dslContext, new WhiteIPActionScopeDTO(
+            whiteIPActionScopeDAO.insertWhiteIPActionScope(context, new WhiteIPActionScopeDTO(
                 null,
                 recordId,
                 actionScope.getActionScopeId(),
@@ -190,12 +194,13 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return recordId;
     }
 
+    @Transactional
     @Override
     public int deleteWhiteIPRecordById(DSLContext dslContext, Long id) {
         //删关联表
         whiteIPAppRelDAO.deleteWhiteIPAppRelByRecordId(dslContext, id);
         //删IP
-        whiteIPIPDAO.deleteWhiteIPIPByRecordId(dslContext, id);
+        whiteIPIPDAO.deleteWhiteIPIPByRecordId(id);
         //删生效范围
         whiteIPActionScopeDAO.deleteWhiteIPActionScopeByRecordId(dslContext, id);
         //删Record
@@ -211,7 +216,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         //查业务List
         val appIdList = whiteIPAppRelDAO.listAppIdByRecordId(dslContext, id);
         //查IP List
-        val ipList = whiteIPIPDAO.getWhiteIPIPByRecordId(dslContext, id);
+        val ipList = whiteIPIPDAO.getWhiteIPIPByRecordId(id);
         //查ActionScope List
         val actionScopeList = whiteIPActionScopeDAO.getWhiteIPActionScopeByRecordId(dslContext, id);
         //查Record
@@ -303,6 +308,12 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return listWhiteIPRecordByConditions(dslContext, conditions, baseSearchCondition);
     }
 
+    private boolean isAllScope(List<Long> appIdList) {
+        return appIdList != null
+            && appIdList.size() > 0
+            && new HashSet<>(appIdList).contains(JobConstants.PUBLIC_APP_ID);
+    }
+
     private List<WhiteIPRecordVO> listWhiteIPRecordByConditions(DSLContext dslContext, List<Condition> conditions,
                                                                 BaseSearchCondition baseSearchCondition) {
         val tApplication = Application.APPLICATION.as("tApplication");
@@ -344,7 +355,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
             .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
             .join(tWhiteIPAppRel).on(tWhiteIPRecord.ID.eq(tWhiteIPAppRel.RECORD_ID))
-            .join(tApplication).on(tWhiteIPAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
+            .leftJoin(tApplication).on(tWhiteIPAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
             .where(conditions)
             .groupBy(tWhiteIPRecord.ID)
             .orderBy(orderFields)
@@ -359,36 +370,42 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                     actionScopeDAO.getActionScopeVOById(Long.parseLong(actionScopeId))
                 ).collect(Collectors.toList());
                 val appIdListStr = (String) record.get(KEY_APP_ID_LIST);
-                List<String> appIdList = CustomCollectionUtils.getNoDuplicateList(appIdListStr, ",");
-                List<AppVO> appVOList = appIdList.stream().map(appIdStr -> {
-                    long appId = Long.parseLong(appIdStr);
-                    ApplicationDTO applicationDTO =
-                        applicationDAO.getAppById(appId);
-                    AppVO appVO = new AppVO();
-                    if (applicationDTO == null) {
-                        appVO.setId(appId);
-                        appVO.setName("[Deleted:" + appId + "]");
-                    } else {
-                        appVO.setName(applicationDTO.getName());
-                        appVO.setScopeType(applicationDTO.getScope().getType().getValue());
-                        appVO.setScopeId(applicationDTO.getScope().getId());
-                    }
-                    return appVO;
-                }).collect(Collectors.toList());
+                List<Long> appIdList = CustomCollectionUtils.getNoDuplicateList(appIdListStr, ",").stream()
+                    .map(Long::parseLong).collect(Collectors.toList());
+                boolean allScope = isAllScope(appIdList);
+                List<ScopeVO> scopeVOList = null;
+                if (!allScope) {
+                    scopeVOList = appIdList.stream().map(appId -> {
+                        ApplicationDTO applicationDTO =
+                            applicationDAO.getAppById(appId);
+                        ScopeVO scopeVO = new ScopeVO();
+                        if (applicationDTO == null) {
+                            scopeVO.setName("[Deleted:" + appId + "]");
+                        } else {
+                            scopeVO.setName(applicationDTO.getName());
+                            scopeVO.setScopeType(applicationDTO.getScope().getType().getValue());
+                            scopeVO.setScopeId(applicationDTO.getScope().getId());
+                        }
+                        return scopeVO;
+                    }).collect(Collectors.toList());
+                }
                 val recordId = (Long) record.get(KEY_ID);
-                return new WhiteIPRecordVO(
-                    recordId,
-                    (Long) record.get(KEY_CLOUD_AREA_ID),
-                    whiteIPIPDAO.getWhiteIPIPByRecordId(dslContext, recordId).stream()
-                        .map(WhiteIPIPDTO::extractWhiteIPHostVO).collect(Collectors.toList()),
-                    actionScopeVOList,
-                    appVOList,
-                    (String) record.get(KEY_REMARK),
-                    (String) record.get(KEY_CREATOR),
-                    JooqDataTypeUtil.getLongFromULong((ULong) record.get(KEY_CREATE_TIME)),
-                    (String) record.get(KEY_LAST_MODIFY_USER),
+                WhiteIPRecordVO whiteIPRecord = new WhiteIPRecordVO();
+                whiteIPRecord.setId(recordId);
+                whiteIPRecord.setCloudAreaId((Long) record.get(KEY_CLOUD_AREA_ID));
+                whiteIPRecord.setHostList(whiteIPIPDAO.getWhiteIPIPByRecordId(recordId).stream()
+                    .map(WhiteIPIPDTO::extractWhiteIPHostVO).collect(Collectors.toList()));
+                whiteIPRecord.setActionScopeList(actionScopeVOList);
+                whiteIPRecord.setAllScope(allScope);
+                whiteIPRecord.setScopeList(scopeVOList);
+                whiteIPRecord.setRemark((String) record.get(KEY_REMARK));
+                whiteIPRecord.setCreator((String) record.get(KEY_CREATOR));
+                whiteIPRecord.setCreateTime(JooqDataTypeUtil.getLongFromULong((ULong) record.get(KEY_CREATE_TIME)));
+                whiteIPRecord.setLastModifier((String) record.get(KEY_LAST_MODIFY_USER));
+                whiteIPRecord.setLastModifyTime(
                     JooqDataTypeUtil.getLongFromULong(((ULong) record.get(KEY_LAST_MODIFY_TIME)))
                 );
+                return whiteIPRecord;
             });
         } else {
             return new ArrayList<>();
@@ -430,6 +447,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return query.fetchOne(0, Long.class);
     }
 
+    @Transactional
     @Override
     public int updateWhiteIPRecordById(DSLContext dslContext, WhiteIPRecordDTO whiteIPRecordDTO) {
         //更新Record表
@@ -452,9 +470,9 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             )
         );
         //删除IP表
-        whiteIPIPDAO.deleteWhiteIPIPByRecordId(dslContext, whiteIPRecordDTO.getId());
+        whiteIPIPDAO.deleteWhiteIPIPByRecordId(whiteIPRecordDTO.getId());
         //重新插入IP表
-        whiteIPRecordDTO.getIpList().forEach(it -> whiteIPIPDAO.insertWhiteIPIP(dslContext, it));
+        whiteIPRecordDTO.getIpList().forEach(it -> whiteIPIPDAO.insertWhiteIPIP(it));
         //删除ActionScope表
         whiteIPActionScopeDAO.deleteWhiteIPActionScopeByRecordId(dslContext, whiteIPRecordDTO.getId());
         //重新插入ActionScope表
@@ -473,6 +491,16 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             conditions.add(T_WHITE_IP_IP.IP.eq(ip.trim()));
         }
         conditions.add(T_WHITE_IP_IP.CLOUD_AREA_ID.eq(cloudAreaId));
+        return getWhiteIPActionScopesByConditions(dslContext, conditions);
+    }
+
+    @Override
+    public List<String> getWhiteIPActionScopes(DSLContext dslContext, Collection<Long> appIds, Long hostId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_WHITE_IP_APP_REL.APP_ID.in(appIds));
+        if (hostId != null) {
+            conditions.add(T_WHITE_IP_IP.HOST_ID.eq(hostId));
+        }
         return getWhiteIPActionScopesByConditions(dslContext, conditions);
     }
 
@@ -497,8 +525,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     private Collection<Condition> buildConditions(Collection<Long> appIds,
-                                                  Long actionScopeId,
-                                                  Collection<Long> hostIds) {
+                                                  Long actionScopeId) {
         Collection<Condition> conditions = new ArrayList<>();
         if (appIds != null) {
             conditions.add(tWhiteIPAppRel.APP_ID.in(appIds));
@@ -506,15 +533,42 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         if (actionScopeId != null) {
             conditions.add(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(actionScopeId));
         }
+        return conditions;
+    }
+
+    private Collection<Condition> buildHostIdsConditions(Collection<Long> appIds,
+                                                         Long actionScopeId,
+                                                         Collection<Long> hostIds) {
+        Collection<Condition> conditions = buildConditions(appIds, actionScopeId);
         if (hostIds != null) {
             conditions.add(tWhiteIPIP.HOST_ID.in(hostIds));
         }
         return conditions;
     }
 
+    private Collection<Condition> buildIpsConditions(Collection<Long> appIds,
+                                                     Long actionScopeId,
+                                                     Collection<String> ips) {
+        Collection<Condition> conditions = buildConditions(appIds, actionScopeId);
+        if (ips != null) {
+            conditions.add(tWhiteIPIP.IP.in(ips));
+        }
+        return conditions;
+    }
+
+    private Collection<Condition> buildIpv6sConditions(Collection<Long> appIds,
+                                                       Long actionScopeId,
+                                                       Collection<String> ipv6s) {
+        Collection<Condition> conditions = buildConditions(appIds, actionScopeId);
+        if (ipv6s != null) {
+            conditions.add(tWhiteIPIP.IP_V6.in(ipv6s));
+        }
+        return conditions;
+    }
+
     @Override
     public List<CloudIPDTO> listWhiteIPByAppIds(DSLContext dslContext, Collection<Long> appIds, Long actionScopeId) {
-        Collection<Condition> conditions = buildConditions(appIds, actionScopeId, null);
+        Collection<Condition> conditions = buildConditions(appIds, actionScopeId);
         val query = dslContext.select(
             tWhiteIPIP.CLOUD_AREA_ID.as(KEY_CLOUD_AREA_ID),
             tWhiteIPIP.IP.as(KEY_IP)
@@ -541,7 +595,23 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
 
     @Override
     public List<HostDTO> listWhiteIPHost(Collection<Long> appIds, Long actionScopeId, Collection<Long> hostIds) {
-        Collection<Condition> conditions = buildConditions(appIds, actionScopeId, hostIds);
+        Collection<Condition> conditions = buildHostIdsConditions(appIds, actionScopeId, hostIds);
+        return listWhiteIPHostByConditions(conditions);
+    }
+
+    @Override
+    public List<HostDTO> listWhiteIPHostByIps(Collection<Long> appIds, Long actionScopeId, Collection<String> ips) {
+        Collection<Condition> conditions = buildIpsConditions(appIds, actionScopeId, ips);
+        return listWhiteIPHostByConditions(conditions);
+    }
+
+    @Override
+    public List<HostDTO> listWhiteIPHostByIpv6s(Collection<Long> appIds, Long actionScopeId, Collection<String> ipv6s) {
+        Collection<Condition> conditions = buildIpv6sConditions(appIds, actionScopeId, ipv6s);
+        return listWhiteIPHostByConditions(conditions);
+    }
+
+    public List<HostDTO> listWhiteIPHostByConditions(Collection<Condition> conditions) {
         val query = defaultContext.select(
             tWhiteIPIP.CLOUD_AREA_ID.as(KEY_CLOUD_AREA_ID),
             tWhiteIPIP.HOST_ID.as(KEY_HOST_ID),
@@ -585,7 +655,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
 
             for (List<Long> idList : recordIdsList) {
                 whiteIPAppRelList.addAll(whiteIPAppRelDAO.listAppRelByRecordIds(dslContext, idList));
-                whiteIPIPList.addAll(whiteIPIPDAO.listWhiteIPIPByRecordIds(dslContext, idList));
+                whiteIPIPList.addAll(whiteIPIPDAO.listWhiteIPIPByRecordIds(idList));
                 whiteIPActionScopeList.addAll(whiteIPActionScopeDAO.listWhiteIPActionScopeByRecordIds(dslContext,
                     idList));
             }

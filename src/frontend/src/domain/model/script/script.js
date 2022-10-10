@@ -135,6 +135,17 @@ export default class Script extends BaseModel {
     }
 
     /**
+     * @desc 是否可禁用
+     * @returns { Boolean }
+     */
+    get isBanable () {
+        return [
+            Script.STATUS_ONLINE,
+            Script.STATUS_OFFLINE,
+        ].includes(this.status);
+    }
+
+    /**
      * @desc tag 显示文本
      * @returns { String }
      */

@@ -84,62 +84,13 @@
                         @click="handleSubmitExec">
                         {{ $t('template.去执行') }}
                     </bk-button>
-                    <bk-button
-                        class="mr10"
-                        @click="handleCancle">
+                    <bk-button @click="handleCancle">
                         {{ $t('template.取消') }}
-                    </bk-button>
-                    <bk-button
-                        class="mr10"
-                        :disabled="!enableStepsNotEmpty"
-                        @click="handleSavePlan">
-                        {{ $t('template.另存为') }}
                     </bk-button>
                 </div>
             </template>
         </smart-action>
         <back-top />
-        <jb-dialog
-            v-model="isShowSave"
-            class="save-debug-plan-dialog"
-            :esc-close="false"
-            header-position="left"
-            :mask-close="false"
-            render-directive="if"
-            :title="$t('template.另存为执行方案')"
-            :width="480">
-            <jb-form
-                ref="editPlanForm"
-                form-type="vertical"
-                :model="planFormData"
-                :rules="rules">
-                <jb-form-item
-                    :label="$t('template.执行方案名称')"
-                    property="name"
-                    required>
-                    <bk-input
-                        v-model="planFormData.name"
-                        :native-attributes="{ autofocus: 'autofocus' }"
-                        :placeholder="$t('template.请输入执行方案名称')"
-                        @keydown="handleEnter" />
-                </jb-form-item>
-            </jb-form>
-            <div
-                slot="footer"
-                class="setting-password-footer">
-                <bk-button
-                    class="mr10"
-                    :loading="isPlanCreating"
-                    theme="primary"
-                    @click="handleSubmitCreatePlan">
-                    {{ $t('template.确定') }}
-                </bk-button>
-                <bk-button
-                    @click="handleCloseSave">
-                    {{ $t('template.取消') }}
-                </bk-button>
-            </div>
-        </jb-dialog>
     </div>
 </template>
 <script>
@@ -149,9 +100,6 @@
     import {
         findUsedVariable,
     } from '@utils/assist';
-    import {
-        planNameRule,
-    } from '@utils/validator';
 
     import BackTop from '@components/back-top';
     import DetailLayout from '@components/detail-layout';
@@ -182,14 +130,9 @@
         data () {
             return {
                 formData: getDefaultData(),
-                planFormData: {
-                    name: '',
-                },
                 variableList: [],
                 taskStepList: [],
                 isLoading: true,
-                isShowSave: false,
-                isPlanCreating: false,
             };
         },
         computed: {
@@ -211,26 +154,6 @@
             this.formData.templateId = Number(this.$route.params.id);
 
             this.fetchData();
-
-            this.rules = {
-                name: [
-                    {
-                        required: true,
-                        message: I18n.t('template.方案名称必填'),
-                        trigger: 'blur',
-                    },
-                    {
-                        validator: planNameRule.validator,
-                        message: planNameRule.message,
-                        trigger: 'blur',
-                    },
-                    {
-                        validator: this.checkName,
-                        message: I18n.t('template.方案名称已存在，请重新输入'),
-                        trigger: 'blur',
-                    },
-                ],
-            };
         },
         methods: {
             /**
@@ -288,17 +211,7 @@
                         this.isExecuting = false;
                     });
             },
-            /**
-             * @desc 检测任务名是否重名
-             * @param {String} name 任务名
-             */
-            checkName (name) {
-                return ExecPlanService.planCheckName({
-                    templateId: this.formData.templateId,
-                    planId: this.formData.id,
-                    name,
-                });
-            },
+
             /**
              * @desc 选择模板步骤
              * @param {String} payload 模板步骤
@@ -359,106 +272,7 @@
                         this.isExecuting = false;
                     });
             },
-            /**
-             * @desc 显示另存为确认框
-             */
-            handleSavePlan () {
-                this.isShowSave = true;
-            },
-            /**
-             * @desc 取消另存为操作
-             */
-            handleCloseSave () {
-                this.isShowSave = false;
-                this.planFormData.name = '';
-            },
-            /**
-             * @desc enter触发提交
-             */
-            handleEnter (value, event) {
-                if (event.isComposing) {
-                    // 跳过输入发复合时间
-                    return;
-                }
-                if (event.keyCode !== 13) {
-                    // 非enter键
-                    return;
-                }
-                this.handleSubmitCreatePlan();
-            },
-            /**
-             * @desc 另存为执行方案
-             */
-            handleSubmitCreatePlan () {
-                this.isPlanCreating = true;
-                this.$refs.editPlanForm.validate()
-                    .then(() => {
-                        const findTemplateStepIds = () => {
-                            const enableStepsMap = this.formData.enableSteps.reduce((result, item) => {
-                                result[item] = true;
-                                return result;
-                            }, {});
-                            return this.taskStepList.reduce((result, item) => {
-                                if (enableStepsMap[item.id]) {
-                                    result.push(item.templateStepId);
-                                }
-                                return result;
-                            }, []);
-                        };
-                        return ExecPlanService.planUpdate({
-                            id: 0,
-                            name: this.planFormData.name,
-                            templateId: this.formData.templateId,
-                            enableSteps: findTemplateStepIds(),
-                            variables: this.formData.variables,
-                        }).then((newPlanId) => {
-                            window.changeConfirm = false;
-                            this.isShowSave = false;
-                            this.planFormData.name = '';
 
-                            let confirmInfo = null;
-                            const handleGoDebug = () => {
-                                confirmInfo.close();
-                            };
-                            const handleGoPlanDetail = () => {
-                                confirmInfo.close();
-                                this.$router.push({
-                                    name: 'viewPlan',
-                                    params: {
-                                        templateId: this.formData.templateId,
-                                    },
-                                    query: {
-                                        viewPlanId: newPlanId,
-                                        from: 'debugPlan',
-                                    },
-                                });
-                            };
-                            const subHeader = () => {
-                                /* eslint-disable no-unused-vars */
-                                const h = this.$createElement;
-                                return (
-                                <div>
-                                    <bk-button style={{ marginRight: '10px' }} text onClick={handleGoDebug}>
-                                        {I18n.t('template.返回继续调试')}
-                                    </bk-button>
-                                    <bk-button text onClick={handleGoPlanDetail}>
-                                        {I18n.t('template.立即前往查看')}
-                                    </bk-button>
-                                </div>
-                                );
-                            };
-                            confirmInfo = this.$bkInfo({
-                                type: 'success',
-                                title: I18n.t('template.另存执行方案成功'),
-                                showFooter: false,
-                                subHeader: subHeader(),
-                            });
-                        });
-                    })
-                    .finally(() => {
-                        this.isPlanCreating = false;
-                    });
-            },
             /**
              * @desc 取消调试
              */

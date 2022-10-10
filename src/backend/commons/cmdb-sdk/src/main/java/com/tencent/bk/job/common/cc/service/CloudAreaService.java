@@ -24,26 +24,20 @@
 
 package com.tencent.bk.job.common.cc.service;
 
-import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.esb.config.BkApiConfig;
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.StringUtil;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -55,16 +49,16 @@ import java.util.stream.Collectors;
  * @since 23/12/2019 22:48
  */
 
-@DependsOn({"cmdbConfigSetter"})
 @Slf4j
+@Service
 public class CloudAreaService {
     private static final Map<Long, String> CLOUD_AREA_NAME_MAP = new ConcurrentHashMap<>();
-    private static IBizCmdbClient esbBizCmdbClient;
+    private static IBizCmdbClient bizCmdbClient;
     private static List<CcCloudAreaInfoDTO> fullCloudAreaInfoList;
 
-    public CloudAreaService(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig, MeterRegistry meterRegistry) {
+    public CloudAreaService(IBizCmdbClient bizCmdbClient) {
+        CloudAreaService.bizCmdbClient = bizCmdbClient;
         CloudAreaNameCacheThread cloudAreaNameCacheThread = new CloudAreaNameCacheThread();
-        esbBizCmdbClient = new BizCmdbClient(bkApiConfig, cmdbConfig, LocaleUtils.LANG_EN_US, meterRegistry);
         cloudAreaNameCacheThread.start();
     }
 
@@ -78,7 +72,7 @@ public class CloudAreaService {
     }
 
     private static List<CcCloudAreaInfoDTO> getCloudAreaListFromCc() {
-        List<CcCloudAreaInfoDTO> cloudAreaInfoList = esbBizCmdbClient.getCloudAreaList();
+        List<CcCloudAreaInfoDTO> cloudAreaInfoList = bizCmdbClient.getCloudAreaList();
         if (cloudAreaInfoList == null) {
             return new ArrayList<>();
         }
@@ -148,10 +142,9 @@ public class CloudAreaService {
         public void run() {
             this.setName("Cloud-Area-Info-Sync-Thread");
             while (true) {
-                String uuid = UUID.randomUUID().toString();
                 long start = System.currentTimeMillis();
                 try {
-                    log.debug("{}|Cloud area info syncing start...", uuid);
+                    log.debug("Cloud area info syncing start...");
                     List<CcCloudAreaInfoDTO> cloudAreaInfoList = getCloudAreaListFromCc();
                     if (CollectionUtils.isNotEmpty(cloudAreaInfoList)) {
                         Iterator<CcCloudAreaInfoDTO> cloudAreaInfoIterator = cloudAreaInfoList.iterator();
@@ -166,9 +159,9 @@ public class CloudAreaService {
                         }
                         fullCloudAreaInfoList = cloudAreaInfoList;
                     }
-                    log.debug("{}|Cloud area info syncing finished in {}!", uuid, System.currentTimeMillis() - start);
+                    log.debug("Cloud area info syncing finished in {}!", System.currentTimeMillis() - start);
                 } catch (Exception e) {
-                    log.error("{}|Error while process cloud area name!", uuid, e);
+                    log.error("Error while process cloud area name!", e);
                 }
                 try {
                     Thread.sleep(60_000L);

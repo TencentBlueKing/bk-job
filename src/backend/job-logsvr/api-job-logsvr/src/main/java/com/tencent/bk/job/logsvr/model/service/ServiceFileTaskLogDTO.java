@@ -29,7 +29,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * 文件分发执行日志
@@ -52,16 +51,16 @@ public class ServiceFileTaskLogDTO {
     private Integer mode;
 
     /**
-     * 目标IP
+     * 目标主机（云区域ID:IPv4)
      */
     @JsonProperty("destIp")
     private String destIp;
 
     /**
-     * 用于展示的目标IP
+     * 目标主机（云区域ID:IPv6)
      */
-    @JsonProperty("displayDestIp")
-    private String displayDestIp;
+    @JsonProperty("destIpv6")
+    private String destIpv6;
 
     /**
      * 目标主机ID
@@ -76,10 +75,16 @@ public class ServiceFileTaskLogDTO {
     private String destFile;
 
     /**
-     * 文件源IP
+     * 文件源主机(云区域ID:IPv4)
      */
     @JsonProperty("srcIp")
     private String srcIp;
+
+    /**
+     * 文件源主机(云区域ID:IPv6)
+     */
+    @JsonProperty("srcIpv6")
+    private String srcIpv6;
 
     /**
      * 文件源主机ID
@@ -88,10 +93,10 @@ public class ServiceFileTaskLogDTO {
     private Long srcHostId;
 
     /**
-     * 文件源IP - 显示
+     * 源文件类型
      */
-    @JsonProperty("displaySrcIp")
-    private String displaySrcIp;
+    @JsonProperty("srcFileType")
+    private Integer srcFileType;
 
     /**
      * 源文件路径 - 真实路径
@@ -144,10 +149,12 @@ public class ServiceFileTaskLogDTO {
     public ServiceFileTaskLogDTO(Integer mode,
                                  Long destHostId,
                                  String destIp,
+                                 String destIpv6,
                                  String destFile,
                                  Long srcHostId,
                                  String srcIp,
-                                 String displaySrcIp,
+                                 String srcIpv6,
+                                 Integer srcFileType,
                                  String srcFile,
                                  String displaySrcFile,
                                  String size,
@@ -159,10 +166,12 @@ public class ServiceFileTaskLogDTO {
         this.mode = mode;
         this.destHostId = destHostId;
         this.destIp = destIp;
+        this.destIpv6 = destIpv6;
         this.destFile = destFile;
         this.srcHostId = srcHostId;
         this.srcIp = srcIp;
-        this.displaySrcIp = displaySrcIp;
+        this.srcIpv6 = srcIpv6;
+        this.srcFileType = srcFileType;
         this.srcFile = srcFile;
         this.displaySrcFile = displaySrcFile;
         this.size = size;
@@ -171,14 +180,6 @@ public class ServiceFileTaskLogDTO {
         this.speed = speed;
         this.process = process;
         this.content = content;
-    }
-
-    public String getDisplaySrcIp() {
-        if (StringUtils.isNotEmpty(this.displaySrcIp)) {
-            return this.displaySrcIp;
-        } else {
-            return this.srcIp;
-        }
     }
 }
 

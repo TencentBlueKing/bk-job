@@ -67,7 +67,7 @@
                 min-width="200"
                 prop="name"
                 show-overflow-tooltip
-                sortable>
+                sortable="custom">
                 <template slot-scope="{ row }">
                     <auth-component
                         auth="cron/view"
@@ -80,6 +80,30 @@
                         </span>
                         <span slot="forbid">{{ row.name }}</span>
                     </auth-component>
+                </template>
+            </bk-table-column>
+            <bk-table-column
+                v-if="allRenderColumnMap.taskPlanId"
+                key="taskPlanId"
+                align="left"
+                :label="$t('cron.执行方案ID')"
+                prop="taskPlanId"
+                width="120">
+                <template slot-scope="{ row }">
+                    <router-link
+                        target="_blank"
+                        :to="{
+                            name: 'viewPlan',
+                            params: {
+                                templateId: row.taskTemplateId,
+                            },
+                            query: {
+                                from: 'cronJob',
+                                viewPlanId: row.taskPlanId,
+                            },
+                        }">
+                        {{ row.taskPlanId }}
+                    </router-link>
                 </template>
             </bk-table-column>
             <bk-table-column
@@ -103,6 +127,7 @@
                     <router-link
                         v-else
                         class="task-plan-text"
+                        target="_blank"
                         :to="{
                             name: 'viewPlan',
                             params: {
@@ -152,7 +177,7 @@
                 align="left"
                 :label="$t('cron.更新人.colHead')"
                 prop="lastModifyUser"
-                sortable
+                sortable="custom"
                 width="140" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
@@ -167,7 +192,7 @@
                 align="left"
                 :label="$t('cron.最新执行结果')"
                 prop="lastExecuteStatus"
-                sortable
+                sortable="custom"
                 width="150">
                 <template slot-scope="{ row }">
                     <Icon
@@ -442,6 +467,10 @@
                     id: 'name',
                     label: I18n.t('cron.任务名称.colHead'),
                     disabled: true,
+                },
+                {
+                    id: 'taskPlanId',
+                    label: I18n.t('cron.执行方案ID'),
                 },
                 {
                     id: 'planName',

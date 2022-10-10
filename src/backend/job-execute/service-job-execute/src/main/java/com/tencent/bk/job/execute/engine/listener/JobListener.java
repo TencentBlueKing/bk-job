@@ -149,9 +149,7 @@ public class JobListener {
         long jobInstanceId = taskInstance.getId();
         RunStatusEnum taskStatus = taskInstance.getStatus();
 
-        if (RunStatusEnum.RUNNING == taskStatus) {
-            taskInstanceService.updateTaskStatus(jobInstanceId, RunStatusEnum.STOPPING.getValue());
-        } else if (RunStatusEnum.WAITING_USER == taskStatus) {
+        if (RunStatusEnum.RUNNING == taskStatus || RunStatusEnum.WAITING_USER == taskStatus) {
             taskInstanceService.updateTaskStatus(jobInstanceId, RunStatusEnum.STOPPING.getValue());
             long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
             taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.stopStep(currentStepInstanceId));
@@ -219,7 +217,9 @@ public class JobListener {
                 || RunStatusEnum.IGNORE_ERROR == stepStatus
                 || RunStatusEnum.ROLLING_WAITING == stepStatus) {
                 nextStep(taskInstance, currentStepInstance);
-            } else if (RunStatusEnum.FAIL == stepStatus || RunStatusEnum.ABNORMAL_STATE == stepStatus) {
+            } else if (RunStatusEnum.FAIL == stepStatus
+                || RunStatusEnum.ABNORMAL_STATE == stepStatus
+                || RunStatusEnum.ABANDONED == stepStatus) {
                 // 步骤失败，任务结束
                 finishJob(taskInstance, currentStepInstance, stepStatus);
             } else {

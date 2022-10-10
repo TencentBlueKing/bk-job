@@ -69,7 +69,7 @@
                         v-for="item in data"
                         :id="item.scriptVersionId"
                         :key="item.scriptVersionId"
-                        :disabled="item.scriptVersionId === oldVersionId"
+                        :disabled="item.scriptVersionId === oldVersion"
                         :name="item.version" />
                 </bk-select>
             </div>
@@ -82,7 +82,7 @@
                         v-for="item in data"
                         :id="item.scriptVersionId"
                         :key="item.scriptVersionId"
-                        :disabled="item.scriptVersionId === newVersionId"
+                        :disabled="item.scriptVersionId === newVersion"
                         :name="item.version" />
                 </bk-select>
             </div>

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
+import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.JobUUID;
@@ -54,6 +55,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -87,25 +89,29 @@ public class ScriptDAOImpl implements ScriptDAO {
             String orderField = baseSearchCondition.getOrderField();
             if ("name".equals(orderField)) {
                 //升序
-                if (baseSearchCondition.getOrder() == 1) {
+                if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {
                     orderFields.add(TB_SCRIPT.NAME.asc());
                 } else {
                     orderFields.add(TB_SCRIPT.NAME.desc());
                 }
             } else if ("type".equals(orderField)) {
-                if (baseSearchCondition.getOrder() == 1) {
-                    orderFields.add(TB_SCRIPT.TYPE.asc());
+                String sortExpr = Arrays.stream(ScriptTypeEnum.getScriptTypeNameAscSort())
+                    .map(scriptTypeEnum -> scriptTypeEnum.getValue().toString())
+                    .reduce((a, b) -> a + "," + b)
+                    .orElse("");
+                if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {
+                    orderFields.add(DSL.field("field({0}," + sortExpr + ")", TB_SCRIPT.TYPE).asc());
                 } else {
-                    orderFields.add(TB_SCRIPT.TYPE.desc());
+                    orderFields.add(DSL.field("field({0}," + sortExpr + ")", TB_SCRIPT.TYPE).desc());
                 }
             } else if ("creator".equals(orderField)) {
-                if (baseSearchCondition.getOrder() == 1) {
+                if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {
                     orderFields.add(TB_SCRIPT.CREATOR.asc());
                 } else {
                     orderFields.add(TB_SCRIPT.CREATOR.desc());
                 }
             } else if ("lastModifyTime".equals(orderField)) {
-                if (baseSearchCondition.getOrder() == 1) {
+                if (baseSearchCondition.getOrder() == Order.ASCENDING.getOrder()) {
                     orderFields.add(TB_SCRIPT.LAST_MODIFY_TIME.asc());
                 } else {
                     orderFields.add(TB_SCRIPT.LAST_MODIFY_TIME.desc());
@@ -281,11 +287,8 @@ public class ScriptDAOImpl implements ScriptDAO {
                 conditions.add(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId)));
             }
 
-            Boolean isPublic = scriptQuery.getPublicScript();
-            int publicFlag = ScriptScopeEnum.APP.getValue();
-            if (isPublic != null && isPublic) {
-                publicFlag = ScriptScopeEnum.PUBLIC.getValue();
-            }
+            int publicFlag = scriptQuery.isPublicScript() ? ScriptScopeEnum.PUBLIC.getValue() :
+                ScriptScopeEnum.APP.getValue();
             conditions.add(TB_SCRIPT.IS_PUBLIC.eq(UByte.valueOf(String.valueOf(publicFlag))));
         }
 

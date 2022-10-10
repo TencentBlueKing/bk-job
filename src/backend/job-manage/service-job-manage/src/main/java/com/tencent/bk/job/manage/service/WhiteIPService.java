@@ -62,6 +62,10 @@ public interface WhiteIPService {
      */
     List<HostDTO> listAvailableWhiteIPHost(Long appId, ActionScopeEnum actionScope, Collection<Long> hostIds);
 
+    List<HostDTO> listAvailableWhiteIPHostByIps(Long appId, ActionScopeEnum actionScope, Collection<String> ips);
+
+    List<HostDTO> listAvailableWhiteIPHostByIpv6s(Long appId, ActionScopeEnum actionScope, Collection<String> ipv6s);
+
     Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq);
 
     WhiteIPRecordVO getWhiteIPDetailById(String username, Long id);
@@ -72,7 +76,7 @@ public interface WhiteIPService {
 
     Long deleteWhiteIPById(String username, Long id);
 
-    List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId);
+    List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId, Long hostId);
 
     List<ServiceWhiteIPInfo> listWhiteIPInfos();
 }

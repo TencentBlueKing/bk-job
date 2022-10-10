@@ -50,16 +50,9 @@ public class ServiceHostLogsDTO {
 
     /**
      * 主机执行日志列表
-     * TMP: 兼容字段，发布后删除,使用hostLogs参数替代
      */
     @ApiModelProperty(value = "主机执行日志")
     @JsonProperty("ipLogs")
     private List<ServiceHostLogDTO> ipLogs;
 
-    /**
-     * 主机执行日志列表
-     */
-    @ApiModelProperty(value = "主机执行日志")
-    @JsonProperty("hostLogs")
-    private List<ServiceHostLogDTO> hostLogs;
 }

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.google.common.collect.Sets;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GSECode;
@@ -34,11 +33,12 @@ import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
+import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.FileGseTaskResult;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
@@ -47,7 +47,6 @@ import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
-import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -68,6 +67,7 @@ import org.springframework.util.StopWatch;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -83,11 +83,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     /**
      * GSE 源 Agent 任务, Map<AgentId,AgentTask>
      */
-    private final Map<String, AgentTaskDTO> sourceAgentTaskMap;
-    /**
-     * 待分发文件，文件传输的源文件
-     */
-    private final Set<JobFile> sendFiles;
+    private final Map<String, AgentTaskDTO> sourceAgentTasks;
     /**
      * 任务包含的源服务器
      */
@@ -120,23 +116,17 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      * 上传文件任务数，key: agentId, value: 主机对应的文件任务数
      */
     private final Map<String, Integer> fileUploadTaskNumMap = new HashMap<>();
+
+    private final Map<String, Integer> processMap = new HashMap<>();
+
+    private final Map<JobFile, FileDest> srcDestFileMap;
+    /**
+     * 源文件
+     */
+    private final Map<String, JobFile> srcFilesMap = new HashMap<>();
     /**
      * 文件任务进度表
-     */
-    private final Map<String, Integer> processMap = new HashMap<>();
-    /**
-     * 本地文件上传目录
-     */
-    private final String localUploadDir;
-    /**
-     * 分发的源文件路径与分发之后的目标文件路径的映射关系
-     */
-    private final Map<String, String> sourceDestPathMap;
-    /**
-     * 源文件真实路径与显示路径的映射关系，用于本地文件分发场景下的真实路径隐藏
-     */
-    private final Map<String, String> sourceFileDisplayMap;
-    /**
+     * /**
      * 下载全部结束的时间
      */
     private long downloadFinishedTime = 0;
@@ -157,7 +147,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      */
     private String taskInfo;
 
-    private Map<String, Long> ipAndCloudIMapping = null;
 
     public FileResultHandleTask(TaskInstanceService taskInstanceService,
                                 GseTaskService gseTaskService,
@@ -173,13 +162,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                Map<String, AgentTaskDTO> targetAgentTaskMap,
-                                Map<String, AgentTaskDTO> sourceAgentTaskMap,
+                                Map<String, AgentTaskDTO> targetAgentTasks,
+                                Map<String, AgentTaskDTO> sourceAgentTasks,
                                 GseTaskDTO gseTask,
-                                Set<JobFile> sendFiles,
-                                String storageRootPath,
-                                Map<String, String> sourceDestPathMap,
-                                Map<String, String> sourceFileDisplayMap,
+                                Map<JobFile, FileDest> srcDestFileMap,
                                 String requestId) {
         super(taskInstanceService,
             gseTaskService,
@@ -195,37 +181,42 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
-            targetAgentTaskMap,
+            targetAgentTasks,
             gseTask,
             requestId);
-        this.sourceAgentTaskMap = sourceAgentTaskMap;
-        this.sendFiles = sendFiles;
-        this.localUploadDir = NFSUtils.getFileDir(storageRootPath, FileDirTypeConf.UPLOAD_FILE_DIR);
-        if (sourceDestPathMap != null) {
-            this.sourceDestPathMap = sourceDestPathMap;
-        } else {
-            this.sourceDestPathMap = new HashMap<>();
-        }
-        this.sourceFileDisplayMap = sourceFileDisplayMap;
+        this.sourceAgentTasks = sourceAgentTasks;
+        this.srcDestFileMap = srcDestFileMap;
+        initSrcFilesMap(srcDestFileMap.keySet());
         initFileTaskNumMap();
         initSourceAgentIds();
 
-        log.info("InitFileResultHandleTask|stepInstanceId: {}|sendFiles: {}|fileSourceAgentIds: {}|targetAgentIds: {}|"
+        log.info("InitFileResultHandleTask|stepInstanceId: {}|fileSourceAgentIds: {}|targetAgentIds: {}|"
                 + "fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}",
-            stepInstance.getId(), sendFiles, sourceAgentIds, targetAgentIds, fileUploadTaskNumMap,
+            stepInstance.getId(), sourceAgentIds, targetAgentIds, fileUploadTaskNumMap,
             fileDownloadTaskNumMap);
     }
 
+    private void initSrcFilesMap(Collection<JobFile> srcFiles) {
+        srcFiles.forEach(srcFile ->
+            srcFilesMap.put(
+                buildSrcFileKey(srcFile.getHost().getAgentId(), srcFile.getStandardFilePath()),
+                srcFile)
+        );
+    }
+
+    private String buildSrcFileKey(String srcAgentId, String standardSrcFilePath) {
+        return srcAgentId + ":" + standardSrcFilePath;
+    }
 
     /**
      * 初始化文件任务计数器
      */
     private void initFileTaskNumMap() {
         for (String agentId : this.targetAgentIds) {
-            this.fileDownloadTaskNumMap.put(agentId, this.sendFiles.size());
+            this.fileDownloadTaskNumMap.put(agentId, this.srcDestFileMap.size());
         }
 
-        for (JobFile sendFile : this.sendFiles) {
+        for (JobFile sendFile : this.srcDestFileMap.keySet()) {
             String agentId = sendFile.getHost().getAgentId();
             this.fileUploadTaskNumMap.put(agentId, this.fileUploadTaskNumMap.get(agentId) == null ? 1 :
                 (this.fileUploadTaskNumMap.get(agentId) + 1));
@@ -233,7 +224,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     private void initSourceAgentIds() {
-        sourceAgentTaskMap.values().forEach(agentTask -> {
+        sourceAgentTasks.values().forEach(agentTask -> {
             this.notStartedFileSourceAgentIds.add(agentTask.getAgentId());
             this.sourceAgentIds.add(agentTask.getAgentId());
         });
@@ -266,9 +257,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     @Override
     GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<FileTaskResult> taskDetail) {
-        correctSourceAgentId(taskDetail.getResult());
         // 执行日志, Map<hostKey, 日志>
-        Map<String, ServiceHostLogDTO> executionLogs = new HashMap<>();
+        Map<Long, ServiceHostLogDTO> executionLogs = new HashMap<>();
 
         StopWatch watch = new StopWatch("analyse-gse-file-task");
         watch.start("analyse");
@@ -300,7 +290,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
         // 保存任务执行结果
         watch.start("saveAgentTasks");
-        batchSaveChangedGseAgentTasks();
+        batchSaveChangedGseAgentTasks(targetAgentTasks.values());
+        batchSaveChangedGseAgentTasks(sourceAgentTasks.values());
         watch.stop();
 
         log.info("Analyse gse task log [{}] -> runningTargetAgentIds={}, " +
@@ -326,44 +317,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         return analyseExecuteResult();
     }
 
-    /**
-     * GSE 1.0 BUG(GSE Agent 版本低于1.7.6), download结果可能没有源云区域ID，需要处理
-     */
-    @CompatibleImplementation(name = "ipv6", explain = "GSE 1.0 BUG(GSE Agent 版本低于1.7.6)", version = "> 3.7")
-    private void correctSourceAgentId(FileTaskResult fileTaskResult) {
-        for (AtomicFileTaskResult result : fileTaskResult.getAtomicFileTaskResults()) {
-            if (result.getContent() != null && isDownloadResult(result.getContent().getMode())) {
-                String sourceAgentId = result.getContent().getSourceAgentId();
-                // 没有云区域ID, 尝试结合文件源主机推测(ip匹配)
-                if (sourceAgentId.startsWith(":")) {
-                    log.warn("[{}] Invalid sourceAgentId: {}", stepInstanceId, sourceAgentId);
-                    String ip = sourceAgentId.substring(1);
-                    if (ipAndCloudIMapping == null) {
-                        initSourceIpAndCloudIdMapping();
-                    }
-                    Long bkCloudId = ipAndCloudIMapping.get(ip);
-                    result.getContent().setSourceAgentId(bkCloudId + ":" + ip);
-                    result.getContent().setTaskId(result.getContent().buildTaskId());
-                }
-            }
-        }
-    }
-
-    private void initSourceIpAndCloudIdMapping() {
-        if (ipAndCloudIMapping == null) {
-            ipAndCloudIMapping = new HashMap<>();
-            for (String agentId : sourceAgentIds) {
-                String[] props = agentId.split(":");
-                if (props.length == 2) {
-                    ipAndCloudIMapping.put(props[1], Long.valueOf(props[0]));
-                }
-            }
-        }
-    }
-
     private void analyseFileResult(String agentId,
                                    AtomicFileTaskResult result,
-                                   Map<String, ServiceHostLogDTO> executionLogs,
+                                   Map<Long, ServiceHostLogDTO> executionLogs,
                                    boolean isDownloadResult) {
         AtomicFileTaskResultContent content = result.getContent();
         AgentTaskDTO agentTask = getAgentTask(isDownloadResult, agentId);
@@ -412,7 +368,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 this.isTerminatedSuccess = true;
                 break;
             default:
-                dealIpTaskFail(result, executionLogs, isDownloadResult);
+                dealTaskResultFail(result, executionLogs, isDownloadResult);
                 break;
         }
     }
@@ -421,7 +377,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         if (isDownloadResult) {
             return targetAgentTasks.get(agentId);
         } else {
-            return sourceAgentTaskMap.get(agentId);
+            return sourceAgentTasks.get(agentId);
         }
     }
 
@@ -438,7 +394,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             if (this.notStartedFileSourceAgentIds.isEmpty() && this.runningFileSourceAgentIds.isEmpty()) {
                 int successTargetIpNum = this.successTargetAgentIds.size();
                 int targetIPNum = this.targetAgentIds.size();
-                boolean isSuccess = !stepInstance.hasInvalidHost() && successTargetIpNum == targetIPNum;
+                boolean isSuccess = successTargetIpNum == targetIPNum;
                 if (isSuccess) {
                     rst = GseTaskExecuteResult.SUCCESS;
                 } else {
@@ -458,7 +414,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 if (System.currentTimeMillis() - this.downloadFinishedTime > 15_000L) {
                     int targetIPNum = this.targetAgentIds.size();
                     int successTargetIpNum = this.successTargetAgentIds.size();
-                    boolean isSuccess = !stepInstance.hasInvalidHost() && successTargetIpNum == targetIPNum;
+                    boolean isSuccess = successTargetIpNum == targetIPNum;
                     rst = isSuccess ? GseTaskExecuteResult.SUCCESS : GseTaskExecuteResult.FAILED;
                     log.info("[{}] AnalyseExecuteResult-> Result: finished. Download tasks are finished, " +
                             "but upload tasks are not finished after 15 seconds. Ignore upload tasks",
@@ -508,92 +464,95 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         return shouldAnalyse;
     }
 
-    private void recordDownloadFileFail(AtomicFileTaskResult result,
-                                        Map<String, ServiceHostLogDTO> executionLogs) {
-        AtomicFileTaskResultContent content = result.getContent();
-        String destAgentId = content.getDestAgentId();
-        String sourceAgentId = content.getSourceAgentId();
-        AgentTaskDTO destAgentTask = targetAgentTasks.get(destAgentId);
-        AgentTaskDTO sourceAgentTask = sourceAgentTaskMap.get(sourceAgentId);
-        boolean isAddSuccess = addFinishedFile(false, true, destAgentId,
-            AtomicFileTaskResultContent.buildTaskId(content.getMode(), sourceAgentId,
-                content.getStandardSourceFilePath(), destAgentId, content.getStandardDestFilePath()));
-        if (isAddSuccess) {
-            addFileTaskLog(executionLogs,
-                new ServiceFileTaskLogDTO(
-                    FileDistModeEnum.DOWNLOAD.getValue(),
-                    destAgentTask.getHostId(),
-                    agentIdHostMap.get(destAgentTask.getAgentId()).getIp(),
-                    content.getStandardDestFilePath(),
-                    sourceAgentTask.getHostId(),
-                    agentIdHostMap.get(sourceAgentTask.getAgentId()).getIp(),
-                    agentIdHostMap.get(sourceAgentTask.getAgentId()).getIp(),
-                    content.getStandardSourceFilePath(),
-                    content.getStandardSourceFilePath() == null ? null :
-                        sourceFileDisplayMap.get(content.getStandardSourceFilePath()), null,
-                    FileDistStatusEnum.FAILED.getValue(),
-                    FileDistStatusEnum.FAILED.getName(),
-                    null,
-                    null,
-                    result.getErrorMsg())
-            );
-        }
-    }
-
-    private long getStartTimeOrDefault(AtomicFileTaskResultContent content) {
-        return (content != null && content.getStartTime() != null && content.getStartTime() > 0) ?
-            content.getStartTime() : System.currentTimeMillis();
-    }
-
-    private long getEndTimeOrDefault(AtomicFileTaskResultContent content) {
-        return (content != null && content.getEndTime() != null && content.getEndTime() > 0) ?
-            content.getEndTime() : System.currentTimeMillis();
-    }
-
-    private void dealIpTaskFail(AtomicFileTaskResult result,
-                                Map<String, ServiceHostLogDTO> executionLogs,
-                                boolean isDownloadResult) {
-        long startTime = getStartTimeOrDefault(result.getContent());
-        long endTime = getEndTimeOrDefault(result.getContent());
-        AtomicFileTaskResultContent content = result.getContent();
+    private void dealTaskResultFail(AtomicFileTaskResult result,
+                                    Map<Long, ServiceHostLogDTO> executionLogs,
+                                    boolean isDownloadResult) {
         if (isDownloadResult) {
-            String destAgentId = content.getDestAgentId();
-            recordDownloadFileFail(result, executionLogs);
-            analyseAgentTaskResult(result.getErrorCode(), destAgentId, startTime, endTime, true);
+            dealDownloadTaskFail(result, executionLogs);
         } else {
-            // 上传源IP本身处理
-            String sourceAgentId = content.getSourceAgentId();
-            analyseAgentTaskResult(result.getErrorCode(), sourceAgentId, startTime, endTime, false);
-
-            // 如果上传源失败，除了影响上传，还会影响到下载的目标IP
-            Set<String> affectedTargetIps = new HashSet<>();
-            dealUploadFail(result, executionLogs, affectedTargetIps);
-            for (String affectedTargetIp : affectedTargetIps) {
-                analyseAgentTaskResult(0, affectedTargetIp, startTime, endTime, true);
-            }
+            dealUploadTaskFail(result, executionLogs);
         }
     }
+
+    private void dealDownloadTaskFail(AtomicFileTaskResult result,
+                                      Map<Long, ServiceHostLogDTO> executionLogs) {
+        AtomicFileTaskResultContent content = result.getContent();
+        dealDownloadTaskFail(executionLogs, content.getSourceAgentId(), content.getStandardSourceFilePath(),
+            content.getDestAgentId(), content.getStandardDestFilePath(), result.getErrorCode(), result.getErrorMsg(),
+            content.getStartTime(), content.getEndTime());
+    }
+
+    private void dealDownloadTaskFail(Map<Long, ServiceHostLogDTO> executionLogs,
+                                      String sourceAgentId,
+                                      String sourceFilePath,
+                                      String targetAgentId,
+                                      String destFilePath,
+                                      Integer errorCode,
+                                      String errorMsg,
+                                      Long startTime,
+                                      Long endTime) {
+        JobFile srcFile = srcFilesMap.get(buildSrcFileKey(sourceAgentId, sourceFilePath));
+        HostDTO targetHost = agentIdHostMap.get(targetAgentId);
+        HostDTO sourceHost = agentIdHostMap.get(sourceAgentId);
+        FileDest fileDest = srcDestFileMap.get(srcFile);
+
+        // 记录目标IP单个文件下载任务的结束状态
+        addFinishedFile(false,
+            true,
+            targetAgentId,
+            AtomicFileTaskResultContent.buildTaskId(
+                FileDistModeEnum.DOWNLOAD.getValue(),
+                sourceAgentId,
+                sourceFilePath,
+                targetAgentId,
+                destFilePath)
+        );
+        // 每个目标IP增加一条下载失败的日志到日志总Map中
+        addFileTaskLog(executionLogs,
+            new ServiceFileTaskLogDTO(
+                FileDistModeEnum.DOWNLOAD.getValue(),
+                targetHost.getHostId(),
+                targetHost.toCloudIp(),
+                targetHost.toCloudIpv6(),
+                fileDest.getDestPath(),
+                sourceHost.getHostId(),
+                sourceHost.getIp(),
+                sourceHost.toCloudIpv6(),
+                srcFile.getFileType().getType(),
+                sourceFilePath,
+                srcFile.getDisplayFilePath(),
+                null,
+                FileDistStatusEnum.FAILED.getValue(),
+                FileDistStatusEnum.FAILED.getName(),
+                null,
+                null,
+                errorMsg)
+        );
+        analyseAgentTaskResult(errorCode, targetAgentId, getTimeOrDefault(startTime),
+            getTimeOrDefault(endTime), true);
+    }
+
+    private long getTimeOrDefault(Long time) {
+        return time != null && time > 0 ? time : System.currentTimeMillis();
+    }
+
 
     /**
      * 根据copyFileRsp内容填充executionLogs与affectIps
      *
-     * @param result                 GSE响应内容
-     * @param executionLogs          执行日志总Map
-     * @param affectedTargetAgentIds 受影响的目标Agent集合
+     * @param result        GSE响应内容
+     * @param executionLogs 执行日志总Map
      */
-    private void dealUploadFail(AtomicFileTaskResult result, Map<String, ServiceHostLogDTO> executionLogs,
-                                Set<String> affectedTargetAgentIds) {
+    private void dealUploadTaskFail(AtomicFileTaskResult result,
+                                    Map<Long, ServiceHostLogDTO> executionLogs) {
         AtomicFileTaskResultContent content = result.getContent();
         String sourceAgentId = content.getSourceAgentId();
         HostDTO sourceHost = agentIdHostMap.get(sourceAgentId);
+        JobFile srcFile = srcFilesMap.get(buildSrcFileKey(sourceAgentId, content.getStandardSourceFilePath()));
+        Long startTime = getTimeOrDefault(content.getStartTime());
+        Long endTime = getTimeOrDefault(content.getEndTime());
         // 记录源IP单个文件上传任务的结束状态
         addFinishedFile(false, false, content.getSourceAgentId(), content.getTaskId());
-
-        String sourceFilePath = content.getStandardSourceFilePath();
-        String displayFilePath = sourceFileDisplayMap.get(sourceFilePath);
-        boolean isLocalUploadFile = sourceFilePath.startsWith(this.localUploadDir);
-        log.debug("StandardSourceFilePath: {}, localUploadDir: {}, isLocalUploadFile: {}, displayFilePath: {}",
-            sourceFilePath, this.localUploadDir, isLocalUploadFile, displayFilePath);
 
         // 增加一条上传源失败的上传日志
         addFileTaskLog(executionLogs,
@@ -602,11 +561,13 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 null,
                 null,
                 null,
+                null,
                 sourceHost.getHostId(),
-                sourceHost.getIp(),
-                sourceHost.getDisplayIp(),
-                sourceFilePath,
-                displayFilePath,
+                sourceHost.toCloudIp(),
+                sourceHost.toCloudIpv6(),
+                srcFile.getFileType().getType(),
+                content.getStandardSourceFilePath(),
+                srcFile.getDisplayFilePath(),
                 null,
                 FileDistStatusEnum.FAILED.getValue(),
                 FileDistStatusEnum.FAILED.getName(),
@@ -614,68 +575,39 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 null,
                 result.getErrorMsg())
         );
+        analyseAgentTaskResult(result.getErrorCode(), sourceAgentId, startTime, endTime, false);
 
         // 源失败了，会影响所有目标IP对应的agent上的download任务
         for (String targetAgentId : this.targetAgentIds) {
-            String destFilePath;
-            HostDTO targetHost = agentIdHostMap.get(targetAgentId);
-            if (isLocalUploadFile) {
-                destFilePath = this.sourceDestPathMap.get(displayFilePath);
-            } else {
-                destFilePath =
-                    this.sourceDestPathMap.get(
-                        content.getSourceAgentId() + ":" + content.getStandardSourceFilePath());
-            }
-            // 记录目标IP单个文件下载任务的结束状态
-            addFinishedFile(false, true, targetAgentId,
-                AtomicFileTaskResultContent.buildTaskId(content.getMode(), content.getSourceAgentId(),
-                    content.getStandardSourceFilePath(), targetAgentId, destFilePath));
-            // 每个目标IP增加一条下载失败的日志到日志总Map中
-            addFileTaskLog(executionLogs,
-                new ServiceFileTaskLogDTO(
-                    FileDistModeEnum.DOWNLOAD.getValue(),
-                    targetHost.getHostId(),
-                    targetHost.getIp(),
-                    content.getStandardDestFilePath(),
-                    sourceHost.getHostId(),
-                    sourceHost.getIp(),
-                    sourceHost.getDisplayIp(),
-                    content.getStandardSourceFilePath(),
-                    content.getStandardSourceFilePath() == null ? null :
-                        sourceFileDisplayMap.get(content.getStandardSourceFilePath()),
-                    null,
-                    FileDistStatusEnum.FAILED.getValue(),
-                    FileDistStatusEnum.FAILED.getName(),
-                    null,
-                    null,
-                    result.getErrorMsg())
-            );
-            affectedTargetAgentIds.add(targetAgentId);
+            FileDest fileDest = srcDestFileMap.get(srcFile);
+            dealDownloadTaskFail(executionLogs, sourceAgentId, content.getStandardSourceFilePath(),
+                targetAgentId, fileDest.getDestPath(), result.getErrorCode(), result.getErrorMsg(),
+                startTime, endTime);
         }
     }
+
 
     /**
      * 根据errorCode、fileNum、successNum更新successAgentIds状态集合与agentTask状态
      *
      * @param errorCode  GSE错误码
-     * @param cloudIp    IP
+     * @param agentId    agentId
      * @param fileNum    文件总数
      * @param successNum 成功分发的文件总数
-     * @param isDownload 是否为下载过程
-     * @param agentTask  ip对应日志
+     * @param isDownload 是否为下载结果
+     * @param agentTask  Agent任务
      */
-    private void updateFinishedIpStatusAndLog(int errorCode,
-                                              String cloudIp,
-                                              int fileNum,
-                                              int successNum,
-                                              boolean isDownload,
-                                              AgentTaskDTO agentTask) {
-        boolean isTargetIp = targetAgentIds.contains(cloudIp);
+    private void analyseAgentStatus(int errorCode,
+                                    String agentId,
+                                    int fileNum,
+                                    int successNum,
+                                    boolean isDownload,
+                                    AgentTaskDTO agentTask) {
         if (successNum >= fileNum) {
-            // 每个文件都处理完了，才算IP完成执行
-            if (isDownload && isTargetIp) {
-                agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
-                this.successTargetAgentIds.add(cloudIp);
+            // 每个文件都处理完了，才算任务完成执行
+            agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
+            if (isDownload) {
+                this.successTargetAgentIds.add(agentId);
             }
         } else {
             AgentTaskStatusEnum agentTaskStatus = AgentTaskStatusEnum.FAILED;
@@ -720,29 +652,49 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 stepInstanceId, agentId, finishedNum, fileNum);
             // 更新AgentTask结果
             if (isDownloadResult) {
-                dealAgentFinish(agentId, startTime, endTime, agentTask);
+                dealTargetAgentFinish(agentId, startTime, endTime, agentTask);
             } else {
-                dealUploadIpFinished(agentId);
+                dealUploadAgentFinished(agentId, startTime, endTime, agentTask);
             }
-            updateFinishedIpStatusAndLog(errorCode, agentId, fileNum, successNum, isDownloadResult, agentTask);
+            analyseAgentStatus(errorCode, agentId, fileNum, successNum, isDownloadResult, agentTask);
         } else {
             agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
             this.notStartedTargetAgentIds.remove(agentId);
         }
     }
 
-    private void dealUploadIpFinished(String sourceCloudIp) {
-        this.runningFileSourceAgentIds.remove(sourceCloudIp);
-        this.notStartedFileSourceAgentIds.remove(sourceCloudIp);
-        this.analyseFinishedSourceAgentIds.add(sourceCloudIp);
+    /**
+     * 设置源agent任务结束状态
+     *
+     * @param agentId   agentId
+     * @param startTime 起始时间
+     * @param endTime   终止时间
+     * @param agentTask 日志
+     */
+    private void dealUploadAgentFinished(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
+        log.info("[{}]: Deal source agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
+            stepInstanceId, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
+
+        this.runningFileSourceAgentIds.remove(agentId);
+        this.notStartedFileSourceAgentIds.remove(agentId);
+        this.analyseFinishedSourceAgentIds.add(agentId);
+        if (endTime - startTime <= 0) {
+            agentTask.setTotalTime(100L);
+        } else {
+            agentTask.setTotalTime(endTime - startTime);
+        }
+        agentTask.setStartTime(startTime);
+        agentTask.setEndTime(endTime);
     }
 
     /*
      * 从执行结果生成执行日志
      */
-    private void parseExecutionLog(AtomicFileTaskResult result, Map<String, ServiceHostLogDTO> executionLogs) {
+    private void parseExecutionLog(AtomicFileTaskResult result, Map<Long, ServiceHostLogDTO> executionLogs) {
         AtomicFileTaskResultContent content = result.getContent();
         Integer mode = content.getMode();
+        JobFile srcFile = srcFilesMap.get(buildSrcFileKey(content.getSourceAgentId(),
+            content.getStandardSourceFilePath()));
         boolean isDownloadResult = isDownloadResult(mode);
         GSECode.AtomicErrorCode errorCode = GSECode.AtomicErrorCode.getErrorCode(result.getErrorCode());
         String key = content.getTaskId();
@@ -754,10 +706,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
         StringBuilder logContent = new StringBuilder();
 
-        String filePath = isDownloadResult ? content.getStandardDestFilePath() :
-            content.getStandardSourceFilePath();
-        String displayFilePath = buildDisplayFilePath(isDownloadResult, filePath);
-        if (filePath.endsWith("/") || filePath.endsWith("\\")) {
+        String displayFilePath = isDownloadResult ? content.getStandardDestFilePath() :
+            srcFile.getDisplayFilePath();
+        if (displayFilePath.endsWith("/") || displayFilePath.endsWith("\\")) {
             // 传输的是目录，目录名以‘/’或‘\’结束
             logContent.append("Directory: ");
         } else {
@@ -767,7 +718,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
         String fileSize = "--";
         String speed = "";
-        String processText = "";
+        String progressText = "";
 
         if (content.getSize() != null && content.getSize() > 0) {
             // 兼容GSE不返回size的情况
@@ -785,8 +736,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             logContent.append(" Speed: ").append(speed);
         }
         if (content.getProgress() != null) {
-            processText = content.getProgress() + "%";
-            logContent.append(" Progress: ").append(processText);
+            progressText = content.getProgress() + "%";
+            logContent.append(" Progress: ").append(progressText);
         }
         if (StringUtils.isNotBlank(result.getErrorMsg())) {
             logContent.append(" Detail: ").append(result.getErrorMsg());
@@ -803,18 +754,19 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                     FileDistModeEnum.DOWNLOAD.getValue(),
                     targetHost.getHostId(),
                     targetHost.toCloudIp(),
+                    targetHost.toCloudIpv6(),
                     content.getStandardDestFilePath(),
                     sourceHost.getHostId(),
                     sourceHost.toCloudIp(),
-                    sourceHost.toCloudIp(),
+                    sourceHost.toCloudIpv6(),
+                    srcFile.getFileType().getType(),
                     content.getStandardSourceFilePath(),
-                    content.getStandardSourceFilePath() == null ? null :
-                        sourceFileDisplayMap.get(content.getStandardSourceFilePath()),
+                    srcFile.getDisplayFilePath(),
                     fileSize,
                     status.getValue(),
                     status.getName(),
                     speed,
-                    processText,
+                    progressText,
                     logContentStr)
             );
         } else {
@@ -825,27 +777,21 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                     null,
                     null,
                     null,
+                    null,
                     sourceHost.getHostId(),
                     sourceHost.toCloudIp(),
-                    sourceHost.toCloudIp(),
-                    filePath,
+                    sourceHost.toCloudIpv6(),
+                    srcFile.getFileType().getType(),
+                    content.getStandardSourceFilePath(),
                     displayFilePath,
                     fileSize,
                     status.getValue(),
                     status.getName(),
                     speed,
-                    processText,
+                    progressText,
                     logContentStr)
             );
         }
-    }
-
-    private String buildDisplayFilePath(boolean isDownloadResult, String originFilePath) {
-        String displayFilePath = originFilePath;
-        if (!isDownloadResult) {
-            displayFilePath = sourceFileDisplayMap.get(originFilePath);
-        }
-        return displayFilePath;
     }
 
     private FileDistStatusEnum parseFileTaskStatus(AtomicFileTaskResult result, boolean isDownloadResult) {
@@ -884,13 +830,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
 
-    private void addFileTaskLog(Map<String, ServiceHostLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
+    private void addFileTaskLog(Map<Long, ServiceHostLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
         boolean isDownloadResult = isDownloadResult(fileTaskLog.getMode());
         Long hostId = isDownloadResult ? fileTaskLog.getDestHostId() : fileTaskLog.getSrcHostId();
-        // tmp: 需要兼容发布过程中只有ip，没有hostId的场景
         String cloudIp = isDownloadResult ? fileTaskLog.getDestIp() : fileTaskLog.getSrcIp();
-        String hostKey = buildHostKey(hostId, cloudIp);
-        ServiceHostLogDTO hostLog = hostLogs.get(hostKey);
+        ServiceHostLogDTO hostLog = hostLogs.get(hostId);
         if (hostLog == null) {
             hostLog = new ServiceHostLogDTO();
             hostLog.setStepInstanceId(stepInstanceId);
@@ -898,21 +842,12 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             hostLog.setIp(cloudIp);
             hostLog.setBatch(stepInstance.getBatch());
             hostLog.setExecuteCount(stepInstance.getExecuteCount());
-            hostLogs.put(hostKey, hostLog);
+            hostLogs.put(hostId, hostLog);
         }
         hostLog.addFileTaskLog(fileTaskLog);
     }
 
-    private String buildHostKey(Long hostId, String cloudIp) {
-        if (hostId != null) {
-            // 优先使用hostId
-            return "HOST_ID_" + hostId;
-        } else {
-            return "HOST_IP_" + cloudIp;
-        }
-    }
-
-    private void writeFileTaskLogContent(Map<String, ServiceHostLogDTO> executionLogs) {
+    private void writeFileTaskLogContent(Map<Long, ServiceHostLogDTO> executionLogs) {
         if (!executionLogs.isEmpty()) {
             logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
         }

@@ -15,9 +15,9 @@ data:
     spring:
       datasource:
         job-backup:
-          driver-class-name: com.mysql.cj.jdbc.Driver
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: jdbc:mysql://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_backup?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_backup?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
           username: {{ include "job.mariadb.username" . }}
           {{ if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
@@ -30,9 +30,9 @@ data:
           poolName: "job-backup"
           validationTimeout: 5000
         job-execute-db:
-          driver-class-name: com.mysql.cj.jdbc.Driver
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: jdbc:mysql://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
           username: {{ include "job.mariadb.username" . }}
           {{ if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
@@ -45,9 +45,9 @@ data:
           poolName: "job-execute-db"
           validationTimeout: 5000
         job-execute-archive:
-          driver-class-name: com.mysql.cj.jdbc.Driver
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: jdbc:mysql://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
           username: {{ include "job.mariadb.username" . }}
           {{ if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}

@@ -64,7 +64,7 @@ public class ScriptQuery {
     /**
      * 是否公共脚本
      */
-    private Boolean publicScript;
+    private boolean publicScript;
     /**
      * 业务ID
      */

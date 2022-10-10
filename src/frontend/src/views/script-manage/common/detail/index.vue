@@ -135,10 +135,10 @@
                 {{ $t('script.调试') }}
             </bk-button>
             <span
-                v-if="scriptInfo.isOnline"
+                v-if="!publicScript && scriptInfo.isOnline"
                 key="sync"
                 class="mr10"
-                :tippy-tips="!scriptInfo.syncEnabled ? $t('script.所有关联作业模板已是当前版本') : ''">
+                :tippy-tips="!scriptInfo.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
                 <auth-button
                     v-test="{ type: 'button', value: 'syncScript' }"
                     auth="script/edit"
@@ -176,10 +176,10 @@
                 </auth-button>
             </jb-popover-confirm>
             <jb-popover-confirm
-                v-if="scriptInfo.isOnline"
+                v-if="scriptInfo.isBanable"
                 key="offline"
                 :confirm-handler="handleOffline"
-                :content="$t('script.一旦禁用成功，线上引用该版本的作业脚本步骤都会执行失败，请务必谨慎操作！')"
+                :content="$t('script.一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！')"
                 style="margin-left: auto;"
                 :title="$t('script.确定禁用该版本？')">
                 <auth-button
@@ -272,8 +272,10 @@
             },
         },
         created () {
+            window.changeConfirm = false;
             this.publicScript = checkPublicScript(this.$route);
             this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
+
             window.addEventListener('resize', this.init);
             this.$once('hook:beforeDestroy', () => {
                 window.removeEventListener('resize', this.init);

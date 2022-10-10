@@ -115,6 +115,7 @@
                 immediate: true,
             },
             scriptLanguage () {
+                this.fetchRenderScript();
                 setTimeout(() => {
                     this.editor.getSession().setMode(this.mode);
                 });

@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -38,12 +37,6 @@ import java.util.List;
 @CompatibleImplementation(name = "rolling_execute", explain = "兼容老版本数据，过1-2个大版本之后删除", version = "3.7.x")
 @Deprecated
 public interface GseTaskIpLogDAO {
-    /**
-     * 批量保存/更新Agent任务
-     *
-     * @param agentTasks Agent任务
-     */
-    void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks);
 
     /**
      * 获取步骤成功执行的Agent任务数量

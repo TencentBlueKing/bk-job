@@ -55,15 +55,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -140,7 +137,10 @@ public class SyncServiceImpl implements SyncService {
                            ApplicationCache applicationCache,
                            HostCache hostCache,
                            BizSetEventWatcher bizSetEventWatcher,
-                           BizSetRelationEventWatcher bizSetRelationEventWatcher) {
+                           BizSetRelationEventWatcher bizSetRelationEventWatcher,
+                           @Qualifier("syncAppExecutor") ThreadPoolExecutor syncAppExecutor,
+                           @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor,
+                           @Qualifier("syncAgentStatusExecutor") ThreadPoolExecutor syncAgentStatusExecutor) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -161,27 +161,11 @@ public class SyncServiceImpl implements SyncService {
         this.bizSetEventWatcher = bizSetEventWatcher;
         this.bizSetRelationEventWatcher = bizSetRelationEventWatcher;
         // 同步业务的线程池配置
-        syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
-            TimeUnit.SECONDS, new ArrayBlockingQueue<>(20), (r, executor) ->
-            log.error(
-                "syncAppExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
-                executor.getPoolSize(), executor.getQueue().size()));
-        syncAppExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncAppExecutor-",
-            new AtomicInteger(1)));
+        this.syncAppExecutor = syncAppExecutor;
         // 同步主机的线程池配置
-        syncHostExecutor = new ThreadPoolExecutor(5, 5, 1L,
-            TimeUnit.SECONDS, new ArrayBlockingQueue<>(5000), (r, executor) ->
-            log.error("syncHostExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
-                executor.getPoolSize(), executor.getQueue().size()));
-        syncHostExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncHostExecutor-",
-            new AtomicInteger(1)));
+        this.syncHostExecutor = syncHostExecutor;
         // 同步主机Agent状态的线程池配置
-        syncAgentStatusExecutor = new ThreadPoolExecutor(5, 5, 1L,
-            TimeUnit.SECONDS, new ArrayBlockingQueue<>(5000),
-            (r, executor) -> log.error("syncAgentStatusExecutor Runnable rejected! executor.poolSize={}, executor"
-                + ".queueSize={}", executor.getPoolSize(), executor.getQueue().size()));
-        syncAgentStatusExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncAgentStatusExecutor-",
-            new AtomicInteger(1)));
+        this.syncAgentStatusExecutor = syncAgentStatusExecutor;
     }
 
     @Override
@@ -261,24 +245,6 @@ public class SyncServiceImpl implements SyncService {
             return result;
         }
         return false;
-    }
-
-    private ThreadFactory getThreadFactoryByNameAndSeq(String namePrefix, AtomicInteger seq) {
-        return r -> {
-            Thread t = new Thread(Thread.currentThread().getThreadGroup(), r,
-                namePrefix + seq.getAndIncrement(),
-                0);
-            if (t.isDaemon())
-                t.setDaemon(false);
-            if (t.getPriority() != Thread.NORM_PRIORITY)
-                t.setPriority(Thread.NORM_PRIORITY);
-            return t;
-        };
-    }
-
-    @Override
-    public ThreadPoolExecutor getSyncAppExecutor() {
-        return syncAppExecutor;
     }
 
     @Override

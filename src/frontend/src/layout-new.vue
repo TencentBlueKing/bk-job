@@ -235,11 +235,11 @@
                             {{ $t('安全.flodTitle') }}
                         </div>
                         <jb-item index="dangerousRuleManage">
-                            <Icon type="job-white-list" />
+                            <Icon type="gaoweiyujujiance" />
                             {{ $t('高危语句规则') }}
                         </jb-item>
                         <jb-item index="detectRecords">
-                            <Icon type="job-setting" />
+                            <Icon type="lanjiejilu" />
                             {{ $t('检测记录') }}
                         </jb-item>
                     </jb-item-group>

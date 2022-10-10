@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.Bool;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
@@ -48,7 +47,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.tencent.bk.job.common.constant.Order.DESCENDING;
@@ -63,35 +61,6 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
     @Autowired
     public GseTaskIpLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
         this.CTX = CTX;
-    }
-
-    @Override
-    public void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTaskList) {
-        String sql = "replace into gse_task_ip_log (step_instance_id, execute_count, ip, status, start_time, " +
-            "end_time, total_time, error_code, exit_code, tag, log_offset, display_ip, is_target,is_source) values " +
-            "(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-        Object[][] params = new Object[agentTaskList.size()][14];
-        int batchCount = 0;
-        for (AgentTaskDTO agentTask : agentTaskList) {
-            Object[] param = new Object[14];
-            param[0] = agentTask.getStepInstanceId();
-            param[1] = agentTask.getExecuteCount();
-            param[2] = agentTask.getCloudIp();
-            param[3] = agentTask.getStatus().getValue();
-            param[4] = agentTask.getStartTime();
-            param[5] = agentTask.getEndTime();
-            param[6] = agentTask.getTotalTime();
-            param[7] = agentTask.getErrorCode();
-            param[8] = agentTask.getExitCode();
-            param[9] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[10] = agentTask.getScriptLogOffset();
-            param[11] = StringUtils.isNotEmpty(agentTask.getDisplayIp()) ? agentTask.getDisplayIp() :
-                agentTask.getCloudIp();
-            param[12] = agentTask.getFileTaskMode() != FileTaskModeEnum.UPLOAD ? 1 : 0;
-            param[13] = agentTask.getFileTaskMode() == FileTaskModeEnum.UPLOAD ? 1 : 0;
-            params[batchCount++] = param;
-        }
-        CTX.batch(sql, params).execute();
     }
 
     @Override
@@ -264,7 +233,6 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         agentTask.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(t.EXECUTE_COUNT));
         agentTask.setCloudIp(record.get(t.IP));
-        agentTask.setDisplayIp(record.get(t.DISPLAY_IP));
         agentTask.setAgentId(record.get(t.IP));
         agentTask.setStatus(AgentTaskStatusEnum.valueOf(record.get(t.STATUS)));
         agentTask.setStartTime(record.get(t.START_TIME));

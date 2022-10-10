@@ -174,25 +174,18 @@
                                         class="name-text">
                                         {{ row.name }}
                                     </div>
-                                    <router-link
+                                    <span
                                         v-if="row.cronJobCount > 0"
                                         v-bk-tooltips.html="`
                                             <div>${$t('template.有')} ${row.cronJobCount} ${$t('template.个定时任务')}</div>
                                             <div>${$t('template.点击前往查看')}</div>
                                         `"
-                                        class="cron-job-tag"
-                                        target="_blank"
-                                        :to="{
-                                            name: 'cronList',
-                                            query: {
-                                                planId: row.id,
-                                            },
-                                        }">
+                                        class="cron-job-tag">
                                         <Icon
                                             svg
                                             type="job-timing" />
                                         <span style="margin-left: 2px;">{{ row.cronJobCount }}</span>
-                                    </router-link>
+                                    </span>
                                     <span
                                         v-if="row.needUpdate"
                                         class="update-flag">
@@ -205,8 +198,7 @@
                                 <Icon
                                     class="collection-flag"
                                     :class="{ favored: row.favored }"
-                                    type="collection"
-                                    @click.stop="handleCollection(row)" />
+                                    type="collection" />
                             </div>
                         </auth-component>
                     </template>

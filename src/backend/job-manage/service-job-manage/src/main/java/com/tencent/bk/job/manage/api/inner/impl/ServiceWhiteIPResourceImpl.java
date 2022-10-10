@@ -46,8 +46,8 @@ public class ServiceWhiteIPResourceImpl implements ServiceWhiteIPResource {
 
 
     @Override
-    public InternalResponse<List<String>> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId) {
-        return InternalResponse.buildSuccessResp(whiteIPService.getWhiteIPActionScopes(appId, ip, cloudAreaId));
+    public InternalResponse<List<String>> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId, Long hostId) {
+        return InternalResponse.buildSuccessResp(whiteIPService.getWhiteIPActionScopes(appId, ip, cloudAreaId, hostId));
     }
 
     @Override

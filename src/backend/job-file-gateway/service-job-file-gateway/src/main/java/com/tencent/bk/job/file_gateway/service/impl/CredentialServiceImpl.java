@@ -25,11 +25,14 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.client.ServiceCredentialResourceClient;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
 import com.tencent.bk.job.manage.model.credential.CommonCredential;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -58,7 +61,11 @@ public class CredentialServiceImpl implements CredentialService {
             commonCredential.setType(credentialDTO.getType());
             return commonCredential;
         } catch (Exception e) {
-            log.error("credential not valid:{}", credentialDTO, e);
+            FormattingTuple msg = MessageFormatter.format(
+                "credential not valid:{}",
+                JsonUtils.toJsonWithoutSkippedFields(credentialDTO)
+            );
+            log.error(msg.toString(), e);
             return null;
         }
     }

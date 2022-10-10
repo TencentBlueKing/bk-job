@@ -24,20 +24,24 @@
 
 package com.tencent.bk.job.common.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
 /**
  * @since 7/11/2019 16:08
  */
+@Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
 @ApiModel("主机信息")
@@ -45,7 +49,7 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class HostInfoVO {
 
-    @ApiModelProperty(value = "服务器 ID", required = true)
+    @ApiModelProperty(value = "主机ID", required = true)
     private Long hostId;
 
     @ApiModelProperty("主机 IP")
@@ -57,41 +61,91 @@ public class HostInfoVO {
     @ApiModelProperty("展示用的IP，主要针对多内网IP问题")
     private String displayIp;
 
-    @ApiModelProperty("描述")
+    @ApiModelProperty("主机名称")
+    private String hostName;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     private String ipDesc;
+
+    // agent状态：-2：未找到，-1：查询失败，0：初始安装，1：启动中，2：运行中，3：有损状态，4：繁忙，5：升级中，6：停止中，7：解除安装
+    @JsonIgnore
+    private Integer agentStatus;
 
     @ApiModelProperty("agent 状态 0-异常 1-正常")
     private Integer alive;
 
     @ApiModelProperty("云区域信息")
+    private CloudAreaInfoVO cloudArea;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     private CloudAreaInfoVO cloudAreaInfo;
 
     /**
      * 操作系统
      */
     @ApiModelProperty("操作系统")
+    private String osName;
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
     private String os;
 
-    public static ApplicationHostDTO toDTO(HostInfoVO hostInfo) {
-        if (hostInfo == null) {
-            return null;
-        }
-        ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
-        hostInfoDTO.setHostId(hostInfo.getHostId());
-        hostInfoDTO.setIp(hostInfo.getIp());
-        hostInfoDTO.setDisplayIp(hostInfo.getDisplayIp());
-        hostInfoDTO.setIpDesc(hostInfo.getIpDesc());
-        if (hostInfo.getAlive() != null) {
-            hostInfoDTO.setGseAgentAlive(hostInfo.getAlive() == 1);
-        } else {
-            hostInfoDTO.setGseAgentAlive(false);
-        }
+    @ApiModelProperty("系统类型")
+    @JsonProperty("osType")
+    private String osTypeName;
 
-        if (hostInfo.getCloudAreaInfo() != null) {
-            hostInfoDTO.setCloudAreaId(hostInfo.getCloudAreaInfo().getId());
+    @ApiModelProperty("AgentId")
+    private String agentId;
+
+    @ApiModelProperty("所属云厂商")
+    @JsonProperty("cloudVendor")
+    private String cloudVendorName;
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public String getHostName() {
+        if (hostName != null) {
+            return hostName;
+        } else if (ipDesc != null) {
+            log.warn("Use compatible field:ipDesc={}", ipDesc);
+            return ipDesc;
         }
-        hostInfoDTO.setOs(hostInfo.getOs());
-        return hostInfoDTO;
+        return null;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+        this.ipDesc = hostName;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public CloudAreaInfoVO getCloudArea() {
+        if (cloudArea != null) {
+            return cloudArea;
+        } else if (cloudAreaInfo != null) {
+            log.warn("Use compatible field:cloudAreaInfo={}", cloudAreaInfo);
+            return cloudAreaInfo;
+        }
+        return null;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setCloudArea(CloudAreaInfoVO cloudArea) {
+        this.cloudArea = cloudArea;
+        this.cloudAreaInfo = cloudArea;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public String getOsName() {
+        if (osName != null) {
+            return osName;
+        } else if (os != null) {
+            log.warn("Use compatible field:os={}", os);
+            return os;
+        }
+        return null;
+    }
+
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    public void setOsName(String osName) {
+        this.osName = osName;
+        this.os = osName;
     }
 
     public boolean validate(boolean isCreate) {

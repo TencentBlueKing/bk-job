@@ -17,6 +17,16 @@ data:
           name: {{ .Values.job.security.actuator.user.name }}
           password: {{ .Values.job.security.actuator.user.password }}
           roles: ENDPOINT_ADMIN
+      sleuth:
+        otel:
+          exporter:
+            enabled: {{ .Values.job.trace.report.enabled }}
+            otlp:
+              endpoint: {{ .Values.job.trace.report.pushUrl }}
+          resource:
+            bkDataToken: {{ .Values.job.trace.report.secureKey }}
+          config:
+            traceIdRatioBased: {{ .Values.job.trace.report.ratio }}
     app:
       code: {{ .Values.appCode }}
       secret: {{ .Values.appSecret }}
@@ -61,6 +71,8 @@ data:
       base-url: {{ .Values.bkIamApiUrl }}
       system-id: {{ .Values.iam.systemId }}
     paas:
+      server:
+        url: {{ .Values.bkPaasUrl }}
       login:
         {{- if .Values.login.custom.enabled }}
         custom:

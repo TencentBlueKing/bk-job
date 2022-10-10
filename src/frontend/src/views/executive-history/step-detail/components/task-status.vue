@@ -245,7 +245,7 @@
                         taskInstanceId: payload.taskInstanceId,
                     },
                     query: {
-                        from: 'historyStep',
+                        from: this.$route.name,
                     },
                 });
             },
@@ -256,7 +256,7 @@
                         taskInstanceId: payload.taskInstanceId,
                     },
                     query: {
-                        from: 'historyStep',
+                        from: this.$route.name,
                     },
                 });
             },

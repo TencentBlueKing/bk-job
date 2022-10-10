@@ -75,6 +75,7 @@ const sacnDialog = (resolve, reject) => {
                 </div>
             </div>
         ))(h),
+        closeFn: handleCancel,
     });
 };
 
@@ -110,6 +111,7 @@ const preventDialog = (resolve, reject) => {
                 </div>
             </div>
         ))(h),
+        closeFn: handleClose,
     });
 };
 

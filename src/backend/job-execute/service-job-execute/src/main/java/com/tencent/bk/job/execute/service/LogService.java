@@ -43,13 +43,13 @@ public interface LogService {
     /**
      * 构造job系统日志
      *
-     * @param host                 主机
+     * @param hostId               主机ID
      * @param content              日志原始内容
      * @param offset               日志偏移 - 字节
      * @param logTimeInMillSeconds 日志时间
      * @return 系统日志
      */
-    ServiceScriptLogDTO buildSystemScriptLog(HostDTO host, String content, int offset, Long logTimeInMillSeconds);
+    ServiceScriptLogDTO buildSystemScriptLog(long hostId, String content, int offset, Long logTimeInMillSeconds);
 
     /**
      * 写脚本执行日志
@@ -152,27 +152,23 @@ public interface LogService {
     List<HostDTO> getIpsByContentKeyword(long stepInstanceId, int executeCount, Integer batch, String keyword);
 
     /**
-     * 写日志
+     * 写文件日志日志 - 指定时间
      *
      * @param jobCreateTime        任务创建时间
-     * @param stepInstanceId       步骤实例ID
-     * @param executeCount         执行次数
-     * @param batch                滚动执行批次;非滚动步骤传入null
-     * @param host                 主机
-     * @param executionLog         文件任务执行日志
+     * @param hostFileLogs         主机执行日志
      * @param logTimeInMillSeconds 日志时间
      */
-    void writeFileLogWithTimestamp(long jobCreateTime, long stepInstanceId, int executeCount, Integer batch,
-                                   HostDTO host, ServiceHostLogDTO executionLog,
-                                   Long logTimeInMillSeconds);
+    void writeFileLogsWithTimestamp(long jobCreateTime,
+                                    List<ServiceHostLogDTO> hostFileLogs,
+                                    Long logTimeInMillSeconds);
 
 
     /**
      * 写文件日志日志
      *
      * @param jobCreateTime 任务创建时间
-     * @param fileLogs      文件任务执行日志
+     * @param hostFileLogs  文件任务执行日志
      */
-    void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> fileLogs);
+    void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> hostFileLogs);
 
 }
