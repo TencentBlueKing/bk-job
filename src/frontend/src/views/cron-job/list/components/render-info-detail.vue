@@ -26,7 +26,7 @@
 -->
 
 <template>
-    <div class="cron-item">
+    <div class="render-info-detail">
         <div
             class="triangle"
             :style="{ left: `${left}px` }" />
@@ -42,12 +42,12 @@
         },
     };
 </script>
-<style lang="postcss">
-    .cron-item {
+<style lang="postcss" scoped>
+    .render-info-detail {
         position: relative;
         padding: 16px 20px;
         margin-top: 10px;
-        background: #f0f1f5;
+        background: #f5f7fa;
 
         .triangle {
             position: absolute;
