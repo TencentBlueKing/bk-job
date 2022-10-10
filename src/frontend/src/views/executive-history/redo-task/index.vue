@@ -26,39 +26,50 @@
 -->
 
 <template>
-    <div class="setting-variable" v-bkloading="{ isLoading }">
-        <h2 class="title">{{ $t('history.全局变量') }}</h2>
+    <div
+        v-bkloading="{ isLoading }"
+        class="setting-variable">
+        <h2 class="title">
+            {{ $t('history.全局变量') }}
+        </h2>
         <smart-action offset-target="variable-value">
             <global-variable-layout>
                 <global-variable
                     v-for="variable in taskVariables"
-                    ref="variable"
-                    :type="variable.type"
                     :key="variable.id"
-                    :data="variable" />
+                    ref="variable"
+                    :data="variable"
+                    :type="variable.type" />
             </global-variable-layout>
             <template #action>
                 <bk-button
-                    theme="primary"
                     class="w120 mr10"
                     :loading="isSubmiting"
+                    theme="primary"
                     @click="handleGoExec">
                     {{ $t('history.执行') }}
                 </bk-button>
-                <bk-button @click="handleCancle">{{ $t('history.取消') }}</bk-button>
+                <bk-button @click="handleCancle">
+                    {{ $t('history.取消') }}
+                </bk-button>
             </template>
         </smart-action>
         <element-teleport v-if="taskName">
-            <div style="font-size: 12px; color: #63656e;">（{{ taskName }}）</div>
+            <div style="font-size: 12px; color: #63656e;">
+                （{{ taskName }}）
+            </div>
         </element-teleport>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
+
     import TaskHostNodeModel from '@model/task-host-node';
-    import GlobalVariableLayout from '@components/global-variable/layout';
+
     import GlobalVariable from '@components/global-variable/edit';
+    import GlobalVariableLayout from '@components/global-variable/layout';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

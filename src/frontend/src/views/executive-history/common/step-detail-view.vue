@@ -27,17 +27,17 @@
 
 <template>
     <div
-        class="history-step-detail-view"
-        v-bkloading="{ isLoading }">
+        v-bkloading="{ isLoading }"
+        class="history-step-detail-view">
         <task-step-view
-            :variable="variableList"
-            :data="stepInfo">
+            :data="stepInfo"
+            :variable="variableList">
             <detail-item
                 v-if="rollingConfigExpr"
                 :label="$t('history.滚动策略：')">
                 <span
-                    class="tips"
-                    v-bk-tooltips.right="rollingExprParse(rollingConfigExpr)">
+                    v-bk-tooltips.right="rollingExprParse(rollingConfigExpr)"
+                    class="tips">
                     {{ rollingConfigExpr }}
                 </span>
             </detail-item>
@@ -50,13 +50,18 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
-    import TaskStepModel from '@model/task/task-step';
+
     import GlobalVariableModel from '@model/task/global-variable';
+    import TaskStepModel from '@model/task/task-step';
+
     import rollingExprParse from '@utils/rolling-expr-parse';
+
     import TaskStepView from '@views/task-manage/common/render-task-step/task-step-view';
+
     import DetailItem from '@components/detail-layout/item';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

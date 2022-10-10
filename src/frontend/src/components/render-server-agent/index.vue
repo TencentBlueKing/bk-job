@@ -40,28 +40,38 @@
                 {{ $t('正常') }}:<span class="success number">{{ data.normalNum }}</span>
             </div>
             <div v-if="data.abnormalNum > 0">
-                <span v-if="data.normalNum > 0" class="splite" />
+                <span
+                    v-if="data.normalNum > 0"
+                    class="splite" />
                 {{ $t('异常') }}:<span class="error number">{{ data.abnormalNum }}</span>
             </div>
             <span v-if="isEmpty">--</span>
         </div>
-        <lower-component level="custom" :custom="isShowDetail">
+        <lower-component
+            :custom="isShowDetail"
+            level="custom">
             <jb-dialog
                 v-model="isShowDetail"
-                :width="1020"
+                class="render-server-detail-dialog"
                 :ok-text="$t('关闭')"
-                class="render-server-detail-dialog">
+                :width="1020">
                 <template #header>
                     <div class="variable-title">
                         <span>{{ title }}</span>
-                        <i class="global-variable-dialog-close bk-icon icon-close" @click="handleClose" />
+                        <i
+                            class="global-variable-dialog-close bk-icon icon-close"
+                            @click="handleClose" />
                     </div>
                 </template>
                 <div class="content-wraper">
                     <scroll-faker>
-                        <server-panel
+                        <!-- <server-panel
                             detail-mode="dialog"
-                            :host-node-info="hostNodeInfo" />
+                            :host-node-info="hostNodeInfo" /> -->
+                        <ip-selector
+                            readonly
+                            show-view
+                            :value="hostNodeInfo" />
                     </scroll-faker>
                 </div>
             </jb-dialog>
@@ -69,14 +79,15 @@
     </div>
 </template>
 <script>
-    import AppManageService from '@service/app-manage';
+    import HostManageService from '@service/host-manage';
+
     import TaskHostNodeModel from '@model/task-host-node';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ServerPanel from '@components/choose-ip/server-panel';
     
     export default {
         name: '',
         components: {
-            ServerPanel,
+            // ServerPanel,
         },
         props: {
             title: {
@@ -122,14 +133,11 @@
                     return;
                 }
                 this.isLoading = true;
-                const { dynamicGroupList, ipList, topoNodeList } = this.hostNodeInfo;
-                AppManageService.fetchHostStatistics({
-                    appTopoNodeList: topoNodeList.map(topo => ({
-                        objectId: topo.type,
-                        instanceId: topo.id,
-                    })),
-                    dynamicGroupIds: dynamicGroupList,
-                    hostIdList: ipList.map(hostInfo => hostInfo.hostId),
+                const { dynamicGroupList, hostList, nodeList } = this.hostNodeInfo;
+                HostManageService.fetchHostStatistics({
+                    nodeList,
+                    dynamicGroupList,
+                    hostList,
                 }).then((data) => {
                     this.data = data;
                 })

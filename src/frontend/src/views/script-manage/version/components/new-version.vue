@@ -34,15 +34,15 @@
             :rules="rules">
             <jb-form-item
                 :label="$t('script.选择载入版本')"
-                required
                 property="scriptVersionId"
+                required
                 style="margin-bottom: 0;">
                 <bk-select v-model="formData.scriptVersionId">
                     <bk-option
                         v-for="item in renderList"
                         :id="item.scriptVersionId"
-                        :name="item.version"
-                        :key="item.scriptVersionId">
+                        :key="item.scriptVersionId"
+                        :name="item.version">
                         <span>{{ item.version }}</span>
                         <span v-html="item.statusHtml" />
                     </bk-option>
@@ -53,6 +53,7 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import I18n from '@/i18n';
 
     export default {

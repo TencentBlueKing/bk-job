@@ -23,38 +23,73 @@
  * IN THE SOFTWARE.
 */
 
-import Vue from 'vue';
 import bkMagicVue from 'bk-magic-vue';
+// import createIpSelector from 'lib/ip-selector/vue2.6.x.js';
+import Vue from 'vue';
 import VueProgressBar from 'vue-progressbar';
-import VueCompositionAPI from '@vue/composition-api';
-import AuthRouterLink from '@components/auth/router-link';
+
+import CustomSettingsService from '@service/custom-settings';
+import HostManageService from '@service/host-manage';
+import QueryGlobalSettingService from '@service/query-global-setting';
+
 import AuthButton from '@components/auth/button';
-import AuthOption from '@components/auth/option';
 import AuthCompontent from '@components/auth/component';
+import AuthOption from '@components/auth/option';
+import AuthRouterLink from '@components/auth/router-link';
+import Cursor from '@components/cursor';
+import ElementTeleport from '@components/element-teleport';
 import Empty from '@components/empty';
-import LowerComponent from '@components/lower-component';
-import Exception from '@/components/exception';
+import Exception from '@components/exception';
 import Icon from '@components/icon';
+import createIpSelector from '@components/ip-selector/index.js';
+import JbBreadcrumb from '@components/jb-breadcrumb';
+import JbBreadcrumbItem from '@components/jb-breadcrumb/jb-breadcrumb-item';
+import JbDialog from '@components/jb-dialog';
 import JbDiff from '@components/jb-diff';
-import JbRouterView from '@components/jb-router-view';
 import JbForm from '@components/jb-form';
 import JbFormItem from '@components/jb-form/item';
 import JbInput from '@components/jb-input';
-import JbTextarea from '@components/jb-textarea';
 import JbPopoverConfirm from '@components/jb-popover-confirm';
+import JbRouterView from '@components/jb-router-view';
 import JbSideslider from '@components/jb-sideslider';
-import JbDialog from '@components/jb-dialog';
-import JbBreadcrumb from '@components/jb-breadcrumb';
-import JbBreadcrumbItem from '@components/jb-breadcrumb/jb-breadcrumb-item';
+import JbTextarea from '@components/jb-textarea';
+import LowerComponent from '@components/lower-component';
+import Request from '@components/request';
+import ResizeableBox from '@components/resizeable-box';
 import ScrollFaker from '@components/scroll-faker';
 import SmartAction from '@components/smart-action';
-import ElementTeleport from '@components/element-teleport';
-import Request from '@components/request';
-import Cursor from '@components/cursor';
-import TippyTips from '@components/tippy-tips';
-import ResizeableBox from '@components/resizeable-box';
 import Test from '@components/test';
+import TippyTips from '@components/tippy-tips';
+
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
+// import 'lib/ip-selector/styles/index.css';
+
+const IpSelector = createIpSelector({
+    panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
+    unqiuePanelValue: false,
+    nameStyle: 'camelCase',
+    fetchTopologyHostCount: HostManageService.fetchTopologyWithCount,
+    fetchTopologyHostsNodes: HostManageService.fetchTopologyHost,
+    fetchTopologyHostIdsNodes: HostManageService.fetchTopogyHostIdList,
+    fetchHostsDetails: HostManageService.fetchHostInfoByHostId,
+    fetchHostCheck: HostManageService.fetchInputParseHostList,
+    fetchNodesQueryPath: HostManageService.fetchNodePath,
+    fetchHostAgentStatisticsNodes: HostManageService.fetchBatchNodeAgentStatistics,
+    fetchDynamicGroups: HostManageService.fetchDynamicGroup,
+    fetchHostsDynamicGroup: HostManageService.fetchDynamicGroupHost,
+    fetchHostAgentStatisticsDynamicGroups: HostManageService.fetchBatchGroupAgentStatistics,
+    fetchCustomSettings: CustomSettingsService.fetchAll,
+    updateCustomSettings: CustomSettingsService.update,
+    fetchConfig: () => QueryGlobalSettingService.fetchRelatedSystemUrls()
+        .then(data => ({
+            // eslint-disable-next-line max-len
+            bk_cmdb_dynamic_group_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
+            // eslint-disable-next-line max-len
+            bk_cmdb_static_topo_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
+        })),
+});
+
+console.dir(IpSelector);
 
 Vue.use(bkMagicVue);
 Vue.use(VueProgressBar, {
@@ -70,7 +105,6 @@ Vue.use(VueProgressBar, {
     position: 'absolute',
     autoFinish: false,
 });
-Vue.use(VueCompositionAPI);
 
 Vue.component('AuthRouterLink', AuthRouterLink);
 Vue.component('AuthButton', AuthButton);
@@ -95,6 +129,8 @@ Vue.component('ScrollFaker', ScrollFaker);
 Vue.component('SmartAction', SmartAction);
 Vue.component('ElementTeleport', ElementTeleport);
 Vue.component('ResizeableBox', ResizeableBox);
+Vue.component('IpSelector', IpSelector);
+
 Vue.use(Cursor);
 Vue.use(Request);
 Vue.use(TippyTips);

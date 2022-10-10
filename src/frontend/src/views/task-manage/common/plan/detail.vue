@@ -30,29 +30,35 @@
         <div class="task-plan-view-box">
             <layout
                 v-bind="$attrs"
-                :title="planInfo.name"
+                :loading="isLoading"
                 :plan-name="planInfo.name"
-                :loading="isLoading">
-                <div slot="title" class="view-title">
+                :title="planInfo.name">
+                <div
+                    slot="title"
+                    class="view-title">
                     <edit-title
                         :data="planInfo"
                         @on-edit-success="handleEditSuccess" />
                     <span
                         v-if="planInfo.cronJobCount > 0"
-                        class="cron-job-tag"
                         v-bk-tooltips.html="`
                             <div>${$t('template.有')} ${planInfo.cronJobCount} ${$t('template.个定时任务')}</div>
                             <div>${$t('template.点击前往查看')}</div>
                         `"
+                        class="cron-job-tag"
                         @click="handleGoCronList">
-                        <Icon type="job-timing" svg />
+                        <Icon
+                            svg
+                            type="job-timing" />
                         <span style="margin-left: 2px;">{{ planInfo.cronJobCount }}</span>
                     </span>
                 </div>
-                <div slot="sub-title" class="link-wraper">
+                <div
+                    slot="sub-title"
+                    class="link-wraper">
                     <auth-button
-                        :resource-id="templateId"
                         auth="job_template/view"
+                        :resource-id="templateId"
                         text
                         @click="handleGoTemplate">
                         <span>{{ $t('template.所属作业模板') }}</span>
@@ -65,16 +71,16 @@
                         style="margin-bottom: 30px;">
                         <render-global-var
                             :key="id"
-                            :list="usedVariableList"
-                            :default-field="$t('template.变量值')" />
+                            :default-field="$t('template.变量值')"
+                            :list="usedVariableList" />
                         <toggle-display
                             v-if="unusedVariableList.length > 0"
                             :count="unusedVariableList.length"
                             style="margin-top: 20px;">
                             <render-global-var
                                 :key="id"
-                                :list="unusedVariableList"
                                 :default-field="$t('template.变量值')"
+                                :list="unusedVariableList"
                                 style="margin-top: 18px;" />
                         </toggle-display>
                     </jb-form-item>
@@ -88,21 +94,21 @@
                 <template #footer>
                     <div class="action-box">
                         <bk-button
-                            theme="primary"
+                            v-test="{ type: 'button', value: 'execPlan' }"
                             class="w120 mr10"
                             :loading="execLoading"
-                            @click="handleExec"
-                            v-test="{ type: 'button', value: 'execPlan' }">
+                            theme="primary"
+                            @click="handleExec">
                             {{ $t('template.去执行') }}
                         </bk-button>
                         <bk-popover placement="top">
                             <auth-button
+                                v-test="{ type: 'button', value: 'editPlan' }"
+                                auth="job_plan/edit"
                                 class="mr10"
                                 :permission="planInfo.canEdit"
                                 :resource-id="id"
-                                auth="job_plan/edit"
-                                @click="handleEdit"
-                                v-test="{ type: 'button', value: 'editPlan' }">
+                                @click="handleEdit">
                                 <span>{{ $t('template.编辑') }}</span>
                                 <span style="font-size: 12px; color: #979ba5;">
                                     ({{ planInfo.enableStepNums }}/{{ planInfo.templateStepNums }})
@@ -115,37 +121,41 @@
                             </div>
                         </bk-popover>
                         <auth-button
-                            class="mr10"
+                            v-test="{ type: 'button', value: 'createCrontab' }"
                             auth="cron/create"
-                            @click="handleGoCron"
-                            v-test="{ type: 'button', value: 'createCrontab' }">
+                            class="mr10"
+                            @click="handleGoCron">
                             {{ $t('template.定时执行') }}
                         </auth-button>
                         <span :tippy-tips="!planInfo.needUpdate ? $t('template.无需同步') : ''">
                             <auth-button
+                                v-test="{ type: 'button', value: 'syncPlan' }"
+                                auth="job_plan/sync"
                                 class="action-update"
                                 :disabled="!planInfo.needUpdate"
                                 :resource-id="id"
-                                auth="job_plan/sync"
-                                @click="handleSync"
-                                v-test="{ type: 'button', value: 'syncPlan' }">
+                                @click="handleSync">
                                 <span>{{ $t('template.去同步') }}</span>
-                                <div v-if="planInfo.needUpdate" class="update-flag">
-                                    <Icon type="sync-8" :tippy-tips="$t('template.未同步')" />
+                                <div
+                                    v-if="planInfo.needUpdate"
+                                    class="update-flag">
+                                    <Icon
+                                        :tippy-tips="$t('template.未同步')"
+                                        type="sync-8" />
                                 </div>
                             </auth-button>
                         </span>
                         <jb-popover-confirm
                             class="action-del"
-                            :title="$t('template.确定删除该执行方案？')"
+                            :confirm-handler="handleDelete"
                             :content="$t('template.若已设置了定时任务，需要先删除才能操作')"
-                            :confirm-handler="handleDelete">
+                            :title="$t('template.确定删除该执行方案？')">
                             <auth-button
+                                v-test="{ type: 'button', value: 'deletePlan' }"
+                                auth="job_plan/delete"
                                 class="delete-btn"
                                 :permission="planInfo.canDelete"
-                                :resource-id="id"
-                                auth="job_plan/delete"
-                                v-test="{ type: 'button', value: 'deletePlan' }">
+                                :resource-id="id">
                                 {{ $t('template.删除') }}
                             </auth-button>
                         </jb-popover-confirm>
@@ -156,16 +166,21 @@
     </permission-section>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TaskPlanService from '@service/task-plan';
     import TaskExecuteService from '@service/task-execute';
+    import TaskPlanService from '@service/task-plan';
+
     import { findUsedVariable } from '@utils/assist';
+
     import PermissionSection from '@components/apply-permission/apply-section';
+
     import RenderGlobalVar from '../render-global-var';
     import RenderTaskStep from '../render-task-step';
+
+    import EditTitle from './components/edit-title.vue';
     import Layout from './components/layout';
     import ToggleDisplay from './components/toggle-display';
-    import EditTitle from './components/edit-title.vue';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

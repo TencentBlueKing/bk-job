@@ -33,9 +33,9 @@
         <bk-collapse v-model="activeResult">
             <jb-collapse-item
                 v-show="isShowLocalFile"
+                :active="activeResult"
                 content-hidden-type="hidden"
-                name="local"
-                :active="activeResult">
+                name="local">
                 <span>
                     <span>
                         <span>{{ $t('已选择.result') }}</span>
@@ -60,9 +60,9 @@
             </jb-collapse-item>
             <jb-collapse-item
                 v-show="isShowSourceFile"
+                :active="activeResult"
                 content-hidden-type="hidden"
-                name="source"
-                :active="activeResult">
+                name="source">
                 <span>
                     <span>{{ $t('已选择.result') }}</span>
                     <span class="number strong">{{ sourceFileList.length }}</span>
@@ -77,9 +77,9 @@
             </jb-collapse-item>
             <jb-collapse-item
                 v-show="isShowServerFile"
+                :active="activeResult"
                 content-hidden-type="hidden"
-                name="server"
-                :active="activeResult">
+                name="server">
                 <span>
                     <span>{{ $t('已选择.result') }}</span>
                     <span class="number strong">{{ serverFileList.length }}</span>
@@ -88,8 +88,8 @@
                 <template #content>
                     <server-file
                         v-bind="$attrs"
-                        :mode="mode"
                         :data="serverFileList"
+                        :mode="mode"
                         @on-change="handleServerFileChange"
                         @on-close="handleServerClose" />
                 </template>
@@ -99,7 +99,9 @@
 </template>
 <script>
     import JbCollapseItem from '@components/jb-collapse-item';
+
     import ActionExtend from '../components/action-extend';
+
     import LocalFile from './local';
     import ServerFile from './server';
     import SourceFile from './source';

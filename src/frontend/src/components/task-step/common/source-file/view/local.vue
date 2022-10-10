@@ -29,23 +29,29 @@
     <div>
         <table>
             <tbody>
-                <tr v-for="(row, index) in fileList" :key="index">
-                    <td style="width: 40%;">{{ row.fileLocationText }}</td>
+                <tr
+                    v-for="(row, index) in fileList"
+                    :key="index">
+                    <td style="width: 40%;">
+                        {{ row.fileLocationText }}
+                    </td>
                     <td style="width: auto;">
                         <template v-if="row.fileSize > 0">
                             <p v-if="row.uploadStatus !== 'danger'">
                                 {{ $t('本地文件') }}（{{ row.fileSizeText }}）
                             </p>
-                            <p v-else style="color: #ff5656;">
+                            <p
+                                v-else
+                                style="color: #ff5656;">
                                 {{ $t('上传失败') }}
                             </p>
                             <div class="upload-progress">
                                 <transition name="fade">
                                     <bk-progress
                                         v-show="row.uploadProgress !== 1"
-                                        :theme="row.uploadStatus"
+                                        :percent="row.uploadProgress"
                                         :show-text="false"
-                                        :percent="row.uploadProgress" />
+                                        :theme="row.uploadStatus" />
                                 </transition>
                             </div>
                         </template>
@@ -64,19 +70,23 @@
         </table>
         <input
             ref="uploadInput"
-            type="file"
             multiple
             style="position: absolute; width: 0; height: 0; opacity: 0%;"
+            type="file"
             @change="handleStartUpload">
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import TaskExecuteService from '@service/task-execute';
+
     import QuertGlobalSettingService from '@service/query-global-setting';
-    import SourceFileVO from '@domain/variable-object/source-file';
+    import TaskExecuteService from '@service/task-execute';
+
     import { encodeRegexp } from '@utils/assist';
+
+    import SourceFileVO from '@domain/variable-object/source-file';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

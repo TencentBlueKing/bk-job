@@ -42,9 +42,9 @@
             class="batch-content"
             :style="contentStyles">
             <render-all
-                :step-data="data"
                 :is-total-btn-fixed="isTotalBtnFixed"
                 :select-batch="selectBatch"
+                :step-data="data"
                 @on-change="handleSelectAll" />
             <div
                 ref="list"
@@ -54,10 +54,10 @@
                     :style="scrollStyles">
                     <render-item
                         v-for="batchItem in list"
+                        :key="batchItem.batch"
+                        :current-running-batch="currentRunningBatch"
                         :data="batchItem"
                         :select-batch="selectBatch"
-                        :current-running-batch="currentRunningBatch"
-                        :key="batchItem.batch"
                         @on-change="handleSelectBatch" />
                 </div>
             </div>
@@ -77,8 +77,8 @@
         </template>
         <div style="display: none;">
             <div
-                ref="rollingConfirmAction"
                 id="rollingConfirmAction"
+                ref="rollingConfirmAction"
                 style="padding: 3px 5px; color: #63656e; user-select: none;">
                 <span
                     style="color: #3a84ff; cursor: pointer;"
@@ -90,8 +90,9 @@
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import Tippy from 'bk-magic-vue/lib/utils/tippy';
+    import _ from 'lodash';
+
     import RenderAll from './render-all';
     import RenderItem from './render-item';
     import RenderMoreBtn from './render-more-btn';

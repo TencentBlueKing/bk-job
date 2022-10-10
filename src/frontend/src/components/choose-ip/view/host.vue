@@ -39,9 +39,9 @@
             </span>
         </span>
         <action-extend
-            :list="list"
             copyable
-            :invalid-list="invalidList">
+            :invalid-list="invalidList"
+            :list="list">
             <template v-if="editable">
                 <div
                     class="action-item"
@@ -59,23 +59,23 @@
             <div v-bkloading="{ isLoading }">
                 <host-table
                     v-if="!isRequestError"
+                    :append-nums="invalidList.length"
+                    :diff="diff"
                     :editable="editable"
                     :list="list"
                     :max-height="410"
-                    :append-nums="invalidList.length"
-                    :diff="diff"
                     @on-change="handleRemoveOne">
                     <tbody
                         v-if="invalidList.length > 0"
-                        class="invalid-list"
-                        slot="appendBefore">
+                        slot="appendBefore"
+                        class="invalid-list">
                         <tr
                             v-for="(ipInfo) in invalidList"
                             :key="ipInfo.hostId">
                             <td class="table-cell">
                                 <span
-                                    class="invalid"
-                                    v-bk-tooltips="$t('指主机已不属于该业务，或已不存在')">
+                                    v-bk-tooltips="$t('指主机已不属于该业务，或已不存在')"
+                                    class="invalid">
                                     {{ $t('无效') }}
                                 </span>
                                 <span>{{ ipInfo.ip }}</span>
@@ -98,8 +98,8 @@
                 </host-table>
                 <bk-exception
                     v-if="isRequestError"
-                    type="500"
-                    style="padding-bottom: 50px;">
+                    style="padding-bottom: 50px;"
+                    type="500">
                     <div style="display: flex; font-size: 14px;">
                         <span>数据拉取失败，请</span>
                         <bk-button
@@ -115,15 +115,19 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import AppManageService from '@service/app-manage';
+
+    import HostManageService from '@service/host-manage';
+
     import JbCollapseItem from '@components/jb-collapse-item';
+
     import ActionExtend from '../components/action-extend';
     import HostTable from '../components/host-table';
     import {
         sortHost,
         statisticsHost,
     } from '../components/utils';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'ViewHost',
@@ -193,7 +197,7 @@
                     return result;
                 }, {});
 
-                AppManageService.fetchHostOfHost({
+                HostManageService.fetchHostOfHost({
                     hostIdList: this.data.map(({ hostId }) => hostId),
                 })
                     .then((data) => {

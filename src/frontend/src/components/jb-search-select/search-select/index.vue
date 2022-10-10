@@ -34,34 +34,50 @@
         }"
         v-bind="$attrs"
         @click="handleSearchSelectClick">
-        <div ref="wrap" class="search-select-wrap">
+        <div
+            ref="wrap"
+            class="search-select-wrap">
             <div
                 ref="tagGroup"
                 class="search-tag-group"
                 :style="tagGroupStyles">
                 <render-tag
                     v-for="(item, index) in renderTagList"
-                    ref="tag"
                     :key="`${item.id}_${index}`"
-                    :index="index"
+                    ref="tag"
                     :data="item"
+                    :index="index"
+                    @change="handleTagChange"
                     @delete="handleTagDelete"
-                    @focus="handleInputFocus"
-                    @change="handleTagChange" />
-                <div v-if="isShowTagMultLine" class="mult-tag-placeholder" key="multPlaceholder">...</div>
-                <div class="search-input-box" ref="input" key="input" :style="searchInputBoxStyles" @click.stop="">
+                    @focus="handleInputFocus" />
+                <div
+                    v-if="isShowTagMultLine"
+                    key="multPlaceholder"
+                    class="mult-tag-placeholder">
+                    ...
+                </div>
+                <div
+                    key="input"
+                    ref="input"
+                    class="search-input-box"
+                    :style="searchInputBoxStyles"
+                    @click.stop="">
                     <div style="position: absolute; top: -9999px; left: -9999px;">
-                        <pre ref="realInputContent" style="display: block; font: inherit; visibility: hidden;">{{ localValue }}</pre>
+                        <pre
+                            ref="realInputContent"
+                            style="display: block; font: inherit; visibility: hidden;">{{ localValue }}</pre>
                     </div>
-                    <div style="min-height: 22px; word-break: break-all; white-space: normal; visibility: hidden;">{{ localValue }}</div>
+                    <div style="min-height: 22px; word-break: break-all; white-space: normal; visibility: hidden;">
+                        {{ localValue }}
+                    </div>
                     <textarea
                         ref="textarea"
+                        v-bk-clickoutside="handleInputOutSide"
                         class="input-box"
-                        :value="localValue"
                         :placeholder="placeholderText"
                         spellcheck="false"
+                        :value="localValue"
                         @focus="handleInputFocus"
-                        v-bk-clickoutside="handleInputOutSide"
                         @input="handleInputChange"
                         @keydown="handleInputKeydown" />
                 </div>
@@ -79,13 +95,15 @@
                     @click.self="handleClearAll" />
                 <slot name="nextfix">
                     <i
-                        @click.stop="handleSubmit"
                         class="bk-icon icon-search search-nextfix-icon"
-                        :class="{ 'is-focus': focused }" />
+                        :class="{ 'is-focus': focused }"
+                        @click.stop="handleSubmit" />
                 </slot>
             </div>
         </div>
-        <div class="bk-select-tips" v-if="validateStr.length">
+        <div
+            v-if="validateStr.length"
+            class="bk-select-tips">
             <slot name="validate">
                 <i class="bk-icon icon-exclamation-circle-shape select-tips" />{{ validateStr || '' }}
             </slot>
@@ -94,29 +112,30 @@
 </template>
 <script>
 /* eslint-disable no-underscore-dangle */
-    import Vue from 'vue';
-    import _ from 'lodash';
     import Tippy from 'bk-magic-vue/lib/utils/tippy';
+    import _ from 'lodash';
+    import Vue from 'vue';
+
     import {
-        popperConfig,
         encodeRegexp,
         generatorMenu,
+        popperConfig,
     } from './helper';
-    import locale from './locale';
     import KeyMenu from './key-menu';
-    import ValueMenu from './value-menu';
-    import SuggestMenu from './suggest-menu';
+    import locale from './locale';
     import RenderTag from './render-tag';
+    import SuggestMenu from './suggest-menu';
+    import ValueMenu from './value-menu';
 
     export default {
         name: 'BkSearchSelect',
+        components: {
+            RenderTag,
+        },
         provide () {
             return {
                 searchSelect: this,
             };
-        },
-        components: {
-            RenderTag,
         },
         
         model: {

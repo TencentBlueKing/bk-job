@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import fileSource from '../source/file';
 import FileModel from '@model/file/file';
+
+import fileSource from '../source/file';
 
 export default {
     fetchgetListFileNode (params) {

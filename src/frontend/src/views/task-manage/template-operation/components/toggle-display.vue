@@ -30,14 +30,22 @@
         <div v-show="isOpen">
             <slot />
         </div>
-        <bk-form-item label=" " style="margin-top: -10px;">
-            <div class="action" @click="handleToggle">
+        <bk-form-item
+            label=" "
+            style="margin-top: -10px;">
+            <div
+                class="action"
+                @click="handleToggle">
                 <template v-if="isOpen">
-                    <Icon type="angle-double-up" class="toggle-arrow" />
+                    <Icon
+                        class="toggle-arrow"
+                        type="angle-double-up" />
                     <span>{{ $t('template.收起更多设置') }}</span>
                 </template>
                 <template v-else>
-                    <Icon type="angle-double-down" class="toggle-arrow" />
+                    <Icon
+                        class="toggle-arrow"
+                        type="angle-double-down" />
                     <span>{{ $t('template.展开更多设置') }}</span>
                 </template>
             </div>

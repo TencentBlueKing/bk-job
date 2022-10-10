@@ -24,9 +24,12 @@
 */
 
 import _ from 'lodash';
+
 import TaskHostNodeModel from '@model/task-host-node';
-import I18n from '@/i18n';
+
 import { bytePretty } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 const AGENT_STATUS_NORMAL = 1; // 正常
 const AGENT_STATUS_ABNORMAL = 0; // 异常
@@ -204,14 +207,14 @@ export default class SourceFile {
             return this.host.variable;
         }
         const textArr = [];
-        const { dynamicGroupList, ipList, topoNodeList } = this.host.hostNodeInfo;
+        const { dynamicGroupList, hostList, nodeList } = this.host.hostNodeInfo;
         // eslint-disable-next-line max-len
         const getHtml = (len, text) => `<span><span class="strong number">${len}</span>${text}</span>`;
-        if (ipList.length > 0) {
-            textArr.push(getHtml(ipList.length, I18n.t('台主机.result')));
+        if (hostList.length > 0) {
+            textArr.push(getHtml(hostList.length, I18n.t('台主机.result')));
         }
-        if (topoNodeList.length > 0) {
-            textArr.push(getHtml(topoNodeList.length, I18n.t('个节点.result')));
+        if (nodeList.length > 0) {
+            textArr.push(getHtml(nodeList.length, I18n.t('个节点.result')));
         }
         if (dynamicGroupList.length > 0) {
             textArr.push(getHtml(dynamicGroupList.length, I18n.t('个分组.result')));

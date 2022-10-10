@@ -28,8 +28,8 @@
 <template>
     <execute-target
         v-bind="$attrs"
-        property="targetServers"
         mode="onlyHost"
+        property="targetServers"
         :task-host-node="formData[field]"
         @on-change="handleTargetChange" />
 </template>

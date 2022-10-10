@@ -27,23 +27,32 @@
 
 <template>
     <div class="render-file-server">
-        <div class="server-agent-text" v-html="data.serverDesc" @click="handlerView" />
+        <div
+            class="server-agent-text"
+            @click="handlerView"
+            v-html="data.serverDesc" />
         <jb-dialog
             v-model="isShowDetail"
-            :width="1020"
+            class="step-view-server-detail-dialog"
             :ok-text="$t('template.关闭')"
-            class="step-view-server-detail-dialog">
+            :width="1020">
             <template #header>
                 <div class="variable-title">
                     <span>{{ $t('template.服务器文件-服务器列表') }}</span>
-                    <i class="server-detail-close bk-icon icon-close" @click="handleClose" />
+                    <i
+                        class="server-detail-close bk-icon icon-close"
+                        @click="handleClose" />
                 </div>
             </template>
             <div class="content-wraper">
                 <scroll-faker>
-                    <server-panel
+                    <!-- <server-panel
                         detail-mode="dialog"
-                        :host-node-info="hostNodeInfo" />
+                        :host-node-info="hostNodeInfo" /> -->
+                    <ip-selector
+                        readonly
+                        show-view
+                        :value="hostNodeInfo" />
                 </scroll-faker>
             </div>
         </jb-dialog>
@@ -51,14 +60,15 @@
 </template>
 <script>
     import TaskHostNodeModel from '@model/task-host-node';
+
     import ScrollFaker from '@components/scroll-faker';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
         name: '',
         components: {
             ScrollFaker,
-            ServerPanel,
+            // ServerPanel,
         },
         props: {
             data: {

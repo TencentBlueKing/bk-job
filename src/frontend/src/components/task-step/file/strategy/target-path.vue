@@ -29,8 +29,8 @@
     <div>
         <jb-form-item
             :label="$t('目标路径')"
-            required
             :property="field"
+            required
             :rules="rules">
             <div
                 class="form-item-content"
@@ -39,20 +39,24 @@
                 <bk-input
                     ref="input"
                     :placeholder="$t('请填写分发路径')"
-                    @focus="handleInputFocus"
+                    :value="formData[field]"
                     @blur="handleInputBlur"
                     @change="handleChange"
-                    :value="formData[field]" />
+                    @focus="handleInputFocus" />
             </div>
         </jb-form-item>
         <div style="display: none;">
             <div
                 ref="targetPathTips"
                 class="target-path-tips"
-                @mouseleave="handleMouseleave"
-                @mouseenter="handleTipsMouseenter">
-                <div class="row">{{ $t('传输至linux服务器需以\/开头的绝对路径，如：/data/xx') }}</div>
-                <div class="row">{{ $t('传输至Windows服务器需包含盘符开头，如：D:\\tmp\\') }}</div>
+                @mouseenter="handleTipsMouseenter"
+                @mouseleave="handleMouseleave">
+                <div class="row">
+                    {{ $t('传输至linux服务器需以\/开头的绝对路径，如：/data/xx') }}
+                </div>
+                <div class="row">
+                    {{ $t('传输至Windows服务器需包含盘符开头，如：D:\\tmp\\') }}
+                </div>
                 <div class="row">
                     <div>{{ $t('目标路径支持的内置变量：（点击可直接复制使用）') }}</div>
                     <table class="target-path-demo">
@@ -87,21 +91,25 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="row">{{ $t('（日期变量可传入标准的日期时间格式，如 yyyy-MM-dd_HH:mm:ss）') }}</div>
+                <div class="row">
+                    {{ $t('（日期变量可传入标准的日期时间格式，如 yyyy-MM-dd_HH:mm:ss）') }}
+                </div>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import Tippy from 'bk-magic-vue/lib/utils/tippy';
-    import I18n from '@/i18n';
+    import _ from 'lodash';
+
     import {
         execCopy,
     } from '@utils/assist';
     import {
         filePathRule,
     } from '@utils/validator';
+
+    import I18n from '@/i18n';
 
     export default {
         props: {

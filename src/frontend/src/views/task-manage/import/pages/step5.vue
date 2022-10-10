@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div class="task-import-step5" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="task-import-step5">
         <div class="flag">
             <img src="/static/images/import.svg">
         </div>
@@ -38,20 +40,28 @@
             </template>
         </div>
         <div class="log-container">
-            <div class="log-box" ref="log">
-                <template v-for="(item, index) in log">
-                    <div :key="index">
-                        <span>[ {{ item.timestamp }} ]</span> {{ item.content }}
-                        <span v-if="item.type === 4" class="action" @click="handleLocationTemplate(item)">
-                            {{ $t('template.查看详情') }}
-                            <Icon type="jump" />
-                        </span>
-                        <span v-if="item.type === 5" class="action" @click="handleLocationPlan(item)">
-                            {{ $t('template.查看详情') }}
-                            <Icon type="jump" />
-                        </span>
-                    </div>
-                </template>
+            <div
+                ref="log"
+                class="log-box">
+                <div
+                    v-for="(item, index) in log"
+                    :key="index">
+                    <span>[ {{ item.timestamp }} ]</span> {{ item.content }}
+                    <span
+                        v-if="item.type === 4"
+                        class="action"
+                        @click="handleLocationTemplate(item)">
+                        {{ $t('template.查看详情') }}
+                        <Icon type="jump" />
+                    </span>
+                    <span
+                        v-if="item.type === 5"
+                        class="action"
+                        @click="handleLocationPlan(item)">
+                        {{ $t('template.查看详情') }}
+                        <Icon type="jump" />
+                    </span>
+                </div>
             </div>
             <Icon
                 class="log-copy"
@@ -62,8 +72,8 @@
         <action-bar>
             <bk-button
                 class="w120"
-                theme="primary"
                 :disabled="!isImportSuccess"
+                theme="primary"
                 @click="handleFinish">
                 {{ $t('template.完成') }}
             </bk-button>
@@ -72,8 +82,10 @@
 </template>
 <script>
     import BackupService from '@service/backup';
+
     import { execCopy } from '@utils/assist';
     import { taskImport } from '@utils/cache-helper';
+
     import ActionBar from '../components/action-bar';
 
     const TASK_STATUS_DEFAULT = 0;

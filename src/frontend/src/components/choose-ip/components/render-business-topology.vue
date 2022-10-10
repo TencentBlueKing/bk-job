@@ -27,7 +27,9 @@
 
 <template>
     <div class="choose-ip-business-topology">
-        <div class="topology-data" v-bkloading="{ isLoading: topologyLoading }">
+        <div
+            v-bkloading="{ isLoading: topologyLoading }"
+            class="topology-data">
             <div class="topology-node-search">
                 <bk-input
                     :placeholder="$t('搜索拓扑节点')"
@@ -39,12 +41,16 @@
                     <div class="wraper">
                         <bk-big-tree
                             ref="tree"
-                            show-link-line
-                            selectable
                             :expand-on-click="false"
+                            selectable
+                            show-link-line
                             @select-change="handleNodeChange">
-                            <div class="node-box" slot-scope="{ node, data }">
-                                <div class="node-name">{{ node.name }}</div>
+                            <div
+                                slot-scope="{ node, data }"
+                                class="node-box">
+                                <div class="node-name">
+                                    {{ node.name }}
+                                </div>
                                 <div
                                     v-if="node.level === 0"
                                     class="node-filter"
@@ -58,23 +64,27 @@
                                         <span>{{ $t('恢复完整拓扑') }}</span>
                                     </template>
                                 </div>
-                                <div class="node-count">{{ data.payload.count }}</div>
+                                <div class="node-count">
+                                    {{ data.payload.count }}
+                                </div>
                             </div>
                         </bk-big-tree>
                     </div>
                 </scroll-faker>
             </div>
-            <empty v-if="isNodeEmpty" class="topology-empty" />
+            <empty
+                v-if="isNodeEmpty"
+                class="topology-empty" />
         </div>
         <div class="host-list">
             <mult-input
-                :placeholder="$t('输入 主机 IP / 主机名 / 操作系统 / 云区域 进行搜索...')"
                 class="host-search"
+                :placeholder="$t('输入 主机 IP / 主机名 / 操作系统 / 云区域 进行搜索...')"
                 @input="handleHostSearch" />
             <host-table
-                :list="renderList"
+                v-bkloading="{ isLoading }"
                 :is-search="isSearch"
-                v-bkloading="{ isLoading }">
+                :list="renderList">
                 <thead>
                     <tr>
                         <th style="width: 10.2%;">
@@ -82,8 +92,12 @@
                                 :value="isCheckedAll"
                                 @click.native="handleToggleWholeAll" />
                         </th>
-                        <th style="width: 18.9%;">{{ $t('主机IP') }}</th>
-                        <th style="width: 12.8%;">{{ $t('云区域') }}</th>
+                        <th style="width: 18.9%;">
+                            {{ $t('主机IP') }}
+                        </th>
+                        <th style="width: 12.8%;">
+                            {{ $t('云区域') }}
+                        </th>
                         <th style="width: 13.4%;">
                             <div
                                 class="head-cell"
@@ -92,7 +106,9 @@
                                 }">
                                 <span>{{ $t('Agent 状态') }}</span>
                                 <dropdown-menu>
-                                    <Icon type="filter-fill" class="filer-flag" />
+                                    <Icon
+                                        class="filer-flag"
+                                        type="filter-fill" />
                                     <div slot="menu">
                                         <div
                                             class="dropdown-menu-item"
@@ -117,72 +133,93 @@
                             </div>
                         </th>
                         <th>{{ $t('主机名') }}</th>
-                        <th style="width: 14.7%;">{{ $t('操作系统名称') }}</th>
+                        <th style="width: 14.7%;">
+                            {{ $t('操作系统名称') }}
+                        </th>
                     </tr>
                 </thead>
                 <tbody v-if="renderList.length > 0">
-                    <template v-for="(row, index) in renderList">
-                        <tr
-                            class="host-row"
-                            :key="`${row.hostId}_${index}`"
-                            @click="handleHostCheck(row)">
-                            <td>
-                                <bk-checkbox :checked="!!checkedMap[row.hostId]" />
-                            </td>
-                            <td>
-                                <div class="cell-text">{{ row.displayIp }}</div>
-                            </td>
-                            <td>
-                                <div class="cell-text">{{ row.cloudAreaInfo.name || '--' }}</div>
-                            </td>
-                            <td>
-                                <span v-if="row.alive">
-                                    <icon svg type="normal" style="vertical-align: middle;" />
-                                    <span style="vertical-align: middle;">{{ $t('正常') }}</span>
-                                </span>
-                                <span v-else>
-                                    <icon svg type="abnormal" style="vertical-align: middle;" />
-                                    <span style="vertical-align: middle;">{{ $t('异常') }}</span>
-                                </span>
-                            </td>
-                            <td>
-                                <div class="cell-text">{{ row.ipDesc || '--' }}</div>
-                            </td>
-                            <td>
-                                <div class="cell-text">{{ row.os || '--' }}</div>
-                            </td>
-                        </tr>
-                    </template>
+                    <tr
+                        v-for="(row, index) in renderList"
+                        :key="`${row.hostId}_${index}`"
+                        class="host-row"
+                        @click="handleHostCheck(row)">
+                        <td>
+                            <bk-checkbox :checked="!!checkedMap[row.hostId]" />
+                        </td>
+                        <td>
+                            <div class="cell-text">
+                                {{ row.displayIp }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="cell-text">
+                                {{ row.cloudAreaInfo.name || '--' }}
+                            </div>
+                        </td>
+                        <td>
+                            <span v-if="row.alive">
+                                <icon
+                                    style="vertical-align: middle;"
+                                    svg
+                                    type="normal" />
+                                <span style="vertical-align: middle;">{{ $t('正常') }}</span>
+                            </span>
+                            <span v-else>
+                                <icon
+                                    style="vertical-align: middle;"
+                                    svg
+                                    type="abnormal" />
+                                <span style="vertical-align: middle;">{{ $t('异常') }}</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="cell-text">
+                                {{ row.ipDesc || '--' }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="cell-text">
+                                {{ row.os || '--' }}
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </host-table>
-            <div v-if="pagination.pageSize > 0" style="padding: 16px 0;">
+            <div
+                v-if="pagination.pageSize > 0"
+                style="padding: 16px 0;">
                 <bk-pagination
                     align="right"
-                    show-total-count
-                    :show-limit="false"
                     :count="pagination.total"
-                    :limit="pagination.pageSize"
                     :current.sync="pagination.page"
+                    :limit="pagination.pageSize"
                     :limit-list="[pagination.pageSize]"
-                    @change="handlePageChange"
-                    small />
+                    :show-limit="false"
+                    show-total-count
+                    small
+                    @change="handlePageChange" />
             </div>
         </div>
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import AppManageService from '@service/app-manage';
+
+    import HostManageService from '@service/host-manage';
     import UserService from '@service/user';
+
     import { topoNodeCache } from '@utils/cache-helper';
+
     import Empty from '@components/empty';
-    import {
-        parseIdInfo,
-        filterTopology,
-    } from './utils';
-    import MultInput from './mult-input';
-    import HostTable from './host-table';
+
     import DropdownMenu from './dropdown-menu';
+    import HostTable from './host-table';
+    import MultInput from './mult-input';
+    import {
+        filterTopology,
+        parseIdInfo,
+    } from './utils';
 
     const ROOT_NODE_ID = `#${window.PROJECT_CONFIG.SCOPE_TYPE}#${window.PROJECT_CONFIG.SCOPE_ID}`;
 
@@ -310,7 +347,7 @@
                 const [objectId, instanceId] = parseIdInfo(this.selectedNodeId);
                 const { page, pageSize } = this.pagination;
                 this.isLoading = true;
-                AppManageService.fetchTopologyHost({
+                HostManageService.fetchTopologyHost({
                     appTopoNodeList: [
                         {
                             objectId,
@@ -345,7 +382,7 @@
                     ...this.checkedMap,
                 };
                 this.isLoading = true;
-                AppManageService.fetchTopogyIPs({
+                HostManageService.fetchTopogyHostIdList({
                     appTopoNodeList: [{
                         objectId,
                         instanceId,

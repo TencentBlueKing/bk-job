@@ -26,11 +26,12 @@
 -->
 
 <script>
-    import Vue from 'vue';
     import Tippy from 'bk-magic-vue/lib/utils/tippy';
+    import Vue from 'vue';
+
     import {
-        popperConfig,
         generatorMenu,
+        popperConfig,
     } from './helper';
     import ValueMenu from './value-menu';
 

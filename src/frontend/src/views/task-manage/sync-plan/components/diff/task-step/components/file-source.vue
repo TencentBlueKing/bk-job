@@ -27,8 +27,14 @@
 
 <template>
     <div class="sync-step-server-file">
-        <bk-collapse class="host-detail" :value="activeResult" v-if="isShowLocalFile || isShowServerFile">
-            <jb-collapse-item name="local" :active="activeResult" v-if="isShowLocalFile">
+        <bk-collapse
+            v-if="isShowLocalFile || isShowServerFile"
+            class="host-detail"
+            :value="activeResult">
+            <jb-collapse-item
+                v-if="isShowLocalFile"
+                :active="activeResult"
+                name="local">
                 <span class="collapse-title">{{ $t('template.已选择') }}<span class="number">{{ localFileCount }}</span>{{ $t('template.个本地文件') }}</span>
                 <template #content>
                     <table class="file-table">
@@ -38,7 +44,11 @@
                                 :key="index"
                                 :class="localFileDiff[row.realId]">
                                 <td>
-                                    <div v-bk-overflow-tips class="file-path-text">{{ row.fileLocationText }}</div>
+                                    <div
+                                        v-bk-overflow-tips
+                                        class="file-path-text">
+                                        {{ row.fileLocationText }}
+                                    </div>
                                 </td>
                                 <td>{{ row.fileSizeText }}</td>
                             </tr>
@@ -46,7 +56,10 @@
                     </table>
                 </template>
             </jb-collapse-item>
-            <jb-collapse-item name="server" :active="activeResult" v-if="isShowServerFile">
+            <jb-collapse-item
+                v-if="isShowServerFile"
+                :active="activeResult"
+                name="server">
                 <span class="collapse-title">{{ $t('template.已选择') }}<span class="number">{{ serverFileCount }}</span>{{ $t('template.个服务器文件') }}</span>
                 <template #content>
                     <table class="file-table">
@@ -61,12 +74,16 @@
                                 :key="index"
                                 :class="checkRowClass(row)">
                                 <td>
-                                    <div v-bk-tooltips="row.fileLocationText" class="file-path-text">{{ row.fileLocationText }}</div>
+                                    <div
+                                        v-bk-tooltips="row.fileLocationText"
+                                        class="file-path-text">
+                                        {{ row.fileLocationText }}
+                                    </div>
                                 </td>
                                 <td :class="checkDiffClass(row, 'host')">
                                     <file-source-server
-                                        :pre-host="preServerList[index].host"
-                                        :last-host="lastServerList[index].host" />
+                                        :last-host="lastServerList[index].host"
+                                        :pre-host="preServerList[index].host" />
                                 </td>
                                 <td :class="checkDiffClass(row, 'account')">
                                     {{ generatorAccountAlias(row.account) }}
@@ -81,14 +98,19 @@
 </template>
 <script>
     import _ from 'lodash';
-    import SourceFileVO from '@domain/variable-object/source-file';
-    import JbCollapseItem from '@components/jb-collapse-item';
+
     import {
         findParent,
     } from '@utils/vdom';
+
+    import JbCollapseItem from '@components/jb-collapse-item';
+
+    import SourceFileVO from '@domain/variable-object/source-file';
+
     import {
         findStep,
     } from '../../common/utils';
+
     import FileSourceServer from './file-source-server';
 
     export default {

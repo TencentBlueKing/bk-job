@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import Model from '@model/model';
+
+import I18n from '@/i18n';
 
 const APP_ID_SECRET_KEY = 'APP_ID_SECRET_KEY';
 const PASSWORD = 'PASSWORD';

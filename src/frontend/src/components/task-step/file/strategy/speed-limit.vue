@@ -30,29 +30,39 @@
         <jb-form-item :label="label">
             <div class="speed-limit-wraper">
                 <div class="speed-limit-content form-item-content">
-                    <bk-checkbox :value="enabled" @change="handleEnableChange">
+                    <bk-checkbox
+                        :value="enabled"
+                        @change="handleEnableChange">
                         {{ $t('启用限速') }}
                     </bk-checkbox>
                     <bk-input
                         v-show="enabled"
                         class="speed-limit-input"
-                        @change="handleChange"
-                        :value="formData[field]">
+                        :value="formData[field]"
+                        @change="handleChange">
                         <template slot="append">
-                            <div class="group-text">MB/s</div>
+                            <div class="group-text">
+                                MB/s
+                            </div>
                         </template>
                     </bk-input>
                 </div>
                 <Icon
                     v-show="enabled"
-                    type="info"
+                    v-bk-tooltips="speedLimitTipsConfig"
                     class="tips-flag"
-                    v-bk-tooltips="speedLimitTipsConfig" />
+                    type="info" />
             </div>
         </jb-form-item>
-        <div id="targetPathTips" class="speed-limit-tips">
-            <div class="row">{{ $t('请根据机器的网卡情况酌情配置速率，以免影响其他服务的正常使用；') }}</div>
-            <div class="row">{{ $t('未开启时，将按 Agent 默认配置规则限速 （Agent会根据机器资源使用情况，有自身保护机制）') }}</div>
+        <div
+            id="targetPathTips"
+            class="speed-limit-tips">
+            <div class="row">
+                {{ $t('请根据机器的网卡情况酌情配置速率，以免影响其他服务的正常使用；') }}
+            </div>
+            <div class="row">
+                {{ $t('未开启时，将按 Agent 默认配置规则限速 （Agent会根据机器资源使用情况，有自身保护机制）') }}
+            </div>
         </div>
     </div>
 </template>

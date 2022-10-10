@@ -28,34 +28,34 @@
 <template>
     <jb-form
         ref="form"
-        :model="formData"
-        :rules="rules"
         fixed
-        :label-width="110">
+        :label-width="110"
+        :model="formData"
+        :rules="rules">
         <item-factory
-            name="stepName"
             field="name"
-            :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
             :form-data="formData"
+            name="stepName"
+            :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
             @on-change="handleNameChange" />
         <jb-form-item
             :label="$t('template.确认人')"
-            :required="true"
-            property="approvalUser">
+            property="approvalUser"
+            :required="true">
             <jb-user-selector
-                :placeholder="$t('template.输入确认人')"
                 class="input"
-                :user="formData.approvalUser.userList"
-                :role="formData.approvalUser.roleList"
                 :filter-list="['JOB_EXTRA_OBSERVER']"
+                :placeholder="$t('template.输入确认人')"
+                :role="formData.approvalUser.roleList"
+                :user="formData.approvalUser.userList"
                 @on-change="handleApprovalUserChange" />
         </jb-form-item>
         <jb-form-item :label="$t('template.通知方式')">
             <div class="notify-channel-wraper">
                 <bk-checkbox
-                    @click.native="handleToggleAllChannel"
                     :checked="isChannelAll"
-                    :indeterminate="isChannelIndeterminate">
+                    :indeterminate="isChannelIndeterminate"
+                    @click.native="handleToggleAllChannel">
                     {{ $t('template.全部') }}
                 </bk-checkbox>
                 <bk-checkbox-group
@@ -74,16 +74,18 @@
             <bk-input
                 v-model="formData.approvalMessage"
                 class="input"
-                type="textarea"
-                :maxlength="1000" />
+                :maxlength="1000"
+                type="textarea" />
         </jb-form-item>
     </jb-form>
 </template>
 <script>
-    import I18n from '@/i18n';
     import QueryGlobalSettingService from '@service/query-global-setting';
+
     import JbUserSelector from '@components/jb-user-selector';
     import ItemFactory from '@components/task-step/file/item-factory';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         id: -1,

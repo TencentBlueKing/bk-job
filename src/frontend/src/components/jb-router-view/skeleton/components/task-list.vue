@@ -31,19 +31,84 @@
             :height="716"
             :width="maxWidth"
             v-bind="$attrs">
-            <rect x="0" y="0" width="233" height="20" rx="2" />
-            <rect x="0" y="42" width="233" height="20" rx="2" />
-            <rect x="279" y="57" :width="blockWidth" height="20" rx="2" />
-            <rect x="279" y="0" width="120" height="20" rx="2" />
-            <rect :x="xPosition1" y="0" width="100" height="20" rx="2" />
-            <rect :x="xPosition2" y="0" width="480" height="20" rx="2" />
-            <rect x="0" y="83" width="233" height="20" rx="2" />
-            <rect x="279" y="98" :width="blockWidth" height="20" rx="2" />
-            <rect x="279" y="181" :width="blockWidth" height="20" rx="2" />
-            <rect x="0" y="124" width="233" height="20" rx="2" />
-            <rect x="279" y="139" :width="blockWidth" height="20" rx="2" />
-            <rect x="279" y="222" :width="blockWidth" height="20" rx="2" />
-            <rect x="279" y="264" :width="blockWidth" height="20" rx="2" />
+            <rect
+                height="20"
+                rx="2"
+                width="233"
+                x="0"
+                y="0" />
+            <rect
+                height="20"
+                rx="2"
+                width="233"
+                x="0"
+                y="42" />
+            <rect
+                height="20"
+                rx="2"
+                :width="blockWidth"
+                x="279"
+                y="57" />
+            <rect
+                height="20"
+                rx="2"
+                width="120"
+                x="279"
+                y="0" />
+            <rect
+                height="20"
+                rx="2"
+                width="100"
+                :x="xPosition1"
+                y="0" />
+            <rect
+                height="20"
+                rx="2"
+                width="480"
+                :x="xPosition2"
+                y="0" />
+            <rect
+                height="20"
+                rx="2"
+                width="233"
+                x="0"
+                y="83" />
+            <rect
+                height="20"
+                rx="2"
+                :width="blockWidth"
+                x="279"
+                y="98" />
+            <rect
+                height="20"
+                rx="2"
+                :width="blockWidth"
+                x="279"
+                y="181" />
+            <rect
+                height="20"
+                rx="2"
+                width="233"
+                x="0"
+                y="124" />
+            <rect
+                height="20"
+                rx="2"
+                :width="blockWidth"
+                x="279"
+                y="139" />
+            <rect
+                height="20"
+                rx="2"
+                :width="blockWidth"
+                x="279"
+                y="222" />
+            <rect
+                height="20"
+                rx="2"
+                :width="blockWidth"
+                x="279"
+                y="264" />
         </content-loader>
     </div>
 </template>

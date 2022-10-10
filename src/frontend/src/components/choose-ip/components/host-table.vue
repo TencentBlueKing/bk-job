@@ -26,20 +26,34 @@
 -->
 
 <template>
-    <div class="choose-ip-host-table" :class="{ empty: isEmpty }">
+    <div
+        class="choose-ip-host-table"
+        :class="{ empty: isEmpty }">
         <scroll-faker :style="styles">
             <table>
                 <template v-if="!$slots.default">
                     <thead>
-                        <th style="width: 20%;">{{ $t('主机IP') }}</th>
-                        <th style="width: 20%;">{{ $t('云区域') }}</th>
-                        <th style="width: 150px;">{{ $t('Agent 状态') }}</th>
+                        <th style="width: 20%;">
+                            {{ $t('主机IP') }}
+                        </th>
+                        <th style="width: 20%;">
+                            {{ $t('云区域') }}
+                        </th>
+                        <th style="width: 150px;">
+                            {{ $t('Agent 状态') }}
+                        </th>
                         <th>{{ $t('主机名') }}</th>
                         <th>{{ $t('操作系统名称') }}</th>
-                        <th v-if="editable" class="action-column">{{ $t('操作') }}</th>
+                        <th
+                            v-if="editable"
+                            class="action-column">
+                            {{ $t('操作') }}
+                        </th>
                     </thead>
                     <slot name="appendBefore" />
-                    <tbody v-if="renderList.length > 0" class="valid-list">
+                    <tbody
+                        v-if="renderList.length > 0"
+                        class="valid-list">
                         <tr
                             v-for="(row) in renderList"
                             :key="row.hostId"
@@ -51,28 +65,44 @@
                                     :tippy-tips="$t('指和其他主机的IP地址相同，但云区域不同')">
                                     {{ $t('重复') }}
                                 </span>
-                                <div class="cell-text">{{ row.ip }}</div>
+                                <div class="cell-text">
+                                    {{ row.ip }}
+                                </div>
                             </td>
                             <td>
-                                <div class="cell-text">{{ row.cloudAreaInfo.name || '--' }}</div>
+                                <div class="cell-text">
+                                    {{ row.cloudAreaInfo.name || '--' }}
+                                </div>
                             </td>
                             <td>
                                 <span v-if="row.alive">
-                                    <icon svg type="normal" style="vertical-align: middle;" />
+                                    <icon
+                                        style="vertical-align: middle;"
+                                        svg
+                                        type="normal" />
                                     <span style="vertical-align: middle;">{{ $t('正常') }}</span>
                                 </span>
                                 <span v-else>
-                                    <icon svg type="abnormal" style="vertical-align: middle;" />
+                                    <icon
+                                        style="vertical-align: middle;"
+                                        svg
+                                        type="abnormal" />
                                     <span style="vertical-align: middle;">{{ $t('异常') }}</span>
                                 </span>
                             </td>
                             <td>
-                                <div class="cell-text">{{ row.ipDesc || '--' }}</div>
+                                <div class="cell-text">
+                                    {{ row.ipDesc || '--' }}
+                                </div>
                             </td>
                             <td>
-                                <div class="cell-text">{{ row.os || '--' }}</div>
+                                <div class="cell-text">
+                                    {{ row.os || '--' }}
+                                </div>
                             </td>
-                            <td v-if="editable" class="action-column">
+                            <td
+                                v-if="editable"
+                                class="action-column">
                                 <bk-button
                                     text
                                     @click="handleRemove(row)">
@@ -94,7 +124,9 @@
                 {{ $t('查看更多') }}
             </div>
         </scroll-faker>
-        <empty v-if="isEmpty" :type="emptyType" />
+        <empty
+            v-if="isEmpty"
+            :type="emptyType" />
     </div>
 </template>
 <script>

@@ -28,11 +28,13 @@
  *
 */
 import _ from 'lodash';
-import I18n from '@/i18n';
+
 import Model from '@model/model';
-import TaskScriptStep from '@model/task/task-script-step';
-import TaskFileStep from '@model/task/task-file-step';
 import TaskApprovalStep from '@model/task/task-approval-step';
+import TaskFileStep from '@model/task/task-file-step';
+import TaskScriptStep from '@model/task/task-script-step';
+
+import I18n from '@/i18n';
 
 const TYPE_SCRIPT = 1;
 const TYPE_FILE = 2;

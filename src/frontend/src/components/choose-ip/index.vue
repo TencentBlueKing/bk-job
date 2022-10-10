@@ -26,16 +26,20 @@
 -->
 
 <template>
-    <lower-component level="custom" :custom="isShowDialog">
+    <lower-component
+        :custom="isShowDialog"
+        level="custom">
         <jb-dialog
             v-model="isShowDialog"
             class="choose-ip-dialog"
-            :mask-close="false"
-            :esc-close="false"
             :draggable="false"
-            :width="1240"
-            :media="mediaWidth">
-            <div class="choose-ip-container" :style="containerStyles">
+            :esc-close="false"
+            :mask-close="false"
+            :media="mediaWidth"
+            :width="1240">
+            <div
+                class="choose-ip-container"
+                :style="containerStyles">
                 <template v-if="isShowDialog">
                     <div class="action-tab">
                         <div class="tab-container">
@@ -65,23 +69,25 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-content" :style="contentStyles">
+                    <div
+                        class="action-content"
+                        :style="contentStyles">
                         <keep-alive>
                             <component
-                                ref="dataTree"
                                 :is="panelCom"
+                                ref="dataTree"
                                 class="fade-in"
-                                :preview-id="previewId"
-                                :topology-node-tree="topologyNodeTree"
-                                :ip-list="ipList"
-                                :topo-node-list="topoNodeList"
-                                :dynamic-group-list="dynamicGroupList"
-                                :topology-loading="isLoading"
                                 :dialog-height="dialogHeight"
+                                :dynamic-group-list="dynamicGroupList"
+                                :ip-list="ipList"
+                                :preview-id="previewId"
+                                :topo-node-list="topoNodeList"
+                                :topology-loading="isLoading"
+                                :topology-node-tree="topologyNodeTree"
+                                @on-change="handleChange"
                                 @on-group-preview="handleGroupPreview"
-                                @on-input-change="handleInputChange"
                                 @on-input-animate="handleInputAnimate"
-                                @on-change="handleChange" />
+                                @on-input-change="handleInputChange" />
                         </keep-alive>
                     </div>
                 </template>
@@ -94,59 +100,73 @@
             <template v-if="showChoosePreview">
                 <preview
                     v-model="showChoosePreview"
+                    :group="dynamicGroupList"
                     :host="ipList"
                     :node="topoNodeList"
-                    :group="dynamicGroupList"
                     @on-change="handlePreviewChange">
-                    <div slot="desc" v-html="actionResult" />
+                    <div
+                        slot="desc"
+                        v-html="actionResult" />
                 </preview>
             </template>
             <template slot="footer">
-                <span v-if="error" class="ip-error">{{ error }}</span>
+                <span
+                    v-if="error"
+                    class="ip-error">{{ error }}</span>
                 <div
                     :id="previewId"
                     class="choose-result"
                     :class="currentChangeClass"
-                    v-html="actionResult"
-                    @click="handleShowChoosePreview" />
+                    @click="handleShowChoosePreview"
+                    v-html="actionResult" />
                 <jb-popover-confirm
                     v-if="ipInputStatus"
-                    :title="$t('操作确认')"
+                    :confirm-handler="handleSubmit"
                     :content="$t('手动输入框有内容未添加到“已选择”列表，确认结束操作？')"
-                    :confirm-handler="handleSubmit">
-                    <bk-button class="mr10" theme="primary">{{ $t('确定') }}</bk-button>
+                    :title="$t('操作确认')">
+                    <bk-button
+                        class="mr10"
+                        theme="primary">
+                        {{ $t('确定') }}
+                    </bk-button>
                 </jb-popover-confirm>
                 <bk-button
                     v-if="!ipInputStatus"
                     class="mr10"
-                    theme="primary"
                     :disabled="isSubmitDisable"
+                    theme="primary"
                     @click="handleSubmit">
                     {{ $t('确定') }}
                 </bk-button>
-                <bk-button @click="handleCancle">{{ $t('取消') }}</bk-button>
+                <bk-button @click="handleCancle">
+                    {{ $t('取消') }}
+                </bk-button>
             </template>
         </jb-dialog>
     </lower-component>
 </template>
 <script>
     import _ from 'lodash';
-    import AppService from '@service/app-manage';
-    import I18n from '@/i18n';
+
+    import HostManageService from '@service/host-manage';
+
     import TaskHostNodeModel from '@model/task-host-node';
+
+    import PreviewGroup from './components/preview-group';
+    import RenderBusinessTopology from './components/render-business-topology';
+    import RenderDynamicBusinessTopology from './components/render-dynamic-business-topology';
+    import RenderDynamicGroup from './components/render-dynamic-group';
+    import RenderIpInput from './components/render-ip-input';
+    import SidesliderBox from './components/sideslider-box';
     import {
         bigTreeTransformTopologyOfTopology,
         mergeInputHost,
         mergeTopologyHost,
         // generateHostRealId,
     } from './components/utils';
-    import RenderBusinessTopology from './components/render-business-topology';
-    import RenderDynamicBusinessTopology from './components/render-dynamic-business-topology';
-    import RenderDynamicGroup from './components/render-dynamic-group';
-    import RenderIpInput from './components/render-ip-input';
-    import PreviewGroup from './components/preview-group';
-    import SidesliderBox from './components/sideslider-box';
     import Preview from './preview';
+
+    import I18n from '@/i18n';
 
     const DIALOG_FOOTER_HEIGHT = 58;
     const CONTENT_TAB_HEIGHT = 42;
@@ -335,7 +355,7 @@
              */
             fetchTopologyWithCount () {
                 this.isLoading = true;
-                AppService.fetchTopologyWithCount()
+                HostManageService.fetchTopologyWithCount()
                     .then((data) => {
                         this.topologyNodeTree = Object.freeze(bigTreeTransformTopologyOfTopology([
                             data,

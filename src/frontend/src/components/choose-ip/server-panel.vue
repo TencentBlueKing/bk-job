@@ -37,38 +37,38 @@
                     v-if="hostList.length > 0 || renderWithEmpty"
                     ref="host"
                     :data="hostList"
-                    :editable="editable"
                     :diff="hostDiff"
+                    :editable="editable"
                     @on-change="handleHostChange" />
                 <server-node
                     v-if="nodeInfo.length > 0 || renderWithEmpty"
                     ref="node"
                     :data="nodeInfo"
-                    :editable="editable"
                     :diff="nodeDiff"
-                    @on-view="handleView"
-                    @on-change="handleNodeChange" />
+                    :editable="editable"
+                    @on-change="handleNodeChange"
+                    @on-view="handleView" />
                 <server-group
                     v-if="groupList.length > 0 || renderWithEmpty"
                     ref="group"
                     :data="groupList"
-                    :editable="editable"
                     :diff="groupDiff"
-                    @on-view="handleView"
-                    @on-change="handleGroupChange" />
+                    :editable="editable"
+                    @on-change="handleGroupChange"
+                    @on-view="handleView" />
             </bk-collapse>
         </div>
         <lower-component
-            level="custom"
-            :custom="showDetail">
+            :custom="showDetail"
+            level="custom">
             <host-detail
                 v-model="showDetail"
-                :data="viewInfo"
-                :append="hostDetailAppend" />
+                :append="hostDetailAppend"
+                :data="viewInfo" />
         </lower-component>
         <lower-component
-            level="custom"
-            :custom="searchMode">
+            :custom="searchMode"
+            level="custom">
             <host-search
                 v-show="searchMode"
                 :data="searchData"
@@ -78,13 +78,15 @@
     </div>
 </template>
 <script>
-    import { encodeRegexp } from '@utils/assist';
     import TaskHostNodeModel from '@model/task-host-node';
-    import ServerNode from './view/node';
-    import ServerHost from './view/host';
+
+    import { encodeRegexp } from '@utils/assist';
+
     import ServerGroup from './view/group';
+    import ServerHost from './view/host';
     import HostDetail from './view/host-detail';
     import HostSearch from './view/host-search';
+    import ServerNode from './view/node';
 
     const addCollapsePanel = (target, name) => {
         if (target.length > 0) {

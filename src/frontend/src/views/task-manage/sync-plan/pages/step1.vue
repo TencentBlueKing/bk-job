@@ -33,16 +33,16 @@
                     :label="$t('template.全局变量.label')"
                     style="margin-bottom: 20px;">
                     <render-global-var
-                        :list="templateVariableList"
-                        mode="diff"
                         :default-field="$t('template.变量值')"
-                        :diff="variableDiff" />
+                        :diff="variableDiff"
+                        :list="templateVariableList"
+                        mode="diff" />
                 </detail-item>
                 <detail-item :label="$t('template.执行步骤')">
                     <render-task-step
+                        :diff="stepDiff"
                         :list="templateStepList"
-                        mode="diff"
-                        :diff="stepDiff" />
+                        mode="diff" />
                 </detail-item>
             </detail-layout>
         </div>
@@ -52,8 +52,8 @@
                 {{ $t('template.取消') }}
             </bk-button>
             <bk-button
-                theme="primary"
                 class="w120"
+                theme="primary"
                 @click="handleNext">
                 {{ $t('template.下一步') }}
             </bk-button>
@@ -63,13 +63,14 @@
 <script>
     import DetailLayout from '@components/detail-layout';
     import DetailItem from '@components/detail-layout/item';
-    import Layout from '../components/layout';
+
     import RenderGlobalVar from '../../common/render-global-var';
     import RenderTaskStep from '../../common/render-task-step';
+    import Layout from '../components/layout';
     import {
-        mergeList,
-        diffVariableSimple,
         diffStepSimple,
+        diffVariableSimple,
+        mergeList,
     } from '../components/utils';
     
     export default {

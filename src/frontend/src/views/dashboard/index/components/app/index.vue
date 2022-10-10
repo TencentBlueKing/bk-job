@@ -27,13 +27,17 @@
 
 <template>
     <div class="app-dashboard">
-        <all-app ref="all" v-bind="$attrs" />
-        <active-app ref="active" v-bind="$attrs" />
+        <all-app
+            ref="all"
+            v-bind="$attrs" />
+        <active-app
+            ref="active"
+            v-bind="$attrs" />
     </div>
 </template>
 <script>
-    import AllApp from './all-app';
     import ActiveApp from './active-app';
+    import AllApp from './all-app';
 
     export default {
         name: '',

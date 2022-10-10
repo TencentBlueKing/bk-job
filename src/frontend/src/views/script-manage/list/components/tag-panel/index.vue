@@ -26,48 +26,53 @@
 -->
 
 <template>
-    <div class="script-list-tag-panel" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="script-list-tag-panel">
         <tab-item
-            :name="$t('script.全部脚本')"
             :id="1"
-            :value="classesId"
-            icon="business-manage"
             :count="totalCount"
+            icon="business-manage"
+            :name="$t('script.全部脚本')"
             :tooltips-disabled="true"
+            :value="classesId"
             @on-select="handleClassesSelect" />
         <tab-item
-            :name="$t('script.未分类')"
             :id="2"
-            :value="classesId"
-            icon="unclassified"
             :count="unclassifiedCount"
+            icon="unclassified"
+            :name="$t('script.未分类')"
             :tooltips-disabled="true"
+            :value="classesId"
             @on-select="handleClassesSelect" />
         <div class="line" />
         <template v-for="item in list">
             <tab-item
                 v-if="item.relatedScriptNum > 0"
-                :key="item.id"
                 :id="item.id"
-                :count="item.relatedScriptNum"
-                :name="item.name"
-                :value="tagId"
+                :key="item.id"
                 :can-edit="true"
-                :tag-list="list"
+                :count="item.relatedScriptNum"
                 :description="item.description"
-                @on-select="handleSelect"
-                @on-edit="handleEdit" />
+                :name="item.name"
+                :tag-list="list"
+                :value="tagId"
+                @on-edit="handleEdit"
+                @on-select="handleSelect" />
         </template>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import ScriptManageService from '@service/script-manage';
     import PublicScriptManageService from '@service/public-script-manage';
-    import TagManageService from '@service/tag-manage';
     import PubliceTagManageService from '@service/public-tag-manage';
+    import ScriptManageService from '@service/script-manage';
+    import TagManageService from '@service/tag-manage';
+
     import { checkPublicScript } from '@utils/assist';
+
     import TabItem from './tab-item';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'RenderTagTabItem',

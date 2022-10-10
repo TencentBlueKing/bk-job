@@ -26,42 +26,57 @@
 -->
 
 <template>
-    <div class="jb-edit-host" :class="mode">
-        <div class="render-value-box" @click.stop="handleBlockShowEdit">
+    <div
+        class="jb-edit-host"
+        :class="mode">
+        <div
+            class="render-value-box"
+            @click.stop="handleBlockShowEdit">
             <div class="value-text">
-                <slot v-bind:value="localValue">
-                    <div v-html="renderHtml" style="margin-left: -4px;" />
+                <slot :value="localValue">
+                    <div
+                        style="margin-left: -4px;"
+                        v-html="renderHtml" />
                 </slot>
             </div>
             <div class="edit-action-box">
                 <Icon
                     v-if="!isBlock && !isSubmiting"
-                    type="edit-2"
                     class="edit-action"
+                    type="edit-2"
                     @click.self.stop="handleShowEdit" />
                 <Icon
                     v-if="isSubmiting"
-                    type="loading-circle"
-                    class="edit-loading" />
+                    class="edit-loading"
+                    type="loading-circle" />
             </div>
         </div>
-        <choose-ip
+        <ip-selector
+            :original-value="originalHostNodeInfo"
+            :show-dialog="isShowChooseIp"
+            :value="localValue.hostNodeInfo"
+            @change="handleHostChange"
+            @close-dialog="handleCloseIPSelector" />
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="localValue.hostNodeInfo"
-            @on-change="handleHostChange" />
+            :original-value
+            @on-change="handleHostChange" /> -->
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskHostNodeModel from '@model/task-host-node';
-    import ChooseIp from '@components/choose-ip';
+
+    import I18n from '@/i18n';
+    // import ChooseIp from '@components/choose-ip';
 
     export default {
         name: 'JbEditHost',
-        components: {
-            ChooseIp,
-        },
+        // components: {
+        //     ChooseIp,
+        // },
         props: {
             /**
              * @value block 块级交互
@@ -120,15 +135,15 @@
                 }
                 const {
                     dynamicGroupList,
-                    ipList,
-                    topoNodeList,
+                    hostList,
+                    nodeList,
                 } = this.localValue.hostNodeInfo || {};
                 const strs = [];
-                if (ipList.length > 0) {
-                    strs.push(`<span class="number strong">${ipList.length}</span>${I18n.t('台主机.result')}`);
+                if (hostList.length > 0) {
+                    strs.push(`<span class="number strong">${hostList.length}</span>${I18n.t('台主机.result')}`);
                 }
-                if (topoNodeList.length > 0) {
-                    strs.push(`<span class="number strong">${topoNodeList.length}</span>${I18n.t('个节点.result')}`);
+                if (nodeList.length > 0) {
+                    strs.push(`<span class="number strong">${nodeList.length}</span>${I18n.t('个节点.result')}`);
                 }
                 if (dynamicGroupList.length > 0) {
                     strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组.result')}`);
@@ -151,6 +166,9 @@
                 },
                 immediate: true,
             },
+        },
+        created () {
+            this.originalValue = _.cloneDeep(this.value.hostNodeInfo);
         },
         methods: {
             /**
@@ -231,6 +249,9 @@
             handleShowEdit () {
                 document.body.click();
                 this.isShowChooseIp = true;
+            },
+            handleCloseIPSelector () {
+                this.isShowChooseIp = false;
             },
             
             handleHostChange (hostNodeInfo) {

@@ -25,8 +25,6 @@
 
 /* eslint-disable no-param-reassign */
 
-import DynamicGroupInfoVO from '@domain/variable-object/dynamic-group-info';
-import NodeInfoVO from '@domain/variable-object/node-info';
 import AppManageSource from '../source/app-manage';
 
 export default {
@@ -44,74 +42,6 @@ export default {
     },
     cancelFavorApp (params) {
         return AppManageSource.updateCancelFavorApp(params)
-            .then(({ data }) => data);
-    },
-    // 获取拓扑节点树
-    fetchTopology () {
-        return AppManageSource.getAllTopology()
-            .then(({ data }) => data);
-    },
-    // 获取业务拓扑主机列表（包含主机）
-    fetchTopologyWithCount () {
-        return AppManageSource.getAllTopologyWithCount()
-            .then(({ data }) => data);
-    },
-    // 获取拓扑节点数包含主机
-    fetchAllTopologyHost () {
-        return AppManageSource.getAllTopologyWithHost()
-            .then(({ data }) => data);
-    },
-    // 获取节点的主机
-    fetchNodeInfo (params) {
-        return AppManageSource.getHostByNode(params)
-            .then(({ data }) => data.map(item => new NodeInfoVO(item)));
-    },
-    // 获取节点详情
-    fetchNodeDetail (params) {
-        return AppManageSource.getNodeInfo(params)
-            .then(({ data }) => data);
-    },
-
-    // 获取节点拓扑路径
-    fetchNodePath (params) {
-        return AppManageSource.getNodePath(params)
-            .then(({ data }) => data);
-    },
-    
-    // ip输入获取主机列表
-    fetchHostOfHost (params) {
-        return AppManageSource.getHostByHost(params)
-            .then(({ data }) => data);
-    },
-    // 获取动态分列表
-    fetchDynamicGroup () {
-        return AppManageSource.getAllDynamicGroup()
-            .then(({ data }) => data);
-    },
-    // 获取动态分组的主机列表
-    fetchHostOfDynamicGroup (params) {
-        return AppManageSource.getHostByDynamicGroupId(params)
-            .then(({ data }) => data.map(item => new DynamicGroupInfoVO(item)));
-    },
-    
-    fetchTopologyHost (params) {
-        return AppManageSource.getTopologyHost(params)
-            .then(({ data }) => data);
-    },
-
-    fetchTopogyIPs (params) {
-        return AppManageSource.getTopologyIPs(params)
-            .then(({ data }) => data);
-    },
-    
-    // IP选择器根据拓扑节点获取其子节点
-    fetchChildOfNode (params) {
-        return AppManageSource.getChildOfNode(params)
-            .then(({ data }) => data);
-    },
-    
-    fetchHostStatistics (params) {
-        return AppManageSource.getHostStatistics(params)
             .then(({ data }) => data);
     },
 };

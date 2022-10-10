@@ -28,43 +28,58 @@
 <template>
     <div class="sync-plan-side-anchor">
         <scroll-faker ref="scroll">
-            <div class="anchor-wraper" ref="anchor">
-                <div class="item-title">{{ $t('template.全局变量.label') }}</div>
+            <div
+                ref="anchor"
+                class="anchor-wraper">
+                <div class="item-title">
+                    {{ $t('template.全局变量.label') }}
+                </div>
                 <div
                     v-for="item in variable"
+                    :key="`variable_${item.id}_${item.name}`"
                     class="item"
                     :class="{
                         active: active === `variable_${item.id}_${item.name}`,
                     }"
-                    :key="`variable_${item.id}_${item.name}`"
                     :data-anchor="`variable_${item.id}_${item.name}`"
+                    @click="handleChoose(`variable_${item.id}_${item.name}`)"
                     @mouseenter="handleShowTips(item.name, `variable_${item.id}_${item.name}`)"
-                    @mouseleave="handleShowTips('', '')"
-                    @click="handleChoose(`variable_${item.id}_${item.name}`)">
-                    <div class="anchor-text">{{ item.name }}</div>
+                    @mouseleave="handleShowTips('', '')">
+                    <div class="anchor-text">
+                        {{ item.name }}
+                    </div>
                 </div>
-                <div class="item-title">{{ $t('template.作业步骤.label') }}</div>
+                <div class="item-title">
+                    {{ $t('template.作业步骤.label') }}
+                </div>
                 <div
                     v-for="item in step"
+                    :key="`step_${item.id}`"
                     class="item"
                     :class="{
                         active: active === `step_${item.id}`,
                     }"
-                    :key="`step_${item.id}`"
                     :data-anchor="`step_${item.id}`"
+                    @click="handleChoose(`step_${item.id}`)"
                     @mouseenter="handleShowTips(item.name, `step_${item.id}`)"
-                    @mouseleave="handleShowTips('', '')"
-                    @click="handleChoose(`step_${item.id}`)">
-                    <div class="anchor-text">{{ item.name }}</div>
+                    @mouseleave="handleShowTips('', '')">
+                    <div class="anchor-text">
+                        {{ item.name }}
+                    </div>
                 </div>
             </div>
-            <tips v-if="tips.name" :data="tips" :key="tips.name" />
+            <tips
+                v-if="tips.name"
+                :key="tips.name"
+                :data="tips" />
         </scroll-faker>
     </div>
 </template>
 <script>
     import _ from 'lodash';
+
     import { scrollTopSmooth } from '@utils/assist';
+
     import Tips from './tips';
 
     export default {

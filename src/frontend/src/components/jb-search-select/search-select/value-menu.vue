@@ -27,9 +27,10 @@
 
 <script>
     import _ from 'lodash';
+
+    import { encodeRegexp } from './helper';
     import locale from './locale';
     import Mixin from './mixin';
-    import { encodeRegexp } from './helper';
 
     export default {
         name: 'BKSearchValue',

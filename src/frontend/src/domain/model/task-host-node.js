@@ -29,12 +29,12 @@ export default class TaskHostNode {
     static isHostNodeInfoEmpty (hostNodeInfo) {
         const {
             dynamicGroupList,
-            ipList,
-            topoNodeList,
+            hostList,
+            nodeList,
         } = hostNodeInfo;
         return dynamicGroupList.length < 1
-            && ipList.length < 1
-            && topoNodeList.length < 1;
+            && hostList.length < 1
+            && nodeList.length < 1;
     }
     
     constructor (payload = {}) {
@@ -45,28 +45,28 @@ export default class TaskHostNode {
     get isEmpty () {
         const {
             dynamicGroupList,
-            ipList,
-            topoNodeList,
+            hostList,
+            nodeList,
         } = this.hostNodeInfo;
 
         return !this.variable
             && dynamicGroupList.length < 1
-            && ipList.length < 1
-            && topoNodeList.length < 1;
+            && hostList.length < 1
+            && nodeList.length < 1;
     }
 
     get text () {
         const {
             dynamicGroupList,
-            ipList,
-            topoNodeList,
+            hostList,
+            nodeList,
         } = this.hostNodeInfo;
         const strs = [];
-        if (ipList.length > 0) {
-            strs.push(`${ipList.length} ${I18n.t('台主机.result')}`);
+        if (hostList.length > 0) {
+            strs.push(`${hostList.length} ${I18n.t('台主机.result')}`);
         }
-        if (topoNodeList.length > 0) {
-            strs.push(`${topoNodeList.length} ${I18n.t('个节点.result')}`);
+        if (nodeList.length > 0) {
+            strs.push(`${nodeList.length} ${I18n.t('个节点.result')}`);
         }
         if (dynamicGroupList.length > 0) {
             strs.push(`${dynamicGroupList.length} ${I18n.t('个分组.result')}`);
@@ -76,15 +76,15 @@ export default class TaskHostNode {
 
     initHostNodeInfo (hostNodeInfo) {
         const {
-            ipList,
+            hostList,
             dynamicGroupList,
-            topoNodeList,
+            nodeList,
         } = hostNodeInfo;
 
         return Object.freeze({
-            ipList: ipList || [],
+            hostList: hostList || [],
             dynamicGroupList: dynamicGroupList || [],
-            topoNodeList: topoNodeList || [],
+            nodeList: nodeList || [],
         });
     }
 }

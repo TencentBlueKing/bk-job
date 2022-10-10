@@ -28,7 +28,11 @@
 <template>
     <div>
         <div class="home-card-layout">
-            <div v-if="title" class="card-title">{{ title }}</div>
+            <div
+                v-if="title"
+                class="card-title">
+                {{ title }}
+            </div>
             <slot />
         </div>
     </div>

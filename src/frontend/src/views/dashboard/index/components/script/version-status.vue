@@ -27,11 +27,13 @@
 
 <template>
     <card-layout
+        v-bkloading="{ isLoading, opacity: 0.8 }"
         class="script-version-dashboard"
-        :title="$t('dashboard.脚本版本状态分布')"
-        v-bkloading="{ isLoading, opacity: 0.8 }">
+        :title="$t('dashboard.脚本版本状态分布')">
         <div class="wraper">
-            <div ref="dashboard" style="width: 180px; height: 180px;" />
+            <div
+                ref="dashboard"
+                style="width: 180px; height: 180px;" />
             <div class="item-list">
                 <div
                     v-for="item in list"
@@ -46,14 +48,17 @@
     </card-layout>
 </template>
 <script>
-    import _ from 'lodash';
     import echarts from 'lib/echarts.min.js';
-    import I18n from '@/i18n';
+    import _ from 'lodash';
+
     import StatisticsService from '@service/statistics';
+
     import CardLayout from '../card-layout';
     import {
         chartsOptionsBase,
     } from '../common/assist';
+
+    import I18n from '@/i18n';
 
     const colorMap = {
         ONLINE: '#85CCA8',

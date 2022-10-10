@@ -26,18 +26,29 @@
 -->
 
 <template>
-    <div class="cron-job"
+    <div
+        class="cron-job"
         :class="[
             { 'is-error': isError },
             `error-${errorField}`,
             `select-${selectIndex}`,
         ]">
         <div class="time-describe">
-            <span class="time-text minute" @click="handleTimeTextChange('minute')">{{ $t('cron.分') }}</span>
-            <span class="time-text hour" @click="handleTimeTextChange('hour')">{{ $t('cron.时') }}</span>
-            <span class="time-text dayOfMonth" @click="handleTimeTextChange('dayOfMonth')">{{ $t('cron.日') }}</span>
-            <span class="time-text month" @click="handleTimeTextChange('month')">{{ $t('cron.月') }}</span>
-            <span class="time-text dayOfWeek" @click="handleTimeTextChange('dayOfWeek')">{{ $t('cron.周') }}</span>
+            <span
+                class="time-text minute"
+                @click="handleTimeTextChange('minute')">{{ $t('cron.分') }}</span>
+            <span
+                class="time-text hour"
+                @click="handleTimeTextChange('hour')">{{ $t('cron.时') }}</span>
+            <span
+                class="time-text dayOfMonth"
+                @click="handleTimeTextChange('dayOfMonth')">{{ $t('cron.日') }}</span>
+            <span
+                class="time-text month"
+                @click="handleTimeTextChange('month')">{{ $t('cron.月') }}</span>
+            <span
+                class="time-text dayOfWeek"
+                @click="handleTimeTextChange('dayOfWeek')">{{ $t('cron.周') }}</span>
         </div>
         <div class="time-input">
             <input
@@ -45,13 +56,15 @@
                 class="input"
                 type="text"
                 :value="nativeValue"
-                @input="handleInput"
                 @blur="handleBlur"
+                @input="handleInput"
                 @keyup.left="handleSelectText"
                 @keyup.right="handleSelectText"
                 @mousedown="handleSelectText">
         </div>
-        <div class="time-parse" v-if="parseValue.length > 1">
+        <div
+            v-if="parseValue.length > 1"
+            class="time-parse">
             <template v-if="parseValue[0]">
                 <span class="month">{{ parseValue[0] }}</span>
             </template>
@@ -67,22 +80,36 @@
             </template>
             <span class="minute">{{ parseValue[4] }}</span>
         </div>
-        <div v-if="nextTime.length > 0" class="time-next" :class="{ active: isTimeMore }">
-            <div class="label">{{ $t('cron.下次：') }}</div>
-            <div class="value">
-                <div v-for="(time, index) in nextTime" :key="`${time}_${index}`">{{ time }}</div>
+        <div
+            v-if="nextTime.length > 0"
+            class="time-next"
+            :class="{ active: isTimeMore }">
+            <div class="label">
+                {{ $t('cron.下次：') }}
             </div>
-            <div class="arrow" @click="handleShowMore">
-                <Icon type="angle-double-down" class="arrow-button" />
+            <div class="value">
+                <div
+                    v-for="(time, index) in nextTime"
+                    :key="`${time}_${index}`">
+                    {{ time }}
+                </div>
+            </div>
+            <div
+                class="arrow"
+                @click="handleShowMore">
+                <Icon
+                    class="arrow-button"
+                    type="angle-double-down" />
             </div>
         </div>
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import CronExpression from 'cron-parser-custom';
-    import Translate from '@utils/cron/translate';
+    import _ from 'lodash';
+
     import { prettyDateTimeFormat } from '@utils/assist';
+    import Translate from '@utils/cron/translate';
 
     const labelIndexMap = {
         minute: 0,

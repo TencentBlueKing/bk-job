@@ -26,8 +26,13 @@
 -->
 
 <template>
-    <div class="sync-plan-side-anchor-tips" :style="styles" ref="tips">
-        <div class="wraper" ref="content">
+    <div
+        ref="tips"
+        class="sync-plan-side-anchor-tips"
+        :style="styles">
+        <div
+            ref="content"
+            class="wraper">
             {{ data.name }}
         </div>
     </div>

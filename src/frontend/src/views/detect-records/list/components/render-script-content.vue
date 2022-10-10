@@ -28,16 +28,17 @@
 <template>
     <div class="render-script-content">
         <ace-editor
-            :value="scriptContent"
+            :custom-enable="false"
             :lang="lang"
             :options="[lang]"
-            :custom-enable="false"
-            readonly />
+            readonly
+            :value="scriptContent" />
     </div>
 </template>
 
 <script>
     import AceEditor from '@components/ace-editor';
+
     import { formatScriptTypeValue } from '@/utils/assist';
 
     export default {

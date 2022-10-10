@@ -26,46 +26,63 @@
 -->
 
 <template>
-    <div class="step-view-global-variable" @click="handlerView">
+    <div
+        class="step-view-global-variable"
+        @click="handlerView">
         <div class="flag">
             <Icon type="host" />
         </div>
-        <div class="name" :title="name">{{ name }}</div>
+        <div
+            class="name"
+            :title="name">
+            {{ name }}
+        </div>
         <jb-dialog
             v-model="isShowDetail"
-            :title="title"
-            :width="1020"
+            class="global-host-variable-detail-dialog"
             :ok-text="$t('template.关闭')"
-            class="global-host-variable-detail-dialog">
+            :title="title"
+            :width="1020">
             <template #header>
                 <div class="variable-title">
                     <span>{{ title }}</span>
-                    <i class="global-variable-dialog-close bk-icon icon-close" @click="handleClose" />
+                    <i
+                        class="global-variable-dialog-close bk-icon icon-close"
+                        @click="handleClose" />
                 </div>
             </template>
             <div class="content-wraper">
-                <Empty v-if="isEmpty" :title="$t('template.变量值为空')" style="height: 100%;" />
+                <Empty
+                    v-if="isEmpty"
+                    style="height: 100%;"
+                    :title="$t('template.变量值为空')" />
                 <scroll-faker v-else>
-                    <server-panel
+                    <!-- <server-panel
                         detail-mode="dialog"
-                        :host-node-info="hostNodeInfo" />
+                        :host-node-info="hostNodeInfo" /> -->
+                    <ip-selector
+                        readonly
+                        show-view
+                        :value="hostNodeInfo" />
                 </scroll-faker>
             </div>
         </jb-dialog>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskHostNodeModel from '@model/task-host-node';
-    import ScrollFaker from '@components/scroll-faker';
-    import ServerPanel from '@components/choose-ip/server-panel';
+
+    // import ServerPanel from '@components/choose-ip/server-panel';
     import Empty from '@components/empty';
+    import ScrollFaker from '@components/scroll-faker';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'StepViewGlobalVariable',
         components: {
             ScrollFaker,
-            ServerPanel,
+            // ServerPanel,
             Empty,
         },
         props: {

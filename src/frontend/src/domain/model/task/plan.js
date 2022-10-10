@@ -24,8 +24,9 @@
 */
 
 import _ from 'lodash';
-import PlanStepModel from '@model/task/plan-step';
+
 import GlobalVariableModel from '@model/task/global-variable';
+import PlanStepModel from '@model/task/plan-step';
 
 export default class Plan {
     constructor (payload) {

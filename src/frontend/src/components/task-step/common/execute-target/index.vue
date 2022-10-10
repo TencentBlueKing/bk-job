@@ -32,10 +32,10 @@
             'only-host': mode === 'onlyHost',
         }">
         <jb-form-item
-            :label="$t('目标服务器')"
-            required
             ref="targetServerRef"
+            :label="$t('目标服务器')"
             :property="property"
+            required
             :rules="rules">
             <div
                 ref="actionBox"
@@ -53,29 +53,35 @@
                     <!-- 作业步骤场景可以切换主机列表和主机变量 -->
                     <compose-form-item>
                         <bk-select
+                            :clearable="false"
                             :style="targetSelectorStyle"
                             :value="targetType"
-                            :clearable="false"
                             @change="handleTargetTypeChange">
-                            <bk-option id="variable" :name="$t('全局变量')" />
-                            <bk-option id="hostNodeInfo" :name="$t('手动添加')" />
+                            <bk-option
+                                id="variable"
+                                :name="$t('全局变量')" />
+                            <bk-option
+                                id="hostNodeInfo"
+                                :name="$t('手动添加')" />
                         </bk-select>
                         <template v-if="isGolbalVariableType">
                             <bk-select
                                 class="server-global-variable-select"
+                                :clearable="false"
                                 :placeholder="$t('请选择主机列表变量')"
                                 :value="localVariable"
-                                @change="handleVariableChange"
-                                :clearable="false">
+                                @change="handleVariableChange">
                                 <bk-option
                                     v-for="(item, index) in variable"
-                                    :key="index"
                                     :id="item.name"
+                                    :key="index"
                                     :name="item.name" />
                             </bk-select>
                         </template>
                         <template v-else>
-                            <bk-button class="w120 mr10" @click="handleShowChooseIp">
+                            <bk-button
+                                class="w120 mr10"
+                                @click="handleShowChooseIp">
                                 <Icon type="plus" />
                                 {{ $t('添加服务器') }}
                             </bk-button>
@@ -85,36 +91,42 @@
                 <template v-if="isShowServerAction">
                     <bk-dropdown-menu>
                         <bk-button
+                            slot="dropdown-trigger"
                             class="mr10"
-                            type="primary"
-                            slot="dropdown-trigger">
+                            type="primary">
                             <span>{{ $t('复制IP') }}</span>
-                            <Icon type="down-small" class="action-flag" />
+                            <Icon
+                                class="action-flag"
+                                type="down-small" />
                         </bk-button>
-                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                        <ul
+                            slot="dropdown-content"
+                            class="bk-dropdown-list">
                             <li><a @click="handleCopyAll">{{ $t('全部IP') }}</a></li>
                             <li><a @click="handleCopyFail">{{ $t('异常IP') }}</a></li>
                         </ul>
                     </bk-dropdown-menu>
-                    <bk-button class="mr10" @click="handleClearAll">
+                    <bk-button
+                        class="mr10"
+                        @click="handleClearAll">
                         <span>{{ $t('清空') }}</span>
                     </bk-button>
-                    <bk-button type="primary" @click="handleRefreshHost">
+                    <bk-button
+                        type="primary"
+                        @click="handleRefreshHost">
                         {{ $t('刷新状态') }}
                     </bk-button>
                 </template>
                 <bk-input
                     v-if="isShowHostSearchInput"
                     class="ip-search"
-                    :value="searchText"
                     :placeholder="$t('筛选主机')"
                     right-icon="bk-icon icon-search"
+                    :value="searchText"
                     @change="handleHostSearch" />
             </div>
-            <lower-component
-                level="custom"
-                :custom="isShowServerPanel">
-                <server-panel
+            
+            <!-- <server-panel
                     v-show="isShowServerPanel"
                     ref="serverPanel"
                     class="view-server-panel"
@@ -122,29 +134,40 @@
                     :search-mode="Boolean(searchText)"
                     :search-data="searchData"
                     editable
-                    @on-change="handleHostChange" />
-            </lower-component>
+                    @on-change="handleHostChange" /> -->
+            <ip-selector
+                ref="ipSelector"
+                :show-dialog="isShowChooseIp"
+                show-view
+                :value="localHost"
+                :view-search-key="searchText"
+                @change="handleHostChange"
+                @close-dialog="handleCloseIpSelector" />
         </jb-form-item>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="localHost"
-            @on-change="handleHostChange" />
+            @on-change="handleHostChange" /> -->
     </div>
 </template>
 <script>
     import _ from 'lodash';
+
     import TaskHostNodeModel from '@model/task-host-node';
-    import I18n from '@/i18n';
+
     import { execCopy } from '@utils/assist';
+
     import ComposeFormItem from '@components/compose-form-item';
-    import ChooseIp from '@components/choose-ip';
-    import ServerPanel from '@components/choose-ip/server-panel';
+
+    import I18n from '@/i18n';
+    // import ChooseIp from '@components/choose-ip';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
         components: {
             ComposeFormItem,
-            ChooseIp,
-            ServerPanel,
+            // ChooseIp,
+            // ServerPanel,
         },
         inheritAttrs: false,
         props: {
@@ -208,7 +231,7 @@
              * @returns {Boolean}
              */
             isClearFailDisabled () {
-                return this.localHost.ipList.length < 1;
+                return this.localHost.hostList.length < 1;
             },
             /**
              * @desc 选择的主机才显示主机搜索框
@@ -218,7 +241,7 @@
                 if (this.isGolbalVariableType) {
                     return false;
                 }
-                return this.localHost.ipList.length > 0;
+                return this.localHost.hostList.length > 0;
             },
             /**
              * @desc 切换执行目标选择的展示样式
@@ -301,7 +324,6 @@
                 if (!taskHostNode.isEmpty) {
                     this.$refs.targetServerRef.clearValidator();
                 }
-                console.log('from execute target = ', taskHostNode);
                 this.$emit('on-change', Object.freeze(taskHostNode));
             },
             /**
@@ -337,11 +359,14 @@
                     this.$refs.actionBox.scrollIntoView();
                 }, 500);
             },
+            handleCloseIpSelector () {
+                this.isShowChooseIp = false;
+            },
             /**
              * @desc 复制所有主机
              */
             handleCopyAll () {
-                const allIP = this.$refs.serverPanel.getAllIP();
+                const allIP = this.$refs.ipSelector.getHostIpList();
                 if (allIP.length < 1) {
                     this.messageWarn(I18n.t('你还未选择主机'));
                     return;
@@ -353,13 +378,13 @@
              * @desc 复制所有异常主机
              */
             handleCopyFail () {
-                const allFailIP = this.$refs.serverPanel.getAllIP(true);
-                if (allFailIP.length < 1) {
+                const abnormalHostIpList = this.$refs.ipSelector.getNotAlivelHostIpList();
+                if (abnormalHostIpList.length < 1) {
                     this.messageWarn(I18n.t('暂无异常主机'));
                     return;
                 }
                 
-                execCopy(allFailIP.join('\n'), `${I18n.t('复制成功')}（${allFailIP.length}${I18n.t('个IP')}）`);
+                execCopy(abnormalHostIpList.join('\n'), `${I18n.t('复制成功')}（${abnormalHostIpList.length}${I18n.t('个IP')}）`);
             },
             /**
              * @desc 复制所有主机数据
@@ -374,7 +399,7 @@
              * @desc 刷新所有主机的状态信息
              */
             handleRefreshHost () {
-                this.$refs.serverPanel.refresh();
+                this.$refs.ipSelector.refresh();
             },
             /**
              * @desc 筛选主机
@@ -382,7 +407,7 @@
              */
             handleHostSearch (search) {
                 this.searchText = _.trim(search);
-                this.searchData = Object.freeze(this.$refs.serverPanel.getAllHost(search));
+                // this.searchData = Object.freeze(this.$refs.serverPanel.getAllHost(search));
             },
         },
     };

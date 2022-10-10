@@ -26,14 +26,16 @@
 -->
 
 <template>
-    <div class="variable-type-host" :class="{ 'variable-value-error': isError }">
+    <div
+        class="variable-type-host"
+        :class="{ 'variable-value-error': isError }">
         <div>
             <div>
                 <bk-button
+                    v-bk-tooltips="descPopover"
                     class="mr10"
                     :disabled="readonly"
-                    @click="handleChooseIp"
-                    v-bk-tooltips="descPopover">
+                    @click="handleChooseIp">
                     <Icon type="plus" />
                     {{ $t('添加服务器') }}
                 </bk-button>
@@ -44,32 +46,44 @@
                     {{ $t('清空') }}
                 </bk-button>
             </div>
-            <server-panel
+            <ip-selector
+                :origianl-value="originalHostNodeInfo"
+                :show-dialog="isShowChooseIp"
+                :value="hostNodeInfo"
+                @change="handleChange"
+                @close-dialog="handleCloseIpSelector" />
+            <!-- <server-panel
                 v-show="isNotEmpty"
                 ref="choostIP"
                 class="host-value-panel"
                 :host-node-info="hostNodeInfo"
                 detail-fullscreen
                 :editable="!readonly"
-                @on-change="handleChange" />
-            <p v-if="isError" class="variable-error">{{ $t('该变量的值必填') }}</p>
+                @on-change="handleChange" /> -->
+            <p
+                v-if="isError"
+                class="variable-error">
+                {{ $t('该变量的值必填') }}
+            </p>
         </div>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="hostNodeInfo"
-            @on-change="handleChange" />
+            @on-change="handleChange" /> -->
     </div>
 </template>
 <script>
+    import _ from 'lodash';
+
     import TaskHostNodeModel from '@model/task-host-node';
-    import ChooseIp from '@components/choose-ip';
-    import ServerPanel from '@components/choose-ip/server-panel';
+    // import ChooseIp from '@components/choose-ip';
+    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
-        components: {
-            ChooseIp,
-            ServerPanel,
-        },
+        // components: {
+        //     ChooseIp,
+        //     ServerPanel,
+        // },
         props: {
             data: {
                 type: Object,
@@ -84,6 +98,7 @@
             return {
                 isShowChooseIp: false,
                 hostNodeInfo: {},
+                originalHostNodeInfo: {},
             };
         },
         computed: {
@@ -120,6 +135,7 @@
                 } else {
                     this.hostNodeInfo = this.data.targetValue.hostNodeInfo;
                 }
+                this.originalHostNodeInfo = Object.freeze(_.cloneDeep(this.hostNodeInfo));
             },
             /**
              * @desc 外部调用——移除无效主机
@@ -133,6 +149,9 @@
              */
             handleChooseIp () {
                 this.isShowChooseIp = true;
+            },
+            handleCloseIpSelector () {
+                this.isShowChooseIp = false;
             },
             /**
              * @desc 清空主机列表

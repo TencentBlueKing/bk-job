@@ -25,7 +25,9 @@
 
 /* eslint-disable no-param-reassign */
 import Cookie from 'js-cookie';
+
 import UserModel from '@model/user';
+
 import UserSource from '../source/user';
 
 export default {

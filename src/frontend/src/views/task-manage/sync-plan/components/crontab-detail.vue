@@ -27,32 +27,40 @@
 
 <template>
     <div
+        v-bkloading="{ isLoading }"
         class="job-detail"
         :class="{
             'is-loading': isLoading,
-        }"
-        v-bkloading="{ isLoading }">
+        }">
         <bk-alert :title="$t('template.同步执行方案需要重新确认定时任务的全局变量，不使用的定时任务可以直接停用。')" />
         <div class="title">
             <span>「{{ info.name }}」{{ $t('template.的全局变量') }}</span>
-            <span v-if="!data.enable" class="disable">{{ $t('template.已停用') }}</span>
-            <span v-else-if="data.hasConfirm" class="confirm">{{ $t('template.已确认') }}</span>
-            <span v-else class="waiting">{{ $t('template.待确认') }}</span>
+            <span
+                v-if="!data.enable"
+                class="disable">{{ $t('template.已停用') }}</span>
+            <span
+                v-else-if="data.hasConfirm"
+                class="confirm">{{ $t('template.已确认') }}</span>
+            <span
+                v-else
+                class="waiting">{{ $t('template.待确认') }}</span>
         </div>
         <div v-if="!isLoading">
             <empty v-if="isEmpty">
                 <p>{{ $t('template.无关联的全局变量') }}</p>
-                <p style="margin-top: 8px;">{{ $t('template.已直接确认') }}</p>
+                <p style="margin-top: 8px;">
+                    {{ $t('template.已直接确认') }}
+                </p>
             </empty>
             <global-variable-layout v-else>
                 <div>
                     <global-variable
                         v-for="variable in info.variableValue"
-                        ref="variable"
-                        :type="variable.type"
                         :key="variable.id"
+                        ref="variable"
+                        :data="variable"
                         :readonly="readonly"
-                        :data="variable" />
+                        :type="variable.type" />
                 </div>
                 <div class="global-variable-action">
                     <div class="variable-name">
@@ -61,9 +69,9 @@
                     <div class="variable-value">
                         <template v-if="isEditing">
                             <bk-button
-                                theme="primary"
                                 class="job-button"
                                 :disabled="!data.enable"
+                                theme="primary"
                                 @click="handleSubmit">
                                 {{ $t('template.确认') }}
                             </bk-button>
@@ -76,9 +84,9 @@
                         </template>
                         <bk-button
                             v-else
-                            theme="primary"
                             class="job-button"
                             :disabled="!data.enable"
+                            theme="primary"
                             @click="handleToggleEdit">
                             {{ $t('template.编辑') }}
                         </bk-button>
@@ -90,11 +98,14 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TimeTaskService from '@service/time-task';
-    import GlobalVariableLayout from '@components/global-variable/layout';
-    import GlobalVariable from '@components/global-variable/edit';
+
     import Empty from '@components/empty';
+    import GlobalVariable from '@components/global-variable/edit';
+    import GlobalVariableLayout from '@components/global-variable/layout';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

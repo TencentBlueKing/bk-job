@@ -27,7 +27,9 @@
 
 <template>
     <div class="card-layout">
-        <div class="card-layout-title">{{ title }}</div>
+        <div class="card-layout-title">
+            {{ title }}
+        </div>
         <slot />
     </div>
 </template>

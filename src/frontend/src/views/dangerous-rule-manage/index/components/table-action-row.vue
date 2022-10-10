@@ -56,9 +56,9 @@
                     show-select-all>
                     <bk-option
                         v-for="item in scriptTypeList"
+                        :id="item.id"
                         :key="item.id"
-                        :name="item.name"
-                        :id="item.id" />
+                        :name="item.name" />
                 </bk-select>
             </td>
             <td>
@@ -66,11 +66,11 @@
                     v-model="formData.action"
                     :clearable="false">
                     <bk-option
-                        :name="$t('dangerousRule.扫描')"
-                        :id="1" />
+                        :id="1"
+                        :name="$t('dangerousRule.扫描')" />
                     <bk-option
-                        :name="$t('dangerousRule.拦截')"
-                        :id="2" />
+                        :id="2"
+                        :name="$t('dangerousRule.拦截')" />
                 </bk-select>
             </td>
             <td>
@@ -89,9 +89,10 @@
     </tbody>
 </template>
 <script>
-    import I18n from '@/i18n';
     import DangerousRuleService from '@service/dangerous-rule';
     import PublicScriptManageService from '@service/public-script-manage';
+
+    import I18n from '@/i18n';
 
     const generatorDefautlData = () => ({
         expression: '',

@@ -26,13 +26,23 @@
 -->
 
 <template>
-    <transition name="host-sideslider" :duration="300">
+    <transition
+        :duration="300"
+        name="host-sideslider">
         <div v-if="value">
-            <div class="sideslider-box" :style="styles">
-                <div class="container" @click.stop="">
+            <div
+                class="sideslider-box"
+                :style="styles">
+                <div
+                    class="container"
+                    @click.stop="">
                     <div class="box-header">
-                        <div class="toggle-btn" @click="handleClose">
-                            <Icon class="btn-flag" type="down-small" />
+                        <div
+                            class="toggle-btn"
+                            @click="handleClose">
+                            <Icon
+                                class="btn-flag"
+                                type="down-small" />
                         </div>
                         <div class="box-title">
                             <slot name="title" />
@@ -47,10 +57,16 @@
                         </scroll-faker>
                     </div>
                     <div class="box-footer">
-                        <bk-button theme="primary" @click="handleClose">{{ $t('关闭') }}</bk-button>
+                        <bk-button
+                            theme="primary"
+                            @click="handleClose">
+                            {{ $t('关闭') }}
+                        </bk-button>
                     </div>
                 </div>
-                <div class="box-mask" @click="handleClose" />
+                <div
+                    class="box-mask"
+                    @click="handleClose" />
             </div>
         </div>
     </transition>

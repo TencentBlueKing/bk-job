@@ -27,7 +27,9 @@
 
 <template>
     <div id="templateVariableRender">
-        <div v-if="showEmpty">--</div>
+        <div v-if="showEmpty">
+            --
+        </div>
         <template v-else>
             <div class="variable-batch-action">
                 <bk-button
@@ -62,22 +64,26 @@
                         <div
                             class="global-variable-content"
                             :class="[diff[item.id] && diff[item.id].type]"
+                            @click="handlerOperation(item, index)"
                             @mouseenter="handleShowPopoverDetail(item)"
-                            @mouseleave="handleHidePopoverDetail"
-                            @click="handlerOperation(item, index)">
+                            @mouseleave="handleHidePopoverDetail">
                             <div
                                 :id="`globalVariableWithName_${item.name}`"
                                 class="variable-type">
                                 <Icon :type="item.icon" />
                             </div>
                             <div class="variable-info">
-                                <div class="variable-name">{{ item.name }}</div>
-                                <div class="variable-description">{{ item.valueText }}</div>
+                                <div class="variable-name">
+                                    {{ item.name }}
+                                </div>
+                                <div class="variable-description">
+                                    {{ item.valueText }}
+                                </div>
                             </div>
                             <Icon
                                 v-if="isOperation"
-                                type="close"
                                 class="variable-delete-btn"
+                                type="close"
                                 @click.stop="handleDelete(index)" />
                         </div>
                     </div>
@@ -87,18 +93,20 @@
                     key="create"
                     class="global-variable-new">
                     <div
-                        class="new-btn"
                         v-test="{ type: 'button', value: 'create_global_variable' }"
+                        class="new-btn"
                         @click="handleCreate">
-                        <Icon type="plus" class="create-flag" />
+                        <Icon
+                            class="create-flag"
+                            type="plus" />
                         <span>{{ $t('template.全局变量.label') }}</span>
                     </div>
                     <div
+                        v-bk-tooltips="$t('template.使用指引')"
                         class="use-guide"
                         :class="{
                             active: isShowUseGuide,
                         }"
-                        v-bk-tooltips="$t('template.使用指引')"
                         @click.stop="handleUseGuideToggle">
                         <Icon type="help-document-fill" />
                     </div>
@@ -107,9 +115,9 @@
             <popover-detail
                 v-if="currentPopoverDetail.name"
                 :data="currentPopoverDetail"
-                :select-value="selectValue"
+                :default-field="defaultField"
                 :edit-of-plan="isEditOfPlan"
-                :default-field="defaultField" />
+                :select-value="selectValue" />
             <element-teleport
                 v-if="isOperation && isShowUseGuide"
                 target="#globalVariableGuide">
@@ -118,11 +126,11 @@
             </element-teleport>
             <jb-sideslider
                 v-if="isView || isEditOfPlan"
-                :is-show.sync="isShowDetail"
-                :title="$t('template.查看全局变量')"
-                :show-footer="false"
                 ref="variableView"
-                :media="detailMedia">
+                :is-show.sync="isShowDetail"
+                :media="detailMedia"
+                :show-footer="false"
+                :title="$t('template.查看全局变量')">
                 <detail
                     v-if="isShowDetail"
                     :data="currentData"
@@ -141,11 +149,11 @@
             </jb-sideslider>
             <jb-sideslider
                 v-if="isEditOfPlan"
+                footer-offset-target="variable-value"
                 :is-show.sync="isShowBatchEditOfPlan"
-                :title="$t('template.批量编辑变量值')"
-                :width="960"
                 :ok-text="$t('template.确定')"
-                footer-offset-target="variable-value">
+                :title="$t('template.批量编辑变量值')"
+                :width="960">
                 <batch-edit-of-plan
                     v-if="isShowBatchEditOfPlan"
                     ref="planGlobalVar"
@@ -161,15 +169,15 @@
                 <operation
                     v-if="isShowOperation"
                     ref="globalVar"
-                    :variable="realVariable"
                     :data="currentData"
+                    :variable="realVariable"
                     @on-change="handleOperationSubmit" />
             </jb-sideslider>
             <jb-sideslider
                 v-if="isOperation"
                 :is-show.sync="isShowBatchOperation"
-                :title="$t('template.批量编辑变量')"
-                :media="batchOperationMediaQuery">
+                :media="batchOperationMediaQuery"
+                :title="$t('template.批量编辑变量')">
                 <batch-operation
                     v-if="isShowBatchOperation"
                     :variable="variable"
@@ -180,15 +188,18 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import VariableModel from '@model/task/global-variable';
-    import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
-    import Operation from './operation';
+
+    import BatchEditOfPlan from './batch-edit-of-plan';
     import BatchOperation from './batch-operation';
     import Detail from './detail';
     import EditOfPlan from './edit-of-plan';
-    import BatchEditOfPlan from './batch-edit-of-plan';
+    import Operation from './operation';
     import PopoverDetail from './popover-detail';
+
+    import I18n from '@/i18n';
+    import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
 
     export default {
         name: 'RenderGlobalVar',
@@ -441,7 +452,6 @@
              * @param {Object} payload 全局变量数据
              */
             handleOperationSubmit (payload) {
-                console.log('from handleOperationSubmit = ', payload);
                 const payloadModel = new VariableModel(payload);
                 if (this.currentOperation === 'create') {
                     // 新建变量——追加

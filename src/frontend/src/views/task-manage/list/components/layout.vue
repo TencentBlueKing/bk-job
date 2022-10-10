@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div ref="handler" class="task-layout">
+    <div
+        ref="handler"
+        class="task-layout">
         <div
             :class="{
                 'layout-left': true,
@@ -39,8 +41,13 @@
             </scroll-faker>
         </div>
         <div class="layout-right">
-            <div class="toggle-button" @click="handleToggle">
-                <Icon type="down-small" class="toggle-arrow" :class="{ open: isOpen }" />
+            <div
+                class="toggle-button"
+                @click="handleToggle">
+                <Icon
+                    class="toggle-arrow"
+                    :class="{ open: isOpen }"
+                    type="down-small" />
             </div>
             <slot />
         </div>

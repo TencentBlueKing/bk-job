@@ -27,13 +27,14 @@
 
 <template>
     <source-file
-        mode="onlyHost"
         :data="fileSources"
         :field="field"
+        mode="onlyHost"
         @on-change="handleSourceFileChange" />
 </template>
 <script>
     import SourceFileVO from '@domain/variable-object/source-file';
+
     import SourceFile from '../../common/source-file';
 
     export default {

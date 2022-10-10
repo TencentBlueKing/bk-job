@@ -31,25 +31,26 @@
             ref="select"
             v-bind="$attrs"
             :clearable="false"
+            ext-popover-cls="account-select-menu-list"
+            searchable
             :value="value"
             @change="handleChange"
-            @toggle="handleClick"
-            ext-popover-cls="account-select-menu-list"
-            searchable>
-            <template v-for="option in accountList">
-                <auth-option
-                    :key="option.id"
-                    :id="option.id"
-                    :name="option.alias"
-                    :permission="option.canUse"
-                    :resource-id="option.id"
-                    auth="account/use">
-                    <div>{{ option.alias }}</div>
-                </auth-option>
-            </template>
+            @toggle="handleClick">
+            <auth-option
+                v-for="option in accountList"
+                :id="option.id"
+                :key="option.id"
+                auth="account/use"
+                :name="option.alias"
+                :permission="option.canUse"
+                :resource-id="option.id">
+                <div>{{ option.alias }}</div>
+            </auth-option>
             <template slot="extension">
                 <auth-component auth="account/create">
-                    <div @click="handleCreate" style="cursor: pointer;">
+                    <div
+                        style="cursor: pointer;"
+                        @click="handleCreate">
                         <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建账号') }}
                     </div>
                     <div slot="forbid">

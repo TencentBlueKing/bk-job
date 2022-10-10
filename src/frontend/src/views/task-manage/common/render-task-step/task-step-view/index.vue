@@ -26,25 +26,33 @@
 -->
 
 <template>
-    <detail-layout mode="see" class="detail-layout-wrapper">
-        <detail-item :label="$t('template.步骤类型：')">{{ stepTypeText }}</detail-item>
-        <detail-item :label="$t('template.步骤名称：')">{{ data.name }}</detail-item>
+    <detail-layout
+        class="detail-layout-wrapper"
+        mode="see">
+        <detail-item :label="$t('template.步骤类型：')">
+            {{ stepTypeText }}
+        </detail-item>
+        <detail-item :label="$t('template.步骤名称：')">
+            {{ data.name }}
+        </detail-item>
         <component
-            ref="stepCom"
             :is="stepCom"
-            :variable="variable"
-            :data="data">
+            ref="stepCom"
+            :data="data"
+            :variable="variable">
             <slot />
         </component>
     </detail-layout>
 </template>
 <script>
-    import I18n from '@/i18n';
     import DetailLayout from '@components/detail-layout';
     import DetailItem from '@components/detail-layout/item';
+
+    import StepApproval from './approval';
     import StepDistroFile from './distro-file';
     import StepExecScript from './exec-script';
-    import StepApproval from './approval';
+
+    import I18n from '@/i18n';
 
     const STEP_TYPE_LIST = {
         1: I18n.t('template.执行脚本'),

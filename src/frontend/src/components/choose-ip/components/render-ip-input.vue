@@ -30,51 +30,55 @@
         <div @click="handleInputClick">
             <bk-input
                 ref="input"
-                type="textarea"
                 :class="{
                     'focus-error': isFocusError,
                 }"
-                :rows="inputRows"
-                :value="ipInputText"
                 :placeholder="$t('请输入 IP 地址，多IP可用 空格 换行 ; , |分隔 \n带云区域请用冒号分隔，如（ 0:192.168.1.101 ）')"
+                :rows="inputRows"
+                type="textarea"
+                :value="ipInputText"
                 @change="handleIPChange" />
         </div>
         <div class="input-action">
-            <div v-if="isError" class="input-error">
+            <div
+                v-if="isError"
+                class="input-error">
                 <div>{{ $t('以上内容存在错误：') }}</div>
                 <div v-if="invalidIPList.length > 0">
                     <span>{{ $t('IP 在本业务下不存在') }}</span>
                     <Icon
-                        type="ip-audit"
-                        class="error-action"
                         v-bk-tooltips="$t('标识错误')"
+                        class="error-action"
+                        type="ip-audit"
                         @click="handleHighlightInvilad" />
                     <Icon
-                        type="delete"
-                        class="error-action"
                         v-bk-tooltips="$t('一键清除')"
+                        class="error-action"
+                        type="delete"
                         @click="handleRemoveInvalid" />
                 </div>
-                <div v-if="invalidIPList.length > 0 && errorIPList.length > 0">；</div>
+                <div v-if="invalidIPList.length > 0 && errorIPList.length > 0">
+                    ；
+                </div>
                 <div v-if="errorIPList.length > 0">
                     <span>{{ $t('内容格式错误，无法识别') }}</span>
                     <Icon
-                        type="ip-audit"
-                        class="error-action"
                         v-bk-tooltips="$t('标识错误')"
+                        class="error-action"
+                        type="ip-audit"
                         @click="handleHightlightError" />
                     <Icon
-                        type="delete"
-                        class="error-action"
                         v-bk-tooltips="$t('一键清除')"
+                        class="error-action"
+                        type="delete"
                         @click="handleRemoveError" />
                 </div>
             </div>
             <bk-button
                 class="submit-btn"
-                theme="primary"
-                outline
                 :loading="isSubmiting"
+                outline
+                theme="primary"
                 @click="handleAddHost">
                 <span>{{ $t('添加到已选择') }}</span>
                 <div
@@ -89,7 +93,9 @@
 </template>
 <script>
     import _ from 'lodash';
-    import AppManageService from '@service/app-manage';
+
+    import HostManageService from '@service/host-manage';
+
     import { encodeRegexp } from '@utils/assist';
 
     export default {
@@ -247,7 +253,7 @@
                     params.actionScope = window.IPInputScope;
                 }
 
-                AppManageService.fetchHostOfHost(params)
+                HostManageService.fetchHostOfHost(params)
                     .then((data) => {
                         // 输入的有效 IP
                         const resultIPList = [];
