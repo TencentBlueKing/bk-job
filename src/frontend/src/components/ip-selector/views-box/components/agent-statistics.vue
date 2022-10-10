@@ -11,8 +11,7 @@
         <template v-else>
             <template v-if="data">
                 <div
-                    class="statistics-item statistics-item-btn"
-                    @click="handleClick('')">
+                    class="statistics-item statistics-item-btn">
                     共<span class="bk-ip-selector-number">{{ data.total_count }}</span>台主机
                 </div>
                 <div
@@ -40,12 +39,6 @@
             default: true,
         },
     });
-
-    const emits = defineEmits(['select']);
-
-    const handleClick = (agentStatus) => {
-        emits('select', agentStatus);
-    };
 
 </script>
 <style lang="postcss">

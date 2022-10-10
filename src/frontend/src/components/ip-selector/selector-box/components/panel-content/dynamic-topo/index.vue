@@ -239,9 +239,7 @@
 
     // 选择节点，查看节点的子节点和主机列表
     const handleNodeSelect = (node) => {
-        renderTableType.value = 'node';
         selectedTopoNode.value = node;
-        console.log('from handleNodeSelect = ', node);
     };
 
     // 在拓扑树中选中节点

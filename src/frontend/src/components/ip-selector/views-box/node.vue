@@ -45,7 +45,7 @@
                             <diff-tag :value="diffMap[genNodeKey(row)]" />
                         </div>
                     </td>
-                    <td>
+                    <td @click="handleShowHostList(row)">
                         <render-agent-statistics
                             :data="nodeAgentStaticMap[genNodeKey(row)]"
                             :loading="isAgentStatisticsLoading" />
