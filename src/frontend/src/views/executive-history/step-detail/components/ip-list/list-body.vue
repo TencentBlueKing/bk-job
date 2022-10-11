@@ -52,7 +52,9 @@
                     v-for="(showKey, colIndex) in showColumns"
                     :key="showKey"
                     :class="colIndex === 0 && item.result">
-                    {{ item[showKey] }}
+                    <div class="cell-text">
+                        {{ item[showKey] || '--' }}
+                    </div>
                 </td>
                 <td class="active-flag">
                     <Icon
