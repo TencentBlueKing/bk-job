@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -392,5 +394,11 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public List<Long> listTaskInstanceId(Long appId, Long fromTime, Long toTime, int offset, int limit) {
         return taskInstanceDAO.listTaskInstanceId(appId, fromTime, toTime, offset, limit);
+    }
+
+    @Override
+    public void saveTaskInstanceHosts(long taskInstanceId,
+                                      Collection<HostDTO> hosts) {
+        taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
     }
 }
