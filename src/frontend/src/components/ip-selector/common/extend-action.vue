@@ -33,6 +33,7 @@
             position: absolute;
             top: 20px;
             left: 0;
+            z-index: 1;
             display: none;
             font-size: 12px;
             line-height: 32px;

@@ -8,11 +8,12 @@
             flex-direction="left">
             <div class="tree-box">
                 <bk-input
+                    v-model="searchKey"
                     placeholder="搜索动态分组名称"
                     style="margin-bottom: 12px;" />
                 <div class="dynamic-group-list">
                     <div
-                        v-for="item in dynamicGroupList"
+                        v-for="item in renderDynamicGroupList"
                         :key="item.id"
                         class="dynamic-group-item"
                         :class="{
@@ -90,6 +91,7 @@
 </script>
 <script setup>
     import {
+        computed,
         reactive,
         ref,
         shallowRef,
@@ -98,10 +100,14 @@
 
     import IpSelectorIcon from '../../../common/ip-selector-icon';
     import RenderHostTable from '../../../common/render-table/host/index.vue';
+    import useDebouncedRef from '../../../hooks/use-debounced-ref';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import useFetchConfig from '../../../hooks/use-fetch-config';
     import Manager from '../../../manager';
-    import { getPaginationDefault } from '../../../utils';
+    import {
+        encodeRegexp,
+        getPaginationDefault,
+} from '../../../utils';
     import ResizeLayout from '../resize-layout.vue';
 
     const props = defineProps({
@@ -118,6 +124,7 @@
         'change',
     ]);
 
+    const searchKey = useDebouncedRef();
     const tableOffetTop = 20;
     const {
         contentHeight: dialogContentHeight,
@@ -142,6 +149,19 @@
 
     const selectGroupId = ref();
 
+    const renderDynamicGroupList = computed(() => {
+        if (!searchKey.value) {
+            return dynamicGroupList.value;
+        }
+        const searchRule = new RegExp(encodeRegexp(searchKey.value), 'i');
+        return dynamicGroupList.value.reduce((result, item) => {
+            if (searchRule.test(item.name)) {
+                result.push(item);
+            }
+            return result;
+        }, []);
+    });
+
     // 同步外部值
     watch(() => props.lastDynamicGroupList, (lastDynamicGroupList) => {
         dynamicGroupCheckedMap.value = lastDynamicGroupList.reduce((result, dynamicGroupItem) => {
@@ -152,13 +172,14 @@
         immediate: true,
     });
     
-    // 获取分组列表
+    // 获取动态分组列表
     const fetchDynamicGroups = () => {
         isDynamicGroupLoading.value = true;
         Manager.service.fetchDynamicGroups()
             .then((data) => {
                 dynamicGroupList.value = Object.freeze(data);
                 if (data.length > 0) {
+                    // 默认选择第一个动态分组
                     handleGroupSelect(data[0]);
                     // 异步获取分组的主机数
                     isDynamicGroupHostCountLoading.value = true;
@@ -186,7 +207,7 @@
 
     fetchDynamicGroups();
 
-    // 获取选中分组的主机列表
+    // 获取选中动态分组的主机列表
     const fetchDynamicGroupHostList = () => {
         isHostListLoading.value = true;
         Manager.service.fetchHostsDynamicGroup({
@@ -203,15 +224,16 @@
         });
     };
 
+    // 动态分组的更新状态
     const checkLastStatus = dynamicGroupData => new Date(dynamicGroupData.last_time).getTime() >= Date.now() - 86400000;
 
-    // 查看分组的主机列表
+    // 查看动态分组的主机列表
     const handleGroupSelect = (group) => {
         selectGroupId.value = group.id;
         fetchDynamicGroupHostList();
     };
 
-    // 选中分组
+    // 选中动态分组
     const handleGroupCheck = (groupData, checked) => {
         const checkedMap = { ...dynamicGroupCheckedMap.value };
         if (checked) {
@@ -254,6 +276,10 @@
                 &.active {
                     color: #3a84ff;
                     background: #e1ecff;
+
+                    .dynamic-group-tag {
+                        color: #3a84ff;
+                    }
                 }
 
                 &:hover {
