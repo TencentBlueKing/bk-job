@@ -9,6 +9,7 @@
             <div class="tree-box">
                 <bk-input
                     v-model="searchKey"
+                    clearable
                     placeholder="搜索动态分组名称"
                     style="margin-bottom: 12px;" />
                 <div class="dynamic-group-list">

@@ -22,6 +22,7 @@
         align-items: center;
 
         &:hover {
+            color: #3a84ff;
             background: #e1ecff;
 
             .action-menu {

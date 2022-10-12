@@ -6,6 +6,7 @@
             <template v-if="props.node.children.length > 0">
                 <bk-input
                     v-model="searchKey"
+                    clearable
                     placeholder="请输入节点名称搜索"
                     style="margin: 12px 0;" />
                 <render-node-table

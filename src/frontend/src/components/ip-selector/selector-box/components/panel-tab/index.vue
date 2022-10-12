@@ -14,7 +14,7 @@
                 :active="value === 'staticTopo'"
                 :disabled="isUnqiuePanelValue && uniqueType !== 'staticTopo'"
                 @change="handleChange('staticTopo')">
-                静态拓扑
+                <span>静态拓扑</span>
             </tab-item>
             <tab-item
                 v-else-if="panelName === 'dynamicTopo'"
@@ -22,7 +22,7 @@
                 :active="value === 'dynamicTopo'"
                 :disabled="isUnqiuePanelValue && uniqueType !== 'dynamicTopo'"
                 @change="handleChange('dynamicTopo')">
-                动态拓扑
+                <span>动态拓扑</span>
             </tab-item>
             <tab-item
                 v-else-if="panelName === 'dynamicGroup'"
@@ -30,7 +30,7 @@
                 :active="value === 'dynamicGroup'"
                 :disabled="isUnqiuePanelValue && uniqueType !== 'dynamicGroup'"
                 @change="handleChange('dynamicGroup')">
-                动态分组
+                <span>动态分组</span>
             </tab-item>
             <tab-item
                 v-else-if="panelName === 'serviceTemplate'"
@@ -38,7 +38,7 @@
                 :active="value === 'serviceTemplate'"
                 :disabled="isUnqiuePanelValue && uniqueType !== 'serviceTemplate'"
                 @change="handleChange('serviceTemplate')">
-                服务模板
+                <span>服务模板</span>
             </tab-item>
             <tab-item
                 v-else-if="panelName === 'setTemplate'"
@@ -46,7 +46,7 @@
                 :active="value === 'setTemplate'"
                 :disabled="isUnqiuePanelValue && uniqueType !== 'setTemplate'"
                 @change="handleChange('setTemplate')">
-                集群模板
+                <span>集群模板</span>
             </tab-item>
             <tab-item
                 v-else-if="panelName === 'manualInput'"
@@ -54,7 +54,7 @@
                 :active="value === 'manualInput'"
                 :disabled="isUnqiuePanelValue && uniqueType !== 'staticTopo'"
                 @change="handleChange('manualInput')">
-                手动输入
+                <span>手动输入</span>
             </tab-item>
         </template>
     </vuedraggable>
@@ -213,8 +213,17 @@
         }
 
         .ghost {
-            background: #c8ebfb;
-            opacity: 50%;
+            background: #eaebf0;
+
+            & > * {
+                display: none;
+            }
+
+            &::before {
+                font-size: 12px;
+                color: #c4c6cc;
+                content: "放在这里";
+            }
         }
     }
 </style>

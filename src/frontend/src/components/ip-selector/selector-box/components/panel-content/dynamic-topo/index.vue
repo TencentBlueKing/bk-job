@@ -7,6 +7,7 @@
             <div class="tree-box">
                 <bk-input
                     v-model="filterKey"
+                    clearable
                     placeholder="搜索拓扑节点"
                     style="margin-bottom: 12px;" />
                 <bk-big-tree

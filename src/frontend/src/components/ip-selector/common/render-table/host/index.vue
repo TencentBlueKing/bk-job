@@ -46,7 +46,7 @@
                                 style="width: 60px;" />
                             <th
                                 v-if="showSetting"
-                                style="width: 40px;">
+                                style="width: 40px; border-left: 1px solid #dcdee5;">
                                 <column-setting
                                     :selected-list="columnKeyRenderList"
                                     :sort-list="columnKeySortList"
