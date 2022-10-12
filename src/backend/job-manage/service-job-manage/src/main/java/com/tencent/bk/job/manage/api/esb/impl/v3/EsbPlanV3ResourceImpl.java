@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPlanV3Resource;
 import com.tencent.bk.job.manage.auth.PlanAuthService;
+import com.tencent.bk.job.manage.manager.variable.StepRefVariableParser;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPlanDetailV3Request;
@@ -185,6 +186,9 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
+
+                // 解析步骤引用全局变量的信息
+                StepRefVariableParser.parseStepRefVars(taskPlanInfo.getStepList(), taskPlanInfo.getVariableList());
                 return EsbResp.buildSuccessResp(TaskPlanInfoDTO.toEsbPlanInfoV3(taskPlanInfo));
             }
             return EsbResp.buildSuccessResp(null);
