@@ -22,43 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.backup.archive.impl;
 
-import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
+import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import org.jooq.generated.tables.records.TaskInstanceHostRecord;
 
 /**
- * 作业实例查询条件
+ * gse_task 表归档
  */
-@Data
-public class TaskInstanceQuery {
-    private Long appId;
-    private String operator;
-    private String taskName;
-    private Long taskInstanceId;
-    private Long cronTaskId;
-    private RunStatusEnum status;
-    private List<TaskStartupModeEnum> startupModes;
-    private TaskTypeEnum taskType;
-    private Long startTime;
-    private Long endTime;
-    private Long minTotalTimeMills;
-    private Long maxTotalTimeMills;
-    private String ip;
-    private String ipv6;
+public class TaskInstanceHostArchivist extends AbstractArchivist<TaskInstanceHostRecord> {
 
-    public List<Integer> getStartupModeValues() {
-        if (CollectionUtils.isNotEmpty(startupModes)) {
-            return startupModes.stream().map(TaskStartupModeEnum::getValue).collect(Collectors.toList());
-        } else {
-            return Collections.emptyList();
-        }
+    public TaskInstanceHostArchivist(TaskInstanceHostRecordDAO executeRecordDAO,
+                                     ExecuteArchiveDAO executeArchiveDAO,
+                                     ArchiveProgressService archiveProgressService) {
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
+        this.deleteIdStepSize = 10_000;
     }
 }
