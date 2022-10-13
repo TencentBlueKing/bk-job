@@ -189,13 +189,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private final MeterRegistry meterRegistry;
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-            build(new CacheLoader<Long, InstanceTopologyDTO>() {
-                      @Override
-                      public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
-                          return getBizInstCompleteTopology(bizId);
-                      }
+        build(new CacheLoader<Long, InstanceTopologyDTO>() {
+                  @Override
+                  public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
+                      return getBizInstCompleteTopology(bizId);
                   }
-            );
+              }
+        );
 
     public BizCmdbClient(BkApiConfig bkApiConfig,
                          CmdbConfig cmdbConfig,
@@ -811,12 +811,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                     ccHostInfo.getHostId(),
                     ccHostInfo.getIp()
                 );
-            } else if (StringUtils.isBlank(ccHostInfo.getIp())) {
-                log.warn(
-                    "host(id={},ip={}) ip invalid, ignore",
-                    ccHostInfo.getHostId(),
-                    ccHostInfo.getIp()
-                );
+            } else if (ccHostInfo.getHostId() == null) {
+                log.warn("{} hostId is invalid, ignore", ccHostInfo);
             } else {
                 ccGroupHostList.add(convertToCcHost(ccHostInfo));
             }
