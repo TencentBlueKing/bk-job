@@ -793,6 +793,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             HostDTO hostDetail = hostMap.get("hostId:" + host.getHostId());
             host.setBkCloudId(hostDetail.getBkCloudId());
             host.setIp(hostDetail.getIp());
+            host.setIpv6(hostDetail.getIpv6());
             // 兼容没有agent_id的主机，按照与GSE的约定，按照{云区域ID:ip}的方式构造agent_id
             host.setAgentId(StringUtils.isEmpty(hostDetail.getAgentId()) ? host.toCloudIp() : hostDetail.getAgentId());
         } else {
@@ -800,6 +801,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 兼容没有agent_id的主机，按照与GSE的约定，按照{云区域ID:ip}的方式构造agent_id
             host.setAgentId(StringUtils.isEmpty(hostDetail.getAgentId()) ? host.toCloudIp() : hostDetail.getAgentId());
             host.setHostId(hostDetail.getHostId());
+            host.setIpv6(hostDetail.getIpv6());
         }
     }
 

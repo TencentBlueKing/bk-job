@@ -45,9 +45,14 @@ public class CacheHostDO {
     private Long cloudAreaId;
 
     /**
-     * ip
+     * ipv4
      */
     private String ip;
+
+    /**
+     * ipv6
+     */
+    private String ipv6;
 
     /**
      * 主机ID
@@ -101,6 +106,7 @@ public class CacheHostDO {
         host.setAppId(this.appId);
         host.setCloudAreaId(this.cloudAreaId);
         host.setIp(this.ip);
+        host.setIpv6(ipv6);
         host.setHostId(this.hostId);
         host.setAgentId(this.agentId);
         host.setHostName(this.hostDesc);
@@ -120,6 +126,7 @@ public class CacheHostDO {
         cacheHost.setAppId(host.getAppId());
         cacheHost.setCloudAreaId(host.getCloudAreaId());
         cacheHost.setIp(host.getIp());
+        cacheHost.setIpv6(host.getIpv6());
         cacheHost.setHostId(host.getHostId());
         cacheHost.setAgentId(host.getAgentId());
         cacheHost.setHostDesc(host.getHostName());

@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.util;
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
@@ -65,7 +64,8 @@ public class JobSrcFileUtils {
         for (JobFile srcFile : srcFiles) {
             // 本地文件的源ip是本机ip，展开源文件IP地址宏采用"0.0.0.0"
             String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir,
-                srcFile.getFileType() == TaskFileTypeEnum.LOCAL ? "0_0.0.0.0" : srcFile.getHost().toCloudIp());
+                srcFile.getFileType() == TaskFileTypeEnum.LOCAL ? "0_0.0.0.0" :
+                    srcFile.getHost().getBkCloudId() + "_" + srcFile.getHost().getPrimaryIp());
             destDirPath = MacroUtil.resolveDate(destDirPath, currentTime);
             addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetFileName);
         }
@@ -184,25 +184,4 @@ public class JobSrcFileUtils {
         return sendFiles;
     }
 
-    /**
-     * 构造源文件原始路径与显示路径的映射关系
-     *
-     * @param sourceFiles    源文件
-     * @param localUploadDir 本地上传文件根目录
-     * @return 源文件原始路径与显示路径的映射关系
-     */
-    public static Map<String, String> buildSourceFileDisplayMapping(Set<JobFile> sourceFiles, String localUploadDir) {
-        Map<String, String> sourceFileDisplayMap = new HashMap<>();
-        sourceFiles.forEach(sourceFile -> {
-            Pair<String, String> pair = FilePathUtils.parseDirAndFileName(sourceFile.getFilePath());
-            String standardPath = FilePathUtils.standardizedDirPath(pair.getLeft()) + pair.getRight();
-            if (sourceFile.getFileType() == TaskFileTypeEnum.LOCAL && !standardPath.startsWith(localUploadDir)) {
-                sourceFileDisplayMap.put(PathUtil.joinFilePath(localUploadDir, standardPath),
-                    sourceFile.getDisplayFilePath());
-            } else {
-                sourceFileDisplayMap.put(standardPath, sourceFile.getDisplayFilePath());
-            }
-        });
-        return sourceFileDisplayMap;
-    }
 }
