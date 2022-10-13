@@ -36,8 +36,7 @@
             <bk-popover
                 :arrow="false"
                 style="margin-right: 8px;"
-                theme="light site-header-dropdown">
-                :arrow="false"
+                theme="light site-header-dropdown"
                 :tippy-options="{ hideOnClick: false }">
                 <div class="flag-box">
                     <Icon

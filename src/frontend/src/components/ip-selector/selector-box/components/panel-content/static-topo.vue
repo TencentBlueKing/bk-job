@@ -7,6 +7,7 @@
             <div class="tree-box">
                 <bk-input
                     v-model="filterKey"
+                    clearable
                     placeholder="搜索拓扑节点"
                     style="margin-bottom: 12px;" />
                 <bk-big-tree
@@ -57,8 +58,10 @@
                     class="host-table">
                     <bk-input
                         v-model="nodeHostListSearch"
-                        placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
+                        clearable
+                        placeholder="请输入 IP/IPv6/主机名称"
                         style="margin-bottom: 12px;"
+                        @clear="handleHostListSearchClear"
                         @keyup="handleEnterKeyUp" />
                     <render-host-table
                         :data="hostTableData"
@@ -238,6 +241,7 @@
     };
 
     // 获取选中节点的主机列表
+    let searchContentMemo = '';
     const fetchNodeHostList = () => {
         if (!selectedTopoNodeData) {
             return;
@@ -257,6 +261,7 @@
         }).then((data) => {
             hostTableData.value = data.data;
             pagination.count = data.total;
+            searchContentMemo = nodeHostListSearch.value;
             syncTablePageCheckValue();
         })
         .finally(() => {
@@ -264,10 +269,19 @@
         });
     };
 
+    // enter 建触发主机搜索
     const handleEnterKeyUp = useInputEnter(() => {
         pagination.current = 1;
         fetchNodeHostList();
     });
+
+    // 清空主机搜索
+    const handleHostListSearchClear = () => {
+        pagination.current = 1;
+        if (searchContentMemo) {
+            fetchNodeHostList();
+        }
+    };
 
     // 获取选中节点的完整主机列表
     const fetchNodeAllHostId = () => Manager.service.fetchTopologyHostIdsNodes({
@@ -283,7 +297,6 @@
 
     // 选中节点
     const handleNodeSelect = (node) => {
-        console.log('from handleNodeSelect = ', node);
         selectedTopoNodeData = node.data.payload;
         fetchNodeHostList();
     };

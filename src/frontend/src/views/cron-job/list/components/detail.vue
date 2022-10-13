@@ -85,7 +85,7 @@
         <detail-item :label="$t('cron.执行方案：')">
             {{ data.taskPlanName }}
         </detail-item>
-        <render-strategy
+        <render-info-detail
             v-bkloading="{ isVarLoading }"
             left="20">
             <template v-if="!isVarLoading">
@@ -104,7 +104,7 @@
                         value-width="100%" />
                 </global-variable-layout>
             </template>
-        </render-strategy>
+        </render-info-detail>
     </detail-layout>
 </template>
 <script>
@@ -117,14 +117,14 @@
     import GlobalVariableLayout from '@components/global-variable/layout';
     import GlobalVariable from '@components/global-variable/view';
 
-    import RenderStrategy from './render-strategy';
+    import RenderInfoDetail from './render-info-detail';
 
     export default {
         name: 'TimeTaskDetail',
         components: {
             DetailLayout,
             DetailItem,
-            RenderStrategy,
+            RenderInfoDetail,
             GlobalVariableLayout,
             GlobalVariable,
         },

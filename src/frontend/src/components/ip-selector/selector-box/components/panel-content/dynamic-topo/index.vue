@@ -7,6 +7,7 @@
             <div class="tree-box">
                 <bk-input
                     v-model="filterKey"
+                    clearable
                     placeholder="搜索拓扑节点"
                     style="margin-bottom: 12px;" />
                 <bk-big-tree
@@ -239,9 +240,7 @@
 
     // 选择节点，查看节点的子节点和主机列表
     const handleNodeSelect = (node) => {
-        renderTableType.value = 'node';
         selectedTopoNode.value = node;
-        console.log('from handleNodeSelect = ', node);
     };
 
     // 在拓扑树中选中节点

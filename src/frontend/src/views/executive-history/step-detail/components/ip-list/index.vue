@@ -30,7 +30,6 @@
         class="step-execute-host-list"
         :style="styles">
         <list-head
-            class="ip-list-head"
             :columns="columnList"
             :show-columns="allShowColumn"
             @on-copy="handleCopyIP"
@@ -78,42 +77,12 @@
                 </template>
             </scroll-faker>
         </div>
-        <div
-            v-show="isSetting"
-            class="list-column-select">
-            <div class="select-body">
-                <div class="title">
-                    {{ $t('history.字段显示设置') }}
-                </div>
-                <bk-checkbox
-                    :checked="isAllColumn"
-                    :indeterminate="isIndeterminate"
-                    @click.native="handleToggleAll">
-                    {{ $t('history.全选') }}
-                </bk-checkbox>
-                <bk-checkbox-group v-model="tempAllShowColumn">
-                    <bk-checkbox
-                        v-for="item in columnList"
-                        :key="item.name"
-                        :checked="item.checked"
-                        class="select-column"
-                        :disabled="item.disabled"
-                        :value="item.name">
-                        {{ item.label }}
-                    </bk-checkbox>
-                </bk-checkbox-group>
-            </div>
-            <div class="select-footer">
-                <bk-button
-                    theme="primary"
-                    @click="handleSubmitSetting">
-                    {{ $t('history.确定') }}
-                </bk-button>
-                <bk-button @click="handleHideSetting">
-                    {{ $t('history.取消') }}
-                </bk-button>
-            </div>
-        </div>
+        <column-setting
+            v-if="isShowColumnSetting"
+            :column-list="columnList"
+            :value="allShowColumn"
+            @change="handleSubmitSetting"
+            @close="handleHideSetting" />
     </div>
 </template>
 <script>
@@ -121,17 +90,58 @@
 
     import {
         getOffset,
+        makeMap,
     } from '@utils/assist';
 
     import Empty from '@components/empty';
 
+    import ColumnSetting from './column-setting';
     import ListBody from './list-body';
     import ListHead from './list-head';
 
     import I18n from '@/i18n';
 
-    const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN';
+    const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN1';
     const LIST_ROW_HEIGHT = 40; // 每列高度
+
+    const columnList = [
+        {
+            label: I18n.t('history.IP'),
+            name: 'ip',
+            width: 140,
+            checked: true,
+            disabled: true,
+        },
+        {
+            label: 'IPv6',
+            name: 'ipv6',
+            width: 300,
+        },
+        {
+            label: I18n.t('history.耗时(s)'),
+            name: 'totalTime',
+            orderField: 'totalTime',
+            order: '',
+            width: 100,
+            checked: true,
+        },
+        {
+            label: I18n.t('history.云区域'),
+            name: 'cloudAreaName',
+            orderField: 'cloudAreaId',
+            order: '',
+            width: 120,
+            checked: true,
+        },
+        {
+            label: I18n.t('history.返回码'),
+            name: 'exitCode',
+            orderField: 'exitCode',
+            order: '',
+            width: 100,
+            checked: true,
+        },
+    ];
 
     export default {
         name: '',
@@ -139,6 +149,7 @@
             Empty,
             ListHead,
             ListBody,
+            ColumnSetting,
         },
         props: {
             name: {
@@ -168,7 +179,7 @@
         },
         data () {
             let allShowColumn = [
-                'displayIp',
+                'ip',
                 'totalTime',
                 'cloudAreaName',
                 'exitCode',
@@ -178,69 +189,30 @@
             }
             return {
                 list: [],
-                columnList: Object.freeze([
-                    {
-                        label: I18n.t('history.IP'),
-                        name: 'displayIp',
-                        width: '140',
-                        checked: true,
-                        disabled: true,
-                    },
-                    {
-                        label: I18n.t('history.耗时(s)'),
-                        name: 'totalTime',
-                        orderField: 'totalTime',
-                        order: '',
-                        width: '120',
-                        checked: true,
-                    },
-                    {
-                        label: I18n.t('history.云区域'),
-                        name: 'cloudAreaName',
-                        orderField: 'cloudAreaId',
-                        order: '',
-                        width: '',
-                        checked: true,
-                    },
-                    {
-                        label: I18n.t('history.返回码'),
-                        name: 'exitCode',
-                        orderField: 'exitCode',
-                        order: '',
-                        width: '114',
-                        checked: true,
-                    },
-                ]),
+                columnList: Object.freeze(columnList),
                 page: 1,
                 pageSize: 0,
-                isSetting: false,
+                isShowColumnSetting: false,
                 allShowColumn,
                 tempAllShowColumn: allShowColumn,
             };
         },
         computed: {
             /**
-             * @desc 列选择是否半选状态
-             * @return {Boolean}
-             */
-            isIndeterminate () {
-                return this.tempAllShowColumn.length !== this.columnList.length;
-            },
-            /**
-             * @desc 列选择是否全选状态
-             * @return {Boolean}
-             */
-            isAllColumn () {
-                return this.tempAllShowColumn.length === this.columnList.length;
-            },
-            /**
              * @desc IP 列表样式判断
              * @return {Object}
              */
             styles () {
-                const width = 217 + (this.allShowColumn.length - 1) * 94;
+                const allShowColumnMap = makeMap(this.allShowColumn);
+                const allShowColumnWidth = columnList.reduce((result, item) => {
+                    if (allShowColumnMap[item.name]) {
+                        return result + item.width;
+                    }
+                    return result;
+                }, 65);
+                
                 return {
-                    width: `${width}px`,
+                    width: `${Math.max(allShowColumnWidth, 217)}px`,
                 };
             },
             /**
@@ -307,46 +279,30 @@
             }, 80),
             /**
              * @desc 复制ip
+             * @param { String } type 要复制的字段，IP | IPv6
              */
-            handleCopyIP () {
-                this.$emit('on-copy');
+            handleCopyIP (type) {
+                this.$emit('on-copy', type);
             },
             /**
              * @desc 显示列配置面板
              */
             handleShowSetting () {
-                this.isSetting = true;
-            },
-            /**
-             * @desc 隐藏列配置面板
-             */
-            handleHideSetting () {
-                this.isSetting = false;
-            },
-            /**
-             * @desc 列配置面板全选状态切换
-             */
-            handleToggleAll () {
-                if (this.isAllColumn) {
-                    this.tempAllShowColumn = this.columnList.reduce((result, item) => {
-                        if (item.disabled) {
-                            result.push(item.name);
-                        }
-                        return result;
-                    }, []);
-                } else {
-                    this.tempAllShowColumn = this.columnList.map(item => item.name);
-                }
+                this.isShowColumnSetting = true;
             },
             /**
              * @desc 保存列配置
              */
-            handleSubmitSetting () {
-                this.allShowColumn = [
-                    ...this.tempAllShowColumn,
-                ];
-                this.isSetting = false;
+            handleSubmitSetting (showColumnList) {
+                this.allShowColumn = showColumnList;
+                this.isShowColumnSetting = false;
                 localStorage.setItem(COLUMN_CACHE_KEY, JSON.stringify(this.allShowColumn));
+            },
+            /**
+             * @desc 隐藏列配置面板
+             */
+             handleHideSetting () {
+                this.isShowColumnSetting = false;
             },
             /**
              * @desc 表格排序
@@ -414,15 +370,38 @@
 
         .ip-table {
             width: 100%;
+            table-layout: fixed;
+
+            tbody {
+                tr {
+                    &.active {
+                        background: #f0f1f5;
+
+                        .active-flag {
+                            font-size: 14px;
+                        }
+                    }
+
+                    .active-flag {
+                        padding: 0;
+                        font-size: 0;
+                        color: #979ba5;
+                        text-align: center;
+                    }
+                }
+            }
 
             th,
             td {
                 height: 40px;
-                padding-left: 26px;
+                padding-left: 16px;
                 line-height: 40px;
                 text-align: left;
-                white-space: nowrap;
                 border-bottom: 1px solid #dcdee5;
+
+                &:first-child {
+                    padding-left: 34px;
+                }
             }
 
             th {
@@ -468,78 +447,50 @@
             }
 
             td {
+                position: relative;
                 color: #63656e;
                 cursor: pointer;
-            }
 
-            tbody {
-                tr {
-                    &.active {
-                        background: #f0f1f5;
-
-                        .active-flag {
-                            font-size: 14px;
-                        }
-                    }
-
-                    .active-flag {
-                        padding: 0;
-                        font-size: 0;
-                        color: #979ba5;
-                        text-align: center;
+                &.success,
+                &.fail,
+                &.running,
+                &.waiting {
+                    &::before {
+                        position: absolute;
+                        top: 14px;
+                        width: 3px;
+                        height: 12px;
+                        margin-right: 1em;
+                        margin-left: -13px;
+                        background: #2dc89d;
+                        content: "";
                     }
                 }
-            }
 
-            .copy-ip-btn {
-                margin-left: 8px;
-                font-size: 12px;
-                font-weight: normal;
-                color: #3a84ff;
-                cursor: pointer;
-            }
-
-            .list-action {
-                width: 40px;
-                height: 40px;
-                padding: 0;
-                font-size: 14px;
-                color: #979ba5;
-                text-align: center;
-                cursor: pointer;
-                border-left: 1px solid #dcdee5;
-            }
-
-            .success,
-            .fail,
-            .running,
-            .waiting {
-                &::before {
-                    display: inline-block;
-                    width: 3px;
-                    height: 12px;
-                    margin-right: 1em;
-                    margin-left: -3px;
-                    background: #2dc89d;
-                    content: "";
+                &.fail {
+                    &::before {
+                        background: #ea3636;
+                    }
                 }
-            }
 
-            .fail {
-                &::before {
-                    background: #ea3636;
+                &.running {
+                    &::before {
+                        background: #699df4;
+                    }
                 }
-            }
 
-            .running {
-                &::before {
-                    background: #699df4;
+                &.waiting {
+                    &::before {
+                        background: #dcdee5;
+                    }
                 }
-            }
 
-            .waiting {
-                &::before {
-                    background: #dcdee5;
+                .cell-text {
+                    height: 20px;
+                    overflow: hidden;
+                    line-height: 20px;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
             }
         }
@@ -561,48 +512,6 @@
                 align-items: center;
                 justify-content: center;
                 transform-origin: center center;
-            }
-        }
-
-        .list-column-select {
-            position: absolute;
-            top: 45px;
-            left: 0;
-            z-index: 1;
-            width: 100%;
-            background: #fff;
-            box-shadow: 1px 1px 5px 0 #dcdee5;
-        }
-
-        .select-body {
-            padding: 15px 22px 30px;
-
-            .title {
-                margin-bottom: 22px;
-                font-size: 16px;
-                color: #313238;
-            }
-        }
-
-        .select-column {
-            margin-top: 20px;
-            margin-right: 36px;
-
-            &:last-child {
-                margin-right: 0;
-            }
-        }
-
-        .select-footer {
-            display: flex;
-            height: 50px;
-            background: #fafbfd;
-            border-top: 1px solid #dbdde4;
-            align-items: center;
-            justify-content: center;
-
-            .bk-button {
-                margin: 0 5px;
             }
         }
     }

@@ -33,8 +33,16 @@
         <div class="tab-container">
             <div
                 class="tab-title"
-                :class="host.result">
-                <span class="host-ip">{{ host.displayIp || '--' }}</span>
+                :class="{
+                    [host.result]: true,
+                    'is-mult': host.ip && host.ipv6
+                }">
+                <div v-if="host.ip">
+                    {{ host.ip }}
+                </div>
+                <div v-if="host.ipv6">
+                    {{ host.ipv6 }}
+                </div>
             </div>
             <div class="split-line" />
             <div
@@ -368,21 +376,31 @@
             align-items: center;
 
             .tab-title {
-                width: 166px;
-                font-size: 14px;
-                color: #dcdee5;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                width: 325px;
+                padding-left: 20px;
+                line-height: 14px;
                 cursor: default;
+
+                &.is-mult {
+                    font-size: 12px;
+                }
 
                 &.success,
                 &.fail,
                 &.running,
                 &.waiting {
                     &::before {
-                        display: inline-block;
+                        position: absolute;
+                        top: 50%;
+                        left: 0;
                         width: 3px;
                         height: 12px;
                         background: #2dc89d;
                         content: "";
+                        transform: translateY(-50%);
                     }
                 }
 

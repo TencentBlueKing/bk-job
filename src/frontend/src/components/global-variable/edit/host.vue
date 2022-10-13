@@ -49,6 +49,7 @@
             <ip-selector
                 :origianl-value="originalHostNodeInfo"
                 :show-dialog="isShowChooseIp"
+                show-view
                 :value="hostNodeInfo"
                 @change="handleChange"
                 @close-dialog="handleCloseIpSelector" />

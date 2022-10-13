@@ -60,7 +60,7 @@
                     </bk-radio-button>
                 </bk-radio-group>
                 <div class="strategy-wraper">
-                    <render-strategy
+                    <render-info-detail
                         v-if="strategy === 'once'"
                         left="40">
                         <bk-date-picker
@@ -71,14 +71,14 @@
                             style="width: 100%;"
                             :transfer="true"
                             type="datetime" />
-                    </render-strategy>
-                    <render-strategy
+                    </render-info-detail>
+                    <render-info-detail
                         v-else
                         left="135">
                         <cron-job
                             v-model="formData.cronExpression"
                             class="cron-task" />
-                    </render-strategy>
+                    </render-info-detail>
                 </div>
             </jb-form-item>
             <form-item-factory
@@ -146,7 +146,7 @@
                 v-if="hasPlan"
                 v-bkloading="{ isLoading: isVariableLoading }"
                 class="global-variable-content">
-                <render-strategy left="70">
+                <render-info-detail left="70">
                     <span
                         v-if="isVariabelEmpty"
                         class="plan-variable-empty">
@@ -177,7 +177,7 @@
                             </div>
                         </toggle-display>
                     </global-variable-layout>
-                </render-strategy>
+                </render-info-detail>
             </div>
         </jb-form>
     </div>
@@ -198,7 +198,7 @@
     import ToggleDisplay from '@components/global-variable/toggle-display';
     import JbInput from '@components/jb-input';
 
-    import RenderStrategy from '../render-strategy';
+    import RenderInfoDetail from '../render-info-detail';
 
     import CronJob from './cron-job';
     import FormItemFactory from './form-item-strategy';
@@ -239,7 +239,7 @@
             GlobalVariableLayout,
             GlobalVariable,
             ToggleDisplay,
-            RenderStrategy,
+            RenderInfoDetail,
             JbInput,
             FormItemFactory,
             CronJob,

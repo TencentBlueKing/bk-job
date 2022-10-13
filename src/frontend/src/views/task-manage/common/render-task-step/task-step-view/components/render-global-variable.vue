@@ -39,6 +39,7 @@
         </div>
         <jb-dialog
             v-model="isShowDetail"
+            cancel-text=""
             class="global-host-variable-detail-dialog"
             :ok-text="$t('template.关闭')"
             :title="title"

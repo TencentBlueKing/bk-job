@@ -64,7 +64,8 @@
                     v-bkloading="{ isLoading }"
                     class="host-table">
                     <bk-input
-                        v-model="serachKey"
+                        v-model="searchKey"
+                        clearable
                         placeholder="请输入 IP/IPv6/主机名称 或 选择条件搜索"
                         style="margin-bottom: 12px;" />
                     <render-host-table
@@ -117,7 +118,7 @@
 
     import IpSelectorIcon from '../../../common/ip-selector-icon';
     import RenderHostTable from '../../../common/render-table/host/index.vue';
-    import useDebounceRef from '../../../hooks/use-debounced-ref';
+    // import useDebounceRef from '../../../hooks/use-debounced-ref';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import useLocalPagination from '../../../hooks/use-local-pagination';
     import Manager from '../../../manager';
@@ -152,7 +153,7 @@
     } = useDialogSize();
     const renderTableHeight = dialogContentHeight.value - tableOffetTop;
 
-    const serachKey = useDebounceRef('');
+    // const serachKey = useDebounceRef('');
     const pageCheckValue = ref('');
 
     const manualInputStyles = computed(() => ({
@@ -161,12 +162,23 @@
 
     const {
         isShowPagination,
+        searchKey,
         pagination,
         data: renderData,
         serachList: searchWholeData,
         handlePaginationCurrentChange,
         handlePaginationLimitChange,
-    } = useLocalPagination(hostTableData, getPaginationDefault(renderTableHeight));
+    } = useLocalPagination(
+        hostTableData,
+        getPaginationDefault(renderTableHeight),
+        (hostData, rule) => rule.test(hostData.ip)
+             || rule.test(hostData.ipv6)
+             || rule.test(hostData.cloud_area.name)
+             || rule.test(hostData.host_name)
+             || rule.test(hostData.os_name)
+             || rule.test(hostData.os_type)
+              || rule.test(hostData.host_id),
+    );
 
     // 判断 page-check 的状态
     const syncTablePageCheckValue = () => {
