@@ -516,7 +516,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 targetHost.toCloudIpv6(),
                 fileDest.getDestPath(),
                 sourceHost.getHostId(),
-                sourceHost.getIp(),
+                sourceHost.toCloudIp(),
                 sourceHost.toCloudIpv6(),
                 srcFile.getFileType().getType(),
                 sourceFilePath,

@@ -263,4 +263,21 @@ public class IpUtils {
         }
         return cloudIpList;
     }
+
+    /**
+     * 移除ip中的云区域ID
+     *
+     * @param ip bkCloudId:ip
+     * @return 移除云区域ID后的ip
+     */
+    public static String removeBkCloudId(String ip) {
+        if (ip == null) {
+            return null;
+        }
+        if (ip.contains(":")) {
+            return ip.substring(ip.indexOf(":") + 1);
+        } else {
+            return ip;
+        }
+    }
 }

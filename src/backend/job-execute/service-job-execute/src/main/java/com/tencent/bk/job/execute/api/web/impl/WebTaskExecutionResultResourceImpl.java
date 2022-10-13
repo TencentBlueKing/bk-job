@@ -46,6 +46,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.web.WebTaskExecutionResultResource;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.client.ServiceNotificationResourceClient;
@@ -823,14 +824,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         if (FileDistModeEnum.UPLOAD.getValue().equals(fileLog.getMode())) {
             fileDistDetailVO.setFileName(fileLog.getDisplaySrcFile());
         } else {
-            fileDistDetailVO.setDestIp(fileLog.getDestIp());
-            fileDistDetailVO.setDestIpv6(fileLog.getDestIpv6());
+            fileDistDetailVO.setDestIp(IpUtils.removeBkCloudId(fileLog.getDestIp()));
+            fileDistDetailVO.setDestIpv6(IpUtils.removeBkCloudId(fileLog.getDestIpv6()));
             fileDistDetailVO.setFileName(fileLog.getDestFile());
         }
         boolean hideSrcIp = fileLog.getSrcFileType() != null
             && TaskFileTypeEnum.valueOf(fileLog.getSrcFileType()) != TaskFileTypeEnum.SERVER;
-        fileDistDetailVO.setSrcIp(hideSrcIp ? "--" : fileLog.getSrcIp());
-        fileDistDetailVO.setSrcIpv6(hideSrcIp ? "--" : fileLog.getSrcIpv6());
+        fileDistDetailVO.setSrcIp(hideSrcIp ? "--" : IpUtils.removeBkCloudId(fileLog.getSrcIp()));
+        fileDistDetailVO.setSrcIpv6(hideSrcIp ? "--" : IpUtils.removeBkCloudId(fileLog.getSrcIpv6()));
         fileDistDetailVO.setFileSize(fileLog.getSize());
         fileDistDetailVO.setProgress(fileLog.getProcess());
         fileDistDetailVO.setSpeed(fileLog.getSpeed());
