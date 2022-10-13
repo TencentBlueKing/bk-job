@@ -46,13 +46,14 @@
             <slot name="footer">
                 <div class="jb-dialog-footer">
                     <bk-button
-                        class="mr10"
                         :loading="isSubmiting"
                         theme="primary"
                         @click="handleConfirm">
                         {{ okText }}
                     </bk-button>
                     <bk-button
+                        v-if="cancelText"
+                        class="ml10"
                         @click="handleCancel">
                         {{ cancelText }}
                     </bk-button>

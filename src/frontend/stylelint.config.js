@@ -27,7 +27,6 @@ module.exports = {
     extends: [
         'stylelint-config-standard',
     ],
-    customSyntax: 'postcss-html',
     plugins: [
         'stylelint-scss',
         'stylelint-order',
@@ -197,4 +196,10 @@ module.exports = {
             'speak',
         ],
     },
+    overrides: [
+        {
+            files: ['*.vue', './**/*.vue'],
+            customSyntax: 'postcss-html',
+        },
+    ],
 };

@@ -34,6 +34,7 @@
             type="audit" />
         <jb-dialog
             v-model="isShowDetail"
+            cancel-text=""
             class="host-variable-detail-dialog"
             :ok-text="$t('template.关闭')"
             :title="title"

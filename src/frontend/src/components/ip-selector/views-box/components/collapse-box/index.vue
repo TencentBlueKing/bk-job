@@ -49,11 +49,11 @@
 
             .arrow-flag {
                 margin-right: 16px;
-                transform: rotateZ(90deg);
+                transform: rotateZ(0);
                 transition: all 0.15s;
 
                 &.is-show {
-                    transform: rotateZ(0);
+                    transform: rotateZ(90deg);
                 }
             }
         }

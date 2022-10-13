@@ -6,14 +6,14 @@ import {
 
 import useIpSelector from './use-ip-selector';
 
-export default () => {
-    const size = reactive({
-        width: 0,
-        height: 0,
-        contentHeight: 0,
-        panelHeight: 0,
-    });
+const size = reactive({
+    width: 0,
+    height: 0,
+    contentHeight: 0,
+    panelHeight: 0,
+});
 
+export default () => {
     const context = useIpSelector();
 
     const headerHeight = 41;
@@ -38,13 +38,15 @@ export default () => {
         size.contentHeight = size.height - headerHeight - footerHeight;
     };
 
-    window.addEventListener('resize', handleResize);
-    
-    handleResize();
+    if (size.width < 1) {
+        handleResize();
 
-    onBeforeUnmount(() => {
-        window.removeEventListener('resize', handleResize);
-    });
+        window.addEventListener('resize', handleResize);
+
+        onBeforeUnmount(() => {
+            window.removeEventListener('resize', handleResize);
+        });
+    }
 
     return {
         ...toRefs(size),

@@ -33,13 +33,13 @@
             <table>
                 <thead>
                     <tr>
-                        <td style="width: 90px;">
+                        <th style="width: 250px;">
                             {{ $t('history.变量名称') }}
-                        </td>
-                        <td style="width: 90px;">
+                        </th>
+                        <th style="width: 90px;">
                             {{ $t('history.变量类型') }}
-                        </td>
-                        <td>{{ $t('history.变量值') }}</td>
+                        </th>
+                        <th>{{ $t('history.变量值') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,7 +114,6 @@
         padding: 0 20px;
         font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
         color: #c4c6cc;
-        white-space: pre-line;
 
         table {
             width: 100%;
@@ -124,19 +123,19 @@
         td {
             height: 40px;
             padding-right: 10px;
+            padding-left: 10px;
+            text-align: left;
             border-bottom: 1px solid #3b3c42;
         }
 
         th {
+            font-weight: normal;
             color: #ccc;
         }
 
         td {
             color: #979ba5;
-
-            &:first-child {
-                white-space: pre;
-            }
+            white-space: pre-line;
 
             &.variable-value {
                 word-break: break-word;

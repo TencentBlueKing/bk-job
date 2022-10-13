@@ -520,26 +520,34 @@
             },
             /**
              * @desc 复制所有主机IP
+             * @param { String } fieldName 复制的字段 IP | IPv6
              *
              * 主机列表是分页加载，复制全部主机时需要全量请求一次
              */
-            handleCopyHost () {
+            handleCopyHost (fieldName) {
                 TaskExecuteService.fetchStepGroupHost({
                     ...this.params,
                     resultType: this.currentGroup.resultType,
                     tag: this.currentGroup.tag,
                 }).then((data) => {
-                    if (data.length < 1) {
+                    const fieldDataList = data.reduce((result, item) => {
+                        if (item[fieldName]) {
+                            result.push(item[fieldName]);
+                        }
+                        return result;
+                    }, []);
+
+                    if (fieldDataList.length < 1) {
                         this.$bkMessage({
                             theme: 'warning',
-                            message: I18n.t('history.暂无可复制IP'),
+                            message: `${I18n.t('history.没有可复制内容')}`,
                             limit: 1,
                         });
                         return;
                     }
-                    const ipText = data.map(item => item.ip).join('\n');
-                    const successMessage = `${I18n.t('history.复制成功')}（${data.length} ${I18n.t('history.个')}IP）`;
-                    execCopy(ipText, successMessage);
+                    const fieldNameText = fieldName === 'ip' ? 'IP' : 'IPv6';
+                    const successMessage = `${I18n.t('history.复制成功')}（${fieldDataList.length} ${I18n.t('history.个')}${fieldNameText}）`;
+                    execCopy(fieldDataList.join('\n'), successMessage);
                 });
             },
             /**

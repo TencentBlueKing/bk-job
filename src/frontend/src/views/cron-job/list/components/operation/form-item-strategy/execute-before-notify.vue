@@ -32,7 +32,7 @@
                 {{ $t('cron.执行前通知') }}
             </bk-checkbox>
         </jb-form-item>
-        <render-strategy
+        <render-info-detail
             v-if="executeBeforeNotify"
             class="notify-wraper"
             left="55">
@@ -42,17 +42,17 @@
                 mode="execute-beofre"
                 :notify-offset-label="$t('cron.执行前')"
                 v-on="$listeners" />
-        </render-strategy>
+        </render-info-detail>
     </div>
 </template>
 <script>
-    import RenderStrategy from '../../render-strategy';
+    import RenderInfoDetail from '../../render-info-detail';
     import ExecuteNotify from '../execute-notify';
 
     export default {
         name: '',
         components: {
-            RenderStrategy,
+            RenderInfoDetail,
             ExecuteNotify,
         },
         props: {

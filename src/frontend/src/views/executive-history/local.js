@@ -78,7 +78,7 @@ export default {
         '耗时(s)': 'DURATION',
         云区域: 'CLOUD AREA',
         返回码: 'RETCODE',
-        暂无可复制IP: 'Nothing copied',
+        没有可复制内容: 'Nothing copied',
         复制成功: 'Copied',
         个: '',
         始: 'S',
@@ -222,5 +222,7 @@ export default {
         },
         已执行: '',
         当前正在显示的内容: 'Currently displayed',
+        '复制 IP': 'Copy IP',
+        '复制 IPv6': 'Copy IPv6',
     },
 };

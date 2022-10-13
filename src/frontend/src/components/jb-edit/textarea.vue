@@ -38,9 +38,8 @@
                 class="render-text-box"
                 :style="boxStyles"
                 @copy="handleCopy">
-                <slot :value="newVal">
-                    {{ renderText }}
-                </slot>
+                <!-- eslint-disable-next-line vue/singleline-html-element-content-newline -->
+                <slot :value="newVal">{{ renderText }}</slot>
                 <span
                     v-if="isShowMore"
                     class="text-whole"

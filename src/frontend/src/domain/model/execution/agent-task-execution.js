@@ -30,24 +30,25 @@ const AGENT_STATUS_RUNNING = 7;
 const AGENT_STATUS_WAITING = 5;
 const AGENT_STATUS_LAST_SUCCESS = 3;
 
-export default class AgentTask extends Model {
+export default class AgentTaskExecutionDetail extends Model {
     constructor (payload) {
         super();
         this.batch = payload.batch;
+        this.cloudAreaId = payload.cloudAreaId;
+        this.cloudAreaName = payload.cloudAreaName;
         this.displayIp = payload.displayIp;
         this.endTime = payload.endTime;
         this.errorCode = payload.errorCode;
         this.exitCode = payload.exitCode;
-        this.ip = payload.ip;
         this.hostId = payload.hostId;
+        this.ip = payload.ip;
+        this.ipv6 = payload.ipv6;
         this.retryCount = payload.retryCount || 0;
         this.startTime = payload.startTime;
         this.status = payload.status;
         this.statusDesc = payload.statusDesc;
         this.tag = payload.tag;
         this.totalTime = payload.totalTime;
-        this.cloudAreaId = payload.cloudAreaId;
-        this.cloudAreaName = payload.cloudAreaName;
     }
 
     /**

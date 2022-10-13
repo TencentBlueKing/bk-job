@@ -6,6 +6,7 @@
             <template v-if="props.node.children.length > 0">
                 <bk-input
                     v-model="searchKey"
+                    clearable
                     placeholder="请输入节点名称搜索"
                     style="margin: 12px 0;" />
                 <render-node-table
@@ -137,7 +138,7 @@
         Manager.service.fetchNodesQueryPath(params)
             .then((data) => {
                 tableData.value = data.reduce((result, nodeStack) => {
-                    const namePath = nodeStack.map(nodeData => nodeData.instance_name).join('/');
+                    const namePath = nodeStack.map(nodeData => nodeData.instance_name).join(' / ');
                     const tailNode = _.last(nodeStack);
                     result.push({
                         key: genNodeKey(tailNode),

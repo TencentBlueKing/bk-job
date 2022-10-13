@@ -185,11 +185,12 @@
                 const requestHandler = this.host.hostId
                     ? TaskExecuteService.fetchLogContentOfHostId
                     : TaskExecuteService.fetchLogContentOfIp;
+
                 requestHandler({
                     stepInstanceId: this.stepInstanceId,
                     retryCount: this.retryCount,
                     hostId: this.host.hostId,
-                    ip: this.host.ip,
+                    ip: `${this.host.cloudAreaId}:${this.host.ip}`,
                     batch: this.batch,
                 })
                     .then(({
