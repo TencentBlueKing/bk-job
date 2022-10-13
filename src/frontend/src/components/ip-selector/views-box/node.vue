@@ -175,7 +175,7 @@
                 data.forEach((item) => {
                     const tailNode = _.last(item);
                     validData.push(tailNode);
-                    namePathMap[genNodeKey(tailNode)] = item.map(nodeData => nodeData.instance_name).join('/');
+                    namePathMap[genNodeKey(tailNode)] = item.map(nodeData => nodeData.instance_name).join(' / ');
                 });
                 nodeNamePathMap.value = namePathMap;
                 validNodeList.value = validData;

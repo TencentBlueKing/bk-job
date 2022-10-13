@@ -138,7 +138,7 @@
         Manager.service.fetchNodesQueryPath(params)
             .then((data) => {
                 tableData.value = data.reduce((result, nodeStack) => {
-                    const namePath = nodeStack.map(nodeData => nodeData.instance_name).join('/');
+                    const namePath = nodeStack.map(nodeData => nodeData.instance_name).join(' / ');
                     const tailNode = _.last(nodeStack);
                     result.push({
                         key: genNodeKey(tailNode),
