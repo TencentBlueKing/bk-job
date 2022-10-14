@@ -22,28 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.whiteip;
+package com.tencent.bk.job.manage.model.migration;
 
-import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPAppRelDTO;
-import org.jooq.DSLContext;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+@Data
+@NoArgsConstructor
+public class MigrationRecordsResult {
+    private String task;
+    private int totalRecords;
+    private int successRecords;
+    private boolean success;
 
-public interface WhiteIPAppRelDAO {
-
-    // 查询
-    List<Long> listAppIdByRecordId(DSLContext dslContext, Long recordId);
-
-    List<WhiteIPAppRelDTO> listAppRelByRecordIds(DSLContext dslContext, List<Long> recordIdList);
-
-    List<WhiteIPAppRelDTO> listAppRelByAppId(Long appId);
-
-    // 新增
-    void insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId);
-
-    // 更新
-    int updateAppId(Long srcAppId, Long targetAppId);
-
-    // 删除
-    int deleteWhiteIPAppRelByRecordId(DSLContext dslContext, Long recordId);
+    public MigrationRecordsResult(String task) {
+        this.task = task;
+    }
 }

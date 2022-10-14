@@ -28,7 +28,6 @@ import com.tencent.bk.job.manage.dao.whiteip.WhiteIPIPDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
 import lombok.val;
 import org.jooq.DSLContext;
-import org.jooq.Record;
 import org.jooq.generated.tables.WhiteIpIp;
 import org.jooq.generated.tables.records.WhiteIpIpRecord;
 import org.jooq.types.ULong;
@@ -50,8 +49,8 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
     }
 
     @Override
-    public Long insertWhiteIPIP(WhiteIPIPDTO whiteIPIPDTO) {
-        Record record = dslContext.insertInto(T_WHITE_IP_IP,
+    public void insertWhiteIPIP(WhiteIPIPDTO whiteIPIPDTO) {
+        dslContext.insertInto(T_WHITE_IP_IP,
             T_WHITE_IP_IP.RECORD_ID,
             T_WHITE_IP_IP.HOST_ID,
             T_WHITE_IP_IP.IP,
@@ -73,8 +72,6 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
             ULong.valueOf(whiteIPIPDTO.getLastModifyTime())
         ).returning(T_WHITE_IP_IP.ID)
             .fetchOne();
-        assert record != null;
-        return record.get(T_WHITE_IP_IP.ID);
     }
 
     @Override
