@@ -314,7 +314,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
         String resourceId = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
         if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
-            if (globalFlowController != null) {
+            if (globalFlowController != null && globalFlowController.isReady()) {
                 log.debug("Flow control resourceId={}", resourceId);
                 long startTime = System.currentTimeMillis();
                 globalFlowController.acquire(resourceId);
@@ -325,7 +325,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                     log.info("Request resource {} wait flowControl for {}ms", resourceId, duration);
                 }
             } else {
-                log.debug("globalFlowController not set, ignore this time");
+                log.debug("globalFlowController not set or not ready, ignore this time");
             }
         }
         long start = System.nanoTime();
