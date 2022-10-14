@@ -24,11 +24,12 @@
 
 package com.tencent.bk.job.manage.model.migration;
 
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
-@NoArgsConstructor
-public class AddHostIdResult extends MigrationRecordsResult {
-    public AddHostIdResult(String task) {
-        super(task);
-    }
+/**
+ * IP白名单更新AppId，全业务ID->代表所有业务的ID - 请求
+ */
+@Data
+public class UpdateAppIdForWhiteIpMigrationReq {
+    private boolean dryRun;
 }

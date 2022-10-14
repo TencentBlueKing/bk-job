@@ -31,6 +31,8 @@ import org.jooq.DSLContext;
 import org.jooq.generated.tables.WhiteIpAppRel;
 import org.jooq.generated.tables.records.WhiteIpAppRelRecord;
 import org.jooq.types.ULong;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -39,7 +41,15 @@ import java.util.stream.Collectors;
 
 @Repository
 public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
+
     private static final WhiteIpAppRel T_WHITE_IP_APP_REL = WhiteIpAppRel.WHITE_IP_APP_REL;
+
+    private final DSLContext defaultContext;
+
+    @Autowired
+    public WhiteIPAppRelDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext defaultContext) {
+        this.defaultContext = defaultContext;
+    }
 
     @Override
     public int insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId) {
@@ -54,6 +64,14 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
             username,
             ULong.valueOf(System.currentTimeMillis())
         ).execute();
+    }
+
+    @Override
+    public int updateAppId(Long srcAppId, Long targetAppId) {
+        return defaultContext.update(T_WHITE_IP_APP_REL)
+            .set(T_WHITE_IP_APP_REL.APP_ID, targetAppId)
+            .where(T_WHITE_IP_APP_REL.APP_ID.eq(srcAppId))
+            .execute();
     }
 
     @Override
@@ -93,6 +111,27 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
                 record.get(T_WHITE_IP_APP_REL.APP_ID).longValue(),
                 null,
                 null
+            )
+        ).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<WhiteIPAppRelDTO> listAppRelByAppId(Long appId) {
+        val records =
+            defaultContext.select(
+                T_WHITE_IP_APP_REL.APP_ID,
+                T_WHITE_IP_APP_REL.RECORD_ID,
+                T_WHITE_IP_APP_REL.CREATOR,
+                T_WHITE_IP_APP_REL.CREATE_TIME
+            ).from(T_WHITE_IP_APP_REL)
+                .where(T_WHITE_IP_APP_REL.APP_ID.eq(appId))
+                .fetch();
+        return records.stream().map(record ->
+            new WhiteIPAppRelDTO(
+                record.get(T_WHITE_IP_APP_REL.RECORD_ID),
+                record.get(T_WHITE_IP_APP_REL.APP_ID),
+                record.get(T_WHITE_IP_APP_REL.CREATOR),
+                record.get(T_WHITE_IP_APP_REL.CREATE_TIME).longValue()
             )
         ).collect(Collectors.toList());
     }

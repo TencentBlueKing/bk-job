@@ -29,12 +29,14 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.migration.AddHostIdForWhiteIpMigrationTask;
 import com.tencent.bk.job.manage.migration.AddHostIdMigrationTask;
-import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
+import com.tencent.bk.job.manage.migration.UpdateAppIdForWhiteIpMigrationTask;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.migration.AddHostIdMigrationReq;
+import com.tencent.bk.job.manage.model.migration.MigrationRecordsResult;
 import com.tencent.bk.job.manage.model.migration.SetBizSetMigrationStatusReq;
+import com.tencent.bk.job.manage.model.migration.UpdateAppIdForWhiteIpMigrationReq;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +59,7 @@ public class MigrationResource {
     private final ResourceTagsMigrationTask resourceTagsMigrationTask;
     private final BizSetService bizSetService;
     private final AddHostIdMigrationTask addHostIdMigrationTask;
+    private final UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask;
     private final AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask;
 
     @Autowired
@@ -65,11 +68,13 @@ public class MigrationResource {
         ResourceTagsMigrationTask resourceTagsMigrationTask,
         BizSetService bizSetService,
         AddHostIdMigrationTask addHostIdMigrationTask,
+        UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask,
         AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask) {
         this.encryptDbAccountPasswordMigrationTask = encryptDbAccountPasswordMigrationTask;
         this.resourceTagsMigrationTask = resourceTagsMigrationTask;
         this.bizSetService = bizSetService;
         this.addHostIdMigrationTask = addHostIdMigrationTask;
+        this.updateAppIdForWhiteIpMigrationTask = updateAppIdForWhiteIpMigrationTask;
         this.addHostIdForWhiteIpMigrationTask = addHostIdForWhiteIpMigrationTask;
     }
 
@@ -98,14 +103,27 @@ public class MigrationResource {
     }
 
     /**
+     * IP白名单AppId更新，全业务ID->代表所有业务的ID
+     */
+    @PostMapping("/action/updateAppIdForWhiteIpMigrationTask")
+    public Response<String> updateAppIdForWhiteIpMigrationTask(@RequestBody UpdateAppIdForWhiteIpMigrationReq req) {
+        List<MigrationRecordsResult> results = new ArrayList<>();
+        results.add(updateAppIdForWhiteIpMigrationTask.execute(req.isDryRun()));
+        boolean success = results.stream().allMatch(MigrationRecordsResult::isSuccess);
+        return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
+            Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"UpdateAppIdForWhiteIpMigrationTask",
+                JsonUtils.toJson(results)});
+    }
+
+    /**
      * IP白名单、作业模板、执行方案等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性
      */
     @PostMapping("/action/addHostIdMigrationTask")
     public Response<String> addHostIdMigrationTask(@RequestBody AddHostIdMigrationReq req) {
-        List<AddHostIdResult> results = new ArrayList<>();
+        List<MigrationRecordsResult> results = new ArrayList<>();
         results.add(addHostIdForWhiteIpMigrationTask.execute(req.isDryRun()));
         results.addAll(addHostIdMigrationTask.execute(req.isDryRun()));
-        boolean success = results.stream().allMatch(AddHostIdResult::isSuccess);
+        boolean success = results.stream().allMatch(MigrationRecordsResult::isSuccess);
         return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
             Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"AddHostIdMigrationTask",
                 JsonUtils.toJson(results)});

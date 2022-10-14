@@ -30,13 +30,22 @@ import org.jooq.DSLContext;
 import java.util.List;
 
 public interface WhiteIPAppRelDAO {
-    int insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId);
 
-    int deleteWhiteIPAppRelByRecordId(DSLContext dslContext, Long recordId);
-
-    int deleteWhiteIPAppRelByAppId(DSLContext dslContext, Long appId);
-
+    // 查询
     List<Long> listAppIdByRecordId(DSLContext dslContext, Long recordId);
 
     List<WhiteIPAppRelDTO> listAppRelByRecordIds(DSLContext dslContext, List<Long> recordIdList);
+
+    List<WhiteIPAppRelDTO> listAppRelByAppId(Long appId);
+
+    // 新增
+    int insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId);
+
+    // 更新
+    int updateAppId(Long srcAppId, Long targetAppId);
+
+    // 删除
+    int deleteWhiteIPAppRelByRecordId(DSLContext dslContext, Long recordId);
+
+    int deleteWhiteIPAppRelByAppId(DSLContext dslContext, Long appId);
 }

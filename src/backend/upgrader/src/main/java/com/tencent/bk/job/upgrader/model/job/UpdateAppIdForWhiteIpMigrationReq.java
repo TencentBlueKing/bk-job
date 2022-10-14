@@ -22,13 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.migration;
+package com.tencent.bk.job.upgrader.model.job;
 
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * IP白名单全业务ID更新为对所有业务生效ID - 请求
+ */
+@Data
 @NoArgsConstructor
-public class AddHostIdResult extends MigrationRecordsResult {
-    public AddHostIdResult(String task) {
-        super(task);
+public class UpdateAppIdForWhiteIpMigrationReq {
+    private boolean dryRun;
+
+    public UpdateAppIdForWhiteIpMigrationReq(boolean dryRun) {
+        this.dryRun = dryRun;
     }
 }

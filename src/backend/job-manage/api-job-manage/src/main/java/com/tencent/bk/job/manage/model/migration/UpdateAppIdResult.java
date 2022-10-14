@@ -27,8 +27,9 @@ package com.tencent.bk.job.manage.model.migration;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class AddHostIdResult extends MigrationRecordsResult {
-    public AddHostIdResult(String task) {
+public class UpdateAppIdResult extends MigrationRecordsResult {
+
+    public UpdateAppIdResult(String task) {
         super(task);
     }
 }
