@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,8 +51,8 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
     }
 
     @Override
-    public int insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId) {
-        return dslContext.insertInto(T_WHITE_IP_APP_REL,
+    public void insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId) {
+        dslContext.insertInto(T_WHITE_IP_APP_REL,
             T_WHITE_IP_APP_REL.RECORD_ID,
             T_WHITE_IP_APP_REL.APP_ID,
             T_WHITE_IP_APP_REL.CREATOR,
@@ -82,20 +81,10 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
     }
 
     @Override
-    public int deleteWhiteIPAppRelByAppId(DSLContext dslContext, Long appId) {
-        return dslContext.deleteFrom(T_WHITE_IP_APP_REL).where(
-            T_WHITE_IP_APP_REL.APP_ID.eq(appId)
-        ).execute();
-    }
-
-    @Override
     public List<Long> listAppIdByRecordId(DSLContext dslContext, Long recordId) {
         val records = dslContext.selectFrom(T_WHITE_IP_APP_REL).where(
             T_WHITE_IP_APP_REL.RECORD_ID.eq(recordId)
         ).fetch();
-        if (records == null) {
-            return new ArrayList<>();
-        }
         return records.stream().map(WhiteIpAppRelRecord::getAppId).collect(Collectors.toList());
     }
 
@@ -107,8 +96,8 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
             ).fetch();
         return records.stream().map(record ->
             new WhiteIPAppRelDTO(
-                record.get(T_WHITE_IP_APP_REL.RECORD_ID).longValue(),
-                record.get(T_WHITE_IP_APP_REL.APP_ID).longValue(),
+                record.get(T_WHITE_IP_APP_REL.RECORD_ID),
+                record.get(T_WHITE_IP_APP_REL.APP_ID),
                 null,
                 null
             )

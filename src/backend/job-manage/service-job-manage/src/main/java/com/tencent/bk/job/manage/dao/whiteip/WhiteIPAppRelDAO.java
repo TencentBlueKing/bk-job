@@ -39,13 +39,11 @@ public interface WhiteIPAppRelDAO {
     List<WhiteIPAppRelDTO> listAppRelByAppId(Long appId);
 
     // 新增
-    int insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId);
+    void insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId);
 
     // 更新
     int updateAppId(Long srcAppId, Long targetAppId);
 
     // 删除
     int deleteWhiteIPAppRelByRecordId(DSLContext dslContext, Long recordId);
-
-    int deleteWhiteIPAppRelByAppId(DSLContext dslContext, Long appId);
 }

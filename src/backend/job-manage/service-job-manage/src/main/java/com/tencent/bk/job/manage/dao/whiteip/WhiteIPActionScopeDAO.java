@@ -30,17 +30,11 @@ import org.jooq.DSLContext;
 import java.util.List;
 
 public interface WhiteIPActionScopeDAO {
-    Long insertWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO);
-
-    int deleteWhiteIPActionScopeById(DSLContext dslContext, Long id);
+    void insertWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO);
 
     int deleteWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId);
 
-    WhiteIPActionScopeDTO getWhiteIPActionScopeById(DSLContext dslContext, Long id);
-
     List<WhiteIPActionScopeDTO> getWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId);
-
-    int updateWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO);
 
     List<WhiteIPActionScopeDTO> listWhiteIPActionScopeByRecordIds(DSLContext dslContext, List<Long> recordIdList);
 }

@@ -198,11 +198,17 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     @Override
     public int deleteWhiteIPRecordById(DSLContext dslContext, Long id) {
         //删关联表
-        whiteIPAppRelDAO.deleteWhiteIPAppRelByRecordId(dslContext, id);
+        int deletedAppRelNum = whiteIPAppRelDAO.deleteWhiteIPAppRelByRecordId(dslContext, id);
         //删IP
-        whiteIPIPDAO.deleteWhiteIPIPByRecordId(id);
+        int deletedIpNum = whiteIPIPDAO.deleteWhiteIPIPByRecordId(id);
         //删生效范围
-        whiteIPActionScopeDAO.deleteWhiteIPActionScopeByRecordId(dslContext, id);
+        int deletedActionScopeNum = whiteIPActionScopeDAO.deleteWhiteIPActionScopeByRecordId(dslContext, id);
+        log.debug(
+            "deletedAppRelNum={},deletedIpNum={},deletedActionScopeNum={}",
+            deletedAppRelNum,
+            deletedIpNum,
+            deletedActionScopeNum
+        );
         //删Record
         return dslContext.deleteFrom(
             T_WHITE_IP_RECORD
@@ -237,24 +243,6 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             whiteIPRecord.getLastModifyUser(),
             whiteIPRecord.getLastModifyTime().longValue()
         );
-    }
-
-    private List<Condition> buildConditions(String partIP, List<Long> inAppIdList, List<Long> inActionScopeIdList) {
-        val tApplication = Application.APPLICATION.as("tApplication");
-        val tWhiteIPIP = WhiteIpIp.WHITE_IP_IP.as("tWhiteIPIP");
-        val tActionScope = ActionScope.ACTION_SCOPE.as("tActionScope");
-        List<Condition> conditions = new ArrayList<>();
-        //专有Condition构造
-        if (partIP != null) {
-            conditions.add(tWhiteIPIP.IP.like("%" + partIP.trim() + "%"));
-        }
-        if (inAppIdList != null && !inAppIdList.isEmpty()) {
-            conditions.add(tApplication.APP_ID.in(inAppIdList));
-        }
-        if (inActionScopeIdList != null && !inActionScopeIdList.isEmpty()) {
-            conditions.add(tActionScope.ID.in(inActionScopeIdList));
-        }
-        return conditions;
     }
 
     private List<Condition> buildConditions(List<String> inIpList, List<Long> inAppIdList, List<String> appNameList,
@@ -472,7 +460,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         //删除IP表
         whiteIPIPDAO.deleteWhiteIPIPByRecordId(whiteIPRecordDTO.getId());
         //重新插入IP表
-        whiteIPRecordDTO.getIpList().forEach(it -> whiteIPIPDAO.insertWhiteIPIP(it));
+        whiteIPRecordDTO.getIpList().forEach(whiteIPIPDAO::insertWhiteIPIP);
         //删除ActionScope表
         whiteIPActionScopeDAO.deleteWhiteIPActionScopeByRecordId(dslContext, whiteIPRecordDTO.getId());
         //重新插入ActionScope表

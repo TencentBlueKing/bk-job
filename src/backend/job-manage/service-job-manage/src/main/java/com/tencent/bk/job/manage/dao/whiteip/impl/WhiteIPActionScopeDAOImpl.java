@@ -28,12 +28,10 @@ import com.tencent.bk.job.manage.dao.whiteip.WhiteIPActionScopeDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
 import lombok.val;
 import org.jooq.DSLContext;
-import org.jooq.Record;
 import org.jooq.generated.tables.WhiteIpActionScope;
 import org.jooq.types.ULong;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,8 +40,8 @@ public class WhiteIPActionScopeDAOImpl implements WhiteIPActionScopeDAO {
     private static final WhiteIpActionScope T_WHITE_IP_ACTION_SCOPE = WhiteIpActionScope.WHITE_IP_ACTION_SCOPE;
 
     @Override
-    public Long insertWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO) {
-        Record record = dslContext.insertInto(T_WHITE_IP_ACTION_SCOPE,
+    public void insertWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO) {
+        dslContext.insertInto(T_WHITE_IP_ACTION_SCOPE,
             T_WHITE_IP_ACTION_SCOPE.RECORD_ID,
             T_WHITE_IP_ACTION_SCOPE.ACTION_SCOPE_ID,
             T_WHITE_IP_ACTION_SCOPE.CREATOR,
@@ -59,14 +57,6 @@ public class WhiteIPActionScopeDAOImpl implements WhiteIPActionScopeDAO {
             ULong.valueOf(whiteIPActionScopeDTO.getLastModifyTime())
         ).returning(T_WHITE_IP_ACTION_SCOPE.ID)
             .fetchOne();
-        return record.get(T_WHITE_IP_ACTION_SCOPE.ID);
-    }
-
-    @Override
-    public int deleteWhiteIPActionScopeById(DSLContext dslContext, Long id) {
-        return dslContext.deleteFrom(T_WHITE_IP_ACTION_SCOPE).where(
-            T_WHITE_IP_ACTION_SCOPE.ID.eq(id)
-        ).execute();
     }
 
     @Override
@@ -77,33 +67,10 @@ public class WhiteIPActionScopeDAOImpl implements WhiteIPActionScopeDAO {
     }
 
     @Override
-    public WhiteIPActionScopeDTO getWhiteIPActionScopeById(DSLContext dslContext, Long id) {
-        val record = dslContext.selectFrom(T_WHITE_IP_ACTION_SCOPE).where(
-            T_WHITE_IP_ACTION_SCOPE.ID.eq(id)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return new WhiteIPActionScopeDTO(
-                record.getId(),
-                record.getRecordId(),
-                record.getActionScopeId(),
-                record.getCreator(),
-                record.getCreateTime().longValue(),
-                record.getLastModifyUser(),
-                record.getLastModifyTime().longValue()
-            );
-        }
-    }
-
-    @Override
     public List<WhiteIPActionScopeDTO> getWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId) {
         val records = dslContext.selectFrom(T_WHITE_IP_ACTION_SCOPE).where(
             T_WHITE_IP_ACTION_SCOPE.RECORD_ID.eq(recordId)
         ).fetch();
-        if (records == null) {
-            return new ArrayList<>();
-        }
         return records.stream().map(record ->
             new WhiteIPActionScopeDTO(
                 record.getId(),
@@ -115,19 +82,6 @@ public class WhiteIPActionScopeDAOImpl implements WhiteIPActionScopeDAO {
                 record.getLastModifyTime().longValue()
             )
         ).collect(Collectors.toList());
-    }
-
-    @Override
-    public int updateWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO) {
-        return dslContext.update(T_WHITE_IP_ACTION_SCOPE)
-            .set(T_WHITE_IP_ACTION_SCOPE.RECORD_ID, whiteIPActionScopeDTO.getRecordId())
-            .set(T_WHITE_IP_ACTION_SCOPE.ACTION_SCOPE_ID, whiteIPActionScopeDTO.getActionScopeId())
-            .set(T_WHITE_IP_ACTION_SCOPE.CREATOR, whiteIPActionScopeDTO.getCreator())
-            .set(T_WHITE_IP_ACTION_SCOPE.CREATE_TIME, ULong.valueOf(whiteIPActionScopeDTO.getCreateTime()))
-            .set(T_WHITE_IP_ACTION_SCOPE.LAST_MODIFY_USER, whiteIPActionScopeDTO.getLastModifier())
-            .set(T_WHITE_IP_ACTION_SCOPE.LAST_MODIFY_TIME, ULong.valueOf(whiteIPActionScopeDTO.getLastModifyTime()))
-            .where(T_WHITE_IP_ACTION_SCOPE.ID.eq(whiteIPActionScopeDTO.getId()))
-            .execute();
     }
 
     @Override
