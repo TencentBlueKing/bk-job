@@ -98,7 +98,12 @@ public class TaskTargetDTO {
         HostService hostService =
             ApplicationContextRegister.getBean(HostService.class);
         if (target.getHostNodeList() != null && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())) {
-            Set<Long> hostIds = target.getHostNodeList().getHostList().stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
+            Set<Long> hostIds = target.getHostNodeList().getHostList().stream()
+                .map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
+            if (hostIds.contains(-1L)) {
+                // TMP: 兼容前端只传入ip的场景；发布完成后删除
+                return;
+            }
             Map<Long, ApplicationHostDTO> hosts = hostService.listHostsByHostIds(hostIds);
             target.getHostNodeList().getHostList().forEach(hostNode -> {
                 ApplicationHostDTO host = hosts.get(hostNode.getHostId());
