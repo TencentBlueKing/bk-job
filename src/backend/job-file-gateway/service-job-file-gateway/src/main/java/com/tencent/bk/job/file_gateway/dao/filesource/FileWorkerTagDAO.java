@@ -36,4 +36,6 @@ public interface FileWorkerTagDAO {
     int deleteById(Collection<Long> ids);
 
     List<WorkerTagDTO> listTagByWorkerId(Long workerId);
+
+    List<Long> listWorkerIdByTag(Collection<String> tags);
 }

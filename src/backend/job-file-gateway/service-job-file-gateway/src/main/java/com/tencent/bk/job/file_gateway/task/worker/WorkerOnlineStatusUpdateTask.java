@@ -25,26 +25,30 @@
 package com.tencent.bk.job.file_gateway.task.worker;
 
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
-import org.jooq.DSLContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class WorkerOnlineStatusUpdateTask {
 
     private static final long WORKER_HEART_BEAT_EXPIRE_TIME_MILLS = 150 * 1000L;
-    private final DSLContext dslContext;
     private final FileWorkerDAO fileWorkerDAO;
 
     @Autowired
-    public WorkerOnlineStatusUpdateTask(DSLContext dslContext, FileWorkerDAO fileWorkerDAO) {
-        this.dslContext = dslContext;
+    public WorkerOnlineStatusUpdateTask(FileWorkerDAO fileWorkerDAO) {
         this.fileWorkerDAO = fileWorkerDAO;
     }
 
     public void run() {
         // 150s内没有心跳就判定为离线
-        fileWorkerDAO.updateAllFileWorkerOnlineStatus(dslContext, 0,
-            System.currentTimeMillis() - WORKER_HEART_BEAT_EXPIRE_TIME_MILLS);
+        int affectedRowNum = fileWorkerDAO.updateAllFileWorkerOnlineStatus(
+            0,
+            System.currentTimeMillis() - WORKER_HEART_BEAT_EXPIRE_TIME_MILLS
+        );
+        if (affectedRowNum > 0) {
+            log.info("{} workers offline", affectedRowNum);
+        }
     }
 }

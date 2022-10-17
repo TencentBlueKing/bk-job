@@ -96,6 +96,16 @@ public class FileWorkerTagDAOImpl implements FileWorkerTagDAO {
         return records.map(this::convert);
     }
 
+    @Override
+    public List<Long> listWorkerIdByTag(Collection<String> tags) {
+        val records = defaultContext.select(
+            defaultTable.WORKER_ID
+        ).from(defaultTable)
+            .where(defaultTable.TAG.in(tags))
+            .fetch();
+        return records.map(record -> record.get(defaultTable.WORKER_ID));
+    }
+
     private WorkerTagDTO convert(Record record) {
         WorkerTagDTO workerTagDTO = new WorkerTagDTO();
         workerTagDTO.setId(record.get(defaultTable.ID));

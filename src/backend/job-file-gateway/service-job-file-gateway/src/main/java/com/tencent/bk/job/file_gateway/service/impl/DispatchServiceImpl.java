@@ -33,10 +33,10 @@ import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.service.AbilityTagService;
 import com.tencent.bk.job.file_gateway.service.DispatchService;
+import com.tencent.bk.job.file_gateway.service.FileWorkerService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,48 +52,92 @@ public class DispatchServiceImpl implements DispatchService {
 
     private final AbilityTagService abilityTagService;
     private final MeterRegistry meterRegistry;
-    private final DSLContext dslContext;
     private final FileWorkerDAO fileWorkerDAO;
+    private final FileWorkerService fileWorkerService;
 
     @Autowired
-    public DispatchServiceImpl(DSLContext dslContext, FileWorkerDAO fileWorkerDAO,
-                               AbilityTagService abilityTagService, MeterRegistry meterRegistry) {
-        this.dslContext = dslContext;
+    public DispatchServiceImpl(FileWorkerDAO fileWorkerDAO,
+                               AbilityTagService abilityTagService,
+                               MeterRegistry meterRegistry,
+                               FileWorkerService fileWorkerService) {
         this.fileWorkerDAO = fileWorkerDAO;
         this.abilityTagService = abilityTagService;
         this.meterRegistry = meterRegistry;
+        this.fileWorkerService = fileWorkerService;
     }
 
     private List<FileWorkerDTO> getFileWorkerByScope(Long appId, String workerSelectScope) {
+        WorkerIdsCondition workerIdsCondition = fileWorkerService.getIncludedAndExcludedWorkerIds();
         if (WorkerSelectScopeEnum.APP.name().equals(workerSelectScope)) {
-            return fileWorkerDAO.listFileWorkers(dslContext, appId);
+            return fileWorkerDAO.listFileWorkers(
+                appId,
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
         } else if (WorkerSelectScopeEnum.PUBLIC.name().equals(workerSelectScope)) {
-            return fileWorkerDAO.listPublicFileWorkers(dslContext);
+            return fileWorkerDAO.listPublicFileWorkers(
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
         } else if (WorkerSelectScopeEnum.ALL.name().equals(workerSelectScope)) {
             List<FileWorkerDTO> finalWorkerList = new ArrayList<>();
-            finalWorkerList.addAll(fileWorkerDAO.listPublicFileWorkers(dslContext));
-            finalWorkerList.addAll(fileWorkerDAO.listFileWorkers(dslContext, appId));
+            finalWorkerList.addAll(fileWorkerDAO.listPublicFileWorkers(
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            ));
+            finalWorkerList.addAll(fileWorkerDAO.listFileWorkers(
+                appId,
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            ));
             return finalWorkerList;
         } else {
             log.error("not supported workerSelectScope:{}, use public workers", workerSelectScope);
-            return fileWorkerDAO.listPublicFileWorkers(dslContext);
+            return fileWorkerDAO.listPublicFileWorkers(
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
         }
     }
 
-    private List<FileWorkerDTO> getFileWorkerByScopeAndAbilityTag(Long appId, String workerSelectScope,
+    private List<FileWorkerDTO> getFileWorkerByScopeAndAbilityTag(Long appId,
+                                                                  String workerSelectScope,
                                                                   String abilityTag) {
+        WorkerIdsCondition workerIdsCondition = fileWorkerService.getIncludedAndExcludedWorkerIds();
         if (WorkerSelectScopeEnum.APP.name().equals(workerSelectScope)) {
-            return fileWorkerDAO.listFileWorkersByAbilityTag(dslContext, appId, abilityTag);
+            return fileWorkerDAO.listFileWorkersByAbilityTag(
+                appId,
+                abilityTag,
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
         } else if (WorkerSelectScopeEnum.PUBLIC.name().equals(workerSelectScope)) {
-            return fileWorkerDAO.listPublicFileWorkersByAbilityTag(dslContext, abilityTag);
+            return fileWorkerDAO.listPublicFileWorkersByAbilityTag(
+                abilityTag,
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
         } else if (WorkerSelectScopeEnum.ALL.name().equals(workerSelectScope)) {
             List<FileWorkerDTO> finalWorkerList = new ArrayList<>();
-            finalWorkerList.addAll(fileWorkerDAO.listFileWorkersByAbilityTag(dslContext, appId, abilityTag));
-            finalWorkerList.addAll(fileWorkerDAO.listPublicFileWorkersByAbilityTag(dslContext, abilityTag));
+            finalWorkerList.addAll(fileWorkerDAO.listFileWorkersByAbilityTag(
+                appId,
+                abilityTag,
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            ));
+            finalWorkerList.addAll(fileWorkerDAO.listPublicFileWorkersByAbilityTag(
+                abilityTag,
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            ));
             return finalWorkerList;
         } else {
             log.error("not supported workerSelectScope:{}, use public workers", workerSelectScope);
-            return fileWorkerDAO.listPublicFileWorkersByAbilityTag(dslContext, abilityTag);
+            return fileWorkerDAO.listPublicFileWorkersByAbilityTag(
+                abilityTag,
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
         }
     }
 
@@ -170,7 +214,7 @@ public class DispatchServiceImpl implements DispatchService {
         log.info("select worker with mode={},fileSourceDTO={}", mode, JsonUtils.toJson(fileSourceDTO));
         if (WorkerSelectModeEnum.MANUAL.name().equals(mode)) {
             Long workerId = fileSourceDTO.getWorkerId();
-            fileWorkerDTO = fileWorkerDAO.getFileWorkerById(dslContext, workerId);
+            fileWorkerDTO = fileWorkerDAO.getFileWorkerById(workerId);
             if (!fileWorkerDTO.isOnline()) {
                 log.info("Worker selected manually is not online");
                 return null;

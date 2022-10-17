@@ -109,9 +109,9 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     }
 
     @Override
-    public Long insertFileWorker(DSLContext dslContext, FileWorkerDTO fileWorkerDTO) {
+    public Long insertFileWorker(FileWorkerDTO fileWorkerDTO) {
         setDefaultValue(fileWorkerDTO);
-        val query = dslContext.insertInto(defaultTable,
+        val query = defaultContext.insertInto(defaultTable,
             defaultTable.APP_ID,
             defaultTable.NAME,
             defaultTable.DESCRIPTION,
@@ -170,8 +170,8 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     }
 
     @Override
-    public int updateFileWorker(DSLContext dslContext, FileWorkerDTO fileWorkerDTO) {
-        UpdateSetFirstStep<FileWorkerRecord> query = dslContext.update(defaultTable);
+    public int updateFileWorker(FileWorkerDTO fileWorkerDTO) {
+        UpdateSetFirstStep<FileWorkerRecord> query = defaultContext.update(defaultTable);
         UpdateSetMoreStep<FileWorkerRecord> updateSetMoreStep = query.set(defaultTable.APP_ID,
             fileWorkerDTO.getAppId());
         if (fileWorkerDTO.getAccessHost() != null) {
@@ -289,18 +289,11 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     }
 
     @Override
-    public int updateAllFileWorkerOnlineStatus(DSLContext dslContext, Integer onlineStatus, Long aliveTime) {
-        val updateQuery = dslContext.update(defaultTable)
+    public int updateAllFileWorkerOnlineStatus(Integer onlineStatus, Long aliveTime) {
+        val updateQuery = defaultContext.update(defaultTable)
             .set(defaultTable.ONLINE_STATUS, JooqTypeUtil.convertToByte(onlineStatus))
             .where(defaultTable.LAST_HEART_BEAT.le(aliveTime));
         return updateQuery.execute();
-    }
-
-    @Override
-    public int deleteFileWorkerById(DSLContext dslContext, Long id) {
-        return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).execute();
     }
 
     public List<String> listWorkerAbilityTags(DSLContext dslContext, Long workerId) {
@@ -316,57 +309,60 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     }
 
     @Override
-    public FileWorkerDTO getFileWorkerById(DSLContext dslContext, Long id) {
+    public FileWorkerDTO getFileWorkerById(Long id) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ID.eq(id));
-        Record record = dslContext.selectFrom(defaultTable).where(conditions).fetchOne();
+        Record record = defaultContext.selectFrom(defaultTable).where(conditions).fetchOne();
         if (record == null) {
             return null;
         } else {
-            return convertRecordToDto(record, listWorkerAbilityTags(dslContext, id));
+            return convertRecordToDto(record, listWorkerAbilityTags(defaultContext, id));
         }
     }
 
-    @Override
-    public List<FileWorkerDTO> listFileWorkers(DSLContext dslContext) {
-        return listFileWorkersByConditions(dslContext, null);
+    private List<Condition> buildBaseIdConditions(Collection<Long> includeIds, Collection<Long> excludeIds) {
+        List<Condition> conditions = new ArrayList<>();
+        if (includeIds != null) {
+            conditions.add(defaultTable.ID.in(includeIds));
+        }
+        if (excludeIds != null) {
+            conditions.add(defaultTable.ID.notIn(excludeIds));
+        }
+        return conditions;
     }
 
     @Override
-    public List<FileWorkerDTO> listPublicFileWorkers(DSLContext dslContext) {
-        List<Condition> conditions = new ArrayList<>();
+    public List<FileWorkerDTO> listPublicFileWorkers(Collection<Long> includeIds, Collection<Long> excludeIds) {
+        List<Condition> conditions = buildBaseIdConditions(includeIds, excludeIds);
         conditions.add(defaultTable.APP_ID.eq(-1L));
-        return listFileWorkersByConditions(dslContext, conditions);
+        return listFileWorkersByConditions(conditions);
     }
 
     @Override
-    public List<FileWorkerDTO> listFileWorkers(DSLContext dslContext, Long appId) {
-        List<Condition> conditions = new ArrayList<>();
+    public List<FileWorkerDTO> listFileWorkers(Long appId, Collection<Long> includeIds, Collection<Long> excludeIds) {
+        List<Condition> conditions = buildBaseIdConditions(includeIds, excludeIds);
         conditions.add(defaultTable.APP_ID.eq(appId));
-        return listFileWorkersByConditions(dslContext, conditions);
+        return listFileWorkersByConditions(conditions);
     }
 
     @Override
-    public List<FileWorkerDTO> listPublicFileWorkersByAbilityTag(DSLContext dslContext, String tag) {
-        return listFileWorkersByAbilityTag(dslContext, -1L, tag);
+    public List<FileWorkerDTO> listPublicFileWorkersByAbilityTag(String tag,
+                                                                 Collection<Long> includeIds,
+                                                                 Collection<Long> excludeIds) {
+        return listFileWorkersByAbilityTag(-1L, tag, includeIds, excludeIds);
     }
 
     @Override
-    public List<FileWorkerDTO> listFileWorkersByAbilityTag(DSLContext dslContext, Long appId, String tag) {
-        List<Condition> conditions = new ArrayList<>();
+    public List<FileWorkerDTO> listFileWorkersByAbilityTag(Long appId,
+                                                           String tag,
+                                                           Collection<Long> includeIds,
+                                                           Collection<Long> excludeIds) {
+        List<Condition> conditions = buildBaseIdConditions(includeIds, excludeIds);
         conditions.add(tFileWorkerAbility.TAG.eq(tag));
         if (appId != null) {
             conditions.add(defaultTable.APP_ID.eq(appId));
         }
-        return listFileWorkersByConditions(dslContext, conditions);
-    }
-
-    @Override
-    public List<FileWorkerDTO> listFileWorkersByAccess(DSLContext dslContext, String accessHost, Integer accessPort) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(defaultTable.ACCESS_HOST.eq(accessHost));
-        conditions.add(defaultTable.ACCESS_PORT.eq(accessPort));
-        return listFileWorkersByConditions(dslContext, conditions);
+        return listFileWorkersByConditions(conditions);
     }
 
     private Long countFileWorkersByConditions(Collection<Condition> conditions) {
@@ -388,19 +384,19 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         return countFileWorkersByConditions(conditions);
     }
 
-    public boolean existsFileWorker(DSLContext dslContext, String accessHost, Integer accessPort) {
+    public boolean existsFileWorker(String accessHost, Integer accessPort) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ACCESS_HOST.eq(accessHost));
         conditions.add(defaultTable.ACCESS_PORT.eq(accessPort));
-        return existsFileWorkerByConditions(dslContext, conditions);
+        return existsFileWorkerByConditions(defaultContext, conditions);
     }
 
     @Override
-    public FileWorkerDTO getFileWorker(DSLContext dslContext, String accessHost, Integer accessPort) {
+    public FileWorkerDTO getFileWorker(String accessHost, Integer accessPort) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ACCESS_HOST.eq(accessHost));
         conditions.add(defaultTable.ACCESS_PORT.eq(accessPort));
-        List<FileWorkerDTO> fileWorkerDTOList = listFileWorkersByConditions(dslContext, conditions);
+        List<FileWorkerDTO> fileWorkerDTOList = listFileWorkersByConditions(conditions);
         if (fileWorkerDTOList.isEmpty()) {
             return null;
         } else {
@@ -415,13 +411,13 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         return dslContext.fetchExists(dslContext.selectOne().from(defaultTable).where(conditions));
     }
 
-    public List<FileWorkerDTO> listFileWorkersByConditions(DSLContext dslContext, Collection<Condition> conditions) {
+    public List<FileWorkerDTO> listFileWorkersByConditions(Collection<Condition> conditions) {
         if (conditions == null) {
             conditions = new ArrayList<>();
         }
         Result<Record22<Long, Long, String, String, String, String, Integer, Long, String, Double, Double, Double,
             Double, Double, String, Byte, Long, String, Long, String, Long, String>> records = null;
-        val query = dslContext.select(
+        val query = defaultContext.select(
             defaultTable.ID.as(KEY_FILE_WORKER_ID),
             defaultTable.APP_ID.as(KEY_FILE_WORKER_APP_ID),
             defaultTable.NAME.as(KEY_FILE_WORKER_NAME),
