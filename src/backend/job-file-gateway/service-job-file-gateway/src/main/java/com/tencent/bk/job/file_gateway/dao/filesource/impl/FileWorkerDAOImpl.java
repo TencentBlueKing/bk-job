@@ -26,12 +26,15 @@ package com.tencent.bk.job.file_gateway.dao.filesource.impl;
 
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.file_gateway.consts.FileWorkerOnlineStatusEnum;
+import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerAbilityDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
+import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerTagDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
+import com.tencent.bk.job.file_gateway.model.dto.WorkerAbilityDTO;
+import com.tencent.bk.job.file_gateway.model.dto.WorkerTagDTO;
 import com.tencent.bk.job.file_gateway.util.JooqTypeUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -51,8 +54,11 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 @Slf4j
@@ -84,10 +90,16 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     private static final FileWorker defaultTable = FileWorker.FILE_WORKER;
     private static final FileWorkerAbility tFileWorkerAbility = FileWorkerAbility.FILE_WORKER_ABILITY;
     private final DSLContext defaultContext;
+    private final FileWorkerAbilityDAO fileWorkerAbilityDAO;
+    private final FileWorkerTagDAO fileWorkerTagDAO;
 
     @Autowired
-    public FileWorkerDAOImpl(DSLContext dslContext) {
+    public FileWorkerDAOImpl(DSLContext dslContext,
+                             FileWorkerAbilityDAO fileWorkerAbilityDAO,
+                             FileWorkerTagDAO fileWorkerTagDAO) {
         this.defaultContext = dslContext;
+        this.fileWorkerAbilityDAO = fileWorkerAbilityDAO;
+        this.fileWorkerTagDAO = fileWorkerTagDAO;
     }
 
     private void setDefaultValue(FileWorkerDTO fileWorkerDTO) {
@@ -146,9 +158,11 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         ).returning(defaultTable.ID);
         val sql = query.getSQL(ParamType.INLINED);
         try {
-            Long id = query.fetchOne().getId();
-            updateWorkerAbilityTagByWorkerId(dslContext, id, fileWorkerDTO.getAbilityTagList());
-            return id;
+            Long workerId = Objects.requireNonNull(query.fetchOne()).getId();
+            int affectedRowNum = fileWorkerTagDAO.batchInsert(workerId, fileWorkerDTO.getTagList());
+            log.debug("worker {} with {} tags saved", workerId, affectedRowNum);
+            updateWorkerAbilityTagByWorkerId(workerId, fileWorkerDTO.getAbilityTagList());
+            return workerId;
         } catch (Exception e) {
             log.error(sql);
             throw e;
@@ -161,119 +175,61 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         UpdateSetMoreStep<FileWorkerRecord> updateSetMoreStep = query.set(defaultTable.APP_ID,
             fileWorkerDTO.getAppId());
         if (fileWorkerDTO.getAccessHost() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.ACCESS_HOST, fileWorkerDTO.getAccessHost());
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.ACCESS_HOST, fileWorkerDTO.getAccessHost());
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.ACCESS_HOST, fileWorkerDTO.getAccessHost());
         }
         if (fileWorkerDTO.getAccessPort() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.ACCESS_PORT, fileWorkerDTO.getAccessPort());
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.ACCESS_PORT, fileWorkerDTO.getAccessPort());
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.ACCESS_PORT, fileWorkerDTO.getAccessPort());
         }
         if (fileWorkerDTO.getCloudAreaId() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.CLOUD_AREA_ID, fileWorkerDTO.getCloudAreaId());
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.CLOUD_AREA_ID, fileWorkerDTO.getCloudAreaId());
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.CLOUD_AREA_ID, fileWorkerDTO.getCloudAreaId());
         }
         if (fileWorkerDTO.getInnerIp() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.INNER_IP, fileWorkerDTO.getInnerIp());
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.INNER_IP, fileWorkerDTO.getInnerIp());
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.INNER_IP, fileWorkerDTO.getInnerIp());
         }
         if (fileWorkerDTO.getCpuOverload() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.CPU_OVERLOAD,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getCpuOverload()));
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.CPU_OVERLOAD,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getCpuOverload()));
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.CPU_OVERLOAD,
+                JooqTypeUtil.convertToDouble(fileWorkerDTO.getCpuOverload()));
         }
         if (fileWorkerDTO.getMemRate() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.MEM_RATE,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getMemRate()));
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.MEM_RATE,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getMemRate()));
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.MEM_RATE,
+                JooqTypeUtil.convertToDouble(fileWorkerDTO.getMemRate()));
         }
         if (fileWorkerDTO.getMemFreeSpace() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.MEM_FREE_SPACE,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getMemFreeSpace()));
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.MEM_FREE_SPACE,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getMemFreeSpace()));
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.MEM_FREE_SPACE,
+                JooqTypeUtil.convertToDouble(fileWorkerDTO.getMemFreeSpace()));
         }
         if (fileWorkerDTO.getDiskRate() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.DISK_RATE,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getDiskRate()));
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.DISK_RATE,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getDiskRate()));
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.DISK_RATE,
+                JooqTypeUtil.convertToDouble(fileWorkerDTO.getDiskRate()));
         }
         if (fileWorkerDTO.getDiskFreeSpace() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.DISK_FREE_SPACE,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getDiskFreeSpace()));
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.DISK_FREE_SPACE,
-                    JooqTypeUtil.convertToDouble(fileWorkerDTO.getDiskFreeSpace()));
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.DISK_FREE_SPACE,
+                JooqTypeUtil.convertToDouble(fileWorkerDTO.getDiskFreeSpace()));
         }
         if (fileWorkerDTO.getVersion() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.VERSION, fileWorkerDTO.getVersion());
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.VERSION, fileWorkerDTO.getVersion());
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.VERSION, fileWorkerDTO.getVersion());
         }
         if (fileWorkerDTO.getOnlineStatus() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.ONLINE_STATUS, fileWorkerDTO.getOnlineStatus());
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.ONLINE_STATUS, fileWorkerDTO.getOnlineStatus());
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.ONLINE_STATUS, fileWorkerDTO.getOnlineStatus());
         }
         if (fileWorkerDTO.getLastHeartBeat() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.LAST_HEART_BEAT, fileWorkerDTO.getLastHeartBeat());
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.LAST_HEART_BEAT,
-                    fileWorkerDTO.getLastHeartBeat());
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.LAST_HEART_BEAT,
+                fileWorkerDTO.getLastHeartBeat());
         }
         if (fileWorkerDTO.getConfigStr() != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = query.set(defaultTable.CONFIG_STR, fileWorkerDTO.getConfigStr());
-            } else {
-                updateSetMoreStep = updateSetMoreStep.set(defaultTable.CONFIG_STR, fileWorkerDTO.getConfigStr());
-            }
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.CONFIG_STR, fileWorkerDTO.getConfigStr());
         }
-        UpdateConditionStep<FileWorkerRecord> updateConditionStep = null;
-        if (updateSetMoreStep == null) {
-            return 0;
-        } else {
-            updateConditionStep = updateSetMoreStep.where(defaultTable.ID.eq(fileWorkerDTO.getId()));
-        }
+        UpdateConditionStep<FileWorkerRecord> updateConditionStep;
+        updateConditionStep = updateSetMoreStep.where(defaultTable.ID.eq(fileWorkerDTO.getId()));
         val sql = updateConditionStep.getSQL(ParamType.INLINED);
         try {
             int affectedRowNum = updateConditionStep.execute();
+            Long workerId = fileWorkerDTO.getId();
             // 更新能力标签
             List<String> abilityTagList = fileWorkerDTO.getAbilityTagList();
-            updateWorkerAbilityTagByWorkerId(dslContext, fileWorkerDTO.getId(), abilityTagList);
+            updateWorkerAbilityTagByWorkerId(fileWorkerDTO.getId(), abilityTagList);
+            // 更新普通标签
+            updateWorkerTags(workerId, fileWorkerDTO.getTagList());
             return affectedRowNum;
         } catch (Exception e) {
             log.error(sql);
@@ -281,44 +237,55 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         }
     }
 
-    private int updateWorkerAbilityTagByWorkerId(DSLContext dslContext, Long workerId, List<String> abilityTagList) {
-        if (abilityTagList == null) {
-            return 0;
+    private void updateWorkerTags(Long workerId, List<String> tagList) {
+        if (tagList == null) {
+            log.warn("tagList is null, ignore");
+            return;
         }
-        AtomicInteger affectedNum = new AtomicInteger(0);
-        dslContext.transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            context.deleteFrom(tFileWorkerAbility).where(
-                tFileWorkerAbility.WORKER_ID.eq(workerId)
-            ).execute();
-            val insertQuery = context.insertInto(tFileWorkerAbility,
-                tFileWorkerAbility.ID,
-                tFileWorkerAbility.WORKER_ID,
-                tFileWorkerAbility.TAG,
-                tFileWorkerAbility.DESCRIPTION
-            ).values(
-                (Long) null,
-                null,
-                null,
-                null
-            );
-            BatchBindStep batchQuery = context.batch(insertQuery);
-            for (String abilityTag : abilityTagList) {
-                batchQuery = batchQuery.bind(
-                    (Long) null,
-                    workerId,
-                    abilityTag,
-                    ""
-                );
+        List<WorkerTagDTO> workerTagDTOList = fileWorkerTagDAO.listTagByWorkerId(workerId);
+        Set<String> newTagSet = new HashSet<>(tagList);
+        Set<String> oldTagSet = new HashSet<>();
+        Set<Long> deleteIds = new HashSet<>();
+        for (WorkerTagDTO workerTagDTO : workerTagDTOList) {
+            oldTagSet.add(workerTagDTO.getTag());
+            if (!newTagSet.contains(workerTagDTO.getTag())) {
+                deleteIds.add(workerTagDTO.getId());
             }
-            if (!abilityTagList.isEmpty()) {
-                int[] results = batchQuery.execute();
-                for (int result : results) {
-                    affectedNum.set(affectedNum.get() + result);
-                }
+        }
+        newTagSet.removeAll(oldTagSet);
+        int deleteNum = fileWorkerTagDAO.deleteById(deleteIds);
+        int insertNum = fileWorkerTagDAO.batchInsert(workerId, new ArrayList<>(newTagSet));
+        log.info("{} tags deleted, ids={}, {} tags inserted, tags={}", deleteNum, deleteIds, insertNum, newTagSet);
+    }
+
+    private void updateWorkerAbilityTagByWorkerId(Long workerId, List<String> abilityTagList) {
+        if (abilityTagList == null) {
+            log.warn("abilityTagList is null, ignore");
+            return;
+        }
+        List<WorkerAbilityDTO> workerAbilityDTOList = fileWorkerAbilityDAO.listAbilityTagByWorkerId(workerId);
+        Set<String> newAbilityTagSet = new HashSet<>(abilityTagList);
+        Set<String> oldAbilityTagSet = new HashSet<>();
+        Set<Long> deleteIds = new HashSet<>();
+        for (WorkerAbilityDTO workerAbilityDTO : workerAbilityDTOList) {
+            oldAbilityTagSet.add(workerAbilityDTO.getTag());
+            if (!newAbilityTagSet.contains(workerAbilityDTO.getTag())) {
+                deleteIds.add(workerAbilityDTO.getId());
             }
-        });
-        return affectedNum.get();
+        }
+        newAbilityTagSet.removeAll(oldAbilityTagSet);
+        int deleteNum = fileWorkerAbilityDAO.deleteById(deleteIds);
+        int insertNum = fileWorkerAbilityDAO.batchInsert(workerId,
+            newAbilityTagSet.stream().map(tag ->
+                new WorkerAbilityDTO(null, workerId, tag, "")
+            ).collect(Collectors.toList()));
+        log.info(
+            "{} abilityTags deleted, ids={}, {} abilityTags inserted, tags={}",
+            deleteNum,
+            deleteIds,
+            insertNum,
+            newAbilityTagSet
+        );
     }
 
     @Override
@@ -341,7 +308,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             .from(tFileWorkerAbility)
             .where(tFileWorkerAbility.WORKER_ID.eq(workerId))
             .fetch();
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(record -> record.get(tFileWorkerAbility.TAG));

@@ -90,6 +90,10 @@ public class FileWorkerDTO {
      */
     private String innerIp;
     /**
+     * 标签列表
+     */
+    private List<String> tagList;
+    /**
      * 能力标签
      */
     private List<String> abilityTagList;
@@ -157,6 +161,7 @@ public class FileWorkerDTO {
         FileWorkerDTO fileWorkerDTO = new FileWorkerDTO();
         fileWorkerDTO.setId(heartBeatReq.getId());
         fileWorkerDTO.setName(heartBeatReq.getName());
+        fileWorkerDTO.setTagList(heartBeatReq.getTagList());
         fileWorkerDTO.setAppId(heartBeatReq.getAppId());
         fileWorkerDTO.setToken(heartBeatReq.getToken());
         fileWorkerDTO.setAccessHost(heartBeatReq.getAccessHost());
