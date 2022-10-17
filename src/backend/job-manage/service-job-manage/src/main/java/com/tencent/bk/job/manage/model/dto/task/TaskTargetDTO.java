@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -99,9 +100,11 @@ public class TaskTargetDTO {
             ApplicationContextRegister.getBean(HostService.class);
         if (target.getHostNodeList() != null && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())) {
             Set<Long> hostIds = target.getHostNodeList().getHostList().stream()
-                .map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
-            if (hostIds.contains(-1L)) {
-                // TMP: 兼容前端只传入ip的场景；发布完成后删除
+                .map(ApplicationHostDTO::getHostId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+            if (CollectionUtils.isEmpty(hostIds)) {
+                // TMP: 兼容前端只传入ip的场景；发布完成后删除,并加入前端校验
                 return;
             }
             Map<Long, ApplicationHostDTO> hosts = hostService.listHostsByHostIds(hostIds);
