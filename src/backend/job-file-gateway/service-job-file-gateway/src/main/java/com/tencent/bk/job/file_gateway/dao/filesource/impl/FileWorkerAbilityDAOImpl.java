@@ -28,6 +28,7 @@ import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerAbilityDAO;
 import com.tencent.bk.job.file_gateway.model.dto.WorkerAbilityDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -52,6 +53,9 @@ public class FileWorkerAbilityDAOImpl implements FileWorkerAbilityDAO {
 
     @Override
     public int batchInsert(Long workerId, List<WorkerAbilityDTO> abilityList) {
+        if (CollectionUtils.isEmpty(abilityList)) {
+            return 0;
+        }
         val insertQuery = defaultContext.insertInto(defaultTable,
             defaultTable.ID,
             defaultTable.WORKER_ID,
@@ -82,6 +86,9 @@ public class FileWorkerAbilityDAOImpl implements FileWorkerAbilityDAO {
 
     @Override
     public int deleteById(Collection<Long> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
         return defaultContext.deleteFrom(defaultTable).where(
             defaultTable.ID.in(ids)
         ).execute();
