@@ -53,7 +53,7 @@ public class FileSourceStatusUpdateTask {
     }
 
     public void run() {
-        List<FileSourceDTO> fileSourceDTOList = null;
+        List<FileSourceDTO> fileSourceDTOList;
         int start = 0;
         int pageSize = 20;
         do {

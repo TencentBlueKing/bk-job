@@ -81,49 +81,47 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         String action = resourceAndAction[1];
         boolean isReturnApplyUrl = returnPermissionDetail == null ? false : returnPermissionDetail;
 
-        switch (resourceType) {
-            case "file_source":
-                switch (action) {
-                    case "view":
-                        return Response.buildSuccessResp(
-                            webAuthService.toAuthResultVO(
-                                isReturnApplyUrl,
-                                fileSourceAuthService.authViewFileSource(
-                                    username,
-                                    appResourceScope,
-                                    Integer.valueOf(resourceId),
-                                    null
-                                )
+        if ("file_source".equals(resourceType)) {
+            switch (action) {
+                case "view":
+                    return Response.buildSuccessResp(
+                        webAuthService.toAuthResultVO(
+                            isReturnApplyUrl,
+                            fileSourceAuthService.authViewFileSource(
+                                username,
+                                appResourceScope,
+                                Integer.valueOf(resourceId),
+                                null
                             )
-                        );
-                    case "create":
-                        return Response.buildSuccessResp(
-                            webAuthService.toAuthResultVO(
-                                isReturnApplyUrl,
-                                fileSourceAuthService.authCreateFileSource(username, appResourceScope)
+                        )
+                    );
+                case "create":
+                    return Response.buildSuccessResp(
+                        webAuthService.toAuthResultVO(
+                            isReturnApplyUrl,
+                            fileSourceAuthService.authCreateFileSource(username, appResourceScope)
+                        )
+                    );
+                case "edit":
+                case "delete":
+                    return Response.buildSuccessResp(
+                        webAuthService.toAuthResultVO(
+                            isReturnApplyUrl,
+                            fileSourceAuthService.authManageFileSource(
+                                username,
+                                appResourceScope,
+                                Integer.valueOf(resourceId),
+                                null
                             )
-                        );
-                    case "edit":
-                    case "delete":
-                        return Response.buildSuccessResp(
-                            webAuthService.toAuthResultVO(
-                                isReturnApplyUrl,
-                                fileSourceAuthService.authManageFileSource(
-                                    username,
-                                    appResourceScope,
-                                    Integer.valueOf(resourceId),
-                                    null
-                                )
-                            )
-                        );
-                    default:
-                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,
-                            returnPermissionDetail);
-                }
-                break;
-            default:
-                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,
-                    returnPermissionDetail);
+                        )
+                    );
+                default:
+                    log.error("Unknown operator|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,
+                        returnPermissionDetail);
+            }
+        } else {
+            log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,
+                returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }

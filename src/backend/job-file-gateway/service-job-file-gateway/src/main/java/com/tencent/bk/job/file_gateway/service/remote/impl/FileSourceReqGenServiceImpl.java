@@ -49,7 +49,7 @@ public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl
     @Override
     public HttpReq genFileAvailableReq(Long appId, FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO) {
         BaseReq req = new BaseReq();
-        String url = fillBaseReqGetUrl(req, appId, fileWorkerDTO, fileSourceDTO, "/file/available");
+        String url = fillBaseReqGetUrl(req, fileWorkerDTO, fileSourceDTO, "/file/available");
         return genRemoteFileReq(url, req);
     }
 
@@ -57,7 +57,7 @@ public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl
     public HttpReq genListFileNodeReq(Long appId, String path, String name, Integer start, Integer pageSize,
                                       FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO) {
         ListFileNodeReq req = new ListFileNodeReq();
-        String url = fillBaseReqGetUrl(req, appId, fileWorkerDTO, fileSourceDTO, "/file/listFileNode");
+        String url = fillBaseReqGetUrl(req, fileWorkerDTO, fileSourceDTO, "/file/listFileNode");
         req.setPath(path);
         req.setName(name);
         req.setStart(start);
@@ -69,7 +69,7 @@ public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl
     public HttpReq genExecuteActionReq(Long appId, String actionCode, Map<String, Object> actionParams,
                                        FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO) {
         ExecuteActionReq req = new ExecuteActionReq();
-        String url = fillBaseReqGetUrl(req, appId, fileWorkerDTO, fileSourceDTO, "/file/executeAction");
+        String url = fillBaseReqGetUrl(req, fileWorkerDTO, fileSourceDTO, "/file/executeAction");
         req.setActionCode(actionCode);
         req.setParams(actionParams);
         return genRemoteFileReq(url, req);
