@@ -1111,6 +1111,12 @@ fileGatewayConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 用于确定调度范围的worker标签
+  workerTags:
+    # 能够调度的worker标签白名单，逗号分隔
+    white: "k8s"
+    # 不能调度的worker标签黑名单，逗号分隔
+    black: ""
 
 ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1164,6 +1170,8 @@ fileWorkerConfig:
   instanceName: job-file-worker-public-1
   # 版本号
   version: 0.0.1
+  # 标签，逗号分隔
+  tags: "k8s"
   # 安全凭据
   token: "testToken"
   # 所属业务Id

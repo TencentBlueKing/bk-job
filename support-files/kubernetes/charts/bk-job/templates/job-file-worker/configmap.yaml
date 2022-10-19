@@ -15,6 +15,7 @@ data:
     job:
       file-worker:
         version: {{ .Values.fileWorkerConfig.version }}
+        tags: {{ .Values.fileWorkerConfig.tags }}
         token: {{ .Values.fileWorkerConfig.token }}
         app-id: {{ .Values.fileWorkerConfig.appId }}
         ability-tags: {{ .Values.fileWorkerConfig.abilityTags }}
