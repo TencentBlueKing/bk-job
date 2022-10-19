@@ -257,7 +257,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     @Override
     GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<FileTaskResult> taskDetail) {
-        if (taskDetail.getResult() == null) {
+        if (taskDetail == null || taskDetail.getResult() == null) {
             log.info("Analyse gse task result, result is empty!");
             return analyseExecuteResult();
         }
