@@ -257,6 +257,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     @Override
     GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<FileTaskResult> taskDetail) {
+        if (taskDetail.getResult() == null) {
+            log.info("Analyse gse task result, result is empty!");
+            return analyseExecuteResult();
+        }
         // 执行日志, Map<hostKey, 日志>
         Map<Long, ServiceHostLogDTO> executionLogs = new HashMap<>();
 
@@ -294,7 +298,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         batchSaveChangedGseAgentTasks(sourceAgentTasks.values());
         watch.stop();
 
-        log.info("Analyse gse task log [{}] -> runningTargetAgentIds={}, " +
+        log.info("Analyse gse task result [{}] -> runningTargetAgentIds={}, " +
                 "notStartedTargetAgentIds={}, runningFileSourceAgentIds={}, notStartedFileSourceAgentIds={}, " +
                 "analyseFinishedTargetAgentIds={}, analyseFinishedSourceAgentIds={}, finishedDownloadFileMap={}, " +
                 "successDownloadFileMap={}, finishedUploadFileMap={}, successUploadFileMap={}",
