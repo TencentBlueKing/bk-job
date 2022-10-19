@@ -71,6 +71,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -581,12 +582,18 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         // 1.找出与当前业务关联的所有appId
         List<Long> effectiveAppIds = getEffectiveAppIdList(appId);
         // 2.再查对应的白名单
+        List<String> actionScopes;
         if (hostId != null) {
-            return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, hostId);
+            actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, hostId);
+            // TMP: 兼容老版本（未执行白名单ip迁移工具，无法根据hostId找到白名单配置。发布完成后删除
+            if (CollectionUtils.isEmpty(actionScopes) && StringUtils.isNotEmpty(ip) && cloudAreaId != null) {
+                actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, ip, cloudAreaId);
+            }
         } else {
-            // TODO: IPv6兼容代码，发布完成后删除
-            return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, ip, cloudAreaId);
+            // TMP: IPv6兼容代码，发布完成后删除
+            actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, ip, cloudAreaId);
         }
+        return actionScopes;
     }
 
     @Override

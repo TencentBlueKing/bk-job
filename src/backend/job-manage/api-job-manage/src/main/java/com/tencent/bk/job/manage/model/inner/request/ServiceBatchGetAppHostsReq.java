@@ -33,16 +33,16 @@ import lombok.ToString;
 import java.util.List;
 
 /**
- * 检查主机是否在业务下请求
+ * 查询业务主机
  */
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-public class ServiceCheckAppHostsReq {
+public class ServiceBatchGetAppHostsReq {
     List<HostDTO> hosts;
 
-    public ServiceCheckAppHostsReq(List<HostDTO> hosts) {
+    public ServiceBatchGetAppHostsReq(List<HostDTO> hosts) {
         this.hosts = hosts;
     }
 }

@@ -46,13 +46,11 @@ import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -61,7 +59,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -71,9 +68,6 @@ public class HostServiceImpl implements HostService {
     private final ServiceHostResourceClient hostResourceClient;
     private final AppScopeMappingService appScopeMappingService;
     private final AgentStateClient agentStateClient;
-
-    private volatile boolean isWhiteIpConfigLoaded = false;
-    private final Map<String, ServiceWhiteIPInfo> whiteIpConfig = new ConcurrentHashMap<>();
 
     private final LoadingCache<Long, String> cloudAreaNameCache = CacheBuilder.newBuilder()
         .maximumSize(10000).expireAfterWrite(1, TimeUnit.HOURS).
@@ -146,59 +140,11 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    @Scheduled(cron = "0 * * * * ?")
-    public void syncWhiteIpConfig() {
-        log.info("Sync white ip config!");
-        isWhiteIpConfigLoaded = true;
-        long start = System.currentTimeMillis();
-        InternalResponse<List<ServiceWhiteIPInfo>> resp = whiteIpResourceClient.listWhiteIPInfos();
-        if (resp == null || !resp.isSuccess()) {
-            log.warn("Get all white ip config return fail resp!");
-            return;
-        }
-        log.info("Sync white ip config, resp: {}", JsonUtils.toJson(resp));
-
-        List<ServiceWhiteIPInfo> whiteIpInfos = resp.getData();
-        whiteIpConfig.clear();
-        whiteIpInfos.forEach(whiteIpInfo ->
-            whiteIpConfig.put(whiteIpInfo.getCloudId() + ":" + whiteIpInfo.getIp(), whiteIpInfo));
-
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000L) {
-            log.warn("Sync white ip config is slow, cost: {}", cost);
-        }
-        log.info("Sync white ip config success!");
-    }
-
-    @Override
-    public boolean isMatchWhiteIpRule(long appId, String cloudIp, String action) {
-        try {
-            if (!isWhiteIpConfigLoaded) {
-                syncWhiteIpConfig();
-            }
-            ServiceWhiteIPInfo whiteIpInfo = whiteIpConfig.get(cloudIp);
-            if (whiteIpInfo == null) {
-                return false;
-            }
-            if (whiteIpInfo.isForAllApp()) {
-                return CollectionUtils.isNotEmpty(whiteIpInfo.getAllAppActionScopeList())
-                    && whiteIpInfo.getAllAppActionScopeList().contains(action);
-            } else {
-                return whiteIpInfo.getAppIdActionScopeMap() != null
-                    && whiteIpInfo.getAppIdActionScopeMap().get(appId) != null
-                    && whiteIpInfo.getAppIdActionScopeMap().get(appId).contains(action);
-            }
-        } catch (Throwable e) {
-            log.warn("Get white ip config by host and action", e);
-            return false;
-        }
-    }
-
     @Override
     public ServiceListAppHostResultDTO batchGetAppHosts(Long appId,
                                                         Collection<HostDTO> hosts) {
         InternalResponse<ServiceListAppHostResultDTO> response =
-            hostResourceClient.batchGetAppHosts(appId, new ServiceCheckAppHostsReq(new ArrayList<>(hosts)));
+            hostResourceClient.batchGetAppHosts(appId, new ServiceBatchGetAppHostsReq(new ArrayList<>(hosts)));
         return response.getData();
     }
 

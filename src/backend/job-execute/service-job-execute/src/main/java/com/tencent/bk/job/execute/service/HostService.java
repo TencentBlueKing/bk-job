@@ -56,22 +56,13 @@ public interface HostService {
 
     /**
      * 查询主机在白名单中允许的操作
+     * tmp: 发布完成后可以仅仅支持使用hostId查询白名单
      *
      * @param appId 业务ID
      * @param host  主机
      * @return 允许的操作
      */
     List<String> getHostAllowedAction(long appId, HostDTO host);
-
-    /**
-     * 判断IP白名单是否配置该主机的对应操作
-     *
-     * @param appId   业务ID
-     * @param cloudIp 主机IP
-     * @param action  操作
-     * @return 是否配置规则
-     */
-    boolean isMatchWhiteIpRule(long appId, String cloudIp, String action);
 
     /**
      * 获取业务下的主机列表
