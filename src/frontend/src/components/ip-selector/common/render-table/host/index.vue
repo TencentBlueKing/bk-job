@@ -24,13 +24,17 @@
                                     :key="columnKey"
                                     :class="{
                                         'columu-fixed': columnKey === firstRenderColumnKey,
+                                        [`host-column-${columnKey}`]: true,
+                                        [`host-column-first-key`]: columnKeyRenderList.indexOf(columnKey) === 0
                                     }"
                                     :style="{
                                         width: columnWidthCallback ?
                                             columnWidthCallback(columnKeyRenderList.indexOf(columnKey))
                                             : tableColumnConfig[columnKey].width,
                                         left: `${slots.selection ? 60: 0}px`,
-                                    }">
+                                    }"
+                                    @mousedown="handleMouseDown($event, columnKey)"
+                                    @mousemove="handleMouseMove">
                                     <div class="cell">
                                         <div class="cell-text">
                                             {{ tableColumnConfig[columnKey].name }}
@@ -43,10 +47,12 @@
                             </template>
                             <th
                                 v-if="slots.action"
-                                style="width: 60px;" />
+                                class="columu-fixed-right"
+                                style="top: 0; right: 0; width: 60px;" />
                             <th
                                 v-if="showSetting"
-                                style="width: 40px; border-left: 1px solid #dcdee5;">
+                                class="columu-fixed-right"
+                                style="top: 0; right: 0; width: 40px; padding: 0;">
                                 <column-setting
                                     :selected-list="columnKeyRenderList"
                                     :sort-list="columnKeySortList"
@@ -105,7 +111,10 @@
                                     </template>
                                 </td>
                             </template>
-                            <td v-if="slots.action">
+                            <td
+                                v-if="slots.action"
+                                class="columu-fixed-right"
+                                style="top: 0; right: 0;">
                                 <slot
                                     name="action"
                                     :row="hostDataItem" />
@@ -126,8 +135,14 @@
                 </div>
             </div>
             <div
-                class="table-fixed"
-                :style="fixedStyles" />
+                class="table-fixed-left"
+                :style="leftFixedStyles" />
+            <div
+                class="table-fixed-right"
+                :style="rightFixedStyles" />
+            <div
+                ref="tableColumnResizeRef"
+                class="table-column-resize" />
         </div>
         <bk-pagination
             v-if="isShowPagination"
@@ -141,11 +156,9 @@
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import {
         computed,
-        onBeforeUnmount,
-        onMounted,
+        nextTick,
         ref,
         shallowRef,
         useSlots,
@@ -163,6 +176,8 @@
     import tableColumnConfig from './column-config';
     import ColumnSetting from './column-setting.vue';
     import RenderFilter from './render-filter.vue';
+    import useResizeEvent from './use-resize-event.js';
+    import useScroll from './use-scroll';
 
     const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorHostList');
 
@@ -205,6 +220,7 @@
 
     const slots = useSlots();
 
+    const tableColumnResizeRef = ref();
     const tableContentRef = ref();
     const isLoadingCustom = ref(true);
 
@@ -215,8 +231,6 @@
         }
         return styles;
     });
-
-    const fixedStyles = shallowRef({});
 
     const firstRenderColumnKey = computed(() => {
         // eslint-disable-next-line no-plusplus
@@ -254,6 +268,18 @@
         setKey('ip');
     };
 
+    const {
+        initColumnWidth,
+        handleMouseMove,
+        handleMouseDown,
+     } = useResizeEvent(tableContentRef, tableColumnResizeRef);
+
+    const {
+        leftFixedStyles,
+        rightFixedStyles,
+        initalScroll,
+    } = useScroll(tableContentRef);
+
     isLoadingCustom.value = true;
     // 获取用户自定义配置
     Manager.service.fetchCustomSettings({
@@ -273,6 +299,12 @@
         })
         .finally(() => {
             isLoadingCustom.value = false;
+            nextTick(() => {
+                initColumnWidth();
+                setTimeout(() => {
+                    initalScroll();
+                });
+            });
         });
     
     // 提交表格列表配置
@@ -288,7 +320,7 @@
             },
         });
         setHostListRenderPrimaryKey();
-        handleHorizontalScroll();
+        initalScroll();
     };
 
     // 选中行数
@@ -312,26 +344,8 @@
         });
     };
 
-    const handleHorizontalScroll = _.throttle(() => {
-        const { scrollLeft } = tableContentRef.value;
-        if (scrollLeft === 0) {
-            fixedStyles.value = {
-                display: 'none',
-            };
-            return;
-        }
-        const fixedColumns = tableContentRef.value.querySelectorAll('th.columu-fixed');
-        const fixedWidth = Array.from(fixedColumns).reduce((result, itemEl) => result + itemEl.getBoundingClientRect().width, 0);
-        fixedStyles.value = {
-            width: `${fixedWidth}px`,
-        };
-    }, 30);
-
-    onMounted(() => {
-        tableContentRef.value.addEventListener('scroll', handleHorizontalScroll);
-        onBeforeUnmount(() => {
-            tableContentRef.value.removeEventListener('scroll', handleHorizontalScroll);
-        });
+    defineExpose({
+        initalScroll,
     });
 </script>
 <style lang="postcss">
@@ -388,13 +402,30 @@
             }
         }
 
-        .table-fixed {
+        .table-fixed-left {
             position: absolute;
             top: 0;
             bottom: 0;
             left: 0;
             pointer-events: none;
             box-shadow: 0 0 10px rgb(0 0 0 / 12%);
+        }
+
+        .table-fixed-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            box-shadow: 0 0 10px rgb(0 0 0 / 12%);
+        }
+
+        .table-column-resize {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #dfe0e5;
         }
 
         @include table;

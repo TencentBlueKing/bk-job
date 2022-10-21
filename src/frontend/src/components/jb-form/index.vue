@@ -189,14 +189,8 @@
                     display: flex;
                     flex-direction: column;
                     margin-left: 0 !important;
+                    overflow: hidden;
                 }
-
-                /* .tooltips-icon {
-                    position: relative;
-                    top: 0 !important;
-                    right: 0 !important;
-                    margin-left: -24px;
-                } */
             }
 
             &.bk-form-vertical {

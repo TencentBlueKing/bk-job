@@ -267,8 +267,6 @@
     const handleShowHostList = (node) => {
         isShowNodeHostList.value = true;
         selectedNode.value = node;
-
-        console.log('from nshost list = ', nodeNamePathMap, selectedNode);
     };
 
     const handleHideHostList = () => {

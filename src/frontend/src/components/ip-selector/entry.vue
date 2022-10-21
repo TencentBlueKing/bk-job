@@ -8,7 +8,11 @@
                 :mode="mode"
                 :value="selectorValue"
                 @cancel="handleCancel"
-                @change="handleValueChange" />
+                @change="handleValueChange">
+                <template #description>
+                    <slot name="dialogFooterDescription" />
+                </template>
+            </selector-box>
             <views-box
                 v-if="showView"
                 ref="viewsRef"
@@ -72,6 +76,12 @@
             type: Boolean,
             default: false,
         },
+        disableDialogSubmitMethod: {
+            type: Function,
+        },
+        disableHostMethod: {
+            type: Function,
+        },
         service: {
             type: Object,
             default: () => ({}),
@@ -115,6 +125,8 @@
         originalValue: props.originalValue && formatInput(props.originalValue),
         readonly: props.readonly,
         mode: props.mode,
+        disableDialogSubmitMethod: props.disableDialogSubmitMethod,
+        disableHostMethod: props.disableHostMethod,
         rootRef,
     });
 

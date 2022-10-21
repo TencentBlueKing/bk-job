@@ -41,12 +41,18 @@
         </resize-layout>
         <template #footer>
             <div>
+                <slot name="description" />
+                <span v-bk-tooltips="submitButtonDisabledInfo.tooltips">
+                    <bk-button
+                        :disabled="submitButtonDisabledInfo.disabled"
+                        theme="primary"
+                        @click="handleSubmit">
+                        确定
+                    </bk-button>
+                </span>
                 <bk-button
-                    theme="primary"
-                    @click="handleSubmit">
-                    确定
-                </bk-button>
-                <bk-button @click="handleCancel">
+                    style="margin-left: 8px;"
+                    @click="handleCancel">
                     取消
                 </bk-button>
             </div>
@@ -63,6 +69,7 @@
     } from 'vue';
 
     import useDialogSize from '../hooks/use-dialog-size';
+    import useIpSelector from '../hooks/use-ip-selector';
     import Manager from '../manager';
     import {
         formatInput,
@@ -99,8 +106,6 @@
         'cancel',
     ]);
 
-    window.ipManager = Manager;
-
     const panelType = ref('');
     
     const isTopoDataLoading = ref(true);
@@ -131,6 +136,32 @@
     const lastHostList = shallowRef([]);
     const lastNodeList = shallowRef([]);
     const lastDynamicGroupList = shallowRef([]);
+
+    const context = useIpSelector();
+    const submitButtonDisabledInfo = computed(() => {
+        const info = {
+            disabled: false,
+            tooltips: {
+                disabled: true,
+                content: '',
+            },
+        };
+        if (!context.disableDialogSubmitMethod) {
+            return info;
+        }
+        const checkValue = context.disableDialogSubmitMethod(formatOutput({
+            hostList: lastHostList.value,
+            nodeList: lastNodeList.value,
+            dynamicGroupList: lastDynamicGroupList.value,
+        }));
+        if (checkValue) {
+            info.disabled = true;
+            info.tooltips.disabled = false;
+            info.tooltips.content = _.isString(checkValue) ? checkValue : '无法保存';
+        }
+
+        return info;
+    });
 
     const {
         width: dialogWidth,

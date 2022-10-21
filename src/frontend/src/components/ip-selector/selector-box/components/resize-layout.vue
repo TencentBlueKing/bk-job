@@ -32,7 +32,7 @@
             <ip-selector-icon
                 v-if="isLeftExpanded"
                 class="move-dot"
-                type="more" />
+                type="lashen" />
         </div>
         <div
             v-if="flexDirection === 'right'"
@@ -52,7 +52,7 @@
             <ip-selector-icon
                 v-if="isRightExpanded"
                 class="move-dot"
-                type="more" />
+                type="lashen" />
         </div>
     </div>
 </template>
