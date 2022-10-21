@@ -32,10 +32,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 @Data
 @PersistenceObject
@@ -167,8 +166,8 @@ public class ServersDTO implements Cloneable {
      *
      * @return 主机列表
      */
-    public Set<HostDTO> extractHosts() {
-        Set<HostDTO> hosts = new HashSet<>();
+    public List<HostDTO> extractHosts() {
+        List<HostDTO> hosts = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(staticIpList)) {
             hosts.addAll(staticIpList);
         }
@@ -182,6 +181,6 @@ public class ServersDTO implements Cloneable {
                 .filter(topoNode -> CollectionUtils.isNotEmpty(topoNode.getIpList()))
                 .forEach(topoNode -> hosts.addAll(topoNode.getIpList()));
         }
-        return hosts;
+        return hosts.stream().distinct().collect(Collectors.toList());
     }
 }

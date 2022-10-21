@@ -902,6 +902,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (CollectionUtils.isNotEmpty(servers.getTopoNodes())) {
                 servers.getTopoNodes().forEach(topoNode -> fillHostsDetail(topoNode.getIpList(), hostMap));
             }
+            servers.setIpList(servers.extractHosts());
         }
     }
 
@@ -1203,13 +1204,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void standardizeDynamicGroupId(DynamicServerGroupDTO dynamicGroup) {
-        // 移除动态分组ID中多余的appId(历史问题)
-        // appId:groupId
-        String[] appIdAndGroupId = dynamicGroup.getGroupId().split(":");
-        if (appIdAndGroupId.length == 2) {
+        // 移除动态分组ID中多余的bizId(历史问题)
+        // bizId:groupId
+        String[] bizIdAndGroupId = dynamicGroup.getGroupId().split(":");
+        if (bizIdAndGroupId.length == 2) {
             log.info("Found invalid dynamicGroupId, try to transform to standard format! dynamicGroupId: {}",
                 dynamicGroup.getGroupId());
-            dynamicGroup.setGroupId(appIdAndGroupId[1]);
+            dynamicGroup.setGroupId(bizIdAndGroupId[1]);
         }
     }
 
