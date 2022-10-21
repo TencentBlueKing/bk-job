@@ -26,6 +26,8 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
+import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 
@@ -83,6 +85,18 @@ public interface HostService {
     List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId);
 
     /**
+     * 批量获取动态分组主机，并根据动态分组ID对主机进行分组
+     *
+     * @param appId    业务ID
+     * @param groupIds 动态分组ID列表
+     * @return Map, key: 动态分组 value: 动态分组下的主机列表
+     */
+    Map<DynamicServerGroupDTO, List<HostDTO>> batchGetAndGroupHostsByDynamicGroup(
+        long appId,
+        Collection<DynamicServerGroupDTO> groupIds);
+
+
+    /**
      * 根据topo节点获取主机
      *
      * @param appId       Job业务ID
@@ -90,6 +104,19 @@ public interface HostService {
      * @return 主机列表
      */
     List<HostDTO> getHostsByTopoNodes(long appId, List<CcInstanceDTO> ccInstances);
+
+    /**
+     * 根据topo节点获取主机并分组
+     *
+     * @param appId     Job业务ID
+     * @param topoNodes topo节点列表
+     * @return Map, key: topo 节点, value: 主机列表
+     */
+    Map<DynamicServerTopoNodeDTO, List<HostDTO>> getAndGroupHostsByTopoNodes(
+        long appId,
+        Collection<DynamicServerTopoNodeDTO> topoNodes
+    );
+
 
     /**
      * 获取主机云区域名称

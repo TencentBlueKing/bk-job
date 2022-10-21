@@ -32,7 +32,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 
 @Data
@@ -158,5 +160,28 @@ public class ServersDTO implements Cloneable {
         return CollectionUtils.isEmpty(this.staticIpList)
             && CollectionUtils.isEmpty(this.topoNodes)
             && CollectionUtils.isEmpty(this.dynamicServerGroups);
+    }
+
+    /**
+     * 提取所有包含的主机
+     *
+     * @return 主机列表
+     */
+    public Set<HostDTO> extractHosts() {
+        Set<HostDTO> hosts = new HashSet<>();
+        if (CollectionUtils.isNotEmpty(staticIpList)) {
+            hosts.addAll(staticIpList);
+        }
+        if (CollectionUtils.isNotEmpty(dynamicServerGroups)) {
+            dynamicServerGroups.stream()
+                .filter(group -> CollectionUtils.isNotEmpty(group.getIpList()))
+                .forEach(group -> hosts.addAll(group.getIpList()));
+        }
+        if (CollectionUtils.isNotEmpty(topoNodes)) {
+            topoNodes.stream()
+                .filter(topoNode -> CollectionUtils.isNotEmpty(topoNode.getIpList()))
+                .forEach(topoNode -> hosts.addAll(topoNode.getIpList()));
+        }
+        return hosts;
     }
 }
