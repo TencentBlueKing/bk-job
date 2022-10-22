@@ -138,6 +138,7 @@
     const lastDynamicGroupList = shallowRef([]);
 
     const context = useIpSelector();
+    // 保存按钮的禁用状态
     const submitButtonDisabledInfo = computed(() => {
         const info = {
             disabled: false,
