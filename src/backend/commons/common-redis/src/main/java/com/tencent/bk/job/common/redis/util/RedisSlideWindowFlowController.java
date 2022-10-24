@@ -87,6 +87,7 @@ public class RedisSlideWindowFlowController implements FlowController {
     private Integer defaultMaxRate = 1000;
     private Integer precision = 10;
     private int suppressCount = 0;
+    private boolean isReady = false;
     public Timer timer = new Timer();
     public TimerTask clearTask = new TimerTask() {
         @Override
@@ -157,6 +158,7 @@ public class RedisSlideWindowFlowController implements FlowController {
             redisTemplate.opsForValue().set(REDIS_PREFIX_MAX_RATE + key, "" + value);
         });
         timer.schedule(clearTask, (long) (100 * Math.random()), 1000 / precision);
+        isReady = true;
     }
 
     private void clear(String key, Long timeMills) {
@@ -172,6 +174,11 @@ public class RedisSlideWindowFlowController implements FlowController {
         keyList.add(REDIS_PREFIX_SLIDE_WINDOW + resourceId);
         keyList.add(REDIS_PREFIX_MAX_RATE + resourceId);
         return redisTemplate.execute(script, keyList, "" + timeMills);
+    }
+
+    @Override
+    public boolean isReady() {
+        return isReady;
     }
 
     @Override

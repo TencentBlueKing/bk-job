@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -43,6 +44,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -318,6 +320,27 @@ class TaskInstanceDAOImplIntegrationTest {
         assertThat(taskInstanceDTO.getEndTime()).isNull();
         assertThat(taskInstanceDTO.getTotalTime()).isNull();
         assertThat(taskInstanceDTO.getStatus()).isEqualTo(RunStatusEnum.RUNNING);
+    }
+
+    @Test
+    void testSaveTaskInstanceHosts() {
+        long taskInstanceId = 10L;
+        HostDTO host1 = new HostDTO();
+        host1.setHostId(1L);
+        host1.setIp("127.0.0.1");
+        host1.setIpv6("0000:0000:0000:0000:0000:0000:0000:0001");
+        HostDTO host2 = new HostDTO();
+        host2.setHostId(2L);
+        host2.setIp("127.0.0.2");
+        HostDTO host3= new HostDTO();
+        host3.setHostId(3L);
+        host3.setIpv6("0000:0000:0000:0000:0000:0000:0000:0003");
+        List<HostDTO> hosts = new ArrayList<>();
+        hosts.add(host1);
+        hosts.add(host2);
+        hosts.add(host3);
+
+        taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
     }
 
 }

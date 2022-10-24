@@ -359,3 +359,17 @@ CREATE TABLE IF NOT EXISTS `step_instance_rolling_task`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `task_instance_host`
+(
+    `task_instance_id` bigint(20)  NOT NULL DEFAULT '0',
+    `host_id`          bigint(20)  NOT NULL DEFAULT '0',
+    `ip`               varchar(15) DEFAULT NULL,
+    `ipv6`             varchar(46) DEFAULT NULL,
+    `row_create_time`  datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`  datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`task_instance_id`,`host_id`),
+    KEY (`ip`),
+    KEY (`ipv6`)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4;
+

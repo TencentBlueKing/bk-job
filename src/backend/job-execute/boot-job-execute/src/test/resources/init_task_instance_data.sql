@@ -25,6 +25,7 @@
 truncate table task_instance;
 truncate table step_instance;
 truncate table gse_task_ip_log;
+truncate table task_instance_host;
 
 insert into job_execute.task_instance (id,app_id,task_id,cron_task_id,task_template_id,is_debug_task,name,type,operator,create_time,status,current_step_id,start_time,end_time,total_time,startup_mode,callback_url,app_code) values (1,2,1,NULL,1,0,'task1',1,'admin',1572868800000,3,11,1572868800000,1572868801000,1111,1,'http://bkjob.com','bk_monitor');
 insert into job_execute.task_instance (id,app_id,task_id,cron_task_id,task_template_id,is_debug_task,name,type,operator,create_time,status,current_step_id,start_time,end_time,total_time,startup_mode,callback_url,app_code) values (2,2,1,NULL,1,0,'task1',1,'admin',1572868860000,3,12,1572868800000,1572868861000,1222,1,'http://bkjob.com',NULL);
@@ -41,3 +42,8 @@ insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,statu
 insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (1,0,'0:127.0.0.2',9,1565767148000,1565767149000,1316,0,0,'succ',0,'127.0.0.2',1,0);
 insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (2,0,'0:127.0.0.2',9,1565767148000,1565767149000,1316,0,0,'succ',0,'127.0.0.2',1,0);
 insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (3,0,'0:127.0.0.1',9,1565767148000,1565767149000,1316,0,0,'succ',0,'127.0.0.1',1,0);
+
+insert into job_execute.task_instance_host (task_instance_id,host_id,ip,ipv6) values
+(1, 1, '127.0.0.1','0000:0000:0000:0000:0000:0000:0000:0001'),
+(1, 2, '127.0.0.2','0000:0000:0000:0000:0000:0000:0000:0002'),
+(2, 2, '127.0.0.2','0000:0000:0000:0000:0000:0000:0000:0002');

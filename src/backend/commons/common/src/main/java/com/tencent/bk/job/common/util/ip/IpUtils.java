@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.validator.routines.InetAddressValidator;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -93,6 +94,26 @@ public class IpUtils {
         }
         Matcher matcher = IP_PATTERN.matcher(ipStr);
         return matcher.matches();
+    }
+
+    /**
+     * 验证ipv6格式
+     *
+     * @param ipv6Str ipv6字符串
+     */
+    public static boolean checkIpv6(String ipv6Str) {
+        InetAddressValidator validator = InetAddressValidator.getInstance();
+        return validator.isValidInet6Address(ipv6Str);
+    }
+
+    /**
+     * 验证ipv4格式
+     *
+     * @param ipv4Str ipv4字符串
+     */
+    public static boolean checkIpv4(String ipv4Str) {
+        InetAddressValidator validator = InetAddressValidator.getInstance();
+        return validator.isValidInet4Address(ipv4Str);
     }
 
     /**
