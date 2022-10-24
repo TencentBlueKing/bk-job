@@ -935,7 +935,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
                 if (fileSourceList != null) {
                     for (FileSourceDTO fileSource : fileSourceList) {
-                        hosts.addAll(fileSource.getServers().extractHosts());
+                        if (fileSource.getServers() != null) {
+                            hosts.addAll(fileSource.getServers().extractHosts());
+                        }
                     }
                 }
             }
