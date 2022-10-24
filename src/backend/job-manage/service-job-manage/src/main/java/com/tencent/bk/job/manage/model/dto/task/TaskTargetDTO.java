@@ -198,7 +198,6 @@ public class TaskTargetDTO {
                     }
                     hostInfoDTO.setCloudAreaId(hostNode.getCloudAreaId());
                     hostInfoDTO.setIp(hostNode.getIp());
-                    hostInfoDTO.setDisplayIp(hostNode.getDisplayIp());
                     hostInfoDTOS.add(hostInfoDTO);
                 });
                 targetServer.setHostList(hostInfoDTOS);

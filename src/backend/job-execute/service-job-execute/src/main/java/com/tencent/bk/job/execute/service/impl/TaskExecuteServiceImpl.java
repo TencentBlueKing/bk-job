@@ -206,7 +206,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         adjustStepTimeout(stepInstance);
         try {
             // 设置脚本信息
-            watch.start("checkAndSetScriptInfoIfScriptTask");
+            watch.start("checkAndSetScriptInfoForFast");
             checkAndSetScriptInfoForFast(taskInstance, stepInstance);
             watch.stop();
 
@@ -767,11 +767,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
          */
         private Map<Long, HostDTO> whiteHosts;
 
-        public CheckHostResult(List<HostDTO> appHosts,
-                               Map<Long, HostDTO> whiteHosts) {
-            this.appHosts = appHosts;
-            this.whiteHosts = whiteHosts;
-        }
     }
 
     private List<HostDTO> filterHostsDoNotNeedCheck(List<StepInstanceDTO> stepInstanceList,
