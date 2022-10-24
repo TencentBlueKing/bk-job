@@ -109,10 +109,6 @@ public class StepInstanceBaseDTO {
      */
     protected ServersDTO targetServers;
     /**
-     * 目标服务器
-     */
-    protected String ipList;
-    /**
      * 不合法的服务器
      */
     protected Set<String> invalidIps;

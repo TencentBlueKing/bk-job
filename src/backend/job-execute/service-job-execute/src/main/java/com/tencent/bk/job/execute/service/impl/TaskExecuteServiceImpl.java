@@ -600,11 +600,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return accountAuthResult.mergeAuthResult(serverAuthResult);
     }
 
-    private String convertToIpListStr(Collection<HostDTO> ips) {
-        return StringUtils.join(ips.stream().map(ipDTO ->
-            ipDTO.getBkCloudId() + ":" + ipDTO.getIp()).collect(Collectors.toList()), ",");
-    }
-
     private ServiceListAppHostResultDTO acquireAndSetHosts(Long appId,
                                                            List<StepInstanceDTO> stepInstances,
                                                            Collection<TaskVariableDTO> variables) {
@@ -1678,7 +1673,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServiceTaskTargetDTO target = scriptStepInfo.getExecuteTarget();
         ServersDTO targetServers = buildFinalTargetServers(target, variableValueMap);
         stepInstance.setTargetServers(targetServers);
-        stepInstance.setIpList(convertToIpListStr(targetServers.getIpList()));
 
         stepInstance.setIgnoreError(scriptStepInfo.getIgnoreError());
     }
@@ -1746,7 +1740,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServiceTaskTargetDTO target = fileStepInfo.getExecuteTarget();
         ServersDTO targetServers = buildFinalTargetServers(target, variableValueMap);
         stepInstance.setTargetServers(targetServers);
-        stepInstance.setIpList(convertToIpListStr(targetServers.getIpList()));
 
         if (fileStepInfo.getDownloadSpeedLimit() != null) {
             // MB->KB
@@ -1795,7 +1788,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         ServersDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetServers(), variableValueMap);
         stepInstance.setTargetServers(targetServers);
-        stepInstance.setIpList(convertToIpListStr(targetServers.getIpList()));
     }
 
     private void parseFileStepInstanceFromStepInstance(StepInstanceDTO stepInstance, StepInstanceDTO originStepInstance,
@@ -1822,7 +1814,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         ServersDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetServers(), variableValueMap);
         stepInstance.setTargetServers(targetServers);
-        stepInstance.setIpList(convertToIpListStr(targetServers.getIpList()));
     }
 
     private ServersDTO buildFinalTargetServers(@NotNull ServiceTaskTargetDTO target,
@@ -1855,14 +1846,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_RELATED_HOST_VAR_NOT_EXIST,
                 new String[]{hostVariableName});
         }
-        ServersDTO variableTargetServers = serverVariable.getTargetServers();
-        if (variableTargetServers == null || CollectionUtils.isEmpty(variableTargetServers.getIpList())) {
-            log.warn("Target server variable host is empty.variable={}", hostVariableName);
-            throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_RELATED_HOST_VAR_SERVER_EMPTY,
-                new String[]{hostVariableName});
-        }
 
-        ServersDTO targetServers = variableTargetServers.clone();
+        ServersDTO targetServers = serverVariable.getTargetServers().clone();
         targetServers.setVariable(hostVariableName);
         return targetServers;
     }
