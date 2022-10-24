@@ -1478,8 +1478,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 检查高危脚本
         batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
 
+        // 获取主机列表
+        ServiceListAppHostResultDTO hosts = acquireAndSetHosts(appId, stepInstanceList, finalVariableValueMap.values());
+
         // 检查主机合法性
-        CheckHostResult checkHostResult = checkHosts(appId, stepInstanceList, null);
+        CheckHostResult checkHostResult = checkHosts(appId, stepInstanceList, hosts);
 
         // 检查步骤约束
         checkStepInstanceConstraint(taskInstance, stepInstanceList);
