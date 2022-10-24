@@ -248,6 +248,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setId(stepInstanceId);
             watch.stop();
 
+            // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
+            watch.start("saveTaskInstanceHosts");
+            saveTaskInstanceHosts(taskInstanceId, Collections.singletonList(stepInstance));
+            watch.stop();
+
             // 保存滚动配置
             if (fastTask.isRollingEnabled()) {
                 watch.start("saveRollingConfig");
@@ -277,6 +282,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 log.warn("CreateTaskInstanceFast is slow, statistics: {}", watch.prettyPrint());
             }
         }
+    }
+
+    private void saveTaskInstanceHosts(long taskInstanceId,
+                                       List<StepInstanceDTO> stepInstanceList) {
+        Set<HostDTO> stepHosts = extractHosts(stepInstanceList, null);
+        taskInstanceService.saveTaskInstanceHosts(taskInstanceId, stepHosts);
     }
 
     private void checkTaskEvict(TaskInstanceDTO taskInstance) {
@@ -1152,6 +1163,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
             watch.stop();
 
+            // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
+            watch.start("saveTaskInstanceHosts");
+            saveTaskInstanceHosts(taskInstance.getId(), taskInstance.getStepInstances());
+            watch.stop();
+
             watch.start("saveOperationLog");
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
                 UserOperationEnum.START));
@@ -1493,6 +1509,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         authRedoJob(operator, appId, originTaskInstance, checkHostResult.getWhiteHosts());
 
         saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
+
+        saveTaskInstanceHosts(taskInstance.getId(), taskInstance.getStepInstances());
 
         taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
             UserOperationEnum.START));

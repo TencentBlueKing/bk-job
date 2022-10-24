@@ -22,43 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.manage.runner;
 
-import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.tencent.bk.job.manage.task.ClearDeletedHostsTask;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
 
 /**
- * 作业实例查询条件
+ * 进程启动时立即执行一次无效主机清理
  */
-@Data
-public class TaskInstanceQuery {
-    private Long appId;
-    private String operator;
-    private String taskName;
-    private Long taskInstanceId;
-    private Long cronTaskId;
-    private RunStatusEnum status;
-    private List<TaskStartupModeEnum> startupModes;
-    private TaskTypeEnum taskType;
-    private Long startTime;
-    private Long endTime;
-    private Long minTotalTimeMills;
-    private Long maxTotalTimeMills;
-    private String ip;
-    private String ipv6;
+@Slf4j
+@Component
+public class ClearDeletedHostsRunner implements CommandLineRunner {
 
-    public List<Integer> getStartupModeValues() {
-        if (CollectionUtils.isNotEmpty(startupModes)) {
-            return startupModes.stream().map(TaskStartupModeEnum::getValue).collect(Collectors.toList());
-        } else {
-            return Collections.emptyList();
-        }
+    private final ClearDeletedHostsTask clearDeletedHostsTask;
+
+    @Autowired
+    public ClearDeletedHostsRunner(ClearDeletedHostsTask clearDeletedHostsTask) {
+        this.clearDeletedHostsTask = clearDeletedHostsTask;
+    }
+
+    @Override
+    public void run(String... args) {
+        new Thread(clearDeletedHostsTask::execute).start();
     }
 }

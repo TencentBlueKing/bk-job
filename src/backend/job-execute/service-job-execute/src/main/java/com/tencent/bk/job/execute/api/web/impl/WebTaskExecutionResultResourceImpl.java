@@ -237,6 +237,15 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         if (status != null) {
             taskQuery.setStatus(RunStatusEnum.valueOf(status));
         }
+        if (StringUtils.isNotEmpty(ip)) {
+            if (IpUtils.checkIpv4(ip)) {
+                taskQuery.setIp(ip);
+            } else if (IpUtils.checkIpv6(ip)) {
+                taskQuery.setIpv6(ip);
+            } else {
+                log.warn("Invalid ip {}", ip);
+            }
+        }
         taskQuery.setIp(ip);
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(start);

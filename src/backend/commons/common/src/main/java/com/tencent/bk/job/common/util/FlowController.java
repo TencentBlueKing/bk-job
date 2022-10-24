@@ -29,6 +29,13 @@ import java.util.Map;
 public interface FlowController {
 
     /**
+     * 是否可以开始工作
+     *
+     * @return 布尔值
+     */
+    boolean isReady();
+
+    /**
      * 更新流控配置
      *
      * @param configMap (资源Id->每秒最大速率)

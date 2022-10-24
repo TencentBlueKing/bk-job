@@ -53,7 +53,9 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Result;
+import org.jooq.SelectSeekStep2;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Host;
@@ -66,6 +68,7 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -126,6 +129,15 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<Long> listHostId(long bizId, long minUpdateTimeMills, long maxUpdateTimeMills) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.APP_ID.eq(ULong.valueOf(bizId)));
+        conditions.add(TABLE.LAST_MODIFY_TIME.greaterThan(JooqDataTypeUtil.buildULong(minUpdateTimeMills)));
+        conditions.add(TABLE.LAST_MODIFY_TIME.lessThan(JooqDataTypeUtil.buildULong(maxUpdateTimeMills)));
+        return listHostIdByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoByIps(Collection<String> ips) {
         return listHostInfoByIps(null, ips);
     }
@@ -174,7 +186,22 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return listHostInfoByConditions(conditions, null, null);
     }
 
-    private List<ApplicationHostDTO> listHostInfoByConditions(Collection<Condition> conditions, Long start,
+    private List<Long> listHostIdByConditions(Collection<Condition> conditions) {
+        if (conditions == null) {
+            conditions = Collections.emptyList();
+        }
+        val query = context.select(TABLE.HOST_ID)
+            .from(TABLE)
+            .where(conditions);
+        if (log.isDebugEnabled()) {
+            log.debug("SQL={}", query.getSQL(ParamType.INLINED));
+        }
+        Result<Record1<ULong>> records = query.fetch();
+        return records.stream().map(record -> record.get(0, Long.class)).collect(Collectors.toList());
+    }
+
+    private List<ApplicationHostDTO> listHostInfoByConditions(Collection<Condition> conditions,
+                                                              Long start,
                                                               Long limit) {
         if (conditions == null) {
             conditions = Collections.emptyList();
@@ -183,6 +210,16 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .from(TABLE)
             .where(conditions)
             .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
+        Result<Record> records = fetchRecordsWithLimit(query, start, limit);
+        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
+
+        if (CollectionUtils.isNotEmpty(records)) {
+            records.map(record -> hostInfoList.add(extractData(record)));
+        }
+        return hostInfoList;
+    }
+
+    private Result<Record> fetchRecordsWithLimit(SelectSeekStep2<Record, UByte, ULong> query, Long start, Long limit) {
         Result<Record> records;
         if (start == null || start < 0) {
             start = 0L;
@@ -192,12 +229,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         } else {
             records = query.fetch();
         }
-        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
-
-        if (CollectionUtils.isNotEmpty(records)) {
-            records.map(record -> hostInfoList.add(extractData(record)));
-        }
-        return hostInfoList;
+        return records;
     }
 
     @Override
@@ -522,15 +554,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .where(conditions)
                 .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
         log.debug("SQL={}", query.getSQL(ParamType.INLINED));
-        Result<Record> records;
-        if (start == null || start < 0) {
-            start = 0L;
-        }
-        if (limit != null && limit > 0) {
-            records = query.limit(start, limit).fetch();
-        } else {
-            records = query.fetch();
-        }
+        Result<Record> records = fetchRecordsWithLimit(query, start, limit);
         List<Long> hostIdList = new ArrayList<>();
         if (records.size() >= 1) {
             hostIdList = records.parallelStream()
@@ -549,31 +573,10 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostInfoBySourceAndIps(long cloudAreaId, Set<String> ips) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.CLOUD_AREA_ID.eq(JooqDataTypeUtil.buildULong(cloudAreaId)));
-        conditions.add(TABLE.IP.in(ips));
-
-        Result<Record> result = context
-            .select(ALL_FIELDS)
-            .from(TABLE)
-            .where(conditions)
-            .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc())
-            .fetch();
-
-        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
-
-        if (CollectionUtils.isNotEmpty(result)) {
-            result.map(record -> hostInfoList.add(extractData(record)));
-        }
-        return hostInfoList;
-    }
-
-    @Override
     public PageData<ApplicationHostDTO> listHostInfoByPage(ApplicationHostDTO applicationHostInfoCondition,
                                                            BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildBizIdCondition(applicationHostInfoCondition.getBizId());
-        conditions.addAll(buildCondition(applicationHostInfoCondition, baseSearchCondition));
+        conditions.addAll(buildCondition(applicationHostInfoCondition));
 
         long hostCount = countHostByConditions(conditions);
 
@@ -619,38 +622,117 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
     }
 
+    @Transactional
     @Override
-    public int insertHostWithoutTopo(DSLContext dslContext, ApplicationHostDTO applicationHostDTO) {
-        return insertOrUpdateHost(dslContext, applicationHostDTO, false);
+    public int insertHostWithoutTopo(ApplicationHostDTO applicationHostDTO) {
+        return insertOrUpdateHost(context, applicationHostDTO, false);
     }
 
+    @Transactional
     @Override
-    public int insertOrUpdateHost(DSLContext dslContext, ApplicationHostDTO hostDTO) {
-        return insertOrUpdateHost(dslContext, hostDTO, true);
+    public void insertOrUpdateHost(ApplicationHostDTO hostDTO) {
+        insertOrUpdateHost(context, hostDTO, true);
     }
 
-    private int insertOrUpdateHost(DSLContext dslContext,
+    private int insertOrUpdateHost(DSLContext defaultContext,
                                    ApplicationHostDTO applicationHostDTO,
                                    Boolean insertTopo) {
-        int[] result = new int[]{-1};
+        int result;
         String finalSetIdsStr = applicationHostDTO.getSetIdsStr();
         String finalModuleIdsStr = applicationHostDTO.getModuleIdsStr();
         String finalModuleTypeStr = applicationHostDTO.getModuleTypeStr();
-        dslContext.transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            ULong bizId = JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId());
-            String ip = applicationHostDTO.getIp();
-            String ipv6 = applicationHostDTO.getIpv6();
-            String agentId = applicationHostDTO.getAgentId();
-            String ipDesc = applicationHostDTO.getHostName();
-            ULong cloudAreaId = JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId());
-            String displayIp = applicationHostDTO.getDisplayIp();
-            String os = applicationHostDTO.getOsName();
-            String osType = applicationHostDTO.getOsType();
-            UByte gseAgentAlive = JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue());
-            String cloudIp = applicationHostDTO.getCloudIp();
-            String cloudVendor = applicationHostDTO.getCloudVendorId();
-            var query = context.insertInto(TABLE,
+        ULong bizId = ULong.valueOf(applicationHostDTO.getBizId());
+        String ip = applicationHostDTO.getIp();
+        String ipv6 = applicationHostDTO.getIpv6();
+        String agentId = applicationHostDTO.getAgentId();
+        String ipDesc = applicationHostDTO.getHostName();
+        ULong cloudAreaId = ULong.valueOf(applicationHostDTO.getCloudAreaId());
+        String displayIp = applicationHostDTO.getDisplayIp();
+        String os = applicationHostDTO.getOsName();
+        String osType = applicationHostDTO.getOsType();
+        UByte gseAgentAlive = UByte.valueOf(applicationHostDTO.getGseAgentAlive() ? 1 : 0);
+        String cloudIp = applicationHostDTO.getCloudIp();
+        String cloudVendor = applicationHostDTO.getCloudVendorId();
+        var query = defaultContext.insertInto(TABLE,
+            TABLE.HOST_ID,
+            TABLE.APP_ID,
+            TABLE.IP,
+            TABLE.IP_V6,
+            TABLE.AGENT_ID,
+            TABLE.IP_DESC,
+            TABLE.SET_IDS,
+            TABLE.MODULE_IDS,
+            TABLE.CLOUD_AREA_ID,
+            TABLE.DISPLAY_IP,
+            TABLE.OS,
+            TABLE.OS_TYPE,
+            TABLE.MODULE_TYPE,
+            TABLE.IS_AGENT_ALIVE,
+            TABLE.CLOUD_IP,
+            TABLE.LAST_MODIFY_TIME,
+            TABLE.CLOUD_VENDOR_ID
+        ).values(
+            JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId()),
+            bizId,
+            ip,
+            ipv6,
+            agentId,
+            ipDesc,
+            finalSetIdsStr,
+            finalModuleIdsStr,
+            cloudAreaId,
+            displayIp,
+            os,
+            osType,
+            finalModuleTypeStr,
+            gseAgentAlive,
+            cloudIp,
+            JooqDataTypeUtil.buildULong(System.currentTimeMillis()),
+            cloudVendor
+        );
+        try {
+            result = query.onDuplicateKeyUpdate()
+                .set(TABLE.APP_ID, bizId)
+                .set(TABLE.IP, ip)
+                .set(TABLE.IP_V6, ipv6)
+                .set(TABLE.AGENT_ID, agentId)
+                .set(TABLE.IP_DESC, ipDesc)
+                .set(TABLE.SET_IDS, finalSetIdsStr)
+                .set(TABLE.MODULE_IDS, finalModuleIdsStr)
+                .set(TABLE.CLOUD_AREA_ID, cloudAreaId)
+                .set(TABLE.DISPLAY_IP, displayIp)
+                .set(TABLE.OS, os)
+                .set(TABLE.OS_TYPE, osType)
+                .set(TABLE.MODULE_TYPE, finalModuleTypeStr)
+                .set(TABLE.IS_AGENT_ALIVE, gseAgentAlive)
+                .set(TABLE.CLOUD_IP, cloudIp)
+                .set(TABLE.CLOUD_VENDOR_ID, cloudVendor)
+                .execute();
+        } catch (Throwable t) {
+            log.info("SQL=" + query.getSQL(ParamType.INLINED));
+            throw t;
+        }
+        if (insertTopo) {
+            List<HostTopoDTO> hostTopoDTOList = genHostTopoDTOList(applicationHostDTO);
+            hostTopoDAO.deleteHostTopoByHostId(applicationHostDTO.getBizId(), applicationHostDTO.getHostId());
+            int affectedNum = hostTopoDAO.batchInsertHostTopo(hostTopoDTOList);
+            log.debug("{} hostTopo inserted", affectedNum);
+        }
+        return result;
+    }
+
+    @Override
+    public int batchInsertAppHostInfo(List<ApplicationHostDTO> applicationHostDTOList) {
+        int batchSize = 1000;
+        int size = applicationHostDTOList.size();
+        int start = 0;
+        int end;
+        int affectedNum = 0;
+        do {
+            end = start + batchSize;
+            end = Math.min(end, size);
+            List<ApplicationHostDTO> subList = applicationHostDTOList.subList(start, end);
+            val insertQuery = context.insertInto(TABLE,
                 TABLE.HOST_ID,
                 TABLE.APP_ID,
                 TABLE.IP,
@@ -666,143 +748,64 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.MODULE_TYPE,
                 TABLE.IS_AGENT_ALIVE,
                 TABLE.CLOUD_IP,
+                TABLE.LAST_MODIFY_TIME,
                 TABLE.CLOUD_VENDOR_ID
             ).values(
-                JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId()),
-                bizId,
-                ip,
-                ipv6,
-                agentId,
-                ipDesc,
-                finalSetIdsStr,
-                finalModuleIdsStr,
-                cloudAreaId,
-                displayIp,
-                os,
-                osType,
-                finalModuleTypeStr,
-                gseAgentAlive,
-                cloudIp,
-                cloudVendor
+                (ULong) null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
             );
-            try {
-                result[0] = query.onDuplicateKeyUpdate()
-                    .set(TABLE.APP_ID, bizId)
-                    .set(TABLE.IP, ip)
-                    .set(TABLE.IP_V6, ipv6)
-                    .set(TABLE.AGENT_ID, agentId)
-                    .set(TABLE.IP_DESC, ipDesc)
-                    .set(TABLE.SET_IDS, finalSetIdsStr)
-                    .set(TABLE.MODULE_IDS, finalModuleIdsStr)
-                    .set(TABLE.CLOUD_AREA_ID, cloudAreaId)
-                    .set(TABLE.DISPLAY_IP, displayIp)
-                    .set(TABLE.OS, os)
-                    .set(TABLE.OS_TYPE, osType)
-                    .set(TABLE.MODULE_TYPE, finalModuleTypeStr)
-                    .set(TABLE.IS_AGENT_ALIVE, gseAgentAlive)
-                    .set(TABLE.CLOUD_IP, cloudIp)
-                    .set(TABLE.CLOUD_VENDOR_ID, cloudVendor)
-                    .execute();
-            } catch (Throwable t) {
-                log.info("SQL=" + query.getSQL(ParamType.INLINED));
-                throw t;
-            }
-            if (insertTopo) {
-                List<HostTopoDTO> hostTopoDTOList = genHostTopoDTOList(applicationHostDTO);
-                hostTopoDAO.deleteHostTopoByHostId(context, applicationHostDTO.getBizId(),
-                    applicationHostDTO.getHostId());
-                hostTopoDAO.batchInsertHostTopo(context, hostTopoDTOList);
-            }
-        });
-        return result[0];
-    }
-
-    @Override
-    public int batchInsertAppHostInfo(DSLContext dslContext, List<ApplicationHostDTO> applicationHostDTOList) {
-        int batchSize = 1000;
-        int size = applicationHostDTOList.size();
-        int start = 0;
-        int end;
-        int[] affectedNum = new int[]{0};
-        do {
-            end = start + batchSize;
-            end = Math.min(end, size);
-            List<ApplicationHostDTO> subList = applicationHostDTOList.subList(start, end);
-            dslContext.transaction(configuration -> {
-                DSLContext context = DSL.using(configuration);
-                val insertQuery = context.insertInto(TABLE,
-                    TABLE.HOST_ID,
-                    TABLE.APP_ID,
-                    TABLE.IP,
-                    TABLE.IP_V6,
-                    TABLE.AGENT_ID,
-                    TABLE.IP_DESC,
-                    TABLE.SET_IDS,
-                    TABLE.MODULE_IDS,
-                    TABLE.CLOUD_AREA_ID,
-                    TABLE.DISPLAY_IP,
-                    TABLE.OS,
-                    TABLE.OS_TYPE,
-                    TABLE.MODULE_TYPE,
-                    TABLE.IS_AGENT_ALIVE,
-                    TABLE.CLOUD_IP,
-                    TABLE.CLOUD_VENDOR_ID
-                ).values(
-                    (ULong) null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
+            BatchBindStep batchQuery = context.batch(insertQuery);
+            List<HostTopoDTO> hostTopoDTOList = new ArrayList<>();
+            for (ApplicationHostDTO applicationHostDTO : subList) {
+                batchQuery = batchQuery.bind(
+                    JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId()),
+                    JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId()),
+                    applicationHostDTO.getIp(),
+                    applicationHostDTO.getIpv6(),
+                    applicationHostDTO.getAgentId(),
+                    applicationHostDTO.getHostName(),
+                    applicationHostDTO.getSetIdsStr(),
+                    applicationHostDTO.getModuleIdsStr(),
+                    JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()),
+                    applicationHostDTO.getDisplayIp(),
+                    applicationHostDTO.getOsName(),
+                    applicationHostDTO.getOsType(),
+                    applicationHostDTO.getModuleTypeStr(),
+                    JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()),
+                    applicationHostDTO.getCloudIp(),
+                    applicationHostDTO.getCloudVendorId()
                 );
-                BatchBindStep batchQuery = context.batch(insertQuery);
-                List<HostTopoDTO> hostTopoDTOList = new ArrayList<>();
-                for (ApplicationHostDTO applicationHostDTO : subList) {
-                    batchQuery = batchQuery.bind(
-                        JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId()),
-                        JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId()),
-                        applicationHostDTO.getIp(),
-                        applicationHostDTO.getIpv6(),
-                        applicationHostDTO.getAgentId(),
-                        applicationHostDTO.getHostName(),
-                        applicationHostDTO.getSetIdsStr(),
-                        applicationHostDTO.getModuleIdsStr(),
-                        JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()),
-                        applicationHostDTO.getDisplayIp(),
-                        applicationHostDTO.getOsName(),
-                        applicationHostDTO.getOsType(),
-                        applicationHostDTO.getModuleTypeStr(),
-                        JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()),
-                        applicationHostDTO.getCloudIp(),
-                        applicationHostDTO.getCloudVendorId()
-                    );
-                    hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
-                }
-                int[] results = batchQuery.execute();
-                for (int result : results) {
-                    affectedNum[0] += result;
-                }
-                hostTopoDAO.batchInsertHostTopo(context, hostTopoDTOList);
-            });
+                hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
+            }
+            int[] results = batchQuery.execute();
+            for (int result : results) {
+                affectedNum += result;
+            }
+            hostTopoDAO.batchInsertHostTopo(hostTopoDTOList);
             start += batchSize;
         } while (end < size);
-        return affectedNum[0];
+        return affectedNum;
     }
 
     @SuppressWarnings("all")
     @Override
-    public boolean existAppHostInfoByHostId(DSLContext dslContext, Long hostId) {
-        val query = dslContext.selectCount().from(TABLE)
+    public boolean existAppHostInfoByHostId(Long hostId) {
+        val query = context.selectCount().from(TABLE)
             .where(TABLE.HOST_ID.eq(JooqDataTypeUtil.buildULong(hostId)));
         try {
             return query.fetchOne(0, Long.class) >= 1;
@@ -813,8 +816,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public int updateHostAttrsById(DSLContext dslContext,
-                                   ApplicationHostDTO applicationHostDTO) {
+    public void updateHostAttrsById(ApplicationHostDTO applicationHostDTO) {
         Long hostId = applicationHostDTO.getHostId();
         if (hostId == null || hostId <= 0) {
             FormattingTuple msg = MessageFormatter.format(
@@ -826,19 +828,21 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
-        val query = dslContext.update(TABLE)
+        val query = context.update(TABLE)
             .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
             .set(TABLE.IP, applicationHostDTO.getIp())
+            .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
             .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
             .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
             .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
             .set(TABLE.OS, applicationHostDTO.getOsName())
             .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
             .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(applicationHostDTO.getAgentStatusValue()))
+            .set(TABLE.LAST_MODIFY_TIME, JooqDataTypeUtil.buildULong(System.currentTimeMillis()))
             .set(TABLE.CLOUD_VENDOR_ID, applicationHostDTO.getCloudVendorId())
             .where(conditions);
         try {
-            return query.execute();
+            query.execute();
         } catch (Throwable t) {
             log.info("SQL=" + query.getSQL(ParamType.INLINED));
             throw t;
@@ -846,19 +850,19 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId,
-                                         ApplicationHostDTO applicationHostDTO) {
-        return updateBizHostInfoByHostId(dslContext, bizId, applicationHostDTO, true);
+    public void updateBizHostInfoByHostId(Long bizId, ApplicationHostDTO applicationHostDTO) {
+        updateBizHostInfoByHostId(bizId, applicationHostDTO, true);
     }
 
+    @Transactional
     @Override
-    public int updateBizHostInfoByHostId(DSLContext dslContext, Long bizId,
+    public int updateBizHostInfoByHostId(Long bizId,
                                          ApplicationHostDTO applicationHostDTO,
                                          boolean updateTopo) {
         if (applicationHostDTO.getHostId() == -1L) {
             return -1;
         }
-        int[] affectedNum = new int[]{-1};
+        int affectedNum;
         List<Condition> conditions = new ArrayList<>();
         if (bizId != null) {
             conditions.add(TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
@@ -867,101 +871,84 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (hostId != null) {
             conditions.add(TABLE.HOST_ID.eq(JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId())));
         }
-        dslContext.transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            val query = context.update(TABLE)
-                .set(TABLE.APP_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId()))
-                .set(TABLE.IP, applicationHostDTO.getIp())
-                .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
-                .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
-                .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
-                .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
-                .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
-                .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
-                .set(TABLE.CLOUD_AREA_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()))
-                .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
-                .set(TABLE.OS, applicationHostDTO.getOsName())
-                .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
-                .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
-                .set(TABLE.IS_AGENT_ALIVE, JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()))
-                .set(TABLE.CLOUD_VENDOR_ID, applicationHostDTO.getCloudVendorId())
-                .where(conditions);
-            try {
-                affectedNum[0] = query.execute();
-            } catch (Throwable t) {
-                log.info("SQL=" + query.getSQL(ParamType.INLINED));
-                throw t;
-            }
-            if (updateTopo) {
-                List<HostTopoDTO> hostTopoDTOList = genHostTopoDTOList(applicationHostDTO);
-                hostTopoDAO.deleteHostTopoByHostId(context, bizId, hostId);
-                hostTopoDAO.batchInsertHostTopo(context, hostTopoDTOList);
-            }
-        });
-        return affectedNum[0];
+        val query = buildQueryWithHostAndConditions(applicationHostDTO, conditions);
+        try {
+            affectedNum = query.execute();
+        } catch (Throwable t) {
+            log.info("SQL=" + query.getSQL(ParamType.INLINED));
+            throw t;
+        }
+        if (updateTopo) {
+            List<HostTopoDTO> hostTopoDTOList = genHostTopoDTOList(applicationHostDTO);
+            hostTopoDAO.deleteHostTopoByHostId(bizId, hostId);
+            hostTopoDAO.batchInsertHostTopo(hostTopoDTOList);
+        }
+        return affectedNum;
     }
 
+    private Query buildQueryWithHostAndConditions(ApplicationHostDTO applicationHostDTO, List<Condition> conditions) {
+        return context.update(TABLE)
+            .set(TABLE.APP_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId()))
+            .set(TABLE.IP, applicationHostDTO.getIp())
+            .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+            .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
+            .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
+            .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
+            .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
+            .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
+            .set(TABLE.CLOUD_AREA_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()))
+            .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
+            .set(TABLE.OS, applicationHostDTO.getOsName())
+            .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
+            .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
+            .set(TABLE.IS_AGENT_ALIVE, JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()))
+            .set(TABLE.CLOUD_VENDOR_ID, applicationHostDTO.getCloudVendorId())
+            .where(conditions);
+    }
+
+    @Transactional
     @Override
-    public int batchUpdateBizHostInfoByHostId(DSLContext dslContext,
-                                              List<ApplicationHostDTO> applicationHostDTOList) {
+    public int batchUpdateBizHostInfoByHostId(List<ApplicationHostDTO> applicationHostDTOList) {
         int batchSize = 1000;
         int size = applicationHostDTOList.size();
         int start = 0;
         int end;
         List<Query> queryList = new ArrayList<>();
-        int[] affectedNum = new int[]{0};
+        int affectedNum = 0;
         do {
             end = start + batchSize;
             end = Math.min(end, size);
             List<ApplicationHostDTO> subList = applicationHostDTOList.subList(start, end);
-            dslContext.transaction(configuration -> {
-                DSLContext context = DSL.using(configuration);
-                List<HostTopoDTO> hostTopoDTOList = new ArrayList<>();
-                for (ApplicationHostDTO applicationHostDTO : subList) {
-                    if (applicationHostDTO.getHostId() == -1L) {
-                        log.warn("Unexpected hostId==-1,hostInfo={}", applicationHostDTO);
-                        continue;
-                    }
-                    queryList.add(dslContext.update(TABLE)
-                        .set(TABLE.APP_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId()))
-                        .set(TABLE.IP, applicationHostDTO.getIp())
-                        .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
-                        .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
-                        .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
-                        .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
-                        .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
-                        .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
-                        .set(TABLE.CLOUD_AREA_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()))
-                        .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
-                        .set(TABLE.OS, applicationHostDTO.getOsName())
-                        .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
-                        .set(TABLE.MODULE_TYPE, applicationHostDTO.getModuleTypeStr())
-                        .set(TABLE.IS_AGENT_ALIVE,
-                            JooqDataTypeUtil.buildUByte(applicationHostDTO.getAgentStatusValue()))
-                        .set(TABLE.CLOUD_VENDOR_ID, applicationHostDTO.getCloudVendorId())
-                        .where(TABLE.HOST_ID.eq(JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId())))
-                        .and(TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId())))
-                    );
-                    hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
+            List<HostTopoDTO> hostTopoDTOList = new ArrayList<>();
+            for (ApplicationHostDTO applicationHostDTO : subList) {
+                if (applicationHostDTO.getHostId() == -1L) {
+                    log.warn("Unexpected hostId==-1,hostInfo={}", applicationHostDTO);
+                    continue;
                 }
-                int[] results = dslContext.batch(queryList).execute();
-                queryList.clear();
-                for (int result : results) {
-                    affectedNum[0] += result;
-                }
-                // 更新hostTopo表数据
-                hostTopoDAO.batchDeleteHostTopo(context,
-                    new ArrayList<>(hostTopoDTOList.stream().map(HostTopoDTO::getHostId).collect(Collectors.toSet())));
-                hostTopoDAO.batchInsertHostTopo(context, hostTopoDTOList);
-            });
+                List<Condition> conditions = new ArrayList<>();
+                conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
+                conditions.add(TABLE.APP_ID.eq(ULong.valueOf(applicationHostDTO.getBizId())));
+                queryList.add(buildQueryWithHostAndConditions(applicationHostDTO, conditions));
+                hostTopoDTOList.addAll(genHostTopoDTOList(applicationHostDTO));
+            }
+            int[] results = context.batch(queryList).execute();
+            queryList.clear();
+            for (int result : results) {
+                affectedNum += result;
+            }
+            // 更新hostTopo表数据
+            hostTopoDAO.batchDeleteHostTopo(
+                new ArrayList<>(hostTopoDTOList.stream().map(HostTopoDTO::getHostId).collect(Collectors.toSet()))
+            );
+            hostTopoDAO.batchInsertHostTopo(hostTopoDTOList);
             start += batchSize;
         } while (end < size);
-        return affectedNum[0];
+        return affectedNum;
     }
 
     @Override
-    public int deleteBizHostInfoById(DSLContext dslContext, Long bizId, Long hostId) {
-        int[] affectedNum = new int[]{-1};
+    public int deleteBizHostInfoById(Long bizId, Long hostId) {
+        int affectedNum;
         List<Condition> conditions = new ArrayList<>();
         if (bizId != null) {
             conditions.add(TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
@@ -969,79 +956,97 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (hostId != null) {
             conditions.add(TABLE.HOST_ID.eq(JooqDataTypeUtil.buildULong(hostId)));
         }
-        dslContext.transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            affectedNum[0] = context.deleteFrom(TABLE)
-                .where(conditions)
-                .execute();
-            hostTopoDAO.deleteHostTopoByHostId(context, bizId, hostId);
-        });
-        return affectedNum[0];
+        affectedNum = context.deleteFrom(TABLE)
+            .where(conditions)
+            .execute();
+        hostTopoDAO.deleteHostTopoByHostId(bizId, hostId);
+        return affectedNum;
     }
 
+    @Transactional
     @Override
-    public int batchDeleteBizHostInfoById(DSLContext dslContext, Long bizId, List<Long> hostIdList) {
-        int[] affectedNum = new int[]{0};
+    public int batchDeleteHostById(List<Long> hostIdList) {
+        if (CollectionUtils.isEmpty(hostIdList)) {
+            return 0;
+        }
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(
+            TABLE.HOST_ID.in(hostIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList()))
+        );
+        int deletedRelationNum = hostTopoDAO.batchDeleteHostTopo(hostIdList);
+        log.info("{} host relation deleted", deletedRelationNum);
+        return context.deleteFrom(TABLE)
+            .where(conditions)
+            .execute();
+    }
+
+    @Transactional
+    @Override
+    public int batchDeleteBizHostInfoById(Long bizId, List<Long> hostIdList) {
+        int affectedNum = 0;
         int batchSize = 1000;
         int size = hostIdList.size();
-        List<Condition> conditions = new ArrayList<>();
-        dslContext.transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            int start = 0;
-            int end;
-            List<Query> queryList = new ArrayList<>();
-            do {
-                end = start + batchSize;
-                end = Math.min(end, size);
-                List<Long> subList = hostIdList.subList(start, end);
-                if (bizId != null) {
-                    queryList.add(context.deleteFrom(TABLE)
-                        .where(TABLE.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList())))
-                        .and(TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)))
-                    );
-                } else {
-                    queryList.add(context.deleteFrom(TABLE)
-                        .where(TABLE.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList())))
-                    );
-                }
-                // SQL语句达到批量即执行
-                if (queryList.size() >= batchSize) {
-                    int[] results = context.batch(queryList).execute();
-                    queryList.clear();
-                    for (int result : results) {
-                        affectedNum[0] += result;
-                    }
-                }
-                hostTopoDAO.batchDeleteHostTopo(context, subList);
-                start += batchSize;
-            } while (end < size);
-            if (!queryList.isEmpty()) {
-                int[] results = dslContext.batch(queryList).execute();
+        int start = 0;
+        int end;
+        List<Query> queryList = new ArrayList<>();
+        do {
+            end = start + batchSize;
+            end = Math.min(end, size);
+            List<Long> subList = hostIdList.subList(start, end);
+            if (bizId != null) {
+                queryList.add(context.deleteFrom(TABLE)
+                    .where(TABLE.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList())))
+                    .and(TABLE.APP_ID.eq(ULong.valueOf(bizId)))
+                );
+            } else {
+                queryList.add(context.deleteFrom(TABLE)
+                    .where(TABLE.HOST_ID.in(subList.stream().map(ULong::valueOf).collect(Collectors.toList())))
+                );
+            }
+            // SQL语句达到批量即执行
+            if (queryList.size() >= batchSize) {
+                int[] results = context.batch(queryList).execute();
+                queryList.clear();
                 for (int result : results) {
-                    affectedNum[0] += result;
+                    affectedNum += result;
                 }
             }
-            hostTopoDAO.batchDeleteHostTopo(context, hostIdList);
-        });
-        return affectedNum[0];
+            hostTopoDAO.batchDeleteHostTopo(subList);
+            start += batchSize;
+        } while (end < size);
+        if (!queryList.isEmpty()) {
+            int[] results = context.batch(queryList).execute();
+            for (int result : results) {
+                affectedNum += result;
+            }
+        }
+        hostTopoDAO.batchDeleteHostTopo(hostIdList);
+        return affectedNum;
     }
 
     @Override
-    public int deleteBizHostInfoByBizId(DSLContext dslContext, long bizId) {
+    public int deleteBizHostInfoByBizId(long bizId) {
         // 先查出所有的hostId
-        List<Long> hostIds = getHostIdListBySearchContents(Collections.singleton(bizId), null, null, null, null, null
-            , null);
+        List<Long> hostIds = getHostIdListBySearchContents(
+            Collections.singleton(bizId),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
         // 删除拓扑信息+主机信息
-        return batchDeleteBizHostInfoById(dslContext, bizId, hostIds);
+        return batchDeleteBizHostInfoById(bizId, hostIds);
     }
 
     @Override
-    public boolean existsHost(DSLContext dslContext, long bizId, String ip) {
-        return dslContext.fetchExists(TABLE, TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)).and(TABLE.IP.eq(ip)));
+    public boolean existsHost(long bizId, String ip) {
+        return context.fetchExists(TABLE, TABLE.APP_ID.eq(ULong.valueOf(bizId)).and(TABLE.IP.eq(ip)));
     }
 
     @Override
-    public ApplicationHostDTO getLatestHost(DSLContext dslContext, long bizId, long cloudAreaId, String ip) {
+    public ApplicationHostDTO getLatestHost(long bizId, long cloudAreaId, String ip) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
         conditions.add(TABLE.CLOUD_AREA_ID.eq(JooqDataTypeUtil.buildULong(cloudAreaId)));
@@ -1056,7 +1061,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public long countHostsByBizIds(DSLContext dslContext, Collection<Long> bizIds) {
+    public long countHostsByBizIds(Collection<Long> bizIds) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.in(bizIds));
         return countHostByConditions(conditions);
@@ -1078,10 +1083,10 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public int syncHostTopo(DSLContext dslContext, Long hostId) {
+    public int syncHostTopo(Long hostId) {
         ApplicationHostDTO hostInfoDTO = getHostById(hostId);
         if (hostInfoDTO != null) {
-            List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByHostId(dslContext, hostId);
+            List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByHostId(hostId);
             List<Long> setIds =
                 hostTopoDTOList.parallelStream().map(HostTopoDTO::getSetId).collect(Collectors.toList());
             List<Long> moduleIds =
@@ -1095,7 +1100,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             hostInfoDTO.setSetId(setIds);
             hostInfoDTO.setModuleId(moduleIds);
             hostInfoDTO.setModuleType(moduleTypes);
-            return updateBizHostInfoByHostId(dslContext, null, hostInfoDTO, false);
+            return updateBizHostInfoByHostId(null, hostInfoDTO, false);
         }
         return -1;
     }
@@ -1125,8 +1130,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return conditions;
     }
 
-    private List<Condition> buildCondition(ApplicationHostDTO applicationHostInfoCondition,
-                                           BaseSearchCondition baseSearchCondition) {
+    private List<Condition> buildCondition(ApplicationHostDTO applicationHostInfoCondition) {
         List<Condition> conditions = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(applicationHostInfoCondition.getIpList())) {
             conditions.add(TABLE.IP.in(applicationHostInfoCondition.getIpList()));
@@ -1156,13 +1160,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public List<ApplicationHostDTO> listHostsByCloudIps(Collection<String> cloudIps) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.CLOUD_IP.in(cloudIps));
-        return queryHostsByCondition(conditions);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> listHostsByIpv6s(Collection<String> ipv6s) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.IP_V6.in(ipv6s));
         return queryHostsByCondition(conditions);
     }
 

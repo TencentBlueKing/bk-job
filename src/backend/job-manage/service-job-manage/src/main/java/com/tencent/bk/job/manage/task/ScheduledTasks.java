@@ -46,6 +46,7 @@ public class ScheduledTasks {
     private final EsbUserInfoUpdateTask esbUserInfoUpdateTask;
     private final SyncService syncService;
     private final UserUploadFileCleanTask userUploadFileCleanTask;
+    private final ClearDeletedHostsTask clearDeletedHostsTask;
     private final ApplicationCache applicationCache;
 
     @Autowired
@@ -53,10 +54,11 @@ public class ScheduledTasks {
         EsbUserInfoUpdateTask esbUserInfoUpdateTask,
         SyncService syncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
-        ApplicationCache applicationCache) {
+        ClearDeletedHostsTask clearDeletedHostsTask, ApplicationCache applicationCache) {
         this.esbUserInfoUpdateTask = esbUserInfoUpdateTask;
         this.syncService = syncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
+        this.clearDeletedHostsTask = clearDeletedHostsTask;
         this.applicationCache = applicationCache;
     }
 
@@ -145,5 +147,15 @@ public class ScheduledTasks {
             log.error("resetTodayStatistics failed!", e);
         }
         log.info("resetTodayStatistics finished");
+    }
+
+    @Scheduled(cron = "0 10 * * * ?")
+    public void clearDeletedHosts() {
+        log.info("Clear deleted hosts task begin");
+        try {
+            log.info("Clear deleted hosts task finished:{}", clearDeletedHostsTask.execute());
+        } catch (Exception e) {
+            log.error("Clear deleted hosts failed!", e);
+        }
     }
 }

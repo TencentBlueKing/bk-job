@@ -110,6 +110,16 @@ public class IpUtils {
     }
 
     /**
+     * 验证ipv4格式
+     *
+     * @param ipv4Str ipv4字符串
+     */
+    public static boolean checkIpv4(String ipv4Str) {
+        InetAddressValidator validator = InetAddressValidator.getInstance();
+        return validator.isValidInet4Address(ipv4Str);
+    }
+
+    /**
      * 转换到IpDTO
      *
      * @param cloudIp 云区域+IP
