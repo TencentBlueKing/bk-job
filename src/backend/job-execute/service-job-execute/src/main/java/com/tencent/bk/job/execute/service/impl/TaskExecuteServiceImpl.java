@@ -1016,10 +1016,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void throwHostInvalidException(Collection<HostDTO> unavailableHosts, long appId) {
-        String ipListStr = StringUtils.join(unavailableHosts.stream().map(HostDTO::getIp).collect(Collectors.toList()),
-            ",");
-        log.warn("The following hosts are invalid, appId:{}, ips={}", appId, ipListStr);
-        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{ipListStr});
+        String hostListStr = StringUtils.join(unavailableHosts.stream()
+                .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
+        log.warn("The following hosts are invalid, appId:{}, ips={}", appId, hostListStr);
+        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{hostListStr});
+    }
+
+    private String printHostIdOrIp(HostDTO host) {
+        if (StringUtils.isNotBlank(host.getPrimaryIp())) {
+            return "(ip:" + host.getPrimaryIp() + ")";
+        } else {
+            return "(host_id:" + host.getHostId() + ")";
+        }
     }
 
     private void checkStepInstanceConstraint(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
