@@ -260,10 +260,11 @@ public class ResultHandleManager implements SmartLifecycle {
     private void stopTasksGraceful() {
         log.info("Stop tasks graceful - start");
         long start = System.currentTimeMillis();
-        StopTaskCounter stopTaskCounter = StopTaskCounter.getInstance();
+        StopTaskCounter stopTaskCounter = null;
         synchronized (lifecycleMonitor) {
             if (!this.scheduledTasks.isEmpty()) {
                 log.info("Stop result handle tasks, size: {}, tasks: {}", scheduledTasks.size(), scheduledTasks);
+                stopTaskCounter = StopTaskCounter.getInstance();
                 stopTaskCounter.initCounter(scheduledTasks.keySet());
             }
             for (ScheduledContinuousResultHandleTask task : scheduledTasks.values()) {
@@ -271,7 +272,9 @@ public class ResultHandleManager implements SmartLifecycle {
             }
         }
         try {
-            stopTaskCounter.waitingForAllTasksDone();
+            if (stopTaskCounter != null) {
+                stopTaskCounter.waitingForAllTasksDone();
+            }
         } catch (Throwable e) {
             log.error("Stop tasks caught exception", e);
         }

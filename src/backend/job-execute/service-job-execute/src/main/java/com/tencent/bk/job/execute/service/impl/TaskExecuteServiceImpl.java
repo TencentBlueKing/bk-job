@@ -683,7 +683,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         setAgentStatus(queryHostsResult.getValidHosts());
         setAgentStatus(queryHostsResult.getNotInAppHosts());
 
-        fillTaskInstanceHostDetail(stepInstances, variables, queryHostsResult);
+        fillHostDetail(stepInstances, variables, queryHostsResult);
 
         return queryHostsResult;
     }
@@ -842,9 +842,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return !stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue());
     }
 
-    private void fillTaskInstanceHostDetail(List<StepInstanceDTO> stepInstanceList,
-                                            Collection<TaskVariableDTO> variables,
-                                            ServiceListAppHostResultDTO hosts) {
+    private void fillHostDetail(List<StepInstanceDTO> stepInstanceList,
+                                Collection<TaskVariableDTO> variables,
+                                ServiceListAppHostResultDTO hosts) {
         Map<String, HostDTO> hostMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
             hosts.getValidHosts().forEach(host -> {
