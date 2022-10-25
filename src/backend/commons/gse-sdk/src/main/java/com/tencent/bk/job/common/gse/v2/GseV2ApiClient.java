@@ -33,6 +33,8 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     @Autowired
     public GseV2ApiClient(BkApiConfig bkApiConfig) {
         super(bkApiConfig.getBkGseApiGatewayUrl(), bkApiConfig.getAppCode(), bkApiConfig.getAppSecret());
+        log.info("Init GseV2ApiClient, bkGseApiGatewayUrl: {}, appCode: {}",
+            bkApiConfig.getBkGseApiGatewayUrl(), bkApiConfig.getAppCode());
     }
 
     @Override
