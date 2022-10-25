@@ -753,14 +753,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void setHostsForDynamicGroup(ServersDTO servers,
                                          Map<DynamicServerGroupDTO, List<HostDTO>> groups) {
-        if (CollectionUtils.isNotEmpty(servers.getDynamicServerGroups())) {
+        if (servers != null && CollectionUtils.isNotEmpty(servers.getDynamicServerGroups())) {
             servers.getDynamicServerGroups().forEach(group -> group.setIpList(groups.get(group)));
         }
     }
 
     private void setHostsForTopoNode(ServersDTO servers,
                                      Map<DynamicServerTopoNodeDTO, List<HostDTO>> topoNodes) {
-        if (CollectionUtils.isNotEmpty(servers.getTopoNodes())) {
+        if (servers != null && CollectionUtils.isNotEmpty(servers.getTopoNodes())) {
             servers.getTopoNodes().forEach(topoNode -> topoNode.setIpList(topoNodes.get(topoNode)));
         }
     }
@@ -1028,7 +1028,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void throwHostInvalidException(Collection<HostDTO> unavailableHosts, long appId) {
         String hostListStr = StringUtils.join(unavailableHosts.stream()
-                .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
+            .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
         log.warn("The following hosts are invalid, appId:{}, ips={}", appId, hostListStr);
         throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{hostListStr});
     }
@@ -2275,7 +2275,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskInfo taskInfo = buildTaskInfoFromExecuteParam(executeParam, watch);
 
         watch.start("acquireAndSetHosts");
-        ServiceListAppHostResultDTO hosts = 
+        ServiceListAppHostResultDTO hosts =
             acquireAndSetHosts(executeParam.getAppId(), taskInfo.getStepInstances(),
                 taskInfo.getVariables() != null ? taskInfo.getVariables().values() : null);
         watch.stop();
