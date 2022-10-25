@@ -820,7 +820,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         ServersDTO targetServers = stepInstance.getTargetServers();
         if (targetServers == null || CollectionUtils.isEmpty(targetServers.getIpList())) {
-            log.warn("Empty target server, stepInstanceId: {}", stepInstance.getId());
+            log.warn("Empty target server! stepInstanceName: {}", stepInstance.getName());
             throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
         }
         if (stepInstance.isFileStep()) {
@@ -830,7 +830,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 if (TaskFileTypeEnum.SERVER.getType() == fileSource.getFileType()) {
                     ServersDTO servers = fileSource.getServers();
                     if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
-                        log.warn("Empty file source server, stepInstanceId: {}", stepInstance.getId());
+                        log.warn("Empty file source server, stepInstanceName: {}", stepInstance.getName());
                         throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
                     }
                 }

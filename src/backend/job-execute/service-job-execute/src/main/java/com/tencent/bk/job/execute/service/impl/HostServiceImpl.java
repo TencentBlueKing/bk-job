@@ -246,9 +246,8 @@ public class HostServiceImpl implements HostService {
             for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
                 List<HostDTO> topoHosts = getHostsByTopoNodes(appId,
                     Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
-                if (CollectionUtils.isNotEmpty(topoHosts)) {
-                    topoNode.setIpList(topoHosts);
-                }
+                topoNode.setIpList(topoHosts);
+                result.put(topoNode, topoHosts);
             }
         } else {
             result = getTopoHostsConcurrent(appId, topoNodes);

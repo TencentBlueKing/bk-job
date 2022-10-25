@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 @Data
@@ -70,15 +69,6 @@ public class ServersDTO implements Cloneable {
         serversDTO.setStaticIpList(Collections.emptyList());
         serversDTO.setTopoNodes(Collections.emptyList());
         return serversDTO;
-    }
-
-    public String buildIpListStr() {
-        if (ipList == null || ipList.isEmpty()) {
-            return null;
-        }
-        StringJoiner sj = new StringJoiner(",");
-        ipList.forEach(ipDTO -> sj.add(ipDTO.getBkCloudId() + ":" + ipDTO.getIp()));
-        return sj.toString();
     }
 
     public ServersDTO clone() {
