@@ -43,16 +43,19 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.ServiceHostResourceClient;
 import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
+import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
+import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -61,7 +64,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -71,9 +78,7 @@ public class HostServiceImpl implements HostService {
     private final ServiceHostResourceClient hostResourceClient;
     private final AppScopeMappingService appScopeMappingService;
     private final AgentStateClient agentStateClient;
-
-    private volatile boolean isWhiteIpConfigLoaded = false;
-    private final Map<String, ServiceWhiteIPInfo> whiteIpConfig = new ConcurrentHashMap<>();
+    private final ExecutorService getHostsByTopoExecutor;
 
     private final LoadingCache<Long, String> cloudAreaNameCache = CacheBuilder.newBuilder()
         .maximumSize(10000).expireAfterWrite(1, TimeUnit.HOURS).
@@ -102,11 +107,13 @@ public class HostServiceImpl implements HostService {
     public HostServiceImpl(WhiteIpResourceClient whiteIpResourceClient,
                            ServiceHostResourceClient hostResourceClient,
                            AppScopeMappingService appScopeMappingService,
-                           AgentStateClient agentStateClient) {
+                           AgentStateClient agentStateClient,
+                           @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor) {
         this.hostResourceClient = hostResourceClient;
         this.whiteIpResourceClient = whiteIpResourceClient;
         this.appScopeMappingService = appScopeMappingService;
         this.agentStateClient = agentStateClient;
+        this.getHostsByTopoExecutor = getHostsByTopoExecutor;
     }
 
     @Override
@@ -146,59 +153,11 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    @Scheduled(cron = "0 * * * * ?")
-    public void syncWhiteIpConfig() {
-        log.info("Sync white ip config!");
-        isWhiteIpConfigLoaded = true;
-        long start = System.currentTimeMillis();
-        InternalResponse<List<ServiceWhiteIPInfo>> resp = whiteIpResourceClient.listWhiteIPInfos();
-        if (resp == null || !resp.isSuccess()) {
-            log.warn("Get all white ip config return fail resp!");
-            return;
-        }
-        log.info("Sync white ip config, resp: {}", JsonUtils.toJson(resp));
-
-        List<ServiceWhiteIPInfo> whiteIpInfos = resp.getData();
-        whiteIpConfig.clear();
-        whiteIpInfos.forEach(whiteIpInfo ->
-            whiteIpConfig.put(whiteIpInfo.getCloudId() + ":" + whiteIpInfo.getIp(), whiteIpInfo));
-
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000L) {
-            log.warn("Sync white ip config is slow, cost: {}", cost);
-        }
-        log.info("Sync white ip config success!");
-    }
-
-    @Override
-    public boolean isMatchWhiteIpRule(long appId, String cloudIp, String action) {
-        try {
-            if (!isWhiteIpConfigLoaded) {
-                syncWhiteIpConfig();
-            }
-            ServiceWhiteIPInfo whiteIpInfo = whiteIpConfig.get(cloudIp);
-            if (whiteIpInfo == null) {
-                return false;
-            }
-            if (whiteIpInfo.isForAllApp()) {
-                return CollectionUtils.isNotEmpty(whiteIpInfo.getAllAppActionScopeList())
-                    && whiteIpInfo.getAllAppActionScopeList().contains(action);
-            } else {
-                return whiteIpInfo.getAppIdActionScopeMap() != null
-                    && whiteIpInfo.getAppIdActionScopeMap().get(appId) != null
-                    && whiteIpInfo.getAppIdActionScopeMap().get(appId).contains(action);
-            }
-        } catch (Throwable e) {
-            log.warn("Get white ip config by host and action", e);
-            return false;
-        }
-    }
-
     @Override
     public ServiceListAppHostResultDTO batchGetAppHosts(Long appId,
                                                         Collection<HostDTO> hosts) {
         InternalResponse<ServiceListAppHostResultDTO> response =
-            hostResourceClient.batchGetAppHosts(appId, new ServiceCheckAppHostsReq(new ArrayList<>(hosts)));
+            hostResourceClient.batchGetAppHosts(appId, new ServiceBatchGetAppHostsReq(new ArrayList<>(hosts)));
         return response.getData();
     }
 
@@ -243,6 +202,19 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
+    public Map<DynamicServerGroupDTO, List<HostDTO>> batchGetAndGroupHostsByDynamicGroup(
+        long appId,
+        Collection<DynamicServerGroupDTO> groups) {
+        if (CollectionUtils.isEmpty(groups)) {
+            return new HashMap<>();
+        }
+
+        Map<DynamicServerGroupDTO, List<HostDTO>> result = new HashMap<>();
+        groups.forEach(group -> result.put(group, getHostsByDynamicGroupId(appId, group.getGroupId())));
+        return result;
+    }
+
+    @Override
     public List<HostDTO> getHostsByTopoNodes(long appId, List<CcInstanceDTO> ccInstances) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
@@ -264,12 +236,90 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
+    public Map<DynamicServerTopoNodeDTO, List<HostDTO>> getAndGroupHostsByTopoNodes(
+        long appId,
+        Collection<DynamicServerTopoNodeDTO> topoNodes) {
+
+        Map<DynamicServerTopoNodeDTO, List<HostDTO>> result;
+        if (topoNodes.size() < 10) {
+            result = new HashMap<>();
+            for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
+                List<HostDTO> topoHosts = getHostsByTopoNodes(appId,
+                    Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
+                topoNode.setIpList(topoHosts);
+                result.put(topoNode, topoHosts);
+            }
+        } else {
+            result = getTopoHostsConcurrent(appId, topoNodes);
+        }
+        return result;
+    }
+
+    private Map<DynamicServerTopoNodeDTO, List<HostDTO>> getTopoHostsConcurrent(
+        long appId,
+        Collection<DynamicServerTopoNodeDTO> topoNodes) {
+
+        Map<DynamicServerTopoNodeDTO, List<HostDTO>> result = new HashMap<>();
+
+        CountDownLatch latch = new CountDownLatch(topoNodes.size());
+        List<Future<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>>> futures = new ArrayList<>(topoNodes.size());
+        for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
+            futures.add(getHostsByTopoExecutor.submit(new GetTopoHostTask(appId, topoNode, latch)));
+        }
+
+        try {
+            for (Future<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>> future : futures) {
+                Pair<DynamicServerTopoNodeDTO, List<HostDTO>> topoAndHosts = future.get();
+                for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
+                    if (topoNode.equals(topoAndHosts.getLeft())) {
+                        result.put(topoNode, topoAndHosts.getRight());
+                    }
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Get topo hosts concurrent error", e);
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            log.error("Get topo hosts concurrent error", e);
+        }
+        return result;
+    }
+
+    @Override
     public String getCloudAreaName(long cloudAreaId) {
         try {
             return cloudAreaNameCache.get(cloudAreaId);
         } catch (Exception e) {
             log.warn("Fail to get cloud area name", e);
             return "Unknown";
+        }
+    }
+
+    private class GetTopoHostTask implements Callable<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>> {
+        private final long appId;
+        private final DynamicServerTopoNodeDTO topoNode;
+        private final CountDownLatch latch;
+
+        private GetTopoHostTask(long appId, DynamicServerTopoNodeDTO topoNode, CountDownLatch latch) {
+            this.appId = appId;
+            this.topoNode = topoNode;
+            this.latch = latch;
+        }
+
+        @Override
+        public Pair<DynamicServerTopoNodeDTO, List<HostDTO>> call() {
+            try {
+                List<HostDTO> topoHosts = getHostsByTopoNodes(appId,
+                    Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
+                return new ImmutablePair<>(topoNode, topoHosts);
+            } catch (Throwable e) {
+                log.warn("Get hosts by topo fail", e);
+                return new ImmutablePair<>(topoNode, Collections.emptyList());
+            } finally {
+                latch.countDown();
+            }
         }
     }
 }

@@ -22,33 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.manage.runner;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import com.tencent.bk.job.common.model.dto.PageDTO;
-import lombok.Getter;
-import lombok.Setter;
+import com.tencent.bk.job.manage.task.ClearDeletedHostsTask;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.List;
+/**
+ * 进程启动时立即执行一次无效主机清理
+ */
+@Slf4j
+@Component
+public class ClearDeletedHostsRunner implements CommandLineRunner {
 
-@Getter
-@Setter
-public class ListHostsWithoutBizReq extends EsbReq {
-    @JsonProperty("host_property_filter")
-    private PropertyFilterDTO condition;
+    private final ClearDeletedHostsTask clearDeletedHostsTask;
 
-    @JsonProperty("fields")
-    private List<String> fields = Arrays.asList(
-        "bk_host_id",
-        "bk_host_innerip",
-        "bk_host_innerip_v6",
-        "bk_host_name",
-        "bk_os_name",
-        "bk_cloud_id"
-    );
+    @Autowired
+    public ClearDeletedHostsRunner(ClearDeletedHostsTask clearDeletedHostsTask) {
+        this.clearDeletedHostsTask = clearDeletedHostsTask;
+    }
 
-    private PageDTO page;
+    @Override
+    public void run(String... args) {
+        new Thread(clearDeletedHostsTask::execute).start();
+    }
 }

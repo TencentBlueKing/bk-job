@@ -170,7 +170,6 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.createTime = stepInstanceBase.createTime;
         this.ignoreError = stepInstanceBase.ignoreError;
         this.targetServers = stepInstanceBase.targetServers;
-        this.ipList = stepInstanceBase.ipList;
         this.rollingConfigId = stepInstanceBase.rollingConfigId;
         this.batch = stepInstanceBase.getBatch();
     }

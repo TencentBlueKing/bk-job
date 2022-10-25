@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -98,7 +99,14 @@ public class TaskTargetDTO {
         HostService hostService =
             ApplicationContextRegister.getBean(HostService.class);
         if (target.getHostNodeList() != null && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())) {
-            Set<Long> hostIds = target.getHostNodeList().getHostList().stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
+            Set<Long> hostIds = target.getHostNodeList().getHostList().stream()
+                .map(ApplicationHostDTO::getHostId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+            if (CollectionUtils.isEmpty(hostIds)) {
+                // TMP: 兼容前端只传入ip的场景；发布完成后删除,并加入前端校验
+                return;
+            }
             Map<Long, ApplicationHostDTO> hosts = hostService.listHostsByHostIds(hostIds);
             target.getHostNodeList().getHostList().forEach(hostNode -> {
                 ApplicationHostDTO host = hosts.get(hostNode.getHostId());
@@ -190,7 +198,6 @@ public class TaskTargetDTO {
                     }
                     hostInfoDTO.setCloudAreaId(hostNode.getCloudAreaId());
                     hostInfoDTO.setIp(hostNode.getIp());
-                    hostInfoDTO.setDisplayIp(hostNode.getDisplayIp());
                     hostInfoDTOS.add(hostInfoDTO);
                 });
                 targetServer.setHostList(hostInfoDTOS);

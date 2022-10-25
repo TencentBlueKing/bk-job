@@ -22,33 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.backup.archive.impl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import com.tencent.bk.job.common.model.dto.PageDTO;
-import lombok.Getter;
-import lombok.Setter;
+import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
+import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import org.jooq.generated.tables.records.TaskInstanceHostRecord;
 
-import java.util.Arrays;
-import java.util.List;
+/**
+ * gse_task 表归档
+ */
+public class TaskInstanceHostArchivist extends AbstractArchivist<TaskInstanceHostRecord> {
 
-@Getter
-@Setter
-public class ListHostsWithoutBizReq extends EsbReq {
-    @JsonProperty("host_property_filter")
-    private PropertyFilterDTO condition;
-
-    @JsonProperty("fields")
-    private List<String> fields = Arrays.asList(
-        "bk_host_id",
-        "bk_host_innerip",
-        "bk_host_innerip_v6",
-        "bk_host_name",
-        "bk_os_name",
-        "bk_cloud_id"
-    );
-
-    private PageDTO page;
+    public TaskInstanceHostArchivist(TaskInstanceHostRecordDAO executeRecordDAO,
+                                     ExecuteArchiveDAO executeArchiveDAO,
+                                     ArchiveProgressService archiveProgressService) {
+        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
+        this.deleteIdStepSize = 10_000;
+    }
 }

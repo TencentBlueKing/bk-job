@@ -342,7 +342,6 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         if (StringUtils.isNotBlank(record.get(t.TARGET_SERVERS))) {
             ServersDTO targetServers = JsonUtils.fromJson(record.get(t.TARGET_SERVERS), ServersDTO.class);
             stepInstance.setTargetServers(targetServers);
-            stepInstance.setIpList(targetServers.buildIpListStr());
         }
         stepInstance.setCreateTime(record.get(t.CREATE_TIME));
         stepInstance.setIgnoreError(JooqDataTypeUtil.toInteger(record.get(t.IGNORE_ERROR)) != null

@@ -38,6 +38,7 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
  * 主机通用表示-内部服务使用
@@ -262,5 +263,14 @@ public class HostDTO implements Cloneable {
     @JsonIgnore
     public String getPrimaryIp() {
         return StringUtils.isNotEmpty(ip) ? ip : ipv6;
+    }
+
+    public String toStringBasic() {
+        return new StringJoiner(", ", HostDTO.class.getSimpleName() + "[", "]")
+            .add("hostId=" + hostId)
+            .add("bkCloudId=" + bkCloudId)
+            .add("ip='" + ip + "'")
+            .add("ipv6='" + ipv6 + "'")
+            .toString();
     }
 }

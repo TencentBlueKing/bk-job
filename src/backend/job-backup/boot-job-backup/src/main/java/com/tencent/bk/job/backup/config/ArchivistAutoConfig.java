@@ -41,6 +41,7 @@ import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceRollingTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
@@ -189,6 +190,14 @@ public class ArchivistAutoConfig {
             return new RollingConfigRecordDAO(context, archiveConfig);
         }
 
+        @Bean(name = "taskInstanceHostRecordDAO")
+        public TaskInstanceHostRecordDAO taskInstanceHostRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveConfig archiveConfig) {
+            log.info("Init TaskInstanceHostRecordDAO");
+            return new TaskInstanceHostRecordDAO(context, archiveConfig);
+        }
+
     }
 
     @Bean(name = "execute-archive-dao")
@@ -217,6 +226,7 @@ public class ArchivistAutoConfig {
         @Autowired(required = false) GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
         @Autowired(required = false) StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
         @Autowired(required = false) RollingConfigRecordDAO rollingConfigRecordDAO,
+        @Autowired(required = false) TaskInstanceHostRecordDAO taskInstanceHostRecordDAO,
         @Autowired(required = false) ExecuteArchiveDAO executeArchiveDAO,
         ArchiveProgressService archiveProgressService,
         @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
@@ -240,6 +250,7 @@ public class ArchivistAutoConfig {
             gseFileAgentTaskRecordDAO,
             stepInstanceRollingTaskRecordDAO,
             rollingConfigRecordDAO,
+            taskInstanceHostRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
             archiveConfig,

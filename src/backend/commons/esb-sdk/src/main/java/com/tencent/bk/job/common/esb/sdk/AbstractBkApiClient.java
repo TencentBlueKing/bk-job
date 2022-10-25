@@ -68,25 +68,23 @@ public abstract class AbstractBkApiClient {
         boolean error = false;
         long start = System.currentTimeMillis();
         String responseBody = null;
+        String url;
+        if (!bkApiGatewayUrl.endsWith("/") && !uri.startsWith("/")) {
+            url = bkApiGatewayUrl + "/" + uri;
+        } else {
+            url = bkApiGatewayUrl + uri;
+        }
         try {
-            String url;
-            if (!bkApiGatewayUrl.endsWith("/") && !uri.startsWith("/")) {
-                url = bkApiGatewayUrl + "/" + uri;
-            } else {
-                url = bkApiGatewayUrl + uri;
-            }
-
             Header[] header = buildBkApiRequestHeaders();
-
             responseBody = httpHelper.post(url, "UTF-8", buildPostBody(body), header);
             return responseBody;
         } catch (Exception e) {
-            log.error("Post url {}| params={}| exception={}", uri, JsonUtils.toJsonWithoutSkippedFields(body),
+            log.error("Post url {}| params={}| exception={}", url, JsonUtils.toJsonWithoutSkippedFields(body),
                 e.getMessage());
             error = true;
             throw e;
         } finally {
-            log.info("Post url {}| error={}| params={}| time={}| resp={}", uri, error,
+            log.info("Post url {}| error={}| params={}| time={}| resp={}", url, error,
                 JsonUtils.toJsonWithoutSkippedFields(body), (System.currentTimeMillis() - start), responseBody);
         }
     }

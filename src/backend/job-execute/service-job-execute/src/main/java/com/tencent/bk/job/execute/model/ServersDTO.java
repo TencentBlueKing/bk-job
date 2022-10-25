@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 @Data
 @PersistenceObject
@@ -69,15 +69,6 @@ public class ServersDTO implements Cloneable {
         serversDTO.setStaticIpList(Collections.emptyList());
         serversDTO.setTopoNodes(Collections.emptyList());
         return serversDTO;
-    }
-
-    public String buildIpListStr() {
-        if (ipList == null || ipList.isEmpty()) {
-            return null;
-        }
-        StringJoiner sj = new StringJoiner(",");
-        ipList.forEach(ipDTO -> sj.add(ipDTO.getBkCloudId() + ":" + ipDTO.getIp()));
-        return sj.toString();
     }
 
     public ServersDTO clone() {
@@ -158,5 +149,28 @@ public class ServersDTO implements Cloneable {
         return CollectionUtils.isEmpty(this.staticIpList)
             && CollectionUtils.isEmpty(this.topoNodes)
             && CollectionUtils.isEmpty(this.dynamicServerGroups);
+    }
+
+    /**
+     * 提取所有包含的主机
+     *
+     * @return 主机列表
+     */
+    public List<HostDTO> extractHosts() {
+        List<HostDTO> hosts = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(staticIpList)) {
+            hosts.addAll(staticIpList);
+        }
+        if (CollectionUtils.isNotEmpty(dynamicServerGroups)) {
+            dynamicServerGroups.stream()
+                .filter(group -> CollectionUtils.isNotEmpty(group.getIpList()))
+                .forEach(group -> hosts.addAll(group.getIpList()));
+        }
+        if (CollectionUtils.isNotEmpty(topoNodes)) {
+            topoNodes.stream()
+                .filter(topoNode -> CollectionUtils.isNotEmpty(topoNode.getIpList()))
+                .forEach(topoNode -> hosts.addAll(topoNode.getIpList()));
+        }
+        return hosts.stream().distinct().collect(Collectors.toList());
     }
 }

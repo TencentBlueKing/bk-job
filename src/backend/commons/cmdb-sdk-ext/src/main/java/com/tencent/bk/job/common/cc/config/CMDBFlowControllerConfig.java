@@ -25,67 +25,18 @@
 package com.tencent.bk.job.common.cc.config;
 
 import com.tencent.bk.job.common.redis.util.RedisSlideWindowFlowController;
-import com.tencent.bk.job.common.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.redis.core.StringRedisTemplate;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Configuration
 @Lazy(false)
 public class CMDBFlowControllerConfig {
 
-    private final RedisSlideWindowFlowController cmdbGlobalFlowController;
-    private final StringRedisTemplate redisTemplate;
-    private final CmdbConfig cmdbConfig;
-
-    @Autowired
-    public CMDBFlowControllerConfig(StringRedisTemplate redisTemplate, CmdbConfig cmdbConfig) {
-        this.redisTemplate = redisTemplate;
-        this.cmdbConfig = cmdbConfig;
-        cmdbGlobalFlowController = new RedisSlideWindowFlowController();
-    }
-
     @Bean
     public RedisSlideWindowFlowController cmdbGlobalFlowController() {
-        initCMDBGlobalFlowController();
-        return cmdbGlobalFlowController;
-    }
-
-    public void initCMDBGlobalFlowController() {
-        if (!cmdbConfig.getEnableFlowControl()) {
-            log.info("FlowControl not enabled, do not init flowController.");
-            return;
-        }
-        String flowControlResourcesStr = cmdbConfig.getFlowControlResourcesStr();
-        flowControlResourcesStr = flowControlResourcesStr.trim();
-        Map<String, Integer> map = new HashMap<>();
-        try {
-            List<String> resourceLimitList = StringUtil.strToList(flowControlResourcesStr, String.class, ",");
-            for (String resourceLimitStr : resourceLimitList) {
-                String[] arr = resourceLimitStr.split(":");
-                String resourceId = arr[0];
-                Integer limitNum = Integer.parseInt(arr[1]);
-                map.put(resourceId, limitNum);
-            }
-        } catch (Throwable t) {
-            log.error("CMDB Flow control resources config invalid:{}, right format:{resourceId1}:{limit1},...," +
-                "{resourceId2}:{limit2}", flowControlResourcesStr, t);
-        }
-        try {
-            log.info("CMDB Flow control initializing,map={},flowControlDefaultLimit={},getFlowControlPrecision={}",
-                map, cmdbConfig.getFlowControlDefaultLimit(), cmdbConfig.getFlowControlPrecision());
-            cmdbGlobalFlowController.init(redisTemplate, map, cmdbConfig.getFlowControlDefaultLimit(),
-                cmdbConfig.getFlowControlPrecision());
-        } catch (Exception e) {
-            log.error("Fail to init globalFlowController", e);
-        }
+        return new RedisSlideWindowFlowController();
     }
 }
