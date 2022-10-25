@@ -415,7 +415,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         int agentTaskSize = targetHosts.size();
         if (fuzzyFilterByIp) {
             agentTaskSize = (int) targetHosts.stream()
-                .filter(ipDTO -> ipDTO.getIp().contains(fuzzySearchIp)).count();
+                .filter(host -> isMatchByIp(host, fuzzySearchIp)).count();
         }
         resultGroup.setTotalAgentTasks(agentTaskSize);
 
@@ -423,8 +423,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             int maxAgentTasks = (maxAgentTasksForResultGroup != null ?
                 Math.min(maxAgentTasksForResultGroup, targetHosts.size()) : targetHosts.size());
             for (HostDTO targetHost : targetHosts) {
-                String ip = targetHost.getIp();
-                if (fuzzyFilterByIp && !ip.contains(fuzzySearchIp)) {
+                if (fuzzyFilterByIp && !isMatchByIp(targetHost, fuzzySearchIp)) {
                     // 如果需要根据IP过滤，那么过滤掉不匹配的任务
                     continue;
                 }
@@ -432,6 +431,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                     AgentTaskDetailDTO agentTask = new AgentTaskDetailDTO();
                     agentTask.setHostId(targetHost.getHostId());
                     agentTask.setIp(targetHost.getIp());
+                    agentTask.setCloudIp(targetHost.toCloudIp());
+                    agentTask.setIpv6(targetHost.getIpv6());
                     agentTask.setBkCloudId(targetHost.getBkCloudId());
                     agentTask.setBkCloudName(hostService.getCloudAreaName(targetHost.getBkCloudId()));
                     agentTask.setStatus(AgentTaskStatusEnum.WAITING);
@@ -861,17 +862,19 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private List<HostDTO> fuzzySearchHostsByIp(StepInstanceBaseDTO stepInstance, String searchIp) {
         return stepInstance.getTargetServers().getIpList().stream()
-            .filter(host -> {
-                boolean isMatch = false;
-                if (StringUtils.isNotBlank(host.getIp())) {
-                    isMatch = host.getIp().contains(searchIp);
-                }
-                if (!isMatch && StringUtils.isNotBlank(host.getIpv6())) {
-                    isMatch = host.getIpv6().contains(searchIp);
-                }
-                return isMatch;
-            })
+            .filter(host -> isMatchByIp(host, searchIp))
             .collect(Collectors.toList());
+    }
+
+    private boolean isMatchByIp(HostDTO host, String searchIp) {
+        boolean isMatch = false;
+        if (StringUtils.isNotBlank(host.getIp())) {
+            isMatch = host.getIp().contains(searchIp);
+        }
+        if (!isMatch && StringUtils.isNotBlank(host.getIpv6())) {
+            isMatch = host.getIpv6().contains(searchIp);
+        }
+        return isMatch;
     }
 
     @Override
