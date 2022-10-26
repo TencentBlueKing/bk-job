@@ -49,6 +49,8 @@ public interface ApplicationHostDAO {
 
     List<ApplicationHostDTO> listHostInfoByIps(Collection<String> ips);
 
+    List<ApplicationHostDTO> listHostInfoByCloudIps(Collection<String> cloudIps);
+
     /**
      * 查询近期未更新的主机ID
      *
@@ -147,7 +149,10 @@ public interface ApplicationHostDAO {
     long countAllHosts();
 
     long countHostsByOsType(String osType);
+
     List<ApplicationHostDTO> listHostInfoByBizAndIps(Collection<Long> bizIds, Collection<String> ips);
+
+    List<ApplicationHostDTO> listHostInfoByBizAndCloudIps(Collection<Long> bizIds, Collection<String> cloudIps);
 
     List<ApplicationHostDTO> listHostInfoByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s);
 

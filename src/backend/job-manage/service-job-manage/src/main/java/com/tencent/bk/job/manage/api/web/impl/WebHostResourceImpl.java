@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.util.PageUtil;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.api.web.WebHostResource;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.dto.DynamicGroupDTO;
@@ -540,14 +541,26 @@ public class WebHostResourceImpl implements WebHostResource {
                 hostIdList
             ));
         }
-        List<String> ipList = req.getIpList();
-        if (CollectionUtils.isNotEmpty(ipList)) {
+        List<String> ipOrCloudIpList = req.getIpList();
+        if (CollectionUtils.isNotEmpty(ipOrCloudIpList)) {
+            Pair<List<String>, List<String>> pair = IpUtils.separateIpAndCloudIps(ipOrCloudIpList);
+            List<String> ipList = pair.getLeft();
+            List<String> cloudIpList = pair.getRight();
             // 根据ip地址查资源范围及白名单内的主机详情
-            hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByIp(
-                appResourceScope,
-                req.getActionScope(),
-                ipList
-            ));
+            if (CollectionUtils.isNotEmpty(ipList)) {
+                hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByIp(
+                    appResourceScope,
+                    req.getActionScope(),
+                    ipList
+                ));
+            }
+            if (CollectionUtils.isNotEmpty(cloudIpList)) {
+                hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByCloudIp(
+                    appResourceScope,
+                    req.getActionScope(),
+                    cloudIpList
+                ));
+            }
         }
         List<String> ipv6List = req.getIpv6List();
         if (CollectionUtils.isNotEmpty(ipv6List)) {
@@ -608,7 +621,7 @@ public class WebHostResourceImpl implements WebHostResource {
         List<ApplicationHostDTO> allHostList = new ArrayList<>();
         List<String> ipList = agentStatisticsReq.getIpList();
         if (CollectionUtils.isNotEmpty(ipList)) {
-            List<ApplicationHostDTO> hostsByIp = scopeHostService.getScopeHostsByIps(
+            List<ApplicationHostDTO> hostsByIp = scopeHostService.getScopeHostsByCloudIps(
                 appResourceScope,
                 ipList
             );
