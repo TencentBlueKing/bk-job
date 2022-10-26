@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -137,6 +138,33 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             finalHostList.addAll(whiteIpHostList);
         }
         return finalHostList;
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByCloudIp(AppResourceScope appResourceScope,
+                                                                           ActionScopeEnum actionScope,
+                                                                           Collection<String> cloudIps) {
+        List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByCloudIps(appResourceScope, cloudIps);
+        List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
+        Map<String, ApplicationHostDTO> map = hostService.listHostsByIps(cloudIps);
+        Set<Long> hostIds = map.values().stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
+        List<ApplicationHostDTO> whiteIpHostList = listWhiteIpHostsByIds(appResourceScope, actionScope, hostIds);
+        log.info("{} white ips added", whiteIpHostList.size());
+        if (CollectionUtils.isNotEmpty(whiteIpHostList)) {
+            finalHostList.addAll(whiteIpHostList);
+        }
+        return finalHostList;
+    }
+
+    private List<ApplicationHostDTO> listWhiteIpHostsByIds(AppResourceScope appResourceScope,
+                                                           ActionScopeEnum actionScope,
+                                                           Collection<Long> hostIds) {
+        List<HostDTO> whiteIpHostDTOList = whiteIPService.listAvailableWhiteIPHost(
+            appResourceScope.getAppId(),
+            actionScope,
+            hostIds
+        );
+        return hostService.listHosts(whiteIpHostDTOList);
     }
 
     @Override

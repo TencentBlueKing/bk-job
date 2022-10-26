@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
 import java.net.Inet4Address;
@@ -289,5 +290,24 @@ public class IpUtils {
         } else {
             return ip;
         }
+    }
+
+    /**
+     * 将纯IP与含云区域的IP分离开
+     *
+     * @param ipOrCloudIpList ip/cloudIp列表
+     * @return <纯IP列表，含云区域IP列表>
+     */
+    public static Pair<List<String>, List<String>> separateIpAndCloudIps(List<String> ipOrCloudIpList) {
+        List<String> ipList = new ArrayList<>();
+        List<String> cloudIpList = new ArrayList<>();
+        for (String ipOrCloudIp : ipOrCloudIpList) {
+            if (ipOrCloudIp.contains(":")) {
+                cloudIpList.add(ipOrCloudIp);
+            } else {
+                ipList.add(ipOrCloudIp);
+            }
+        }
+        return Pair.of(ipList, cloudIpList);
     }
 }
