@@ -58,6 +58,16 @@ public interface ScopeHostService {
                                                 Collection<String> ips);
 
     /**
+     * 根据 CloudIP 列表查询主机信息
+     *
+     * @param appResourceScope 资源范围
+     * @param cloudIps         主机CloudIP地址集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getScopeHostsByCloudIps(AppResourceScope appResourceScope,
+                                                     Collection<String> cloudIps);
+
+    /**
      * 根据 Ipv6 列表查询主机信息
      *
      * @param appResourceScope 资源范围

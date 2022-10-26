@@ -105,6 +105,24 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     }
 
     @Override
+    public List<ApplicationHostDTO> getScopeHostsByCloudIps(AppResourceScope appResourceScope,
+                                                            Collection<String> cloudIps) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            return bizHostService.getHostsByCloudIps(cloudIps);
+        } else if (applicationDTO.isBizSet()) {
+            // 业务集
+            List<Long> bizIds = applicationDTO.getSubBizIds();
+            return bizHostService.getHostsByBizAndCloudIps(bizIds, cloudIps);
+        } else {
+            // 普通业务
+            Long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            return bizHostService.getHostsByBizAndCloudIps(Collections.singletonList(bizId), cloudIps);
+        }
+    }
+
+    @Override
     public List<ApplicationHostDTO> getScopeHostsByIpv6s(AppResourceScope appResourceScope, Collection<String> ipv6s) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO.isAllBizSet()) {

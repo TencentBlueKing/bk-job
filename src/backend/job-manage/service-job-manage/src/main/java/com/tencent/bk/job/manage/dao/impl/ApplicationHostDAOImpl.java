@@ -143,6 +143,11 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<ApplicationHostDTO> listHostInfoByCloudIps(Collection<String> cloudIps) {
+        return listHostInfoByCloudIps(null, cloudIps);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoByIps(Long bizId, Collection<String> ips) {
         List<String> ipList = new ArrayList<>(ips);
         List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
@@ -162,12 +167,40 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return hostInfoList;
     }
 
+    public List<ApplicationHostDTO> listHostInfoByCloudIps(Long bizId, Collection<String> cloudIps) {
+        List<String> cloudIpList = new ArrayList<>(cloudIps);
+        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
+        // 分批，防止SQL超长
+        int batchSize = 30000;
+        int start = 0;
+        int end = start + batchSize;
+        int ipSize = cloudIpList.size();
+        end = Math.min(end, ipSize);
+        do {
+            List<String> ipSubList = cloudIpList.subList(start, end);
+            hostInfoList.addAll(listHostInfoByCloudIpsIndeed(bizId, ipSubList));
+            start += batchSize;
+            end = start + batchSize;
+            end = Math.min(end, ipSize);
+        } while (start < ipSize);
+        return hostInfoList;
+    }
+
     private List<ApplicationHostDTO> listHostInfoByIpsIndeed(Long bizId, Collection<String> ips) {
         List<Condition> conditions = new ArrayList<>();
         if (bizId != null) {
             conditions.addAll(buildBizIdCondition(bizId));
         }
         conditions.add(TABLE.IP.in(ips));
+        return queryHostsByCondition(conditions);
+    }
+
+    private List<ApplicationHostDTO> listHostInfoByCloudIpsIndeed(Long bizId, Collection<String> cloudIps) {
+        List<Condition> conditions = new ArrayList<>();
+        if (bizId != null) {
+            conditions.addAll(buildBizIdCondition(bizId));
+        }
+        conditions.add(TABLE.CLOUD_IP.in(cloudIps));
         return queryHostsByCondition(conditions);
     }
 
@@ -258,7 +291,17 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (bizIds != null) {
             conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
         }
-        conditions.add(TABLE.IP.in(ips).or(TABLE.CLOUD_IP.in(ips)));
+        conditions.add(TABLE.IP.in(ips));
+        return listHostInfoByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostInfoByBizAndCloudIps(Collection<Long> bizIds, Collection<String> cloudIps) {
+        List<Condition> conditions = new ArrayList<>();
+        if (bizIds != null) {
+            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        }
+        conditions.add(TABLE.CLOUD_IP.in(cloudIps));
         return listHostInfoByConditions(conditions);
     }
 

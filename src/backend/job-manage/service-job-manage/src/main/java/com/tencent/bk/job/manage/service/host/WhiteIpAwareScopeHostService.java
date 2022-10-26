@@ -61,6 +61,18 @@ public interface WhiteIpAwareScopeHostService {
                                                                Collection<String> ips);
 
     /**
+     * 根据 CloudIP 列表查询主机信息
+     *
+     * @param appResourceScope 资源范围
+     * @param actionScope      生效场景
+     * @param cloudIps         CloudIP集合
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByCloudIp(AppResourceScope appResourceScope,
+                                                                    ActionScopeEnum actionScope,
+                                                                    Collection<String> cloudIps);
+
+    /**
      * 根据 ipv6 集合查询主机信息
      *
      * @param appResourceScope 资源范围
