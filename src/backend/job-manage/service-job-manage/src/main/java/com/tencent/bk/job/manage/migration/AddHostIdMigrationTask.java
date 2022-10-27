@@ -287,7 +287,7 @@ public class AddHostIdMigrationTask {
             long fromId = nextRecordId == null ? 0L : nextRecordId;
             // 比单页最大数量多获取一条数据，用于判断是否还有下一页
             int limit = maxRecordSize + 1;
-            List<TaskTargetRecord> records = listTaskTargets(fromId, maxRecordSize);
+            List<TaskTargetRecord> records = listTaskTargets(fromId, limit);
 
             if (records.size() == limit) {
                 // 下一页仍然有内容
