@@ -207,56 +207,59 @@ public class AddHostIdMigrationTask {
                     seq++;
                     watch.start("list_targets_" + seq);
                     pageResult = listPageTaskTargets(pageResult == null ? null : pageResult.getNextRecordId(), 500);
-                    if (CollectionUtils.isNotEmpty(pageResult.getRecords())) {
-                        List<TaskTargetRecord> records = pageResult.getRecords();
-                        records = records.stream().filter(record -> isTargetMissingHostId(record.getTarget()))
-                            .collect(Collectors.toList());
-                        if (records.isEmpty()) {
-                            continue;
-                        }
-                        totalCount += records.size();
-                        log.info("[{}-{}] {} targets need migration", getTableName(), seq, records.size());
+                    if (CollectionUtils.isEmpty(pageResult.getRecords())) {
                         watch.stop();
-
-
-                        watch.start("add_ip_host_id_mappings_" + seq);
-                        addIpAndHostIdMappings(
-                            records.stream().map(TaskTargetRecord::getTarget).collect(Collectors.toList()));
-                        log.info("[{}-{}] ipAndHostIdMappings: {}", getTableName(), seq,
-                            JsonUtils.toJson(ipAndHostIdMapping));
-                        watch.stop();
-
-                        watch.start("fill_host_id_" + seq);
-                        List<Long> invalidIds = new ArrayList<>();
-                        List<TaskTargetRecord> updateRecords = new ArrayList<>();
-                        for (TaskTargetRecord record : records) {
-                            boolean success = fillHostId(record.getTarget());
-                            if (!success) {
-                                invalidIds.add(record.getId());
-                            } else {
-                                updateRecords.add(record);
-                            }
-                        }
-                        if (CollectionUtils.isNotEmpty(invalidIds)) {
-                            log.error("[{}-{}] {} targets fill host id fail, invalidIdList: {}", getTableName(), seq,
-                                invalidIds.size(), invalidIds);
-                        }
-                        watch.stop();
-
-                        if (CollectionUtils.isNotEmpty(updateRecords)) {
-                            watch.start("update_targets_" + seq);
-                            if (dryRun) {
-                                // 只输出要更新的数据用于验证，不进行DB数据的变更
-                                log.info("Update targets with dryRun mode, tableName: {},  records: {}", getTableName(),
-                                    JsonUtils.toJson(updateRecords));
-                            } else {
-                                updateTaskTargets(updateRecords);
-                            }
-                            successCount += updateRecords.size();
-                            watch.stop();
-                        }
+                        continue;
                     }
 
+                    List<TaskTargetRecord> records = pageResult.getRecords();
+                    records = records.stream().filter(record -> isTargetMissingHostId(record.getTarget()))
+                        .collect(Collectors.toList());
+                    if (records.isEmpty()) {
+                        watch.stop();
+                        continue;
+                    }
+                    totalCount += records.size();
+                    log.info("[{}-{}] {} targets need migration", getTableName(), seq, records.size());
+                    watch.stop();
+
+
+                    watch.start("add_ip_host_id_mappings_" + seq);
+                    addIpAndHostIdMappings(
+                        records.stream().map(TaskTargetRecord::getTarget).collect(Collectors.toList()));
+                    log.info("[{}-{}] ipAndHostIdMappings: {}", getTableName(), seq,
+                        JsonUtils.toJson(ipAndHostIdMapping));
+                    watch.stop();
+
+                    watch.start("fill_host_id_" + seq);
+                    List<Long> invalidIds = new ArrayList<>();
+                    List<TaskTargetRecord> updateRecords = new ArrayList<>();
+                    for (TaskTargetRecord record : records) {
+                        boolean success = fillHostId(record.getTarget());
+                        if (!success) {
+                            invalidIds.add(record.getId());
+                        } else {
+                            updateRecords.add(record);
+                        }
+                    }
+                    if (CollectionUtils.isNotEmpty(invalidIds)) {
+                        log.error("[{}-{}] {} targets fill host id fail, invalidIdList: {}", getTableName(), seq,
+                            invalidIds.size(), invalidIds);
+                    }
+                    watch.stop();
+
+                    if (CollectionUtils.isNotEmpty(updateRecords)) {
+                        watch.start("update_targets_" + seq);
+                        if (dryRun) {
+                            // 只输出要更新的数据用于验证，不进行DB数据的变更
+                            log.info("Update targets with dryRun mode, tableName: {},  records: {}", getTableName(),
+                                JsonUtils.toJson(updateRecords));
+                        } else {
+                            updateTaskTargets(updateRecords);
+                        }
+                        successCount += updateRecords.size();
+                        watch.stop();
+                    }
                 } while (pageResult.hasNext());
 
                 result.setSuccess(true);
