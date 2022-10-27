@@ -32,6 +32,8 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import com.tencent.bk.job.manage.service.host.HostService;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 作业模板、执行方案等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性
@@ -104,86 +107,20 @@ public class AddHostIdMigrationTask {
     public List<AddHostIdResult> execute(boolean isDryRun) {
         List<AddHostIdResult> results = new ArrayList<>();
         try {
-            results.add(migrateTaskTargets(new TaskTemplateStepScriptTargetMigration(), isDryRun));
-            results.add(migrateTaskTargets(new TaskTemplateStepFileTargetMigration(), isDryRun));
-            results.add(migrateTaskTargets(new TaskTemplateStepFileListTargetMigration(), isDryRun));
-            results.add(migrateTaskTargets(new TaskTemplateVariableTargetMigration(), isDryRun));
-            results.add(migrateTaskTargets(new TaskPlanStepScriptTargetMigration(), isDryRun));
-            results.add(migrateTaskTargets(new TaskPlanStepFileTargetMigration(), isDryRun));
-            results.add(migrateTaskTargets(new TaskPlanStepFileListTargetMigration(), isDryRun));
-            results.add(migrateTaskTargets(new TaskPlanVariableTargetMigration(), isDryRun));
+            results.add(new TaskTemplateStepScriptTargetMigration(isDryRun).migrate());
+            results.add(new TaskTemplateStepFileTargetMigration(isDryRun).migrate());
+            results.add(new TaskTemplateStepFileListTargetMigration(isDryRun).migrate());
+            results.add(new TaskTemplateVariableTargetMigration(isDryRun).migrate());
+            results.add(new TaskPlanStepScriptTargetMigration(isDryRun).migrate());
+            results.add(new TaskPlanStepFileTargetMigration(isDryRun).migrate());
+            results.add(new TaskPlanStepFileListTargetMigration(isDryRun).migrate());
+            results.add(new TaskPlanVariableTargetMigration(isDryRun).migrate());
             return results;
         } finally {
             log.info("AddHostIdMigrationTask done, result: {}", JsonUtils.toJson(results));
             // 清理缓存，避免占用内存
             this.ipAndHostIdMapping.clear();
         }
-    }
-
-    private AddHostIdResult migrateTaskTargets(TaskTargetMigration migration, boolean isDryRun) {
-        String taskName = "migrate_" + migration.getTableName();
-        AddHostIdResult result = new AddHostIdResult(taskName);
-        StopWatch watch = new StopWatch(taskName);
-        try {
-            log.info("[{}] Migration start ...", migration.getTableName());
-
-            watch.start("list_targets");
-            Map<Long, TaskTargetDTO> targets = migration.listTaskTargets();
-            log.info("[{}] {} targets need migration", migration.getTableName(), targets.size());
-            result.setTotalRecords(targets.size());
-            watch.stop();
-
-            if (targets.isEmpty()) {
-                result.setSuccess(true);
-                return result;
-            }
-
-            watch.start("add_ip_host_id_mappings");
-            addIpAndHostIdMappings(targets.values());
-            log.info("[{}] ipAndHostIdMappings: {}", migration.getTableName(), JsonUtils.toJson(ipAndHostIdMapping));
-            watch.stop();
-
-            watch.start("fill_host_id");
-            List<Long> invalidIds = new ArrayList<>();
-            targets.forEach((id, target) -> {
-                boolean success = fillHostId(target);
-                if (!success) {
-                    invalidIds.add(id);
-                }
-            });
-            if (CollectionUtils.isNotEmpty(invalidIds)) {
-                log.error("[{}] {} targets fill host id fail, invalidIdList: {}", migration.getTableName(),
-                    invalidIds.size(), invalidIds);
-                // 删除掉没有设置hostId的
-                invalidIds.forEach(targets::remove);
-            }
-            watch.stop();
-
-            watch.start("update_targets");
-            if (isDryRun) {
-                // 只输出要更新的数据用于验证，不进行DB数据的变更
-                log.info("Update targets with dryRun mode, tableName: {},  records: {}", migration.getTableName(),
-                    JsonUtils.toJson(targets));
-            } else {
-                migration.updateTaskTargets(targets);
-            }
-            result.setSuccessRecords(targets.size());
-            watch.stop();
-        } catch (Throwable e) {
-            // catch all exception
-            log.error("Migration caught exception", e);
-            result.setSuccess(false);
-            // 由于回滚机制，所以successRecords=0
-            result.setSuccessRecords(0);
-            return result;
-        } finally {
-            if (watch.isRunning()) {
-                watch.stop();
-            }
-            log.info("[{}] Migration done. cost: {}", migration.getTableName(), watch.prettyPrint());
-        }
-        result.setSuccess(true);
-        return result;
     }
 
     private void addIpAndHostIdMappings(Collection<TaskTargetDTO> targets) {
@@ -235,7 +172,6 @@ public class AddHostIdMigrationTask {
                 host.setHostId(hostId);
             } else {
                 success = false;
-                break;
             }
         }
         return success;
@@ -250,375 +186,517 @@ public class AddHostIdMigrationTask {
         return json;
     }
 
-    private interface TaskTargetMigration {
+    private abstract class AbstractTaskTargetMigration {
+        private final boolean dryRun;
+
+        public AbstractTaskTargetMigration(boolean dryRun) {
+            this.dryRun = dryRun;
+        }
+
+        public AddHostIdResult migrate() {
+            String taskName = "migrate_" + getTableName();
+            AddHostIdResult result = new AddHostIdResult(taskName);
+            StopWatch watch = new StopWatch(taskName);
+            TaskTargetRecordPageResult pageResult = null;
+            int seq = 0;
+            int totalCount = 0;
+            int successCount = 0;
+            try {
+                log.info("[{}] Migration start ...", getTableName());
+                do {
+                    seq++;
+                    watch.start("list_targets_" + seq);
+                    pageResult = listPageTaskTargets(pageResult == null ? null : pageResult.getNextRecordId(), 500);
+                    if (CollectionUtils.isNotEmpty(pageResult.getRecords())) {
+                        List<TaskTargetRecord> records = pageResult.getRecords();
+                        records = records.stream().filter(record -> isTargetMissingHostId(record.getTarget()))
+                            .collect(Collectors.toList());
+                        if (records.isEmpty()) {
+                            continue;
+                        }
+                        totalCount += records.size();
+                        log.info("[{}-{}] {} targets need migration", getTableName(), seq, records.size());
+                        watch.stop();
+
+
+                        watch.start("add_ip_host_id_mappings_" + seq);
+                        addIpAndHostIdMappings(
+                            records.stream().map(TaskTargetRecord::getTarget).collect(Collectors.toList()));
+                        log.info("[{}-{}] ipAndHostIdMappings: {}", getTableName(), seq,
+                            JsonUtils.toJson(ipAndHostIdMapping));
+                        watch.stop();
+
+                        watch.start("fill_host_id_" + seq);
+                        List<Long> invalidIds = new ArrayList<>();
+                        List<TaskTargetRecord> updateRecords = new ArrayList<>();
+                        for (TaskTargetRecord record : records) {
+                            boolean success = fillHostId(record.getTarget());
+                            if (!success) {
+                                invalidIds.add(record.getId());
+                            } else {
+                                updateRecords.add(record);
+                            }
+                        }
+                        if (CollectionUtils.isNotEmpty(invalidIds)) {
+                            log.error("[{}-{}] {} targets fill host id fail, invalidIdList: {}", getTableName(), seq,
+                                invalidIds.size(), invalidIds);
+                        }
+                        watch.stop();
+
+                        if (CollectionUtils.isNotEmpty(updateRecords)) {
+                            watch.start("update_targets_" + seq);
+                            if (dryRun) {
+                                // 只输出要更新的数据用于验证，不进行DB数据的变更
+                                log.info("Update targets with dryRun mode, tableName: {},  records: {}", getTableName(),
+                                    JsonUtils.toJson(updateRecords));
+                            } else {
+                                updateTaskTargets(updateRecords);
+                            }
+                            successCount += updateRecords.size();
+                            watch.stop();
+                        }
+                    }
+
+                } while (pageResult.hasNext());
+
+                result.setSuccess(true);
+            } catch (Throwable e) {
+                // catch all exception
+                log.error("Migration caught exception", e);
+                result.setSuccess(false);
+                return result;
+            } finally {
+                result.setTotalRecords(totalCount);
+                result.setSuccessRecords(successCount);
+                if (watch.isRunning()) {
+                    watch.stop();
+                }
+                log.info("[{}] Migration done. cost: {}", getTableName(), watch.prettyPrint());
+            }
+            return result;
+        }
+
+        /**
+         * 查询所有需要处理的TaskTarget
+         *
+         * @param nextRecordId  下一个记录ID;传入null表示第一页
+         * @param maxRecordSize 分页-最大返回记录数量
+         * @return 分页结果
+         */
+        private TaskTargetRecordPageResult listPageTaskTargets(Long nextRecordId, int maxRecordSize) {
+            long fromId = nextRecordId == null ? 0L : nextRecordId;
+            // 比单页最大数量多获取一条数据，用于判断是否还有下一页
+            int limit = maxRecordSize + 1;
+            List<TaskTargetRecord> records = listTaskTargets(fromId, maxRecordSize);
+
+            if (records.size() == limit) {
+                // 下一页仍然有内容
+                return new TaskTargetRecordPageResult(records.subList(0, records.size() - 1),
+                    records.get(records.size() - 1).getId());
+            } else {
+                // <= maxRecordSize, 表示当前已经是最后一页
+                return new TaskTargetRecordPageResult(records, null);
+            }
+        }
+
         /**
          * 获取表名称
          *
          * @return 表名称
          */
-        String getTableName();
+        abstract String getTableName();
 
         /**
-         * 查询所有需要处理的TaskTarget
+         * 从DB查询 TaskTarget
          *
-         * @return Map<表ID, Target>
+         * @param fromRecordId  起始记录ID
+         * @param maxRecordSize 最大返回记录数量
+         * @return TaskTarget 列表
          */
-        Map<Long, TaskTargetDTO> listTaskTargets();
+        abstract List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize);
 
         /**
-         * 批量根据表ID更新Target
+         * 批量更新Target
          *
-         * @param targets Map<表ID, Target>
+         * @param records 更新目标主机
          */
-        void updateTaskTargets(Map<Long, TaskTargetDTO> targets);
+        abstract void updateTaskTargets(List<TaskTargetRecord> records);
     }
 
-    private class TaskTemplateStepScriptTargetMigration implements TaskTargetMigration {
+    @Data
+    @NoArgsConstructor
+    private static class TaskTargetRecordPageResult {
+
+        public TaskTargetRecordPageResult(List<TaskTargetRecord> records, Long nextRecordId) {
+            this.records = records;
+            this.nextRecordId = nextRecordId;
+        }
+
+        private List<TaskTargetRecord> records;
+        private Long nextRecordId;
+
+        public boolean hasNext() {
+            return nextRecordId != null;
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    private static class TaskTargetRecord {
+
+        public TaskTargetRecord(Long id, TaskTargetDTO target) {
+            this.id = id;
+            this.target = target;
+        }
+
+        /**
+         * 包含目标主机的记录ID
+         */
+        private Long id;
+        /**
+         * 目标主机
+         */
+        private TaskTargetDTO target;
+    }
+
+    private class TaskTemplateStepScriptTargetMigration extends AbstractTaskTargetMigration {
+
+        public TaskTemplateStepScriptTargetMigration(boolean dryRun) {
+            super(dryRun);
+        }
+
         @Override
         public String getTableName() {
             return "task_template_step_script";
         }
 
         @Override
-        public Map<Long, TaskTargetDTO> listTaskTargets() {
+        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
             Result<?> result = CTX.select(
                 TASK_TEMPLATE_STEP_SCRIPT.ID,
                 TASK_TEMPLATE_STEP_SCRIPT.DESTINATION_HOST_LIST)
                 .from(TASK_TEMPLATE_STEP_SCRIPT)
+                .where(TASK_TEMPLATE_STEP_SCRIPT.ID.ge(ULong.valueOf(fromRecordId)))
+                .orderBy(TASK_TEMPLATE_STEP_SCRIPT.ID.asc())
+                .limit(maxRecordSize)
                 .fetch();
-            Map<Long, TaskTargetDTO> targets = new HashMap<>();
-            if (result.size() > 0) {
-                result.forEach(record -> {
-                    long id = record.get(TASK_TEMPLATE_STEP_SCRIPT.ID).longValue();
-                    String targetJsonStr = record.get(TASK_TEMPLATE_STEP_SCRIPT.DESTINATION_HOST_LIST);
-                    if (StringUtils.isBlank(targetJsonStr)) {
-                        return;
-                    }
-                    TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
-                    if (isTargetMissingHostId(target)) {
-                        targets.put(id, target);
-                    }
-                });
-            }
-            return targets;
+            return result.map(record -> {
+                long id = record.get(TASK_TEMPLATE_STEP_SCRIPT.ID).longValue();
+                String targetJsonStr = record.get(TASK_TEMPLATE_STEP_SCRIPT.DESTINATION_HOST_LIST);
+                TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
+                return new TaskTargetRecord(id, target);
+            });
         }
 
         @Override
         @Transactional(rollbackFor = {Throwable.class})
-        public void updateTaskTargets(Map<Long, TaskTargetDTO> targets) {
-            if (targets == null || targets.isEmpty()) {
+        public void updateTaskTargets(List<TaskTargetRecord> records) {
+            if (CollectionUtils.isEmpty(records)) {
                 return;
             }
-            targets.forEach((id, target) ->
+            records.forEach(record ->
                 CTX.update(TASK_TEMPLATE_STEP_SCRIPT)
-                    .set(TASK_TEMPLATE_STEP_SCRIPT.DESTINATION_HOST_LIST, convertTargetToJson(target))
-                    .where(TASK_TEMPLATE_STEP_SCRIPT.ID.eq(ULong.valueOf(id)))
+                    .set(TASK_TEMPLATE_STEP_SCRIPT.DESTINATION_HOST_LIST, convertTargetToJson(record.getTarget()))
+                    .where(TASK_TEMPLATE_STEP_SCRIPT.ID.eq(ULong.valueOf(record.getId())))
                     .execute());
         }
     }
 
-    private class TaskTemplateStepFileTargetMigration implements TaskTargetMigration {
+    private class TaskTemplateStepFileTargetMigration extends AbstractTaskTargetMigration {
+
+        public TaskTemplateStepFileTargetMigration(boolean dryRun) {
+            super(dryRun);
+        }
+
         @Override
         public String getTableName() {
             return "task_template_step_file";
         }
 
         @Override
-        public Map<Long, TaskTargetDTO> listTaskTargets() {
+        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
             Result<?> result = CTX.select(
                 TASK_TEMPLATE_STEP_FILE.ID,
                 TASK_TEMPLATE_STEP_FILE.DESTINATION_HOST_LIST)
                 .from(TASK_TEMPLATE_STEP_FILE)
+                .where(TASK_TEMPLATE_STEP_FILE.ID.ge(ULong.valueOf(fromRecordId)))
+                .orderBy(TASK_TEMPLATE_STEP_FILE.ID.asc())
+                .limit(maxRecordSize)
                 .fetch();
-            Map<Long, TaskTargetDTO> targets = new HashMap<>();
-            if (result.size() > 0) {
-                result.forEach(record -> {
-                    long id = record.get(TASK_TEMPLATE_STEP_FILE.ID).longValue();
-                    String targetJsonStr = record.get(TASK_TEMPLATE_STEP_FILE.DESTINATION_HOST_LIST);
-                    if (StringUtils.isBlank(targetJsonStr)) {
-                        return;
-                    }
-                    TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
-                    if (isTargetMissingHostId(target)) {
-                        targets.put(id, target);
-                    }
-                });
-            }
-            return targets;
+            return result.map(record -> {
+                long id = record.get(TASK_TEMPLATE_STEP_FILE.ID).longValue();
+                String targetJsonStr = record.get(TASK_TEMPLATE_STEP_FILE.DESTINATION_HOST_LIST);
+                TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
+                return new TaskTargetRecord(id, target);
+            });
         }
 
         @Override
-        public void updateTaskTargets(Map<Long, TaskTargetDTO> targets) {
-            if (targets == null || targets.isEmpty()) {
+        public void updateTaskTargets(List<TaskTargetRecord> records) {
+            if (CollectionUtils.isEmpty(records)) {
                 return;
             }
-            targets.forEach((id, target) ->
+            records.forEach(record ->
                 CTX.update(TASK_TEMPLATE_STEP_FILE)
-                    .set(TASK_TEMPLATE_STEP_FILE.DESTINATION_HOST_LIST, convertTargetToJson(target))
-                    .where(TASK_TEMPLATE_STEP_FILE.ID.eq(ULong.valueOf(id)))
+                    .set(TASK_TEMPLATE_STEP_FILE.DESTINATION_HOST_LIST, convertTargetToJson(record.getTarget()))
+                    .where(TASK_TEMPLATE_STEP_FILE.ID.eq(ULong.valueOf(record.getId())))
                     .execute());
         }
     }
 
-    private class TaskTemplateStepFileListTargetMigration implements TaskTargetMigration {
+    private class TaskTemplateStepFileListTargetMigration extends AbstractTaskTargetMigration {
+
+        public TaskTemplateStepFileListTargetMigration(boolean dryRun) {
+            super(dryRun);
+        }
+
         @Override
         public String getTableName() {
             return "task_template_step_file_list";
         }
 
         @Override
-        public Map<Long, TaskTargetDTO> listTaskTargets() {
+        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
             Result<?> result = CTX.select(
                 TASK_TEMPLATE_STEP_FILE_LIST.ID,
                 TASK_TEMPLATE_STEP_FILE_LIST.HOST)
                 .from(TASK_TEMPLATE_STEP_FILE_LIST)
+                .where(TASK_TEMPLATE_STEP_FILE_LIST.ID.ge(ULong.valueOf(fromRecordId)))
+                .orderBy(TASK_TEMPLATE_STEP_FILE_LIST.ID.asc())
+                .limit(maxRecordSize)
                 .fetch();
-            Map<Long, TaskTargetDTO> targets = new HashMap<>();
-            if (result.size() > 0) {
-                result.forEach(record -> {
-                    long id = record.get(TASK_TEMPLATE_STEP_FILE_LIST.ID).longValue();
-                    String targetJsonStr = record.get(TASK_TEMPLATE_STEP_FILE_LIST.HOST);
-                    if (StringUtils.isBlank(targetJsonStr)) {
-                        return;
-                    }
-                    TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
-                    if (isTargetMissingHostId(target)) {
-                        targets.put(id, target);
-                    }
-                });
-            }
-            return targets;
+            return result.map(record -> {
+                long id = record.get(TASK_TEMPLATE_STEP_FILE_LIST.ID).longValue();
+                String targetJsonStr = record.get(TASK_TEMPLATE_STEP_FILE_LIST.HOST);
+                TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
+                return new TaskTargetRecord(id, target);
+            });
         }
 
         @Override
-        public void updateTaskTargets(Map<Long, TaskTargetDTO> targets) {
-            if (targets == null || targets.isEmpty()) {
+        public void updateTaskTargets(List<TaskTargetRecord> records) {
+            if (CollectionUtils.isEmpty(records)) {
                 return;
             }
-            targets.forEach((id, target) ->
+            records.forEach(record ->
                 CTX.update(TASK_TEMPLATE_STEP_FILE_LIST)
-                    .set(TASK_TEMPLATE_STEP_FILE_LIST.HOST, convertTargetToJson(target))
-                    .where(TASK_TEMPLATE_STEP_FILE_LIST.ID.eq(ULong.valueOf(id)))
+                    .set(TASK_TEMPLATE_STEP_FILE_LIST.HOST, convertTargetToJson(record.getTarget()))
+                    .where(TASK_TEMPLATE_STEP_FILE_LIST.ID.eq(ULong.valueOf(record.getId())))
                     .execute());
         }
     }
 
-    private class TaskTemplateVariableTargetMigration implements TaskTargetMigration {
+    private class TaskTemplateVariableTargetMigration extends AbstractTaskTargetMigration {
+
+        public TaskTemplateVariableTargetMigration(boolean dryRun) {
+            super(dryRun);
+        }
+
         @Override
         public String getTableName() {
             return "task_template_variable";
         }
 
         @Override
-        public Map<Long, TaskTargetDTO> listTaskTargets() {
+        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
             Result<?> result = CTX.select(
                 TASK_TEMPLATE_VARIABLE.ID,
                 TASK_TEMPLATE_VARIABLE.DEFAULT_VALUE)
                 .from(TASK_TEMPLATE_VARIABLE)
                 .where(TASK_TEMPLATE_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())))
+                .and(TASK_TEMPLATE_VARIABLE.ID.ge(ULong.valueOf(fromRecordId)))
+                .orderBy(TASK_TEMPLATE_VARIABLE.ID.asc())
+                .limit(maxRecordSize)
                 .fetch();
-            Map<Long, TaskTargetDTO> targets = new HashMap<>();
-            if (result.size() > 0) {
-                result.forEach(record -> {
-                    long id = record.get(TASK_TEMPLATE_VARIABLE.ID).longValue();
-                    String targetJsonStr = record.get(TASK_TEMPLATE_VARIABLE.DEFAULT_VALUE);
-                    if (StringUtils.isBlank(targetJsonStr)) {
-                        return;
-                    }
-                    TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
-                    if (isTargetMissingHostId(target)) {
-                        targets.put(id, target);
-                    }
-                });
-            }
-            return targets;
+            return result.map(record -> {
+                long id = record.get(TASK_TEMPLATE_VARIABLE.ID).longValue();
+                String targetJsonStr = record.get(TASK_TEMPLATE_VARIABLE.DEFAULT_VALUE);
+                TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
+                return new TaskTargetRecord(id, target);
+            });
         }
 
         @Override
-        public void updateTaskTargets(Map<Long, TaskTargetDTO> targets) {
-            if (targets == null || targets.isEmpty()) {
+        public void updateTaskTargets(List<TaskTargetRecord> records) {
+            if (CollectionUtils.isEmpty(records)) {
                 return;
             }
-            targets.forEach((id, target) ->
+            records.forEach(record ->
                 CTX.update(TASK_TEMPLATE_VARIABLE)
-                    .set(TASK_TEMPLATE_VARIABLE.DEFAULT_VALUE, convertTargetToJson(target))
-                    .where(TASK_TEMPLATE_VARIABLE.ID.eq(ULong.valueOf(id)))
+                    .set(TASK_TEMPLATE_VARIABLE.DEFAULT_VALUE, convertTargetToJson(record.getTarget()))
+                    .where(TASK_TEMPLATE_VARIABLE.ID.eq(ULong.valueOf(record.getId())))
                     .and(TASK_TEMPLATE_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())))
                     .execute());
         }
     }
 
 
-    private class TaskPlanStepScriptTargetMigration implements TaskTargetMigration {
+    private class TaskPlanStepScriptTargetMigration extends AbstractTaskTargetMigration {
+
+        public TaskPlanStepScriptTargetMigration(boolean dryRun) {
+            super(dryRun);
+        }
+
         @Override
         public String getTableName() {
             return "TaskPlanStepScript";
         }
 
         @Override
-        public Map<Long, TaskTargetDTO> listTaskTargets() {
+        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
             Result<?> result = CTX.select(
                 TASK_PLAN_STEP_SCRIPT.ID,
                 TASK_PLAN_STEP_SCRIPT.DESTINATION_HOST_LIST)
                 .from(TASK_PLAN_STEP_SCRIPT)
+                .where(TASK_PLAN_STEP_SCRIPT.ID.ge(ULong.valueOf(fromRecordId)))
+                .orderBy(TASK_PLAN_STEP_SCRIPT.ID.asc())
+                .limit(maxRecordSize)
                 .fetch();
-            Map<Long, TaskTargetDTO> targets = new HashMap<>();
-            if (result.size() > 0) {
-                result.forEach(record -> {
-                    long id = record.get(TASK_PLAN_STEP_SCRIPT.ID).longValue();
-                    String targetJsonStr = record.get(TASK_PLAN_STEP_SCRIPT.DESTINATION_HOST_LIST);
-                    if (StringUtils.isBlank(targetJsonStr)) {
-                        return;
-                    }
-                    TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
-                    if (isTargetMissingHostId(target)) {
-                        targets.put(id, target);
-                    }
-                });
-            }
-            return targets;
+            return result.map(record -> {
+                long id = record.get(TASK_PLAN_STEP_SCRIPT.ID).longValue();
+                String targetJsonStr = record.get(TASK_PLAN_STEP_SCRIPT.DESTINATION_HOST_LIST);
+                TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
+                return new TaskTargetRecord(id, target);
+            });
         }
 
         @Override
         @Transactional(rollbackFor = {Throwable.class})
-        public void updateTaskTargets(Map<Long, TaskTargetDTO> targets) {
-            if (targets == null || targets.isEmpty()) {
+        public void updateTaskTargets(List<TaskTargetRecord> records) {
+            if (CollectionUtils.isEmpty(records)) {
                 return;
             }
-            targets.forEach((id, target) ->
+            records.forEach(record ->
                 CTX.update(TASK_PLAN_STEP_SCRIPT)
-                    .set(TASK_PLAN_STEP_SCRIPT.DESTINATION_HOST_LIST, convertTargetToJson(target))
-                    .where(TASK_PLAN_STEP_SCRIPT.ID.eq(ULong.valueOf(id)))
+                    .set(TASK_PLAN_STEP_SCRIPT.DESTINATION_HOST_LIST, convertTargetToJson(record.getTarget()))
+                    .where(TASK_PLAN_STEP_SCRIPT.ID.eq(ULong.valueOf(record.getId())))
                     .execute());
         }
     }
 
-    private class TaskPlanStepFileTargetMigration implements TaskTargetMigration {
+    private class TaskPlanStepFileTargetMigration extends AbstractTaskTargetMigration {
+
+        public TaskPlanStepFileTargetMigration(boolean dryRun) {
+            super(dryRun);
+        }
+
         @Override
         public String getTableName() {
             return "task_plan_step_file";
         }
 
         @Override
-        public Map<Long, TaskTargetDTO> listTaskTargets() {
+        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
             Result<?> result = CTX.select(
                 TASK_PLAN_STEP_FILE.ID,
                 TASK_PLAN_STEP_FILE.DESTINATION_HOST_LIST)
                 .from(TASK_PLAN_STEP_FILE)
+                .where(TASK_PLAN_STEP_FILE.ID.ge(ULong.valueOf(fromRecordId)))
+                .orderBy(TASK_PLAN_STEP_FILE.ID.asc())
+                .limit(maxRecordSize)
                 .fetch();
-            Map<Long, TaskTargetDTO> targets = new HashMap<>();
-            if (result.size() > 0) {
-                result.forEach(record -> {
-                    long id = record.get(TASK_PLAN_STEP_FILE.ID).longValue();
-                    String targetJsonStr = record.get(TASK_PLAN_STEP_FILE.DESTINATION_HOST_LIST);
-                    if (StringUtils.isBlank(targetJsonStr)) {
-                        return;
-                    }
-                    TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
-                    if (isTargetMissingHostId(target)) {
-                        targets.put(id, target);
-                    }
-                });
-            }
-            return targets;
+            return result.map(record -> {
+                long id = record.get(TASK_PLAN_STEP_FILE.ID).longValue();
+                String targetJsonStr = record.get(TASK_PLAN_STEP_FILE.DESTINATION_HOST_LIST);
+                TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
+                return new TaskTargetRecord(id, target);
+            });
         }
 
         @Override
-        public void updateTaskTargets(Map<Long, TaskTargetDTO> targets) {
-            if (targets == null || targets.isEmpty()) {
+        public void updateTaskTargets(List<TaskTargetRecord> records) {
+            if (CollectionUtils.isEmpty(records)) {
                 return;
             }
-            targets.forEach((id, target) ->
+            records.forEach(record ->
                 CTX.update(TASK_PLAN_STEP_FILE)
-                    .set(TASK_PLAN_STEP_FILE.DESTINATION_HOST_LIST, convertTargetToJson(target))
-                    .where(TASK_PLAN_STEP_FILE.ID.eq(ULong.valueOf(id)))
+                    .set(TASK_PLAN_STEP_FILE.DESTINATION_HOST_LIST, convertTargetToJson(record.getTarget()))
+                    .where(TASK_PLAN_STEP_FILE.ID.eq(ULong.valueOf(record.getId())))
                     .execute());
         }
     }
 
-    private class TaskPlanStepFileListTargetMigration implements TaskTargetMigration {
+    private class TaskPlanStepFileListTargetMigration extends AbstractTaskTargetMigration {
+
+        public TaskPlanStepFileListTargetMigration(boolean dryRun) {
+            super(dryRun);
+        }
+
         @Override
         public String getTableName() {
             return "task_plan_step_file_list";
         }
 
         @Override
-        public Map<Long, TaskTargetDTO> listTaskTargets() {
+        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
             Result<?> result = CTX.select(
                 TASK_PLAN_STEP_FILE_LIST.ID,
                 TASK_PLAN_STEP_FILE_LIST.HOST)
                 .from(TASK_PLAN_STEP_FILE_LIST)
+                .where(TASK_PLAN_STEP_FILE_LIST.ID.ge(ULong.valueOf(fromRecordId)))
+                .orderBy(TASK_PLAN_STEP_FILE_LIST.ID.asc())
+                .limit(maxRecordSize)
                 .fetch();
-            Map<Long, TaskTargetDTO> targets = new HashMap<>();
-            if (result.size() > 0) {
-                result.forEach(record -> {
-                    long id = record.get(TASK_PLAN_STEP_FILE_LIST.ID).longValue();
-                    String targetJsonStr = record.get(TASK_PLAN_STEP_FILE_LIST.HOST);
-                    if (StringUtils.isBlank(targetJsonStr)) {
-                        return;
-                    }
-                    TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
-                    if (isTargetMissingHostId(target)) {
-                        targets.put(id, target);
-                    }
-                });
-            }
-            return targets;
+            return result.map(record -> {
+                long id = record.get(TASK_PLAN_STEP_FILE_LIST.ID).longValue();
+                String targetJsonStr = record.get(TASK_PLAN_STEP_FILE_LIST.HOST);
+                TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
+                return new TaskTargetRecord(id, target);
+            });
         }
 
         @Override
-        public void updateTaskTargets(Map<Long, TaskTargetDTO> targets) {
-            if (targets == null || targets.isEmpty()) {
+        public void updateTaskTargets(List<TaskTargetRecord> records) {
+            if (CollectionUtils.isEmpty(records)) {
                 return;
             }
-            targets.forEach((id, target) ->
+            records.forEach(record ->
                 CTX.update(TASK_PLAN_STEP_FILE_LIST)
-                    .set(TASK_PLAN_STEP_FILE_LIST.HOST, convertTargetToJson(target))
-                    .where(TASK_PLAN_STEP_FILE_LIST.ID.eq(ULong.valueOf(id)))
+                    .set(TASK_PLAN_STEP_FILE_LIST.HOST, convertTargetToJson(record.getTarget()))
+                    .where(TASK_PLAN_STEP_FILE_LIST.ID.eq(ULong.valueOf(record.getId())))
                     .execute());
         }
     }
 
-    private class TaskPlanVariableTargetMigration implements TaskTargetMigration {
+    private class TaskPlanVariableTargetMigration extends AbstractTaskTargetMigration {
+
+        public TaskPlanVariableTargetMigration(boolean dryRun) {
+            super(dryRun);
+        }
+
         @Override
         public String getTableName() {
             return "task_plan_variable";
         }
 
         @Override
-        public Map<Long, TaskTargetDTO> listTaskTargets() {
+        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
             Result<?> result = CTX.select(
                 TASK_PLAN_VARIABLE.ID,
                 TASK_PLAN_VARIABLE.DEFAULT_VALUE)
                 .from(TASK_PLAN_VARIABLE)
                 .where(TASK_PLAN_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())))
+                .and(TASK_PLAN_VARIABLE.ID.ge(ULong.valueOf(fromRecordId)))
+                .orderBy(TASK_PLAN_VARIABLE.ID.asc())
+                .limit(maxRecordSize)
                 .fetch();
-            Map<Long, TaskTargetDTO> targets = new HashMap<>();
-            if (result.size() > 0) {
-                result.forEach(record -> {
-                    long id = record.get(TASK_PLAN_VARIABLE.ID).longValue();
-                    String targetJsonStr = record.get(TASK_PLAN_VARIABLE.DEFAULT_VALUE);
-                    if (StringUtils.isBlank(targetJsonStr)) {
-                        return;
-                    }
-                    TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
-                    if (isTargetMissingHostId(target)) {
-                        targets.put(id, target);
-                    }
-                });
-            }
-            return targets;
+            return result.map(record -> {
+                long id = record.get(TASK_PLAN_VARIABLE.ID).longValue();
+                String targetJsonStr = record.get(TASK_PLAN_VARIABLE.DEFAULT_VALUE);
+                TaskTargetDTO target = JsonUtils.fromJson(targetJsonStr, TaskTargetDTO.class);
+                return new TaskTargetRecord(id, target);
+            });
         }
 
         @Override
-        public void updateTaskTargets(Map<Long, TaskTargetDTO> targets) {
-            if (targets == null || targets.isEmpty()) {
+        public void updateTaskTargets(List<TaskTargetRecord> records) {
+            if (CollectionUtils.isEmpty(records)) {
                 return;
             }
-            targets.forEach((id, target) ->
+            records.forEach(record ->
                 CTX.update(TASK_PLAN_VARIABLE)
-                    .set(TASK_PLAN_VARIABLE.DEFAULT_VALUE, convertTargetToJson(target))
-                    .where(TASK_PLAN_VARIABLE.ID.eq(ULong.valueOf(id)))
+                    .set(TASK_PLAN_VARIABLE.DEFAULT_VALUE, convertTargetToJson(record.getTarget()))
+                    .where(TASK_PLAN_VARIABLE.ID.eq(ULong.valueOf(record.getId())))
                     .and(TASK_PLAN_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())))
                     .execute());
         }
