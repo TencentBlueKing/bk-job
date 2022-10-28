@@ -69,7 +69,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class AddHostIdMigrationTask {
+public class AddHostIdForTemplateAndPlanMigrationTask {
     private final DSLContext CTX;
     private final HostService hostService;
 
@@ -98,8 +98,8 @@ public class AddHostIdMigrationTask {
     private final Map<String, Long> ipAndHostIdMapping = new HashMap<>();
 
     @Autowired
-    public AddHostIdMigrationTask(@Qualifier("job-manage-dsl-context") DSLContext ctx,
-                                  HostService hostService) {
+    public AddHostIdForTemplateAndPlanMigrationTask(@Qualifier("job-manage-dsl-context") DSLContext ctx,
+                                                    HostService hostService) {
         CTX = ctx;
         this.hostService = hostService;
     }
