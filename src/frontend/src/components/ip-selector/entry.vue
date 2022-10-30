@@ -50,6 +50,9 @@
             type: String,
             default: 'dialog', // 'dialog' | 'section'
         },
+        height: {
+            type: Number,
+        },
         showDialog: {
             type: Boolean,
             default: false,
@@ -121,14 +124,35 @@
         emits('close-dialog');
     };
 
-    provide('BKIPSELECTOR', {
-        originalValue: props.originalValue && formatInput(props.originalValue),
-        readonly: props.readonly,
-        mode: props.mode,
-        disableDialogSubmitMethod: props.disableDialogSubmitMethod,
-        disableHostMethod: props.disableHostMethod,
-        rootRef,
-    });
+    // provide('BKIPSELECTOR', {
+    //     originalValue: props.originalValue && formatInput(props.originalValue),
+    //     readonly: props.readonly,
+    //     mode: props.mode,
+    //     disableDialogSubmitMethod: props.disableDialogSubmitMethod,
+    //     disableHostMethod: props.disableHostMethod,
+    //     rootRef,
+    // });
+    provide('BKIPSELECTOR', new Proxy({}, {
+        get (target, propKey) {
+            const allowProps = [
+                'readonly',
+                'mode',
+                'height',
+                'disableDialogSubmitMethod',
+                'disableHostMethod',
+            ];
+            if (propKey === 'originalValue') {
+                return props.originalValue && formatInput(props.originalValue);
+            }
+            if (allowProps.includes(propKey)) {
+                return props[propKey];
+            }
+            if (propKey === 'rootRef') {
+                return rootRef;
+            }
+            return undefined;
+        },
+    }));
 
     onMounted(() => {
         setTimeout(() => {

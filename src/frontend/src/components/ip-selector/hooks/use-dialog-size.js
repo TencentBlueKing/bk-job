@@ -38,7 +38,7 @@ export default () => {
                 height,
             } = context.rootRef.value.getBoundingClientRect();
             size.width = width;
-            size.height = Math.max(height, 300);
+            size.height = context.height ? context.height : Math.max(height, 300);
         }
         size.contentHeight = size.height - headerHeight - footerHeight;
     };
