@@ -287,6 +287,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void saveTaskInstanceHosts(long taskInstanceId,
                                        List<StepInstanceDTO> stepInstanceList) {
         Set<HostDTO> stepHosts = extractHosts(stepInstanceList, null);
+        if (CollectionUtils.isEmpty(stepHosts)) {
+            return;
+        }
         taskInstanceService.saveTaskInstanceHosts(taskInstanceId, stepHosts);
     }
 
