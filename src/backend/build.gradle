@@ -69,7 +69,7 @@ ext {
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
     set("springBootVersion", "2.4.6")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
-    set('springCloudVersion', "2020.0.6")
+    set('springCloudVersion', "2020.0.3")
     set('springCloudOtelVersion', "1.0.0-M13")
     // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
     set('swaggerVersion', "2.9.2")
