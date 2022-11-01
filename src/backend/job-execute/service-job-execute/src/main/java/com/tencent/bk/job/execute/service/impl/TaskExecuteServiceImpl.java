@@ -1286,6 +1286,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void authExecuteJobPlan(String username, long appId, ServiceTaskPlanDTO plan,
                                     List<StepInstanceDTO> stepInstanceList,
                                     Map<Long, HostDTO> whiteHosts) throws PermissionDeniedException {
+        boolean needAuth = stepInstanceList.stream()
+            .anyMatch(stepInstance -> stepInstance.isScriptStep() || stepInstance.isFileStep());
+        if (!needAuth) {
+            return;
+        }
+
         boolean isDebugTask = plan.getDebugTask();
         ServersDTO authServers = new ServersDTO();
         Set<Long> accountIds = new HashSet<>();
