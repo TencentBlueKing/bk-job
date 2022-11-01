@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -33,6 +34,7 @@ import java.util.Map;
 @AutoConfigureBefore({org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration.class,
     AsyncLoadBalancerAutoConfiguration.class, BlockingLoadBalancerClientAutoConfiguration.class})
 @ConditionalOnClass(RestTemplate.class)
+@Slf4j
 public class JobLoadBalancerClientAutoConfiguration {
 
     @Bean
@@ -41,12 +43,13 @@ public class JobLoadBalancerClientAutoConfiguration {
     @Primary
     public LoadBalancerClient blockingLoadBalancerClient(LoadBalancerClientFactory loadBalancerClientFactory,
                                                          LoadBalancerProperties properties) {
-        return new Ipv6LoadBalancerClient(loadBalancerClientFactory, properties);
+        log.info("Init JobLoadBalancerClient.");
+        return new JobLoadBalancerClient(loadBalancerClientFactory, properties);
     }
 
-    private static class Ipv6LoadBalancerClient extends BlockingLoadBalancerClient {
-        public Ipv6LoadBalancerClient(LoadBalancerClientFactory loadBalancerClientFactory,
-                                      LoadBalancerProperties properties) {
+    private static class JobLoadBalancerClient extends BlockingLoadBalancerClient {
+        public JobLoadBalancerClient(LoadBalancerClientFactory loadBalancerClientFactory,
+                                     LoadBalancerProperties properties) {
             super(loadBalancerClientFactory, properties);
         }
 
