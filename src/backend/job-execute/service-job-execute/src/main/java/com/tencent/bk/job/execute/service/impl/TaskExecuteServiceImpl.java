@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ArrayUtil;
+import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -686,7 +687,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         if (CollectionUtils.isNotEmpty(queryHostsResult.getNotExistHosts())) {
             // 如果主机在cmdb不存在，直接报错
-            throwHostInvalidException(queryHostsResult.getNotExistHosts(), appId);
+            throwHostInvalidException(queryHostsResult.getNotExistHosts());
         }
 
         setAgentStatus(queryHostsResult.getValidHosts());
@@ -702,6 +703,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                        ServiceListAppHostResultDTO hosts) {
         // 检查步骤引用的主机不为空
         stepInstances.forEach(this::checkStepInstanceHostNonEmpty);
+
+        // 检查主机agentId;没有agentId的不允许执行
+        checkHostAgentId(ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
+
         CheckHostResult checkHostResult = new CheckHostResult();
         checkHostResult.setAppHosts(hosts.getValidHosts());
 
@@ -714,14 +719,24 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 List<HostDTO> invalidHosts = checkHostsNotAllowedInWhiteIpConfig(appId, stepInstances,
                     notInAppHosts);
                 if (!invalidHosts.isEmpty()) {
-                    log.warn("Contains invalid host, invalidHost: {}", JsonUtils.toJson(invalidHosts));
-                    throwHostInvalidException(notInAppHosts, appId);
+                    log.warn("Found hosts not in target app!");
+                    throwHostInvalidException(notInAppHosts);
                 }
                 checkHostResult.setWhiteHosts(
                     notInAppHosts.stream().collect(Collectors.toMap(HostDTO::getHostId, host -> host)));
             }
         }
         return checkHostResult;
+    }
+
+    private void checkHostAgentId(Collection<HostDTO> hosts) {
+        List<HostDTO> missingAgentIdHosts = hosts.stream()
+            .filter(host -> StringUtils.isEmpty(host.getFinalAgentId()))
+            .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(missingAgentIdHosts)) {
+            log.warn("Found hosts missing agentId!");
+            throwHostInvalidException(missingAgentIdHosts);
+        }
     }
 
     private void extractDynamicGroupsAndTopoNodes(StepInstanceDTO stepInstance,
@@ -1029,10 +1044,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return hostBindActionsMap;
     }
 
-    private void throwHostInvalidException(Collection<HostDTO> unavailableHosts, long appId) {
-        String hostListStr = StringUtils.join(unavailableHosts.stream()
+    private void throwHostInvalidException(Collection<HostDTO> invalidHosts) {
+        String hostListStr = StringUtils.join(invalidHosts.stream()
             .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
-        log.warn("The following hosts are invalid, appId:{}, ips={}", appId, hostListStr);
+        log.warn("The following hosts are invalid, hosts={}", hostListStr);
         throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{hostListStr});
     }
 

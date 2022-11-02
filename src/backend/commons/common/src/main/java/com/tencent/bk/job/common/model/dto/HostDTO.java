@@ -237,6 +237,7 @@ public class HostDTO implements Cloneable {
         if (StringUtils.isNotBlank(agentId)) {
             return agentId;
         } else {
+            // 兼容之前版本没有agentId的ipv4主机
             return toCloudIp();
         }
     }
