@@ -24,6 +24,7 @@
 */
 
 import Request from '@utils/request';
+
 import ModuleBase from './module-base';
 
 /* eslint-disable max-len */
@@ -58,8 +59,21 @@ class TaskExecute extends ModuleBase {
         const realParams = { ...params };
         delete realParams.stepInstanceId;
         delete realParams.retryCount;
+        delete realParams.hostId;
         delete realParams.ip;
         return Request.get(`${this.path}/step-execution-result/log-content/${stepInstanceId}/${retryCount}/${ip}`, {
+            params: realParams,
+        });
+    }
+
+    getLogByHostId (params) {
+        const { stepInstanceId, retryCount, hostId } = params;
+        const realParams = { ...params };
+        delete realParams.stepInstanceId;
+        delete realParams.retryCount;
+        delete realParams.hostId;
+        delete realParams.ip;
+        return Request.get(`${this.path}/step-execution-result/log-content/${stepInstanceId}/${retryCount}/host/${hostId}`, {
             params: realParams,
         });
     }
@@ -70,9 +84,24 @@ class TaskExecute extends ModuleBase {
         const { stepInstanceId, retryCount, ip } = params;
         delete realParams.stepInstanceId;
         delete realParams.retryCount;
+        delete realParams.hostId;
         delete realParams.ip;
 
         return Request.get(`${this.path}/step-execution-result/log-content/file/${stepInstanceId}/${retryCount}/${ip}`, {
+            params: realParams,
+        });
+    }
+
+    // 获取文件分发步骤IP的日志基本信息
+    getFileLogByHostId (params = {}) {
+        const realParams = { ...params };
+        const { stepInstanceId, retryCount, hostId } = params;
+        delete realParams.stepInstanceId;
+        delete realParams.retryCount;
+        delete realParams.hostId;
+        delete realParams.ip;
+
+        return Request.get(`${this.path}/step-execution-result/log-content/file/${stepInstanceId}/${retryCount}/host/${hostId}`, {
             params: realParams,
         });
     }

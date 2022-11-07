@@ -26,16 +26,21 @@
 -->
 
 <template>
-    <div class="exec-script-view" :class="{ loading: isLoading }" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="exec-script-view"
+        :class="{ loading: isLoading }">
         <detail-item :label="$t('template.脚本来源：')">
             {{ stepInfo.scriptSourceText }}
         </detail-item>
-        <detail-item v-if="isReferScript" :label="$t('template.脚本引用：')">
+        <detail-item
+            v-if="isReferScript"
+            :label="$t('template.脚本引用：')">
             <span>{{ scriptName }}</span>
             <Icon
+                v-bk-tooltips="$t('template.脚本详情')"
                 class="script-detail"
                 type="jump"
-                v-bk-tooltips="$t('template.脚本详情')"
                 @click="handleGoScriptDetail" />
             <div
                 v-if="stepInfo.isNeedUpdate || stepInfo.isDisabled"
@@ -47,57 +52,82 @@
                     @click="handleGoScriptVersion">
                     {{ $t('template.版本对比') }}
                 </bk-button>
-                <bk-button text @click="handleUpdateScript">
+                <bk-button
+                    text
+                    @click="handleUpdateScript">
                     {{ $t('template.去更新') }}
                 </bk-button>
             </div>
         </detail-item>
-        <detail-item :label="$t('template.脚本内容：')" layout="vertical">
+        <detail-item
+            :label="$t('template.脚本内容：')"
+            layout="vertical">
             <ace-editor
-                :value="stepInfo.content"
                 :lang="language"
                 :options="languageOption"
-                readonly />
+                readonly
+                :value="stepInfo.content" />
         </detail-item>
         <div>
             <detail-item :label="$t('template.脚本参数：')">
-                <jb-edit-textarea field="scriptParam" :value="stepInfo.scriptParam" readonly />
+                <jb-edit-textarea
+                    field="scriptParam"
+                    readonly
+                    :value="stepInfo.scriptParam" />
             </detail-item>
-            <detail-item :label="$t('template.超时时长：')">{{ stepInfo.timeout }}（s）</detail-item>
-            <detail-item :label="$t('template.错误处理：')">{{ stepInfo.ignoreErrorText }}</detail-item>
-            <detail-item :label="$t('template.执行账号：')">{{ executeAccountText }}</detail-item>
+            <detail-item :label="$t('template.超时时长：')">
+                {{ stepInfo.timeout }}（s）
+            </detail-item>
+            <detail-item :label="$t('template.错误处理：')">
+                {{ stepInfo.ignoreErrorText }}
+            </detail-item>
+            <detail-item :label="$t('template.执行账号：')">
+                {{ executeAccountText }}
+            </detail-item>
         </div>
-        <detail-item v-if="stepInfo.executeTarget.variable" :label="$t('template.执行目标：')">
+        <detail-item
+            v-if="stepInfo.executeTarget.variable"
+            :label="$t('template.执行目标：')">
             <render-global-variable
-                :type="$t('template.执行目标')"
+                :data="variable"
                 :name="stepInfo.executeTarget.variable"
-                :data="variable" />
+                :type="$t('template.执行目标')" />
         </detail-item>
-        <detail-item v-else :label="$t('template.执行目标：')" layout="vertical">
-            <server-panel
+        <detail-item
+            v-else
+            :label="$t('template.执行目标：')"
+            layout="vertical">
+            <!-- <server-panel
                 detail-fullscreen
-                :host-node-info="stepInfo.executeTarget.hostNodeInfo" />
+                :host-node-info="stepInfo.executeTarget.hostNodeInfo" /> -->
+            <ip-selector
+                readonly
+                show-view
+                :value="stepInfo.executeTarget.hostNodeInfo" />
         </detail-item>
         <slot />
     </div>
 </template>
 <script>
-    import ScriptService from '@service/script-manage';
     import AccountManageService from '@service/account-manage';
-    import AceEditor from '@components/ace-editor';
-    import ServerPanel from '@components/choose-ip/server-panel';
-    import DetailItem from '@components/detail-layout/item';
-    import JbEditTextarea from '@components/jb-edit/textarea';
-    import RenderGlobalVariable from './components/render-global-variable';
+    import ScriptService from '@service/script-manage';
+
     import {
         formatScriptTypeValue,
     } from '@utils/assist';
+
+    import AceEditor from '@components/ace-editor';
+    // import ServerPanel from '@components/choose-ip/server-panel';
+    import DetailItem from '@components/detail-layout/item';
+    import JbEditTextarea from '@components/jb-edit/textarea';
+
+    import RenderGlobalVariable from './components/render-global-variable';
 
     export default {
         name: '',
         components: {
             AceEditor,
-            ServerPanel,
+            // ServerPanel,
             DetailItem,
             JbEditTextarea,
             RenderGlobalVariable,

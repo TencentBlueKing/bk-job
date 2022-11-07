@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
@@ -49,12 +50,15 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -116,7 +120,7 @@ public class EsbGetStepInstanceStatusResourceImpl
         stepInst.setId(stepInstance.getId());
         stepInst.setEndTime(stepInstance.getEndTime());
         stepInst.setStartTime(stepInstance.getStartTime());
-        stepInst.setIpList(stepInstance.getIpList());
+        stepInst.setIpList(convertToIpListStr(stepInstance.getTargetServers().getIpList()));
         stepInst.setName(stepInstance.getName());
         stepInst.setOperator(stepInstance.getOperator());
         stepInst.setExecuteCount(stepInstance.getExecuteCount());
@@ -127,6 +131,11 @@ public class EsbGetStepInstanceStatusResourceImpl
         stepInst.setType(stepInstance.getExecuteType());
 
         return stepInst;
+    }
+
+    private String convertToIpListStr(Collection<HostDTO> ips) {
+        return StringUtils.join(ips.stream().map(ipDTO ->
+            ipDTO.getBkCloudId() + ":" + ipDTO.getIp()).collect(Collectors.toList()), ",");
     }
 
 
@@ -156,7 +165,7 @@ public class EsbGetStepInstanceStatusResourceImpl
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 List<EsbIpDTO> ips = new ArrayList<>();
                 for (AgentTaskDetailDTO agentTask : agentTasks) {
-                    ips.add(new EsbIpDTO(agentTask.getBkCloudId(), agentTask.getIp()));
+                    ips.add(new EsbIpDTO(agentTask.getHostId(), agentTask.getBkCloudId(), agentTask.getIp()));
                 }
                 standardStepAnalyseResult.put("ip_list", ips);
 

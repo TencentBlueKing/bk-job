@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import Model from '@model/model';
+
+import I18n from '@/i18n';
 
 const STATUS_INVALID = -1; // 未保存
 const STATUS_DRAFT = 0; // 未上线

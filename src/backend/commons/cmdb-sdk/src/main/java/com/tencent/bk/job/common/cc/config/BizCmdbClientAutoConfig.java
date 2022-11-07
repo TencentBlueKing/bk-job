@@ -25,9 +25,8 @@
 package com.tencent.bk.job.common.cc.config;
 
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.util.FlowController;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -78,40 +77,36 @@ public class BizCmdbClientAutoConfig {
 
     @Bean
     @Primary
-    public BizCmdbClient bizCmdbClient(EsbConfig esbConfig,
+    public BizCmdbClient bizCmdbClient(BkApiConfig bkApiConfig,
                                        CmdbConfig cmdbConfig,
                                        ThreadPoolExecutor cmdbThreadPoolExecutor,
                                        ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
-                                       @Autowired(required = false) QueryAgentStatusClient queryAgentStatusClient,
                                        MeterRegistry meterRegistry,
                                        @Autowired(required = false) FlowController flowController) {
         return new BizCmdbClient(
-            esbConfig,
+            bkApiConfig,
             cmdbConfig,
             EsbLang.EN,
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
-            queryAgentStatusClient,
             flowController,
             meterRegistry
         );
     }
 
     @Bean("cnBizCmdbClient")
-    public BizCmdbClient cnBizCmdbClient(EsbConfig esbConfig,
+    public BizCmdbClient cnBizCmdbClient(BkApiConfig bkApiConfig,
                                          CmdbConfig cmdbConfig,
                                          ThreadPoolExecutor cmdbThreadPoolExecutor,
                                          ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
-                                         @Autowired(required = false) QueryAgentStatusClient queryAgentStatusClient,
                                          MeterRegistry meterRegistry,
                                          @Autowired(required = false) FlowController flowController) {
         return new BizCmdbClient(
-            esbConfig,
+            bkApiConfig,
             cmdbConfig,
             EsbLang.CN,
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
-            queryAgentStatusClient,
             flowController,
             meterRegistry
         );

@@ -37,11 +37,11 @@ public class ServiceHostInfoDTO {
     @ApiModelProperty("服务器ID")
     private Long hostId;
 
-    @ApiModelProperty("主机IP")
+    @ApiModelProperty("主机IPv4")
     private String ip;
 
-    @ApiModelProperty("展示用的IP，主要针对多内网IP问题")
-    private String displayIp;
+    @ApiModelProperty("主机ipv6")
+    private String ipv6;
 
     @ApiModelProperty("云区域ID")
     private Long cloudAreaId;

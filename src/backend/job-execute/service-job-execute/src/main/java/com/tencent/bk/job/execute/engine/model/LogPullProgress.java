@@ -38,7 +38,7 @@ public class LogPullProgress {
     /**
      * 任务编号
      */
-    private int mid;
+    private int atomicTaskId;
     /**
      * 日志偏移 - 字节
      */

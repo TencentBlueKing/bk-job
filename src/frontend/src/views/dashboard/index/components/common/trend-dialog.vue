@@ -26,31 +26,35 @@
 -->
 
 <template>
-    <lower-component level="custom" :custom="value">
+    <lower-component
+        :custom="value"
+        level="custom">
         <jb-dialog
             v-bind="$attrs"
-            :value="value"
             class="data-trend-dialog"
-            :width="1000"
-            :show-footer="false"
             mask-close
+            :show-footer="false"
+            :value="value"
+            :width="1000"
             @input="handleInput">
             <div v-bkloading="{ isLoading }">
                 <div class="trend-daterang-picker">
                     <bk-date-picker
                         ref="datePicker"
-                        :placeholder="$t('dashboard.选择日期')"
-                        :shortcuts="shortcuts"
-                        :value="defaultDateRang"
-                        type="daterange"
-                        :shortcut-close="true"
-                        :use-shortcut-text="true"
                         :clearable="false"
                         :options="datePickerOptions"
+                        :placeholder="$t('dashboard.选择日期')"
                         placement="bottom-end"
+                        :shortcut-close="true"
+                        :shortcuts="shortcuts"
+                        type="daterange"
+                        :use-shortcut-text="true"
+                        :value="defaultDateRang"
                         @change="handleDateChange" />
                 </div>
-                <div ref="trend" style="width: 100%; height: 384px;" />
+                <div
+                    ref="trend"
+                    style="width: 100%; height: 384px;" />
             </div>
         </jb-dialog>
     </lower-component>
@@ -58,12 +62,15 @@
 <script>
     import echarts from 'lib/echarts.min.js';
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import StatisticsService from '@service/statistics';
+
     import {
         formatNumber,
         prettyDateFormat,
     } from '@utils/assist';
+
+    import I18n from '@/i18n';
 
     const styleMap = {
         up: {

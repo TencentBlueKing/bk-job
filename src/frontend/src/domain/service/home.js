@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import HomeSource from '../source/home';
 import TaskModel from '@model/task/task';
+
+import HomeSource from '../source/home';
 
 export default {
     fetchAnalysisGreeting () {

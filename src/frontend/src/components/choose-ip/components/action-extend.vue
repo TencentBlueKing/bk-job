@@ -26,17 +26,28 @@
 -->
 
 <template>
-    <div class="server-panel-action-extend" @click.stop="" @mouseleave="handleHide">
+    <div
+        class="server-panel-action-extend"
+        @click.stop=""
+        @mouseleave="handleHide">
         <Icon type="more" />
         <div
             ref="popoverContent"
             class="server-action-extend-content"
             @click="handleWraperClick"
-            @mouseover="handleShow"
-            @mouseleave="handleClose">
+            @mouseleave="handleClose"
+            @mouseover="handleShow">
             <template v-if="copyable">
-                <div class="action-item" @click="handleCopyAll">{{ $t('复制全部IP') }}</div>
-                <div class="action-item" @click="handleCopyFail">{{ $t('复制异常IP') }}</div>
+                <div
+                    class="action-item"
+                    @click="handleCopyAll">
+                    {{ $t('复制全部IP') }}
+                </div>
+                <div
+                    class="action-item"
+                    @click="handleCopyFail">
+                    {{ $t('复制异常IP') }}
+                </div>
             </template>
             <slot />
         </div>
@@ -46,6 +57,7 @@
     import {
         execCopy,
     } from '@utils/assist';
+
     import I18n from '@/i18n';
 
     const instanceMap = {};

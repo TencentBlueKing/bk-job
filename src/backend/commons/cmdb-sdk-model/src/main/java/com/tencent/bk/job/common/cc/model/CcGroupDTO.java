@@ -49,11 +49,18 @@ public class CcGroupDTO {
      */
     private String name;
 
+    /**
+     * 最后修改时间
+     */
+    @JsonProperty("last_time")
+    private String lastTime;
+
     public DynamicGroupInfoDTO toDynamicGroupInfo() {
         DynamicGroupInfoDTO dynamicGroupInfoDTO = new DynamicGroupInfoDTO();
         dynamicGroupInfoDTO.setId(this.getId());
         dynamicGroupInfoDTO.setBizId(this.getBizId());
         dynamicGroupInfoDTO.setName(this.getName());
+        dynamicGroupInfoDTO.setLastTime(this.getLastTime());
         return dynamicGroupInfoDTO;
     }
 }

@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import QueryGlobalSettingSource from '../source/query-global-setting';
 import AccountRuleModel from '@model/account-rule';
+
+import QueryGlobalSettingSource from '../source/query-global-setting';
 
 export default {
     fetchAllNameRule () {

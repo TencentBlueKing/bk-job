@@ -44,6 +44,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -161,7 +162,15 @@ public interface IBizCmdbClient {
      * @param cloudIps 云区域+IP列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByIps(List<String> cloudIps);
+    List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps);
+
+    /**
+     * 根据IPv6批量获取主机
+     *
+     * @param cloudIpv6s 云区域+IPv6列表
+     * @return 主机列表
+     */
+    List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s);
 
     /**
      * 根据IP批量获取主机
@@ -201,6 +210,16 @@ public interface IBizCmdbClient {
      * 获取CMDB业务角色列表
      */
     List<AppRoleDTO> listRoles();
+
+    /**
+     * 获取主机所属云厂商枚举值，key:id，value:名称
+     */
+    Map<String, String> getCloudVendorIdNameMap();
+
+    /**
+     * 获取主机类型枚举值，key:id，value:名称
+     */
+    Map<String, String> getOsTypeIdNameMap();
 
     /**
      * 批量获取topo节点层级

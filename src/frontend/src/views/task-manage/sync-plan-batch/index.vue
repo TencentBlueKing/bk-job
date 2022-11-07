@@ -30,9 +30,9 @@
         <list-action-layout>
             <template #right>
                 <bk-button
-                    theme="primary"
-                    :loading="isConfirmLoading || isCronJobLoading"
                     :disabled="planConfirmInfo.unconfirmed < 1 || isComfirmAllFinished"
+                    :loading="isConfirmLoading || isCronJobLoading"
+                    theme="primary"
                     @click="handleConfirmAll">
                     {{ $t('template.全部确认') }}
                 </bk-button>
@@ -45,7 +45,10 @@
             </div>
             <div class="item-status">
                 <template v-if="isCronJobLoading">
-                    <Icon type="sync-pending" svg class="plan-cron-job-loading" />
+                    <Icon
+                        class="plan-cron-job-loading"
+                        svg
+                        type="sync-pending" />
                 </template>
                 <template v-else>
                     <span class="confirmed">{{ planConfirmInfo.confirmed }}</span>{{ $t('template.个已就绪') }} ，
@@ -62,14 +65,14 @@
                 :row-class-name="calcRowClass"
                 selectable>
                 <bk-table-column
-                    :label="$t('template.执行方案.colHead')"
-                    prop="name"
                     key="name"
-                    align="left">
+                    align="left"
+                    :label="$t('template.执行方案.colHead')"
+                    prop="name">
                     <template slot-scope="{ row }">
                         <auth-router-link
-                            :permission="row.canView"
                             auth="job_plan/view"
+                            :permission="row.canView"
                             :resource-id="row.id"
                             target="_blank"
                             :to="{
@@ -82,15 +85,17 @@
                                 },
                             }">
                             {{ row.name }}
-                            <Icon type="edit" class="open-link-flag" />
+                            <Icon
+                                class="open-link-flag"
+                                type="edit" />
                         </auth-router-link>
                     </template>
                 </bk-table-column>
                 <bk-table-column
-                    :label="$t('template.所属作业模板')"
-                    prop="templateName"
                     key="templateName"
-                    align="left">
+                    align="left"
+                    :label="$t('template.所属作业模板')"
+                    prop="templateName">
                     <template slot-scope="{ row }">
                         <router-link
                             target="_blank"
@@ -101,24 +106,30 @@
                                 },
                             }">
                             {{ row.templateName }}
-                            <Icon type="edit" class="open-link-flag" />
+                            <Icon
+                                class="open-link-flag"
+                                type="edit" />
                         </router-link>
                     </template>
                 </bk-table-column>
                 <bk-table-column
-                    :label="$t('template.状态')"
-                    prop="statusText"
                     key="statusText2"
+                    align="left"
                     class-name="status-column"
-                    align="left">
+                    :label="$t('template.状态')"
+                    prop="statusText">
                     <template slot-scope="{ row }">
                         <div class="confirm-status-box">
-                            <Icon :type="row.statusIcon" svg class="status-flag" :class="row.statusIcon" />
+                            <Icon
+                                class="status-flag"
+                                :class="row.statusIcon"
+                                svg
+                                :type="row.statusIcon" />
                             <span v-html="row.statusHtml" />
                             <bk-button
                                 v-if="row.isRetryEnable"
-                                text
                                 class="ml10"
+                                text
                                 @click="handleSyncRetry(row)">
                                 {{ $t('template.重试') }}
                             </bk-button>
@@ -126,13 +137,15 @@
                     </template>
                 </bk-table-column>
                 <bk-table-column
-                    :resizable="false"
-                    :label="$t('template.操作')"
-                    width="280"
                     key="action"
-                    align="left">
+                    align="left"
+                    :label="$t('template.操作')"
+                    :resizable="false"
+                    width="280">
                     <template slot-scope="{ row }">
-                        <span :tippy-tips="row.disableDiffTips" class="mr10">
+                        <span
+                            class="mr10"
+                            :tippy-tips="row.disableDiffTips">
                             <bk-button
                                 :disabled="!!row.disableDiffTips"
                                 text
@@ -142,14 +155,19 @@
                         </span>
                         <!-- 定时任务加载中 -->
                         <template v-if="row.isCronJobLoading">
-                            <Icon type="sync-pending" svg class="plan-cron-job-loading" />
+                            <Icon
+                                class="plan-cron-job-loading"
+                                svg
+                                type="sync-pending" />
                         </template>
                         <template v-else>
-                            <span :tippy-tips="row.disableConfirmTips" class="mr10">
+                            <span
+                                class="mr10"
+                                :tippy-tips="row.disableConfirmTips">
                                 <bk-button
-                                    text
-                                    :loading="row.isCronJobLoading"
                                     :disabled="!!row.disableConfirmTips"
+                                    :loading="row.isCronJobLoading"
+                                    text
                                     @click="handleConfirmCron(row)">
                                     {{ $t('template.确认定时任务') }}
                                 </bk-button>
@@ -165,19 +183,25 @@
             </bk-table>
         </div>
         <div class="sync-plan-action">
-            <bk-button v-if="isFinished" class="w120" theme="primary" @click="handleFinish">
+            <bk-button
+                v-if="isFinished"
+                class="w120"
+                theme="primary"
+                @click="handleFinish">
                 {{ $t('template.完成') }}
             </bk-button>
             <template v-else>
-                <bk-button class="mr10" @click="handleCancle">
+                <bk-button
+                    class="mr10"
+                    @click="handleCancle">
                     {{ $t('template.取消') }}
                 </bk-button>
                 <span :tippy-tips="syncSubmitInvalid ? $t('template.所有方案均已同步至最新版') : ''">
                     <bk-button
                         class="w120"
-                        theme="primary"
-                        :loading="isSyncLoading || isCronJobLoading"
                         :disabled="syncSubmitInvalid || planConfirmInfo.unconfirmed > 0"
+                        :loading="isSyncLoading || isCronJobLoading"
+                        theme="primary"
                         @click="handleSubmitSync">
                         {{ $t('template.立即同步') }}
                     </bk-button>
@@ -193,17 +217,23 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskManageService from '@service/task-manage';
     import TaskPlanService from '@service/task-plan';
     import TimeTaskService from '@service/time-task';
-    import SyncPlanVO from '@domain/variable-object/sync-plan';
-    import ListActionLayout from '@components/list-action-layout';
+
     import {
         getOffset,
         leaveConfirm,
     } from '@utils/assist';
+
+    import ListActionLayout from '@components/list-action-layout';
+
+    import SyncPlanVO from '@domain/variable-object/sync-plan';
+
     import ConfirmCron from './components/confirm-cron';
+
+    import I18n from '@/i18n';
 
     const runStepByStep = (data, callback, finishCallback = () => {}) => {
         let startIndex = 0;

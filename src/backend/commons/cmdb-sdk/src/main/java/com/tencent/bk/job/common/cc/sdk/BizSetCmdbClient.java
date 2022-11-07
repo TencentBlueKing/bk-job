@@ -41,7 +41,7 @@ import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
@@ -71,9 +71,9 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_in_business_set/";
     private static final String RESOURCE_WATCH = "/api/c/compapi/v2/cc/resource_watch/";
 
-    public BizSetCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig) {
-        super(esbConfig.getEsbUrl(), esbConfig.getAppCode(),
-            esbConfig.getAppSecret(), null, esbConfig.isUseEsbTestEnv());
+    public BizSetCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig) {
+        super(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(),
+            bkApiConfig.getAppSecret(), null, bkApiConfig.isUseEsbTestEnv());
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
     }
 

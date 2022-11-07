@@ -27,9 +27,9 @@
 
 <template>
     <card-layout
+        v-bkloading="{ isLoading, opacity: 0.8 }"
         class="tag-dashboard"
-        :title="$t('dashboard.标签')"
-        v-bkloading="{ isLoading, opacity: 0.8 }">
+        :title="$t('dashboard.标签')">
         <div
             ref="box"
             class="tag-box"
@@ -38,7 +38,9 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import StatisticsService from '@service/statistics';
+
     import CardLayout from '../card-layout';
 
     export default {

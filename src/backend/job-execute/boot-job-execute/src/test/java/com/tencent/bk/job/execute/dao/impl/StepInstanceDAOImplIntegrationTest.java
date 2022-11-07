@@ -78,7 +78,6 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(stepInstance.getStepOrder()).isEqualTo(1);
         assertThat(stepInstance.getName()).isEqualTo("task1-step1");
         assertThat(stepInstance.getExecuteType()).isEqualTo(1);
-        assertThat(stepInstance.getIpList()).isEqualTo("0:127.0.0.1");
         assertThat(stepInstance.getOperator()).isEqualTo("admin");
         assertThat(stepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS);
         assertThat(stepInstance.getExecuteCount()).isEqualTo(0);
@@ -126,7 +125,6 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getStepId()).isEqualTo(1L);
         assertThat(returnStepInstance.getName()).isEqualTo("task1-step1");
         assertThat(returnStepInstance.getExecuteType()).isEqualTo(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
-        assertThat(returnStepInstance.getIpList()).isEqualTo("0:127.0.0.1");
         assertThat(returnStepInstance.getTargetServers().getIpList()).hasSize(1);
         List<HostDTO> expectedServer = new ArrayList<>();
         expectedServer.add(new HostDTO(0L, "127.0.0.1"));
@@ -381,8 +379,6 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getFileSourceList()).isNotEmpty();
         assertThat(returnStepInstance.getFileSourceList().get(0).getFiles().get(0).getFilePath()).isEqualTo("/$" +
             "{log_dir}/1.log");
-        assertThat(returnStepInstance.getResolvedFileSourceList().get(0).getFiles().get(0).getResolvedFilePath())
-            .isEqualTo("/tmp/1.log");
         assertThat(returnStepInstance.getFileTargetPath()).isEqualTo("/${log_dir}/");
         assertThat(returnStepInstance.getFileTargetName()).isEqualTo("2.log");
         assertThat(returnStepInstance.getResolvedFileTargetPath()).isEqualTo("/tmp/");

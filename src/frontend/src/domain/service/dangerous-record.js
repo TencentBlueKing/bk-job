@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import dangerousRecord from '../source/dangerous-record';
 import DangerousRecordModel from '@model/dangerous-record';
+
+import dangerousRecord from '../source/dangerous-record';
 
 export default {
     recordList (params, payload) {

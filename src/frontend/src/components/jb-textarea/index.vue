@@ -32,18 +32,25 @@
             fouced: isFocused,
         }"
         :style="boxStyles">
-        <div ref="wraper" class="job-textarea-wraper" :style="wraperStyles">
-            <div style="min-height: 30px; word-break: break-all; white-space: pre-wrap; visibility: hidden;">{{ localValue }}</div>
+        <div
+            ref="wraper"
+            class="job-textarea-wraper"
+            :style="wraperStyles">
+            <div style="min-height: 30px; word-break: break-all; white-space: pre-wrap; visibility: hidden;">
+                {{ localValue }}
+            </div>
             <textarea
                 ref="textarea"
                 class="job-textarea-edit"
-                spellcheck="false"
                 resize="none"
+                spellcheck="false"
                 :value="localValue"
-                @input="handleInputChange"
+                @blur="handleBlur"
                 @focus="handleInputGetFocus"
-                @blur="handleBlur" />
-            <div v-if="maxlength > 0 && isFocused" class="value-length">
+                @input="handleInputChange" />
+            <div
+                v-if="maxlength > 0 && isFocused"
+                class="value-length">
                 <span style="color: #63656e;">{{ localValue.length }}</span>
                 <span>/</span>
                 <span>{{ maxlength }}</span>

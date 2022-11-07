@@ -28,31 +28,49 @@
 <template>
     <div class="sync-plan-script-content">
         <span class="sript-content-text">{{ $t('template.查看脚本') }}</span>
-        <Icon class="script-content-detail" type="audit" @click="handleView" />
-        <div v-if="isShowContent" ref="dialog" class="script-diff-dialog" :style="dialogStyles">
-            
+        <Icon
+            class="script-content-detail"
+            type="audit"
+            @click="handleView" />
+        <div
+            v-if="isShowContent"
+            ref="dialog"
+            class="script-diff-dialog"
+            :style="dialogStyles">
             <div class="content-title">
-                <div class="content-old">{{ $t('template.同步前') }}</div>
-                <div class="content-new">{{ $t('template.同步后') }}</div>
+                <div class="content-old">
+                    {{ $t('template.同步前') }}
+                </div>
+                <div class="content-new">
+                    {{ $t('template.同步后') }}
+                </div>
             </div>
-            <div class="content-wraper" v-bkloading="{ isLoading }">
+            <div
+                v-bkloading="{ isLoading }"
+                class="content-wraper">
                 <scroll-faker>
                     <jb-diff
-                        :old-content="oldCode"
-                        :new-content="newCode"
-                        :format="'side-by-side'"
                         :context="Infinity"
+                        :format="'side-by-side'"
+                        :new-content="newCode"
+                        :old-content="oldCode"
                         theme="dark" />
                 </scroll-faker>
             </div>
-            <Icon type="close" class="content-close" @click="handleClose" />
+            <Icon
+                class="content-close"
+                type="close"
+                @click="handleClose" />
         </div>
     </div>
 </template>
 <script>
     import { Base64 } from 'js-base64';
+
     import ScriptService from '@service/script-manage';
+
     import { findParent } from '@utils/vdom';
+
     import { findStep } from '../../common/utils';
 
     export default {

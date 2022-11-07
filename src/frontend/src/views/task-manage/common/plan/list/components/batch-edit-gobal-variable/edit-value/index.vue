@@ -38,9 +38,13 @@
                 <span>{{ $t('template.个作业模板') }}</span>
             </span>
         </div>
-        <div class="action-target-info" style="margin-top: 10px;">
+        <div
+            class="action-target-info"
+            style="margin-top: 10px;">
             <span class="label">{{ $t('template.选择变量') }}</span>
-            <span class="content-split" style="color: #ea3636;">*</span>
+            <span
+                class="content-split"
+                style="color: #ea3636;">*</span>
             <bk-button
                 v-if="isHasSelectedAll"
                 text
@@ -68,8 +72,8 @@
             <render-global-variable
                 v-for="(variableData, key) in globalVariableMap"
                 :key="key"
-                :data="variableData"
                 :active="!!selectVariableMap[key]"
+                :data="variableData"
                 @select="handleVariableSelect(key)" />
         </div>
         <div
@@ -79,8 +83,8 @@
                 <edit-global-variable
                     v-if="selectVariableMap[key]"
                     :key="key"
-                    :value="selectVariableValueMap[key]"
                     :data="variableData"
+                    :value="selectVariableValueMap[key]"
                     @on-change="value => handleValueChange(key, value)"
                     @on-remove="handleRemoveSelect(key)" />
             </template>
@@ -89,11 +93,13 @@
 </template>
 <script>
     import TaskHostNodeModel from '@model/task-host-node';
-    import RenderGlobalVariable from './components/render-global-variable';
-    import EditGlobalVariable from './components/edit-global-variable';
+
     import {
         genGlobalVariableKey,
     } from '../utils';
+
+    import EditGlobalVariable from './components/edit-global-variable';
+    import RenderGlobalVariable from './components/render-global-variable';
 
     export default {
         name: '',

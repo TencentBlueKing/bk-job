@@ -29,89 +29,97 @@
     <div class="step-distro-file">
         <jb-form
             ref="form"
-            :model="formData"
             fixed
-            :label-width="formMarginLeftWidth">
-            <card-layout :title="$t('template.基本信息')" class="block">
+            :label-width="formMarginLeftWidth"
+            :model="formData">
+            <card-layout
+                class="block"
+                :title="$t('template.基本信息')">
                 <item-factory
-                    name="stepName"
                     field="name"
-                    :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
                     :form-data="formData"
+                    name="stepName"
+                    :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
                     @on-change="handleChange" />
                 <item-factory
-                    name="timeout"
                     field="timeout"
                     :form-data="formData"
+                    name="timeout"
                     @on-change="handleChange" />
                 <item-factory
-                    name="errorHandle"
                     field="ignoreError"
                     :form-data="formData"
+                    name="errorHandle"
                     @on-change="handleChange" />
                 <item-factory
-                    name="speedLimit"
                     field="uploadSpeedLimit"
+                    :form-data="formData"
                     :label="$t('template.上传限速')"
-                    :form-data="formData"
-                    @on-change="handleChange" />
-                <item-factory
                     name="speedLimit"
-                    field="downloadSpeedLimit"
-                    :label="$t('template.下载限速')"
-                    :form-data="formData"
                     @on-change="handleChange" />
-            </card-layout>
-            <card-layout :title="$t('template.文件来源')" class="block">
                 <item-factory
-                    name="sourceFileOfTemplate"
-                    field="fileSourceList"
-                    :variable="variable"
+                    field="downloadSpeedLimit"
                     :form-data="formData"
+                    :label="$t('template.下载限速')"
+                    name="speedLimit"
                     @on-change="handleChange" />
             </card-layout>
             <card-layout
-                :title="$t('template.传输目标')"
                 class="block"
-                style="margin-bottom: 20px;">
+                :title="$t('template.文件来源')">
+                <item-factory
+                    field="fileSourceList"
+                    :form-data="formData"
+                    name="sourceFileOfTemplate"
+                    :variable="variable"
+                    @on-change="handleChange" />
+            </card-layout>
+            <card-layout
+                class="block"
+                style="margin-bottom: 20px;"
+                :title="$t('template.传输目标')">
                 <item-factory
                     ref="targetPath"
-                    name="targetPath"
                     field="path"
-                    tips-placement="top"
                     :form-data="formData"
+                    name="targetPath"
+                    tips-placement="top"
                     @on-change="handleChange" />
                 <item-factory
-                    name="transferMode"
                     field="transferMode"
                     :form-data="formData"
+                    name="transferMode"
                     @on-change="handleChange" />
                 <item-factory
-                    name="executeAccount"
                     field="account"
                     :form-data="formData"
+                    name="executeAccount"
                     @on-change="handleChange" />
                 <item-factory
-                    name="targetServerOfTemplate"
                     field="server"
-                    :variable="variable"
                     :form-data="formData"
+                    name="targetServerOfTemplate"
+                    :variable="variable"
                     @on-change="handleChange" />
             </card-layout>
         </jb-form>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import { mapState } from 'vuex';
+
     import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
-    import CardLayout from '@components/task-step/file/card-layout';
-    import ItemFactory from '@components/task-step/file/item-factory';
+
     import {
         compareHost,
         detectionSourceFileDupLocation,
     } from '@utils/assist';
+
+    import CardLayout from '@components/task-step/file/card-layout';
+    import ItemFactory from '@components/task-step/file/item-factory';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         id: -1,
@@ -156,7 +164,7 @@
             },
             data: {
                 type: Object,
-                default: () => [],
+                default: () => ({}),
             },
         },
         data () {

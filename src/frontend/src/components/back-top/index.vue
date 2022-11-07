@@ -38,6 +38,7 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import {
         scrollTopSmooth,
     } from '@utils/assist';

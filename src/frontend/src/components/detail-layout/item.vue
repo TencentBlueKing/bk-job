@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div class="detail-item" :class="`design-layout-${layout}`">
+    <div
+        class="detail-item"
+        :class="`design-layout-${layout}`">
         <div class="detail-label">
             <span>{{ label }}</span>
         </div>

@@ -27,49 +27,68 @@
 
 <template>
     <div class="script-source-of-execution">
-        <jb-form-item class="script-source-item" :label="$t('脚本来源')" required>
-            <bk-radio-group @change="handleScriptSourceChange" :value="scriptSource">
-                <bk-radio-button value="local">{{ $t('手工录入') }}</bk-radio-button>
-                <bk-radio-button value="refer">{{ $t('脚本引用') }}</bk-radio-button>
+        <jb-form-item
+            class="script-source-item"
+            :label="$t('脚本来源')"
+            required>
+            <bk-radio-group
+                :value="scriptSource"
+                @change="handleScriptSourceChange">
+                <bk-radio-button value="local">
+                    {{ $t('手工录入') }}
+                </bk-radio-button>
+                <bk-radio-button value="refer">
+                    {{ $t('脚本引用') }}
+                </bk-radio-button>
             </bk-radio-group>
         </jb-form-item>
         <jb-form-item
-            ref="scriptId"
             v-if="isScriptRefer"
+            ref="scriptId"
             :label="$t('脚本引用')"
-            required
             property="scriptId"
+            required
             :rules="rules">
             <div class="form-item-content refer-script-box">
                 <compose-form-item>
                     <bk-select
+                        :clearable="false"
                         style="width: 120px;"
-                        @change="handleReferScriptTypeChange"
                         :value="referType"
-                        :clearable="false">
-                        <bk-option :id="2" :name="$t('业务脚本')">{{ $t('业务脚本') }}</bk-option>
-                        <bk-option :id="3" :name="$t('公共脚本')">{{ $t('公共脚本') }}</bk-option>
+                        @change="handleReferScriptTypeChange">
+                        <bk-option
+                            :id="2"
+                            :name="$t('业务脚本')">
+                            {{ $t('业务脚本') }}
+                        </bk-option>
+                        <bk-option
+                            :id="3"
+                            :name="$t('公共脚本')">
+                            {{ $t('公共脚本') }}
+                        </bk-option>
                     </bk-select>
                     <bk-select
                         :key="referType"
-                        :placeholder="$t('选择引用脚本')"
                         class="refer-script-list"
+                        :clearable="false"
+                        :placeholder="$t('选择引用脚本')"
+                        searchable
                         :value="formData[scriptVersionIdField]"
                         @change="handleScriptVersionIdChange"
-                        @toggle="handleClick"
-                        :clearable="false"
-                        searchable>
+                        @toggle="handleClick">
                         <auth-option
                             v-for="option in scripListDisplay"
-                            :key="option.scriptVersionId"
                             :id="option.scriptVersionId"
-                            :permission="option.canView"
-                            :resource-id="option.id"
+                            :key="option.scriptVersionId"
+                            :auth="authView"
                             :name="option.name"
-                            :auth="authView" />
+                            :permission="option.canView"
+                            :resource-id="option.id" />
                         <template slot="extension">
                             <auth-component :auth="authCreate">
-                                <div @click="handleGoCreate" style="cursor: pointer;">
+                                <div
+                                    style="cursor: pointer;"
+                                    @click="handleGoCreate">
                                     <i class="bk-icon icon-plus-circle mr10" />{{ newBtnText }}
                                 </div>
                                 <div slot="forbid">
@@ -91,11 +110,14 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
+    import ScriptService from '@service/script-manage';
+
     import TaskStepModel from '@model/task/task-step';
+
     import ComposeFormItem from '@components/compose-form-item';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

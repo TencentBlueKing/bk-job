@@ -29,10 +29,11 @@
     <jb-router-view :key="$router.path" />
 </template>
 <script>
+    import Local from '@views/task-manage/local';
+
     import {
         loadLanguage,
     } from '@/i18n';
-    import Local from '@views/task-manage/local';
 
     loadLanguage(Local);
 

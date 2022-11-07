@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 @Data
 @PersistenceObject
@@ -62,40 +62,13 @@ public class ServersDTO implements Cloneable {
      */
     private List<HostDTO> ipList;
 
-    /**
-     * 非法服务器
-     */
-    private List<HostDTO> invalidIpList;
-
-    /**
-     * 非法动态分组
-     */
-    private List<DynamicServerGroupDTO> invalidDynamicServerGroups;
-
-    /**
-     * 非法topo节点
-     */
-    private List<DynamicServerTopoNodeDTO> invalidTopoNodes;
-
     public static ServersDTO emptyInstance() {
         ServersDTO serversDTO = new ServersDTO();
         serversDTO.setIpList(Collections.emptyList());
         serversDTO.setDynamicServerGroups(Collections.emptyList());
-        serversDTO.setInvalidDynamicServerGroups(Collections.emptyList());
-        serversDTO.setInvalidIpList(Collections.emptyList());
-        serversDTO.setInvalidTopoNodes(Collections.emptyList());
         serversDTO.setStaticIpList(Collections.emptyList());
         serversDTO.setTopoNodes(Collections.emptyList());
         return serversDTO;
-    }
-
-    public String buildIpListStr() {
-        if (ipList == null || ipList.isEmpty()) {
-            return null;
-        }
-        StringJoiner sj = new StringJoiner(",");
-        ipList.forEach(ipDTO -> sj.add(ipDTO.getBkCloudId() + ":" + ipDTO.getIp()));
-        return sj.toString();
     }
 
     public ServersDTO clone() {
@@ -118,22 +91,6 @@ public class ServersDTO implements Cloneable {
             List<HostDTO> cloneIpList = new ArrayList<>(ipList.size());
             ipList.forEach(ip -> cloneIpList.add(ip.clone()));
             cloneServersDTO.setIpList(cloneIpList);
-        }
-        if (invalidIpList != null) {
-            List<HostDTO> cloneIpList = new ArrayList<>(invalidIpList.size());
-            invalidIpList.forEach(ip -> cloneIpList.add(ip.clone()));
-            cloneServersDTO.setInvalidIpList(cloneIpList);
-        }
-        if (invalidDynamicServerGroups != null) {
-            List<DynamicServerGroupDTO> cloneInvalidDynamicServerGroups =
-                new ArrayList<>(invalidDynamicServerGroups.size());
-            invalidDynamicServerGroups.forEach(group -> cloneInvalidDynamicServerGroups.add(group.clone()));
-            cloneServersDTO.setInvalidDynamicServerGroups(cloneInvalidDynamicServerGroups);
-        }
-        if (invalidTopoNodes != null) {
-            List<DynamicServerTopoNodeDTO> cloneInvalidDynamicServerGroups = new ArrayList<>(invalidTopoNodes.size());
-            invalidTopoNodes.forEach(topo -> cloneInvalidDynamicServerGroups.add(topo.clone()));
-            cloneServersDTO.setInvalidTopoNodes(cloneInvalidDynamicServerGroups);
         }
         return cloneServersDTO;
     }
@@ -194,17 +151,26 @@ public class ServersDTO implements Cloneable {
             && CollectionUtils.isEmpty(this.dynamicServerGroups);
     }
 
-    public void addInvalidDynamicServerGroup(DynamicServerGroupDTO serverGroup) {
-        if (this.invalidDynamicServerGroups == null) {
-            this.invalidDynamicServerGroups = new ArrayList<>();
+    /**
+     * 提取所有包含的主机
+     *
+     * @return 主机列表
+     */
+    public List<HostDTO> extractHosts() {
+        List<HostDTO> hosts = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(staticIpList)) {
+            hosts.addAll(staticIpList);
         }
-        this.invalidDynamicServerGroups.add(serverGroup);
-    }
-
-    public void addInvalidTopoNodeDTO(DynamicServerTopoNodeDTO topoNode) {
-        if (this.invalidTopoNodes == null) {
-            this.invalidTopoNodes = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dynamicServerGroups)) {
+            dynamicServerGroups.stream()
+                .filter(group -> CollectionUtils.isNotEmpty(group.getIpList()))
+                .forEach(group -> hosts.addAll(group.getIpList()));
         }
-        this.invalidTopoNodes.add(topoNode);
+        if (CollectionUtils.isNotEmpty(topoNodes)) {
+            topoNodes.stream()
+                .filter(topoNode -> CollectionUtils.isNotEmpty(topoNode.getIpList()))
+                .forEach(topoNode -> hosts.addAll(topoNode.getIpList()));
+        }
+        return hosts.stream().distinct().collect(Collectors.toList());
     }
 }

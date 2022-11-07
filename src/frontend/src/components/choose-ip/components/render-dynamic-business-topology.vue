@@ -27,10 +27,10 @@
 
 <template>
     <div
-        class="choose-ip-dinamic-business-topology"
         v-bkloading="{
             isLoading: topologyLoading,
-        }">
+        }"
+        class="choose-ip-dinamic-business-topology">
         <div class="node-search">
             <bk-input
                 :placeholder="$t('搜索拓扑节点')"
@@ -39,17 +39,23 @@
         </div>
         <empty v-if="emptyTopologyOfAllBusiness" />
         <template v-else>
-            <empty v-show="isSearchEmpty" class="topology-empty" />
+            <empty
+                v-show="isSearchEmpty"
+                class="topology-empty" />
             <div class="topology-node-tree">
                 <scroll-faker>
                     <bk-big-tree
                         ref="tree"
-                        show-link-line
-                        show-checkbox
                         :expand-on-click="false"
+                        show-checkbox
+                        show-link-line
                         @check-change="handleCheckChange">
-                        <div class="node-box" slot-scope="{ node: nodeItem, data }">
-                            <div class="node-name">{{ data.name }}</div>
+                        <div
+                            slot-scope="{ node: nodeItem, data }"
+                            class="node-box">
+                            <div class="node-name">
+                                {{ data.name }}
+                            </div>
                             <div
                                 v-if="nodeItem.level === 0"
                                 class="node-filter"
@@ -63,25 +69,30 @@
                                     <span>{{ $t('恢复完整拓扑') }}</span>
                                 </template>
                             </div>
-                            <div class="node-count">{{ data.payload.count }}</div>
+                            <div class="node-count">
+                                {{ data.payload.count }}
+                            </div>
                         </div>
                     </bk-big-tree>
                 </scroll-faker>
             </div>
-            
         </template>
     </div>
 </template>
 <script>
     import _ from 'lodash';
+
     import UserService from '@service/user';
+
     import { topoNodeCache } from '@utils/cache-helper';
+
     import Empty from '@components/empty';
+
     import {
-        findAllChildNodeId,
-        resetTree,
-        parseIdInfo,
         filterTopology,
+        findAllChildNodeId,
+        parseIdInfo,
+        resetTree,
     } from './utils';
 
     export default {

@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -47,6 +48,22 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class StringUtil {
+
+    /**
+     * 使用常见的多个字符[;,；，\n\s|\u00A0]+分割字符串
+     *
+     * @param str 目标字符串
+     * @return 分割后的字符串列表
+     */
+    public static List<String> splitByNormalSeparator(String str) {
+        if (str == null) {
+            return Collections.emptyList();
+        }
+        if (StringUtils.isBlank(str)) {
+            return Collections.singletonList(str);
+        }
+        return Arrays.asList(str.split("[;,；，\\n\\s|\\u00A0]+"));
+    }
 
     /**
      * 使用对象中的字段值替换路径中的占位符
@@ -152,8 +169,9 @@ public class StringUtil {
      * @param <T>       目标类型
      * @return list
      */
+    @SuppressWarnings("all")
     public static <T> List<T> strToList(String str, Class<T> clazz, String separator) {
-        if (str == null || str.isEmpty() || StringUtils.isBlank(str)) {
+        if (StringUtils.isBlank(str)) {
             return Collections.emptyList();
         }
         return Arrays.stream(str.trim().split(separator)).filter(StringUtils::isNotBlank)
@@ -266,4 +284,27 @@ public class StringUtil {
         return true;
     }
 
+    /**
+     * 判断目标字符串是否与任意一个搜索内容匹配
+     *
+     * @param targetStr      目标字符串
+     * @param searchContents 搜索内容集合
+     * @return 是否匹配
+     */
+    public static boolean matchAnySearchContent(String targetStr,
+                                                Collection<String> searchContents) {
+        if (CollectionUtils.isEmpty(searchContents)) {
+            return true;
+        }
+        if (targetStr == null) {
+            return false;
+        }
+        for (String content : searchContents) {
+            if (StringUtils.isNotBlank(content)
+                && targetStr.toLowerCase().contains(content.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

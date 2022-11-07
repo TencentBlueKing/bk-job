@@ -24,6 +24,7 @@
 
 dependencies {
     api project(':commons:common')
+    api project(':commons:esb-sdk')
     api files('libs/ee-gse-task-3.1.jar')
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -34,6 +35,11 @@ dependencies {
     implementation 'org.apache.commons:commons-collections4'
     implementation 'org.apache.httpcomponents:httpclient'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    // https://mvnrepository.com/artifact/org.apache.curator/curator-framework
+    implementation(group: 'org.apache.curator', name: 'curator-framework', version: '5.1.0')
+    // https://mvnrepository.com/artifact/org.apache.curator/curator-recipes
+    implementation(group: 'org.apache.curator', name: 'curator-recipes', version: '5.1.0')
+    implementation("org.springframework.boot:spring-boot-autoconfigure")
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.junit.jupiter:junit-jupiter'

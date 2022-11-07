@@ -26,116 +26,126 @@
 -->
 
 <template>
-    <div class="push-file-page" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="push-file-page">
         <resize-layout
             class="push-file-content"
-            :right-width="366"
-            :right-fixed="true">
+            :right-fixed="true"
+            :right-width="366">
             <smart-action offset-target="bk-form-content">
                 <jb-form
-                    class="push-file-form"
                     ref="pushFileForm"
                     v-test="{ type: 'form', value: 'pushFile' }"
+                    class="push-file-form"
                     :model="formData">
                     <card-layout :title="$t('execution.基本信息')">
                         <item-factory
-                            name="stepName"
                             field="name"
-                            :label="$t('execution.任务名称')"
-                            :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位...')"
                             :form-data="formData"
+                            :label="$t('execution.任务名称')"
+                            name="stepName"
+                            :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位...')"
                             @on-change="handleChange" />
                         <item-factory
-                            name="timeout"
                             field="timeout"
                             :form-data="formData"
+                            name="timeout"
                             @on-change="handleChange" />
                         <item-factory
-                            name="speedLimit"
                             field="uploadSpeedLimit"
-                            :label="$t('execution.上传限速')"
                             :form-data="formData"
+                            :label="$t('execution.上传限速')"
+                            name="speedLimit"
                             @on-change="handleChange" />
                         <item-factory
-                            name="speedLimit"
                             field="downloadSpeedLimit"
-                            :label="$t('execution.下载限速')"
                             :form-data="formData"
+                            :label="$t('execution.下载限速')"
+                            name="speedLimit"
                             @on-change="handleChange" />
                     </card-layout>
                     <card-layout :title="$t('execution.文件来源')">
                         <item-factory
-                            name="sourceFileOfExecution"
                             field="fileSourceList"
                             :form-data="formData"
+                            name="sourceFileOfExecution"
                             @on-change="handleChange" />
                     </card-layout>
                     <card-layout
-                        :title="$t('execution.传输目标')"
-                        style="margin-bottom: 20px;">
+                        style="margin-bottom: 20px;"
+                        :title="$t('execution.传输目标')">
                         <item-factory
                             ref="targetPath"
-                            name="targetPath"
                             field="path"
-                            :tips-placement="targetPathTipsPlacement"
                             :form-data="formData"
+                            name="targetPath"
+                            :tips-placement="targetPathTipsPlacement"
                             @on-change="handleChange" />
                         <item-factory
-                            name="transferMode"
                             field="transferMode"
                             :form-data="formData"
+                            name="transferMode"
                             @on-change="handleChange" />
                         <item-factory
-                            name="executeAccount"
                             field="account"
                             :form-data="formData"
+                            name="executeAccount"
                             @on-change="handleChange" />
                         <item-factory
-                            name="targetServerOfExecution"
                             field="server"
                             :form-data="formData"
+                            name="targetServerOfExecution"
                             @on-change="handleChange" />
                         <item-factory
-                            name="rolling"
                             enabled-field="rollingEnabled"
                             expr-field="rollingExpr"
-                            mode-field="rollingMode"
                             :form-data="formData"
-                            @on-reset="handleReset"
-                            @on-change="handleChange" />
+                            mode-field="rollingMode"
+                            name="rolling"
+                            @on-change="handleChange"
+                            @on-reset="handleReset" />
                     </card-layout>
                 </jb-form>
                 <template #action>
                     <bk-button
+                        v-test="{ type: 'button', value: 'fastPushFileSubmit' }"
                         class="w120 mr10"
-                        theme="primary"
                         :loading="isSubmiting"
-                        @click="handleSubmit"
-                        v-test="{ type: 'button', value: 'fastPushFileSubmit' }">
+                        theme="primary"
+                        @click="handleSubmit">
                         {{ $t('execution.执行') }}
                     </bk-button>
                     <bk-button
-                        @click="handleCancel"
-                        v-test="{ type: 'button', value: 'fastPushFileReset' }">
+                        v-test="{ type: 'button', value: 'fastPushFileReset' }"
+                        @click="handleCancel">
                         {{ $t('execution.重置') }}
                     </bk-button>
                 </template>
             </smart-action>
-            <div slot="right" id="rollingExprGuide" />
+            <div
+                id="rollingExprGuide"
+                slot="right" />
         </resize-layout>
         <div
             v-if="historyList.length > 0"
             class="execution-history"
             :class="{ active: isShowHistory }">
-            <div class="toggle-btn" @click="handleShowHistory">
-                <Icon class="toggle-flag" type="angle-double-left" />
-                <div class="recent-result">{{ $t('execution.最近结果') }}</div>
+            <div
+                class="toggle-btn"
+                @click="handleShowHistory">
+                <Icon
+                    class="toggle-flag"
+                    type="angle-double-left" />
+                <div class="recent-result">
+                    {{ $t('execution.最近结果') }}
+                </div>
             </div>
             <div class="history-content">
                 <div
                     v-for="item in historyList"
-                    class="item"
                     :key="item.id"
+                    class="item"
                     @click="handleGoHistoryDetail(item)">
                     {{ item.name }}
                 </div>
@@ -148,22 +158,27 @@
     import {
         mapState,
     } from 'vuex';
-    import I18n from '@/i18n';
+
     import TaskExecuteService from '@service/task-execute';
+
     import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
-    import JbForm from '@components/jb-form';
-    import CardLayout from '@components/task-step/file/card-layout';
-    import ItemFactory from '@components/task-step/file/item-factory';
-    import ResizeLayout from '@components/resize-layout';
+
     import {
-        genDefaultName,
         compareHost,
         detectionSourceFileDupLocation,
+        genDefaultName,
     } from '@utils/assist';
     import {
         pushFileHistory,
     } from '@utils/cache-helper';
+
+    import JbForm from '@components/jb-form';
+    import ResizeLayout from '@components/resize-layout';
+    import CardLayout from '@components/task-step/file/card-layout';
+    import ItemFactory from '@components/task-step/file/item-factory';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         // 快速执行name
@@ -220,16 +235,14 @@
             }),
         },
         created () {
-            window.IPInputScope = 'FILE_DISTRIBUTION';
             this.init();
             this.calcTargetPathTipsPlacement();
         },
         mounted () {
+            window.IPInputScope = 'FILE_DISTRIBUTION';
             window.addEventListener('resize', this.calcTargetPathTipsPlacement);
             this.$once('hook:beforeDestroy', () => {
                 window.removeEventListener('resize', this.calcTargetPathTipsPlacement);
-            });
-            this.$once('hook:beforeDestroy', () => {
                 window.IPInputScope = '';
             });
         },

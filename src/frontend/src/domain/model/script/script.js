@@ -23,10 +23,12 @@
  * IN THE SOFTWARE.
 */
 
+import TagModel from '@model/tag';
+
 import {
     formatScriptTypeValue,
 } from '@utils/assist';
-import TagModel from '@model/tag';
+
 import BaseModel from './base';
 
 export default class Script extends BaseModel {
@@ -120,7 +122,7 @@ export default class Script extends BaseModel {
      */
     get isVersionEnableRemove () {
         return ![
-            Script.STATUS_ONLINE, Script.STATUS_OFFLINE,
+            Script.STATUS_ONLINE,
         ].includes(this.status);
     }
 

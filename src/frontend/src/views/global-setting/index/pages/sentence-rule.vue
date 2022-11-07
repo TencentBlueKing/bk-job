@@ -26,13 +26,19 @@
 -->
 
 <template>
-    <div class="page-sentence-rule" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="page-sentence-rule">
         <table class="rule-table">
             <thead>
                 <tr>
-                    <th style="width: 20%;">{{ $t('setting.语法检测表达式') }}</th>
+                    <th style="width: 20%;">
+                        {{ $t('setting.语法检测表达式') }}
+                    </th>
                     <th>{{ $t('setting.规则说明') }}</th>
-                    <th style="width: 300px;">{{ $t('setting.脚本类型') }}</th>
+                    <th style="width: 300px;">
+                        {{ $t('setting.脚本类型') }}
+                    </th>
                     <th style="width: 240px;">
                         {{ $t('setting.操作') }}
                         <Icon
@@ -46,55 +52,59 @@
                 </tr>
             </thead>
             <table-action-row @on-change="handleAdd" />
-            <tbody v-for="(rule, index) in list" :key="rule.id">
+            <tbody
+                v-for="(rule, index) in list"
+                :key="rule.id">
                 <tr>
                     <td>
                         <jb-edit-input
                             field="expression"
-                            :value="rule.expression"
-                            :remote-hander="val => handleUpdate(rule, val)" />
+                            :remote-hander="val => handleUpdate(rule, val)"
+                            :value="rule.expression" />
                     </td>
                     <td>
                         <jb-edit-input
                             field="description"
-                            :value="rule.description"
-                            :remote-hander="val => handleUpdate(rule, val)" />
+                            :remote-hander="val => handleUpdate(rule, val)"
+                            :value="rule.description" />
                     </td>
                     <td>
                         <bk-select
                             class="script-type-edit"
-                            :value="rule.scriptTypeList"
+                            :clearable="false"
                             multiple
                             show-select-all
-                            @toggle="handleSubmitType"
+                            :value="rule.scriptTypeList"
                             @change="val => handleScriptTypeUpdate(rule, val)"
-                            :clearable="false">
+                            @toggle="handleSubmitType">
                             <bk-option
                                 v-for="item in scriptTypeList"
+                                :id="item.id"
                                 :key="item.id"
-                                :name="item.name"
-                                :id="item.id" />
+                                :name="item.name" />
                         </bk-select>
                     </td>
                     <td>
                         <div class="action-box">
                             <bk-button
-                                text
                                 :disabled="index === 0"
+                                text
                                 @click="handleMove(index, -1)">
                                 {{ $t('setting.上移') }}
                             </bk-button>
                             <bk-button
-                                text
                                 :disabled="index + 1 === list.length"
+                                text
                                 @click="handleMove(index, 1)">
                                 {{ $t('setting.下移') }}
                             </bk-button>
                             <jb-popover-confirm
-                                :title="$t('setting.确定删除该规则？')"
+                                :confirm-handler="() => handleDelete(rule.id)"
                                 :content="$t('setting.脚本编辑器中匹配该规则将不会再收到提醒')"
-                                :confirm-handler="() => handleDelete(rule.id)">
-                                <bk-button text>{{ $t('setting.删除') }}</bk-button>
+                                :title="$t('setting.确定删除该规则？')">
+                                <bk-button text>
+                                    {{ $t('setting.删除') }}
+                                </bk-button>
                             </jb-popover-confirm>
                         </div>
                     </td>
@@ -104,12 +114,15 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import GlobalSettingService from '@service/global-setting';
     import PublicScriptManageService from '@service/public-script-manage';
+
     import JbEditInput from '@components/jb-edit/input';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
+
     import TableActionRow from '../components/table-action-row';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

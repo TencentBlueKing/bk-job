@@ -26,17 +26,22 @@
 -->
 
 <template>
-    <bk-option v-bind="$attrs" v-on="$listeners" :name="name">
+    <bk-option
+        v-bind="$attrs"
+        :name="name"
+        v-on="$listeners">
         <auth-component
+            :auth="auth"
             :permission="permission"
             :resource-id="resourceId"
-            :auth="auth"
-            :scope-type="scopeType"
-            :scope-id="scopeId">
+            :scope-id="scopeId"
+            :scope-type="scopeType">
             <slot>
                 {{ name }}
             </slot>
-            <div slot="forbid" class="jb-select-option-permission">
+            <div
+                slot="forbid"
+                class="jb-select-option-permission">
                 <slot>
                     {{ name }}
                 </slot>

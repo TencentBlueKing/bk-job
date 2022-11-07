@@ -24,29 +24,30 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import com.tencent.bk.gse.taskapi.api_agent;
-import com.tencent.bk.gse.taskapi.api_copy_fileinfoV2;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
+import com.tencent.bk.job.common.gse.util.FilePathUtils;
+import com.tencent.bk.job.common.gse.v2.model.Agent;
+import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
+import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
+import com.tencent.bk.job.common.gse.v2.model.SourceFile;
+import com.tencent.bk.job.common.gse.v2.model.TargetFile;
+import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileDest;
-import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.engine.util.FilePathUtils;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
-import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
@@ -69,6 +70,7 @@ import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.sleuth.Tracer;
@@ -83,6 +85,8 @@ import java.util.Set;
 @Slf4j
 public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
+    private final FileAgentTaskService fileAgentTaskService;
+
     /**
      * 本地文件服务器 Agent
      */
@@ -90,30 +94,19 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     /**
      * 待分发文件，文件传输的源文件
      */
-    private Set<JobFile> sendFiles;
+    private Set<JobFile> srcFiles;
     /**
      * 本地文件的存储根目录
      */
     private final String fileStorageRootPath;
     /**
-     * 源文件路径与目标路径映射关系
-     * 格式： Map<源IP:源文件路径，目标路径>
-     */
-    private final Map<String, String> sourceDestPathMap = new HashMap<>();
-    /**
-     * 源文件原始文件路径与展示文件路径的映射
-     */
-    private Map<String, String> sourceFileDisplayMap = new HashMap<>();
-    /**
-     * 本地文件存储目录
-     */
-    private final String localUploadDir;
-    /**
      * GSE 源 Agent 任务, Map<AgentId,AgentTask>
      */
     protected Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
-
-    private final FileAgentTaskService fileAgentTaskService;
+    /**
+     * 源文件与目标文件路径映射关系
+     */
+    private Map<JobFile, FileDest> srcDestFileMap;
 
 
     public FileGseTaskStartCommand(ResultHandleManager resultHandleManager,
@@ -133,6 +126,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    GseTasksExceptionCounter gseTasksExceptionCounter,
                                    StepInstanceService stepInstanceService,
                                    Tracer tracer,
+                                   GseClient gseClient,
                                    String requestId,
                                    TaskInstanceDTO taskInstance,
                                    StepInstanceDTO stepInstance,
@@ -154,37 +148,57 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             taskEvictPolicyExecutor,
             gseTasksExceptionCounter,
             tracer,
+            gseClient,
             requestId,
             taskInstance,
             stepInstance,
             gseTask,
             stepInstanceService);
-
         this.fileAgentTaskService = fileAgentTaskService;
         this.fileStorageRootPath = fileStorageRootPath;
-        this.localUploadDir = NFSUtils.getFileDir(fileStorageRootPath, FileDirTypeConf.UPLOAD_FILE_DIR);
     }
 
     @Override
     protected void preExecute() {
         // 设置本地文件服务器的Agent Ip
         this.localAgentHost = agentService.getLocalAgentHost();
+        // 解析文件源
+        resolveFileSource();
         // 解析文件传输的源文件, 得到List<JobFile>
-        parseSendFileList();
+        parseSrcFiles();
+        // 解析目标路径中的变量
         resolvedTargetPathWithVariable();
+        // 初始化agent任务
         initFileSourceGseAgentTasks();
+    }
+
+    /**
+     * 解析文件源
+     */
+    private void resolveFileSource() {
+        List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+        if (CollectionUtils.isNotEmpty(fileSourceList)) {
+            for (FileSourceDTO fileSource : fileSourceList) {
+                if (fileSource.getFileType() == TaskFileTypeEnum.LOCAL.getType()
+                    && fileSource.getServers() == null) {
+                    fileSource.setServers(agentService.getLocalServersDTO());
+                }
+            }
+            // 解析源文件路径中的全局变量
+            resolveVariableForSourceFilePath(fileSourceList, buildStringGlobalVarKV(stepInputVariables));
+
+            taskInstanceService.updateResolvedSourceFile(stepInstance.getId(),
+                stepInstance.getFileSourceList());
+        }
     }
 
     /**
      * 解析源文件
      */
-    private void parseSendFileList() {
-        resolveVariableForSourceFilePath(stepInstance.getFileSourceList(),
-            buildStringGlobalVarKV(stepInputVariables));
-        sendFiles = JobSrcFileUtils.parseSendFileList(stepInstance, localAgentHost, fileStorageRootPath);
-        setAccountInfoForSourceFiles(sendFiles);
-        // 初始化显示名称映射Map
-        sourceFileDisplayMap = JobSrcFileUtils.buildSourceFileDisplayMapping(sendFiles, localUploadDir);
+    private void parseSrcFiles() {
+        srcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, localAgentHost, fileStorageRootPath);
+        // 设置源文件所在主机账号信息
+        setAccountInfoForSourceFiles(srcFiles);
     }
 
     private void setAccountInfoForSourceFiles(Set<JobFile> sendFiles) {
@@ -209,7 +223,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         if (stepInputGlobalVariableValueMap == null || stepInputGlobalVariableValueMap.isEmpty()) {
             return;
         }
-        boolean isContainsVar = false;
         for (FileSourceDTO fileSource : fileSources) {
             if (CollectionUtils.isNotEmpty(fileSource.getFiles())) {
                 for (FileDetailDTO file : fileSource.getFiles()) {
@@ -217,13 +230,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                         stepInputGlobalVariableValueMap);
                     if (!resolvedFilePath.equals(file.getFilePath())) {
                         file.setResolvedFilePath(resolvedFilePath);
-                        isContainsVar = true;
                     }
                 }
             }
-        }
-        if (isContainsVar) {
-            taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), stepInstance.getFileSourceList());
         }
     }
 
@@ -245,8 +254,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
      */
     private void initFileSourceGseAgentTasks() {
         Set<HostDTO> sourceHosts = new HashSet<>();
-        if (sendFiles != null) {
-            for (JobFile sendFile : sendFiles) {
+        if (srcFiles != null) {
+            for (JobFile sendFile : srcFiles) {
                 if (sendFile.getHost() != null) {
                     sourceHosts.add(sendFile.getHost());
                 }
@@ -257,8 +266,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch, sourceHost.getHostId(),
                 sourceHost.getAgentId());
             agentTask.setActualExecuteCount(executeCount);
-            agentTask.setCloudIp(sourceHost.toCloudIp());
-            agentTask.setDisplayIp(sourceHost.getDisplayIp());
             agentTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
             agentTask.setStatus(AgentTaskStatusEnum.WAITING);
             agentTask.setGseTaskId(gseTask.getId());
@@ -270,6 +277,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     @Override
     protected GseTaskResponse startGseTask() {
+        TransferFileRequest request = new TransferFileRequest();
+
         // 账号信息查询与填充
         AccountDTO accountInfo = accountService.getAccount(stepInstance.getAccountId(), AccountCategoryEnum.SYSTEM,
             stepInstance.getAccountAlias(), stepInstance.getAppId());
@@ -277,57 +286,53 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             log.error("Start gse task fail, account is null!");
             return GseTaskResponse.fail(GseTaskResponse.ERROR_CODE_FAIL, "account is empty");
         }
-        List<api_agent> dst = GseRequestUtils.buildAgentList(targetAgentTaskMap.keySet(), accountInfo.getAccount(),
-            accountInfo.getPassword());
 
-        List<api_copy_fileinfoV2> copyFileInfoList = new ArrayList<>();
         // 路径中变量解析与路径标准化预处理
         String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
-        // 构造源路径与目标路径映射Map<String,FileDest>
-        Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(sendFiles, targetDir,
+        // 构造源路径与目标路径映射
+        srcDestFileMap = JobSrcFileUtils.buildSourceDestPathMapping(srcFiles, targetDir,
             stepInstance.getFileTargetName());
-        // 构造源路径与目标路径映射Map<String,String>供后续状态判定使用
-        initSourceDestPathMap(srcAndDestMap);
 
+
+        List<Agent> targetAgents = gseClient.buildAgents(targetAgentTaskMap.keySet(), accountInfo.getAccount(),
+            accountInfo.getPassword());
         // 构造GSE文件分发请求
-        for (JobFile file : sendFiles) {
-            FileDest fileDest = srcAndDestMap.get(file.getUniqueKey());
-            api_agent src = GseRequestUtils.buildAgent(file.getHost().toCloudIp(), file.getAccount(),
-                file.getPassword());
-            api_copy_fileinfoV2 copyFileInfo = GseRequestUtils.buildCopyFileInfo(src, file.getDir(), file.getFileName(),
-                dst, fileDest.getDestDirPath(), fileDest.getDestName(),
-                stepInstance.getFileDownloadSpeedLimit(), stepInstance.getFileUploadSpeedLimit(),
-                stepInstance.getTimeout());
+        for (JobFile file : srcFiles) {
+            Agent srcAgent = gseClient.buildAgent(file.getHost().getAgentId(), file.getAccount(), file.getPassword());
+            SourceFile sourceFile = new SourceFile(file.getFileName(), file.getDir(), srcAgent);
 
-            // 设置文件路径不存在的处理方式
-            if (stepInstance.getNotExistPathHandler() == NotExistPathHandlerEnum.CREATE_DIR.getValue()) {
-                // 直接创建
-                copyFileInfo.setMkdirflag(1);
-            } else if (stepInstance.getNotExistPathHandler() == NotExistPathHandlerEnum.STEP_FAIL.getValue()) {
-                // 直接失败
-                copyFileInfo.setMkdirflag(0);
-            } else {
-                log.warn("NotExistPathHandler not supported：{}, supported handlers are:{}",
-                    stepInstance.getNotExistPathHandler(), NotExistPathHandlerEnum.getDescStr());
-            }
-            copyFileInfoList.add(copyFileInfo);
+            FileDest fileDest = srcDestFileMap.get(file);
+            TargetFile targetFile = new TargetFile(fileDest.getDestName(), fileDest.getDestDirPath(), targetAgents);
+
+            FileTransferTask fileTask = new FileTransferTask(sourceFile, targetFile);
+            request.addFileTask(fileTask);
         }
-        if (CollectionUtils.isNotEmpty(copyFileInfoList)) {
-            copyFileInfoList.get(0).setM_caller(buildGSETraceInfo());
+
+        // 设置文件路径不存在的处理方式
+        if (stepInstance.getNotExistPathHandler() == NotExistPathHandlerEnum.CREATE_DIR.getValue()) {
+            // 直接创建
+            request.setAutoMkdir(true);
+        } else if (stepInstance.getNotExistPathHandler() == NotExistPathHandlerEnum.STEP_FAIL.getValue()) {
+            // 直接失败
+            request.setAutoMkdir(false);
         }
-        saveInitialFileTaskLogs(sourceDestPathMap);
-        return GseRequestUtils.sendCopyFileTaskRequest(stepInstanceId, copyFileInfoList);
+
+        request.setDownloadSpeed(stepInstance.getFileDownloadSpeedLimit());
+        request.setUploadSpeed(stepInstance.getFileUploadSpeedLimit());
+        request.setTimeout(stepInstance.getTimeout());
+
+        saveInitialFileTaskLogs();
+        return gseClient.asyncTransferFile(request);
     }
 
     /**
      * 保存文件执行日志初始状态
      */
-    private void saveInitialFileTaskLogs(Map<String, String> sourceDestPathMap) {
+    private void saveInitialFileTaskLogs() {
         try {
-            log.debug("[{}] SourceDestPathMap: {}", stepInstanceId, sourceDestPathMap);
             Map<Long, ServiceHostLogDTO> logs = new HashMap<>();
             // 每个要分发的源文件一条上传日志
-            for (JobFile file : sendFiles) {
+            for (JobFile file : srcFiles) {
                 Long sourceHostId = file.getHost().getHostId();
                 ServiceHostLogDTO hostTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                     sourceHostId, file.getHost().toCloudIp());
@@ -337,9 +342,11 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                         null,
                         null,
                         null,
+                        null,
                         sourceHostId,
                         file.getHost().toCloudIp(),
-                        file.getHost().toCloudIp(),
+                        file.getHost().toCloudIpv6(),
+                        file.getFileType().getType(),
                         file.getStandardFilePath(),
                         file.getDisplayFilePath(),
                         "--",
@@ -355,17 +362,19 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 HostDTO targetHost = agentIdHostMap.get(targetAgentTask.getAgentId());
                 ServiceHostLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                     targetHost.getHostId(), targetHost.toCloudIp());
-                for (JobFile file : sendFiles) {
+                for (JobFile file : srcFiles) {
                     Long sourceHostId = file.getHost().getHostId();
                     ipTaskLog.addFileTaskLog(
                         new ServiceFileTaskLogDTO(
                             FileDistModeEnum.DOWNLOAD.getValue(),
                             targetAgentTask.getHostId(),
                             targetHost.toCloudIp(),
+                            targetHost.toCloudIpv6(),
                             getDestPath(file),
                             sourceHostId,
                             file.getHost().toCloudIp(),
-                            file.getHost().toCloudIp(),
+                            file.getHost().toCloudIpv6(),
+                            file.getFileType().getType(),
                             file.getStandardFilePath(),
                             file.getDisplayFilePath(),
                             "--",
@@ -403,12 +412,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
     }
 
-    private void initSourceDestPathMap(Map<String, FileDest> srcAndDestMap) {
-        srcAndDestMap.forEach((fileKey, dest) -> this.sourceDestPathMap.put(fileKey, dest.getDestPath()));
-    }
 
     private String getDestPath(JobFile sourceFile) {
-        return sourceDestPathMap.get(sourceFile.getUniqueKey());
+        return srcDestFileMap.get(sourceFile).getDestPath();
     }
 
     @Override
@@ -429,16 +435,14 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 taskEvictPolicyExecutor,
                 fileAgentTaskService,
                 stepInstanceService,
+                gseClient,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,
                 targetAgentTaskMap,
                 sourceAgentTaskMap,
                 gseTask,
-                sendFiles,
-                fileStorageRootPath,
-                sourceDestPathMap,
-                sourceFileDisplayMap,
+                srcDestFileMap,
                 requestId);
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }

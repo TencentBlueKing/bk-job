@@ -27,14 +27,18 @@
 
 <template>
     <bk-popover
+        :ref="id"
         :placement="placement"
         :theme="theme"
-        :trigger="trigger"
-        :ref="id">
+        :trigger="trigger">
         <div :class="['job-more-action', triggerCls]">
-            <Icon :type="icon" class="icon" />
+            <Icon
+                class="icon"
+                :type="icon" />
         </div>
-        <div slot="content" :class="['job-action-wrapper', actionCls]">
+        <div
+            slot="content"
+            :class="['job-action-wrapper', actionCls]">
             <slot />
         </div>
     </bk-popover>

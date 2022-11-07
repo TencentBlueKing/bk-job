@@ -33,61 +33,70 @@
             </td>
             <td>
                 <jb-edit-input
-                    mode="block"
-                    :value="data.name"
                     field="name"
+                    mode="block"
                     :rules="rules.name"
+                    :value="data.name"
                     @on-change="handleChange" />
             </td>
             <td>
                 <jb-edit-host
                     v-if="data.isHost"
-                    :value="data.defaultTargetValue"
                     field="defaultTargetValue"
+                    :value="data.defaultTargetValue"
                     @on-change="handleChange" />
                 <jb-edit-input
                     v-else
+                    field="defaultValue"
                     mode="block"
                     :value="data.defaultValue"
-                    field="defaultValue"
                     @on-change="handleChange" />
             </td>
             <td>
                 <jb-edit-textarea
+                    field="description"
                     mode="block"
                     :rows="1"
                     :value="data.description"
-                    field="description"
                     @on-change="handleChange" />
             </td>
             <td>
                 <bk-checkbox
                     v-if="withChangable"
-                    :value="data.changeable"
+                    :false-value="0"
                     :true-value="1"
-                    :false-value="0" />
+                    :value="data.changeable" />
                 <span v-else>--</span>
             </td>
             <td>
                 <bk-checkbox
-                    :value="data.required"
+                    :false-value="0"
                     :true-value="1"
-                    :false-value="0" />
+                    :value="data.required" />
             </td>
             <td class="action-row">
-                <Icon type="add-fill" class="action-btn" @click="handleAppend" />
-                <Icon type="reduce-fill" class="action-btn" @click="handleDelete" />
+                <Icon
+                    class="action-btn"
+                    type="add-fill"
+                    @click="handleAppend" />
+                <Icon
+                    class="action-btn"
+                    type="reduce-fill"
+                    @click="handleDelete" />
             </td>
         </tr>
     </tbody>
 </template>
 <script>
     import GlobalVariableModel from '@model/task/global-variable';
-    import I18n from '@/i18n';
+
     import { globalVariableNameRule } from '@utils/validator';
+
+    import JbEditHost from '@components/jb-edit/host';
     import JbEditInput from '@components/jb-edit/input';
     import JbEditTextarea from '@components/jb-edit/textarea';
-    import JbEditHost from '@components/jb-edit/host';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

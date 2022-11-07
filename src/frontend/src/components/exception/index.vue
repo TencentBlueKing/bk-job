@@ -26,13 +26,17 @@
 -->
 
 <template>
-    <div class="bk-exception bk-exception-center" v-show="show">
+    <div
+        v-show="show"
+        class="bk-exception bk-exception-center">
         <img :src="image">
         <template v-if="$slots.message">
             <slot name="message" />
         </template>
         <template v-else>
-            <h2 class="exception-text">{{ message }}</h2>
+            <h2 class="exception-text">
+                {{ message }}
+            </h2>
         </template>
     </div>
 </template>

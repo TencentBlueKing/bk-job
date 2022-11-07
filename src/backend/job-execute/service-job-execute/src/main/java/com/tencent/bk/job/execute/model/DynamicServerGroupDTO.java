@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,6 +36,7 @@ import java.util.Objects;
 /**
  * 服务器动态分组
  */
+@PersistenceObject
 @Data
 @NoArgsConstructor
 public class DynamicServerGroupDTO implements Cloneable {

@@ -27,16 +27,21 @@
 
 <template>
     <div class="rolling-expr-guides">
-        <div class="content" v-html="contentHtml" />
-        <div class="close-btn" @click="handleClose">
+        <div
+            class="content"
+            v-html="contentHtml" />
+        <div
+            class="close-btn"
+            @click="handleClose">
             <Icon type="close" />
         </div>
     </div>
 </template>
 <script>
-    import 'highlight.js/styles/googlecode.css';
-    import expr from './expr.md';
     import exprEN from './expr.en.md';
+    import expr from './expr.md';
+
+    import 'highlight.js/styles/googlecode.css';
 
     export default {
         name: '',

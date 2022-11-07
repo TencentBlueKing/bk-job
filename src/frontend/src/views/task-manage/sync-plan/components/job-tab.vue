@@ -28,8 +28,13 @@
 <template>
     <div class="job-tab">
         asdasd
-        <Icon type="check" class="job-check" />
-        <bk-switcher class="job-switch" size="min" theme="primary" />
+        <Icon
+            class="job-check"
+            type="check" />
+        <bk-switcher
+            class="job-switch"
+            size="min"
+            theme="primary" />
     </div>
 </template>
 <script>

@@ -24,13 +24,14 @@
 */
 
 /* eslint-disable no-param-reassign */
-import TaskExecuteSource from '../source/task-execute';
-import TaskInstanceModel from '@model/execution/task-instance';
+import OperationLogModel from '@model/execution/operation-log';
 import StepExecutionResultModel from '@model/execution/step-execution-result';
 import TaskExecutionResultModel from '@model/execution/task-execution-result';
+import TaskInstanceModel from '@model/execution/task-instance';
 import TaskInstanceDetailModel from '@model/execution/task-instance-detail';
-import OperationLogModel from '@model/execution/operation-log';
 import GlobalVariableModel from '@model/task/global-variable';
+
+import TaskExecuteSource from '../source/task-execute';
 
 export default {
     taskExecution (params) {
@@ -72,8 +73,16 @@ export default {
         return TaskExecuteSource.getLogByIp(params)
             .then(({ data }) => data);
     },
+    fetchLogContentOfHostId (params) {
+        return TaskExecuteSource.getLogByHostId(params)
+            .then(({ data }) => data);
+    },
     fetchFileLogOfIp (params = {}) {
         return TaskExecuteSource.getFileLogByIP(params)
+            .then(({ data }) => data);
+    },
+    fetchFileLogOfHostId (params = {}) {
+        return TaskExecuteSource.getFileLogByHostId(params)
             .then(({ data }) => data);
     },
     fetchFileLogOfFile (params = {}) {

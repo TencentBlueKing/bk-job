@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div ref="layout" :class="classes">
+    <div
+        ref="layout"
+        :class="classes">
         <slot />
     </div>
 </template>

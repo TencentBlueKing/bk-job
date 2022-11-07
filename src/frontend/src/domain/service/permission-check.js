@@ -24,17 +24,19 @@
 */
 
 /* eslint-disable no-param-reassign */
-import PermissionCheckSource from '../source/permission-check';
 import AuthResultModel from '@model/auth-result';
+
 import {
     checkPublicScript,
-    isScriptPermission,
-    isJobManagePermission,
     isJobCrontabPermission,
     isJobExecutePermission,
     isJobFileSourcePermission,
+    isJobManagePermission,
     isJobTicketPermission,
+    isScriptPermission,
 } from '@utils/assist';
+
+import PermissionCheckSource from '../source/permission-check';
 
 const permissionCheckService = {
     fetchJobManagePermission (params = {}) {

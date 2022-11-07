@@ -48,6 +48,7 @@ public class FileLogQuery {
      * 执行任务的主机ip列表
      */
     @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", version = "3.7.x")
+    @Deprecated
     private List<String> ips;
     /**
      * 执行任务的主机ID列表
@@ -73,9 +74,11 @@ public class FileLogQuery {
         return new StringJoiner(", ", FileLogQuery.class.getSimpleName() + "[", "]")
             .add("jobCreateDate='" + jobCreateDate + "'")
             .add("stepInstanceId=" + stepInstanceId)
+            .add("hostIds='" + hostIds + "'")
             .add("ips='" + ips + "'")
             .add("executeCount=" + executeCount)
             .add("mode=" + mode)
+            .add("batch=" + batch)
             .toString();
     }
 }

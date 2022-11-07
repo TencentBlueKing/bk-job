@@ -104,10 +104,6 @@ public class StepExecutionResultQuery {
         return StringUtils.isNotEmpty(logKeyword) || StringUtils.isNotEmpty(searchIp);
     }
 
-    public boolean hasBatchCondition() {
-        return batch != null && batch > 0;
-    }
-
     public void transformOrderFieldToDbField() {
         if (orderField != null) {
             orderField = ORDER_FIELD_IN_DB.get(orderField);

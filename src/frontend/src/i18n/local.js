@@ -567,6 +567,7 @@ export default {
     请确定是否要继续执行: 'Are you sure want to continue to run?',
     继续执行: 'YES',
     立即取消: 'CANCEL',
+    全业务: 'All',
     复制: 'Copy',
     粘贴: 'Paste',
     快速执行详情: 'Quick Launch Details',

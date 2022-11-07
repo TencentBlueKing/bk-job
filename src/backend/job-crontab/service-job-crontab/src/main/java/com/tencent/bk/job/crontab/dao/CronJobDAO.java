@@ -27,6 +27,7 @@ package com.tencent.bk.job.crontab.dao;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
+import com.tencent.bk.job.crontab.model.dto.CronJobWithVarsDTO;
 
 import java.util.List;
 
@@ -34,6 +35,13 @@ import java.util.List;
  * @since 23/12/2019 17:32
  */
 public interface CronJobDAO {
+
+    // 查询
+
+    /**
+     * 查询含有主机变量信息一批定时任务基础信息
+     */
+    List<CronJobWithVarsDTO> listBasicCronJobWithHostVars(int start, int limit);
 
     /**
      * 根据业务 ID 列表批量查询定时任务信息
@@ -80,39 +88,6 @@ public interface CronJobDAO {
     CronJobInfoDTO getCronJobErrorById(long appId, long cronJobId);
 
     /**
-     * 新增定时任务信息
-     *
-     * @param cronJob 定时任务信息
-     * @return 新增定时任务信息的 ID
-     */
-    long insertCronJob(CronJobInfoDTO cronJob);
-
-    /**
-     * 根据 ID 和定时任务 ID 更新定时任务
-     *
-     * @param cronJob 定时任务信息
-     * @return 是否更新成功
-     */
-    boolean updateCronJobById(CronJobInfoDTO cronJob);
-
-    /**
-     * 根据 ID 和定时任务 ID 更新定时任务错误信息
-     *
-     * @param cronJobErrorInfo 定时任务错误信息
-     * @return 是否更新成功
-     */
-    boolean updateCronJobErrorById(CronJobInfoDTO cronJobErrorInfo);
-
-    /**
-     * 根据定时任务 ID 删除定时任务
-     *
-     * @param appId     业务 ID
-     * @param cronJobId 定时任务 ID
-     * @return 是否删除成功
-     */
-    boolean deleteCronJobById(long appId, long cronJobId);
-
-    /**
      * 检查定时任务名称是否可用
      *
      * @param appId     业务 ID
@@ -130,14 +105,6 @@ public interface CronJobDAO {
      * @return 定时任务基本信息列表
      */
     List<CronJobInfoDTO> listCronJobByPlanId(long appId, long planId);
-
-    /**
-     * 保留 ID 插入定时任务
-     *
-     * @param cronJob 定时任务信息
-     * @return 是否插入成功
-     */
-    boolean insertCronJobWithId(CronJobInfoDTO cronJob);
 
     /**
      * 根据定时任务 ID 查询定时任务名称
@@ -165,4 +132,62 @@ public interface CronJobDAO {
     boolean isExistAnyAppCronJob(Long appId);
 
     Integer countCronJob(Long appId, Boolean active, Boolean cron);
+
+
+    // 新增
+
+    /**
+     * 新增定时任务信息
+     *
+     * @param cronJob 定时任务信息
+     * @return 新增定时任务信息的 ID
+     */
+    long insertCronJob(CronJobInfoDTO cronJob);
+
+    /**
+     * 保留 ID 插入定时任务
+     *
+     * @param cronJob 定时任务信息
+     * @return 是否插入成功
+     */
+    boolean insertCronJobWithId(CronJobInfoDTO cronJob);
+
+
+    // 修改
+
+    /**
+     * 根据 ID 和定时任务 ID 更新定时任务
+     *
+     * @param cronJob 定时任务信息
+     * @return 是否更新成功
+     */
+    boolean updateCronJobById(CronJobInfoDTO cronJob);
+
+    /**
+     * 根据 ID 和定时任务 ID 更新定时任务错误信息
+     *
+     * @param cronJobErrorInfo 定时任务错误信息
+     * @return 是否更新成功
+     */
+    boolean updateCronJobErrorById(CronJobInfoDTO cronJobErrorInfo);
+
+    /**
+     * 根据ID更新定时任务的变量值
+     *
+     * @param id               定时任务ID
+     * @param variableValueStr 变量值字符串
+     * @return 受影响行数
+     */
+    int updateVariableById(Long id, String variableValueStr);
+
+    // 删除
+
+    /**
+     * 根据定时任务 ID 删除定时任务
+     *
+     * @param appId     业务 ID
+     * @param cronJobId 定时任务 ID
+     * @return 是否删除成功
+     */
+    boolean deleteCronJobById(long appId, long cronJobId);
 }

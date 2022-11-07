@@ -46,6 +46,8 @@ public interface HostTopoDAO {
 
     List<HostTopoDTO> listHostTopoByHostId(Long hostId);
 
+    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds);
+
     List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
 
     /**
@@ -55,4 +57,13 @@ public interface HostTopoDAO {
      * @return 主机ID列表
      */
     List<Long> listHostIdByBizIds(Collection<Long> bizIds);
+
+    /**
+     * 根据CMDB业务ID与主机ID集合查询下属主机ID列表
+     *
+     * @param bizIds  业务ID集合
+     * @param hostIds 主机ID集合
+     * @return 主机ID列表
+     */
+    List<Long> listHostIdByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds);
 }

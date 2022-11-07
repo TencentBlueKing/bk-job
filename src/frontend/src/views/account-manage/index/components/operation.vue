@@ -26,15 +26,20 @@
 -->
 
 <template>
-    <div class="operation-account" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="operation-account">
         <jb-form
-            ref="operateAccountForm"
-            :model="formData"
-            :rules="rules"
             :key="`${formData.category}_${formData.type}`"
+            ref="operateAccountForm"
+            v-test="{ type: 'form', value: 'createAccount' }"
             form-type="vertical"
-            v-test="{ type: 'form', value: 'createAccount' }">
-            <jb-form-item :label="$t('account.用途')" required style="margin-bottom: 20px;">
+            :model="formData"
+            :rules="rules">
+            <jb-form-item
+                :label="$t('account.用途')"
+                required
+                style="margin-bottom: 20px;">
                 <div class="radio-button-group-wraper">
                     <bk-radio-group
                         :value="formData.category"
@@ -42,9 +47,9 @@
                         <bk-radio-button
                             v-for="item in categoryList"
                             :key="item.value"
-                            :value="item.value"
+                            class="account-type-radio"
                             :disabled="isEdit && formData.category !== item.value"
-                            class="account-type-radio">
+                            :value="item.value">
                             {{ item.name }}
                         </bk-radio-button>
                     </bk-radio-group>
@@ -53,23 +58,28 @@
             <component
                 :is="accountCom"
                 :key="formData.category"
+                :change="handleFieldChange"
                 :form-data="formData"
                 :is-edit="isEdit"
-                :name-placeholder="namePlaceholder"
-                :change="handleFieldChange" />
+                :name-placeholder="namePlaceholder" />
         </jb-form>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import QueryGlobalSettingService from '@service/query-global-setting';
     import AccountManageService from '@service/account-manage';
+    import QueryGlobalSettingService from '@service/query-global-setting';
+
     import AccountModel from '@model/account';
+
     import { accountAliasNameRule } from '@utils/validator';
-    import JbInput from '@components/jb-input';
+
     import AccountSelect from '@components/account-select';
+    import JbInput from '@components/jb-input';
+
     import AccountDatabase from './account-strategy/database-account';
     import AccountOS from './account-strategy/os-account';
+
+    import I18n from '@/i18n';
 
     const generatorDefault = () => ({
         id: '',

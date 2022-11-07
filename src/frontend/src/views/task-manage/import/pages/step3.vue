@@ -26,33 +26,38 @@
 -->
 
 <template>
-    <div class="task-import-step3" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="task-import-step3">
         <div class="layout-wraper">
             <div class="layout-left">
                 <scroll-faker>
-                    <template v-for="templateItem in templateInfoOrigin">
-                        <div
-                            class="task-box"
-                            :class="{
-                                active: templateItem.id === activeTemplateId,
-                                disable: !templateInfoMap[templateItem.id].checked,
-                            }"
-                            :key="templateItem.id"
-                            @click="handleSelectTemplate(templateItem.id)">
-                            <div class="task-name">{{ templateNameMap[templateItem.id] }}</div>
-                            <bk-switcher
-                                size="small"
-                                theme="primary"
-                                :value="templateInfoMap[templateItem.id].checked"
-                                @click.stop=""
-                                @change="value => handleTemplateChange(value, templateItem.id)" />
+                    <div
+                        v-for="templateItem in templateInfoOrigin"
+                        :key="templateItem.id"
+                        class="task-box"
+                        :class="{
+                            active: templateItem.id === activeTemplateId,
+                            disable: !templateInfoMap[templateItem.id].checked,
+                        }"
+                        @click="handleSelectTemplate(templateItem.id)">
+                        <div class="task-name">
+                            {{ templateNameMap[templateItem.id] }}
                         </div>
-                    </template>
+                        <bk-switcher
+                            size="small"
+                            theme="primary"
+                            :value="templateInfoMap[templateItem.id].checked"
+                            @change="value => handleTemplateChange(value, templateItem.id)"
+                            @click.stop="" />
+                    </div>
                 </scroll-faker>
             </div>
             <div class="layout-right">
                 <scroll-faker>
-                    <div class="wraper" v-if="activeTemplateId">
+                    <div
+                        v-if="activeTemplateId"
+                        class="wraper">
                         <div class="task-header">
                             <span>{{ templateNameMap[activeTemplateId] }}</span>
                             <span
@@ -67,59 +72,80 @@
                                 <bk-button
                                     v-if="templateInfoMap[activeTemplateId].exportAll"
                                     class="whole-check"
-                                    text
                                     :disabled="!templateInfoMap[activeTemplateId].checked"
+                                    text
                                     @click="handleCancelWholePlan">
                                     {{ $t('template.取消全选') }}
                                 </bk-button>
                                 <bk-button
                                     v-else
                                     class="whole-check"
-                                    text
                                     :disabled="!templateInfoMap[activeTemplateId].checked"
+                                    text
                                     @click="handleSelectWholePlan">
                                     {{ $t('template.全选') }}
                                 </bk-button>
                             </div>
                             <div class="task-plan-list">
-                                <template v-for="planIdItem in currentPlanList">
-                                    <div
-                                        class="plan-box"
-                                        :class="{
-                                            invalid: !templateInfoMap[activeTemplateId].planIdMap[planIdItem],
-                                            disable: !templateInfoMap[activeTemplateId].checked,
-                                        }"
-                                        :key="planIdItem"
-                                        @click="handleTogglePlan(planIdItem)">
-                                        <div class="plan-name">{{ planNameMap[planIdItem] }}</div>
-                                        <div
-                                            class="plan-check"
-                                            :class="{
-                                                active: templateInfoMap[activeTemplateId].planIdMap[planIdItem],
-                                                disable: !templateInfoMap[activeTemplateId].checked,
-                                            }" />
+                                <div
+                                    v-for="planIdItem in currentPlanList"
+                                    :key="planIdItem"
+                                    class="plan-box"
+                                    :class="{
+                                        invalid: !templateInfoMap[activeTemplateId].planIdMap[planIdItem],
+                                        disable: !templateInfoMap[activeTemplateId].checked,
+                                    }"
+                                    @click="handleTogglePlan(planIdItem)">
+                                    <div class="plan-name">
+                                        {{ planNameMap[planIdItem] }}
                                     </div>
-                                </template>
+                                    <div
+                                        class="plan-check"
+                                        :class="{
+                                            active: templateInfoMap[activeTemplateId].planIdMap[planIdItem],
+                                            disable: !templateInfoMap[activeTemplateId].checked,
+                                        }" />
+                                </div>
                             </div>
                         </template>
-                        <empty v-else :title="$t('template.暂无执行方案')" style="margin-top: 100px;" />
+                        <empty
+                            v-else
+                            style="margin-top: 100px;"
+                            :title="$t('template.暂无执行方案')" />
                     </div>
                 </scroll-faker>
             </div>
         </div>
         <action-bar>
-            <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-            <bk-button class="mr10" @click="handleLast">{{ $t('template.上一步') }}</bk-button>
-            <bk-button class="w120" theme="primary" @click="handleNext">{{ $t('template.下一步') }}</bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleLast">
+                {{ $t('template.上一步') }}
+            </bk-button>
+            <bk-button
+                class="w120"
+                theme="primary"
+                @click="handleNext">
+                {{ $t('template.下一步') }}
+            </bk-button>
         </action-bar>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import BackupService from '@service/backup';
+
     import { taskImport } from '@utils/cache-helper';
+
     import Empty from '@components/empty';
+
     import ActionBar from '../components/action-bar';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

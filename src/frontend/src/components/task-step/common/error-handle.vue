@@ -30,9 +30,9 @@
         <div class="error-handle-wraper">
             <bk-checkbox
                 v-bk-tooltips="tips"
-                :value="formData[field]"
-                :true-value="1"
                 :false-value="0"
+                :true-value="1"
+                :value="formData[field]"
                 @change="handleChange">
                 {{ $t('自动忽略错误') }}
             </bk-checkbox>

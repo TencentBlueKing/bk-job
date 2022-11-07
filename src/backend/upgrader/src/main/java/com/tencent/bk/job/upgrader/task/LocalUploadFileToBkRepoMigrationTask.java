@@ -429,7 +429,7 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
     }
 
     @Override
-    public int execute(String[] args) {
+    public boolean execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         // 1.初始化用户与各仓库
         init();
@@ -446,6 +446,6 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
             uploadLogExportFiles();
         }
         uploadExecutor.shutdown();
-        return 0;
+        return true;
     }
 }

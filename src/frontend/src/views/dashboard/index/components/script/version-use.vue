@@ -27,15 +27,18 @@
 
 <template>
     <card-layout
+        v-bkloading="{ isLoading, opacity: 0.8 }"
         class="script-ralate-dashboard"
         :title="$t('dashboard.复用率')"
-        :title-tips="$t('dashboard.引用脚本的步骤总数 / 被引用的脚本总数（去重），比率越高代表脚本在作业中被重复利用的价值越大')"
-        v-bkloading="{ isLoading, opacity: 0.8 }">
-        <div class="nums">{{ rate }}</div>
+        :title-tips="$t('dashboard.引用脚本的步骤总数 / 被引用的脚本总数（去重），比率越高代表脚本在作业中被重复利用的价值越大')">
+        <div class="nums">
+            {{ rate }}
+        </div>
     </card-layout>
 </template>
 <script>
     import StatisticsService from '@service/statistics';
+
     import CardLayout from '../card-layout';
 
     export default {

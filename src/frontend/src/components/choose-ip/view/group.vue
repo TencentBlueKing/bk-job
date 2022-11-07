@@ -34,19 +34,23 @@
             <span>{{ $t('个动态分组') }}</span>
         </span>
         <action-extend v-if="editable">
-            <div class="action-item" @click="handleRemoveAll">{{ $t('移除全部') }}</div>
+            <div
+                class="action-item"
+                @click="handleRemoveAll">
+                {{ $t('移除全部') }}
+            </div>
         </action-extend>
         <template #content>
             <div v-bkloading="{ isLoading }">
                 <host-table
                     v-if="!isRequestError"
-                    :max-height="410"
+                    :append-nums="invalidList.length"
                     :list="list"
-                    :append-nums="invalidList.length">
+                    :max-height="410">
                     <tbody
                         v-if="invalidList.length > 0"
-                        class="invalid-list"
-                        slot="appendBefore">
+                        slot="appendBefore"
+                        class="invalid-list">
                         <tr
                             v-for="(row, index) in invalidList"
                             :key="`invalid_${index}`">
@@ -56,8 +60,12 @@
                                     :tippy-tips="$t('该分组在配置平台已被删除')">{{ $t('无效') }}</span>
                                 <span>{{ row }}</span>
                             </td>
-                            <td colspan="2">--</td>
-                            <td v-if="editable" class="action-column">
+                            <td colspan="2">
+                                --
+                            </td>
+                            <td
+                                v-if="editable"
+                                class="action-column">
                                 <bk-button
                                     text
                                     @click="handleInvalidRemove(index)">
@@ -71,16 +79,24 @@
                             v-for="(row, index) in list"
                             :key="index"
                             :class="diff[row.id]">
-                            <td style="width: 40%; cursor: pointer;" @click="handleView(row.id)">
+                            <td
+                                style="width: 40%; cursor: pointer;"
+                                @click="handleView(row.id)">
                                 {{ row.name }}
                             </td>
                             <td style="width: 150px;">
-                                <div class="cell-text">共<span class="number strong">{{ row.total }}</span>台主机</div>
+                                <div class="cell-text">
+                                    共<span class="number strong">{{ row.total }}</span>台主机
+                                </div>
                             </td>
                             <td @click="handleView(row.id)">
-                                <statistics-text style="cursor: pointer;" :data="row" />
+                                <statistics-text
+                                    :data="row"
+                                    style="cursor: pointer;" />
                             </td>
-                            <td v-if="editable" class="action-column">
+                            <td
+                                v-if="editable"
+                                class="action-column">
                                 <bk-button
                                     text
                                     @click="handleRemove(index)">
@@ -90,10 +106,17 @@
                         </tr>
                     </tbody>
                 </host-table>
-                <bk-exception v-if="isRequestError" type="500" style="padding-bottom: 50px;">
+                <bk-exception
+                    v-if="isRequestError"
+                    style="padding-bottom: 50px;"
+                    type="500">
                     <div style="display: flex; font-size: 14px;">
                         <span>数据拉取失败，请</span>
-                        <bk-button text @click="handleRefresh">重试</bk-button>
+                        <bk-button
+                            text
+                            @click="handleRefresh">
+                            重试
+                        </bk-button>
                     </div>
                 </bk-exception>
             </div>
@@ -102,15 +125,19 @@
 </template>
 <script>
     import _ from 'lodash';
-    import AppService from '@service/app-manage';
-    import I18n from '@/i18n';
+
+    import HostManageService from '@service/host-manage';
+
     import JbCollapseItem from '@components/jb-collapse-item';
+
     import ActionExtend from '../components/action-extend';
     import HostTable from '../components/host-table';
     import StatisticsText from '../components/statistics-text';
     import {
         statisticsHost,
     } from '../components/utils';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'ViewGroup',
@@ -174,7 +201,7 @@
                     return result;
                 }, {});
                 
-                AppService.fetchHostOfDynamicGroup({
+                HostManageService.fetchHostOfDynamicGroup({
                     id: this.data.join(','),
                 }).then((data) => {
                     const list = [];

@@ -27,22 +27,26 @@
 
 <template>
     <jb-dialog
-        :value="isShow"
-        fullscreen
         class="plan-confirm-cron-dialog"
+        fullscreen
+        :value="isShow"
         @cancel="handleClose">
-        <div class="confirm-cron-wraper" v-bkloading="{ isLoading }" @keyup.esc="handleClose">
+        <div
+            v-bkloading="{ isLoading }"
+            class="confirm-cron-wraper"
+            @keyup.esc="handleClose">
             <confirm-cron
                 v-if="!isLoading"
-                :template-info="templateInfo"
-                :plan-id="planId"
                 :cron-job-list="cronJobInfoList"
+                :plan-id="planId"
+                :template-info="templateInfo"
                 @on-change="handleConfirmCron" />
         </div>
     </jb-dialog>
 </template>
 <script>
     import TaskManageService from '@service/task-manage';
+
     import ConfirmCron from '../../common/plan/confirm-cron';
 
     export default {

@@ -36,6 +36,12 @@ public interface IUpgradeTask {
 
     int getPriority();
 
-    int execute(String[] args);
+    /**
+     * 是否升级成功
+     *
+     * @param args 输入参数
+     * @return 升级结果
+     */
+    boolean execute(String[] args);
 
 }

@@ -30,36 +30,77 @@
         <div class="package-upload">
             <bk-upload
                 v-if="!uploadFilename"
-                :tip="$t('template.仅支持上传来自作业平台专属导出的压缩包')"
-                :multiple="false"
                 :custom-request="handleUploadRequest"
+                :multiple="false"
                 :size="Infinity"
+                :tip="$t('template.仅支持上传来自作业平台专属导出的压缩包')"
                 url="/" />
-            <div v-if="uploadFilename" class="upload-result" :class="uploadStatus">
+            <div
+                v-if="uploadFilename"
+                class="upload-result"
+                :class="uploadStatus">
                 <div class="file-pic">
                     <img src="/static/images/package.svg">
                 </div>
                 <div class="file-info">
-                    <div class="file-name">{{ uploadFilename }}</div>
-                    <div v-if="uploadStatus === 'waiting'" class="upload-progress">
-                        <div class="progress-bar" :style="{ width: uploadProgress }" />
+                    <div class="file-name">
+                        {{ uploadFilename }}
                     </div>
-                    <div v-if="uploadStatus === 'success'" class="file-status">{{ $t('template.上传成功') }}</div>
-                    <div v-if="uploadStatus === 'failed'" class="file-status">{{ $t('template.上传失败') }}</div>
-                    <div v-if="uploadStatus === 'error'" class="file-status">{{ uploadErrorMsg }}</div>
+                    <div
+                        v-if="uploadStatus === 'waiting'"
+                        class="upload-progress">
+                        <div
+                            class="progress-bar"
+                            :style="{ width: uploadProgress }" />
+                    </div>
+                    <div
+                        v-if="uploadStatus === 'success'"
+                        class="file-status">
+                        {{ $t('template.上传成功') }}
+                    </div>
+                    <div
+                        v-if="uploadStatus === 'failed'"
+                        class="file-status">
+                        {{ $t('template.上传失败') }}
+                    </div>
+                    <div
+                        v-if="uploadStatus === 'error'"
+                        class="file-status">
+                        {{ uploadErrorMsg }}
+                    </div>
                 </div>
-                <Icon v-if="uploadStatus === 'failed'" class="file-refresh" type="refresh" @click="handleFileRefresh" />
-                <Icon class="file-delete" type="close-big" @click="hanleFileDelete" />
+                <Icon
+                    v-if="uploadStatus === 'failed'"
+                    class="file-refresh"
+                    type="refresh"
+                    @click="handleFileRefresh" />
+                <Icon
+                    class="file-delete"
+                    type="close-big"
+                    @click="hanleFileDelete" />
             </div>
         </div>
-        <div v-if="isShowLog" class="upload-log-box" v-bkloading="{ isLoading: isLogLoading }" @click="handleLogAction">
-            <template v-for="(item, index) in importInfo.log">
-                <div :key="index" v-html="renderLogRow(item, index, importInfo.log)" />
-            </template>
+        <div
+            v-if="isShowLog"
+            v-bkloading="{ isLoading: isLogLoading }"
+            class="upload-log-box"
+            @click="handleLogAction">
+            <div
+                v-for="(item, index) in importInfo.log"
+                :key="index"
+                v-html="renderLogRow(item, index, importInfo.log)" />
         </div>
         <action-bar>
-            <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-            <bk-button class="mr10" @click="handleLast">{{ $t('template.上一步') }}</bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleLast">
+                {{ $t('template.上一步') }}
+            </bk-button>
             <bk-button
                 class="w120"
                 :disabled="!isUploadSuccess"
@@ -68,46 +109,62 @@
                 {{ $t('template.下一步') }}
             </bk-button>
         </action-bar>
-        <lower-component level="custom" :custom="isShowPassword">
+        <lower-component
+            :custom="isShowPassword"
+            level="custom">
             <jb-dialog
                 v-model="isShowPassword"
                 class="setting-password-dialog"
-                :title="$t('template.文件包解密确认')"
-                header-position="left"
-                render-directive="if"
-                :mask-close="false"
                 :esc-close="false"
+                header-position="left"
+                :mask-close="false"
+                render-directive="if"
+                :title="$t('template.文件包解密确认')"
                 :width="480">
-                <jb-form ref="passwordForm" :model="passwordFormData" form-type="vertical" :rules="rules">
-                    <jb-form-item :label="$t('template.文件包密码')" required property="password">
+                <jb-form
+                    ref="passwordForm"
+                    form-type="vertical"
+                    :model="passwordFormData"
+                    :rules="rules">
+                    <jb-form-item
+                        :label="$t('template.文件包密码')"
+                        property="password"
+                        required>
                         <bk-input
                             v-model="passwordFormData.password"
-                            type="password"
                             :native-attributes="{ autofocus: 'autofocus' }"
                             :placeholder="$t('template.请输入上传的文件包密码，完成后点提交验证')"
+                            type="password"
                             @keydown="handleEnter" />
                     </jb-form-item>
                 </jb-form>
-                <div slot="footer" class="setting-password-footer">
+                <div
+                    slot="footer"
+                    class="setting-password-footer">
                     <bk-button
-                        theme="primary"
                         class="mr10"
                         :loading="isPasswordSubmiting"
+                        theme="primary"
                         @click="handleSubmitPassword">
                         {{ $t('template.提交') }}
                     </bk-button>
-                    <bk-button @click="handleClosePassword">{{ $t('template.取消') }}</bk-button>
+                    <bk-button @click="handleClosePassword">
+                        {{ $t('template.取消') }}
+                    </bk-button>
                 </div>
             </jb-dialog>
         </lower-component>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import BackupService from '@service/backup';
+
     import { prettyDateTimeFormat } from '@utils/assist';
     import { taskImport } from '@utils/cache-helper';
+
     import ActionBar from '../components/action-bar';
+
+    import I18n from '@/i18n';
 
     const escapeHTML = str => str.replace(/&/g, '&#38;').replace(/"/g, '&#34;')
         .replace(/'/g, '&#39;')

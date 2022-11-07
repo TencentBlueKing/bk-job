@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div class="task-manage-batch-edit-tag" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="task-manage-batch-edit-tag">
         <div style="margin-bottom: 8px;">
             {{ $t('template.范围') }}：{{ $t('template.共') }}<span class="strong number">{{ templateNums }}</span>{{ $t('template.个作业') }}
         </div>
@@ -38,8 +40,8 @@
                 <div class="tag-panel">
                     <bk-input
                         class="tag-search"
-                        :spellcheck="false"
                         left-icon="bk-icon icon-search"
+                        :spellcheck="false"
                         :value="search"
                         @change="handleSearch" />
                     <div
@@ -53,9 +55,9 @@
                                 class="tag-list">
                                 <bk-checkbox
                                     v-for="tagItem in renderList"
-                                    :value="tagItem.id"
-                                    class="tag-item"
                                     :key="tagItem.id"
+                                    class="tag-item"
+                                    :value="tagItem.id"
                                     v-bind="tagCheckInfoMap[tagItem.id]"
                                     @change="value => handleTagCheckChange(value, tagItem.id)">
                                     {{ tagItem.name }}
@@ -83,23 +85,31 @@
                         </scroll-faker>
                         <Empty
                             v-else-if="search"
-                            type="search"
-                            style="margin-top: 20px;">
+                            style="margin-top: 20px;"
+                            type="search">
                             <span>{{ $t('template.搜索结果为空') }}，</span>
-                            <bk-button text @click="handleClearSearch">{{ $t('template.清空搜索') }}</bk-button>
+                            <bk-button
+                                text
+                                @click="handleClearSearch">
+                                {{ $t('template.清空搜索') }}
+                            </bk-button>
                         </Empty>
                     </div>
                     <auth-component auth="tag/create">
-                        <div class="tag-create" @click="handleNew">
+                        <div
+                            class="tag-create"
+                            @click="handleNew">
                             <bk-icon
-                                type="plus-circle"
-                                style=" margin-right: 8px; font-size: 16px;" />
+                                style=" margin-right: 8px; font-size: 16px;"
+                                type="plus-circle" />
                             <span>{{ $t('template.新建标签') }}</span>
                         </div>
-                        <div slot="forbid" class="tag-create">
+                        <div
+                            slot="forbid"
+                            class="tag-create">
                             <bk-icon
-                                type="plus-circle"
-                                style=" margin-right: 8px; font-size: 16px;" />
+                                style=" margin-right: 8px; font-size: 16px;"
+                                type="plus-circle" />
                             <span>{{ $t('template.新建标签') }}</span>
                         </div>
                     </auth-component>
@@ -107,8 +117,8 @@
             </jb-form-item>
         </jb-form>
         <lower-component
-            level="custom"
-            :custom="isShowCreate">
+            :custom="isShowCreate"
+            level="custom">
             <operation-tag
                 v-model="isShowCreate"
                 @on-change="handleTagNew" />
@@ -116,20 +126,24 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import {
+        computed,
+        getCurrentInstance,
+        onBeforeMount,
         reactive,
         ref,
         toRefs,
-        computed,
-        onBeforeMount,
-        getCurrentInstance,
-    } from '@vue/composition-api';
-    import _ from 'lodash';
+    } from 'vue';
+
     import TagManageService from '@service/tag-manage';
     import TaskManageService from '@service/task-manage';
-    import I18n from '@/i18n';
+
     import { encodeRegexp } from '@utils/assist';
+
     import OperationTag from '@components/operation-tag';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

@@ -29,16 +29,16 @@
     <lower-component>
         <div>
             <div
-                class="action-btn"
                 v-bk-tooltips.bottom="$t('history.全局变量')"
+                class="action-btn"
                 @click="handleShowGlobalVariable">
                 <Icon type="global-var-line" />
             </div>
             <jb-sideslider
                 :is-show.sync="isShow"
                 :quick-close="true"
-                :title="$t('history.全局变量')"
                 :show-footer="false"
+                :title="$t('history.全局变量')"
                 :width="960">
                 <global-variable :id="taskInstanceId" />
             </jb-sideslider>

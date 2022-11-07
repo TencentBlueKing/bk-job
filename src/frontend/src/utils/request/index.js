@@ -24,12 +24,14 @@
 */
 
 import _ from 'lodash';
+
 import {
-    downloadUrl,
     buildURLParams,
+    downloadUrl,
 } from '@utils/assist';
-import Request from './lib/request';
+
 import Cache from './lib/cache';
+import Request from './lib/request';
 
 const request = new Request(Cache);
 

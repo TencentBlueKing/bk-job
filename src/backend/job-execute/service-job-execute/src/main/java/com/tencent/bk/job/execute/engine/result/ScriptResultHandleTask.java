@@ -24,25 +24,24 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
-import com.tencent.bk.gse.taskapi.api_agent_task_rst;
-import com.tencent.bk.gse.taskapi.api_query_task_info_v2;
-import com.tencent.bk.gse.taskapi.api_task_detail_result;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.constants.GSECode;
+import com.tencent.bk.job.common.gse.v1.GseReadTimeoutException;
+import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
+import com.tencent.bk.job.common.gse.v2.model.ScriptAgentTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.gse.GseRequestPrinter;
-import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
+import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.LogPullProgress;
-import com.tencent.bk.job.execute.engine.model.ScriptTaskLog;
+import com.tencent.bk.job.execute.engine.model.ScriptGseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -83,7 +82,7 @@ import java.util.stream.Collectors;
  * 脚本任务执行结果处理
  */
 @Slf4j
-public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_detail_result> {
+public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskResult> {
     /**
      * GSE日志查询支持的每一批次的最大Agent数目
      */
@@ -151,6 +150,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   ScriptAgentTaskService scriptAgentTaskService,
                                   StepInstanceService stepInstanceService,
+                                  GseClient gseClient,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -167,6 +167,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
+            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -181,13 +182,13 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             LogPullProgress process = new LogPullProgress();
             process.setAgentId(agentTask.getAgentId());
             process.setByteOffset(agentTask.getScriptLogOffset());
-            process.setMid(0);
+            process.setAtomicTaskId(0);
             logPullProgressMap.put(agentTask.getAgentId(), process);
         });
     }
 
     @Override
-    GseLogBatchPullResult<api_task_detail_result> pullGseTaskResultInBatches() {
+    GseLogBatchPullResult<ScriptTaskResult> pullGseTaskResultInBatches() {
         if (pullAgentIdBatches.isEmpty()) {
             Set<String> queryAgentIds = new HashSet<>();
             queryAgentIds.addAll(notStartedTargetAgentIds);
@@ -198,20 +199,20 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         return tryPullGseResultWithRetry();
     }
 
-    private GseLogBatchPullResult<api_task_detail_result> tryPullGseResultWithRetry() {
+    private GseLogBatchPullResult<ScriptTaskResult> tryPullGseResultWithRetry() {
         List<String> pullLogAgentIds = pullAgentIdBatches.get(pullResultBatchesIndex.get() - 1);
         try {
-            api_task_detail_result detailRst = pullGseTaskResult(pullLogAgentIds);
+            ScriptTaskResult result = pullGseTaskResult(pullLogAgentIds);
             boolean isLastBatch = pullResultBatchesIndex.get() == pullAgentIdBatches.size();
-            GseLogBatchPullResult<api_task_detail_result> batchPullResult = new GseLogBatchPullResult<>(true,
-                isLastBatch, new ScriptTaskLog(detailRst), null);
+            GseLogBatchPullResult<ScriptTaskResult> batchPullResult = new GseLogBatchPullResult<>(true,
+                isLastBatch, new ScriptGseTaskResult(result), null);
             if (isLastBatch) {
                 resetBatch();
             } else {
                 pullResultBatchesIndex.incrementAndGet();
             }
             return batchPullResult;
-        } catch (ReadTimeoutException e) {
+        } catch (GseReadTimeoutException e) {
             boolean isSuccess = tryReduceBatchSizeAndRebuildBatchList();
             if (isSuccess) {
                 log.info("Reduce batch size and rebuild batch list successfully, currentBatchSize: {}, batches: {}. " +
@@ -230,10 +231,19 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         pullAgentIdBatches.clear();
     }
 
-    private api_task_detail_result pullGseTaskResult(List<String> agentIds) {
-        api_query_task_info_v2 requestV2 = GseRequestUtils.buildScriptLogRequestV2(gseTask.getGseTaskId(), agentIds,
-            logPullProgressMap);
-        return GseRequestUtils.getScriptTaskDetailRst(stepInstanceId, requestV2);
+    private ScriptTaskResult pullGseTaskResult(List<String> agentIds) {
+        GetExecuteScriptResultRequest request = new GetExecuteScriptResultRequest();
+        request.setTaskId(gseTask.getGseTaskId());
+        agentIds.forEach(agentId -> {
+            LogPullProgress progress = logPullProgressMap.get(agentId);
+            if (progress == null) {
+                request.addAgentTaskQuery(agentId, 0, 0);
+            } else {
+                request.addAgentTaskQuery(agentId, progress.getAtomicTaskId(), progress.getByteOffset());
+            }
+        });
+
+        return gseClient.getExecuteScriptResult(request);
     }
 
     private boolean tryReduceBatchSizeAndRebuildBatchList() {
@@ -266,21 +276,23 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     }
 
     @Override
-    GseTaskExecuteResult analyseGseTaskResult(GseLog<api_task_detail_result> taskDetail) {
-
+    GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<ScriptTaskResult> taskDetail) {
+        if (taskDetail == null || taskDetail.getResult() == null) {
+            log.info("Analyse gse task result, result is empty!");
+            return analyseExecuteResult();
+        }
         long currentTime = DateUtils.currentTimeMillis(); // 当前时间
         List<ServiceScriptLogDTO> scriptLogs = new ArrayList<>();
         StopWatch watch = new StopWatch("analyse-gse-script-task");
         watch.start("analyse");
-        for (api_agent_task_rst agentTaskResult : taskDetail.getGseLog().getResult()) {
-            log.info("[{}]: agentTaskResult={}", stepInstanceId,
-                GseRequestPrinter.printAgentTaskResult(agentTaskResult));
+        for (ScriptAgentTaskResult agentTaskResult : taskDetail.getResult().getResult()) {
+            log.info("[{}]: agentTaskResult={}", stepInstanceId, agentTaskResult);
 
             /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本
              *是获取上下文参数的脚本。所以m_id=0的是用户脚本的执行日志，需要分析记录；m_id=1的，则是获取上下文参数
              *输出的日志内容，不需要记录，仅需要从日志分析提取上下文参数*/
-            boolean isUserScriptResult = agentTaskResult.getAtomic_task_id() == 0;
-            String agentId = agentTaskResult.getGse_composite_id() + ":" + agentTaskResult.getIp();
+            boolean isUserScriptResult = agentTaskResult.getAtomicTaskId() == 0;
+            String agentId = agentTaskResult.getAgentId();
 
             // 该Agent已经日志分析结束，不要再分析
             if (this.analyseFinishedTargetAgentIds.contains(agentId)) {
@@ -320,13 +332,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         return rst;
     }
 
-    private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs, api_agent_task_rst agentTaskResult,
-                                                     String agentId, AgentTaskDTO agentTask, long currentTime) {
+    private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs,
+                                                     ScriptAgentTaskResult agentTaskResult,
+                                                     String agentId,
+                                                     AgentTaskDTO agentTask,
+                                                     long currentTime) {
         HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
-        if (GSECode.AtomicErrorCode.getErrorCode(agentTaskResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(host, agentTaskResult.getBk_error_msg(),
-                agentTask.getScriptLogOffset(),
-                currentTime));
+        if (GSECode.AtomicErrorCode.getErrorCode(agentTaskResult.getErrorCode()) == GSECode.AtomicErrorCode.ERROR) {
+            logs.add(logService.buildSystemScriptLog(agentTask.getHost().getHostId(),
+                agentTaskResult.getErrorMsg(), agentTask.getScriptLogOffset(), currentTime));
         } else {
             String content = agentTaskResult.getScreen();
             if (StringUtils.isEmpty(content)) {
@@ -338,10 +352,10 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                 offset += bytes;
                 agentTask.setScriptLogOffset(offset);
             }
-            logs.add(new ServiceScriptLogDTO(host, offset, agentTaskResult.getScreen()));
+            logs.add(new ServiceScriptLogDTO(host.getHostId(), offset, agentTaskResult.getScreen()));
         }
         // 刷新日志拉取偏移量
-        refreshPullLogProgress(agentTaskResult.getScreen(), agentId, agentTaskResult.getAtomic_task_id());
+        refreshPullLogProgress(agentTaskResult.getScreen(), agentId, agentTaskResult.getAtomicTaskId());
     }
 
     private void saveScriptLogContent(List<ServiceScriptLogDTO> logs) {
@@ -349,18 +363,18 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             stepInstance.getBatch(), logs);
     }
 
-    private void analyseAgentResult(api_agent_task_rst agentResult, AgentTaskDTO agentTask, String agentId,
+    private void analyseAgentResult(ScriptAgentTaskResult agentResult, AgentTaskDTO agentTask, String agentId,
                                     boolean isUserScriptResult, long currentTime) {
         boolean isShellScript = (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue()));
         if (agentTask.getStartTime() == null) {
             agentTask.setStartTime(currentTime);
         }
-        agentTask.setErrorCode(agentResult.getBk_error_code());
-        if (GSECode.AtomicErrorCode.getErrorCode(agentResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
+        agentTask.setErrorCode(agentResult.getErrorCode());
+        if (GSECode.AtomicErrorCode.getErrorCode(agentResult.getErrorCode()) == GSECode.AtomicErrorCode.ERROR) {
             // 脚本执行失败
             dealAgentFinish(agentId, agentResult, agentTask);
-            agentTask.setStatus(GseUtils.getStatusByGseErrorCode(agentResult.getBk_error_code()));
-        } else if (GSECode.AtomicErrorCode.getErrorCode(agentResult.getBk_error_code())
+            agentTask.setStatus(GseUtils.getStatusByGseErrorCode(agentResult.getErrorCode()));
+        } else if (GSECode.AtomicErrorCode.getErrorCode(agentResult.getErrorCode())
             == GSECode.AtomicErrorCode.TERMINATE) {
             dealAgentFinish(agentId, agentResult, agentTask);
             agentTask.setStatus(AgentTaskStatusEnum.GSE_TASK_TERMINATE_SUCCESS);
@@ -418,8 +432,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                     break;
                 default:
                     dealAgentFinish(agentId, agentResult, agentTask);
-                    int errCode = agentResult.getBk_error_code();
-                    int exitCode = getExitCode(agentResult.getExitcode());
+                    int errCode = agentResult.getErrorCode();
+                    int exitCode = agentResult.getExitCode();
                     if (errCode == 0) {
                         if (exitCode != 0) {
                             agentTask.setStatus(AgentTaskStatusEnum.SCRIPT_NOT_ZERO_EXIT_CODE);
@@ -433,8 +447,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         }
     }
 
-    private void parseVariableValueFromResult(api_agent_task_rst agentTaskResult, String agentId) {
-        if (agentTaskResult.getAtomic_task_id() == 1
+    private void parseVariableValueFromResult(ScriptAgentTaskResult agentTaskResult, String agentId) {
+        if (agentTaskResult.getAtomicTaskId() == 1
             && agentTaskResult.getStatus() == GSECode.Status.SUCCESS.getValue()) {
             String paramsContent = agentTaskResult.getScreen();
             if (!StringUtils.isEmpty(paramsContent)) {
@@ -549,9 +563,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         return variableValues;
     }
 
-    private void dealAgentFinish(String agentId, api_agent_task_rst agentTaskResult, AgentTaskDTO agentTask) {
-        dealTargetAgentFinish(agentId, agentTaskResult.getStart_time(), agentTaskResult.getEnd_time(), agentTask);
-        agentTask.setExitCode(getExitCode(agentTaskResult.getExitcode()));
+    private void dealAgentFinish(String agentId, ScriptAgentTaskResult agentTaskResult, AgentTaskDTO agentTask) {
+        dealTargetAgentFinish(agentId, agentTaskResult.getStartTime(), agentTaskResult.getEndTime(), agentTask);
+        agentTask.setExitCode(getExitCode(agentTaskResult.getExitCode()));
     }
 
     private int getExitCode(int exitCode) {
@@ -580,7 +594,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             progress = new LogPullProgress();
             logPullProgressMap.put(agentId, progress);
         }
-        int prevMid = progress.getMid();
+        int prevMid = progress.getAtomicTaskId();
         if (prevMid != mid) {
             //重置offset
             progress.setByteOffset(0);
@@ -588,7 +602,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             progress.setByteOffset(progress.getByteOffset() + increase);
         }
         progress.setAgentId(agentId);
-        progress.setMid(mid);
+        progress.setAtomicTaskId(mid);
     }
 
     /*
@@ -600,7 +614,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         if (this.notStartedTargetAgentIds.isEmpty() && this.runningTargetAgentIds.isEmpty()) {
             int targetAgentNum = this.targetAgentIds.size();
             int successTargetAgentNum = this.successTargetAgentIds.size();
-            boolean isSuccess = !stepInstance.hasInvalidHost() && successTargetAgentNum == targetAgentNum;
+            boolean isSuccess = successTargetAgentNum == targetAgentNum;
             if (isSuccess) {
                 rst = GseTaskExecuteResult.SUCCESS;
             } else {
@@ -626,8 +640,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         if (StringUtils.isNotEmpty(errorMsg)) {
             List<ServiceScriptLogDTO> scriptLogs = unfinishedAgentIds.stream().map(agentId -> {
                 AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
-                return logService.buildSystemScriptLog(agentTask.getHost(), errorMsg, agentTask.getScriptLogOffset(),
-                    endTime);
+                return logService.buildSystemScriptLog(agentTask.getHost().getHostId(), errorMsg,
+                    agentTask.getScriptLogOffset(), endTime);
             }).collect(Collectors.toList());
             logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), scriptLogs);

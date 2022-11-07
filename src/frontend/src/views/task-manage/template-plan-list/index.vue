@@ -29,12 +29,15 @@
     <div>
         <plan-list ref="list" />
         <element-teleport v-if="templateName">
-            <div style="padding-left: 10px; font-size: 12px; color: #63656e;">（{{ templateName }}）</div>
+            <div style="padding-left: 10px; font-size: 12px; color: #63656e;">
+                （{{ templateName }}）
+            </div>
         </element-teleport>
     </div>
 </template>
 <script>
     import TaskManageService from '@service/task-manage';
+
     import PlanList from '../common/plan/list';
 
     export default {

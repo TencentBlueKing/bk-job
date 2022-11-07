@@ -25,6 +25,8 @@
 package com.tencent.bk.job.manage.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -34,18 +36,18 @@ import lombok.ToString;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @date 2019/1/31
- */
 @Getter
 @Setter
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CcTopologyNodeVO {
     private Long instanceId;
     private String instanceName;
     private String objectId;
     private String objectName;
+    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
     private Boolean expanded = true;
+    private Boolean lazy = false;
     private List<CcTopologyNodeVO> child;
 
     @ApiModelProperty("节点包含的 IP 列表")

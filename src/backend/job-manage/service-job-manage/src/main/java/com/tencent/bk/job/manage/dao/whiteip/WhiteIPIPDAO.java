@@ -25,22 +25,19 @@
 package com.tencent.bk.job.manage.dao.whiteip;
 
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface WhiteIPIPDAO {
-    Long insertWhiteIPIP(DSLContext dslContext, WhiteIPIPDTO whiteIPIPDTO);
+    void insertWhiteIPIP(WhiteIPIPDTO whiteIPIPDTO);
 
-    int deleteWhiteIPIPById(DSLContext dslContext, Long id);
+    int deleteWhiteIPIPByRecordId(Long recordId);
 
-    int deleteWhiteIPIPByRecordId(DSLContext dslContext, Long recordId);
+    List<WhiteIPIPDTO> getWhiteIPIPByRecordId(Long recordId);
 
-    WhiteIPIPDTO getWhiteIPIPById(DSLContext dslContext, Long id);
+    List<WhiteIPIPDTO> listWhiteIPIPByRecordIds(List<Long> recordIdList);
 
-    List<WhiteIPIPDTO> getWhiteIPIPByRecordId(DSLContext dslContext, Long recordId);
+    List<WhiteIPIPDTO> listWhiteIPIPWithNullHostId(int start, int limit);
 
-    int updateWhiteIPIPById(DSLContext dslContext, WhiteIPIPDTO whiteIPIPDTO);
-
-    List<WhiteIPIPDTO> listWhiteIPIPByRecordIds(DSLContext dslContext, List<Long> recordIdList);
+    int updateHostIdById(Long id, Long hostId);
 }

@@ -26,48 +26,58 @@
 -->
 
 <template>
-    <card-layout class="execute-fail-dashboard" :title="$t('dashboard.累计执行失败次数')">
-        <render-trend metric="FAILED_TASK_COUNT" :date="date" />
+    <card-layout
+        class="execute-fail-dashboard"
+        :title="$t('dashboard.累计执行失败次数')">
+        <render-trend
+            :date="date"
+            metric="FAILED_TASK_COUNT" />
         <div slot="extend">
             <Icon
-                type="line-chart-line"
                 v-bk-tooltips="$t('dashboard.查看趋势图')"
+                type="line-chart-line"
                 @click="handleShowTrend" />
             <Icon
-                type="table-line"
                 v-bk-tooltips="$t('dashboard.查看列表')"
+                type="table-line"
                 @click="handleShowList" />
         </div>
         <trend-dialog
             v-model="isShowTrend"
+            :date="date"
             metric="FAILED_TASK_COUNT"
-            :title="$t('dashboard.累计执行失败次数趋势图')"
             :name="$t('dashboard.累计执行失败次数')"
-            :date="date" />
-        <lower-component level="custom" :custom="isShowList">
+            :title="$t('dashboard.累计执行失败次数趋势图')" />
+        <lower-component
+            :custom="isShowList"
+            level="custom">
             <jb-dialog
                 v-model="isShowList"
-                :title="$t('dashboard.累计执行失败次数列表')"
-                :width="520"
+                header-position="left"
                 :show-footer="false"
-                header-position="left">
-                <div style="margin-top: 12px;" v-bkloading="{ isLoading, opacity: 0.8 }">
-                    <bk-table :data="listData" :max-height="420">
+                :title="$t('dashboard.累计执行失败次数列表')"
+                :width="520">
+                <div
+                    v-bkloading="{ isLoading, opacity: 0.8 }"
+                    style="margin-top: 12px;">
+                    <bk-table
+                        :data="listData"
+                        :max-height="420">
                         <bk-table-column
-                            :label="$t('dashboard.业务名')"
-                            prop="scopeName"
                             key="scopeName"
-                            align="left" />
+                            align="left"
+                            :label="$t('dashboard.业务名')"
+                            prop="scopeName" />
                         <bk-table-column
-                            :label="$t('dashboard.失败次数')"
-                            prop="value"
                             key="value"
-                            align="left" />
+                            align="left"
+                            :label="$t('dashboard.失败次数')"
+                            prop="value" />
                         <bk-table-column
-                            :label="$t('dashboard.占比')"
-                            prop="ratio"
                             key="ratio"
-                            align="left" />
+                            align="left"
+                            :label="$t('dashboard.占比')"
+                            prop="ratio" />
                     </bk-table>
                 </div>
             </jb-dialog>
@@ -76,6 +86,7 @@
 </template>
 <script>
     import StatisticsService from '@service/statistics';
+
     import CardLayout from '../card-layout';
     import RenderTrend from '../common/render-trend';
     import TrendDialog from '../common/trend-dialog';

@@ -191,7 +191,7 @@ public class LogExportServiceImpl implements LogExportService {
         watch.start("listJobIps");
         List<AgentTaskDTO> gseAgentTasks = new ArrayList<>();
         if (isGetByHost) {
-            HostDTO host = HostDTO.fromHostIdAndCloudIp(hostId, ip);
+            HostDTO host = HostDTO.fromHostIdOrCloudIp(hostId, ip);
             AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, null,
                 host);
             if (agentTask != null) {

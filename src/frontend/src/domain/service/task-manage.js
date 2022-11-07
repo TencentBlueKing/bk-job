@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import TaskManageSource from '../source/task-manage';
 import TaskModel from '@model/task/task';
+
+import TaskManageSource from '../source/task-manage';
 
 export default {
     taskList (params = {}) {

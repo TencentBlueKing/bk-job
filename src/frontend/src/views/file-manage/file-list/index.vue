@@ -29,11 +29,13 @@
     <div class="file-node-list-page">
         <list-action-layout>
             <jb-breadcrumb
+                :key="`${fileSourceInfo.alias}_${path}`"
                 class="list-breadcrumb"
-                @on-last="handleBackLast"
-                :key="`${fileSourceInfo.alias}_${path}`">
+                @on-last="handleBackLast">
                 <jb-breadcrumb-item>
-                    <Icon type="folder-open" style="font-size: 20px;" />
+                    <Icon
+                        style="font-size: 20px;"
+                        type="folder-open" />
                     <span @click="handleGoFileSource">{{ $t('file.文件源列表') }}</span>
                 </jb-breadcrumb-item>
                 <jb-breadcrumb-item>
@@ -41,17 +43,17 @@
                 </jb-breadcrumb-item>
                 <jb-breadcrumb-item
                     v-for="(item) in pathStack"
-                    role="path"
-                    :key="item.path">
+                    :key="item.path"
+                    role="path">
                     <span @click="handlePathLocation(item.path)">{{ item.name }}</span>
                 </jb-breadcrumb-item>
             </jb-breadcrumb>
             <template #right>
                 <jb-input
-                    :placeholder="$t('file.搜索关键字')"
-                    :value="name"
                     enter-trigger
+                    :placeholder="$t('file.搜索关键字')"
                     style="width: 480px;"
+                    :value="name"
                     @submit="handleSearch" />
             </template>
         </list-action-layout>
@@ -59,26 +61,28 @@
             ref="list"
             :data-source="getBucketList"
             @on-refresh="handleListRefresh">
-            <template v-for="(column, index) in renderColumns">
-                <render-file-list-column
-                    :column="column"
-                    :key="`${path}_${index}`"
-                    :file-source-id="fileSourceId"
-                    :link-handler="handleLink"
-                    :action-handler="handleAction"
-                    @on-link="handleLink"
-                    @on-action="handleAction" />
-            </template>
+            <render-file-list-column
+                v-for="(column, index) in renderColumns"
+                :key="`${path}_${index}`"
+                :action-handler="handleAction"
+                :column="column"
+                :file-source-id="fileSourceId"
+                :link-handler="handleLink"
+                @on-action="handleAction"
+                @on-link="handleLink" />
         </render-list>
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import FileService from '@service/file';
+
     import ListActionLayout from '@components/list-action-layout';
-    import RenderList from '@components/render-list';
     import RenderFileListColumn from '@components/render-file-list-column';
+    import RenderList from '@components/render-list';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'FileList',

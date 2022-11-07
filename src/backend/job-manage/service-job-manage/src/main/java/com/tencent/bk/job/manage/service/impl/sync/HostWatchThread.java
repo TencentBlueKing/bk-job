@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
@@ -69,7 +69,7 @@ public class HostWatchThread extends Thread {
 
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStateClient agentStateClient;
     private final RedisTemplate<String, String> redisTemplate;
     private final HostCache hostCache;
     private final String REDIS_KEY_RESOURCE_WATCH_HOST_JOB_RUNNING_MACHINE = "resource-watch-host-job-running-machine";
@@ -80,12 +80,12 @@ public class HostWatchThread extends Thread {
 
     public HostWatchThread(ApplicationService applicationService,
                            ApplicationHostDAO applicationHostDAO,
-                           QueryAgentStatusClient queryAgentStatusClient,
+                           AgentStateClient agentStateClient,
                            RedisTemplate<String, String> redisTemplate,
                            HostCache hostCache) {
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.agentStateClient = agentStateClient;
         this.redisTemplate = redisTemplate;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostWatchThread-" + instanceNum.getAndIncrement());
@@ -98,7 +98,7 @@ public class HostWatchThread extends Thread {
             appHostEventQueue,
             applicationService,
             applicationHostDAO,
-            queryAgentStatusClient,
+            agentStateClient,
             hostCache
         );
     }

@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -37,7 +38,6 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
-import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -106,76 +106,42 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         ipLogs.setTaskInstanceId(taskInstanceId);
         ipLogs.setStepInstanceId(request.getStepInstanceId());
 
+        List<HostDTO> queryHosts = buildQueryHosts(request);
+
         if (stepInstance.isScriptStep()) {
-            buildScriptLogs(ipLogs, stepInstance, request.getIpList());
+            buildScriptLogs(ipLogs, stepInstance, queryHosts);
         } else if (stepInstance.isFileStep()) {
-            buildFileLogs(ipLogs, stepInstance, request.getIpList());
+            buildFileLogs(ipLogs, stepInstance, queryHosts);
         }
         return EsbResp.buildSuccessResp(ipLogs);
     }
 
     private ValidateResult checkRequest(EsbBatchGetJobInstanceIpLogV3Request request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("App is empty or illegal, appId={}", request.getAppId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
-        if (request.getTaskInstanceId() == null || request.getTaskInstanceId() < 1) {
-            log.warn("TaskInstanceId is empty or illegal, taskInstanceId={}", request.getTaskInstanceId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
-        }
-        if (request.getStepInstanceId() == null || request.getStepInstanceId() < 1) {
-            log.warn("StepInstanceId is empty or illegal, stepInstanceId={}", request.getStepInstanceId());
+        if (CollectionUtils.isEmpty(request.getHostIdList()) && CollectionUtils.isEmpty(request.getIpList())) {
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
-                "step_instance_id");
+                "host_id_list/ip_list");
         }
 
-        ValidateResult ipCheckResult = checkIps(request.getIpList());
-        if (!ipCheckResult.isPass()) {
-            return ipCheckResult;
-        }
-
-        int ipSize = request.getIpList().size();
-        if (ipSize > 500) {
-            log.warn("IpList size is gt 500, stepInstanceId={}, size: {}", request.getStepInstanceId(), ipSize);
+        int queryHostSize = CollectionUtils.isNotEmpty(request.getHostIdList()) ?
+            request.getHostIdList().size() : request.getIpList().size();
+        if (queryHostSize > 500) {
+            log.warn("Host size is gt 500, stepInstanceId={}, size: {}", request.getStepInstanceId(), queryHostSize);
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
-                "ip_list");
+                "host_id_list/ip_list");
         }
 
-        return ValidateResult.pass();
-     }
-
-    private ValidateResult checkIps(List<EsbIpDTO> cloudIpList) {
-        if (CollectionUtils.isEmpty(cloudIpList)) {
-            log.warn("IpList is empty ");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "ip_list");
-        }
-        for (EsbIpDTO cloudIp : cloudIpList) {
-            if (cloudIp.getBkCloudId() == null || cloudIp.getBkCloudId() < 0) {
-                log.warn("CloudAreaId is empty or illegal, cloudAreaId={}", cloudIp.getBkCloudId());
-                return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
-                    "bk_cloud_id");
-            }
-            if (StringUtils.isBlank(cloudIp.getIp())) {
-                log.warn("Ip is empty");
-                return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "ip");
-            }
-            if (!IpUtils.checkIp(cloudIp.getIp())) {
-                log.warn("Ip is illegal, ip={}", cloudIp.getIp());
-                return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "ip");
-            }
-        }
         return ValidateResult.pass();
     }
-    private void buildScriptLogs(EsbIpLogsV3DTO ipLogs, StepInstanceBaseDTO stepInstance,
-                                 List<EsbIpDTO> ipList) {
+
+    private void buildScriptLogs(EsbIpLogsV3DTO ipLogs,
+                                 StepInstanceBaseDTO stepInstance,
+                                 List<HostDTO> queryHosts) {
         ipLogs.setLogType(LogTypeEnum.SCRIPT.getValue());
 
         String jobCreateDate = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         List<ScriptHostLogContent> ipLogContentList = logService.batchGetScriptHostLogContent(jobCreateDate,
-            stepInstance.getId(), stepInstance.getExecuteCount(), null,
-            ipList.stream().map(cloudIp -> new HostDTO(cloudIp.getBkCloudId(), cloudIp.getIp()))
-                .collect(Collectors.toList()));
+            stepInstance.getId(), stepInstance.getExecuteCount(), null, queryHosts);
 
         if (CollectionUtils.isEmpty(ipLogContentList)) {
             return;
@@ -192,14 +158,26 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         ipLogs.setScriptTaskLogs(scriptTaskLogs);
     }
 
+    private List<HostDTO> buildQueryHosts(EsbBatchGetJobInstanceIpLogV3Request request) {
+        if (CollectionUtils.isNotEmpty(request.getHostIdList())) {
+            return request.getHostIdList().stream()
+                .map(HostDTO::fromHostId)
+                .distinct()
+                .collect(Collectors.toList());
+        } else {
+            return request.getIpList().stream()
+                .map(hostIp -> new HostDTO(hostIp.getBkCloudId(), hostIp.getIp()))
+                .distinct()
+                .collect(Collectors.toList());
+        }
+    }
+
     private void buildFileLogs(EsbIpLogsV3DTO esbIpLogs, StepInstanceBaseDTO stepInstance,
-                               List<EsbIpDTO> ipList) {
+                               List<HostDTO> queryHosts) {
         esbIpLogs.setLogType(LogTypeEnum.FILE.getValue());
 
         ServiceHostLogsDTO ipLogs = logService.batchGetFileIpLogContent(
-            stepInstance.getId(), stepInstance.getExecuteCount(), null,
-            ipList.stream().map(cloudIp -> new HostDTO(cloudIp.getBkCloudId(), cloudIp.getIp()))
-                .collect(Collectors.toList()));
+            stepInstance.getId(), stepInstance.getExecuteCount(), null, queryHosts);
 
         if (ipLogs == null || CollectionUtils.isEmpty(ipLogs.getIpLogs())) {
             return;
@@ -225,8 +203,8 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
     private EsbFileLogV3DTO toEsbFileLogV3DTO(ServiceFileTaskLogDTO fileTaskLog) {
         EsbFileLogV3DTO fileLog = new EsbFileLogV3DTO();
         fileLog.setMode(fileTaskLog.getMode());
-        if (StringUtils.isNotBlank(fileTaskLog.getDisplaySrcIp())) {
-            EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDisplaySrcIp());
+        if (StringUtils.isNotBlank(fileTaskLog.getSrcIp())) {
+            EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getSrcIp());
             if (srcIp != null) {
                 fileLog.setSrcIp(srcIp);
             }

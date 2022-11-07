@@ -28,57 +28,58 @@
 <template>
     <jb-form form-type="vertical">
         <jb-form-item
+            :desc="nametips"
             :label="$t('template.变量类型')"
-            required
-            :desc="nametips">
+            required>
             <bk-radio-group v-model="globalType">
                 <bk-radio-button
                     class="item"
-                    value="string"
                     :disabled="isTypeDisabled"
-                    :name="$t('template.字符串')">
+                    :name="$t('template.字符串')"
+                    value="string">
                     {{ $t('template.字符串') }}
                 </bk-radio-button>
                 <bk-radio-button
                     class="item"
-                    value="namespace"
-                    :disabled="isTypeDisabled">
+                    :disabled="isTypeDisabled"
+                    value="namespace">
                     {{ $t('template.命名空间') }}
                 </bk-radio-button>
                 <bk-radio-button
                     class="item"
-                    value="host"
-                    :disabled="isTypeDisabled">
+                    :disabled="isTypeDisabled"
+                    value="host">
                     {{ $t('template.主机列表') }}
                 </bk-radio-button>
                 <bk-radio-button
                     class="item"
-                    value="password"
-                    :disabled="isTypeDisabled">
+                    :disabled="isTypeDisabled"
+                    value="password">
                     {{ $t('template.密文') }}
                 </bk-radio-button>
                 <bk-radio-button
                     class="item"
-                    value="array"
-                    :disabled="isTypeDisabled">
+                    :disabled="isTypeDisabled"
+                    value="array">
                     {{ $t('template.数组') }}
                 </bk-radio-button>
             </bk-radio-group>
         </jb-form-item>
         <component
-            ref="handler"
             :is="globalVarCom"
-            :variable="variable"
-            :data="data" />
+            ref="handler"
+            :data="data"
+            :variable="variable" />
     </jb-form>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import VarString from './string';
-    import VarNamespace from './namespace';
-    import VarHost from './host';
-    import VarPassword from './password';
     import VarArray from './array';
+    import VarHost from './host';
+    import VarNamespace from './namespace';
+    import VarPassword from './password';
+    import VarString from './string';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'GlobalVar',

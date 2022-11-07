@@ -130,7 +130,7 @@ public class ManagePublicScriptPermissionMigrationTask extends BaseUpgradeTask {
     }
 
     @Override
-    public int execute(String[] args) {
+    public boolean execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         String oldActionId = "manage_public_script";
         // 1.旧权限数据读取
@@ -156,6 +156,6 @@ public class ManagePublicScriptPermissionMigrationTask extends BaseUpgradeTask {
         log.info("newAuthorizedPolicies:");
         showPolicies(newAuthorizedPolicies);
         printSeparateLine();
-        return 0;
+        return true;
     }
 }

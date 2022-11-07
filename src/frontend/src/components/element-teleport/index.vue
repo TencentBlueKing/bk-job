@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <span ref="source" style="display: none;">
+    <span
+        ref="source"
+        style="display: none;">
         <slot />
     </span>
 </template>

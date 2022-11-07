@@ -19,7 +19,7 @@ body {
     font-size: 12px;
     line-height: 1.4285;
     letter-spacing: 0.4px;
-    text-rendering: optimizeLegibility;
+    text-rendering: optimizelegibility;
     background: #f5f6fa;
     -webkit-tap-highlight-color: transparent;
 }
@@ -77,6 +77,6 @@ th {
     padding: 0;
 }
 
-.job-icon{
+.job-icon {
     letter-spacing: initial;
 }
