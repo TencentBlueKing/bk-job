@@ -27,8 +27,8 @@ package com.tencent.bk.job.manage.api.migration.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.migration.AddHostIdForTemplateAndPlanMigrationTask;
 import com.tencent.bk.job.manage.migration.AddHostIdForWhiteIpMigrationTask;
-import com.tencent.bk.job.manage.migration.AddHostIdMigrationTask;
 import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
 import com.tencent.bk.job.manage.migration.UpdateAppIdForWhiteIpMigrationTask;
@@ -58,7 +58,7 @@ public class MigrationResource {
     private final EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask;
     private final ResourceTagsMigrationTask resourceTagsMigrationTask;
     private final BizSetService bizSetService;
-    private final AddHostIdMigrationTask addHostIdMigrationTask;
+    private final AddHostIdForTemplateAndPlanMigrationTask addHostIdForTemplateAndPlanMigrationTask;
     private final UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask;
     private final AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask;
 
@@ -67,13 +67,13 @@ public class MigrationResource {
         EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask,
         ResourceTagsMigrationTask resourceTagsMigrationTask,
         BizSetService bizSetService,
-        AddHostIdMigrationTask addHostIdMigrationTask,
+        AddHostIdForTemplateAndPlanMigrationTask addHostIdForTemplateAndPlanMigrationTask,
         UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask,
         AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask) {
         this.encryptDbAccountPasswordMigrationTask = encryptDbAccountPasswordMigrationTask;
         this.resourceTagsMigrationTask = resourceTagsMigrationTask;
         this.bizSetService = bizSetService;
-        this.addHostIdMigrationTask = addHostIdMigrationTask;
+        this.addHostIdForTemplateAndPlanMigrationTask = addHostIdForTemplateAndPlanMigrationTask;
         this.updateAppIdForWhiteIpMigrationTask = updateAppIdForWhiteIpMigrationTask;
         this.addHostIdForWhiteIpMigrationTask = addHostIdForWhiteIpMigrationTask;
     }
@@ -122,7 +122,7 @@ public class MigrationResource {
     public Response<String> addHostIdMigrationTask(@RequestBody AddHostIdMigrationReq req) {
         List<MigrationRecordsResult> results = new ArrayList<>();
         results.add(addHostIdForWhiteIpMigrationTask.execute(req.isDryRun()));
-        results.addAll(addHostIdMigrationTask.execute(req.isDryRun()));
+        results.addAll(addHostIdForTemplateAndPlanMigrationTask.execute(req.isDryRun()));
         boolean success = results.stream().allMatch(MigrationRecordsResult::isSuccess);
         return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
             Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"AddHostIdMigrationTask",

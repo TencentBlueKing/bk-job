@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.util;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,24 @@ public class ListUtilTest {
         assertThat(pair.getLeft().size() + pair.getRight().size() == list.size());
         pair.getLeft().forEach(s -> assertThat(s.contains("a")));
         pair.getRight().forEach(s -> assertThat(s == null || !s.contains("a")));
+    }
+
+    @Test
+    void testUnion() {
+        List<String> list1 = null;
+        List<String> list2 = null;
+        List<String> result = ListUtil.union(list1, list2);
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+
+
+        list1 = Lists.newArrayList("a", "b");
+        result = ListUtil.union(list1, list2);
+        assertThat(result).containsOnly("a", "b");
+
+        list2 = Lists.newArrayList("c", "d");
+        result = ListUtil.union(list1, list2);
+        assertThat(result).containsOnly("a", "b", "c", "d");
     }
 
 }
