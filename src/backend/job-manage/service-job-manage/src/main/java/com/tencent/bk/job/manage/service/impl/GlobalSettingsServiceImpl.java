@@ -112,7 +112,7 @@ import java.util.stream.Collectors;
 @Service
 public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
-    private static final Pattern PATTERN = Pattern.compile("^([+\\-]?\\d+)([a-zA-Z]{0,2})$");
+    private static final Pattern PATTERN = Pattern.compile("^([.0-9]+)([a-zA-Z]{0,2})$");
     private static final String STRING_TPL_KEY_CURRENT_VERSION = "current_ver";
     private static final String STRING_TPL_KEY_CURRENT_YEAR = "current_year";
     private final DSLContext dslContext;
