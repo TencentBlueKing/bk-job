@@ -55,12 +55,12 @@ public class FileUploadSettingReq {
     private StorageUnitEnum unit;
 
     @ApiModelProperty("限制模式，0:禁止范围，1：允许范围，-1：不限制")
-    @CheckEnum(enumClass = RestrictModeEnum.class, enumMethod = "isValid", message = "{validation.constraints" +
-        ".InvalidUploadFileRestrictMode.message}")
+    @CheckEnum(enumClass = RestrictModeEnum.class, enumMethod = "isValid",
+        message = "{validation.constraints.InvalidUploadFileRestrictMode.message}")
     private Integer restrictMode;
 
     @ApiModelProperty("后缀列表")
-    private List<@Pattern(regexp = "^\\.[A-Za-z0-9_-]{1,24}$", message = "{validation.constraints" +
-        ".InvalidUploadFileSuffix.message}") String> suffixList;
+    private List<@Pattern(regexp = "^\\.[A-Za-z0-9_-]{1,24}$",
+        message = "{validation.constraints.InvalidUploadFileSuffix.message}") String> suffixList;
 
 }
