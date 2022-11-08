@@ -302,15 +302,24 @@ public class HostServiceImpl implements HostService {
         return applicationHostDAO.listHostInfoByPage(applicationHostInfoCondition, baseSearchCondition);
     }
 
+    private CcTopologyNodeVO fillBizOrBizSetNode(ApplicationDTO appInfo, CcTopologyNodeVO node) {
+        if (appInfo.isBiz()) {
+            node.setObjectId("biz");
+            node.setObjectName(i18nService.getI18n("cmdb.object.name.biz"));
+        } else if (appInfo.isBizSet()) {
+            node.setObjectId("biz_set");
+            node.setObjectName(i18nService.getI18n("cmdb.object.name.biz_set"));
+        }
+        return node;
+    }
+
     @Override
     public CcTopologyNodeVO listAppTopologyTree(String username, AppResourceScope appResourceScope) {
         ApplicationDTO appInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
         if (appInfo == null) {
             throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
-        CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
-        ccTopologyNodeVO.setObjectId("biz");
-        ccTopologyNodeVO.setObjectName(i18nService.getI18n("cmdb.object.name.biz"));
+        CcTopologyNodeVO ccTopologyNodeVO = fillBizOrBizSetNode(appInfo, new CcTopologyNodeVO());
         ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
         ccTopologyNodeVO.setInstanceName(appInfo.getName());
         if (appInfo.isAllBizSet()) {
