@@ -29,9 +29,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.ToString;
+import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import java.util.List;
 
 @Data
@@ -82,8 +81,7 @@ public class AccountCreateUpdateReq {
     private String password;
 
     @ApiModelProperty(value = "DB端口,创建/更新DB账号的时候必传")
-    @Min(value = 0, message = "{validation.constraints.InvalidPort.message}")
-    @Max(value = 65536, message = "{validation.constraints.InvalidPort.message}")
+    @Range(min = 0, max = 65536, message = "{validation.constraints.InvalidPort.message}")
     private Integer dbPort;
 
     @ApiModelProperty(value = "DB账号关联的系统账号,创建/更新DB账号的时候必传")
