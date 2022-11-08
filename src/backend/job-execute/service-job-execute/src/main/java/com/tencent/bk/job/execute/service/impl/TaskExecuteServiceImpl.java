@@ -455,6 +455,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             String checkResultSummary =
                 dangerousScriptCheckService.summaryDangerousScriptCheckResult(stepInstance.getName(), checkResultItems);
             if (StringUtils.isNotBlank(checkResultSummary)) {
+                log.info("Script match dangerous rule, checkResult: {}", checkResultItems);
                 dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
                 if (dangerousScriptCheckService.shouldIntercept(checkResultItems)) {
                     throw new AbortedException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION,

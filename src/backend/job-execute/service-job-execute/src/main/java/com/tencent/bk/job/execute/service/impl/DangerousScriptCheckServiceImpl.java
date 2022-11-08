@@ -74,14 +74,9 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
 
     @Override
     public List<ServiceScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content) {
-        try {
-            InternalResponse<List<ServiceScriptCheckResultItemDTO>> response =
-                scriptCheckResourceClient.check(new ServiceCheckScriptRequest(content, scriptType.getValue()));
-            return response.isSuccess() ? response.getData() : Collections.emptyList();
-        } catch (Throwable e) {
-            // 服务降级，返回空的检查结果
-            return Collections.emptyList();
-        }
+        InternalResponse<List<ServiceScriptCheckResultItemDTO>> response =
+            scriptCheckResourceClient.check(new ServiceCheckScriptRequest(content, scriptType.getValue()));
+        return response.isSuccess() ? response.getData() : Collections.emptyList();
     }
 
     @Override
