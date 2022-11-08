@@ -88,6 +88,7 @@
             <bk-input
                 :placeholder="parent.$t('account.输入确认端口')"
                 type="number"
+                :min="1"
                 :value="props.formData.dbPort"
                 @change="value => props.change('dbPort', value)" />
         </jb-form-item>
