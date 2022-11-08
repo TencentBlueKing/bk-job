@@ -59,6 +59,15 @@ public enum JobActionEnum {
         this.value = val;
     }
 
+    public static JobActionEnum valueOf(int value) {
+        for (JobActionEnum jobAction : values()) {
+            if (jobAction.getValue() == value) {
+                return jobAction;
+            }
+        }
+        throw new IllegalArgumentException("No JobActionEnum constant: " + value);
+    }
+
     public int getValue() {
         return value;
     }

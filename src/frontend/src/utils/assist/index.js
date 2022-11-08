@@ -23,8 +23,8 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import { messageSuccess } from '@/common/bkmagic';
+import I18n from '@/i18n';
 
 export * from './permission';
 export * from './leave-confirm';
@@ -38,6 +38,8 @@ export * from './script-error-confirm';
 export * from './byte-pretty';
 export * from './format';
 export * from './calc-text-width';
+export * from './ordinal-suffix-of';
+export * from './make-map';
 
 export const isMac = () => /macintosh|mac os x/i.test(navigator.userAgent);
 

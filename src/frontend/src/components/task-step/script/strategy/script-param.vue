@@ -29,16 +29,16 @@
     <jb-form-item :label="$t('脚本参数')">
         <div class="muti-item">
             <jb-input
+                :maxlength="5000"
                 :placeholder="$t('脚本执行时传入的参数，同脚本在终端执行时的传参格式，如：./test.sh xxxx xxx xxx')"
-                @change="handleParamChange"
                 :type="paramType"
                 :value="formData[paramField]"
-                :maxlength="5000" />
+                @change="handleParamChange" />
             <bk-checkbox
                 class="muti-checkbox"
-                :value="formData[secureField]"
-                :true-value="1"
                 :false-value="0"
+                :true-value="1"
+                :value="formData[secureField]"
                 @change="handleSecureParam">
                 {{ $t('敏感参数') }}
             </bk-checkbox>

@@ -28,7 +28,6 @@ import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.DSLContext;
-import org.jooq.Field;
 import org.jooq.Loader;
 import org.jooq.LoaderError;
 import org.jooq.TableRecord;
@@ -38,9 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * @since 17/3/2021 15:46
- */
+
 @Slf4j
 public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
 
@@ -54,8 +51,7 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
     }
 
     @Override
-    public Integer batchInsert(List<Field<?>> fieldList, List<? extends TableRecord<?>> recordList, int bulkSize)
-        throws IOException {
+    public Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize) throws IOException {
         long start = System.currentTimeMillis();
         int executeResult = 0;
         String table = recordList.get(0).getTable().getName();
@@ -66,7 +62,7 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
                     .onErrorIgnore()
                     .bulkAfter(bulkSize)
                     .loadRecords(recordList)
-                    .fields(fieldList)
+                    .fieldsCorresponding()
                     .execute();
             executeResult = loader.stored();
             log.info("Load {} data result|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}", table,

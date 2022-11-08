@@ -410,9 +410,13 @@ bkIamApiUrl: "http://bkiam-api.example.com"
 bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
 bkNodemanUrl: "http://nodeman.example.com"
+# 蓝鲸 GSE API Gateway url
+bkGseApiGatewayUrl: "http://bkapi.example.com"
 
 ## 蓝鲸GSE参数配置
 gse:
+  # Job 对接的 GSE 版本 (v1/v2)
+  version: "v2"
   # 已存在的Tls证书Secret名称
   existingTlsSecret: ""
   # Agent状态查询接口相关配置
@@ -570,6 +574,16 @@ job:
       esbApiParamBkBizId:
         # 是否兼容bk_biz_id参数
         enabled: true
+  trace:
+    report:
+      # 是否上报Trace数据至监控平台APM应用，默认不上报
+      enabled: false
+      # 监控平台中目标APM应用的PUSH URL
+      pushUrl: ""
+      # 监控平台中目标APM应用的SecureKey
+      secureKey: ""
+      # Trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
+      ratio: 0.1
 
   migration:
     iamModel:
@@ -1147,7 +1161,7 @@ fileWorkerConfig:
     targetMemory: 50
   containerPort: 19810
   service:
-    port: 80
+    port: 19810
     type: ClusterIP
   swaggerUrl: ""
   # 实例名称

@@ -197,13 +197,8 @@ build_backend_module () {
     fi
     rm -rf tmp/*
     cp $BACKEND_DIR/release/$SERVICE-$VERSION.jar tmp/$SERVICE.jar
-    if [[ ${SERVICE} == "job-file-worker" ]] ; then
-      cp file-worker/startup.sh tmp/
-      docker build -f file-worker/fileWorker.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
-    else
-      cp backend/startup.sh tmp/
-      docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
-    fi
+    cp backend/startup.sh backend/tini tmp/
+    docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/$SERVICE:$VERSION
     fi

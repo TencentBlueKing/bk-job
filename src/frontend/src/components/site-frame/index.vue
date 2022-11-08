@@ -34,7 +34,9 @@
         }">
         <div class="jb-navigation">
             <div class="jb-navigation-header">
-                <div class="header-left" :style="headerLeftStyles">
+                <div
+                    class="header-left"
+                    :style="headerLeftStyles">
                     <slot name="header" />
                 </div>
                 <div class="header-center">
@@ -62,12 +64,20 @@
                         @click="handleSideFixedToggle" />
                 </div>
             </div>
-            <div class="jb-navigation-main" :style="mainStyles">
-                <div class="jb-navigation-body-header" :style="bodyHeaderStyles">
+            <div
+                class="jb-navigation-main"
+                :style="mainStyles">
+                <div
+                    class="jb-navigation-body-header"
+                    :style="bodyHeaderStyles">
                     <slot name="contentHeader" />
                 </div>
-                <scroll-faker ref="contentScroll" :style="scrollStyles">
-                    <div class="jb-navigation-content" :style="contentStyles">
+                <scroll-faker
+                    ref="contentScroll"
+                    :style="scrollStyles">
+                    <div
+                        class="jb-navigation-content"
+                        :style="contentStyles">
                         <div class="navigation-content-wrapper">
                             <slot />
                         </div>
@@ -87,7 +97,7 @@
     const SIDE_LEFT_INEXPAND_WIDTH = 60;
 
     export default {
-        name: 'job-site-frame',
+        name: 'JobSiteFrame',
         props: {
             sideFixed: {
                 type: Boolean,

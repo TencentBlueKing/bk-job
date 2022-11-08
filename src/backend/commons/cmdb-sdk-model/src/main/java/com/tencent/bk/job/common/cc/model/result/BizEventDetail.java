@@ -25,8 +25,6 @@
 package com.tencent.bk.job.common.cc.model.result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -45,16 +43,10 @@ public class BizEventDetail {
     private Long bizId;
     @JsonProperty("bk_biz_name")
     private String appName;
-    @JsonProperty("bk_biz_maintainer")
-    private String maintainers;
     @JsonProperty("bk_supplier_account")
     private String supplierAccount;
     @JsonProperty("time_zone")
     private String timezone;
-    @JsonProperty("bk_operate_dept_id")
-    private Long operateDeptId;
-    @JsonProperty("bk_operate_dept_name")
-    private String operateDeptName;
     @JsonProperty("language")
     private String language;
 
@@ -62,12 +54,9 @@ public class BizEventDetail {
         ApplicationDTO applicationDTO = new ApplicationDTO();
         applicationDTO.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ,
             String.valueOf(bizEventDetail.getBizId())));
-        applicationDTO.setAppType(AppTypeEnum.NORMAL);
         applicationDTO.setName(bizEventDetail.getAppName());
-        applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(bizEventDetail.getMaintainers()));
         applicationDTO.setBkSupplierAccount(bizEventDetail.getSupplierAccount());
         applicationDTO.setTimeZone(bizEventDetail.getTimezone());
-        applicationDTO.setOperateDeptId(bizEventDetail.getOperateDeptId());
         applicationDTO.setLanguage(bizEventDetail.getLanguage());
         return applicationDTO;
     }

@@ -27,18 +27,32 @@
 
 <template>
     <div>
-        <smart-action class="edit-execute-plan" offset-target="detail-content">
+        <smart-action
+            class="dubug-exex-plan-page"
+            offset-target="detail-content">
             <detail-layout mode="see">
-                <detail-item :label="$t('template.全局变量：')" class="gloval-var-item">
+                <detail-item label="">
+                    <div
+                        class="detail-item-title"
+                        style="margin-bottom: 8px;">
+                        <span>{{ $t('template.全局变量.label') }}</span>
+                        <span>（ {{ variableList.length }} / {{ selectedVariable.length }} ）</span>
+                    </div>
                     <render-global-var
                         :list="variableList"
-                        :select-value="selectedVariable"
-                        mode="editOfPlan" />
+                        mode="editOfPlan"
+                        :select-value="selectedVariable" />
                 </detail-item>
-                <detail-item label="" class="task-step-item">
+                <detail-item
+                    class="task-step-item"
+                    label="">
                     <div class="task-step-selection">
-                        <!-- eslint-disable-next-line max-len -->
-                        <div>{{ $t('template.选择要调试的步骤') }}（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</div>
+                        <div
+                            class="detail-item-title"
+                            style="margin-bottom: 14px;">
+                            <span>{{ $t('template.选择要调试的步骤') }}</span>
+                            <span>（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</span>
+                        </div>
                         <div class="step-check">
                             <bk-button
                                 v-if="hasSelectAll"
@@ -56,17 +70,17 @@
                     </div>
                     <render-task-step
                         :list="taskStepList"
-                        :select-value="formData.enableSteps"
                         mode="select"
+                        :select-value="formData.enableSteps"
                         @on-select="handleSelectStep" />
                 </detail-item>
             </detail-layout>
             <template #action>
                 <div class="action-wraper">
                     <bk-button
-                        theme="primary"
                         class="w120 mr10"
                         :disabled="!enableStepsNotEmpty"
+                        theme="primary"
                         @click="handleSubmitExec">
                         {{ $t('template.去执行') }}
                     </bk-button>
@@ -80,17 +94,21 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
     import ExecPlanService from '@service/task-plan';
-    import BackTop from '@components/back-top';
-    import DetailLayout from '@components/detail-layout';
-    import DetailItem from '@components/detail-layout/item';
+
     import {
         findUsedVariable,
     } from '@utils/assist';
+
+    import BackTop from '@components/back-top';
+    import DetailLayout from '@components/detail-layout';
+    import DetailItem from '@components/detail-layout/item';
+
     import RenderGlobalVar from '../common/render-global-var';
     import RenderTaskStep from '../common/render-task-step';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         id: 0,
@@ -193,7 +211,7 @@
                         this.isExecuting = false;
                     });
             },
-            
+
             /**
              * @desc 选择模板步骤
              * @param {String} payload 模板步骤
@@ -254,7 +272,7 @@
                         this.isExecuting = false;
                     });
             },
-            
+
             /**
              * @desc 取消调试
              */
@@ -285,25 +303,23 @@
 <style lang='postcss'>
     @import "@/css/mixins/media";
 
-    .edit-execute-plan {
+    .dubug-exex-plan-page {
         padding-bottom: 20px;
 
-        .gloval-var-item {
-            margin-top: 20px;
+        .detail-item-title {
+            font-size: 16px;
+            line-height: 21px;
+            color: #313238;
         }
 
         .task-step-item {
-            margin-top: 20px;
+            margin-top: 40px;
             margin-bottom: 20px;
         }
 
         .task-step-selection {
             display: flex;
             width: 500px;
-            margin-bottom: 14px;
-            font-size: 16px;
-            line-height: 21px;
-            color: #313238;
 
             .step-check {
                 margin-left: auto;

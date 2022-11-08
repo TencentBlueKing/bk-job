@@ -31,9 +31,9 @@
             v-for="paramsItem in paramList"
             :key="paramsItem.name"
             :label="paramsItem.label"
+            property="fileSourceInfoMap"
             :required="paramsItem.required"
-            :rules="calcRules(paramsItem)"
-            property="fileSourceInfoMap">
+            :rules="calcRules(paramsItem)">
             <bk-input
                 :value="paramMap[paramsItem.name]"
                 @change="value => handleChange(paramsItem.name, value)" />

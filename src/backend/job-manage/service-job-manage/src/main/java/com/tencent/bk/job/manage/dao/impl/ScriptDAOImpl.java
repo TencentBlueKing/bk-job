@@ -287,11 +287,8 @@ public class ScriptDAOImpl implements ScriptDAO {
                 conditions.add(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId)));
             }
 
-            Boolean isPublic = scriptQuery.getPublicScript();
-            int publicFlag = ScriptScopeEnum.APP.getValue();
-            if (isPublic != null && isPublic) {
-                publicFlag = ScriptScopeEnum.PUBLIC.getValue();
-            }
+            int publicFlag = scriptQuery.isPublicScript() ? ScriptScopeEnum.PUBLIC.getValue() :
+                ScriptScopeEnum.APP.getValue();
             conditions.add(TB_SCRIPT.IS_PUBLIC.eq(UByte.valueOf(String.valueOf(publicFlag))));
         }
 

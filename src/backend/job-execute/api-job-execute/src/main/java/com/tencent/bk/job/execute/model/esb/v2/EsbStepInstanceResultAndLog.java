@@ -82,11 +82,11 @@ public class EsbStepInstanceResultAndLog {
          * ip 日志内容
          */
         @JsonProperty("ip_logs")
-        private List<IpLogDTO> ipLogs;
+        private List<EsbGseAgentTaskDTO> ipLogs;
     }
 
     @Data
-    public static class IpLogDTO {
+    public static class EsbGseAgentTaskDTO {
         /**
          * 开始执行时间，YYYY-MM-DD HH:mm:ss
          */

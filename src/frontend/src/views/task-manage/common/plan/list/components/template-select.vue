@@ -27,32 +27,41 @@
 
 <template>
     <jb-dialog
-        :value="value"
         class="template-select-dialog"
-        :title="$t('template.新建执行方案')"
-        header-position="left"
-        render-directive="if"
-        :mask-close="false"
-        :esc-close="false"
-        :width="480"
         :draggable="false"
+        :esc-close="false"
+        header-position="left"
+        :mask-close="false"
+        render-directive="if"
+        :title="$t('template.新建执行方案')"
+        :value="value"
+        :width="480"
         @cancel="handleCancel">
-        <jb-form ref="form" :model="formData" form-type="vertical" :rules="rules">
-            <jb-form-item :label="$t('template.作业模板')" required property="templateId">
+        <jb-form
+            ref="form"
+            form-type="vertical"
+            :model="formData"
+            :rules="rules">
+            <jb-form-item
+                :label="$t('template.作业模板')"
+                property="templateId"
+                required>
                 <bk-select
                     v-model="formData.templateId"
-                    :placeholder="$t('template.请选择作业模板')"
                     :clearable="false"
-                    searchable
-                    :remote-method="fetchData">
+                    :placeholder="$t('template.请选择作业模板')"
+                    :remote-method="fetchData"
+                    searchable>
                     <bk-option
                         v-for="item in templateList"
-                        :key="item.id"
                         :id="item.id"
+                        :key="item.id"
                         :name="item.name" />
                     <template slot="extension">
                         <auth-component auth="job_template/create">
-                            <div @click="handleCreate" style="cursor: pointer;">
+                            <div
+                                style="cursor: pointer;"
+                                @click="handleCreate">
                                 <i class="bk-icon icon-plus-circle" />{{ $t('template.新建模板') }}
                             </div>
                             <div slot="forbid">
@@ -65,24 +74,28 @@
         </jb-form>
         <div slot="footer">
             <auth-button
-                :resource-id="formData.templateId"
                 :auth="formData.templateId ? 'job_plan/create' : ''"
-                theme="primary"
-                :disabled="!formData.templateId"
                 class="mr10"
+                :disabled="!formData.templateId"
+                :resource-id="formData.templateId"
+                theme="primary"
                 @click="handleSubmit">
                 {{ $t('template.确定') }}
             </auth-button>
-            <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
+            <bk-button @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
         </div>
     </jb-dialog>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskManageService from '@service/task-manage';
+
     import {
         leaveConfirm,
     } from '@utils/assist';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

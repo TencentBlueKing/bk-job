@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.model.web.vo;
 
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -70,7 +70,7 @@ public class HostInfoWithModulesVO {
     private String os;
 
     @ApiModelProperty("所有模块节点信息")
-    private List<AppTopologyTreeNode> moduleNodes;
+    private List<BizTopoNode> moduleNodes;
 
     public boolean validate(boolean isCreate) {
         if (cloudAreaInfo == null) {

@@ -27,6 +27,7 @@
 
 <script>
     import _ from 'lodash';
+
     import {
         encodeRegexp,
     } from './helper';

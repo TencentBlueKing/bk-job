@@ -29,39 +29,43 @@
     <jb-dialog
         v-model="isShowDialog"
         class="apply-permission-dialog"
-        :mask-close="false"
         :esc-close="false"
+        :mask-close="false"
         :width="768">
         <ask-permission
             v-if="isShowDialog"
             :loading="isLoading"
-            :permission-list="permissionList"
-            :max-height="360" />
+            :max-height="360"
+            :permission-list="permissionList" />
         <template #footer>
             <template v-if="!isLoading">
                 <bk-button
-                    theme="primary"
+                    v-if="isAppleFlag"
                     class="mr10"
-                    @click="handleApply"
-                    v-if="isAppleFlag">
+                    theme="primary"
+                    @click="handleApply">
                     {{ applyText }}
                 </bk-button>
                 <bk-button
-                    theme="primary"
+                    v-else
                     class="mr10"
-                    @click="handleHasApplyed"
-                    v-else>
+                    theme="primary"
+                    @click="handleHasApplyed">
                     {{ appliedText }}
                 </bk-button>
             </template>
-            <bk-button @click="handleCancle">{{ cancelText }}</bk-button>
+            <bk-button @click="handleCancle">
+                {{ cancelText }}
+            </bk-button>
         </template>
     </jb-dialog>
 </template>
 <script>
     import PermissionCheckService from '@service/permission-check';
-    import I18n from '@/i18n';
+
     import AskPermission from './index';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

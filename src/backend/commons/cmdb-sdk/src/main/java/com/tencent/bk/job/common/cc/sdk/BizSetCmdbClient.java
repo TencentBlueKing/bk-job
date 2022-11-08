@@ -27,9 +27,11 @@ package com.tencent.bk.job.common.cc.sdk;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.bizset.BizInfo;
+import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
 import com.tencent.bk.job.common.cc.model.bizset.Page;
+import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessSetResp;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetReq;
@@ -39,18 +41,23 @@ import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpPost;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * cmdb API Client - 业务集相关
@@ -64,9 +71,9 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_in_business_set/";
     private static final String RESOURCE_WATCH = "/api/c/compapi/v2/cc/resource_watch/";
 
-    public BizSetCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig) {
-        super(esbConfig.getEsbUrl(), esbConfig.getAppCode(),
-            esbConfig.getAppSecret(), null, esbConfig.isUseEsbTestEnv());
+    public BizSetCmdbClient(BkApiConfig bkApiConfig, CmdbConfig cmdbConfig) {
+        super(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(),
+            bkApiConfig.getAppSecret(), null, bkApiConfig.isUseEsbTestEnv());
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
     }
 
@@ -116,7 +123,7 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         int start = 0;
         List<BizSetInfo> bizSetInfoList = new ArrayList<>();
         while (start < bizSetCount) {
-            bizSetInfoList.addAll(searchBizSet(start, limit));
+            bizSetInfoList.addAll(searchBizSet(null, start, limit));
             start += limit;
         }
         return bizSetInfoList;
@@ -125,16 +132,19 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     /**
      * 查询业务集信息
      *
+     * @param filter 查询条件
+     * @param start  分页起始
+     * @param limit  每页大小
      * @return 业务集信息列表
      */
-    private List<BizSetInfo> searchBizSet(int start, int limit) {
+    private List<BizSetInfo> searchBizSet(BizSetFilter filter, int start, int limit) {
         SearchBizSetReq req = makeCmdbBaseReq(SearchBizSetReq.class);
         Page page = new Page();
         page.setEnableCount(false);
         page.setStart(start);
         page.setLimit(limit);
         req.setPage(page);
-        req.setFilter(null);
+        req.setFilter(filter);
         try {
             EsbResp<SearchBizSetResp> resp = getEsbRespByReq(
                 HttpPost.METHOD_NAME,
@@ -225,7 +235,7 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     }
 
     @Override
-    public List<BizSetInfo> getAllBizSetApps() {
+    public List<BizSetInfo> listAllBizSets() {
         List<BizSetInfo> bizSetInfoList = searchAllBizSet();
         bizSetInfoList.parallelStream().forEach(bizSetInfo -> {
             // 查询业务集下包含的子业务(全业务除外)
@@ -286,5 +296,44 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         } catch (Exception e) {
             throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
+    }
+
+    @Override
+    public Set<String> listUsersByRole(Long bizSetId, String role) {
+        if (!"bk_biz_maintainer".equals(role)) {
+            log.warn("Unavailable role for biz set! role: {}", role);
+            return Collections.emptySet();
+        }
+
+        BizSetInfo bizSet = queryBizSet(bizSetId);
+        if (bizSet == null) {
+            log.warn("BizSet: {} is not exist", bizSetId);
+            return Collections.emptySet();
+        }
+
+        Set<String> userSet = new HashSet<>();
+        String maintainers = bizSet.getMaintainer();
+        if (StringUtils.isNotEmpty(maintainers)) {
+            for (String user : maintainers.split(",")) {
+                if (StringUtils.isNotBlank(user)) {
+                    userSet.add(user);
+                }
+            }
+        }
+
+        return userSet;
+    }
+
+    @Override
+    public BizSetInfo queryBizSet(Long bizSetId) {
+        BizSetFilter filter = new BizSetFilter();
+        filter.setCondition("AND");
+        Rule bizSetIdRule = new Rule();
+        bizSetIdRule.setField("bk_biz_set_id");
+        bizSetIdRule.setOperator("equal");
+        bizSetIdRule.setValue(bizSetId);
+        filter.setRules(Collections.singletonList(bizSetIdRule));
+        List<BizSetInfo> results = searchBizSet(filter, 0, 1);
+        return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }
 }

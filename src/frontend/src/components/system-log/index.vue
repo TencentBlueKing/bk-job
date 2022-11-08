@@ -27,16 +27,18 @@
 
 <template>
     <jb-dialog
-        :value="value"
         class="system-log-dialog"
+        close-icon
+        esc-close
+        mask-close
         :show-footer="false"
-        :close-icon="false"
+        :value="value"
         :width="1105"
-        @input="handleClose">
+        @cancel="handleClose">
         <div
             ref="log"
-            class="system-log-layout"
-            v-bkloading="{ isLoading }">
+            v-bkloading="{ isLoading }"
+            class="system-log-layout">
             <div class="layout-left">
                 <scroll-faker class="version-wraper">
                     <div
@@ -45,29 +47,37 @@
                         class="log-tab"
                         :class="{ active: index === activeIndex }"
                         @click="handleTabChange(index)">
-                        <div class="title">{{ log.version }}</div>
-                        <div class="date">{{ log.time }}</div>
-                        <div v-if="index === 0" class="new-flag">{{ $t('当前版本') }}</div>
+                        <div class="title">
+                            {{ log.version }}
+                        </div>
+                        <div class="date">
+                            {{ log.time }}
+                        </div>
+                        <div
+                            v-if="index === 0"
+                            class="new-flag">
+                            {{ $t('当前版本') }}
+                        </div>
                     </div>
                 </scroll-faker>
             </div>
             <div class="layout-right">
                 <scroll-faker class="content-wraper">
-                    <div v-html="logContent" class="markdowm-container" />
+                    <div
+                        class="markdowm-container"
+                        v-html="logContent" />
                 </scroll-faker>
-                <Icon
-                    type="close"
-                    class="log-close"
-                    @click="handleClose" />
             </div>
         </div>
     </jb-dialog>
 </template>
 <script>
-    import marked from 'marked';
-    import Cookie from 'js-cookie';
     import Tippy from 'bk-magic-vue/lib/utils/tippy';
+    import Cookie from 'js-cookie';
+    import marked from 'marked';
+
     import WebGlobalService from '@service/web-global';
+
     import ScrollFaker from '@components/scroll-faker';
 
     export default {
@@ -114,7 +124,10 @@
              */
             fetchData () {
                 this.isLoading = true;
-                WebGlobalService.fetchVersionLog()
+                const requestHandler = this.$i18n.locale === 'en-US'
+                    ? WebGlobalService.fetchVersionENLog
+                    : WebGlobalService.fetchVersionLog;
+                requestHandler()
                     .then((data) => {
                         this.list = data;
                     })

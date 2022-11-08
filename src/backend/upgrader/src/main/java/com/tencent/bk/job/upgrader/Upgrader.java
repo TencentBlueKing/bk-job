@@ -64,7 +64,7 @@ public class Upgrader {
 
     public static void usage() {
         log.info("===========================================Usage==============================================");
-        log.info("Usage: use command `java -Dfile.encoding=utf8 -Djob.log.dir=path/to/log/dir " +
+        log.info("Usage: use command `java -Dfile.encoding=utf8 -Djob.log.djavair=path/to/log/dir " +
             "-Dconfig.file=/path/to/config/file " +
             "-jar upgrader-[x.x.x.x].jar [fromVersion] " +
             "[toVersion] [executeTime]` to start the upgrader, " +
@@ -315,8 +315,8 @@ public class Upgrader {
                             upgradeTask.getName(),
                             upgradeTask.getPriority(),
                             upgradeTask.getTargetVersion());
-                        int resultCode = upgradeTask.execute(args);
-                        if (resultCode == 0) {
+                        boolean success = upgradeTask.execute(args);
+                        if (success) {
                             successfulTaskNum.incrementAndGet();
                             taskSuccess.set(true);
                             log.info("UpgradeTask [{}][priority={}] for version {} successfully end",

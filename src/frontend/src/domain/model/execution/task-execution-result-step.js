@@ -23,10 +23,11 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import {
     transformTimeFriendly,
 } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 // 步骤类型
 const TYPE_SCRIPT = 1;
@@ -296,6 +297,10 @@ export default class TaskExecutionResultStep {
             actionMap.forced = [
                 'forcedRetry',
             ];
+        }
+        // 非人工确认类型的步骤，在需要人工确认时（人工确认批次）没有对步骤的确认操作
+        if (!this.isApproval) {
+            actionMap.confirm = [];
         }
         return actionMap[checkStatus(this.status)];
     }

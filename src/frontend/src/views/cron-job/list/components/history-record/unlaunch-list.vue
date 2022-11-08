@@ -26,24 +26,27 @@
 -->
 
 <template>
-    <render-list ref="list" ignore-url :data-source="fetchUnlaunchHistory">
+    <render-list
+        ref="list"
+        :data-source="fetchUnlaunchHistory"
+        ignore-url>
         <bk-table-column
+            key="scheduledTime"
+            align="left"
             :label="$t('cron.唤起时间')"
             prop="scheduledTime"
-            key="scheduledTime"
-            width="180"
-            align="left" />
+            width="180" />
         <bk-table-column
+            key="executor"
+            align="left"
             :label="$t('cron.执行人.colHead')"
             prop="executor"
-            key="executor"
-            width="180"
-            align="left" />
+            width="180" />
         <bk-table-column
-            :label="$t('cron.原因')"
-            prop="errorMsg"
             key="errorMsg"
-            align="left">
+            align="left"
+            :label="$t('cron.原因')"
+            prop="errorMsg">
             <template slot-scope="{ row }">
                 {{ row.errorMsg || '--' }}
             </template>
@@ -52,6 +55,7 @@
 </template>
 <script>
     import TimeTaskService from '@service/time-task';
+
     import RenderList from '@components/render-list';
 
     export default {

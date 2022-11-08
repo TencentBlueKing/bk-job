@@ -29,17 +29,20 @@
     <div class="dangerous-rule-edit-mode">
         <bk-select
             ref="select"
-            :value="value"
             :clearable="false"
-            @toggle="handleSelectToggle"
-            @change="handleChange">
+            :value="value"
+            @change="handleChange"
+            @toggle="handleSelectToggle">
             <bk-option
                 v-for="item in actionList"
-                :name="item.name"
                 :id="item.id"
-                :key="item.id" />
+                :key="item.id"
+                :name="item.name" />
         </bk-select>
-        <div v-show="!isEditing" class="value-box" @click.stop="handleEdit">
+        <div
+            v-show="!isEditing"
+            class="value-box"
+            @click.stop="handleEdit">
             <div
                 class="action-text"
                 :class="textClass">
@@ -51,6 +54,7 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import I18n from '@/i18n';
 
     export default {

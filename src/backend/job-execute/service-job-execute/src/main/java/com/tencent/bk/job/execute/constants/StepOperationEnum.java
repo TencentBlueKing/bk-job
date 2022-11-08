@@ -35,7 +35,8 @@ public enum StepOperationEnum {
     CONFIRM_TERMINATE(9, "终止确认流程"),
     CONFIRM_RESTART(10, "重新发起确认"),
     NEXT_STEP(11, "进入下一步"),
-    SKIP(12, "强制跳过");
+    SKIP(12, "强制跳过"),
+    ROLLING_CONTINUE(13, "继续滚动");
 
     private final Integer value;
     private final String name;

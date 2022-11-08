@@ -29,16 +29,16 @@
     <lower-component>
         <div>
             <div
-                class="action-btn"
                 v-bk-tooltips.bottom="$t('history.操作记录')"
+                class="action-btn"
                 @click="handleShowOperationRecord">
                 <Icon type="history" />
             </div>
             <jb-sideslider
                 :is-show.sync="isShow"
                 :quick-close="true"
-                :title="$t('history.操作记录')"
                 :show-footer="false"
+                :title="$t('history.操作记录')"
                 :width="900">
                 <operation-record
                     :id="taskInstanceId"

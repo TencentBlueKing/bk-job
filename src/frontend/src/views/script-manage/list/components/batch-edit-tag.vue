@@ -1,5 +1,34 @@
+<!--
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ *
+ *
+ * Terms of the MIT License:
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+-->
+
 <template>
-    <div class="script-manage-batch-edit-tag" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="script-manage-batch-edit-tag">
         <div style="margin-bottom: 8px;">
             {{ $t('script.范围') }}：{{ $t('script.共') }}<span class="strong number">{{ templateNums }}</span>{{ $t('script.个脚本') }}
         </div>
@@ -11,9 +40,9 @@
                 <div class="tag-panel">
                     <bk-input
                         class="tag-search"
-                        :value="search"
-                        :spellcheck="false"
                         left-icon="bk-icon icon-search"
+                        :spellcheck="false"
+                        :value="search"
                         @change="handleSearch" />
                     <div
                         class="wrapper"
@@ -26,9 +55,9 @@
                                 class="tag-list">
                                 <bk-checkbox
                                     v-for="tagItem in renderList"
-                                    :value="tagItem.id"
-                                    class="tag-item"
                                     :key="tagItem.id"
+                                    class="tag-item"
+                                    :value="tagItem.id"
                                     v-bind="tagCheckInfoMap[tagItem.id]"
                                     @change="value => handleTagCheckChange(value, tagItem.id)">
                                     {{ tagItem.name }}
@@ -56,8 +85,8 @@
                         </scroll-faker>
                         <Empty
                             v-else-if="search"
-                            type="search"
-                            style="margin-top: 20px;">
+                            style="margin-top: 20px;"
+                            type="search">
                             <span>{{ $t('script.搜索结果为空') }}，</span>
                             <bk-button
                                 text
@@ -68,16 +97,20 @@
                     </div>
                     <template v-if="!isPublicScript">
                         <auth-component auth="tag/create">
-                            <div class="tag-create" @click="handleNew">
+                            <div
+                                class="tag-create"
+                                @click="handleNew">
                                 <bk-icon
-                                    type="plus-circle"
-                                    style=" margin-right: 8px; font-size: 16px;" />
+                                    style=" margin-right: 8px; font-size: 16px;"
+                                    type="plus-circle" />
                                 <span>{{ $t('script.新建标签') }}</span>
                             </div>
-                            <div slot="forbid" class="tag-create">
+                            <div
+                                slot="forbid"
+                                class="tag-create">
                                 <bk-icon
-                                    type="plus-circle"
-                                    style=" margin-right: 8px; font-size: 16px;" />
+                                    style=" margin-right: 8px; font-size: 16px;"
+                                    type="plus-circle" />
                                 <span>{{ $t('script.新建标签') }}</span>
                             </div>
                         </auth-component>
@@ -86,8 +119,8 @@
             </jb-form-item>
         </jb-form>
         <lower-component
-            level="custom"
-            :custom="isShowCreate">
+            :custom="isShowCreate"
+            level="custom">
             <operation-tag
                 v-model="isShowCreate"
                 @on-change="handleTagNew" />
@@ -95,25 +128,29 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import {
+        computed,
+        getCurrentInstance,
+        onBeforeMount,
         reactive,
         ref,
         toRefs,
-        computed,
-        onBeforeMount,
-        getCurrentInstance,
-    } from '@vue/composition-api';
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import PubliceTagManageService from '@service/public-tag-manage';
-    import TagManageService from '@service/tag-manage';
-    import ScriptManageService from '@service/script-manage';
+    } from 'vue';
+
     import PublicScriptManageService from '@service/public-script-manage';
+    import PubliceTagManageService from '@service/public-tag-manage';
+    import ScriptManageService from '@service/script-manage';
+    import TagManageService from '@service/tag-manage';
+
     import {
         checkPublicScript,
         encodeRegexp,
     } from '@utils/assist';
+
     import OperationTag from '@components/operation-tag';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

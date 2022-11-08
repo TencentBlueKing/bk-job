@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3;
 
-import javax.validation.constraints.Min;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
+
+import javax.validation.constraints.Min;
 
 /**
  * 全局变量
@@ -68,5 +68,11 @@ public class EsbGlobalVarV3DTO {
      * 变量是否必填
      */
     private Integer required;
+
+    /**
+     * 变量是否被引用
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Boolean used;
 
 }

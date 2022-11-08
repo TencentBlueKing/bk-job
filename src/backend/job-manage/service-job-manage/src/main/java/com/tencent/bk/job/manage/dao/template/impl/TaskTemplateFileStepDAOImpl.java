@@ -27,9 +27,12 @@ package com.tencent.bk.job.manage.dao.template.impl;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
+import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.TaskFileStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record11;
@@ -117,7 +120,7 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
                 TABLE.DUPLICATE_HANDLER, TABLE.NOT_EXIST_PATH_HANDLER)
             .values(ULong.valueOf(fileStep.getStepId()), fileStep.getDestinationFileLocation(),
                 ULong.valueOf(fileStep.getExecuteAccount()),
-                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toString(),
+                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toJsonString(),
                 fileStep.getTimeout() == null ? ULong.valueOf(0) : ULong.valueOf(fileStep.getTimeout()),
                 fileStep.getOriginSpeedLimit() == null ? null : ULong.valueOf(fileStep.getOriginSpeedLimit()),
                 fileStep.getTargetSpeedLimit() == null ? null : ULong.valueOf(fileStep.getTargetSpeedLimit()),
@@ -145,7 +148,7 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
         return 1 == context.update(TABLE).set(TABLE.DESTINATION_FILE_LOCATION, fileStep.getDestinationFileLocation())
             .set(TABLE.EXECUTE_ACCOUNT, ULong.valueOf(fileStep.getExecuteAccount()))
             .set(TABLE.DESTINATION_HOST_LIST,
-                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toString())
+                fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toJsonString())
             .set(TABLE.TIMEOUT, fileStep.getTimeout() == null ? ULong.valueOf(0) : ULong.valueOf(fileStep.getTimeout()))
             .set(TABLE.ORIGIN_SPEED_LIMIT,
                 fileStep.getOriginSpeedLimit() == null ? null : ULong.valueOf(fileStep.getOriginSpeedLimit()))
@@ -181,5 +184,31 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
             .join(tableTTStep).on(tableTTStep.ID.eq(tableTTStepFileList.STEP_ID))
             .join(tableTaskTemplate).on(tableTTStep.TEMPLATE_ID.eq(tableTaskTemplate.ID))
             .where(conditions).fetchOne().value1();
+    }
+
+    @Override
+    public Map<Long, TaskTargetDTO> listStepTargets() {
+        Result<?> result = context.select(TABLE.ID, TABLE.DESTINATION_HOST_LIST).fetch();
+        Map<Long, TaskTargetDTO> stepTargets = new HashMap<>();
+        if (result.isNotEmpty()) {
+            result.forEach(record -> {
+                Long recordId = record.get(TABLE.ID).longValue();
+                TaskTargetDTO target = TaskTargetDTO.fromJsonString(record.get(TABLE.DESTINATION_HOST_LIST));
+                stepTargets.put(recordId, target);
+            });
+        }
+        return stepTargets;
+    }
+
+    @Override
+    public boolean updateStepTargets(Long recordId, String value) {
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        int result = context.update(TABLE)
+            .set(TABLE.DESTINATION_HOST_LIST, value)
+            .where(TABLE.ID.eq(JooqDataTypeUtil.buildULong(recordId)))
+            .execute();
+        return result == 1;
     }
 }

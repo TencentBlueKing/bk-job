@@ -35,8 +35,8 @@
 </template>
 <script>
     import {
-        scrollTopSmooth,
         getOffset,
+        scrollTopSmooth,
     } from '@utils/assist';
 
     export default {

@@ -24,15 +24,20 @@
 
 package com.tencent.bk.job.logsvr.service.impl;
 
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
+import com.tencent.bk.job.logsvr.model.FileLogQuery;
+import com.tencent.bk.job.logsvr.model.FileTaskLogDoc;
 import com.tencent.bk.job.logsvr.model.ScriptLogQuery;
-import com.tencent.bk.job.logsvr.model.ScriptTaskLog;
-import com.tencent.bk.job.logsvr.model.TaskIpLog;
+import com.tencent.bk.job.logsvr.model.ScriptTaskLogDoc;
+import com.tencent.bk.job.logsvr.model.TaskHostLog;
 import com.tencent.bk.job.logsvr.mongo.FileLogsCollectionLoader;
 import com.tencent.bk.job.logsvr.mongo.LogCollectionFactory;
 import com.tencent.bk.job.logsvr.mongo.LogCollectionLoaderFactory;
 import com.tencent.bk.job.logsvr.mongo.ScriptLogsCollectionLoader;
 import com.tencent.bk.job.logsvr.service.LogService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -40,7 +45,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,148 +60,246 @@ public class LogServiceImplIntegrationTest {
     @Autowired
     private LogService logService;
 
-    @Test
-    void testSaveScriptLog() {
-        TaskIpLog taskIpLog1 = new TaskIpLog();
-        taskIpLog1.setStepInstanceId(1L);
-        taskIpLog1.setExecuteCount(0);
-        taskIpLog1.setJobCreateDate("2020_07_29");
-        taskIpLog1.setIp("0:127.0.0.1");
-        ScriptTaskLog scriptTaskLog1 = new ScriptTaskLog(1L, "0:127.0.0.1", 0, "hello", 10);
-        taskIpLog1.setScriptTaskLog(scriptTaskLog1);
-        taskIpLog1.setLogType(LogTypeEnum.SCRIPT.getValue());
-        logService.saveLog(taskIpLog1);
+    @Nested
+    @DisplayName("测试保存脚本日志")
+    class SaveScriptLogTest {
+        @Test
+        @DisplayName("测试保存脚本日志")
+        void testSaveScriptLogV2() {
+            TaskHostLog taskHostLog1 = new TaskHostLog();
+            taskHostLog1.setStepInstanceId(1L);
+            taskHostLog1.setExecuteCount(0);
+            taskHostLog1.setBatch(1);
+            taskHostLog1.setJobCreateDate("2020_07_29");
+            ScriptTaskLogDoc scriptTaskLog1 = new ScriptTaskLogDoc(1L, 0, 1, 101L, "0:127.0.0.1", "0:::1", "hello", 10);
+            taskHostLog1.setScriptTaskLog(scriptTaskLog1);
+            taskHostLog1.setLogType(LogTypeEnum.SCRIPT.getValue());
+            logService.saveLog(taskHostLog1);
 
-        TaskIpLog taskIpLog2 = new TaskIpLog();
-        taskIpLog2.setStepInstanceId(1L);
-        taskIpLog2.setExecuteCount(0);
-        taskIpLog2.setJobCreateDate("2020_07_29");
-        ScriptTaskLog scriptTaskLog2 = new ScriptTaskLog(1L, "0:127.0.0.1", 0, "world", 20);
-        taskIpLog2.setScriptTaskLog(scriptTaskLog2);
-        taskIpLog2.setLogType(LogTypeEnum.SCRIPT.getValue());
-        logService.saveLog(taskIpLog2);
+            TaskHostLog taskHostLog2 = new TaskHostLog();
+            taskHostLog2.setStepInstanceId(1L);
+            taskHostLog2.setExecuteCount(0);
+            taskHostLog2.setBatch(1);
+            taskHostLog2.setJobCreateDate("2020_07_29");
+            ScriptTaskLogDoc scriptTaskLog2 = new ScriptTaskLogDoc(1L, 0, 1, 101L, "0:127.0.0.1", "0:::1", "world", 20);
+            taskHostLog2.setScriptTaskLog(scriptTaskLog2);
+            taskHostLog2.setLogType(LogTypeEnum.SCRIPT.getValue());
+            logService.saveLog(taskHostLog2);
 
-        ScriptLogQuery searchRequest = new ScriptLogQuery();
-        searchRequest.setStepInstanceId(1L);
-        searchRequest.setExecuteCount(0);
-        searchRequest.setJobCreateDate("2020_07_29");
-        searchRequest.setIps(Collections.singletonList("0:127.0.0.1"));
-        TaskIpLog result = logService.getScriptLogByIp(searchRequest);
-        assertThat(result.getStepInstanceId()).isEqualTo(1L);
-        assertThat(result.getExecuteCount()).isEqualTo(0);
-        assertThat(result.getIp()).isEqualTo("0:127.0.0.1");
-        assertThat(result.getScriptContent()).isEqualTo("helloworld");
+            ScriptLogQuery searchRequest = new ScriptLogQuery();
+            searchRequest.setStepInstanceId(1L);
+            searchRequest.setExecuteCount(0);
+            searchRequest.setBatch(1);
+            searchRequest.setJobCreateDate("2020_07_29");
+            searchRequest.setHostIds(Collections.singletonList(101L));
+            List<TaskHostLog> result = logService.listScriptLogs(searchRequest);
+            assertThat(result).hasSize(1);
+            TaskHostLog hostLog = result.get(0);
+            assertThat(hostLog.getStepInstanceId()).isEqualTo(1L);
+            assertThat(hostLog.getExecuteCount()).isEqualTo(0);
+            assertThat(hostLog.getBatch()).isEqualTo(1);
+            assertThat(hostLog.getHostId()).isEqualTo(101L);
+            assertThat(hostLog.getIp()).isEqualTo("0:127.0.0.1");
+            assertThat(hostLog.getIpv6()).isEqualTo("0:::1");
+            assertThat(hostLog.getScriptContent()).isEqualTo("helloworld");
+
+
+            TaskHostLog taskHostLog3 = new TaskHostLog();
+            taskHostLog3.setStepInstanceId(2L);
+            taskHostLog3.setExecuteCount(0);
+            taskHostLog3.setBatch(null);
+            taskHostLog3.setJobCreateDate("2020_07_29");
+            ScriptTaskLogDoc scriptTaskLog3 = new ScriptTaskLogDoc(2L, 0, null, 101L, "0:127.0.0.1", "0:::1", "abc",
+                20);
+            taskHostLog3.setScriptTaskLog(scriptTaskLog3);
+            taskHostLog3.setLogType(LogTypeEnum.SCRIPT.getValue());
+            logService.saveLog(taskHostLog3);
+
+            searchRequest = new ScriptLogQuery();
+            searchRequest.setStepInstanceId(2L);
+            searchRequest.setExecuteCount(0);
+            searchRequest.setBatch(null);
+            searchRequest.setJobCreateDate("2020_07_29");
+            searchRequest.setIps(Collections.singletonList(null));
+            searchRequest.setHostIds(Collections.singletonList(101L));
+            result = logService.listScriptLogs(searchRequest);
+            assertThat(result).hasSize(1);
+            hostLog = result.get(0);
+            assertThat(hostLog.getStepInstanceId()).isEqualTo(2L);
+            assertThat(hostLog.getExecuteCount()).isEqualTo(0);
+            assertThat(hostLog.getBatch()).isEqualTo(null);
+            assertThat(hostLog.getHostId()).isEqualTo(101L);
+            assertThat(hostLog.getIp()).isEqualTo("0:127.0.0.1");
+            assertThat(hostLog.getIpv6()).isEqualTo("0:::1");
+            assertThat(hostLog.getScriptContent()).isEqualTo("abc");
+        }
     }
 
-//    @Test
-//    void testSaveFileLog1() {
-//        FileTaskLog fileTaskLog1 = buildFileTaskDetailLog(3, "Downloading", "100KB/S", "0:1.1.1.1", "100MB", "50%",
-//                "/tmp/1.log", 1, "[2020-07-30 11:00:00] Downloading...\n");
-//        FileTaskLog fileTaskLog2 = buildFileTaskDetailLog(3, "Downloading", "100KB/S", "0:1.1.1.1", "100MB", "50%",
-//                "/tmp/2.log", 1, "[2020-07-30 11:00:00] Downloading...\n");
-//        List<FileTaskLog> fileTaskLogList = new ArrayList<>();
-//        fileTaskLogList.add(fileTaskLog1);
-//        fileTaskLogList.add(fileTaskLog2);
-//        TaskLog executionLog1 = buildFileTaskLog(1L, 0, "2020_07_29", "0:127.0.0.1",
-//                fileTaskLogList);
-//        logService.saveLog(executionLog1);
-//
-//        TaskLog searchRequest = new TaskLog();
-//        searchRequest.setStepInstanceId(1L);
-//        searchRequest.setExecuteCount(0);
-//        searchRequest.setJobCreateDate("2020_07_29");
-//        searchRequest.setIp("0:127.0.0.1");
-//        searchRequest.setLogType(LogTypeEnum.FILE.getValue());
-//        TaskLog result = logService.getLogByIp(searchRequest);
-//        assertThat(result.getStepInstanceId()).isEqualTo(1L);
-//        assertThat(result.getExecuteCount()).isEqualTo(0);
-//        assertThat(result.getIp()).isEqualTo("0:127.0.0.1");
-//        FileTaskLog resultFileTaskLog1 = result.getFileTaskLogs().get(0);
-//        assertThat(resultFileTaskLog1.getStatus()).isEqualTo(3);
-//        assertThat(resultFileTaskLog1.getStatusDesc()).isEqualTo("Downloading");
-//        assertThat(resultFileTaskLog1.getMode()).isEqualTo(1);
-//        assertThat(resultFileTaskLog1.getFile()).isEqualTo("/tmp/1.log");
-//        assertThat(resultFileTaskLog1.getSourceIp()).isEqualTo("0:1.1.1.1");
-//        assertThat(resultFileTaskLog1.getSize()).isEqualTo("100MB");
-//        assertThat(resultFileTaskLog1.getSpeed()).isEqualTo("100KB/S");
-//        assertThat(resultFileTaskLog1.getProcess()).isEqualTo("50%");
-//        assertThat(resultFileTaskLog1.getContent()).isEqualTo("[2020-07-30 11:00:00] Downloading...\n");
-//        FileTaskLog resultFileTaskLog2 = result.getFileTaskLogs().get(1);
-//        assertThat(resultFileTaskLog2.getStatus()).isEqualTo(3);
-//        assertThat(resultFileTaskLog2.getStatusDesc()).isEqualTo("Downloading");
-//        assertThat(resultFileTaskLog2.getMode()).isEqualTo(1);
-//        assertThat(resultFileTaskLog2.getFile()).isEqualTo("/tmp/2.log");
-//        assertThat(resultFileTaskLog2.getSourceIp()).isEqualTo("0:1.1.1.1");
-//        assertThat(resultFileTaskLog2.getSize()).isEqualTo("100MB");
-//        assertThat(resultFileTaskLog2.getSpeed()).isEqualTo("100KB/S");
-//        assertThat(resultFileTaskLog2.getProcess()).isEqualTo("50%");
-//        assertThat(resultFileTaskLog2.getContent()).isEqualTo("[2020-07-30 11:00:00] Downloading...\n");
-//
-//        // 再次插入日志，验证日志更新场景
-//        fileTaskLog1 = buildFileTaskDetailLog(4, "Finished", "0KB/S", "0:1.1.1.1", "100MB", "100%",
-//                "/tmp/1.log", 1, "[2020-07-30 11:00:00] Download success\n");
-//        fileTaskLog2 = buildFileTaskDetailLog(4, "Finished", "0KB/S", "0:1.1.1.1", "100MB", "100%",
-//                "/tmp/2.log", 1, "[2020-07-30 11:00:00] Download success\n");
-//        fileTaskLogList = new ArrayList<>();
-//        fileTaskLogList.add(fileTaskLog1);
-//        fileTaskLogList.add(fileTaskLog2);
-//        executionLog1 = buildFileTaskLog(1L, 0, "2020_07_29", "0:127.0.0.1",
-//                fileTaskLogList);
-//        logService.saveLog(executionLog1);
-//
-//        result = logService.getLogByIp(searchRequest);
-//        assertThat(result.getStepInstanceId()).isEqualTo(1L);
-//        assertThat(result.getExecuteCount()).isEqualTo(0);
-//        assertThat(result.getIp()).isEqualTo("0:127.0.0.1");
-//        fileTaskLog1 = result.getFileTaskLogs().get(0);
-//        assertThat(fileTaskLog1.getStatus()).isEqualTo(4);
-//        assertThat(fileTaskLog1.getStatusDesc()).isEqualTo("Finished");
-//        assertThat(fileTaskLog1.getMode()).isEqualTo(1);
-//        assertThat(fileTaskLog1.getFile()).isEqualTo("/tmp/1.log");
-//        assertThat(fileTaskLog1.getSourceIp()).isEqualTo("0:1.1.1.1");
-//        assertThat(fileTaskLog1.getSize()).isEqualTo("100MB");
-//        assertThat(fileTaskLog1.getSpeed()).isEqualTo("0KB/S");
-//        assertThat(fileTaskLog1.getProcess()).isEqualTo("100%");
-//        assertThat(fileTaskLog1.getContent()).isEqualTo("[2020-07-30 11:00:00] Downloading...\n[2020-07-30 
-//       11:00:00] Download success\n");
-//        fileTaskLog2 = result.getFileTaskLogs().get(1);
-//        assertThat(fileTaskLog2.getStatus()).isEqualTo(4);
-//        assertThat(fileTaskLog2.getStatusDesc()).isEqualTo("Finished");
-//        assertThat(fileTaskLog2.getMode()).isEqualTo(1);
-//        assertThat(fileTaskLog2.getFile()).isEqualTo("/tmp/2.log");
-//        assertThat(fileTaskLog2.getSourceIp()).isEqualTo("0:1.1.1.1");
-//        assertThat(fileTaskLog2.getSize()).isEqualTo("100MB");
-//        assertThat(fileTaskLog2.getSpeed()).isEqualTo("0KB/S");
-//        assertThat(fileTaskLog2.getProcess()).isEqualTo("100%");
-//        assertThat(fileTaskLog2.getContent()).isEqualTo("[2020-07-30 11:00:00] Downloading...\n[2020-07-30 
-//       11:00:00] Download success\n");
-//    }
-//
-//    private TaskIpLog buildFileTaskLog(long stepInstanceId, int executeCount, String jobCreateDate, String ip, 
-//   List<FileTaskLog> fileTaskLogs) {
-//        TaskIpLog executionLog = new TaskIpLog();
-//        executionLog.setStepInstanceId(stepInstanceId);
-//        executionLog.setExecuteCount(executeCount);
-//        executionLog.setJobCreateDate(jobCreateDate);
-//        executionLog.setIp(ip);
-//        executionLog.setFileTaskLogs(fileTaskLogs);
-//        executionLog.setLogType(LogTypeEnum.FILE.getValue());
-//        return executionLog;
-//    }
-//
-//    private FileTaskLog buildFileTaskDetailLog(Integer status, String statusDesc, String speed, String sourceIp,
-//                                               String size, String process, String name,
-//                                               Integer mode, String content) {
-//        FileTaskLog fileTaskLog1 = new FileTaskLog();
-//        fileTaskLog1.setStatus(status);
-//        fileTaskLog1.setStatusDesc(statusDesc);
-//        fileTaskLog1.setSpeed(speed);
-//        fileTaskLog1.setSourceIp(sourceIp);
-//        fileTaskLog1.setSize(size);
-//        fileTaskLog1.setProcess(process);
-//        fileTaskLog1.setDisplayFile(name);
-//        fileTaskLog1.setMode(mode);
-//        fileTaskLog1.setContent(content);
-//        return fileTaskLog1;
-//    }
+    @Nested
+    @DisplayName("测试保存文件分发日志")
+    class SaveFileLogTest {
+
+        @Test
+        @DisplayName("测试保存文件分发日志")
+        void testSaveFileLog() {
+            FileTaskLogDoc fileTaskLog1 = buildFileTaskDetailLog(
+                FileTaskModeEnum.DOWNLOAD.getValue(),
+                102L,
+                101L,
+                "0:127.0.0.1",
+                "0:::1",
+                1,
+                "/tmp/1.log",
+                "/tmp/1.log",
+                102L,
+                "0:127.0.0.2",
+                "0:::2",
+                "/tmp/2.log",
+                3,
+                "Downloading",
+                "100KB/S",
+                "100MB",
+                "50%",
+                "[2020-07-30 11:00:00] Downloading...\n");
+
+            List<FileTaskLogDoc> fileTaskLogList = new ArrayList<>();
+            fileTaskLogList.add(fileTaskLog1);
+            TaskHostLog taskHostLog = buildFileTaskHostLog(1L, 0, "2020_07_29", 102L,
+                "0:127.0.0.2", "0:::2", fileTaskLogList);
+            logService.saveLog(taskHostLog);
+
+            FileLogQuery searchRequest = FileLogQuery.builder()
+                .stepInstanceId(1L)
+                .executeCount(0)
+                .jobCreateDate("2020_07_29")
+                .hostIds(Collections.singletonList(102L))
+                .build();
+            List<FileTaskLogDoc> fileLogDocs = logService.listFileLogs(searchRequest);
+            assertThat(fileLogDocs).hasSize(1);
+            FileTaskLogDoc resultFileTaskLog1 = fileLogDocs.get(0);
+            assertThat(resultFileTaskLog1.getMode()).isEqualTo(FileTaskModeEnum.DOWNLOAD.getValue());
+            assertThat(resultFileTaskLog1.getHostId()).isEqualTo(102L);
+            assertThat(resultFileTaskLog1.getSrcHostId()).isEqualTo(101L);
+            assertThat(resultFileTaskLog1.getSrcIp()).isEqualTo("0:127.0.0.1");
+            assertThat(resultFileTaskLog1.getSrcIpv6()).isEqualTo("0:::1");
+            assertThat(resultFileTaskLog1.getSrcFileType()).isEqualTo(1);
+            assertThat(resultFileTaskLog1.getSrcFile()).isEqualTo("/tmp/1.log");
+            assertThat(resultFileTaskLog1.getDestHostId()).isEqualTo(102L);
+            assertThat(resultFileTaskLog1.getDestIp()).isEqualTo("0:127.0.0.2");
+            assertThat(resultFileTaskLog1.getDestIpv6()).isEqualTo("0:::2");
+            assertThat(resultFileTaskLog1.getDestFile()).isEqualTo("/tmp/2.log");
+            assertThat(resultFileTaskLog1.getStatus()).isEqualTo(3);
+            assertThat(resultFileTaskLog1.getStatusDesc()).isEqualTo("Downloading");
+            assertThat(resultFileTaskLog1.getSize()).isEqualTo("100MB");
+            assertThat(resultFileTaskLog1.getSpeed()).isEqualTo("100KB/S");
+            assertThat(resultFileTaskLog1.getProcess()).isEqualTo("50%");
+            assertThat(resultFileTaskLog1.getContent()).isEqualTo("[2020-07-30 11:00:00] Downloading...\n");
+
+            // 再次插入日志，验证日志更新场景
+            fileTaskLog1 = buildFileTaskDetailLog(
+                FileTaskModeEnum.DOWNLOAD.getValue(),
+                102L,
+                101L,
+                "0:127.0.0.1",
+                "0:::1",
+                1,
+                "/tmp/1.log",
+                "/tmp/1.log",
+                102L,
+                "0:127.0.0.2",
+                "0:::2",
+                "/tmp/2.log",
+                4,
+                "Finished",
+                "0KB/S",
+                "100MB",
+                "100%",
+                "[2020-07-30 11:00:00] Download success\n");
+            fileTaskLogList.clear();
+            fileTaskLogList.add(fileTaskLog1);
+            taskHostLog = buildFileTaskHostLog(1L, 0, "2020_07_29", 102L, "0:127.0.0.2", "0:::2",
+                fileTaskLogList);
+            logService.saveLog(taskHostLog);
+
+            fileLogDocs = logService.listFileLogs(searchRequest);
+            assertThat(fileLogDocs).hasSize(1);
+            resultFileTaskLog1 = fileLogDocs.get(0);
+            assertThat(resultFileTaskLog1.getMode()).isEqualTo(FileTaskModeEnum.DOWNLOAD.getValue());
+            assertThat(resultFileTaskLog1.getHostId()).isEqualTo(102L);
+            assertThat(resultFileTaskLog1.getSrcHostId()).isEqualTo(101L);
+            assertThat(resultFileTaskLog1.getSrcIp()).isEqualTo("0:127.0.0.1");
+            assertThat(resultFileTaskLog1.getSrcIpv6()).isEqualTo("0:::1");
+            assertThat(resultFileTaskLog1.getSrcFileType()).isEqualTo(1);
+            assertThat(resultFileTaskLog1.getSrcFile()).isEqualTo("/tmp/1.log");
+            assertThat(resultFileTaskLog1.getDestHostId()).isEqualTo(102L);
+            assertThat(resultFileTaskLog1.getDestIp()).isEqualTo("0:127.0.0.2");
+            assertThat(resultFileTaskLog1.getDestIpv6()).isEqualTo("0:::2");
+            assertThat(resultFileTaskLog1.getDestFile()).isEqualTo("/tmp/2.log");
+            assertThat(resultFileTaskLog1.getStatus()).isEqualTo(4);
+            assertThat(resultFileTaskLog1.getStatusDesc()).isEqualTo("Finished");
+            assertThat(resultFileTaskLog1.getSize()).isEqualTo("100MB");
+            assertThat(resultFileTaskLog1.getSpeed()).isEqualTo("0KB/S");
+            assertThat(resultFileTaskLog1.getProcess()).isEqualTo("100%");
+            assertThat(resultFileTaskLog1.getContent()).isEqualTo("[2020-07-30 11:00:00] Downloading...\n[2020-07-30 " +
+                "11:00:00] Download success\n");
+        }
+    }
+
+
+    private TaskHostLog buildFileTaskHostLog(long stepInstanceId, int executeCount, String jobCreateDate, Long hostId,
+                                             String ip, String ipv6, List<FileTaskLogDoc> fileTaskLogs) {
+        TaskHostLog taskHostLog = new TaskHostLog();
+        taskHostLog.setStepInstanceId(stepInstanceId);
+        taskHostLog.setExecuteCount(executeCount);
+        taskHostLog.setJobCreateDate(jobCreateDate);
+        taskHostLog.setHostId(hostId);
+        taskHostLog.setIp(ip);
+        taskHostLog.setIpv6(ipv6);
+        taskHostLog.setFileTaskLogs(fileTaskLogs);
+        taskHostLog.setLogType(LogTypeEnum.FILE.getValue());
+        return taskHostLog;
+    }
+
+    FileTaskLogDoc buildFileTaskDetailLog(Integer mode,
+                                          Long hostId,
+                                          Long srcHostId,
+                                          String srcIp,
+                                          String srcIpv6,
+                                          Integer srcFileType,
+                                          String srcFileName,
+                                          String displaySrcFile,
+                                          Long destHostId,
+                                          String destIp,
+                                          String destIpv6,
+                                          String destFileName,
+                                          Integer status,
+                                          String statusDesc,
+                                          String speed,
+                                          String size,
+                                          String process,
+                                          String content) {
+        FileTaskLogDoc fileTaskLogDoc = new FileTaskLogDoc();
+        fileTaskLogDoc.setMode(mode);
+        fileTaskLogDoc.setHostId(hostId);
+
+        fileTaskLogDoc.setSrcHostId(srcHostId);
+        fileTaskLogDoc.setSrcIp(srcIp);
+        fileTaskLogDoc.setSrcIpv6(srcIpv6);
+        fileTaskLogDoc.setSrcFileType(srcFileType);
+        fileTaskLogDoc.setSrcFile(srcFileName);
+        fileTaskLogDoc.setDisplaySrcFile(displaySrcFile);
+
+        fileTaskLogDoc.setDestFile(destFileName);
+        fileTaskLogDoc.setDestHostId(destHostId);
+        fileTaskLogDoc.setDestIp(destIp);
+        fileTaskLogDoc.setDestIpv6(destIpv6);
+
+        fileTaskLogDoc.setStatus(status);
+        fileTaskLogDoc.setStatusDesc(statusDesc);
+        fileTaskLogDoc.setSpeed(speed);
+        fileTaskLogDoc.setSize(size);
+        fileTaskLogDoc.setProcess(process);
+        fileTaskLogDoc.setContent(content);
+        return fileTaskLogDoc;
+    }
 }

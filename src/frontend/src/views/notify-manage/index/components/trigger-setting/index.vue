@@ -43,20 +43,24 @@
         <jb-form-item :label="$t('notify.通知对象')">
             <jb-user-selector
                 class="input"
-                :placeholder="$t('notify.请输入')"
-                :user="localValue.extraObserverList"
-                :role="localValue.roleList"
                 :filter-list="['JOB_EXTRA_OBSERVER']"
+                :placeholder="$t('notify.请输入')"
+                :role="localValue.roleList"
+                :user="localValue.extraObserverList"
                 @on-change="handleUserChange" />
         </jb-form-item>
         <jb-form-item :label="$t('notify.通知方式')">
             <table class="notify-way-table input">
                 <thead>
-                    <th style="width: 95px;">{{ $t('notify.状态') }}</th>
+                    <th style="width: 95px;">
+                        {{ $t('notify.状态') }}
+                    </th>
                     <th>{{ $t('notify.通知方式') }}</th>
                 </thead>
                 <tbody>
-                    <tr v-for="(executeStatus, index) in templateData.executeStatusList" :key="index">
+                    <tr
+                        v-for="(executeStatus, index) in templateData.executeStatusList"
+                        :key="index">
                         <td>{{ executeStatus.name }}</td>
                         <td>
                             <render-notify-way
@@ -72,7 +76,9 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import JbUserSelector from '@components/jb-user-selector';
+
     import RenderNotifyWay from './components/render-notify-way';
 
     export default {

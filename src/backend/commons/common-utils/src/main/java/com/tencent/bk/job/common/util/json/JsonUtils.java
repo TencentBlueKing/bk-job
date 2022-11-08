@@ -34,12 +34,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 
 /**
  * JSON工具
@@ -54,7 +52,7 @@ public class JsonUtils {
      * 注意：只对第一层的字段生效，嵌套的不生效
      *
      * @param bean
-     * @return
+     * @return Json
      * @see SkipLogFields
      */
     public static <T> String toJsonWithoutSkippedFields(T bean) {
@@ -92,12 +90,12 @@ public class JsonUtils {
     /**
      * 从Json串中解析成bean对象,支持参数泛型
      *
-     * @param jsonString
-     * @param typeReference
-     * @param <T>
-     * @return
+     * @param jsonString    json
+     * @param typeReference 类型
+     * @param <T>           bean Class 类型
+     * @return bean
      */
-    public static <T> T fromJson(String jsonString, TypeReference<T> typeReference) {
+    public static <T> T fromJson(String jsonString, TypeReference<T> typeReference) throws JsonParseException {
         return JSON_MAPPERS.computeIfAbsent("__all__", s -> JsonMapper.getAllOutPutMapper()).fromJson(jsonString,
             typeReference);
     }
@@ -105,12 +103,12 @@ public class JsonUtils {
     /**
      * 从Json串中解析成bean对象
      *
-     * @param jsonString
-     * @param beanClass
-     * @param <T>
-     * @return
+     * @param jsonString json
+     * @param beanClass  bean Class 类型
+     * @param <T>        bean Class 类型
+     * @return bean
      */
-    public static <T> T fromJson(String jsonString, Class<T> beanClass) {
+    public static <T> T fromJson(String jsonString, Class<T> beanClass) throws JsonParseException {
         return JSON_MAPPERS.computeIfAbsent("__all__", s -> JsonMapper.getAllOutPutMapper()).fromJson(jsonString,
             beanClass);
     }
@@ -118,11 +116,11 @@ public class JsonUtils {
     /**
      * 创建输出所有字段的Json，不管字段值是默认值 还是等于 null 还是空集合的字段，全输出,可用于外部接口协议输出
      *
-     * @param bean
-     * @param <T>
-     * @return
+     * @param bean bean
+     * @param <T>  bean
+     * @return json
      */
-    public static <T> String toJson(T bean) {
+    public static <T> String toJson(T bean) throws JsonParseException {
         return JSON_MAPPERS.computeIfAbsent("__all__", s -> JsonMapper.getAllOutPutMapper()).toJson(bean);
     }
 
@@ -132,22 +130,6 @@ public class JsonUtils {
 
     public static <T> String toNonDefault(T bean) {
         return JSON_MAPPERS.computeIfAbsent("__non_default__", s -> JsonMapper.nonDefaultMapper()).toJson(bean);
-    }
-
-    public static <T> String toJson(String timeZoneStr, T bean) {
-
-        return JSON_MAPPERS.computeIfAbsent(timeZoneStr + "_tz__all__", s -> {
-            JsonMapper allOutPutMapper = JsonMapper.getAllOutPutMapper();
-            if (timeZoneStr != null) {
-                try {
-                    TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
-                    allOutPutMapper.getMapper().setTimeZone(timeZone).setDateFormat(new SimpleDateFormat("yyyy-MM-dd " +
-                        "HH:mm:ss Z"));
-                } catch (Exception ignored) {
-                }
-            }
-            return allOutPutMapper;
-        }).toJson(bean);
     }
 
     public static JsonNode toJsonNode(String jsonStr) {

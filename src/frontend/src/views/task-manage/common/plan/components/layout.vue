@@ -26,50 +26,121 @@
 -->
 
 <template>
-    <div ref="layout" class="plan-action-layout" :style="layoutStyles">
-        <div class="loading-wraper" :class="{ 'loading-hidden': showContent }">
+    <div
+        ref="layout"
+        class="plan-action-layout"
+        :style="layoutStyles">
+        <div
+            class="loading-wraper"
+            :class="{ 'loading-hidden': showContent }">
             <div class="loading-content">
                 <content-loader
                     :height="455"
-                    :width="580"
-                    :speed="2"
                     primary-color="#EBECF3"
-                    secondary-color="#F6F7FB">
-                    <rect x="0" y="0" width="128" height="16" rx="1" />
-                    <rect x="0" y="148" width="128" height="16" rx="1" />
-                    <rect x="0" y="180" width="620" height="42" rx="2" />
-                    <rect x="0" y="232" width="620" height="42" rx="2" />
-                    <rect x="0" y="284" width="620" height="42" rx="2" />
-                    <rect x="0" y="336" width="620" height="42" rx="2" />
-                    <rect x="0" y="388" width="620" height="42" rx="2" />
-                    <rect x="0" y="28" width="128" height="16" rx="1" />
-                    <rect x="0" y="56" width="200" height="50" rx="1" />
-                    <rect x="210" y="56" width="200" height="50" rx="1" />
-                    <rect x="420" y="56" width="200" height="50" rx="1" />
+                    secondary-color="#F6F7FB"
+                    :speed="2"
+                    :width="580">
+                    <rect
+                        height="16"
+                        rx="1"
+                        width="128"
+                        x="0"
+                        y="0" />
+                    <rect
+                        height="16"
+                        rx="1"
+                        width="128"
+                        x="0"
+                        y="148" />
+                    <rect
+                        height="42"
+                        rx="2"
+                        width="620"
+                        x="0"
+                        y="180" />
+                    <rect
+                        height="42"
+                        rx="2"
+                        width="620"
+                        x="0"
+                        y="232" />
+                    <rect
+                        height="42"
+                        rx="2"
+                        width="620"
+                        x="0"
+                        y="284" />
+                    <rect
+                        height="42"
+                        rx="2"
+                        width="620"
+                        x="0"
+                        y="336" />
+                    <rect
+                        height="42"
+                        rx="2"
+                        width="620"
+                        x="0"
+                        y="388" />
+                    <rect
+                        height="16"
+                        rx="1"
+                        width="128"
+                        x="0"
+                        y="28" />
+                    <rect
+                        height="50"
+                        rx="1"
+                        width="200"
+                        x="0"
+                        y="56" />
+                    <rect
+                        height="50"
+                        rx="1"
+                        width="200"
+                        x="210"
+                        y="56" />
+                    <rect
+                        height="50"
+                        rx="1"
+                        width="200"
+                        x="420"
+                        y="56" />
                 </content-loader>
             </div>
         </div>
         <div class="layout-title">
             <slot name="title">
-                <div class="title-text">{{ title }}</div>
+                <div class="title-text">
+                    {{ title }}
+                </div>
             </slot>
             <div class="sub-title">
                 <slot name="sub-title" />
             </div>
         </div>
-        <div ref="content" class="content-wraper" :style="contentStyles">
+        <div
+            ref="content"
+            class="content-wraper"
+            :style="contentStyles">
             <slot />
         </div>
-        <div class="layout-footer" :style="footerStyles">
+        <div
+            class="layout-footer"
+            :style="footerStyles">
             <slot name="footer" />
         </div>
-        <back-top v-if="showContent" :target="getBackTopTarget" />
+        <back-top
+            v-if="showContent"
+            :target="getBackTopTarget" />
     </div>
 </template>
 <script>
     import _ from 'lodash';
     import { ContentLoader } from 'vue-content-loader';
+
     import { getOffset } from '@utils/assist';
+
     import BackTop from '@components/back-top';
 
     export default {

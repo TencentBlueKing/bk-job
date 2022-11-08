@@ -58,7 +58,10 @@ public interface ServiceWhiteIPResource {
             String ip,
         @ApiParam("云区域Id")
         @RequestParam(value = "cloudAreaId", required = false)
-            Long cloudAreaId
+            Long cloudAreaId,
+        @ApiParam("主机hostId")
+        @RequestParam(value = "hostId", required = false)
+            Long hostId
     );
 
     @ApiOperation(value = "获取白名单内IP详情信息", produces = "application/json")

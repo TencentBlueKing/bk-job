@@ -75,27 +75,26 @@ export const compareHost = (preHost, nextHost) => {
     }
     // 全都手动添加对比值
     const {
-        ipList: preIPList,
-        topoNodeList: preNodeList,
+        hostList: preIPList,
+        nodeList: preNodeList,
         dynamicGroupList: preGroupList,
     } = preHost.hostNodeInfo;
     const {
-        ipList: nextIPList,
-        topoNodeList: nextNodeList,
+        hostList: nextIPList,
+        nodeList: nextNodeList,
         dynamicGroupList: nextGroupList,
     } = nextHost.hostNodeInfo;
     // 对比主机
     if (preIPList.length !== nextIPList.length) {
         return false;
     }
-    const genHostKey = host => `${host.cloudAreaInfo.id}:${host.ip}`;
     const preIPMap = preIPList.reduce((result, host) => {
-        result[genHostKey(host)] = true;
+        result[host.hostId] = true;
         return result;
     }, {});
     // eslint-disable-next-line no-plusplus
     for (let i = 0; i < nextIPList.length; i++) {
-        if (!preIPMap[genHostKey(nextIPList[i])]) {
+        if (!preIPMap[nextIPList[i].hostId]) {
             return false;
         }
     }

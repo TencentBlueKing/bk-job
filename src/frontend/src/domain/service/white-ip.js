@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import WhiteIpSource from '../source/white-ip';
 import WhiteIpModel from '@model/white-ip';
+
+import WhiteIpSource from '../source/white-ip';
 
 export default {
     whiteIpUpdate (params = {}) {

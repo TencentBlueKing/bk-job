@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
@@ -42,7 +42,6 @@ import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
@@ -68,10 +67,9 @@ public class HostWatchThread extends Thread {
         }
     }
 
-    private final DSLContext dslContext;
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
-    private final QueryAgentStatusClient queryAgentStatusClient;
+    private final AgentStateClient agentStateClient;
     private final RedisTemplate<String, String> redisTemplate;
     private final HostCache hostCache;
     private final String REDIS_KEY_RESOURCE_WATCH_HOST_JOB_RUNNING_MACHINE = "resource-watch-host-job-running-machine";
@@ -80,16 +78,14 @@ public class HostWatchThread extends Thread {
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private String cursor = null;
 
-    public HostWatchThread(DSLContext dslContext,
-                           ApplicationService applicationService,
+    public HostWatchThread(ApplicationService applicationService,
                            ApplicationHostDAO applicationHostDAO,
-                           QueryAgentStatusClient queryAgentStatusClient,
+                           AgentStateClient agentStateClient,
                            RedisTemplate<String, String> redisTemplate,
                            HostCache hostCache) {
-        this.dslContext = dslContext;
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.agentStateClient = agentStateClient;
         this.redisTemplate = redisTemplate;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostWatchThread-" + instanceNum.getAndIncrement());
@@ -100,10 +96,9 @@ public class HostWatchThread extends Thread {
     private HostEventsHandler buildHostEventsHandler() {
         return new HostEventsHandler(
             appHostEventQueue,
-            dslContext,
             applicationService,
             applicationHostDAO,
-            queryAgentStatusClient,
+            agentStateClient,
             hostCache
         );
     }

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.web.interceptor;
 
-import brave.Tracer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
@@ -42,11 +41,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.AsyncHandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -63,10 +65,11 @@ import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_S
  */
 @Slf4j
 @Component
-public class JobCommonInterceptor extends HandlerInterceptorAdapter {
+public class JobCommonInterceptor implements AsyncHandlerInterceptor {
     private static final Pattern SCOPE_PATTERN = Pattern.compile("/scope/(\\w+)/(\\d+)");
 
     private final Tracer tracer;
+    private Tracer.SpanInScope spanInScope = null;
 
     private AppScopeMappingService appScopeMappingService;
 
@@ -87,12 +90,14 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest request,
+                             @NonNull HttpServletResponse response,
+                             @NonNull Object handler) {
         JobContextUtil.setStartTime();
         JobContextUtil.setRequest(request);
         JobContextUtil.setResponse(response);
 
-        addRequestId();
+        initSpanAndAddRequestId();
 
         if (!shouldFilter(request)) {
             return true;
@@ -111,8 +116,13 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
 
-    private void addRequestId() {
-        String traceId = tracer.currentSpan().context().traceIdString();
+    private void initSpanAndAddRequestId() {
+        Span currentSpan = tracer.currentSpan();
+        if (currentSpan == null) {
+            currentSpan = tracer.nextSpan().start();
+        }
+        spanInScope = tracer.withSpan(currentSpan);
+        String traceId = currentSpan.context().traceId();
         JobContextUtil.setRequestId(traceId);
     }
 
@@ -325,7 +335,9 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+    public void postHandle(@NonNull HttpServletRequest request,
+                           @NonNull HttpServletResponse response,
+                           @NonNull Object handler,
                            ModelAndView modelAndView) {
         if (log.isDebugEnabled()) {
             log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(),
@@ -336,18 +348,19 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
-                                Object handler,
+    public void afterCompletion(@NonNull HttpServletRequest request,
+                                @NonNull HttpServletResponse response,
+                                @NonNull Object handler,
                                 Exception ex) {
         try {
             if (isClientOrServerError(response)) {
                 log.warn("status {} given by {}", response.getStatus(), handler);
             }
             if (ex != null) {
-                log.error("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
+                log.error("After completion|{}|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
                     JobContextUtil.getAppResourceScope(),
                     JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
-                    request.getRequestURI(), ex);
+                    request.getRequestURI(), ex.getMessage());
             } else {
                 log.debug("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
                     JobContextUtil.getAppResourceScope(),
@@ -355,6 +368,9 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                     request.getRequestURI());
             }
         } finally {
+            if (spanInScope != null) {
+                spanInScope.close();
+            }
             JobContextUtil.unsetContext();
         }
     }

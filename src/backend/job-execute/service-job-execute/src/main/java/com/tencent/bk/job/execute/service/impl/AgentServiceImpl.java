@@ -24,11 +24,17 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.engine.consts.Consts;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,42 +49,58 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 public class AgentServiceImpl implements AgentService {
-    private final QueryAgentStatusClient queryAgentStatusClient;
-    private volatile String agentBindIp;
+    private final AgentStateClient agentStateClient;
+    private final HostService hostService;
+    private final LoadingCache<String, HostDTO> agentHostCache = CacheBuilder.newBuilder()
+        .maximumSize(1).expireAfterWrite(60, TimeUnit.SECONDS).
+            build(new CacheLoader<String, HostDTO>() {
+                      @SuppressWarnings("all")
+                      @Override
+                      public HostDTO load(String key) {
+                          HostDTO agentHost = getAgentBindHost();
+                          log.debug("load agentHost and save to cache:{}", agentHost);
+                          return agentHost;
+                      }
+                  }
+            );
 
     @Autowired
-    public AgentServiceImpl(QueryAgentStatusClient queryAgentStatusClient) {
-        this.queryAgentStatusClient = queryAgentStatusClient;
+    public AgentServiceImpl(AgentStateClient agentStateClient,
+                            HostService hostService) {
+        this.agentStateClient = agentStateClient;
+        this.hostService = hostService;
     }
 
     @Override
-    public String getLocalAgentBindIp() {
-        if (StringUtils.isNotBlank(agentBindIp)) {
-            return agentBindIp;
+    public HostDTO getLocalAgentHost() {
+        try {
+            String CACHE_KEY_AGENT_HOST = "agentHost";
+            return agentHostCache.get(CACHE_KEY_AGENT_HOST);
+        } catch (ExecutionException e) {
+            log.warn("Fail to load agentHost from cache, try to load directly", e);
+            return getAgentBindHost();
         }
-        return getAgentBindIp();
     }
 
     @Override
     public ServersDTO getLocalServersDTO() {
-        List<IpDTO> ipDTOList = new ArrayList<>();
-        ipDTOList.add(new IpDTO((long) Consts.DEFAULT_CLOUD_ID, getLocalAgentBindIp()));
+        List<HostDTO> hostDTOList = new ArrayList<>();
+        hostDTOList.add(getLocalAgentHost());
         ServersDTO servers = new ServersDTO();
-        servers.setStaticIpList(ipDTOList);
-        servers.setIpList(ipDTOList);
+        servers.setStaticIpList(hostDTOList);
+        servers.setIpList(hostDTOList);
         return servers;
     }
 
-    private String getAgentBindIp() {
-        log.info("Get local agent bind ip!");
+    private HostDTO getAgentBindHost() {
+        log.info("Get local agent bind host!");
         synchronized (this) {
-            if (StringUtils.isNotBlank(agentBindIp)) {
-                return agentBindIp;
-            }
             String physicalMachineMultiIp;
             String nodeIP = System.getenv("BK_JOB_NODE_IP");
             if (StringUtils.isNotBlank(nodeIP)) {
@@ -92,9 +114,17 @@ public class AgentServiceImpl implements AgentService {
                 }
                 physicalMachineMultiIp = sj.toString();
             }
-            agentBindIp = queryAgentStatusClient.getHostIpByAgentStatus(physicalMachineMultiIp, Consts.DEFAULT_CLOUD_ID);
+            List<String> cloudIpList = IpUtils.buildCloudIpListByMultiIp(
+                (long) Consts.DEFAULT_CLOUD_ID,
+                physicalMachineMultiIp
+            );
+
+            String agentBindIp = agentStateClient.chooseOneAgentIdPreferAlive(cloudIpList);
             log.info("Local agent bind ip is {}", agentBindIp);
-            return agentBindIp;
+            ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindIp));
+            HostDTO hostDTO = HostDTO.fromHostIdOrCloudIp(host.getHostId(), agentBindIp);
+            hostDTO.setAgentId(hostDTO.getFinalAgentId());
+            return hostDTO;
         }
     }
 
@@ -108,8 +138,8 @@ public class AgentServiceImpl implements AgentService {
                 while (allNetInterfaces.hasMoreElements()) {// 循环网卡获取网卡的IP地址
                     NetworkInterface netInterface = allNetInterfaces.nextElement();
                     String netInterfaceName = netInterface.getName();
-                    if (StringUtils.isBlank(netInterfaceName) || "lo".equalsIgnoreCase(netInterfaceName)) {// 过滤掉127
-                        // .0.0.1的IP
+                    if (StringUtils.isBlank(netInterfaceName) || "lo".equalsIgnoreCase(netInterfaceName)) {
+                        // 过滤掉127.0.0.1的IP
                         continue;
                     }
                     Enumeration<InetAddress> addresses = netInterface.getInetAddresses();

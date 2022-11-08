@@ -27,69 +27,79 @@
 
 <template>
     <div
-        class="platform-dashboard"
-        v-bkloading="{ isLoading: isLoading, opacity: 0.8 }">
+        v-bkloading="{ isLoading: isLoading, opacity: 0.8 }"
+        class="platform-dashboard">
         <card-layout title="Linux OS">
             <div class="container">
-                <div class="nums">{{ data.LINUX | formatNumber }}</div>
+                <div class="nums">
+                    {{ data.LINUX | formatNumber }}
+                </div>
                 <div
                     ref="LINUX"
-                    class="dashboard"
                     v-bk-tooltips.right="calcPercentage(data.LINUX)"
+                    class="dashboard"
                     style="width: 24px; height: 24px;" />
             </div>
             <Icon
-                type="linux"
                 class="platform-flag"
-                style="font-size: 38px;" />
+                style="font-size: 38px;"
+                type="linux" />
         </card-layout>
         <card-layout title="Windows OS">
             <div class="container">
-                <div class="nums">{{ data.WINDOWS | formatNumber }}</div>
+                <div class="nums">
+                    {{ data.WINDOWS | formatNumber }}
+                </div>
                 <div
                     ref="WINDOWS"
-                    class="dashboard"
                     v-bk-tooltips.right="calcPercentage(data.WINDOWS)"
+                    class="dashboard"
                     style="width: 24px; height: 24px;" />
             </div>
             <Icon
-                type="windows"
                 class="platform-flag"
-                style="font-size: 28px;" />
+                style="font-size: 28px;"
+                type="windows" />
         </card-layout>
         <card-layout title="AIX OS">
             <div class="container">
-                <div class="nums">{{ data.AIX | formatNumber }}</div>
+                <div class="nums">
+                    {{ data.AIX | formatNumber }}
+                </div>
                 <div
                     ref="AIX"
-                    class="dashboard"
                     v-bk-tooltips.right="calcPercentage(data.AIX)"
+                    class="dashboard"
                     style="width: 24px; height: 24px;" />
             </div>
             <Icon
-                type="aix"
                 class="platform-flag"
-                style="font-size: 24px;" />
+                style="font-size: 24px;"
+                type="aix" />
         </card-layout>
         <card-layout :title="$t('dashboard.未知 OS')">
             <div class="container">
-                <div class="nums">{{ data.OTHERS | formatNumber }}</div>
+                <div class="nums">
+                    {{ data.OTHERS | formatNumber }}
+                </div>
                 <div
                     ref="OTHERS"
-                    class="dashboard"
                     v-bk-tooltips.right="calcPercentage(data.OTHERS)"
+                    class="dashboard"
                     style="width: 24px; height: 24px;" />
             </div>
             <Icon
-                type="others"
                 class="platform-flag"
-                style="font-size: 28px;" />
+                style="font-size: 28px;"
+                type="others" />
         </card-layout>
     </div>
 </template>
 <script>
     import echarts from 'lib/echarts.min.js';
+
     import StatisticsService from '@service/statistics';
+
     import {
         formatNumber,
     } from '@utils/assist';

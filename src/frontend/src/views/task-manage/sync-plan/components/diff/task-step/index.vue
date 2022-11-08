@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div class="diff-task-step" :class="classes" :id="`${type}_step_${data.id}`">
+    <div
+        :id="`${type}_step_${data.id}`"
+        class="diff-task-step"
+        :class="classes">
         <div class="name">
             <div class="type-flag">
                 <Icon :type="data.icon" />
@@ -34,11 +37,15 @@
             {{ data.name }}
         </div>
         <div class="info">
-            <div class="row" :class="diffValue.type">
+            <div
+                class="row"
+                :class="diffValue.type">
                 <span class="label">{{ $t('template.步骤类型：') }}</span>
                 <span class="value">{{ data.typeText }}</span>
             </div>
-            <div class="row" :class="diffValue.name">
+            <div
+                class="row"
+                :class="diffValue.name">
                 <span class="label">{{ $t('template.步骤名称：') }}</span>
                 <span class="value">{{ data.name }}</span>
             </div>
@@ -53,9 +60,10 @@
 </template>
 <script>
     import TaskStepModel from '@model/task/task-step';
-    import TypeScript from './script';
-    import TypeFile from './file';
+
     import TypeApproval from './approval';
+    import TypeFile from './file';
+    import TypeScript from './script';
 
     const comMap = {
         [TaskStepModel.TYPE_SCRIPT]: TypeScript,

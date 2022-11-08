@@ -26,20 +26,48 @@
 -->
 
 <template>
-    <div v-bkloading="{ isLoading }">
-        <task-step-view :variable="variableList" :data="stepInfo" />
+    <div
+        v-bkloading="{ isLoading }"
+        class="history-step-detail-view">
+        <task-step-view
+            :data="stepInfo"
+            :variable="variableList">
+            <detail-item
+                v-if="rollingConfigExpr"
+                :label="$t('history.滚动策略：')">
+                <span
+                    v-bk-tooltips.right="rollingExprParse(rollingConfigExpr)"
+                    class="tips">
+                    {{ rollingConfigExpr }}
+                </span>
+            </detail-item>
+            <detail-item
+                v-if="rollingModeText"
+                :label="$t('history.滚动机制：')">
+                {{ rollingModeText }}
+            </detail-item>
+        </task-step-view>
     </div>
 </template>
 <script>
     import TaskExecuteService from '@service/task-execute';
-    import TaskStepModel from '@model/task/task-step';
+
     import GlobalVariableModel from '@model/task/global-variable';
+    import TaskStepModel from '@model/task/task-step';
+
+    import rollingExprParse from '@utils/rolling-expr-parse';
+
     import TaskStepView from '@views/task-manage/common/render-task-step/task-step-view';
+
+    import DetailItem from '@components/detail-layout/item';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',
         components: {
             TaskStepView,
+            DetailItem,
         },
         props: {
             taskId: {
@@ -54,6 +82,8 @@
             return {
                 isLoading: true,
                 stepInfo: {},
+                rollingConfigExpr: '',
+                rollingModeText: '',
                 variableList: [],
             };
         },
@@ -67,11 +97,29 @@
             });
         },
         methods: {
+            /**
+             * @desc 解析滚动配置
+             * @param { String } expr
+             * @returns { String }
+             */
+            rollingExprParse (expr) {
+                return rollingExprParse(expr);
+            },
             //  步骤详情
             fetchStep () {
                 return TaskExecuteService.fetchStepInstance({
                     id: this.id,
                 }).then((data) => {
+                    if (data.rollingEnabled) {
+                        this.rollingConfigExpr = data.rollingConfig.expr;
+                        const modeMap = {
+                            1: I18n.t('默认（执行失败则暂停）'),
+                            2: I18n.t('忽略失败，自动滚动下一批'),
+                            3: I18n.t('不自动，每批次都人工确认'),
+                        };
+                        this.rollingModeText = modeMap[data.rollingConfig.mode];
+                    }
+                    
                     this.stepInfo = Object.freeze(new TaskStepModel(data));
                 });
             },

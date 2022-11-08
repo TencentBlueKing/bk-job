@@ -108,10 +108,10 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
         // 刷新步骤状态
         stepInstance = taskInstanceService.getStepInstanceDetail(stepInstance.getId());
         // 如果任务处于“终止中”状态，触发任务终止
-        if (taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+        if (taskInstance.getStatus() == RunStatusEnum.STOPPING) {
             // 已经发送过停止命令的就不再重复发送了
-            return !RunStatusEnum.STOPPING.getValue().equals(stepInstance.getStatus())
-                && !RunStatusEnum.STOP_SUCCESS.getValue().equals(stepInstance.getStatus());
+            return !(RunStatusEnum.STOPPING == stepInstance.getStatus()
+                || RunStatusEnum.STOP_SUCCESS == stepInstance.getStatus());
         }
         return false;
     }
@@ -147,5 +147,10 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     @Override
     public String getTaskId() {
         return "FilePrepareControlTask-" + stepInstance.getId() + "_" + stepInstance.getExecuteCount();
+    }
+
+    @Override
+    public String toString() {
+        return getTaskId();
     }
 }

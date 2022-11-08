@@ -28,7 +28,12 @@ import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
+import com.tencent.bk.job.execute.model.ScriptStepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 
 import java.util.List;
@@ -43,6 +48,23 @@ public interface StepInstanceDAO {
     void addConfirmStepInstance(StepInstanceDTO stepInstance);
 
     StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId);
+
+    /**
+     * 获取作业的第一个步骤实例
+     *
+     * @param taskInstanceId 作业实例ID
+     * @return 作业第一个步骤实例
+     */
+    StepInstanceBaseDTO getFirstStepInstanceBase(long taskInstanceId);
+
+    /**
+     * 获取下一个步骤实例
+     *
+     * @param taskInstanceId   作业实例ID
+     * @param currentStepOrder 当前步骤的顺序
+     * @return 步骤实例；如果当前为最后一个步骤实例，那么返回null
+     */
+    StepInstanceBaseDTO getNextStepInstance(long taskInstanceId, int currentStepOrder);
 
     ScriptStepInstanceDTO getScriptStepInstance(long stepInstanceId);
 
@@ -72,17 +94,9 @@ public interface StepInstanceDAO {
 
     void updateStepEndTime(long stepInstanceId, Long endTime);
 
-    void addTaskExecuteCount(long taskInstanceId);
+    void addStepInstanceExecuteCount(long stepInstanceId);
 
     void updateStepTotalTime(long stepInstanceId, long totalTime);
-
-    void updateStepStatInfo(long stepInstanceId, int runIPNum, int successIPNum, int failIPNum);
-
-    Long getFirstStepStartTime(long taskInstanceId);
-
-    Long getLastStepEndTime(long taskInstanceId);
-
-    long getAllStepTotalTime(long taskInstanceId);
 
     /**
      * 更新步骤的执行信息
@@ -95,21 +109,6 @@ public interface StepInstanceDAO {
      */
     void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
                                  Long totalTime);
-
-    /**
-     * 更新步骤的执行信息
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param status         步骤执行状态
-     * @param startTime      开始时间
-     * @param endTime        结束时间
-     * @param totalTime      总耗时
-     * @param runIPNum       运行中的ip
-     * @param successIPNum   执行成功的ip
-     * @param failIPNum      失败的ip
-     */
-    void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
-                                 Long totalTime, Integer runIPNum, Integer successIPNum, Integer failIPNum);
 
     /**
      * 更新解析之后的脚本参数
@@ -188,4 +187,28 @@ public interface StepInstanceDAO {
      * @return
      */
     Byte getScriptTypeByStepInstanceId(long stepInstanceId);
+
+    /**
+     * 更新步骤实例的当前滚动执行批次
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param batch          滚动执行批次
+     */
+    void updateStepCurrentBatch(long stepInstanceId, int batch);
+
+    /**
+     * 更新步骤实例的当前滚动执行批次
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     */
+    void updateStepCurrentExecuteCount(long stepInstanceId, int executeCount);
+
+    /**
+     * 更新步骤实例的滚动配置ID
+     *
+     * @param stepInstanceId  步骤实例ID
+     * @param rollingConfigId 滚动配置ID
+     */
+    void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId);
 }

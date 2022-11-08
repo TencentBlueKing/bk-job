@@ -24,12 +24,33 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 作业-全局变量-命名空间-主机变量
+ */
+@PersistenceObject
 @Data
 public class HostVariableValuesDTO {
+    /**
+     * 主机IP
+     */
+    @CompatibleImplementation(explain = "由于ip不再唯一，使用hostId/agentId替代该参数", version = "3.7.x")
     private String ip;
+    /**
+     * 主机ID
+     */
+    private Long hostId;
+    /**
+     * bk_agent_id
+     */
+    private String agentId;
+    /**
+     * 变量值
+     */
     private List<VariableValueDTO> values;
 }

@@ -24,27 +24,33 @@
 */
 
 import Vue from 'vue';
-import createRouter from '@/router';
-import store from '@/store';
-import AppService from '@service/app-manage';
+
+import AppManageService from '@service/app-manage';
 import QueryGlobalSettingService from '@service/query-global-setting';
 import TaskExecuteService from '@service/task-execute';
 import TaskPlanService from '@service/task-plan';
-import EntryTask from '@/utils/entry-task';
-import { scopeCache } from '@/utils/cache-helper';
+
 import '@/common/bkmagic';
 import '@/css/reset.css';
 import '@/css/app.css';
+import '@bk-icon/style.css';
+import '@bk-icon/iconcool.js';
 import App from '@/App';
-import IframeApp from '@/iframe-app';
 import i18n from '@/i18n';
-import '@icon/style.css';
-import '@icon/iconcool.js';
+import IframeApp from '@/iframe-app';
+import createRouter from '@/router';
+import store from '@/store';
+import { scopeCache } from '@/utils/cache-helper';
+import EntryTask from '@/utils/entry-task';
 
 /**
  * @desc 启动打印当前系统信息
  */
-console.log(process.env.JOB_WELCOME);
+console.log(
+    process.env.JOB_WELCOME,
+    'font-weight: 900; color: #3a84ff',
+    'font-weight: 900; color: #2DCB8D;',
+);
 
 /**
  * @desc 页面数据的编辑状态
@@ -126,7 +132,7 @@ entryTask.add((context) => {
 /**
  * @desc 完整的业务列表
  */
-entryTask.add(context => AppService.fetchWholeAppList().then((data) => {
+entryTask.add(context => AppManageService.fetchWholeAppList().then((data) => {
     context.appList = data.data;
     if (!context.scopeType || !context.scopeId) {
         const [

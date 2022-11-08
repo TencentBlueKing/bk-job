@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.logsvr.model;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,17 +45,23 @@ public class FileLogQuery {
      */
     private Long stepInstanceId;
     /**
-     * 执行任务的主机ip
-     */
-    private String ip;
-    /**
      * 执行任务的主机ip列表
      */
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", version = "3.7.x")
+    @Deprecated
     private List<String> ips;
+    /**
+     * 执行任务的主机ID列表
+     */
+    private List<Long> hostIds;
     /**
      * 执行次数
      */
     private Integer executeCount;
+    /**
+     * 滚动执行批次
+     */
+    private Integer batch;
     /**
      * 分发模式
      *
@@ -67,10 +74,11 @@ public class FileLogQuery {
         return new StringJoiner(", ", FileLogQuery.class.getSimpleName() + "[", "]")
             .add("jobCreateDate='" + jobCreateDate + "'")
             .add("stepInstanceId=" + stepInstanceId)
-            .add("ip='" + ip + "'")
+            .add("hostIds='" + hostIds + "'")
             .add("ips='" + ips + "'")
             .add("executeCount=" + executeCount)
             .add("mode=" + mode)
+            .add("batch=" + batch)
             .toString();
     }
 }

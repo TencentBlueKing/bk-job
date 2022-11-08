@@ -26,35 +26,64 @@
 -->
 
 <template>
-    <div class="execute-notify-box" v-bkloading="{ isLoading }">
-        <jb-form-item :label="notifyOffsetLabel" layout="inline" :rules="rules.notifyOffset">
-            <bk-select :value="formData.notifyOffset" class="time-select" @change="handleNotifyOffsetChange">
-                <bk-option :id="10" :name="`10 ${$t('cron.分钟')}`">10 {{ $t('cron.分钟') }}</bk-option>
-                <bk-option :id="30" :name="`30 ${$t('cron.分钟')}`">30 {{ $t('cron.分钟') }}</bk-option>
-                <bk-option :id="45" :name="`45 ${$t('cron.分钟')}`">45 {{ $t('cron.分钟') }}</bk-option>
-                <bk-option :id="60" :name="`1 ${$t('cron.小时')}`">1 {{ $t('cron.小时') }}</bk-option>
+    <div
+        v-bkloading="{ isLoading }"
+        class="execute-notify-box">
+        <jb-form-item
+            :label="notifyOffsetLabel"
+            layout="inline"
+            :rules="rules.notifyOffset">
+            <bk-select
+                class="time-select"
+                :value="formData.notifyOffset"
+                @change="handleNotifyOffsetChange">
+                <bk-option
+                    :id="10"
+                    :name="`10 ${$t('cron.分钟')}`">
+                    10 {{ $t('cron.分钟') }}
+                </bk-option>
+                <bk-option
+                    :id="30"
+                    :name="`30 ${$t('cron.分钟')}`">
+                    30 {{ $t('cron.分钟') }}
+                </bk-option>
+                <bk-option
+                    :id="45"
+                    :name="`45 ${$t('cron.分钟')}`">
+                    45 {{ $t('cron.分钟') }}
+                </bk-option>
+                <bk-option
+                    :id="60"
+                    :name="`1 ${$t('cron.小时')}`">
+                    1 {{ $t('cron.小时') }}
+                </bk-option>
             </bk-select>
         </jb-form-item>
-        <jb-form-item :label="$t('cron.通知对象')" layout="inline">
+        <jb-form-item
+            :label="$t('cron.通知对象')"
+            layout="inline">
             <jb-user-selector
-                :placeholder="$t('cron.输入通知对象')"
                 class="input"
-                :user="formData.notifyUser.userList"
-                :role="formData.notifyUser.roleList"
                 :filter-list="['JOB_EXTRA_OBSERVER']"
+                :placeholder="$t('cron.输入通知对象')"
+                :role="formData.notifyUser.roleList"
+                :user="formData.notifyUser.userList"
                 @on-change="handleApprovalUserChange" />
         </jb-form-item>
-        <jb-form-item :label="$t('cron.通知方式')" style="margin-bottom: 0;" layout="inline">
+        <jb-form-item
+            :label="$t('cron.通知方式')"
+            layout="inline"
+            style="margin-bottom: 0;">
             <div class="notify-channel-wraper">
                 <bk-checkbox
-                    @click.native="handleToggleAllChannel"
                     :checked="isChannelAll"
-                    :indeterminate="isChannelIndeterminate">
+                    :indeterminate="isChannelIndeterminate"
+                    @click.native="handleToggleAllChannel">
                     {{ $t('cron.全部') }}
                 </bk-checkbox>
                 <bk-checkbox-group
-                    :value="formData.notifyChannel"
                     class="all-channel"
+                    :value="formData.notifyChannel"
                     @change="handleNotifyChannelChange">
                     <bk-checkbox
                         v-for="channel in channleList"
@@ -68,9 +97,11 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import QueryGlobalSettingService from '@service/query-global-setting';
+
     import JbUserSelector from '@components/jb-user-selector';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -34,6 +35,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -79,6 +81,14 @@ public interface TaskInstanceService {
      */
     StepInstanceDTO getStepInstanceDetail(long stepInstanceId);
 
+    /**
+     * 获取作业的第一个步骤实例
+     *
+     * @param taskInstanceId 作业实例ID
+     * @return 作业第一个步骤实例
+     */
+    StepInstanceBaseDTO getFirstStepInstance(long taskInstanceId);
+
     void updateTaskStatus(long taskInstanceId, int status);
 
     List<Long> getTaskStepIdList(long taskInstanceId);
@@ -101,7 +111,7 @@ public interface TaskInstanceService {
      *
      * @param taskInstanceId 作业实例ID
      */
-    void resetTaskExecuteInfoForResume(long taskInstanceId);
+    void resetTaskExecuteInfoForRetry(long taskInstanceId);
 
     void resetStepStatus(long stepInstanceId);
 
@@ -117,11 +127,14 @@ public interface TaskInstanceService {
 
     void updateStepEndTime(long stepInstanceId, Long endTime);
 
-    void addTaskExecuteCount(long taskInstanceId);
+    /**
+     * 步骤重试次数+1
+     *
+     * @param stepInstanceId 步骤实例ID
+     */
+    void addStepInstanceExecuteCount(long stepInstanceId);
 
     void updateStepTotalTime(long stepInstanceId, long totalTime);
-
-    void updateStepStatInfo(long stepInstanceId, int runIPNum, int successIPNum, int failIPNum);
 
     /**
      * 更新作业的执行信息
@@ -148,20 +161,6 @@ public interface TaskInstanceService {
     void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status,
                                  Long startTime, Long endTime, Long totalTime);
 
-    /**
-     * 更新步骤的执行信息
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param status         步骤执行状态
-     * @param startTime      开始时间
-     * @param endTime        结束时间
-     * @param totalTime      总耗时
-     * @param runIPNum       运行中的ip
-     * @param successIPNum   执行成功的ip
-     * @param failIPNum      失败的ip
-     */
-    void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
-                                 Long totalTime, Integer runIPNum, Integer successIPNum, Integer failIPNum);
 
     /**
      * 更新解析之后的脚本参数
@@ -234,4 +233,12 @@ public interface TaskInstanceService {
     boolean hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime);
 
     List<Long> listTaskInstanceId(Long appId, Long fromTime, Long toTime, int offset, int limit);
+
+    /**
+     * 保存作业实例与主机的关系，便于根据ip/ipv6检索作业实例
+     *
+     * @param taskInstanceId 作业实例ID
+     * @param hosts          主机列表
+     */
+    void saveTaskInstanceHosts(long taskInstanceId, Collection<HostDTO> hosts);
 }

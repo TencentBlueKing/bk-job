@@ -1,3 +1,30 @@
+<!--
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ *
+ *
+ * Terms of the MIT License:
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+-->
+
 <template>
     <tr class="global-variable-create-row">
         <td>
@@ -8,8 +35,8 @@
                 @change="value => handleChange('type', value)">
                 <bk-option
                     v-for="item in typeList"
-                    :key="item.id"
                     :id="item.id"
+                    :key="item.id"
                     :name="item.name" />
             </bk-select>
         </td>
@@ -26,8 +53,8 @@
                 <Icon
                     v-if="isNameError"
                     v-bk-tooltips="errorNameText"
-                    type="info"
-                    class="input-error" />
+                    class="input-error"
+                    type="info" />
             </div>
         </td>
         <td>
@@ -36,7 +63,9 @@
                     v-if="formData.defaultTargetValue.isEmpty"
                     class="add-host-btn offset-left"
                     @click="handleShowChooseIp">
-                    <Icon type="plus" style="margin-right: 6px;" />
+                    <Icon
+                        style="margin-right: 6px;"
+                        type="plus" />
                     {{ $t('添加服务器') }}
                 </div>
                 <jb-edit-host
@@ -60,42 +89,59 @@
         <td>
             <bk-checkbox
                 v-if="withChangable"
-                :value="formData.changeable"
-                @change="value => handleChange('changeable', value)"
+                :false-value="0"
                 :true-value="1"
-                :false-value="0" />
+                :value="formData.changeable"
+                @change="value => handleChange('changeable', value)" />
             <span v-else>--</span>
         </td>
         <td>
             <bk-checkbox
-                :value="formData.required"
-                @change="value => handleChange('required', value)"
+                :false-value="0"
                 :true-value="1"
-                :false-value="0" />
+                :value="formData.required"
+                @change="value => handleChange('required', value)" />
         </td>
         <td class="action-row">
-            <Icon type="add-fill" @click="handleCreate" class="action-btn" />
-            <Icon type="reduce-fill" @click="handleDelete" class="action-btn" />
+            <Icon
+                class="action-btn"
+                type="add-fill"
+                @click="handleCreate" />
+            <Icon
+                class="action-btn"
+                type="reduce-fill"
+                @click="handleDelete" />
         </td>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-            @on-change="handleHostChange" />
+            @on-change="handleHostChange" /> -->
+        <ip-selector
+            :original-value="originalValue"
+            :show-dialog="isShowChooseIp"
+            :value="formData.defaultTargetValue.hostNodeInfo"
+            @change="handleHostChange"
+            @close-dialog="handleCloseIPSelector" />
     </tr>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import { globalVariableNameRule } from '@utils/validator';
+
     import GlobalVariableModel from '@model/task/global-variable';
-    import ChooseIp from '@components/choose-ip';
+
+    import { globalVariableNameRule } from '@utils/validator';
+
+    // import ChooseIp from '@components/choose-ip';
     import JbEditHost from '@components/jb-edit/host';
+
     import { createVariable } from '../util';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',
         components: {
-            ChooseIp,
+            // ChooseIp,
             JbEditHost,
         },
         props: {
@@ -145,6 +191,8 @@
             },
         },
         created () {
+            this.originalValue = _.cloneDeep(this.data.defaultTargetValue.hostNodeInfo);
+
             this.typeList = [
                 {
                     id: GlobalVariableModel.TYPE_STRING,
@@ -210,6 +258,9 @@
              */
             handleShowChooseIp () {
                 this.isShowChooseIp = true;
+            },
+            handleCloseIPSelector () {
+                this.isShowChooseIp = false;
             },
             /**
              * @desc 更新主机变量

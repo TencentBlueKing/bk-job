@@ -26,113 +26,147 @@
 -->
 
 <template>
-    <lower-component level="custom" :custom="isShowDialog">
+    <lower-component
+        :custom="isShowDialog"
+        level="custom">
         <jb-dialog
             v-model="isShowDialog"
             class="choose-ip-dialog"
-            :mask-close="false"
-            :esc-close="false"
             :draggable="false"
-            :width="1240"
-            :media="mediaWidth">
-            <div class="choose-ip-container" :style="containerStyles">
+            :esc-close="false"
+            :mask-close="false"
+            :media="mediaWidth"
+            :width="1240">
+            <div
+                class="choose-ip-container"
+                :style="containerStyles">
                 <template v-if="isShowDialog">
                     <div class="action-tab">
                         <div class="tab-container">
-                            <div class="tab-item" :class="{ active: activeTab === 'static' }" @click="handleTabChange('static')">
+                            <div
+                                class="tab-item"
+                                :class="{ active: activeTab === 'static' }"
+                                @click="handleTabChange('static')">
                                 {{ $t('静态 - IP 选择') }}
                             </div>
-                            <div class="tab-item" :class="{ active: activeTab === 'dynamic' }" @click="handleTabChange('dynamic')">
+                            <div
+                                class="tab-item"
+                                :class="{ active: activeTab === 'dynamic' }"
+                                @click="handleTabChange('dynamic')">
                                 {{ $t('动态 - 拓扑选择') }}
                             </div>
-                            <div class="tab-item" :class="{ active: activeTab === 'group' }" @click="handleTabChange('group')">
+                            <div
+                                class="tab-item"
+                                :class="{ active: activeTab === 'group' }"
+                                @click="handleTabChange('group')">
                                 {{ $t('动态 - 分组选择') }}
                             </div>
-                            <div class="tab-item" :class="{ active: activeTab === 'input' }" @click="handleTabChange('input')">
+                            <div
+                                class="tab-item"
+                                :class="{ active: activeTab === 'input' }"
+                                @click="handleTabChange('input')">
                                 {{ $t('手动输入') }}
                             </div>
                         </div>
                     </div>
-                    <div class="action-content" :style="contentStyles">
+                    <div
+                        class="action-content"
+                        :style="contentStyles">
                         <keep-alive>
                             <component
-                                ref="dataTree"
                                 :is="panelCom"
+                                ref="dataTree"
                                 class="fade-in"
-                                :preview-id="previewId"
-                                :topology-node-tree="topologyNodeTree"
-                                :ip-list="ipList"
-                                :topo-node-list="topoNodeList"
-                                :dynamic-group-list="dynamicGroupList"
-                                :topology-loading="isLoading"
                                 :dialog-height="dialogHeight"
+                                :dynamic-group-list="dynamicGroupList"
+                                :ip-list="ipList"
+                                :preview-id="previewId"
+                                :topo-node-list="topoNodeList"
+                                :topology-loading="isLoading"
+                                :topology-node-tree="topologyNodeTree"
+                                @on-change="handleChange"
                                 @on-group-preview="handleGroupPreview"
-                                @on-input-change="handleInputChange"
                                 @on-input-animate="handleInputAnimate"
-                                @on-change="handleChange" />
+                                @on-input-change="handleInputChange" />
                         </keep-alive>
                     </div>
                 </template>
             </div>
             <template v-if="showGroupPreview">
-                <preview-group v-model="showGroupPreview" :data="previewGroup" />
+                <preview-group
+                    v-model="showGroupPreview"
+                    :data="previewGroup" />
             </template>
             <template v-if="showChoosePreview">
                 <preview
                     v-model="showChoosePreview"
+                    :group="dynamicGroupList"
                     :host="ipList"
                     :node="topoNodeList"
-                    :group="dynamicGroupList"
                     @on-change="handlePreviewChange">
-                    <div slot="desc" v-html="actionResult" />
+                    <div
+                        slot="desc"
+                        v-html="actionResult" />
                 </preview>
             </template>
             <template slot="footer">
-                <span v-if="error" class="ip-error">{{ error }}</span>
+                <span
+                    v-if="error"
+                    class="ip-error">{{ error }}</span>
                 <div
                     :id="previewId"
                     class="choose-result"
                     :class="currentChangeClass"
-                    v-html="actionResult"
-                    @click="handleShowChoosePreview" />
+                    @click="handleShowChoosePreview"
+                    v-html="actionResult" />
                 <jb-popover-confirm
                     v-if="ipInputStatus"
-                    :title="$t('操作确认')"
+                    :confirm-handler="handleSubmit"
                     :content="$t('手动输入框有内容未添加到“已选择”列表，确认结束操作？')"
-                    :confirm-handler="handleSubmit">
-                    <bk-button class="mr10" theme="primary">{{ $t('确定') }}</bk-button>
+                    :title="$t('操作确认')">
+                    <bk-button
+                        class="mr10"
+                        theme="primary">
+                        {{ $t('确定') }}
+                    </bk-button>
                 </jb-popover-confirm>
                 <bk-button
                     v-if="!ipInputStatus"
                     class="mr10"
-                    theme="primary"
                     :disabled="isSubmitDisable"
+                    theme="primary"
                     @click="handleSubmit">
                     {{ $t('确定') }}
                 </bk-button>
-                <bk-button @click="handleCancle">{{ $t('取消') }}</bk-button>
+                <bk-button @click="handleCancle">
+                    {{ $t('取消') }}
+                </bk-button>
             </template>
         </jb-dialog>
     </lower-component>
 </template>
 <script>
     import _ from 'lodash';
-    import AppService from '@service/app-manage';
-    import I18n from '@/i18n';
+
+    import HostManageService from '@service/host-manage';
+
     import TaskHostNodeModel from '@model/task-host-node';
-    import {
-        bigTreeTransformTopologyOfTopology,
-        mergeInputHost,
-        mergeTopologyHost,
-        generateHostRealId,
-    } from './components/utils';
+
+    import PreviewGroup from './components/preview-group';
     import RenderBusinessTopology from './components/render-business-topology';
     import RenderDynamicBusinessTopology from './components/render-dynamic-business-topology';
     import RenderDynamicGroup from './components/render-dynamic-group';
     import RenderIpInput from './components/render-ip-input';
-    import PreviewGroup from './components/preview-group';
     import SidesliderBox from './components/sideslider-box';
+    import {
+        bigTreeTransformTopologyOfTopology,
+        mergeInputHost,
+        mergeTopologyHost,
+        // generateHostRealId,
+    } from './components/utils';
     import Preview from './preview';
+
+    import I18n from '@/i18n';
 
     const DIALOG_FOOTER_HEIGHT = 58;
     const CONTENT_TAB_HEIGHT = 42;
@@ -289,20 +323,17 @@
                         return;
                     }
                     const {
-                        dynamicGroupList = [],
                         ipList = [],
+                        dynamicGroupList = [],
                         topoNodeList = [],
                     } = hostNodeInfo;
-
+                    
+                    this.ipList = Object.freeze(ipList);
+                    this.ipListTopolagyLast = ipList;
+                    this.dynamicGroupList = Object.freeze(dynamicGroupList);
                     this.topoNodeList = Object.freeze([
                         ...topoNodeList,
                     ]);
-                    this.ipList = Object.freeze(ipList.map(host => Object.assign({
-                        realId: generateHostRealId(host),
-                        ...host,
-                    })));
-                    this.ipListTopolagyLast = this.ipList;
-                    this.dynamicGroupList = Object.freeze(dynamicGroupList);
                 },
                 immediate: true,
             },
@@ -324,7 +355,7 @@
              */
             fetchTopologyWithCount () {
                 this.isLoading = true;
-                AppService.fetchTopologyWithCount()
+                HostManageService.fetchTopologyWithCount()
                     .then((data) => {
                         this.topologyNodeTree = Object.freeze(bigTreeTransformTopologyOfTopology([
                             data,
@@ -355,15 +386,12 @@
              * 静态 ip 选择和手动输入的结果需要合并
              */
             handleChange (field, value) {
+                console.log(`from asda = ${field}`, value);
                 this.error = '';
                 switch (field) {
                     case 'ipList':
                         this.ipList = Object.freeze(mergeTopologyHost(this.ipList, this.ipListTopolagyLast, value));
                         this.ipListTopolagyLast = value;
-                        this.currentChangeClass = 'host';
-                        break;
-                    case 'ipInput':
-                        this.ipList = Object.freeze(mergeInputHost(this.ipList, value));
                         this.currentChangeClass = 'host';
                         break;
                     case 'topoNodeList':
@@ -373,6 +401,10 @@
                     case 'dynamicGroupList':
                         this.dynamicGroupList = Object.freeze(value);
                         this.currentChangeClass = 'group';
+                        break;
+                    case 'ipInput':
+                        this.ipList = Object.freeze(mergeInputHost(this.ipList, value));
+                        this.currentChangeClass = 'host';
                         break;
                     default:
                         return '';
@@ -456,6 +488,7 @@
                         Promise.resolve()
                             .then(() => {
                                 this.isSelfChange = true;
+                                
                                 this.$emit('on-change', {
                                     ipList: this.ipList,
                                     topoNodeList: this.topoNodeList,
@@ -477,15 +510,10 @@
                     topoNodeList = [],
                 } = this.hostNodeInfo;
 
-                this.topoNodeList = Object.freeze([
-                    ...topoNodeList,
-                ]);
-                this.ipList = Object.freeze(ipList.map(host => ({
-                    ...host,
-                    realId: generateHostRealId(host),
-                })));
-                this.dynamicGroupList = Object.freeze(dynamicGroupList);
+                this.ipList = Object.freeze([...ipList]);
                 this.ipListTopolagyLast = this.ipList;
+                this.topoNodeList = Object.freeze([...topoNodeList]);
+                this.dynamicGroupList = Object.freeze(dynamicGroupList);
                 this.isShowDialog = false;
                 this.close();
             },

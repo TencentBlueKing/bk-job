@@ -1,3 +1,30 @@
+<!--
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ *
+ *
+ * Terms of the MIT License:
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+-->
+
 <template>
     <tbody>
         <tr>
@@ -6,61 +33,70 @@
             </td>
             <td>
                 <jb-edit-input
-                    mode="block"
-                    :value="data.name"
                     field="name"
+                    mode="block"
                     :rules="rules.name"
+                    :value="data.name"
                     @on-change="handleChange" />
             </td>
             <td>
                 <jb-edit-host
                     v-if="data.isHost"
-                    :value="data.defaultTargetValue"
                     field="defaultTargetValue"
+                    :value="data.defaultTargetValue"
                     @on-change="handleChange" />
                 <jb-edit-input
                     v-else
+                    field="defaultValue"
                     mode="block"
                     :value="data.defaultValue"
-                    field="defaultValue"
                     @on-change="handleChange" />
             </td>
             <td>
                 <jb-edit-textarea
+                    field="description"
                     mode="block"
                     :rows="1"
                     :value="data.description"
-                    field="description"
                     @on-change="handleChange" />
             </td>
             <td>
                 <bk-checkbox
                     v-if="withChangable"
-                    :value="data.changeable"
+                    :false-value="0"
                     :true-value="1"
-                    :false-value="0" />
+                    :value="data.changeable" />
                 <span v-else>--</span>
             </td>
             <td>
                 <bk-checkbox
-                    :value="data.required"
+                    :false-value="0"
                     :true-value="1"
-                    :false-value="0" />
+                    :value="data.required" />
             </td>
             <td class="action-row">
-                <Icon type="add-fill" class="action-btn" @click="handleAppend" />
-                <Icon type="reduce-fill" class="action-btn" @click="handleDelete" />
+                <Icon
+                    class="action-btn"
+                    type="add-fill"
+                    @click="handleAppend" />
+                <Icon
+                    class="action-btn"
+                    type="reduce-fill"
+                    @click="handleDelete" />
             </td>
         </tr>
     </tbody>
 </template>
 <script>
     import GlobalVariableModel from '@model/task/global-variable';
-    import I18n from '@/i18n';
+
     import { globalVariableNameRule } from '@utils/validator';
+
+    import JbEditHost from '@components/jb-edit/host';
     import JbEditInput from '@components/jb-edit/input';
     import JbEditTextarea from '@components/jb-edit/textarea';
-    import JbEditHost from '@components/jb-edit/host';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

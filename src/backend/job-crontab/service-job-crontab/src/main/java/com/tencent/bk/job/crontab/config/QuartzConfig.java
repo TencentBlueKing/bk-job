@@ -62,29 +62,14 @@ public class QuartzConfig {
     }
 
     @Bean
-    public ThreadPoolTaskExecutor quartzTaskExecutor() {
-        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setCorePoolSize(quartzProperties.getThreadPool().getCorePoolSize());
-        threadPoolTaskExecutor.setMaxPoolSize(quartzProperties.getThreadPool().getMaxPoolSize());
-        threadPoolTaskExecutor.setQueueCapacity(quartzProperties.getThreadPool().getQueueCapacity());
-        threadPoolTaskExecutor.setKeepAliveSeconds(quartzProperties.getThreadPool().getKeepAliveSeconds());
-        threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(
-            quartzProperties.getThreadPool().isWaitForTasksToCompleteOnShutdown());
-        threadPoolTaskExecutor.setAwaitTerminationSeconds(
-            quartzProperties.getThreadPool().getAwaitTerminationSeconds());
-
-        return threadPoolTaskExecutor;
-    }
-
-    @Bean
-    public SchedulerFactoryBean schedulerFactoryBean() {
+    public SchedulerFactoryBean schedulerFactoryBean(ThreadPoolTaskExecutor quartzTaskExecutor) {
         SchedulerFactoryBean schedulerFactoryBean = new SchedulerFactoryBean();
         schedulerFactoryBean.setConfigLocation(quartzProperties.getScheduler().getConfigLocation());
         // 此处设置数据源之后，会覆盖quartz.properties中的myDS数据源
         schedulerFactoryBean.setDataSource(dataSource);
         schedulerFactoryBean.setJobFactory(autowiredSpringBeanJobFactory);
         schedulerFactoryBean.setSchedulerName(quartzProperties.getScheduler().getSchedulerName());
-        schedulerFactoryBean.setTaskExecutor(quartzTaskExecutor());
+        schedulerFactoryBean.setTaskExecutor(quartzTaskExecutor);
         schedulerFactoryBean.setTransactionManager(transactionManager);
         schedulerFactoryBean.setApplicationContextSchedulerContextKey(
             quartzProperties.getScheduler().getApplicationContextSchedulerContextKey());
@@ -97,8 +82,8 @@ public class QuartzConfig {
     }
 
     @Bean
-    public Scheduler scheduler() {
-        return schedulerFactoryBean().getObject();
+    public Scheduler scheduler(SchedulerFactoryBean schedulerFactoryBean) {
+        return schedulerFactoryBean.getObject();
     }
 
     private Properties asProperties(Map<String, String> source) {

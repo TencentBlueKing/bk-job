@@ -1,7 +1,6 @@
 @import "./bk-patch.css";
 
 @keyframes rotate-loading {
-
     0% {
         transform: rotateZ(0);
     }

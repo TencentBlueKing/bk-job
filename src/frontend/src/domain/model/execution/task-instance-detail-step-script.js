@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import TaskHostNodeModel from '@model/task-host-node';
+
+import I18n from '@/i18n';
 
 export default class TaskInstanceDetailStepScript {
     static STATUS_SCRIPT_NEED_UPDATE = 1;
@@ -46,7 +47,10 @@ export default class TaskInstanceDetailStepScript {
         this.scriptLanguage = payload.scriptLanguage || 1;
         this.account = payload.account;
         this.status = payload.status;
+        this.rollingEnabled = Boolean(payload.rollingEnabled);
+        
         this.executeTarget = new TaskHostNodeModel(payload.executeTarget || {});
+        this.rollingConfig = this.initRollingConfig(payload.rollingConfig);
     }
 
     /**
@@ -103,5 +107,28 @@ export default class TaskInstanceDetailStepScript {
      */
     get ignoreErrorText () {
         return this.ignoreError === 0 ? I18n.t('不忽略') : I18n.t('自动忽略错误');
+    }
+
+    /**
+     * @desc 处理滚动执行配置
+     * @param { Object } rollingConfig 滚动执行配置
+     * @returns { Object }
+     */
+    initRollingConfig (rollingConfig) {
+        const config = {
+            expr: '',
+            mode: 1,
+        };
+        if (rollingConfig) {
+            const {
+                expr = '',
+                mode = 0,
+            } = rollingConfig;
+            Object.assign(config, {
+                expr,
+                mode,
+            });
+        }
+        return config;
     }
 }

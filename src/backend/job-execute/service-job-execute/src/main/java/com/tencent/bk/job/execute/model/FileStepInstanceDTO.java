@@ -40,10 +40,6 @@ public class FileStepInstanceDTO {
      */
     private List<FileSourceDTO> fileSourceList;
     /**
-     * 变量解析之后的文件传输的源文件
-     */
-    private List<FileSourceDTO> resolvedFileSourceList;
-    /**
      * 文件传输的目标目录
      */
     private String fileTargetPath;

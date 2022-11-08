@@ -43,6 +43,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -51,8 +52,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -60,13 +59,13 @@ import java.util.concurrent.TimeUnit;
 public class ScriptCheckServiceImpl implements ScriptCheckService {
 
     private final DangerousRuleCache dangerousRuleCache;
-    private final ExecutorService executor = new ThreadPoolExecutor(
-        10, 50, 60L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>());
+    private final ExecutorService scriptCheckExecutor;
 
     @Autowired
-    public ScriptCheckServiceImpl(DangerousRuleCache dangerousRuleCache) {
+    public ScriptCheckServiceImpl(DangerousRuleCache dangerousRuleCache,
+                                  @Qualifier("scriptCheckExecutor") ExecutorService scriptCheckExecutor) {
         this.dangerousRuleCache = dangerousRuleCache;
+        this.scriptCheckExecutor = scriptCheckExecutor;
     }
 
     @Override
@@ -82,21 +81,24 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             int timeout = 5;
             ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems =
-                executor.submit(new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
+                scriptCheckExecutor.submit(new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
             if (ScriptTypeEnum.SHELL.equals(scriptType)) {
-                Future<List<ScriptCheckResultItemDTO>> grammar = executor.submit(new ScriptGrammarChecker(scriptType,
-                    content));
+                Future<List<ScriptCheckResultItemDTO>> grammar = scriptCheckExecutor.submit(
+                    new ScriptGrammarChecker(scriptType, content)
+                );
 
                 Future<List<ScriptCheckResultItemDTO>> danger =
-                    executor.submit(new BuildInDangerousScriptChecker(scriptCheckParam));
+                    scriptCheckExecutor.submit(new BuildInDangerousScriptChecker(scriptCheckParam));
 
                 Future<List<ScriptCheckResultItemDTO>> logic =
-                    executor.submit(new ScriptLogicChecker(scriptCheckParam));
+                    scriptCheckExecutor.submit(new ScriptLogicChecker(scriptCheckParam));
 
-                Future<List<ScriptCheckResultItemDTO>> io = executor.submit(new IOScriptChecker(scriptCheckParam));
+                Future<List<ScriptCheckResultItemDTO>> io = scriptCheckExecutor.submit(
+                    new IOScriptChecker(scriptCheckParam)
+                );
 
                 Future<List<ScriptCheckResultItemDTO>> device =
-                    executor.submit(new DeviceCrashScriptChecker(scriptCheckParam));
+                    scriptCheckExecutor.submit(new DeviceCrashScriptChecker(scriptCheckParam));
                 checkResultList.addAll(grammar.get(timeout, TimeUnit.SECONDS));
                 checkResultList.addAll(logic.get(timeout, TimeUnit.SECONDS));
                 checkResultList.addAll(danger.get(timeout, TimeUnit.SECONDS));
@@ -107,12 +109,11 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             checkResultList.sort(Comparator.comparingInt(ScriptCheckResultItemDTO::getLine));
 
         } catch (Exception e) {
-            // 脚本检查非强制，如果检查过程中抛出异常不应该影响业务的使用
             String errorMsg = MessageFormatter.format(
                 "Check script caught exception! scriptType: {}, content: {}",
                 scriptType, content).getMessage();
             log.error(errorMsg, e);
-            return Collections.emptyList();
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
         return checkResultList;
     }
@@ -133,7 +134,7 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             if (CollectionUtils.isEmpty(dangerousRules)) {
                 return Collections.emptyList();
             }
-            Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems = executor.submit(
+            Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems = scriptCheckExecutor.submit(
                 new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
             checkResultList.addAll(dangerousRuleCheckResultItems.get(timeout, TimeUnit.SECONDS));
             checkResultList.sort(Comparator.comparingInt(ScriptCheckResultItemDTO::getLine));

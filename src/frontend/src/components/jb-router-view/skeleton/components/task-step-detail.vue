@@ -31,28 +31,114 @@
             :height="684"
             :width="maxWidth"
             v-bind="$attrs">
-            <rect x="298" y="109" :width="blockWidth" height="575" rx="2" />
-            <rect x="78" y="109" width="200" height="20" rx="2" />
-            <rect x="78" y="5" width="82" height="20" rx="2" />
-            <rect x="78" y="63" width="82" height="20" rx="2" />
-            <rect :x="xPosition1" y="63" width="113" height="20" rx="2" />
-            <rect :x="xPosition2" y="63" width="507" height="20" rx="2" />
-            <rect x="198" y="5" width="82" height="20" rx="2" />
-            <rect x="318" y="5" width="82" height="20" rx="2" />
-            <rect x="78" y="151" width="200" height="20" rx="2" />
-            <rect x="78" y="192" width="200" height="20" rx="2" />
-            <rect x="78" y="233" width="200" height="20" rx="2" />
-            <rect x="78" y="274" width="200" height="20" rx="2" />
-            <rect x="78" y="314" width="200" height="20" rx="2" />
-            <rect x="78" y="355" width="200" height="20" rx="2" />
-            <rect x="78" y="397" width="200" height="20" rx="2" />
-            <circle cx="17" cy="17" r="17" />
-            <circle cx="17" cy="78" r="17" />
-            <circle cx="17" cy="139" r="17" />
-            <circle cx="17" cy="200" r="17" />
+            <rect
+                height="575"
+                rx="2"
+                :width="blockWidth"
+                x="298"
+                y="109" />
+            <rect
+                height="20"
+                rx="2"
+                width="200"
+                x="78"
+                y="109" />
+            <rect
+                height="20"
+                rx="2"
+                width="82"
+                x="78"
+                y="5" />
+            <rect
+                height="20"
+                rx="2"
+                width="82"
+                x="78"
+                y="63" />
+            <rect
+                height="20"
+                rx="2"
+                width="113"
+                :x="xPosition1"
+                y="63" />
+            <rect
+                height="20"
+                rx="2"
+                width="507"
+                :x="xPosition2"
+                y="63" />
+            <rect
+                height="20"
+                rx="2"
+                width="82"
+                x="198"
+                y="5" />
+            <rect
+                height="20"
+                rx="2"
+                width="82"
+                x="318"
+                y="5" />
+            <rect
+                height="20"
+                rx="2"
+                width="200"
+                x="78"
+                y="151" />
+            <rect
+                height="20"
+                rx="2"
+                width="200"
+                x="78"
+                y="192" />
+            <rect
+                height="20"
+                rx="2"
+                width="200"
+                x="78"
+                y="233" />
+            <rect
+                height="20"
+                rx="2"
+                width="200"
+                x="78"
+                y="274" />
+            <rect
+                height="20"
+                rx="2"
+                width="200"
+                x="78"
+                y="314" />
+            <rect
+                height="20"
+                rx="2"
+                width="200"
+                x="78"
+                y="355" />
+            <rect
+                height="20"
+                rx="2"
+                width="200"
+                x="78"
+                y="397" />
+            <circle
+                cx="17"
+                cy="17"
+                r="17" />
+            <circle
+                cx="17"
+                cy="78"
+                r="17" />
+            <circle
+                cx="17"
+                cy="139"
+                r="17" />
+            <circle
+                cx="17"
+                cy="200"
+                r="17" />
         </content-loader>
     </div>
-    
 </template>
 <script>
     import {

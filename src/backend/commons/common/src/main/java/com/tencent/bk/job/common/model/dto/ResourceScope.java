@@ -45,7 +45,7 @@ public class ResourceScope {
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "枚举，资源范围类型(取值为biz/biz_set)", required = true)
+    @ApiModelProperty(value = "枚举，资源范围类型", required = true)
     private ResourceScopeTypeEnum type;
     /**
      * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
@@ -63,6 +63,9 @@ public class ResourceScope {
         this.id = id;
     }
 
+    public String toBasicStr() {
+        return "(" + type + "," + id + ")";
+    }
 
     @Override
     public String toString() {

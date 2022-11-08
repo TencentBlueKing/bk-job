@@ -25,13 +25,13 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
-import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -65,17 +66,16 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     private final ApplicationService applicationService;
     private final StepInstanceDAO stepInstanceDAO;
-    private final JobExecuteConfig jobExecuteConfig;
     private final TaskInstanceDAO taskInstanceDAO;
     private final TaskInstanceVariableService taskInstanceVariableService;
 
     @Autowired
-    public TaskInstanceServiceImpl(ApplicationService applicationService, StepInstanceDAO stepInstanceDAO,
-                                   JobExecuteConfig jobExecuteConfig, TaskInstanceDAO taskInstanceDAO,
+    public TaskInstanceServiceImpl(ApplicationService applicationService,
+                                   StepInstanceDAO stepInstanceDAO,
+                                   TaskInstanceDAO taskInstanceDAO,
                                    TaskInstanceVariableService taskInstanceVariableService) {
         this.applicationService = applicationService;
         this.stepInstanceDAO = stepInstanceDAO;
-        this.jobExecuteConfig = jobExecuteConfig;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
     }
@@ -163,6 +163,11 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
+    public StepInstanceBaseDTO getFirstStepInstance(long taskInstanceId) {
+        return stepInstanceDAO.getFirstStepInstanceBase(taskInstanceId);
+    }
+
+    @Override
     public void updateTaskStatus(long taskInstanceId, int status) {
         taskInstanceDAO.updateTaskStatus(taskInstanceId, status);
     }
@@ -193,9 +198,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public void resetTaskExecuteInfoForResume(long taskInstanceId) {
-        taskInstanceDAO.resetTaskExecuteInfoForResume(taskInstanceId);
-
+    public void resetTaskExecuteInfoForRetry(long taskInstanceId) {
+        taskInstanceDAO.resetTaskExecuteInfoForRetry(taskInstanceId);
     }
 
     @Override
@@ -219,18 +223,13 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public void addTaskExecuteCount(long taskInstanceId) {
-        stepInstanceDAO.addTaskExecuteCount(taskInstanceId);
+    public void addStepInstanceExecuteCount(long stepInstanceId) {
+        stepInstanceDAO.addStepInstanceExecuteCount(stepInstanceId);
     }
 
     @Override
     public void updateStepTotalTime(long stepInstanceId, long totalTime) {
         stepInstanceDAO.updateStepTotalTime(stepInstanceId, totalTime);
-    }
-
-    @Override
-    public void updateStepStatInfo(long stepInstanceId, int runIPNum, int successIPNum, int failIPNum) {
-        stepInstanceDAO.updateStepStatInfo(stepInstanceId, runIPNum, successIPNum, failIPNum);
     }
 
     @Override
@@ -243,13 +242,6 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     public void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
                                         Long totalTime) {
         stepInstanceDAO.updateStepExecutionInfo(stepInstanceId, status, startTime, endTime, totalTime);
-    }
-
-    @Override
-    public void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
-                                        Long totalTime, Integer runIPNum, Integer successIPNum, Integer failIPNum) {
-        stepInstanceDAO.updateStepExecutionInfo(stepInstanceId, status, startTime, endTime,
-            totalTime, runIPNum, successIPNum, failIPNum);
     }
 
     @Override
@@ -402,5 +394,11 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public List<Long> listTaskInstanceId(Long appId, Long fromTime, Long toTime, int offset, int limit) {
         return taskInstanceDAO.listTaskInstanceId(appId, fromTime, toTime, offset, limit);
+    }
+
+    @Override
+    public void saveTaskInstanceHosts(long taskInstanceId,
+                                      Collection<HostDTO> hosts) {
+        taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
     }
 }

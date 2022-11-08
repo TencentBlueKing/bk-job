@@ -25,6 +25,7 @@
 
 import Vue from 'vue';
 import Vuex from 'vuex';
+
 import distroFile from './modules/distro-file';
 
 Vue.use(Vuex);

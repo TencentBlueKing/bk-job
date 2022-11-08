@@ -26,47 +26,63 @@
 -->
 
 <template>
-    <div class="edit-execute-plan" v-bkloading="{ isLoading }">
-        <bk-alert class="info" :title="$t('template.调试方案的特殊性：不可删除、始终与作业模板同步、不能被API调用、只能在作业平台使用')" />
+    <div
+        v-bkloading="{ isLoading }"
+        class="edit-execute-plan">
+        <bk-alert
+            class="info"
+            :title="$t('template.调试方案的特殊性：不可删除、始终与作业模板同步、不能被API调用、只能在作业平台使用')" />
         <smart-action offset-target="bk-form-content">
-            <jb-form ref="editPlanForm" :model="formData" :rules="rules">
+            <jb-form
+                ref="editPlanForm"
+                :model="formData"
+                :rules="rules">
                 <jb-form-item :label="$t('template.全局变量.label')">
                     <render-global-var
                         :list="variableList"
-                        :select-value="selectedVariable"
                         mode="editOfPlan"
+                        :select-value="selectedVariable"
                         @on-change="handleGlobalVariableChange" />
                 </jb-form-item>
-                <jb-form-item :label="$t('template.执行步骤')" required property="enableSteps">
+                <jb-form-item
+                    :label="$t('template.执行步骤')"
+                    property="enableSteps"
+                    required>
                     <render-task-step
                         :list="taskStepList"
-                        :select-value="formData.enableSteps"
                         mode="select"
+                        :select-value="formData.enableSteps"
                         @on-select="handleSelectStep" />
                 </jb-form-item>
             </jb-form>
             <template #action>
                 <bk-button
-                    theme="primary"
                     class="w120 mr10"
                     :loading="isSubmitLoading"
+                    theme="primary"
                     @click="handleSumbit">
                     {{ $t('template.保存') }}
                 </bk-button>
-                <bk-button @click="handleCancle">{{ $t('template.取消') }}</bk-button>
+                <bk-button @click="handleCancle">
+                    {{ $t('template.取消') }}
+                </bk-button>
             </template>
         </smart-action>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskPlanService from '@service/task-plan';
-    import JbForm from '@components/jb-form';
+
     import {
         findUsedVariable,
     } from '@utils/assist';
+
+    import JbForm from '@components/jb-form';
+
     import RenderGlobalVar from '../common/render-global-var';
     import RenderTaskStep from '../common/render-task-step';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         id: 0,

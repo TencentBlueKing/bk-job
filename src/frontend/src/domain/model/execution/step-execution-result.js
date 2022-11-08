@@ -23,10 +23,13 @@
  * IN THE SOFTWARE.
 */
 
+import _ from 'lodash';
+
+import ResultGroup from '@model/execution/step-execution-result-group';
+
 import {
     transformTimeFriendly,
 } from '@utils/assist';
-import ResultGroup from '@model/execution/step-execution-result-group';
 
 // 执行状态
 const STATUS_PENDING = 1;
@@ -48,6 +51,11 @@ const STATUS_EVICTED = 14;
 // const TYPE_SCRIPT = 1
 const TYPE_FILE = 2;
 // const TYPE_APPROVAL = 3
+
+// 是否滚动执行步骤
+const MODE_ONCE = 1;
+const MODE_ROLLING_ALL = 2;
+const MODE_ROLLING_BATCH = 3;
 
 const checkStatus = (status) => {
     // 执行成功
@@ -117,19 +125,27 @@ const checkStatus = (status) => {
 // 使用场景：步骤执行详情页，步骤执行结果的详细信息
 // —— resultGroups 步骤执行结果分组信息
 export default class StepExecutionResult {
+    static MODE_ONCE = MODE_ONCE;
+    static MODE_ROLLING_ALL = MODE_ROLLING_ALL;
+    static MODE_ROLLING_BATCH = MODE_ROLLING_BATCH;
+    
     constructor (payload) {
-        this.stepInstanceId = payload.stepInstanceId;
-        this.retryCount = payload.retryCount;
+        this.gseTaskId = payload.gseTaskId;
         this.finished = payload.finished;
+        this.isLastStep = payload.isLastStep;
         this.name = payload.name;
+        this.retryCount = payload.retryCount;
+        this.stepInstanceId = payload.stepInstanceId;
         this.startTime = payload.startTime;
         this.endTime = payload.endTime;
         this.totalTime = payload.totalTime;
         this.type = payload.type;
         this.status = payload.status;
         this.statusDesc = payload.statusDesc;
-        this.isLastStep = payload.isLastStep;
+        this.runMode = payload.runMode || MODE_ONCE;
+        
         this.resultGroups = this.initResultGroup(payload.resultGroups);
+        this.rollingTasks = this.initRollingTasks(payload.rollingTasks);
     }
 
     /**
@@ -146,6 +162,13 @@ export default class StepExecutionResult {
      */
     get isFile () {
         return this.type === TYPE_FILE;
+    }
+
+    get isRollingTask () {
+        return [
+            MODE_ROLLING_ALL,
+            MODE_ROLLING_BATCH,
+        ].includes(this.runMode);
     }
 
     /**
@@ -213,8 +236,24 @@ export default class StepExecutionResult {
                 'forcedRetry',
             ];
         }
+        // 非人工确认类型的步骤，在需要人工确认时（人工确认批次）没有对步骤的确认操作
+        if (!this.isApproval) {
+            actionMap.confirm = [];
+        }
         
         return actionMap[checkStatus(this.status)];
+    }
+
+    /**
+     * @desc 正在执行批次的索引顺序
+     * @returns { Number }
+     *
+     * - 非滚动执行返回 Null
+     * - 滚动执行返回批次排序位置
+     */
+    get runningBatchOrder () {
+        const index = _.findIndex(this.rollingTasks, ({ latestBatch }) => latestBatch);
+        return index < 0 ? undefined : index + 1;
     }
 
     /**
@@ -227,5 +266,17 @@ export default class StepExecutionResult {
             return [];
         }
         return resultGroups.map(item => Object.freeze(new ResultGroup(item)));
+    }
+
+    /**
+     * @desc 初始化执行分批信息
+     * @param { Array } rollingTasks
+     * @returns { Array }
+     */
+    initRollingTasks (rollingTasks) {
+        if (!Array.isArray(rollingTasks)) {
+            return [];
+        }
+        return rollingTasks.map(item => Object.freeze(item));
     }
 }

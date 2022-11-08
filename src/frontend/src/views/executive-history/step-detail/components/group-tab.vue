@@ -26,41 +26,69 @@
 -->
 
 <template>
-    <div class="step-execute-host-group" :class="{ hide: isHide }">
-        <div ref="groupTab" class="group-tab" :class="{ toggle: showGroupToggle }">
+    <div
+        class="step-execute-host-group"
+        :class="{ hide: isHide }">
+        <div
+            ref="groupTab"
+            class="group-tab"
+            :class="{ toggle: showGroupToggle }">
             <div
                 v-for="(item) in renderGroup"
                 :key="item.resultType + item.tag"
                 class="tab-item"
-                :class="{ active: chooseGroupName === item.groupName }"
+                :class="{
+                    active: value.groupName === item.groupName,
+                }"
                 @click="handleGroupChange(item)">
-                <div class="group-name" v-bk-overflow-tips>{{ item.groupName }}</div>
+                <div
+                    v-bk-overflow-tips
+                    class="group-name">
+                    {{ item.groupName }}
+                </div>
                 <Icon
                     v-if="item.tagMaxLength"
-                    class="max-length-info"
                     v-bk-tooltips="$t('history.分组标签长度最大支持256，超过会被自动截断，请留意！')"
+                    class="max-length-info"
                     type="info" />
-                <div class="group-nums">{{ item.agentTaskSize }}</div>
+                <div class="group-nums">
+                    {{ item.agentTaskSize }}
+                </div>
             </div>
-            <div v-if="showGroupToggle" class="group-toggle" :class="groupToggleClass">
+            <div
+                v-if="showGroupToggle"
+                class="group-toggle"
+                :class="groupToggleClass">
                 <div class="tab-more">
-                    <div class="group-holder">{{ groupHolder }}</div>
-                    <Icon type="arrow-full-right" class="toggle-flag" />
+                    <div class="group-holder">
+                        {{ groupHolder }}
+                    </div>
+                    <Icon
+                        class="toggle-flag"
+                        type="arrow-full-right" />
                 </div>
                 <div class="dropdown-menu">
                     <div
-                        class="dropdowm-item"
                         v-for="(item, index) in toggleGroup"
-                        :class="{ active: chooseGroupName === item.groupName }"
-                        @click="handleGroupChange(item)"
-                        :key="index">
-                        <div class="group-name" v-bk-overflow-tips>{{ item.groupName }}</div>
+                        :key="index"
+                        class="dropdowm-item"
+                        :class="{
+                            active: value.groupName === item.groupName,
+                        }"
+                        @click="handleGroupChange(item)">
+                        <div
+                            v-bk-overflow-tips
+                            class="group-name">
+                            {{ item.groupName }}
+                        </div>
                         <Icon
                             v-if="item.tagMaxLength"
-                            class="max-length-info"
                             v-bk-tooltips="$t('history.分组标签长度最大支持256，超过会被自动截断，请留意！')"
+                            class="max-length-info"
                             type="info" />
-                        <div class="group-nums">{{ item.agentTaskSize }}</div>
+                        <div class="group-nums">
+                            {{ item.agentTaskSize }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -69,11 +97,16 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import I18n from '@/i18n';
 
     export default {
         name: '',
         props: {
+            value: {
+                type: Object,
+                default: () => ({}),
+            },
             data: {
                 type: Array,
                 default: () => [],
@@ -84,13 +117,12 @@
                 isHide: true,
                 renderGroup: [],
                 toggleGroup: [],
-                chooseGroupName: '',
             };
         },
         computed: {
             groupHolder () {
-                if (this.toggleGroup.find(_ => _.groupName === this.chooseGroupName)) {
-                    return this.chooseGroupName;
+                if (this.toggleGroup.find(_ => _.groupName === this.value.groupName)) {
+                    return this.value.groupName;
                 }
                 return I18n.t('history.更多分组');
             },
@@ -98,7 +130,7 @@
                 return this.toggleGroup.length > 0;
             },
             groupToggleClass () {
-                if (this.toggleGroup.find(_ => _.groupName === this.chooseGroupName)) {
+                if (this.toggleGroup.find(_ => _.groupName === this.value.groupName)) {
                     return 'active';
                 }
                 return '';
@@ -113,15 +145,11 @@
                     if (this.data.length < 1) {
                         return;
                     }
-                    // 没有选中的分组，默认选中第一个
-                    if (!this.chooseGroupName || !data.find(_ => _.groupName === this.chooseGroupName)) {
-                        this.handleGroupChange(data[0]);
-                    }
                     this.isHide = true;
                     this.renderGroup = Object.freeze(data);
                     setTimeout(() => {
-                        this.initTab();
-                    }, 20);
+                        this.renderGroupItem();
+                    });
                 },
                 immediate: true,
             },
@@ -134,7 +162,7 @@
                 this.renderGroup = this.data;
                 this.isHide = true;
                 this.timer = setTimeout(() => {
-                    this.initTab();
+                    this.renderGroupItem();
                 });
             }, 100);
             window.addEventListener('resize', resizeHandler);
@@ -147,7 +175,7 @@
             /**
              * @desc 计算分组的排版，超过一行的分组聚合到最后
              */
-            initTab () {
+            renderGroupItem () {
                 const { width } = this.$refs.groupTab.getBoundingClientRect();
                 const allGroup = [...this.$refs.groupTab.querySelectorAll('.tab-item')];
                 
@@ -178,13 +206,11 @@
              * @param {Object} group 最新选中的分组
              */
             handleGroupChange (group) {
-                this.chooseGroupName = group.groupName;
-                
-                this.$emit('on-change', {
-                    groupName: group.groupName,
-                    resultType: group.resultType || '',
-                    tag: group.tag,
-                });
+                const { resultType, tag } = this.value;
+                if (resultType === group.resultType && tag === group.tag) {
+                    return;
+                }
+                this.$emit('on-change', group);
             },
         },
     };

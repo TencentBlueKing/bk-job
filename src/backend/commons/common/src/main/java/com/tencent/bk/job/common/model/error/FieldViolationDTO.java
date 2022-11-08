@@ -33,7 +33,7 @@ import lombok.Data;
 public class FieldViolationDTO {
     @JsonProperty("field")
     private String field;
-    @JsonProperty("rejected_value")
+    @JsonProperty("rejectedValue")
     private Object rejectedValue;
     @JsonProperty("description")
     private String description;

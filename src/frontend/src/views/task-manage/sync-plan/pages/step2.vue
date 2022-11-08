@@ -31,10 +31,14 @@
             <div class="sync-wraper">
                 <div class="sync-layout sync-header">
                     <div class="sync-before">
-                        <div class="title">{{ $t('template.同步前') }}</div>
+                        <div class="title">
+                            {{ $t('template.同步前') }}
+                        </div>
                     </div>
                     <div class="sync-after">
-                        <div class="title">{{ $t('template.同步后') }}</div>
+                        <div class="title">
+                            {{ $t('template.同步后') }}
+                        </div>
                     </div>
                 </div>
                 <div class="sync-content">
@@ -49,59 +53,72 @@
                                 <span class="global-variable-tips">{{ $t('template.全局变量的 “初始值” 不会被同步到执行方案') }}</span>
                             </div>
                         </div>
-                        <template v-for="index in templateVariableList.length">
-                            <div class="sync-layout" :key="`${'variable' + index}`">
-                                <div class="sync-before">
-                                    <diff-global-variable
-                                        v-if="planVariableList[index - 1]"
-                                        :data="planVariableList[index - 1]"
-                                        :diff="beforeVariableDiff" />
-                                </div>
-                                <div class="sync-after">
-                                    <diff-global-variable
-                                        v-if="templateVariableList[index - 1]"
-                                        :data="templateVariableList[index - 1]"
-                                        :diff="variableDiff"
-                                        type="sync-after" />
-                                </div>
+                        <div
+                            v-for="index in templateVariableList.length"
+                            :key="`${'variable' + index}`"
+                            class="sync-layout">
+                            <div class="sync-before">
+                                <diff-global-variable
+                                    v-if="planVariableList[index - 1]"
+                                    :data="planVariableList[index - 1]"
+                                    :diff="beforeVariableDiff" />
                             </div>
-                        </template>
-                        <div class="sync-layout">
-                            <div class="sync-before block-title">{{ $t('template.作业步骤.label') }}</div>
-                            <div class="sync-after block-title">{{ $t('template.作业步骤.label') }}</div>
+                            <div class="sync-after">
+                                <diff-global-variable
+                                    v-if="templateVariableList[index - 1]"
+                                    :data="templateVariableList[index - 1]"
+                                    :diff="variableDiff"
+                                    type="sync-after" />
+                            </div>
                         </div>
-                        <template v-for="index in templateStepList.length">
-                            <div class="sync-layout" :key="`${'step' + index}`">
-                                <div class="sync-before">
-                                    <diff-task-step
-                                        v-if="planStepList[index - 1]"
-                                        type="sync-before"
-                                        :data="planStepList[index - 1]"
-                                        :account="accountList"
-                                        :diff="beforeStepDiff" />
-                                </div>
-                                <div class="sync-after">
-                                    <diff-task-step
-                                        v-if="templateStepList[index - 1]"
-                                        type="sync-after"
-                                        :data="templateStepList[index - 1]"
-                                        :account="accountList"
-                                        :diff="stepDiff" />
-                                </div>
+                        <div class="sync-layout">
+                            <div class="sync-before block-title">
+                                {{ $t('template.作业步骤.label') }}
                             </div>
-                        </template>
+                            <div class="sync-after block-title">
+                                {{ $t('template.作业步骤.label') }}
+                            </div>
+                        </div>
+                        <div
+                            v-for="index in templateStepList.length"
+                            :key="`${'step' + index}`"
+                            class="sync-layout">
+                            <div class="sync-before">
+                                <diff-task-step
+                                    v-if="planStepList[index - 1]"
+                                    :account="accountList"
+                                    :data="planStepList[index - 1]"
+                                    :diff="beforeStepDiff"
+                                    type="sync-before" />
+                            </div>
+                            <div class="sync-after">
+                                <diff-task-step
+                                    v-if="templateStepList[index - 1]"
+                                    :account="accountList"
+                                    :data="templateStepList[index - 1]"
+                                    :diff="stepDiff"
+                                    type="sync-after" />
+                            </div>
+                        </div>
                     </scroll-faker>
                 </div>
             </div>
-            <side-anchor class="side-anchor" :variable="templateVariableList" :step="templateStepList" />
+            <side-anchor
+                class="side-anchor"
+                :step="templateStepList"
+                :variable="templateVariableList" />
         </div>
         <template #footer>
-            <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-            <bk-button @click="handleLast">{{ $t('template.上一步') }}</bk-button>
+            <bk-button @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
+            <bk-button @click="handleLast">
+                {{ $t('template.上一步') }}
+            </bk-button>
             <bk-button
                 v-if="!isView"
-                theme="primary"
                 class="w120"
+                theme="primary"
                 @click="handleNext">
                 {{ $t('template.下一步') }}
             </bk-button>
@@ -110,16 +127,19 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import AccountManageService from '@service/account-manage';
+
     import ScrollFaker from '@components/scroll-faker';
-    import Layout from '../components/layout';
+
     import DiffGlobalVariable from '../components/diff/global-variable';
     import DiffTaskStep from '../components/diff/task-step';
+    import Layout from '../components/layout';
     import SideAnchor from '../components/side-anchor';
     import {
         composeList,
-        diffVariable,
         diffStep,
+        diffVariable,
     } from '../components/utils';
 
     export default {

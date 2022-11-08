@@ -27,27 +27,42 @@
 
 <template>
     <div class="page-global-set-up">
-        <bk-tab :active="page" :before-toggle="handleTabChange" class="page-tab">
-            <bk-tab-panel name="notify" :label="$t('setting.通知设置')" />
+        <bk-tab
+            :active="page"
+            :before-toggle="handleTabChange"
+            class="page-tab">
+            <bk-tab-panel
+                :label="$t('setting.通知设置')"
+                name="notify" />
             <!-- <bk-tab-panel name="strategy" :label="$t('setting.存储策略')" /> -->
-            <bk-tab-panel name="account" :label="$t('setting.账号命名规则')" />
-            <bk-tab-panel name="platform" :label="$t('setting.平台信息')" />
-            <bk-tab-panel name="fileUpload" :label="$t('setting.文件上传设置')" />
+            <bk-tab-panel
+                :label="$t('setting.账号命名规则')"
+                name="account" />
+            <bk-tab-panel
+                :label="$t('setting.平台信息')"
+                name="platform" />
+            <bk-tab-panel
+                :label="$t('setting.文件上传设置')"
+                name="fileUpload" />
         </bk-tab>
         <div class="set-up-wraper">
             <transition name="slide">
-                <component ref="page" :is="pageCom" class="set-up-content" />
+                <component
+                    :is="pageCom"
+                    ref="page"
+                    class="set-up-content" />
             </transition>
         </div>
     </div>
 </template>
 <script>
     import { leaveConfirm } from '@utils/assist';
-    import NotifyManage from './pages/notify-manage';
-    import StorageStrategy from './pages/storage-strategy';
+
     import AccountRule from './pages/account-rule';
-    import PlatformInfo from './pages/platform-info';
     import FileUpload from './pages/file-upload';
+    import NotifyManage from './pages/notify-manage';
+    import PlatformInfo from './pages/platform-info';
+    import StorageStrategy from './pages/storage-strategy';
 
     export default {
         name: '',

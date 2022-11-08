@@ -37,7 +37,6 @@ public class HostInfoConverter {
         serviceHostInfoDTO.setCloudAreaId(applicationHostDTO.getCloudAreaId());
         serviceHostInfoDTO.setHostId(applicationHostDTO.getHostId());
         serviceHostInfoDTO.setIp(applicationHostDTO.getIp());
-        serviceHostInfoDTO.setDisplayIp(applicationHostDTO.getDisplayIp());
         return serviceHostInfoDTO;
     }
 }

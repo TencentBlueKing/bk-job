@@ -27,15 +27,15 @@
 
 <template>
     <bk-sideslider
-        class="jb-sideslider"
         ref="bkSideslider"
         v-bind="$attrs"
+        :before-close="beforeClose"
+        class="jb-sideslider"
         :is-show="isShow"
-        @update:isShow="close"
         quick-close
         transfer
         :width="mediaWidth"
-        :before-close="beforeClose">
+        @update:isShow="close">
         <template slot="header">
             <slot name="header">
                 {{ title }}
@@ -43,21 +43,31 @@
         </template>
         <template v-if="isRender">
             <template slot="content">
-                <div class="jb-sideslider-content">
+                <div
+                    ref="content"
+                    class="jb-sideslider-content">
                     <slot />
                 </div>
             </template>
-            <template slot="footer" v-if="showFooter">
-                <div ref="footer" class="jb-sideslider-footer" :style="footerStyles">
+            <template
+                v-if="showFooter"
+                slot="footer">
+                <div
+                    ref="footer"
+                    class="jb-sideslider-footer"
+                    :style="footerStyles">
                     <slot name="footer">
                         <bk-button
-                            theme="primary"
                             class="mr10"
                             :loading="isSubmiting"
+                            theme="primary"
                             @click="handleSubmit">
                             {{ okText }}
                         </bk-button>
-                        <bk-button @click="handleCancel">{{ cancelText }}</bk-button>
+                        <bk-button
+                            @click="handleCancel">
+                            {{ cancelText }}
+                        </bk-button>
                     </slot>
                 </div>
             </template>
@@ -66,10 +76,12 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import {
         leaveConfirm,
     } from '@utils/assist';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'JbSideslider',
@@ -116,10 +128,14 @@
             footerStyles () {
                 const styles = {};
                 if (this.offsetLeft > 0) {
-                    styles['padding-left'] = `${this.offsetLeft}px`;
+                    styles.paddingLeft = `${this.offsetLeft}px`;
                 }
                 if (this.isFooterFixed) {
-                    styles['box-shadow'] = '0px -2px 4px 0px rgba(0, 0, 0, 0.06)';
+                    styles.position = 'relative';
+                    styles.zIndex = 1;
+                    styles.width = '100%';
+                    styles.height = '54px';
+                    styles.boxShadow = '0px -2px 4px 0px rgba(0, 0, 0, 0.06)';
                 }
                 return styles;
             },
@@ -149,7 +165,7 @@
                             window.changeConfirm = 'dialog';
                             this.getMediaWidth();
                             this.$nextTick(() => {
-                                observer.observe(this.$refs.bkSideslider.$el, {
+                                observer.observe(this.$refs.content, {
                                     subtree: true,
                                     childList: true,
                                     attributeName: true,
@@ -216,24 +232,44 @@
              * @desc 计算footer的位置
              */
             checkFooterPosition: _.debounce(function () {
-                this.$nextTick(() => {
-                    if (!this.$refs.footer) {
-                        return;
+                if (!this.$refs.footer) {
+                    return;
+                }
+                const winHeight = window.innerHeight;
+                const footerHeight = 50;
+                const maxHeight = winHeight - footerHeight;
+
+                const checkHeight = ($root) => {
+                    const $elList = Array.from($root.children);
+                    // eslint-disable-next-line no-plusplus
+                    for (let i = 0; i < $elList.length; i++) {
+                        const currentEl = $elList[i];
+                        
+                        const { height } = currentEl.getBoundingClientRect();
+                        if (height === 0) {
+                            return false;
+                        }
+                        if (height > maxHeight) {
+                            return true;
+                        }
+                        if (checkHeight(currentEl)) {
+                            return true;
+                        }
                     }
-                    // 计算footer是否固定在底部
-                    const { bottom } = this.$refs.footer.getBoundingClientRect();
-                    const winHeight = window.innerHeight;
-                    this.isFooterFixed = bottom + 5 >= winHeight;
-                    // 计算button偏移量
-                    const $target = document.querySelector(`.${this.footerOffsetTarget}`);
-                    if ($target) {
-                        const offsetTargetLeft = $target.getBoundingClientRect().left;
-                        const footerLeft = this.$refs.footer.getBoundingClientRect().left;
-                        this.offsetLeft = offsetTargetLeft - footerLeft;
-                    } else {
-                        this.offsetLeft = 0;
-                    }
-                });
+                    return false;
+                };
+
+                // 计算footer是否固定在底部
+                this.isFooterFixed = checkHeight(this.$refs.content);
+                // 计算button偏移量
+                const $target = document.querySelector(`.${this.footerOffsetTarget}`);
+                if ($target) {
+                    const offsetTargetLeft = $target.getBoundingClientRect().left;
+                    const footerLeft = this.$refs.footer.getBoundingClientRect().left;
+                    this.offsetLeft = offsetTargetLeft - footerLeft;
+                } else {
+                    this.offsetLeft = 0;
+                }
             }, 100),
             /**
              * @desc 检测提供给dialog的交互组件目标
@@ -295,11 +331,18 @@
 </script>
 <style lang="postcss">
     .jb-sideslider {
+        .bk-sideslider-wrapper {
+            overflow: unset;
+        }
+
         .jb-sideslider-content {
+            position: relative;
+            z-index: 1;
             padding: 20px 30px;
         }
 
         .bk-sideslider-footer {
+            height: auto;
             background: #fff !important;
         }
 
@@ -309,6 +352,7 @@
             width: 100%;
             height: 100%;
             padding: 0 30px;
+            background: inherit !important;
         }
     }
 </style>

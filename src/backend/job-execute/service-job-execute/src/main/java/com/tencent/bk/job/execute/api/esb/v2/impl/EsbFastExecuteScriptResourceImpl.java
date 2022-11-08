@@ -46,6 +46,7 @@ import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
@@ -114,8 +115,9 @@ public class EsbFastExecuteScriptResourceImpl
             scriptService);
         TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(request);
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(request, script);
-        long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
-        taskExecuteService.startTask(taskInstanceId);
+        long taskInstanceId = taskExecuteService.executeFastTask(
+            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+        );
 
         EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
         jobExecuteInfo.setTaskInstanceId(taskInstanceId);
@@ -174,11 +176,11 @@ public class EsbFastExecuteScriptResourceImpl
         taskInstance.setDebugTask(false);
         taskInstance.setAppId(request.getAppId());
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setOperator(request.getUserName());
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
         taskInstance.setAppCode(request.getAppCode());
         return taskInstance;
@@ -215,7 +217,7 @@ public class EsbFastExecuteScriptResourceImpl
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
 
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
-        stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
         AccountDTO account = accountService.getSystemAccountByAlias(request.getAccount(), request.getAppId());

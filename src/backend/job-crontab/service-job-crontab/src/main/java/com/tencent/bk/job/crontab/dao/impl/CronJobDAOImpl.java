@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
+import com.tencent.bk.job.crontab.model.dto.CronJobWithVarsDTO;
 import com.tencent.bk.job.crontab.util.DbRecordMapper;
 import com.tencent.bk.job.crontab.util.DbUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record1;
 import org.jooq.Record21;
+import org.jooq.Record4;
 import org.jooq.Record5;
 import org.jooq.Result;
 import org.jooq.TableField;
@@ -87,6 +89,24 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     @Override
+    public List<CronJobWithVarsDTO> listBasicCronJobWithHostVars(int start, int limit) {
+        Result<Record4<ULong, ULong, String, String>> records = context
+            .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.VARIABLE_VALUE)
+            .from(TABLE)
+            .where(TABLE.VARIABLE_VALUE.like("%ips\":[{%"))
+            .orderBy(TABLE.ID)
+            .limit(start, limit)
+            .fetch();
+        return records.map(record -> new CronJobWithVarsDTO(
+            record.get(TABLE.ID).longValue(),
+            record.get(TABLE.APP_ID).longValue(),
+            record.get(TABLE.NAME),
+            JsonUtils.fromJson(record.get(TABLE.VARIABLE_VALUE), new TypeReference<List<CronJobVariableDTO>>() {
+            })
+        ));
+    }
+
+    @Override
     public PageData<CronJobInfoDTO> listPageCronJobsByCondition(CronJobInfoDTO cronJobCondition,
                                                                 BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildConditionList(cronJobCondition, baseSearchCondition);
@@ -123,7 +143,7 @@ public class CronJobDAOImpl implements CronJobDAO {
                     TABLE.END_TIME, TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER, TABLE.NOTIFY_CHANNEL)
                 .from(TABLE).where(conditions).orderBy(orderFields).limit(start, length).fetch();
         List<CronJobInfoDTO> cronJobInfoList = new ArrayList<>();
-        if (records != null && records.size() >= 1) {
+        if (records.size() >= 1) {
             records.map(record -> cronJobInfoList.add(convertToCronJobDTO(record)));
         }
         PageData<CronJobInfoDTO> cronJobInfoPageData = new PageData<>();
@@ -345,14 +365,26 @@ public class CronJobDAOImpl implements CronJobDAO {
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
 
         UpdateSetMoreStep<CronJobRecord> updateStep =
-            context.update(TABLE).set(TABLE.LAST_EXECUTE_STATUS, UByte.valueOf(cronJobErrorInfo.getLastExecuteStatus()));
+            context.update(TABLE).set(TABLE.LAST_EXECUTE_STATUS,
+                UByte.valueOf(cronJobErrorInfo.getLastExecuteStatus()));
         if (cronJobErrorInfo.getLastExecuteErrorCode() != null) {
-            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_CODE, ULong.valueOf(cronJobErrorInfo.getLastExecuteErrorCode()));
+            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_CODE,
+                ULong.valueOf(cronJobErrorInfo.getLastExecuteErrorCode()));
         }
         if (cronJobErrorInfo.getLastExecuteErrorCount() != null) {
-            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_COUNT, UInteger.valueOf(cronJobErrorInfo.getLastExecuteErrorCount()));
+            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_COUNT,
+                UInteger.valueOf(cronJobErrorInfo.getLastExecuteErrorCount()));
         }
         return 1 == updateStep.where(conditions).limit(1).execute();
+    }
+
+    @Override
+    public int updateVariableById(Long id, String variableValueStr) {
+        return context
+            .update(TABLE)
+            .set(TABLE.VARIABLE_VALUE, variableValueStr)
+            .where(TABLE.ID.eq(ULong.valueOf(id)))
+            .execute();
     }
 
     @Override

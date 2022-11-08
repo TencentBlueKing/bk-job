@@ -25,17 +25,11 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
-import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.util.function.LambdasUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 步骤实例
@@ -120,10 +114,6 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
      */
     private List<FileSourceDTO> fileSourceList;
     /**
-     * 变量解析之后的文件传输的源文件
-     */
-    private List<FileSourceDTO> resolvedFileSourceList;
-    /**
      * 文件传输的目标目录
      */
     private String fileTargetPath;
@@ -177,16 +167,11 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.startTime = stepInstanceBase.startTime;
         this.endTime = stepInstanceBase.endTime;
         this.totalTime = stepInstanceBase.totalTime;
-        this.totalIPNum = stepInstanceBase.totalIPNum;
-        this.badIPNum = stepInstanceBase.badIPNum;
-        this.runIPNum = stepInstanceBase.runIPNum;
-        this.failIPNum = stepInstanceBase.failIPNum;
-        this.successIPNum = stepInstanceBase.successIPNum;
         this.createTime = stepInstanceBase.createTime;
         this.ignoreError = stepInstanceBase.ignoreError;
         this.targetServers = stepInstanceBase.targetServers;
-        this.badIpList = stepInstanceBase.badIpList;
-        this.ipList = stepInstanceBase.ipList;
+        this.rollingConfigId = stepInstanceBase.rollingConfigId;
+        this.batch = stepInstanceBase.getBatch();
     }
 
     // -------------公共方法------------------//
@@ -220,7 +205,6 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.accountId = fileStepInstance.getAccountId();
         this.account = fileStepInstance.getAccount();
         this.fileSourceList = fileStepInstance.getFileSourceList();
-        this.resolvedFileSourceList = fileStepInstance.getResolvedFileSourceList();
         this.fileTargetPath = fileStepInstance.getFileTargetPath();
         this.fileTargetName = fileStepInstance.getFileTargetName();
         this.resolvedFileTargetPath = fileStepInstance.getResolvedFileTargetPath();
@@ -239,30 +223,5 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.confirmUsers = confirmStepInstance.getConfirmUsers();
         this.confirmRoles = confirmStepInstance.getConfirmRoles();
         this.notifyChannels = confirmStepInstance.getNotifyChannels();
-    }
-
-    /**
-     * 返回步骤中不合法的主机
-     *
-     * @return 不合法的主机
-     */
-    public Set<String> getInvalidIps() {
-        Set<String> invalidIpSet = new HashSet<>();
-        if (CollectionUtils.isNotEmpty(this.targetServers.getInvalidIpList())) {
-            invalidIpSet.addAll(this.targetServers.getInvalidIpList().stream().map(IpDTO::convertToStrIp)
-                .collect(Collectors.toSet()));
-        }
-        if (isFileStep() && CollectionUtils.isNotEmpty(this.fileSourceList)) {
-            this.fileSourceList.stream().filter(LambdasUtil.not(FileSourceDTO::isLocalUpload))
-                .forEach(fileSource -> {
-                    ServersDTO fileSourceServers = fileSource.getServers();
-                    if (fileSourceServers != null && CollectionUtils.isNotEmpty(fileSourceServers.getInvalidIpList())) {
-                        invalidIpSet.addAll(fileSourceServers.getInvalidIpList().stream().map(IpDTO::convertToStrIp)
-                            .collect(Collectors.toSet()));
-                    }
-                });
-
-        }
-        return invalidIpSet;
     }
 }

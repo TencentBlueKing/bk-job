@@ -445,7 +445,7 @@ public class ExportJobExecutor {
     private void extractScriptInfo(List<TaskStepVO> stepList,
                                    Map<String, Map<Long, ServiceScriptDTO>> linkScriptContentMap) {
         for (TaskStepVO taskStep : stepList) {
-            if (TaskStepTypeEnum.SCRIPT.getType() == taskStep.getType()) {
+            if (TaskStepTypeEnum.SCRIPT.getValue() == taskStep.getType()) {
                 TaskScriptStepVO scriptStepInfo = taskStep.getScriptStepInfo();
                 if (TaskScriptSourceEnum.CITING.getType() == scriptStepInfo.getScriptSource()
                     || TaskScriptSourceEnum.PUBLIC.getType() == scriptStepInfo.getScriptSource()) {
@@ -549,7 +549,7 @@ public class ExportJobExecutor {
     private List<String> extractLocalFileList(List<TaskStepVO> stepList, File uploadFileDirectory) {
         List<String> localFileList = new ArrayList<>();
         for (TaskStepVO taskStep : stepList) {
-            if (TaskStepTypeEnum.FILE.getType() == taskStep.getType()) {
+            if (TaskStepTypeEnum.FILE.getValue() == taskStep.getType()) {
                 TaskFileStepVO fileStepInfo = taskStep.getFileStepInfo();
                 for (TaskFileSourceInfoVO taskFileInfo : fileStepInfo.getFileSourceList()) {
                     if (TaskFileTypeEnum.LOCAL.getType() == taskFileInfo.getFileType()) {

@@ -27,26 +27,28 @@
 
 <template>
     <div id="templateStepRender">
-        <div class="task-step-container" :class="stepContainerClasses">
+        <div
+            class="task-step-container"
+            :class="stepContainerClasses">
             <template v-for="(step, index) in steps">
                 <components
-                    v-if="step.delete !== 1"
                     :is="stepBoxCom"
-                    :list="[step]"
+                    v-if="step.delete !== 1"
+                    :key="`${index}_${step.id}`"
+                    class="step-drag-box"
+                    :class="{
+                        sort: isOperation && dragStartIndex > -1,
+                    }"
                     :group="{
                         name: 'step',
                         pull: 'clone',
                         put: dragStartIndex !== index,
                     }"
-                    :key="`${index}_${step.id}`"
-                    @start="handleDragStart(index)"
+                    :index="index"
+                    :list="[step]"
                     :move="handleDragMove"
                     @add="handleDragAdd(index)"
-                    :index="index"
-                    class="step-drag-box"
-                    :class="{
-                        sort: isOperation && dragStartIndex > -1,
-                    }">
+                    @start="handleDragStart(index)">
                     <div
                         class="step-content-wraper"
                         :class="{
@@ -59,18 +61,27 @@
                         <div
                             class="render-task-step"
                             :class="[diff[step.id] && diff[step.id].type]">
-                            <div class="step-content" @click="handleStepClick(index)">
+                            <div
+                                class="step-content"
+                                @click="handleStepClick(index)">
                                 <div class="step-icon">
                                     <Icon :type="step.icon" />
                                 </div>
                                 <div class="step-name">
-                                    <div class="step-name-text">{{ step.name || '--' }}</div>
+                                    <div class="step-name-text">
+                                        {{ step.name || '--' }}
+                                    </div>
                                     <!-- 执行脚本，引用脚本的状态 -->
                                     <div v-html="step.scriptStatusHtml" />
                                 </div>
-                                <Icon v-if="isOperation" type="move" class="draggable-flag" />
+                                <Icon
+                                    v-if="isOperation"
+                                    class="draggable-flag"
+                                    type="move" />
                             </div>
-                            <div v-if="isOperation" class="step-operation">
+                            <div
+                                v-if="isOperation"
+                                class="step-operation">
                                 <div
                                     class="operation-btn"
                                     :tippy-tips="$t('template.新建步骤')">
@@ -94,22 +105,22 @@
                                     </div>
                                 </div>
                                 <Icon
-                                    type="minus-circle"
                                     class="operation-btn"
                                     :tippy-tips="$t('template.删除步骤')"
+                                    type="minus-circle"
                                     @click="handleDel(index)" />
                                 <Icon
-                                    type="edit-2"
                                     class="operation-btn"
                                     :tippy-tips="$t('template.编辑步骤')"
+                                    type="edit-2"
                                     @click="handleShowEdit(index)" />
                                 <Icon
-                                    type="step-copy"
                                     class="operation-btn"
                                     :tippy-tips="$t('template.克隆步骤')"
-                                    @mouseover="handleCloneStepHover(index, true)"
+                                    type="step-copy"
+                                    @click="handleCloneStep(index)"
                                     @mouseout="handleCloneStepHover(index, false)"
-                                    @click="handleCloneStep(index)" />
+                                    @mouseover="handleCloneStepHover(index, true)" />
                             </div>
                             <div
                                 v-if="isSelect"
@@ -119,7 +130,11 @@
                             </div>
                             <template v-if="isEdit">
                                 <!-- 编辑状态的新建步骤需要标记出来 -->
-                                <div v-if="!step.id" class="step-new-flag">new</div>
+                                <div
+                                    v-if="!step.id"
+                                    class="step-new-flag">
+                                    new
+                                </div>
                             </template>
                             <!-- 本地验证不通过标记 -->
                             <div
@@ -132,28 +147,34 @@
                         <div
                             v-if="diff[step.id] && diff[step.id].type === 'move'"
                             class="diff-order">
-                            <div v-if="diff[step.id].value !== 0" class="order-change">
+                            <div
+                                v-if="diff[step.id].value !== 0"
+                                class="order-change">
                                 <Icon :type="`${diff[step.id].value < 0 ? 'down-arrow' : 'up-arrow'}`" />
                                 {{ Math.abs(diff[step.id].value) }}
                             </div>
-                            <span v-else class="order-normal">-</span>
+                            <span
+                                v-else
+                                class="order-normal">-</span>
                         </div>
                     </div>
                 </components>
             </template>
             <div
                 v-if="isOperation"
-                class="step-create-btn"
                 key="create"
-                v-test="{ type: 'button', value: 'create_step' }">
+                v-test="{ type: 'button', value: 'create_step' }"
+                class="step-create-btn">
                 <div class="create-btn-text">
-                    <Icon type="plus" class="mr5" />
+                    <Icon
+                        class="mr5"
+                        type="plus" />
                     {{ $t('template.作业步骤.add') }}
                 </div>
                 <div class="create-step-quick">
                     <div
-                        class="quick-item"
                         v-test="{ type: 'button', value: 'create_step' }"
+                        class="quick-item"
                         @click="handleShowCreateWithType('script')">
                         <Icon type="add-script" />
                         <span class="quick-item-text">{{ $t('template.执行脚本') }}</span>
@@ -176,16 +197,16 @@
         <lower-component v-if="isView">
             <jb-sideslider
                 :is-show.sync="isShowDetail"
-                :title="$t('template.查看作业步骤')"
-                :show-footer="false"
+                :media="mediaQueryMap"
                 :quick-close="true"
-                :width="896"
-                :media="mediaQueryMap">
+                :show-footer="false"
+                :title="$t('template.查看作业步骤')"
+                :width="896">
                 <task-step-view
                     v-if="isShowDetail"
                     ref="stepViewRef"
-                    :variable="hostVariables"
-                    :data="detailInfo" />
+                    :data="detailInfo"
+                    :variable="hostVariables" />
             </jb-sideslider>
         </lower-component>
         <lower-component v-if="isOperation">
@@ -193,14 +214,14 @@
                 id="taskStepOperationSideslider"
                 :is-show.sync="isShowOperation"
                 v-bind="operationSideSliderInfo"
-                :width="916"
-                :media="mediaQueryMap">
+                :media="mediaQueryMap"
+                :width="916">
                 <task-step-operation
                     v-if="isShowOperation"
                     ref="taskStep"
-                    :variable="hostVariables"
-                    :script-variables="scriptVariables"
                     :data="operationData"
+                    :script-variables="scriptVariables"
+                    :variable="hostVariables"
                     @on-change="handleTaskStepSubmit" />
             </jb-sideslider>
         </lower-component>
@@ -208,12 +229,16 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
     import Draggable from 'vuedraggable';
+
     import TaskStepModel from '@model/task/task-step';
+
     import JbSideslider from '@components/jb-sideslider';
+
     import TaskStepOperation from './task-step';
     import TaskStepView from './task-step-view';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'RenderTaskStep',

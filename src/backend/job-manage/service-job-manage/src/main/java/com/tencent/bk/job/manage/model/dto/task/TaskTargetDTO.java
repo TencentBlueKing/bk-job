@@ -24,37 +24,52 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTargetDTO;
+import com.tencent.bk.job.manage.service.host.HostService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @since 2/12/2019 20:59
+ * 执行目标主机
  */
+@PersistenceObject
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TaskTargetDTO {
 
+    @JsonProperty("variable")
     private String variable;
 
+    @JsonProperty("hostNodeList")
     private TaskHostNodeDTO hostNodeList;
 
     public static TaskTargetVO toVO(TaskTargetDTO executeTarget) {
@@ -76,10 +91,38 @@ public class TaskTargetDTO {
             taskTargetDTO.setVariable(taskTargetVO.getVariable());
         }
         taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getHostNodeInfo()));
+        fillHostDetail(taskTargetDTO);
         return taskTargetDTO;
     }
 
-    public static TaskTargetDTO fromString(String targetString) {
+    private static void fillHostDetail(TaskTargetDTO target) {
+        HostService hostService =
+            ApplicationContextRegister.getBean(HostService.class);
+        if (target.getHostNodeList() != null && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())) {
+            Set<Long> hostIds = target.getHostNodeList().getHostList().stream()
+                .map(ApplicationHostDTO::getHostId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+            if (CollectionUtils.isEmpty(hostIds)) {
+                // TMP: 兼容前端只传入ip的场景；发布完成后删除,并加入前端校验
+                return;
+            }
+            Map<Long, ApplicationHostDTO> hosts = hostService.listHostsByHostIds(hostIds);
+            target.getHostNodeList().getHostList().forEach(hostNode -> {
+                ApplicationHostDTO host = hosts.get(hostNode.getHostId());
+                hostNode.setAgentId(host.getAgentId());
+                hostNode.setCloudAreaId(host.getCloudAreaId());
+                hostNode.setIp(host.getIp());
+                hostNode.setIpv6(host.getIpv6());
+                hostNode.setDisplayIp(host.getDisplayIp());
+                hostNode.setOsName(host.getOsName());
+                hostNode.setOsType(host.getOsType());
+                hostNode.setGseAgentStatus(host.getGseAgentStatus());
+            });
+        }
+    }
+
+    public static TaskTargetDTO fromJsonString(String targetString) {
         if (StringUtils.isBlank(targetString)) {
             return null;
         }
@@ -155,7 +198,6 @@ public class TaskTargetDTO {
                     }
                     hostInfoDTO.setCloudAreaId(hostNode.getCloudAreaId());
                     hostInfoDTO.setIp(hostNode.getIp());
-                    hostInfoDTO.setDisplayIp(hostNode.getDisplayIp());
                     hostInfoDTOS.add(hostInfoDTO);
                 });
                 targetServer.setHostList(hostInfoDTOS);
@@ -165,8 +207,7 @@ public class TaskTargetDTO {
         return targetDTO;
     }
 
-    @Override
-    public String toString() {
+    public String toJsonString() {
         if (StringUtils.isNotBlank(variable)) {
             this.hostNodeList = null;
         } else {
@@ -176,5 +217,11 @@ public class TaskTargetDTO {
             }
         }
         return JsonMapper.nonEmptyMapper().toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        log.info("TaskTargetDTO_toString");
+        return toJsonString();
     }
 }

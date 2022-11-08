@@ -26,13 +26,13 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -64,25 +64,24 @@ public interface ServiceHostResource {
         @RequestBody ServiceGetHostStatusByDynamicGroupReq req
     );
 
-    @ApiOperation(value = "查询IP对应的主机状态", produces = "application/json")
-    @PostMapping("/app/{appId}/host/status/ips")
-    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(
+    @ApiOperation(value = "查询主机对应的主机状态", produces = "application/json")
+    @PostMapping("/app/{appId}/host/status/hosts")
+    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByHost(
         @PathVariable("appId") Long appId,
-        @RequestBody ServiceGetHostStatusByIpReq req
+        @RequestBody ServiceGetHostStatusByHostReq req
     );
 
     /**
-     * 检查主机是否在业务下
+     * 查询业务下的主机
      *
      * @param appId Job业务ID
      * @param req   请求
-     * @return 非法的主机
      */
-    @ApiOperation(value = "检查主机是否在业务下", produces = "application/json")
-    @PostMapping("/app/{appId}/host/checkAppHosts")
-    InternalResponse<List<IpDTO>> checkAppHosts(
+    @ApiOperation(value = "查询业务下的主机", produces = "application/json")
+    @PostMapping("/app/{appId}/host/batchGet")
+    InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(
         @PathVariable("appId") Long appId,
-        @RequestBody ServiceCheckAppHostsReq req
+        @RequestBody ServiceBatchGetAppHostsReq req
     );
 
     /**

@@ -27,19 +27,19 @@
 
 <template>
     <div class="batch-preview-plan-global-variable">
-        <template v-for="(list, key) in globalVariableRelatePlanMap">
-            <render-related-info
-                ref="relate"
-                :relate-list="list"
-                :latest-value="latestValueMap[key]"
-                :key="key" />
-        </template>
+        <render-related-info
+            v-for="(list, key) in globalVariableRelatePlanMap"
+            :key="key"
+            ref="relate"
+            :latest-value="latestValueMap[key]"
+            :relate-list="list" />
     </div>
 </template>
 <script>
     import {
         genGlobalVariableKey,
     } from '../utils';
+
     import RenderRelatedInfo from './components/render-related-info';
     
     export default {

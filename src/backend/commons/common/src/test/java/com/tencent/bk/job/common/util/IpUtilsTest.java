@@ -47,7 +47,45 @@ public class IpUtilsTest {
     @Test
     void testLongStr2Ip() {
         String ipLongStr = "2130706433";
-        String ip = IpUtils.revertIpFromLongStr(ipLongStr);
+        String ip = IpUtils.revertIpFromNumericalStr(ipLongStr);
         assertThat(ip).isEqualTo("127.0.0.1");
+    }
+
+    @Test
+    void testCheckIpv6() {
+        assertThat(IpUtils.checkIpv6("::1")).isTrue();
+        assertThat(IpUtils.checkIpv6("0::1")).isTrue();
+        assertThat(IpUtils.checkIpv6("1::1")).isTrue();
+        assertThat(IpUtils.checkIpv6("1:1::1")).isTrue();
+        assertThat(IpUtils.checkIpv6("0:0:0:0:0:0:0:0")).isTrue();
+        assertThat(IpUtils.checkIpv6("00:00::00:00:00")).isTrue();
+        assertThat(IpUtils.checkIpv6("00:00:00:00:00:00:00:00")).isTrue();
+        assertThat(IpUtils.checkIpv6("01:23:45:67:89:ab:cd:ef")).isTrue();
+        assertThat(IpUtils.checkIpv6("001:023:45:67:89:ab:cd:ef")).isTrue();
+        assertThat(IpUtils.checkIpv6("1101:23:45:67:89:ab:cd:ef")).isTrue();
+        assertThat(IpUtils.checkIpv6("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")).isTrue();
+        assertThat(IpUtils.checkIpv6("0ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")).isFalse();
+        assertThat(IpUtils.checkIpv6("ff:ff:ff:ff:ff:ff:ff:fg")).isFalse();
+        assertThat(IpUtils.checkIpv6("1::1::1")).isFalse();
+        assertThat(IpUtils.checkIpv6("1::1::123")).isFalse();
+        assertThat(IpUtils.checkIpv6("127.0.0.1")).isFalse();
+    }
+
+    @Test
+    void testRemoveBkCloudId() {
+        String ip = "0:127.0.0.1";
+        String result = IpUtils.removeBkCloudId(ip);
+        assertThat(result).isEqualTo("127.0.0.1");
+
+        ip = "0:0000:0000:0000:0000:0000:0000:0000:0001";
+        result = IpUtils.removeBkCloudId(ip);
+        assertThat(result).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001");
+
+        ip = "127.0.0.1";
+        result = IpUtils.removeBkCloudId(ip);
+        assertThat(result).isEqualTo("127.0.0.1");
+
+        result = IpUtils.removeBkCloudId(null);
+        assertThat(result).isNull();
     }
 }

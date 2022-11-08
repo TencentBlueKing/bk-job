@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
@@ -36,31 +37,57 @@ import lombok.Data;
 public class AgentTaskExecutionVO {
     @ApiModelProperty("执行次数")
     private Integer retryCount;
-    @ApiModelProperty("Agent绑定的ip，包含云区域")
+
+    @ApiModelProperty("滚动批次")
+    private Integer batch;
+
+    @ApiModelProperty("Agent对应的主机ID")
+    private Long hostId;
+
+    /**
+     * tmp: 暂时返回云区域+ipv4，发布完成之后仅返回ipv4
+     */
+    @ApiModelProperty("Agent ipv4")
     private String ip;
-    @ApiModelProperty("Agent ip显示名称，展示给用户使用该ip")
+
+    @Deprecated
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，发布完成后可删除",
+        version = "3.7.x")
     private String displayIp;
+
+    @ApiModelProperty("Agent ipv6")
+    private String ipv6;
+
     @ApiModelProperty("Agent任务执行状态")
     private Integer status;
+
     @ApiModelProperty("Agent任务执行状态描述")
     private String statusDesc;
+
     @ApiModelProperty("开始时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long startTime;
+
     @ApiModelProperty("结束时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long endTime;
+
     @ApiModelProperty("耗时")
     @JsonSerialize(using = DecimalFormatJsonSerializer.class)
     private Long totalTime;
+
     @ApiModelProperty("脚本返回码")
     private Integer exitCode;
+
     @ApiModelProperty("脚本错误码")
     private Integer errorCode;
+
     @ApiModelProperty("脚本执行输出")
     private String tag;
+
     @ApiModelProperty("云区域ID")
     private Long cloudAreaId;
+
     @ApiModelProperty("云区域名称")
     private String cloudAreaName;
 

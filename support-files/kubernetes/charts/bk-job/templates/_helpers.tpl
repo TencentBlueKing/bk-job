@@ -206,6 +206,20 @@ Return the MariaDB secret name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return the JDBC MySQL Driver Class
+*/}}
+{{- define "job.jdbcMysqlDriverClass" -}}
+{{- printf "io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver" -}}
+{{- end -}}
+
+{{/*
+Return the JDBC MySQL scheme
+*/}}
+{{- define "job.jdbcMysqlScheme" -}}
+{{- printf "jdbc:otel:mysql" -}}
+{{- end -}}
+
 
 {{/*
 Fully qualified app name for Redis
@@ -511,3 +525,39 @@ Return the Job Storage Env Content
 - name: BK_JOB_STORAGE_LOCAL_DIR
   value: {{ .Values.persistence.localStorage.path }}/local
 {{- end -}}
+
+{{/*
+Return the Job Common Env Content
+*/}}
+{{- define "job.common.env" -}}
+{{ include "job.storage.env" . }}
+{{- end -}}
+
+{{/*
+Return the Job Ingress Frontend TLS Config
+*/}}
+{{- define "job.ingress.frontend.tls" -}}
+{{- if .Values.frontendConfig.ingress.tls -}}
+tls: {{- include "common.tplvalues.render" ( dict "value" .Values.frontendConfig.ingress.tls "context" $) | nindent 0 -}}
+{{- else -}}
+tls:
+- hosts:
+    - {{ .Values.job.web.domain }}
+  secretName: {{ include "common.names.fullname" . }}-ingress-tls
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job Ingress Gateway TLS Config
+*/}}
+{{- define "job.ingress.gateway.tls" -}}
+{{- if .Values.gatewayConfig.ingress.tls -}}
+tls: {{- include "common.tplvalues.render" ( dict "value" .Values.gatewayConfig.ingress.tls "context" $) | nindent 0 -}}
+{{- else -}}
+tls:
+- hosts:
+    - {{ .Values.job.web.apiDomain }}
+  secretName: {{ include "common.names.fullname" . }}-ingress-tls
+{{- end -}}
+{{- end -}}
+

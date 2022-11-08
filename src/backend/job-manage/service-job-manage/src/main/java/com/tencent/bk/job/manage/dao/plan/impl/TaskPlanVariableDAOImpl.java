@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.TaskVariableDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +62,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
 
     private static final TaskPlanVariable TABLE = TaskPlanVariable.TASK_PLAN_VARIABLE;
 
-    private static final TableField<?,?>[] ALL_FIELDS = {TABLE.TEMPLATE_VARIABLE_ID, TABLE.PLAN_ID,
+    private static final TableField<?, ?>[] ALL_FIELDS = {TABLE.TEMPLATE_VARIABLE_ID, TABLE.PLAN_ID,
         TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION, TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED};
 
     private final DSLContext context;
@@ -92,8 +93,8 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
         taskVariable.setType(TaskVariableTypeEnum.valOf(record.get(TABLE.TYPE).intValue()));
         taskVariable.setDefaultValue(record.get(TABLE.DEFAULT_VALUE));
         taskVariable.setDescription(record.get(TABLE.DESCRIPTION));
-        taskVariable.setChangeable(Bool.isTrue(record.get(TABLE.IS_CHANGEABLE).intValue()));
-        taskVariable.setRequired(Bool.isTrue(record.get(TABLE.IS_REQUIRED).intValue()));
+        taskVariable.setChangeable(Bool.isTrue(record.get(TABLE.IS_CHANGEABLE).byteValue()));
+        taskVariable.setRequired(Bool.isTrue(record.get(TABLE.IS_REQUIRED).byteValue()));
         return taskVariable;
     }
 
@@ -134,7 +135,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
             return Collections.emptyList();
         }
         InsertValuesStep8<TaskPlanVariableRecord, ULong, ULong, String, UByte, String, String, UByte,
-                    UByte> insertStep = context.insertInto(TABLE).columns(TABLE.TEMPLATE_VARIABLE_ID, TABLE.PLAN_ID,
+            UByte> insertStep = context.insertInto(TABLE).columns(TABLE.TEMPLATE_VARIABLE_ID, TABLE.PLAN_ID,
             TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION, TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED);
 
         variableList.forEach(variable -> insertStep.values(ULong.valueOf(variable.getId()),
@@ -223,5 +224,25 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
             isRequired = UByte.valueOf(1);
         }
         return isRequired;
+    }
+
+    @Override
+    public List<TaskVariableDTO> listHostVariables() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.TYPE.eq(JooqDataTypeUtil.buildUByte(TaskVariableTypeEnum.HOST_LIST.getType())));
+
+        Result<Record> result = context.select(ALL_FIELDS).from(TABLE).where(conditions).fetch();
+        return result.map(this::extract);
+    }
+
+    @Override
+    public boolean updateVariableValue(Long id, String value) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.ID.eq(JooqDataTypeUtil.buildULong(id)));
+        int result = context.update(TABLE)
+            .set(TABLE.DEFAULT_VALUE, value)
+            .where(conditions)
+            .execute();
+        return result == 1;
     }
 }

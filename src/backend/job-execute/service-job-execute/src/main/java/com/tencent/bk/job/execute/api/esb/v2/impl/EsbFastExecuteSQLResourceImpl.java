@@ -46,6 +46,7 @@ import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
@@ -112,8 +113,9 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
             scriptService);
         TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(request);
         StepInstanceDTO stepInstance = buildFastSQLStepInstance(request, script);
-        long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
-        taskExecuteService.startTask(taskInstanceId);
+        long taskInstanceId = taskExecuteService.executeFastTask(
+            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+        );
 
         EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
         jobExecuteInfo.setTaskInstanceId(taskInstanceId);
@@ -167,9 +169,9 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         taskInstance.setTaskId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setDebugTask(false);
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
         taskInstance.setAppCode(request.getAppCode());
@@ -199,7 +201,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         stepInstance.setTimeout(request.getTimeout() == null ?
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
-        stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
 

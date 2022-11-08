@@ -27,68 +27,83 @@
 
 <template>
     <div class="task-step-operation-wraper">
-        <div class="step-wrapper" :style="styleWrapperStyles">
-            <scroll-faker>
-                <div class="step-wrapper-container">
-                    <jb-form
-                        fixed
-                        :label-width="formMarginLeftWidth">
-                        <bk-form-item
-                            :label="$t('template.步骤类型')"
-                            required>
-                            <bk-radio-group
-                                :value="stepType"
-                                class="step-type-radio form-item-content"
-                                @change="handleTypeChange">
-                                <bk-radio-button
-                                    :value="1"
-                                    :disabled="isStepTypeReadOnly">
-                                    {{ $t('template.执行脚本') }}
-                                </bk-radio-button>
-                                <bk-radio-button
-                                    :value="2"
-                                    :disabled="isStepTypeReadOnly">
-                                    {{ $t('template.分发文件') }}
-                                </bk-radio-button>
-                                <bk-radio-button
-                                    :value="3"
-                                    :disabled="isStepTypeReadOnly">
-                                    {{ $t('template.人工确认') }}
-                                </bk-radio-button>
-                            </bk-radio-group>
-                        </bk-form-item>
-                    </jb-form>
-                    <component
-                        ref="handler"
-                        :is="stepCom"
-                        :data="stepData"
-                        v-bind="$attrs"
-                        v-on="$listeners" />
-                </div>
-            </scroll-faker>
-            <bk-button
-                text
-                class="variable-guide-btn"
-                @click="handleShowVariableGuide">
-                <Icon type="book" />
-                {{ $t('template.变量使用指引') }}
-            </bk-button>
-        </div>
-        <div v-if="isShowVariableGuide" class="guide-right">
-            <variable-use-guide @on-close="handleHideVariableGuide" />
-        </div>
+        <resize-layout
+            :right-fixed="true"
+            :right-width="366"
+            :style="layoutStyles">
+            <div
+                ref="container"
+                class="step-wrapper-container">
+                <jb-form
+                    fixed
+                    :label-width="formMarginLeftWidth">
+                    <bk-form-item
+                        :label="$t('template.步骤类型')"
+                        required>
+                        <bk-radio-group
+                            class="step-type-radio form-item-content"
+                            :value="stepType"
+                            @change="handleTypeChange">
+                            <bk-radio-button
+                                :disabled="isStepTypeReadOnly"
+                                :value="1">
+                                <Icon type="add-script" />
+                                <span>{{ $t('template.执行脚本') }}</span>
+                            </bk-radio-button>
+                            <bk-radio-button
+                                :disabled="isStepTypeReadOnly"
+                                :value="2">
+                                <Icon type="add-file" />
+                                <span>{{ $t('template.分发文件') }}</span>
+                            </bk-radio-button>
+                            <bk-radio-button
+                                :disabled="isStepTypeReadOnly"
+                                :value="3">
+                                <Icon type="add-approval" />
+                                <span>{{ $t('template.人工确认') }}</span>
+                            </bk-radio-button>
+                        </bk-radio-group>
+                    </bk-form-item>
+                </jb-form>
+                <component
+                    :is="stepCom"
+                    ref="handler"
+                    :data="stepData"
+                    v-bind="$attrs"
+                    v-on="$listeners" />
+                <bk-button
+                    class="variable-guide-btn"
+                    text
+                    @click="handleShowVariableGuide">
+                    <Icon type="book" />
+                    {{ $t('template.变量使用指引') }}
+                </bk-button>
+            </div>
+            <div slot="right">
+                <variable-use-guide
+                    v-if="isShowVariableGuide"
+                    @on-close="handleHideVariableGuide" />
+            </div>
+        </resize-layout>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
+    import _ from 'lodash';
+
     import TaskStepModel from '@model/task/task-step';
-    import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
+
     import {
         genDefaultName,
     } from '@utils/assist';
+
+    import ResizeLayout from '@components/resize-layout';
+
+    import StepApproval from './components/approval';
     import StepDistroFile from './components/distro-file';
     import StepExecScript from './components/exec-script';
-    import StepApproval from './components/approval';
+
+    import I18n from '@/i18n';
+    import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
 
     const dataFieldMap = {
         1: 'scriptStepInfo',
@@ -111,6 +126,7 @@
 
     export default {
         components: {
+            ResizeLayout,
             StepDistroFile,
             StepExecScript,
             StepApproval,
@@ -128,6 +144,7 @@
                 stepType: '',
                 stepData: {},
                 isShowVariableGuide: false,
+                containerHeight: 0,
             };
         },
         computed: {
@@ -146,21 +163,22 @@
                 }
                 return taskStepMap[this.stepType];
             },
+            layoutStyles () {
+                const windownInnerHeight = window.innerHeight;
+                const containerMaxHeight = windownInnerHeight - 114;
+                if (this.containerHeight < containerMaxHeight) {
+                    return {};
+                }
+                return {
+                    height: `${containerMaxHeight}px`,
+                };
+            },
             /**
              * @desc 有ID的步骤不可编辑，id大于0已经提交后端保存过的步骤，id小于0本地新建的步骤
              * @returns { Boolean }
              */
             isStepTypeReadOnly () {
                 return Boolean(this.data.id);
-            },
-            styleWrapperStyles () {
-                const styles = {
-                    width: '100%',
-                };
-                if (this.isShowVariableGuide) {
-                    styles.width = 'calc(100% - 366px)';
-                }
-                return styles;
             },
             formMarginLeftWidth () {
                 return this.$i18n.locale === 'en-US'
@@ -203,8 +221,28 @@
                 .querySelector('.jb-sideslider-footer')
                 .style
                 .paddingLeft = `${this.formMarginLeftWidth + 30}px`;
+            this.calcContainerHeight();
+            const observer = new MutationObserver(() => {
+                this.calcContainerHeight();
+            });
+            observer.observe(this.$refs.container, {
+                subtree: true,
+                childList: true,
+                attributeName: true,
+                characterData: true,
+            });
+            this.$once('hook:beforeDestroy', () => {
+                observer.takeRecords();
+                observer.disconnect();
+            });
         },
         methods: {
+            calcContainerHeight: _.debounce(function () {
+                if (!this.$refs.container) {
+                    return;
+                }
+                this.containerHeight = this.$refs.container.getBoundingClientRect().height;
+            }, 30),
             /**
              * @desc 新建步骤状态切换步骤类型
              * @param { Number } stepType 步骤类型
@@ -228,8 +266,9 @@
                 if (this.isShowVariableGuide) {
                     return;
                 }
-                const $targetSideslider = document.querySelector('#taskStepOperationSideslider');
-                const $wraper = $targetSideslider.querySelector('.bk-sideslider-wrapper');
+                const $wraper = document
+                    .querySelector('#taskStepOperationSideslider')
+                    .querySelector('.bk-sideslider-wrapper');
                 $wraper.style.transition = 'width 0.1s';
                 setTimeout(() => {
                     const {
@@ -244,8 +283,9 @@
              * @desc 关闭变量指引
              */
             handleHideVariableGuide () {
-                const $targetSideslider = document.querySelector('#taskStepOperationSideslider');
-                const $wraper = $targetSideslider.querySelector('.bk-sideslider-wrapper');
+                const $wraper = document
+                    .querySelector('#taskStepOperationSideslider')
+                    .querySelector('.bk-sideslider-wrapper');
                 $wraper.style.width = `${this.originWraperWidth}px`;
                 this.isShowVariableGuide = false;
             },
@@ -260,16 +300,34 @@
     };
 </script>
 <style lang="postcss">
-    .task-step-operation-wraper {
-        max-height: calc(100vh - 155px);
-        margin-right: -30px;
+    #taskStepOperationSideslider {
+        .bk-sideslider-content {
+            overflow: unset !important;
+        }
 
-        .step-wrapper {
-            position: relative;
-            z-index: 0;
+        .jb-sideslider-content {
+            padding: 0;
+        }
 
+        .jb-resize-layout-right {
+            background: #fff;
+
+            .right-content-placeholder {
+                height: 100vh;
+                margin-top: -60px;
+            }
+
+            .variable-use-guide {
+                height: calc(100vh - 52px);
+            }
+        }
+
+        .task-step-operation-wraper {
             .step-wrapper-container {
+                position: relative;
+                padding-top: 20px;
                 padding-right: 30px;
+                padding-left: 30px;
             }
 
             .step-type-radio {
@@ -290,18 +348,10 @@
 
             .variable-guide-btn {
                 position: absolute;
-                top: -10px;
+                top: 20px;
                 right: 30px;
             }
         }
-
-        .guide-right {
-            position: absolute;
-            top: 0;
-            right: 0;
-            z-index: 0;
-            width: 366px;
-            height: calc(100% - 56px);
-        }
     }
+
 </style>

@@ -40,7 +40,7 @@ import java.util.List;
 @Slf4j
 public class ScriptLogsCollectionLoader extends CollectionLoaderBase {
 
-    private static final String IDX_STEP_EXECUTE_COUNT_IP = "stepId_1_executeCount_1_ip_1";
+    private static final String IDX_STEP_ID_EXECUTE_COUNT_HOST_ID = "stepId_executeCount_hostId";
     private static final String IDX_STEP_ID_HASHED = "stepId_hashed";
 
     @Override
@@ -52,27 +52,28 @@ public class ScriptLogsCollectionLoader extends CollectionLoaderBase {
         return collection;
     }
 
-    private void createIndexIfUnavailable(MongoCollection<Document> collection, List<String> indexes, String collectionName) {
+    private void createIndexIfUnavailable(MongoCollection<Document> collection, List<String> indexes,
+                                          String collectionName) {
         log.info("Create index for collection: {} start...", collectionName);
         if (!indexes.contains(IDX_STEP_ID_HASHED)) {
-            log.info("Create index stepId_hashed for collection: {}start...", collectionName);
-            IndexOptions indexOptions1 = new IndexOptions();
-            indexOptions1.background(false);
-            indexOptions1.name(IDX_STEP_ID_HASHED);
-            collection.createIndex(Document.parse("{\"stepId\":\"hashed\"}"), indexOptions1);
-            log.info("Create index stepId_hashed for collection: {} successfully!", collectionName);
+            log.info("Create index {} for collection: {}start...", IDX_STEP_ID_HASHED, collectionName);
+            IndexOptions indexOptions = new IndexOptions();
+            indexOptions.background(false);
+            indexOptions.name(IDX_STEP_ID_HASHED);
+            collection.createIndex(Document.parse("{\"stepId\":\"hashed\"}"), indexOptions);
+            log.info("Create index {} for collection: {} successfully!", IDX_STEP_ID_HASHED, collectionName);
         }
 
-        if (!indexes.contains(IDX_STEP_EXECUTE_COUNT_IP)) {
-            log.info("Create index stepId_1_executeCount_1_ip_1 for collection: {} start...", collectionName);
-            IndexOptions indexOption2 = new IndexOptions();
-            indexOption2.background(false);
-            indexOption2.name(IDX_STEP_EXECUTE_COUNT_IP);
-            collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"ip\":1}"), indexOption2);
-            log.info("Create index stepId_1_executeCount_1_ip_1 for collection: {} successfully!", collectionName);
+        if (!indexes.contains(IDX_STEP_ID_EXECUTE_COUNT_HOST_ID)) {
+            log.info("Create index {} for collection: {} start...", IDX_STEP_ID_EXECUTE_COUNT_HOST_ID, collectionName);
+            IndexOptions indexOptions = new IndexOptions();
+            indexOptions.background(false);
+            indexOptions.name(IDX_STEP_ID_EXECUTE_COUNT_HOST_ID);
+            collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"hostId\":1}"),
+                indexOptions);
+            log.info("Create index {} for collection: {} successfully!", IDX_STEP_ID_EXECUTE_COUNT_HOST_ID,
+                collectionName);
         }
-
         log.info("Create index for collection : {} successfully!", collectionName);
-
     }
 }

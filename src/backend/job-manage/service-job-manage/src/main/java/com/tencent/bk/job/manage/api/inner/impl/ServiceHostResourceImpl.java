@@ -31,20 +31,20 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.HostService;
+import com.tencent.bk.job.manage.service.host.HostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +75,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             String msg = "topo node of bizset not supported yet";
             throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
         }
-        List<AppTopologyTreeNode> treeNodeList = req.getTreeNodeList();
+        List<BizTopoNode> treeNodeList = req.getTreeNodeList();
         List<NodeInfoVO> nodeInfoVOList = hostService.getBizHostsByNode(
             JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
             appDTO.getBizIdIfBizApp(),
@@ -86,7 +86,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
             serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
             serviceHostStatusDTO.setIp(hostInfoVO.getIp());
-            serviceHostStatusDTO.setAlive(hostInfoVO.getAlive());
+            serviceHostStatusDTO.setAlive(hostInfoVO.getAgentStatus());
             if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
                 hostStatusDTOList.add(serviceHostStatusDTO);
             }
@@ -125,37 +125,32 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     }
 
     @Override
-    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId,
-                                                                          ServiceGetHostStatusByIpReq req) {
-        List<String> ipList = req.getIpList();
-        List<HostInfoVO> hostInfoVOList = hostService.getHostsByIp(
-            JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
-            appId,
-            null,
-            ipList
-        );
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByHost(Long appId,
+                                                                            ServiceGetHostStatusByHostReq req) {
+        List<ApplicationHostDTO> hostDTOList = hostService.listHosts(req.getHostList());
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
-        hostInfoVOList.forEach(hostInfoVO -> {
-            ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
-            serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
-            serviceHostStatusDTO.setIp(hostInfoVO.getCloudAreaInfo().getId() + ":" + hostInfoVO.getIp());
-            serviceHostStatusDTO.setAlive(hostInfoVO.getAlive());
-            if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
-                hostStatusDTOList.add(serviceHostStatusDTO);
+        hostDTOList.forEach(host -> {
+            ServiceHostStatusDTO hostStatusDTO = new ServiceHostStatusDTO();
+            hostStatusDTO.setHostId(host.getHostId());
+            hostStatusDTO.setCloudId(host.getCloudAreaId());
+            hostStatusDTO.setIp(host.getIp());
+            hostStatusDTO.setAlive(host.getAgentStatusValue());
+            if (!hostStatusDTOList.contains(hostStatusDTO)) {
+                hostStatusDTOList.add(hostStatusDTO);
             }
         });
         return InternalResponse.buildSuccessResp(hostStatusDTOList);
     }
 
     @Override
-    public InternalResponse<List<IpDTO>> checkAppHosts(Long appId,
-                                                       ServiceCheckAppHostsReq req) {
-        return InternalResponse.buildSuccessResp(hostService.checkAppHosts(appId, req.getHosts()));
+    public InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(Long appId,
+                                                                          ServiceBatchGetAppHostsReq req) {
+        return InternalResponse.buildSuccessResp(hostService.listAppHosts(appId, req.getHosts()));
     }
 
     @Override
     public InternalResponse<List<ServiceHostDTO>> batchGetHosts(ServiceBatchGetHostsReq req) {
-        List<IpDTO> hostIps = req.getHosts();
+        List<HostDTO> hostIps = req.getHosts();
         List<ApplicationHostDTO> hosts = hostService.listHosts(hostIps);
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(null);
@@ -163,8 +158,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
 
         return InternalResponse.buildSuccessResp(
             hosts.stream()
-                .map(host -> new ServiceHostDTO(host.getHostId(), host.getCloudAreaId(), host.getIp(),
-                    host.getAppId(), host.getBizId()))
+                .map(ServiceHostDTO::fromApplicationHostDTO)
                 .collect(Collectors.toList()));
     }
 }

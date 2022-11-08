@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.dao;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -103,4 +104,18 @@ public interface TaskFileStepDAO {
             }
         }
     }
+
+    /**
+     * 查询所有的步骤的目标主机
+     */
+    Map<Long, TaskTargetDTO> listStepTargets();
+
+    /**
+     * 更新步骤的目标主机的值
+     *
+     * @param recordId 记录id
+     * @param value    值
+     * @return 更新结果
+     */
+    boolean updateStepTargets(Long recordId, String value);
 }

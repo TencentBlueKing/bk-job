@@ -1,5 +1,34 @@
+<!--
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ *
+ *
+ * Terms of the MIT License:
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+-->
+
 <template>
-    <div class="batch-edit-relate-box" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="batch-edit-relate-box">
         <jb-form
             ref="formRef"
             form-type="vertical"
@@ -7,8 +36,8 @@
             :rules="rules">
             <jb-form-item
                 :label="$t('tag.范围')"
-                required
-                property="resourceTypeList">
+                property="resourceTypeList"
+                required>
                 <bk-checkbox-group v-model="formData.resourceTypeList">
                     <bk-checkbox
                         class="mr10"
@@ -26,11 +55,13 @@
                 <div class="tag-panel">
                     <bk-input
                         class="tag-search"
-                        :value="search"
-                        :spellcheck="false"
                         left-icon="bk-icon icon-search"
+                        :spellcheck="false"
+                        :value="search"
                         @change="handleSearch" />
-                    <div class="wrapper" style="height: 210px;">
+                    <div
+                        class="wrapper"
+                        style="height: 210px;">
                         <scroll-faker
                             v-if="renderList.length > 0"
                             ref="scrollRef">
@@ -39,22 +70,22 @@
                                 class="tag-list">
                                 <bk-checkbox
                                     v-for="tagItem in renderList"
-                                    :value="tagItem.id"
+                                    :key="tagItem.id"
                                     class="tag-item"
-                                    :key="tagItem.id">
+                                    :value="tagItem.id">
                                     {{ tagItem.name }}
                                     <Icon
                                         v-if="tagItem.isNew"
-                                        type="new"
+                                        class="new-tag-flag"
                                         svg
-                                        class="new-tag-flag" />
+                                        type="new" />
                                 </bk-checkbox>
                             </bk-checkbox-group>
                         </scroll-faker>
                         <Empty
                             v-else-if="search"
-                            type="search"
-                            style="margin-top: 20px;">
+                            style="margin-top: 20px;"
+                            type="search">
                             <span>{{ $t('tag.搜索结果为空') }}，</span>
                             <bk-button
                                 text
@@ -64,16 +95,20 @@
                         </Empty>
                     </div>
                     <auth-component auth="tag/create">
-                        <div class="tag-create" @click="handleNew">
+                        <div
+                            class="tag-create"
+                            @click="handleNew">
                             <bk-icon
-                                type="plus-circle"
-                                style=" margin-right: 8px; font-size: 16px;" />
+                                style=" margin-right: 8px; font-size: 16px;"
+                                type="plus-circle" />
                             <span>{{ $t('tag.新建标签') }}</span>
                         </div>
-                        <div slot="forbid" class="tag-create">
+                        <div
+                            slot="forbid"
+                            class="tag-create">
                             <bk-icon
-                                type="plus-circle"
-                                style=" margin-right: 8px; font-size: 16px;" />
+                                style=" margin-right: 8px; font-size: 16px;"
+                                type="plus-circle" />
                             <span>{{ $t('tag.新建标签') }}</span>
                         </div>
                     </auth-component>
@@ -81,8 +116,8 @@
             </jb-form-item>
         </jb-form>
         <lower-component
-            level="custom"
-            :custom="isShowCreateTag">
+            :custom="isShowCreateTag"
+            level="custom">
             <operation-tag
                 v-model="isShowCreateTag"
                 @on-change="handleTagOperationChange" />
@@ -90,19 +125,23 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import {
-        reactive,
         computed,
+        getCurrentInstance,
+        onBeforeMount,
+        reactive,
         ref,
         toRefs,
-        onBeforeMount,
-        getCurrentInstance,
-    } from '@vue/composition-api';
-    import _ from 'lodash';
-    import I18n from '@/i18n';
+    } from 'vue';
+
     import TagManageService from '@service/tag-manage';
+
     import { encodeRegexp } from '@utils/assist';
+
     import OperationTag from '@components/operation-tag';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

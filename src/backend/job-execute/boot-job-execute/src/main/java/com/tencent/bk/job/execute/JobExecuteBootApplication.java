@@ -32,9 +32,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-/**
- * @date 2019/09/20
- */
+
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
 @EnableDiscoveryClient
 @EnableFeignClients

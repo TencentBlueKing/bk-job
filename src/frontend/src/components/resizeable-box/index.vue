@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div ref="handle" class="resizeable-box" :style="styles">
+    <div
+        ref="handle"
+        class="resizeable-box"
+        :style="styles">
         <slot />
         <div
             class="mouse-flag"
@@ -101,7 +104,7 @@
              */
             handleMousedown (event) {
                 this.isResizeable = true;
-                this.startScreenX = event.screenX;
+                this.startClientX = event.clientX;
                 this.moveStartWidth = this.$refs.handle.getBoundingClientRect().width;
                 document.body.style.userSelect = 'none';
             },
@@ -122,12 +125,12 @@
                 }
                 const MAX_WIDTH = Math.max(0.8 * this.parentWidth, this.parentWidth - 200);
                 const MIN_WIDTH = Math.min(0.1 * this.parentWidth, 200);
-                const { screenX } = event;
+                const { clientX } = event;
                 let newWidth = 0;
                 if (this.freePosition === 'left') {
-                    newWidth = this.startScreenX - screenX + this.moveStartWidth;
+                    newWidth = this.startClientX - clientX + this.moveStartWidth;
                 } else {
-                    newWidth = screenX - this.startScreenX + this.moveStartWidth;
+                    newWidth = clientX - this.startClientX + this.moveStartWidth;
                 }
                 
                 if (newWidth > MAX_WIDTH || newWidth < MIN_WIDTH) {

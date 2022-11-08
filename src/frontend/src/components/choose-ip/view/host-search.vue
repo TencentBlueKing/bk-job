@@ -29,27 +29,51 @@
     <div class="server-search-panel">
         <div class="search-header">
             <span>
-                <span>{{ $t('已筛选出') }}<span class="strong number">{{ list.length }}</span>{{ $t('个IP') }}</span>
-                <span v-if="statisticsData.fail">（<span class="error">{{ statisticsData.fail }}</span>{{ $t('台Agent异常') }}）</span>
+                <span>
+                    <span>{{ $t('已筛选出') }}</span>
+                    <span class="strong number">{{ list.length }}</span>
+                    <span>{{ $t('个IP') }}</span>
+                </span>
+                <span v-if="statisticsData.fail">
+                    <span>（</span>
+                    <span class="error">{{ statisticsData.fail }}</span>
+                    <span>{{ $t('台Agent异常') }}</span>
+                    <span>）</span>
+                </span>
             </span>
-            <action-extend :list="list" copyable>
+            <action-extend
+                copyable
+                :list="list">
                 <template v-if="editable">
-                    <div class="action-item" @click="handleRemoveAll">{{ $t('移除全部') }}</div>
-                    <div class="action-item" @click="handleRemoveFail">{{ $t('移除异常') }}</div>
+                    <div
+                        class="action-item"
+                        @click="handleRemoveAll">
+                        {{ $t('移除全部') }}
+                    </div>
+                    <div
+                        class="action-item"
+                        @click="handleRemoveFail">
+                        {{ $t('移除异常') }}
+                    </div>
                 </template>
             </action-extend>
         </div>
-        <host-table :list="list" editable is-search @on-change="handleRemoveOne" />
+        <host-table
+            editable
+            is-search
+            :list="list"
+            @on-change="handleRemoveOne" />
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import HostTable from '../components/host-table';
     import ActionExtend from '../components/action-extend';
+    import HostTable from '../components/host-table';
     import {
         sortHost,
         statisticsHost,
     } from '../components/utils';
+
+    import I18n from '@/i18n';
     
     export default {
         name: '',
@@ -107,7 +131,7 @@
                 const allList = this.list;
                 this.list = [];
                 this.isInnerChange = true;
-                this.$emit('on-change', allList);
+                this.$emit('on-remove', allList);
                 this.messageSuccess(I18n.t('移除全部主机成功'));
             },
             /**
@@ -117,12 +141,12 @@
              */
             handleRemoveFail () {
                 const effectiveIp = [];
-                const failIp = [];
+                const failIpList = [];
                 this.list.forEach((currentHost) => {
                     if (currentHost.alive) {
                         effectiveIp.push(currentHost);
                     } else {
-                        failIp.push(currentHost);
+                        failIpList.push(currentHost);
                     }
                 });
                 if (effectiveIp.length === this.list.length) {
@@ -131,24 +155,24 @@
                 }
                 this.list = Object.freeze(effectiveIp);
                 this.isInnerChange = true;
-                this.$emit('on-change', failIp);
+                this.$emit('on-remove', failIpList);
                 this.messageSuccess(I18n.t('移除异常主机成功'));
             },
             /**
              * @desc 删除单个主机
-             * @param {Number} hostRealId 主机的唯一标识
+             * @param { Object } hostInfo 主机信息
              *
              * 抛出change事件通知那些主机被删除
              */
-            handleRemoveOne (hostRealId) {
+            handleRemoveOne (hostInfo) {
                 // 内部显示删除
                 const newList = [];
                 let removeHost = null;
-                this.list.forEach((currentHost) => {
-                    if (currentHost.realId !== hostRealId) {
-                        newList.push(currentHost);
+                this.list.forEach((currentHostInfo) => {
+                    if (currentHostInfo.hostId !== hostInfo.hostId) {
+                        newList.push(currentHostInfo);
                     } else {
-                        removeHost = currentHost;
+                        removeHost = currentHostInfo;
                     }
                 });
                 this.list = Object.freeze(newList);
@@ -157,7 +181,7 @@
                 }
                 
                 this.isInnerChange = true;
-                this.$emit('on-change', [
+                this.$emit('on-remove', [
                     removeHost,
                 ]);
             },

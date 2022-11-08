@@ -28,16 +28,25 @@
 <template>
     <div class="job-router-view">
         <page-guide v-show="isShowView" />
-        <skeleton :visiable="!isShowView" :type="skeletonType" />
-        <permission v-if="isNotPermission" :class="{ 'permission-pending': !isShowView }" :auth-result="authResult" />
-        <router-view v-if="!isNotPermission" ref="routerView" :class="{ 'view-pending': !isShowView }" />
+        <skeleton
+            :type="skeletonType"
+            :visiable="!isShowView" />
+        <permission
+            v-if="isNotPermission"
+            :auth-result="authResult"
+            :class="{ 'permission-pending': !isShowView }" />
+        <router-view
+            v-if="!isNotPermission"
+            ref="routerView"
+            :class="{ 'view-pending': !isShowView }" />
     </div>
 </template>
 <script>
     import EventBus from '@utils/event-bus';
-    import Skeleton from './skeleton';
+
     import PageGuide from './guide';
     import Permission from './permission';
+    import Skeleton from './skeleton';
 
     export default {
         name: 'JbRouterView',

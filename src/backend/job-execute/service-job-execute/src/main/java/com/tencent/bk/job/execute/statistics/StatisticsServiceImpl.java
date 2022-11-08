@@ -45,6 +45,7 @@ import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
@@ -94,7 +95,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         flushThread.start();
     }
 
-    public void updateExecutedTaskCount(
+    private void updateExecutedTaskCount(
         TaskInstanceDTO taskInstanceDTO,
         Map<StatisticsKey, AtomicInteger> metricsMap
     ) {
@@ -108,8 +109,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         log.debug("executedTaskCount={}", executedTaskCountValue);
     }
 
-    public void updateExecutedTaskByStartupMode(TaskInstanceDTO taskInstanceDTO,
-                                                Map<StatisticsKey, AtomicInteger> metricsMap) {
+    private void updateExecutedTaskByStartupMode(TaskInstanceDTO taskInstanceDTO,
+                                                 Map<StatisticsKey, AtomicInteger> metricsMap) {
         // 按渠道统计
         Integer startupMode = taskInstanceDTO.getStartupMode();
         if (startupMode == null) {
@@ -145,8 +146,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    public void updateExecutedTaskByType(TaskInstanceDTO taskInstanceDTO,
-                                         Map<StatisticsKey, AtomicInteger> metricsMap) {
+    private void updateExecutedTaskByType(TaskInstanceDTO taskInstanceDTO,
+                                          Map<StatisticsKey, AtomicInteger> metricsMap) {
         // 按类型统计
         Integer type = taskInstanceDTO.getType();
         if (type == null) {
@@ -182,8 +183,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    public void updateExecutedFastScriptStatistics(TaskInstanceDTO taskInstanceDTO,
-                                                   Map<StatisticsKey, AtomicInteger> metricsMap) {
+    private void updateExecutedFastScriptStatistics(TaskInstanceDTO taskInstanceDTO,
+                                                    Map<StatisticsKey, AtomicInteger> metricsMap) {
         Integer type = taskInstanceDTO.getType();
         if (type != null && type.equals(TaskTypeEnum.SCRIPT.getValue())) {
             // 查StepInstance
@@ -207,8 +208,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    public void updateExecutedFastFileStatistics(TaskInstanceDTO taskInstanceDTO,
-                                                 Map<StatisticsKey, AtomicInteger> metricsMap) {
+    private void updateExecutedFastFileStatistics(TaskInstanceDTO taskInstanceDTO,
+                                                  Map<StatisticsKey, AtomicInteger> metricsMap) {
         Integer type = taskInstanceDTO.getType();
         if (type != null && type.equals(TaskTypeEnum.FILE.getValue())) {
             // 查StepInstance
@@ -245,9 +246,9 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    public void updateFailedTaskCount(TaskInstanceDTO taskInstanceDTO, Map<StatisticsKey, AtomicInteger> metricsMap) {
+    private void updateFailedTaskCount(TaskInstanceDTO taskInstanceDTO, Map<StatisticsKey, AtomicInteger> metricsMap) {
         // 累计执行失败次数统计
-        if (RunStatusEnum.FAIL.getValue().equals(taskInstanceDTO.getStatus())) {
+        if (taskInstanceDTO.getStatus() == RunStatusEnum.FAIL) {
             StatisticsKey keyFailedTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                 StatisticsConstants.RESOURCE_FAILED_TASK, StatisticsConstants.DIMENSION_TIME_UNIT,
                 StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY);
@@ -258,12 +259,13 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    public void updateFastScriptCountByStatus(TaskInstanceDTO taskInstanceDTO,
-                                              Map<StatisticsKey, AtomicInteger> metricsMap) {
+    private void updateFastScriptCountByStatus(TaskInstanceDTO taskInstanceDTO,
+                                               Map<StatisticsKey, AtomicInteger> metricsMap) {
         // 快速脚本按状态统计
         Integer type = taskInstanceDTO.getType();
         if (type != null && type.equals(TaskTypeEnum.SCRIPT.getValue())) {
-            if (RunStatusEnum.SUCCESS.getValue().equals(taskInstanceDTO.getStatus())) {
+            RunStatusEnum status = taskInstanceDTO.getStatus();
+            if (status == RunStatusEnum.SUCCESS) {
                 // 执行成功的快速脚本统计
                 StatisticsKey keySuccessFastScriptCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -272,7 +274,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int successFastScriptCountValue = successFastScriptCount.incrementAndGet();
                 log.debug("successFastScriptCount={}", successFastScriptCountValue);
-            } else if (RunStatusEnum.FAIL.getValue().equals(taskInstanceDTO.getStatus())) {
+            } else if (status == RunStatusEnum.FAIL) {
                 // 执行失败的快速脚本统计
                 StatisticsKey keyFailedFastScriptCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -281,7 +283,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int failedFastScriptCountValue = failedFastScriptCount.incrementAndGet();
                 log.debug("failedFastScriptCount={}", failedFastScriptCountValue);
-            } else if (RunStatusEnum.ABNORMAL_STATE.getValue().equals(taskInstanceDTO.getStatus())) {
+            } else if (status == RunStatusEnum.ABNORMAL_STATE) {
                 // 状态异常的快速脚本统计
                 StatisticsKey keyExceptionFastScriptCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -294,12 +296,13 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    public void updateFastFileCountByStatus(TaskInstanceDTO taskInstanceDTO,
-                                            Map<StatisticsKey, AtomicInteger> metricsMap) {
+    private void updateFastFileCountByStatus(TaskInstanceDTO taskInstanceDTO,
+                                             Map<StatisticsKey, AtomicInteger> metricsMap) {
         // 快速文件按状态统计
         Integer type = taskInstanceDTO.getType();
         if (type != null && type.equals(TaskTypeEnum.FILE.getValue())) {
-            if (RunStatusEnum.SUCCESS.getValue().equals(taskInstanceDTO.getStatus())) {
+            RunStatusEnum status = taskInstanceDTO.getStatus();
+            if (status == RunStatusEnum.SUCCESS) {
                 // 执行成功的快速文件统计
                 StatisticsKey keySuccessFastFileCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -308,7 +311,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int successFastFileCountValue = successFastFileCount.incrementAndGet();
                 log.debug("successFastFileCount={}", successFastFileCountValue);
-            } else if (RunStatusEnum.FAIL.getValue().equals(taskInstanceDTO.getStatus())) {
+            } else if (status == RunStatusEnum.FAIL) {
                 // 执行失败的快速文件统计
                 StatisticsKey keyFailedFastFileCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -317,7 +320,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int failedFastFileCountValue = failedFastFileCount.incrementAndGet();
                 log.debug("failedFastFileCount={}", failedFastFileCountValue);
-            } else if (RunStatusEnum.ABNORMAL_STATE.getValue().equals(taskInstanceDTO.getStatus())) {
+            } else if (status == RunStatusEnum.ABNORMAL_STATE) {
                 // 执行失败的快速文件统计
                 StatisticsKey keyExceptionFastFileCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
@@ -330,8 +333,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    public void updateExecutedTaskByTimeConsuming(TaskInstanceDTO taskInstanceDTO,
-                                                  Map<StatisticsKey, AtomicInteger> metricsMap) {
+    private void updateExecutedTaskByTimeConsuming(TaskInstanceDTO taskInstanceDTO,
+                                                   Map<StatisticsKey, AtomicInteger> metricsMap) {
         // 按执行耗时统计
         Long totalTime = taskInstanceDTO.getTotalTime();
         if (totalTime == null) {
@@ -370,22 +373,53 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public void updateStartJobStatistics(TaskInstanceDTO taskInstanceDTO) {
-        String createDateStr = DateUtils.getDateStrFromUnixTimeMills(taskInstanceDTO.getCreateTime());
-        synchronized (writeLock) {
-            Map<StatisticsKey, AtomicInteger> metricsMap = incrementMap.computeIfAbsent(createDateStr,
-                dateStr -> new ConcurrentHashMap<>());
-            // 触发时间当天的数据统计
-            // 累计任务执行次数统计
-            updateExecutedTaskCount(taskInstanceDTO, metricsMap);
-            // 按渠道统计
-            updateExecutedTaskByStartupMode(taskInstanceDTO, metricsMap);
-            // 按类型统计
-            updateExecutedTaskByType(taskInstanceDTO, metricsMap);
-            // 快速执行脚本：按脚本类型统计
-            updateExecutedFastScriptStatistics(taskInstanceDTO, metricsMap);
-            // 快速分发文件：按传输模式统计
-            updateExecutedFastFileStatistics(taskInstanceDTO, metricsMap);
+        StopWatch watch = new StopWatch("updateStartJobStatistics");
+        try {
+            String createDateStr = DateUtils.getDateStrFromUnixTimeMills(taskInstanceDTO.getCreateTime());
+            watch.start("getWriteLock");
+            synchronized (writeLock) {
+                watch.stop();
+
+                Map<StatisticsKey, AtomicInteger> metricsMap = incrementMap.computeIfAbsent(createDateStr,
+                    dateStr -> new ConcurrentHashMap<>());
+                // 触发时间当天的数据统计
+                // 累计任务执行次数统计
+                watch.start("updateExecutedTaskCount");
+                updateExecutedTaskCount(taskInstanceDTO, metricsMap);
+                watch.stop();
+
+                // 按渠道统计
+                watch.start("updateExecutedTaskByStartupMode");
+                updateExecutedTaskByStartupMode(taskInstanceDTO, metricsMap);
+                watch.stop();
+
+                // 按类型统计
+                watch.start("updateExecutedTaskByType");
+                updateExecutedTaskByType(taskInstanceDTO, metricsMap);
+                watch.stop();
+
+                // 快速执行脚本：按脚本类型统计
+                watch.start("updateExecutedFastScriptStatistics");
+                updateExecutedFastScriptStatistics(taskInstanceDTO, metricsMap);
+                watch.stop();
+
+                // 快速分发文件：按传输模式统计
+                watch.start("updateExecutedFastFileStatistics");
+                updateExecutedFastFileStatistics(taskInstanceDTO, metricsMap);
+                watch.stop();
+            }
+        } catch (Throwable ignoreException) {
+            // 捕获所有异常，不影响主流程
+            log.error("UpdateStartJobStatistics exception", ignoreException);
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 100) {
+                log.warn("UpdateStartJobStatistics slow, watch: {}", watch.prettyPrint());
+            }
         }
+
     }
 
     @Override

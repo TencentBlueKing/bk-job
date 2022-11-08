@@ -25,7 +25,10 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.Order;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.generated.tables.GseTaskIpLog;
 
@@ -33,7 +36,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@ToString
+@Builder
 public class StepExecutionResultQuery {
     public static final String ORDER_FIELD_TOTAL_TIME = "totalTime";
     public static final String ORDER_FIELD_CLOUD_AREA_ID = "cloudAreaId";
@@ -56,6 +62,14 @@ public class StepExecutionResultQuery {
      */
     private Integer executeCount;
     /**
+     * 滚动执行批次
+     */
+    private Integer batch;
+    /**
+     * 是否根据步骤实例的最新滚动批次过滤；如果为true，那么batch将使用滚动任务当前执行的批次
+     */
+    private Boolean filterByLatestBatch;
+    /**
      * 执行日志关键词(脚本任务)
      */
     private String logKeyword;
@@ -66,7 +80,7 @@ public class StepExecutionResultQuery {
     /**
      * 执行结果分组
      */
-    private Integer resultType;
+    private Integer status;
     /**
      * 执行结果输出的自定义分组tag
      */
@@ -84,7 +98,7 @@ public class StepExecutionResultQuery {
      */
     private Order order;
 
-    private Set<String> matchIps;
+    private Set<Long> matchHostIds;
 
     public boolean hasIpCondition() {
         return StringUtils.isNotEmpty(logKeyword) || StringUtils.isNotEmpty(searchIp);
@@ -94,5 +108,9 @@ public class StepExecutionResultQuery {
         if (orderField != null) {
             orderField = ORDER_FIELD_IN_DB.get(orderField);
         }
+    }
+
+    public boolean isFilterByLatestBatch() {
+        return this.filterByLatestBatch != null && this.filterByLatestBatch;
     }
 }

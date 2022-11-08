@@ -512,5 +512,7 @@ export default {
         点击前往查看: 'Click to show more',
         请至少勾选一个执行步骤: 'At least one step need to be selecte',
         新建模板: 'New Template',
+        '标签名称：': 'Tag Name: ',
+        '标签描述：': 'Tag Desc.: ',
     },
 };

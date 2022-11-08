@@ -24,10 +24,15 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 主机
@@ -36,6 +41,8 @@ import lombok.ToString;
 @Setter
 @ToString
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ServiceHostDTO {
     /**
      * 主机ID
@@ -43,14 +50,24 @@ public class ServiceHostDTO {
     private Long hostId;
 
     /**
+     * AgentID
+     */
+    private String agentId;
+
+    /**
      * 云区域ID
      */
     private Long cloudAreaId;
 
     /**
-     * ip
+     * ipv4
      */
     private String ip;
+
+    /**
+     * ipv6
+     */
+    private String ipv6;
 
     /**
      * 业务ID
@@ -62,11 +79,28 @@ public class ServiceHostDTO {
      */
     private Long bizId;
 
-    public ServiceHostDTO(Long hostId, Long cloudAreaId, String ip, Long appId, Long bizId) {
-        this.hostId = hostId;
-        this.cloudAreaId = cloudAreaId;
-        this.ip = ip;
-        this.appId = appId;
-        this.bizId = bizId;
+    @JsonIgnore
+    public String getCloudIp() {
+        return cloudAreaId + ":" + ip;
+    }
+
+    @JsonIgnore
+    public String getFinalAgentId() {
+        if (StringUtils.isNotBlank(agentId)) {
+            return agentId;
+        }
+        return getCloudIp();
+    }
+
+    public static ServiceHostDTO fromApplicationHostDTO(ApplicationHostDTO host) {
+        return ServiceHostDTO.builder()
+            .bizId(host.getBizId())
+            .appId(host.getAppId())
+            .hostId(host.getHostId())
+            .cloudAreaId(host.getCloudAreaId())
+            .ip(host.getIp())
+            .ipv6(host.getIpv6())
+            .agentId(host.getAgentId())
+            .build();
     }
 }

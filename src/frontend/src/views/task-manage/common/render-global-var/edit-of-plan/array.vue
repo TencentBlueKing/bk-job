@@ -26,27 +26,31 @@
 -->
 
 <template>
-    <jb-form :model="formData" ref="varArrayForm">
+    <jb-form
+        ref="varArrayForm"
+        :model="formData">
         <jb-form-item :label="$t('template.数组类型')">
             <div class="array-type-group">
                 <bk-radio-group :value="arrayType">
                     <bk-radio-button
                         class="item"
-                        :value="5"
-                        :disabled="arrayType !== 5">
+                        :disabled="arrayType !== 5"
+                        :value="5">
                         {{ $t('template.关联数组') }}
                     </bk-radio-button>
                     <bk-radio-button
                         class="item"
-                        :value="6"
-                        :disabled="arrayType !== 6">
+                        :disabled="arrayType !== 6"
+                        :value="6">
                         {{ $t('template.索引数组') }}
                     </bk-radio-button>
                 </bk-radio-group>
             </div>
         </jb-form-item>
         <jb-form-item :label="$t('template.变量名称')">
-            <bk-input v-model="formData.name" disabled />
+            <bk-input
+                v-model="formData.name"
+                disabled />
         </jb-form-item>
         <jb-form-item :label="$t('template.变量值')">
             <bk-input
@@ -54,14 +58,19 @@
                 :native-attributes="{ autofocus: 'autofocus' }" />
         </jb-form-item>
         <jb-form-item :label="$t('template.变量描述')">
-            <bk-input v-model="formData.description" disabled type="textarea" :row="5" maxlength="100" />
+            <bk-input
+                v-model="formData.description"
+                disabled
+                maxlength="100"
+                :row="5"
+                type="textarea" />
         </jb-form-item>
         <jb-form-item>
             <bk-checkbox
                 v-model="formData.changeable"
                 disabled
-                :true-value="1"
-                :false-value="0">
+                :false-value="0"
+                :true-value="1">
                 {{ $t('template.赋值可变') }}
             </bk-checkbox>
         </jb-form-item>
@@ -69,8 +78,8 @@
             <bk-checkbox
                 v-model="formData.required"
                 disabled
-                :true-value="1"
-                :false-value="0">
+                :false-value="0"
+                :true-value="1">
                 {{ $t('template.执行时必填') }}
             </bk-checkbox>
         </jb-form-item>

@@ -31,40 +31,36 @@
         ref="target"
         class="step-execution-history-select">
         <span>{{ retryCountText }}</span>
-        <Icon type="down-small" style="font-size: 16px;" />
-        <div ref="content" class="dropdown-menu">
+        <Icon
+            style="font-size: 16px;"
+            type="down-small" />
+        <div
+            ref="content"
+            class="dropdown-menu">
             <div
                 v-for="item in executionList"
-                :key="item.createTime"
+                :key="item.retryCount"
                 class="menu-item"
                 :class="{
                     active: item.retryCount === retryCount,
                 }"
                 @click="handleSelectRetryCount(item.retryCount)">
-                <div class="retry-count">{{ item.text }}</div>
-                <div class="time">{{ item.createTime }}</div>
+                <div class="retry-count">
+                    {{ item.text }}
+                </div>
+                <div class="time">
+                    {{ item.createTime }}
+                </div>
             </div>
         </div>
     </div>
 </template>
 <script>
     import _ from 'lodash';
+
     import TaskExecuteService from '@service/task-execute';
 
-    const ordinalSuffixOf = (i) => {
-        const j = i % 10;
-        const k = i % 100;
-        if (j === 1 && k !== 11) {
-            return `${i} st`;
-        }
-        if (j === 2 && k !== 12) {
-            return `${i} nd`;
-        }
-        if (j === 3 && k !== 13) {
-            return `${i} rd`;
-        }
-        return `${i} th`;
-    };
+    import { ordinalSuffixOf } from '@utils/assist';
 
     export default {
         name: '',
@@ -76,6 +72,10 @@
             retryCount: {
                 type: [Number, String],
                 default: 0,
+            },
+            batch: {
+                type: [Number, String],
+                default: '',
             },
         },
         data () {
@@ -106,6 +106,15 @@
                 },
                 immediate: true,
             },
+            batch: {
+                handler () {
+                    if (!this.stepInstanceId) {
+                        return;
+                    }
+                    this.fetchStepExecutionHistory('batch');
+                },
+                immediate: true,
+            },
         },
         beforeDestroy () {
             this.popperDestroy();
@@ -123,27 +132,35 @@
              * retryCount的最大值显示为LATEST
              * 如果重试次数大于0，显示retryCount切换列表
              */
-            fetchStepExecutionHistory () {
+            fetchStepExecutionHistory: _.debounce(function (from) {
                 TaskExecuteService.fetchStepExecutionHistory({
                     stepInstanceId: this.stepInstanceId,
+                    batch: this.batch,
                 }).then((data) => {
-                    const max = _.max(data.map(_ => _.retryCount));
-                    const result = data.map((item) => {
+                    const num = data.length;
+                    const result = data.map((item, index) => {
                         const {
                             retryCount,
                             createTime,
                         } = item;
 
-                        const realIndex = retryCount + 1;
                         return {
                             retryCount,
                             createTime,
-                            text: retryCount !== max ? ordinalSuffixOf(realIndex) : 'LATEST',
+                            text: index === 0 ? 'LATEST' : ordinalSuffixOf(num - index),
                         };
                     });
                     this.executionList = Object.freeze(result);
+                    
                     // 重试次数大于1才需要显示
                     this.isNeedRender = this.executionList.length > 1;
+
+                    // 切换批次导致的数据刷新，需要获取最新重试次数
+                    if (from === 'batch') {
+                        const first = _.first(result);
+                        this.$emit('on-change', first ? first.retryCount : 0);
+                    }
+
                     if (this.isNeedRender) {
                         this.$nextTick(() => {
                             if (!this.popperInstance) {
@@ -163,7 +180,7 @@
                         this.popperDestroy();
                     }
                 });
-            },
+            }, 100),
             /**
              * @desc 销毁popover实例
              */
@@ -180,7 +197,6 @@
              * 切换成功后需要将retryCount的最新值更新到url上
              */
             handleSelectRetryCount (retryCount) {
-                this.selectRetryCount = retryCount;
                 this.popperInstance && this.popperInstance.hide();
                 this.$emit('on-change', retryCount);
                 const searchParams = new URLSearchParams(window.location.search);

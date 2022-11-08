@@ -31,17 +31,83 @@
             :height="392"
             :width="546"
             v-bind="$attrs">
-            <rect id="矩形" x="0" y="0" width="51" height="14" rx="2" />
-            <rect id="矩形备份" x="0" y="28" width="240" height="20" rx="2" />
-            <rect id="矩形备份-5" x="0" y="132" width="205" height="20" rx="2" />
-            <rect id="矩形" x="220" y="132" width="1101" height="580" rx="2" />
-            <rect id="矩形备份-6" x="0" y="172" width="205" height="20" rx="2" />
-            <rect id="矩形备份-7" x="0" y="212" width="205" height="20" rx="2" />
-            <rect id="矩形备份-8" x="0" y="252" width="205" height="20" rx="2" />
-            <rect id="矩形备份-9" x="0" y="292" width="205" height="20" rx="2" />
-            <rect id="矩形备份-2" x="17" y="83" width="90" height="20" rx="2" />
-            <rect id="矩形备份-3" x="143" y="83" width="90" height="20" rx="2" />
-            <rect id="矩形备份-4" x="269" y="83" width="90" height="20" rx="2" />
+            <rect
+                id="矩形"
+                height="14"
+                rx="2"
+                width="51"
+                x="0"
+                y="0" />
+            <rect
+                id="矩形备份"
+                height="20"
+                rx="2"
+                width="240"
+                x="0"
+                y="28" />
+            <rect
+                id="矩形备份-5"
+                height="20"
+                rx="2"
+                width="205"
+                x="0"
+                y="132" />
+            <rect
+                id="矩形"
+                height="580"
+                rx="2"
+                width="1101"
+                x="220"
+                y="132" />
+            <rect
+                id="矩形备份-6"
+                height="20"
+                rx="2"
+                width="205"
+                x="0"
+                y="172" />
+            <rect
+                id="矩形备份-7"
+                height="20"
+                rx="2"
+                width="205"
+                x="0"
+                y="212" />
+            <rect
+                id="矩形备份-8"
+                height="20"
+                rx="2"
+                width="205"
+                x="0"
+                y="252" />
+            <rect
+                id="矩形备份-9"
+                height="20"
+                rx="2"
+                width="205"
+                x="0"
+                y="292" />
+            <rect
+                id="矩形备份-2"
+                height="20"
+                rx="2"
+                width="90"
+                x="17"
+                y="83" />
+            <rect
+                id="矩形备份-3"
+                height="20"
+                rx="2"
+                width="90"
+                x="143"
+                y="83" />
+            <rect
+                id="矩形备份-4"
+                height="20"
+                rx="2"
+                width="90"
+                x="269"
+                y="83" />
         </content-loader>
     </div>
 </template>

@@ -24,12 +24,13 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -48,11 +49,13 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
+import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.web.request.RedoTaskRequest;
@@ -62,7 +65,6 @@ import com.tencent.bk.job.execute.model.web.request.WebStepOperation;
 import com.tencent.bk.job.execute.model.web.request.WebTaskExecuteRequest;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteHostVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
@@ -118,11 +120,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         }
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
 
-        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
             TaskExecuteParam.builder().appId(appResourceScope.getAppId()).planId(request.getTaskId())
                 .operator(username).executeVariableValues(executeVariableValues)
                 .startupMode(TaskStartupModeEnum.NORMAL).build());
-        taskExecuteService.startTask(taskInstanceDTO.getId());
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -166,7 +167,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForRedo(appResourceScope.getAppId(),
             request.getTaskInstanceId(), username, executeVariableValues);
-        taskExecuteService.startTask(taskInstanceDTO.getId());
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -240,8 +240,12 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, appResourceScope.getAppId(), request);
         String decodeScriptContent = new String(Base64.decodeBase64(request.getContent()), StandardCharsets.UTF_8);
         stepInstance.setScriptContent(decodeScriptContent);
+        StepRollingConfigDTO rollingConfig = null;
+        if (request.isRollingEnabled()) {
+            rollingConfig = StepRollingConfigDTO.fromRollingConfigVO(request.getRollingConfig());
+        }
 
-        return createAndStartFastTask(request.isRedoTask(), taskInstance, stepInstance);
+        return createAndStartFastTask(request.isRedoTask(), taskInstance, stepInstance, rollingConfig);
     }
 
     private boolean checkFastExecuteScriptRequest(WebFastExecuteScriptRequest request) {
@@ -270,35 +274,15 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast execute script, target server is null!");
             return false;
         }
-        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getIpList()) &&
-            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getTopoNodeList())
-            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupList())) {
+        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getHostList()) &&
+            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getNodeList())
+            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupIdList())) {
             log.warn("Fast execute script, target server is null!");
-            return false;
-        }
-        if (!checkIpValid(targetServers.getHostNodeInfo().getIpList())) {
             return false;
         }
         if (request.getAccount() == null || request.getAccount() < 1) {
             log.warn("Fast execute script, accountId is invalid! accountId={}", request.getAccount());
             return false;
-        }
-        return true;
-    }
-
-    private boolean checkIpValid(List<ExecuteHostVO> hosts) {
-        if (CollectionUtils.isEmpty(hosts)) {
-            return true;
-        }
-        for (ExecuteHostVO host : hosts) {
-            if (host.getCloudAreaInfo() == null || host.getCloudAreaInfo().getId() == null) {
-                log.warn("Check host:{}, cloudAreaId is empty!", host);
-                return false;
-            }
-            if (StringUtils.isEmpty(host.getIp())) {
-                log.warn("Check host:{}, ip is empty!", host);
-                return false;
-            }
         }
         return true;
     }
@@ -312,11 +296,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setAppId(appId);
         taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         if (request.isRedoTask()) {
             taskInstance.setId(request.getTaskInstanceId());
@@ -340,7 +324,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
         }
         stepInstance.setOperator(userName);
-        stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
         stepInstance.setScriptSource(request.getScriptSource());
         stepInstance.setScriptType(request.getScriptLanguage());
@@ -372,19 +356,26 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appResourceScope.getAppId(), request);
         StepInstanceDTO stepInstance = buildFastFileStepInstance(username, appResourceScope.getAppId(), request);
+        StepRollingConfigDTO rollingConfig = null;
+        if (request.isRollingEnabled()) {
+            rollingConfig = StepRollingConfigDTO.fromRollingConfigVO(request.getRollingConfig());
+        }
 
-        return createAndStartFastTask(false, taskInstance, stepInstance);
+        return createAndStartFastTask(false, taskInstance, stepInstance, rollingConfig);
     }
 
-    private Response<StepExecuteVO> createAndStartFastTask(boolean isRedoTask, TaskInstanceDTO taskInstance,
-                                                           StepInstanceDTO stepInstance) {
+    private Response<StepExecuteVO> createAndStartFastTask(boolean isRedoTask,
+                                                           TaskInstanceDTO taskInstance,
+                                                           StepInstanceDTO stepInstance,
+                                                           StepRollingConfigDTO rollingConfig) {
+        FastTaskDTO fastTask = FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance)
+            .rollingConfig(rollingConfig).build();
         long taskInstanceId;
         if (!isRedoTask) {
-            taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
+            taskInstanceId = taskExecuteService.executeFastTask(fastTask);
         } else {
-            taskInstanceId = taskExecuteService.createTaskInstanceForFastTaskRedo(taskInstance, stepInstance);
+            taskInstanceId = taskExecuteService.redoFastTask(fastTask);
         }
-        taskExecuteService.startTask(taskInstanceId);
         StepExecuteVO stepExecuteVO = new StepExecuteVO();
         stepExecuteVO.setTaskInstanceId(taskInstanceId);
         stepExecuteVO.setStepInstanceId(stepInstance.getId());
@@ -415,13 +406,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast send file, target server is null!");
             return false;
         }
-        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getIpList()) &&
-            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getTopoNodeList())
-            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupList())) {
+        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getHostList()) &&
+            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getNodeList())
+            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupIdList())) {
             log.warn("Fast send file, target server is null!");
-            return false;
-        }
-        if (!checkIpValid(targetServers.getHostNodeInfo().getIpList())) {
             return false;
         }
         if (fileDestination.getAccountId() == null || fileDestination.getAccountId() < 1) {
@@ -461,11 +449,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         taskInstance.setCronTaskId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setAppId(appId);
-        taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         return taskInstance;
     }
@@ -483,7 +471,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setFileSourceList(convertFileSource(request.getFileSourceList()));
         stepInstance.setAppId(appId);
         stepInstance.setOperator(userName);
-        stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
+        stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
         if (request.getDownloadSpeedLimit() != null && request.getDownloadSpeedLimit() > 0) {
             // MB->KB
@@ -499,28 +487,38 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return stepInstance;
     }
 
+    @CompatibleImplementation(name = "ipv6", explain = "兼容IP，发布完成之后使用hostId，不再使用IP", version = "3.6.x")
     private ServersDTO convertToServersDTO(ExecuteTargetVO target) {
         if (target == null || target.getHostNodeInfo() == null) {
             return null;
         }
         ExecuteServersVO hostNode = target.getHostNodeInfo();
         ServersDTO serversDTO = new ServersDTO();
-        if (CollectionUtils.isNotEmpty(hostNode.getIpList())) {
-            List<IpDTO> staticIpList = new ArrayList<>();
-            hostNode.getIpList().forEach(host -> staticIpList.add(new IpDTO(host.getCloudAreaInfo().getId(),
-                host.getIp())));
+        if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
+            List<HostDTO> staticIpList = new ArrayList<>();
+            hostNode.getHostList().forEach(host -> {
+                HostDTO targetHost = new HostDTO();
+                if (host.getHostId() != null) {
+                    targetHost.setHostId(host.getHostId());
+                } else {
+                    // 兼容IP，发布完成后删除
+                    targetHost.setBkCloudId(host.getCloudId());
+                    targetHost.setIp(host.getIp());
+                }
+                staticIpList.add(targetHost);
+            });
             serversDTO.setStaticIpList(staticIpList);
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
-            hostNode.getDynamicGroupList().forEach(
+            hostNode.getDynamicGroupIdList().forEach(
                 groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
             serversDTO.setDynamicServerGroups(dynamicServerGroups);
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getTopoNodeList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
             List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
-            hostNode.getTopoNodeList().forEach(
-                topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(), topoNode.getType())));
+            hostNode.getNodeList().forEach(
+                topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getInstanceId(), topoNode.getObjectId())));
             serversDTO.setTopoNodes(topoNodes);
         }
         return serversDTO;
@@ -532,15 +530,16 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         }
         List<FileSourceDTO> fileSourceDTOS = new ArrayList<>();
         fileSources.forEach(fileSource -> {
+            TaskFileTypeEnum fileType = TaskFileTypeEnum.valueOf(fileSource.getFileType());
             FileSourceDTO fileSourceDTO = new FileSourceDTO();
             fileSourceDTO.setAccountId(fileSource.getAccountId());
-            fileSourceDTO.setLocalUpload(TaskFileTypeEnum.LOCAL.getType() == fileSource.getFileType());
-            fileSourceDTO.setFileType(fileSource.getFileType());
+            fileSourceDTO.setLocalUpload(TaskFileTypeEnum.LOCAL == fileType);
+            fileSourceDTO.setFileType(fileType.getType());
             fileSourceDTO.setFileSourceId(fileSource.getFileSourceId());
             List<FileDetailDTO> files = new ArrayList<>();
             if (fileSource.getFileLocation() != null) {
                 for (String file : fileSource.getFileLocation()) {
-                    if (TaskFileTypeEnum.LOCAL.getType() == fileSource.getFileType()) {
+                    if (TaskFileTypeEnum.LOCAL == fileType) {
                         files.add(new FileDetailDTO(true, file, fileSource.getFileHash(),
                             Long.valueOf(fileSource.getFileSize())));
                     } else {
@@ -550,7 +549,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 }
             }
             fileSourceDTO.setFiles(files);
-            fileSourceDTO.setServers(convertToServersDTO(fileSource.getHost()));
+            if (fileType == TaskFileTypeEnum.SERVER) {
+                // 服务器文件分发才需要解析主机参数
+                fileSourceDTO.setServers(convertToServersDTO(fileSource.getHost()));
+            }
             fileSourceDTOS.add(fileSourceDTO);
         });
         return fileSourceDTOS;

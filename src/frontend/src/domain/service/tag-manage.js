@@ -24,9 +24,10 @@
 */
 
 /* eslint-disable no-param-reassign */
+import TagModel from '@model/tag';
+
 import TagManageSource from '../source/tag-manage';
 import TagNumSource from '../source/tag-num';
-import TagModel from '@model/tag';
 
 export default {
     /**

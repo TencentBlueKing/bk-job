@@ -55,14 +55,20 @@ public class FindModuleHostRelationResult {
         private Long hostId;
         @JsonProperty("bk_host_innerip")
         private String ip;
+        @JsonProperty("bk_host_innerip_v6")
+        private String ipv6;
+        @JsonProperty("bk_agent_id")
+        private String agentId;
         @JsonProperty("bk_host_name")
         private String hostName;
         @JsonProperty("bk_os_name")
-        private String os;
+        private String osName;
         @JsonProperty("bk_os_type")
         private String osType;
         @JsonProperty("bk_cloud_id")
         private Long cloudAreaId = 0L;
+        @JsonProperty("bk_cloud_vendor")
+        private String cloudVendorId;
     }
 
     @Getter

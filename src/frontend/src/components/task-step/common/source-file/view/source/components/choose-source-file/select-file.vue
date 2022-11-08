@@ -29,50 +29,55 @@
     <div class="select-bucket">
         <list-action-layout>
             <jb-breadcrumb
+                :key="`${fileSourceInfo.alias}_${path}`"
                 :width="645"
-                @on-last="handleBackLast"
-                :key="`${fileSourceInfo.alias}_${path}`">
+                @on-last="handleBackLast">
                 <jb-breadcrumb-item>
-                    <Icon type="folder-open" style="font-size: 20px;" />
+                    <Icon
+                        style="font-size: 20px;"
+                        type="folder-open" />
                     <span @click="handleGoSourceList">{{ $t('文件源列表') }}</span>
                 </jb-breadcrumb-item>
                 <jb-breadcrumb-item>
                     <span @click="handlePathLocation('')">{{ fileSourceInfo.alias }}</span>
                 </jb-breadcrumb-item>
-                <jb-breadcrumb-item v-for="(item) in pathStack" :key="item.path">
+                <jb-breadcrumb-item
+                    v-for="(item) in pathStack"
+                    :key="item.path">
                     <span @click="handlePathLocation(item.path)">{{ item.name }}</span>
                 </jb-breadcrumb-item>
             </jb-breadcrumb>
             <template #right>
                 <jb-input
+                    enter-trigger
                     :placeholder="$t('搜索关键字')"
                     right-icon="bk-icon icon-search"
                     style="width: 480px;"
-                    enter-trigger
                     @submit="handleSearch" />
             </template>
         </list-action-layout>
         <div v-bkloading="{ isLoading }">
             <bk-table
-                :pagination="pagination"
                 :data="tableData"
+                :pagination="pagination"
                 @page-change="handlePageChange">
-                <template v-for="(column, index) in renderColumns">
-                    <render-file-list-column
-                        :column="column"
-                        :row-selection="rowSelectMemo"
-                        :render-header="renderHeader"
-                        :link-handler="handleLink"
-                        :select-handler="handleRowSelect"
-                        :key="`${path}_${index}_${isLoading}_${wholeTableRowSelect}`" />
-                </template>
+                <render-file-list-column
+                    v-for="(column, index) in renderColumns"
+                    :key="`${path}_${index}_${isLoading}_${wholeTableRowSelect}`"
+                    :column="column"
+                    :link-handler="handleLink"
+                    :render-header="renderHeader"
+                    :row-selection="rowSelectMemo"
+                    :select-handler="handleRowSelect" />
             </bk-table>
         </div>
     </div>
 </template>
 <script>
     import _ from 'lodash';
+
     import FileService from '@service/file';
+
     import ListActionLayout from '@components/list-action-layout';
     import RenderFileListColumn, {
         checkIsCheckboxColumn,

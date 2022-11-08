@@ -46,20 +46,25 @@
         </div>
         <scroll-faker style="height: calc(100% - 88px);">
             <div class="content">
-                <div v-html="contentHtml" style="margin-top: -24px;" />
+                <div
+                    style="margin-top: -24px;"
+                    v-html="contentHtml" />
             </div>
         </scroll-faker>
-        <div class="close-btn" @click="handleClose">
+        <div
+            class="close-btn"
+            @click="handleClose">
             <Icon type="close" />
         </div>
     </div>
 </template>
 <script>
-    import 'highlight.js/styles/googlecode.css';
-    import globalVariable from './global-variable.md';
     import globalVariableEN from './global-variable.en.md';
-    import magicVariable from './magic-variable.md';
+    import globalVariable from './global-variable.md';
     import magicVariableEN from './magic-variable.en.md';
+    import magicVariable from './magic-variable.md';
+
+    import 'highlight.js/styles/googlecode.css';
 
     export default {
         name: '',
@@ -106,10 +111,7 @@
 
     .variable-use-guide {
         position: relative;
-        width: 366px;
         height: 100%;
-        background: #fff;
-        border-left: 1px solid #dcdee5;
 
         .header {
             padding-top: 16px;

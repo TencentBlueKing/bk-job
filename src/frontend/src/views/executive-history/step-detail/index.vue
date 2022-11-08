@@ -27,109 +27,154 @@
 
 <template>
     <div class="executive-history-step">
-        <task-status ref="taskStatus" @on-init="handleTaskInit">
+        <task-status
+            ref="taskStatus"
+            @on-init="handleTaskInit">
+            <rolling-batch
+                v-if="data.isRollingTask"
+                :data="data"
+                :value="params.batch"
+                @change="handleBatchChange"
+                @on-confirm="operationCode => handleStatusUpdate(operationCode)" />
             <div class="step-info-header">
                 <div class="step-info-wraper">
-                    <div class="step-type-text">{{ stepTypeText }}</div>
+                    <div class="step-type-text">
+                        {{ stepTypeText }}
+                    </div>
                     <div class="step-name-box">
-                        <div class="step-name-text">{{ data.name }}</div>
+                        <div class="step-name-text">
+                            {{ data.name }}
+                        </div>
                         <execution-history-select
                             ref="executionHistorySelect"
-                            :step-instance-id="params.id"
+                            :batch="params.batch"
                             :retry-count="params.retryCount"
+                            :step-instance-id="params.id"
                             @on-change="handleRetryCountChange" />
                     </div>
                 </div>
                 <!-- 步骤执行操作 -->
-                <div class="step-action-box">
+                <div
+                    v-if="!params.batch || params.batch === data.runningBatchOrder"
+                    class="step-action-box">
                     <step-action
                         v-for="action in data.actions"
-                        :name="action"
                         :key="action"
+                        :confirm-handler="operationCode => handleStatusUpdate(operationCode)"
                         display-style="step-detail"
-                        :confirm-handler="operationCode => handleStatusUpdate(operationCode)" />
+                        :name="action" />
                 </div>
                 <div class="log-search-box">
                     <compose-form-item>
-                        <bk-select v-model="searchModel" :clearable="false" style="width: 100px;">
-                            <bk-option id="log" :name="$t('history.搜索日志')" />
-                            <bk-option id="ip" :name="$t('history.搜索 IP')" />
+                        <bk-select
+                            v-model="searchModel"
+                            :clearable="false"
+                            style="width: 100px;">
+                            <bk-option
+                                id="log"
+                                :name="$t('history.搜索日志')" />
+                            <bk-option
+                                id="ip"
+                                :name="$t('history.搜索 IP')" />
                         </bk-select>
                         <bk-input
                             v-if="searchModel === 'log'"
-                            :value="params.keyword"
                             key="log"
                             :disabled="isFile"
-                            :tippy-tips="isFile ? $t('history.分发文件步骤不支持日志搜索') : ''"
                             right-icon="bk-icon icon-search"
                             style="width: 292px;"
+                            :tippy-tips="isFile ? $t('history.分发文件步骤不支持日志搜索') : ''"
+                            :value="params.keyword"
                             @keyup="handleLogSearch" />
                         <bk-input
                             v-if="searchModel === 'ip'"
-                            :value="params.searchIp"
                             key="ip"
                             right-icon="bk-icon icon-search"
                             style="width: 292px;"
+                            :value="params.searchIp"
                             @keyup="handleIPSearch" />
                     </compose-form-item>
-                    <div v-if="isLogSearching" class="search-loading">
-                        <Icon class="loading-flag" type="loading" />
+                    <div
+                        v-if="isLogSearching"
+                        class="search-loading">
+                        <Icon
+                            class="loading-flag"
+                            type="loading" />
                     </div>
-                    <div v-if="isIPSearching" class="search-loading">
-                        <Icon class="loading-flag" type="loading" />
+                    <div
+                        v-if="isIPSearching"
+                        class="search-loading">
+                        <Icon
+                            class="loading-flag"
+                            type="loading" />
                     </div>
                 </div>
-                <export-log :step-instance-id="params.id" :is-file="isFile" />
+                <export-log
+                    :is-file="isFile"
+                    :step-instance-id="params.id" />
                 <div class="task-instance-action">
-                    <view-global-variable v-if="isTask" :task-instance-id="taskInstanceId" />
+                    <view-global-variable
+                        v-if="isTask"
+                        :task-instance-id="taskInstanceId" />
                     <view-operation-record :task-instance-id="taskInstanceId" />
-                    <view-step-info :task-instance-id="taskInstanceId" :step-instance-id="params.id" />
+                    <view-step-info
+                        :step-instance-id="params.id"
+                        :task-instance-id="taskInstanceId" />
                 </div>
             </div>
             <!-- 主机分组 -->
             <group-tab
                 :data="data.resultGroups"
+                :value="currentGroup"
                 @on-change="handelGroupChange" />
-            <div class="detail-container">
-                <div class="container-left" v-bkloading="{ isLoading: isHostLoading }">
+            <div
+                ref="detailContainer"
+                class="detail-container"
+                :style="defailContainerStyles">
+                <div
+                    v-bkloading="{ isLoading: isHostLoading }"
+                    class="container-left">
                     <!-- 主机列表 -->
                     <!-- eslint-disable max-len -->
                     <ip-list
-                        :name="`${data.stepInstanceId}_${dispalyGroup.groupName}_${params.retryCount}_${params.keyword}_${params.searchIp}`"
-                        :total="dispalyGroup.agentTaskSize"
-                        :list-loading="isLoading"
-                        :pagination-loading="paginationChangeLoading"
                         :data="dispalyGroup.agentTaskExecutionDetail"
+                        :list-loading="isLoading"
+                        :name="`${data.stepInstanceId}_${dispalyGroup.groupName}_${params.retryCount}_${params.keyword}_${params.searchIp}`"
+                        :pagination-loading="paginationChangeLoading"
                         :search-value="`${params.keyword}_${params.searchIp}`"
-                        @on-pagination-change="handlePaginationChange"
-                        @on-copy="handleCopyHost"
-                        @on-sort="handleSort"
+                        :total="dispalyGroup.agentTaskSize"
+                        @on-change="handleHostChange"
                         @on-clear-search="handleClearSearch"
-                        @on-change="handleHostChange" />
+                        @on-copy="handleCopyHost"
+                        @on-pagination-change="handlePaginationChange"
+                        @on-sort="handleSort" />
                 </div>
                 <div class="container-right">
                     <!-- 执行日志 -->
                     <execution-info
                         v-if="data.stepInstanceId"
-                        :name="`${params.id}_${params.retryCount}_${dispalyGroup.groupName}_${currentHost.ip}_${params.keyword}`"
-                        :step-instance-id="data.stepInstanceId"
-                        :retry-count="params.retryCount"
                         :host="currentHost"
-                        :log-filter="params.keyword"
                         :is-file="isFile"
                         :is-task="isTask"
+                        :log-filter="params.keyword"
+                        :name="`${params.id}_${params.retryCount}_${dispalyGroup.groupName}_${currentHost.ip}_${params.keyword}`"
+                        :retry-count="params.retryCount"
+                        :step-instance-id="data.stepInstanceId"
                         @on-search="handleLogSearch" />
                 </div>
             </div>
         </task-status>
         <!-- 步骤执行操作——强制终止 -->
-        <execution-status-bar v-if="data.name" type="step" :data="data">
+        <execution-status-bar
+            v-if="data.name"
+            :data="data"
+            type="step">
             <step-action
                 v-if="data.isForcedEnable"
-                name="forced"
-                display-style="step-detail"
                 key="forced"
                 :confirm-handler="handleForceTask"
+                display-style="step-detail"
+                name="forced"
                 @on-cancel="handleCancelForceTask"
                 @on-show="handleStartForceTask" />
         </execution-status-bar>
@@ -137,24 +182,43 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import TaskExecuteService from '@service/task-execute';
+
     import {
         execCopy,
     } from '@utils/assist';
+
     import ComposeFormItem from '@components/compose-form-item';
+
     import ExecutionStatusBar from '../common/execution-status-bar';
     import StepAction from '../common/step-action';
-    import TaskStatus from './components/task-status';
+
     import ExecutionHistorySelect from './components/execution-history-select';
-    import GroupTab from './components/group-tab';
-    import IpList from './components/ip-list';
     import ExecutionInfo from './components/execution-info';
     import ExportLog from './components/export-log';
+    import GroupTab from './components/group-tab';
+    import IpList from './components/ip-list';
+    import mixins from './components/mixins';
+    import RollingBatch from './components/rolling-batch';
+    import TaskStatus from './components/task-status';
     import ViewGlobalVariable from './components/view-global-variable';
     import ViewOperationRecord from './components/view-operation-record';
     import ViewStepInfo from './components/view-step-info';
-    import mixins from './components/mixins';
+
+    import I18n from '@/i18n';
+
+    const appendURLParams = (params = {}) => {
+        const curSearchParams = new URLSearchParams(window.location.search);
+        Object.keys(params).forEach((key) => {
+            if (curSearchParams.has(key)) {
+                curSearchParams.set(key, params[key]);
+            } else {
+                curSearchParams.append(key, params[key]);
+            }
+        });
+        window.history.replaceState({}, '', `?${curSearchParams.toString()}`);
+    };
 
     export default {
         name: 'StepExecuteDetail',
@@ -162,6 +226,7 @@
             ComposeFormItem,
             ExecutionStatusBar,
             StepAction,
+            RollingBatch,
             TaskStatus,
             ExecutionHistorySelect,
             GroupTab,
@@ -181,6 +246,7 @@
                 isLoading: true,
                 isLogSearching: false,
                 isIPSearching: false,
+                defailContainerStyles: {},
                 // 搜索模式
                 searchModel: 'log',
                 // 步骤所属作业的所有步骤列表
@@ -195,6 +261,7 @@
                 // 接口参数
                 params: {
                     id: 0,
+                    batch: '',
                     retryCount: '',
                     maxIpsPerResultGroup: 0,
                     keyword: '', // 日志的筛选值
@@ -272,8 +339,15 @@
         },
         created () {
             this.taskInstanceId = 0;
+            this.params.batch = this.$route.query.batch || '';
             this.isForceing = false;
             this.$Progress.start();
+        },
+        mounted () {
+            window.addEventListener('rezie', this.calcDetailContainerStyle);
+            this.$once('hook:beforeDestroy', () => {
+                window.removeEventListener('rezie', this.calcDetailContainerStyle);
+            });
         },
         beforeDestroy () {
             this.$Progress.finish();
@@ -300,6 +374,8 @@
                         return;
                     }
                     this.data = Object.freeze(data);
+
+                    this.calcDetailContainerStyle();
 
                     this.isFile = data.isFile;
                     //  已选中的分组不存在了——默认选中第一个分组
@@ -334,8 +410,13 @@
                         this.isIPSearching = false;
                         this.paginationChangeLoading = false;
                     });
-            }, 30),
-            
+            }, 100),
+            calcDetailContainerStyle: _.throttle(function () {
+                const { top } = this.$refs.detailContainer.getBoundingClientRect();
+                this.defailContainerStyles = {
+                    height: `calc(100vh - ${top}px)`,
+                };
+            }, 20),
             /**
              * @desc 步骤所属作业初始化
              * @param {Object} payload 步骤信息
@@ -351,7 +432,31 @@
                 this.taskInstanceId = payload.taskInstanceId;
                 this.isTask = payload.isTask;
                 this.taskStepList = Object.freeze(payload.taskStepList);
+                appendURLParams({
+                    retryCount: payload.retryCount,
+                    stepInstanceId: payload.stepInstanceId,
+                });
                 this.fetchStep();
+            },
+            /**
+             * @desc 滚动执行批次筛选
+             * @param { Number | String } batch 0: 查看全部批次；’‘：查看当前最新批次
+             *
+             * 切换批次时不主动获取步骤执行数据，
+             * 切换批次时会导致组件 execution-history-select 刷新数据，这个时候会主动获取步骤执行数据
+             */
+            handleBatchChange (batch) {
+                this.params = {
+                    ...this.params,
+                    batch,
+                };
+                this.currentGroup = {
+                    resultType: '',
+                    tag: '',
+                };
+                appendURLParams({
+                    batch: this.params.batch,
+                });
             },
             /**
              * @desc 执行历史
@@ -364,6 +469,9 @@
                     ...this.params,
                     retryCount,
                 };
+                appendURLParams({
+                    retryCount: this.params.retryCount,
+                });
                 this.fetchStep();
             },
             /**
@@ -412,26 +520,34 @@
             },
             /**
              * @desc 复制所有主机IP
+             * @param { String } fieldName 复制的字段 IP | IPv6
              *
              * 主机列表是分页加载，复制全部主机时需要全量请求一次
              */
-            handleCopyHost () {
+            handleCopyHost (fieldName) {
                 TaskExecuteService.fetchStepGroupHost({
                     ...this.params,
                     resultType: this.currentGroup.resultType,
                     tag: this.currentGroup.tag,
                 }).then((data) => {
-                    if (data.length < 1) {
+                    const fieldDataList = data.reduce((result, item) => {
+                        if (item[fieldName]) {
+                            result.push(item[fieldName]);
+                        }
+                        return result;
+                    }, []);
+
+                    if (fieldDataList.length < 1) {
                         this.$bkMessage({
                             theme: 'warning',
-                            message: I18n.t('history.暂无可复制IP'),
+                            message: `${I18n.t('history.没有可复制内容')}`,
                             limit: 1,
                         });
                         return;
                     }
-                    const ipText = data.map(item => item.ip).join('\n');
-                    const successMessage = `${I18n.t('history.复制成功')}（${data.length} ${I18n.t('history.个')}IP）`;
-                    execCopy(ipText, successMessage);
+                    const fieldNameText = fieldName === 'ip' ? 'IP' : 'IPv6';
+                    const successMessage = `${I18n.t('history.复制成功')}（${fieldDataList.length} ${I18n.t('history.个')}${fieldNameText}）`;
+                    execCopy(fieldDataList.join('\n'), successMessage);
                 });
             },
             /**
@@ -498,6 +614,9 @@
                         limit: 1,
                         theme: 'success',
                         message: I18n.t('history.操作成功'),
+                    });
+                    appendURLParams({
+                        retryCount: this.params.retryCount,
                     });
                     this.fetchStep();
                     return true;

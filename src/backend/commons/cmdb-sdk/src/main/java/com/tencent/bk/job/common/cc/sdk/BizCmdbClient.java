@@ -77,20 +77,17 @@ import com.tencent.bk.job.common.cc.model.result.SearchAppResult;
 import com.tencent.bk.job.common.cc.model.result.SearchCloudAreaResult;
 import com.tencent.bk.job.common.cc.model.result.SearchDynamicGroupResult;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
-import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.PageDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
@@ -161,13 +158,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private static final ConcurrentHashMap<Long, Pair<InstanceTopologyDTO, Long>> bizInternalTopoMap =
         new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Long, ReentrantLock> bizInternalTopoLockMap = new ConcurrentHashMap<>();
-    public static ThreadPoolExecutor threadPoolExecutor = null;
-    public static ThreadPoolExecutor longTermThreadPoolExecutor = null;
-    public static CmdbConfig cmdbConfig = null;
+    private final ThreadPoolExecutor threadPoolExecutor;
+    private final ThreadPoolExecutor longTermThreadPoolExecutor;
+    private final CmdbConfig cmdbConfig;
     /**
      * 对整个应用中所有的CMDB调用进行限流
      */
-    private static FlowController globalFlowController = null;
+    private final FlowController globalFlowController;
 
     static {
         interfaceNameMap.put(SEARCH_BIZ_INST_TOPO, "search_biz_inst_topo");
@@ -189,64 +186,37 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     protected String defaultSupplierAccount;
     protected String defaultUin = "admin";
-    private QueryAgentStatusClient queryAgentStatusClient;
     private final MeterRegistry meterRegistry;
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-            build(new CacheLoader<Long, InstanceTopologyDTO>() {
-                      @Override
-                      public InstanceTopologyDTO load(Long bizId) {
-                          return getBizInstCompleteTopology(bizId);
-                      }
+        build(new CacheLoader<Long, InstanceTopologyDTO>() {
+                  @Override
+                  public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
+                      return getBizInstCompleteTopology(bizId);
                   }
-            );
+              }
+        );
 
-    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
+    public BizCmdbClient(BkApiConfig bkApiConfig,
+                         CmdbConfig cmdbConfig,
+                         String lang,
+                         ThreadPoolExecutor threadPoolExecutor,
+                         ThreadPoolExecutor longTermThreadPoolExecutor,
+                         FlowController flowController,
                          MeterRegistry meterRegistry) {
-        this(esbConfig, cmdbConfig, null, queryAgentStatusClient, meterRegistry);
-    }
-
-    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, String lang,
-                         QueryAgentStatusClient queryAgentStatusClient, MeterRegistry meterRegistry) {
-        super(esbConfig.getEsbUrl(), esbConfig.getAppCode(), esbConfig.getAppSecret(), lang,
-            esbConfig.isUseEsbTestEnv());
+        super(
+            bkApiConfig.getEsbUrl(),
+            bkApiConfig.getAppCode(),
+            bkApiConfig.getAppSecret(),
+            lang,
+            bkApiConfig.isUseEsbTestEnv()
+        );
+        this.cmdbConfig = cmdbConfig;
         this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
-        this.queryAgentStatusClient = queryAgentStatusClient;
+        this.threadPoolExecutor = threadPoolExecutor;
+        this.longTermThreadPoolExecutor = longTermThreadPoolExecutor;
+        this.globalFlowController = flowController;
         this.meterRegistry = meterRegistry;
-    }
-
-    public static void setGlobalFlowController(FlowController flowController) {
-        globalFlowController = flowController;
-    }
-
-    private static void initThreadPoolExecutor(int cmdbQueryThreadsNum, int longTermCmdbQueryThreadsNum) {
-        threadPoolExecutor = new ThreadPoolExecutor(cmdbQueryThreadsNum, cmdbQueryThreadsNum, 180L, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(cmdbQueryThreadsNum * 4), (r, executor) -> {
-            //使用请求的线程直接拉取数据
-            log.error("cmdb request runnable rejected, use current thread({}), plz add more threads",
-                Thread.currentThread().getName());
-            r.run();
-        });
-        longTermThreadPoolExecutor = new ThreadPoolExecutor(longTermCmdbQueryThreadsNum, longTermCmdbQueryThreadsNum,
-            180L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(longTermCmdbQueryThreadsNum * 4), (r, executor) -> {
-            //使用请求的线程直接拉取数据
-            log.warn("cmdb long term request runnable rejected, use current thread({}), plz add more threads",
-                Thread.currentThread().getName());
-            r.run();
-        });
-    }
-
-    public static void init() {
-        initThreadPoolExecutor(cmdbConfig.getCmdbQueryThreadsNum(),
-            cmdbConfig.getFindHostRelationLongTermConcurrency());
-    }
-
-    public static void setCcConfig(CmdbConfig cmdbConfig) {
-        BizCmdbClient.cmdbConfig = cmdbConfig;
-    }
-
-    public void setQueryAgentStatusClient(QueryAgentStatusClient queryAgentStatusClient) {
-        this.queryAgentStatusClient = queryAgentStatusClient;
     }
 
     @Override
@@ -345,7 +315,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
         String resourceId = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
         if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
-            if (globalFlowController != null) {
+            if (globalFlowController != null && globalFlowController.isReady()) {
                 log.debug("Flow control resourceId={}", resourceId);
                 long startTime = System.currentTimeMillis();
                 globalFlowController.acquire(resourceId);
@@ -356,7 +326,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                     log.info("Request resource {} wait flowControl for {}ms", resourceId, duration);
                 }
             } else {
-                log.debug("globalFlowController not set, ignore this time");
+                log.debug("globalFlowController not set or not ready, ignore this time");
             }
         }
         long start = System.nanoTime();
@@ -564,15 +534,15 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 FindModuleHostRelationTask task = new FindModuleHostRelationTask(resultQueue,
                     genFindModuleHostRelationReq(bizId, moduleIdList, start, limit),
                     JobContextUtil.getRequestId());
+                Future<?> future;
                 if (totalCount > 10000) {
                     //主机数太多，防止将CMDB拉挂了
-                    Future<?> future = longTermThreadPoolExecutor.submit(task);
-                    futures.add(future);
+                    future = longTermThreadPoolExecutor.submit(task);
                 } else {
                     // 默认采用多个并发线程拉取
-                    Future<?> future = threadPoolExecutor.submit(task);
-                    futures.add(future);
+                    future = threadPoolExecutor.submit(task);
                 }
+                futures.add(future);
                 totalCount -= limit;
             }
             futures.forEach(it -> {
@@ -603,37 +573,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     ) {
         String multiIp = host.getIp();
         multiIp = multiIp.trim();
-        if (queryAgentStatusClient != null) {
-            if (multiIp.contains(",")) {
-                Pair<String, Boolean> pair = queryAgentStatusClient.getHostIpWithAgentStatus(multiIp,
-                    host.getCloudAreaId());
-                if (pair != null) {
-                    log.debug("query agent status:{}:{}", pair.getLeft(), pair.getRight());
-                    String ipWithCloudId = pair.getLeft();
-                    applicationHostDTO.setGseAgentAlive(pair.getRight());
-                    if (ipWithCloudId.contains(":")) {
-                        String[] arr = ipWithCloudId.split(":");
-                        applicationHostDTO.setCloudAreaId(Long.parseLong(arr[0]));
-                        applicationHostDTO.setIp(arr[1]);
-                    } else {
-                        applicationHostDTO.setIp(ipWithCloudId);
-                    }
-                } else {
-                    log.warn("Fail to get agentStatus, host={}", JsonUtils.toJson(host));
-                }
-            } else {
-                applicationHostDTO.setGseAgentAlive(false);
-                applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
-                applicationHostDTO.setIp(multiIp);
-            }
+        applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
+        List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
+        if (ipList.size() > 0) {
+            applicationHostDTO.setIp(ipList.get(0));
         } else {
-            log.warn("queryAgentStatusClient==null, please check!");
-            List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
-            if (ipList.size() > 0) {
-                applicationHostDTO.setIp(ipList.get(0));
-            } else {
-                log.warn("no available ip after queryAgentStatusClient");
-            }
+            log.warn("no available ip, raw multiIp={}", multiIp);
         }
     }
 
@@ -652,8 +597,11 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
         applicationHostDTO.setBizId(bizId);
         applicationHostDTO.setDisplayIp(multiIp);
+        applicationHostDTO.setIpv6(host.getIpv6());
+        applicationHostDTO.setAgentId(host.getAgentId());
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         applicationHostDTO.setHostId(host.getHostId());
+        applicationHostDTO.setCloudVendorId(host.getCloudVendorId());
         fillAgentInfo(applicationHostDTO, host);
         List<FindModuleHostRelationResult.ModuleProp> modules = hostWithModules.getModules();
         for (FindModuleHostRelationResult.ModuleProp module : modules) {
@@ -678,12 +626,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 return 0L;
             }
         }).collect(Collectors.toList()));
-        applicationHostDTO.setIpDesc(host.getHostName());
-        String os = host.getOs();
-        if (os != null && os.length() > 512) {
-            applicationHostDTO.setOs(os.substring(0, 512));
+        applicationHostDTO.setHostName(host.getHostName());
+        String osName = host.getOsName();
+        if (osName != null && osName.length() > 512) {
+            applicationHostDTO.setOsName(osName.substring(0, 512));
         } else {
-            applicationHostDTO.setOs(os);
+            applicationHostDTO.setOsName(osName);
         }
         applicationHostDTO.setOsType(host.getOsType());
         return applicationHostDTO;
@@ -691,7 +639,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     private List<ApplicationHostDTO> convertToHostInfoDTOList(
         long bizId,
-        List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList) {
+        List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList
+    ) {
         List<ApplicationHostDTO> applicationHostDTOList = new ArrayList<>();
         Set<String> ipSet = new HashSet<>();
         for (FindModuleHostRelationResult.HostWithModules hostWithModules : hostWithModulesList) {
@@ -701,13 +650,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 continue;
             }
             ipSet.add(host.getCloudAreaId() + ":" + host.getIp());
-            String multiIp = host.getIp();
-            if (!StringUtils.isBlank(multiIp)) {
+            Long hostId = host.getHostId();
+            if (hostId != null) {
                 ApplicationHostDTO applicationHostDTO = convertToHostInfoDTO(bizId, hostWithModules);
                 applicationHostDTOList.add(applicationHostDTO);
             } else {
-                log.info("bk_host_innerip is blank, ignore, hostId={},host={}", host.getHostId(),
-                    JsonUtils.toJson(host));
+                log.info("bk_host_id is null, ignore, host={}", JsonUtils.toJson(host));
             }
         }
         log.info("ipSet.size=" + ipSet.size());
@@ -723,9 +671,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         }
 
         if (hostInfo.getOs() != null && hostInfo.getOs().length() > 512) {
-            ipInfo.setOs(hostInfo.getOs().substring(0, 512));
+            ipInfo.setOsName(hostInfo.getOs().substring(0, 512));
         } else {
-            ipInfo.setOs(hostInfo.getOs());
+            ipInfo.setOsName(hostInfo.getOs());
         }
         if (hostInfo.getCloudId() != null) {
             ipInfo.setCloudAreaId(hostInfo.getCloudId());
@@ -733,14 +681,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             log.warn("Host does not have cloud area id!|{}", hostInfo);
             return null;
         }
-
-        if (queryAgentStatusClient != null) {
-            ipInfo.setIp(queryAgentStatusClient.getHostIpByAgentStatus(hostInfo.getIp(), hostInfo.getCloudId()));
-        } else {
-            ipInfo.setIp(hostInfo.getIp());
-        }
+        ipInfo.setIp(hostInfo.getIp());
         ipInfo.setBizId(bizId);
-        ipInfo.setIpDesc(hostInfo.getHostName());
+        ipInfo.setHostName(hostInfo.getHostName());
 
         return ipInfo;
     }
@@ -784,12 +727,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
         ApplicationDTO appInfo = new ApplicationDTO();
         appInfo.setName(businessInfo.getBizName());
-        appInfo.setMaintainers(VersionCompatUtil.convertMaintainers(businessInfo.getMaintainers()));
         appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
-        appInfo.setAppType(AppTypeEnum.NORMAL);
-        appInfo.setOperateDeptId(businessInfo.getOperateDeptId());
         appInfo.setLanguage(businessInfo.getLanguage());
         return appInfo;
     }
@@ -858,6 +798,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ccGroupDTO.setBizId(ccDynamicGroupDTO.getBizId());
         ccGroupDTO.setId(ccDynamicGroupDTO.getId());
         ccGroupDTO.setName(ccDynamicGroupDTO.getName());
+        ccGroupDTO.setLastTime(ccDynamicGroupDTO.getLastTime());
         return ccGroupDTO;
     }
 
@@ -870,12 +811,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                     ccHostInfo.getHostId(),
                     ccHostInfo.getIp()
                 );
-            } else if (StringUtils.isBlank(ccHostInfo.getIp())) {
-                log.warn(
-                    "host(id={},ip={}) ip invalid, ignore",
-                    ccHostInfo.getHostId(),
-                    ccHostInfo.getIp()
-                );
+            } else if (ccHostInfo.getHostId() == null) {
+                log.warn("{} hostId is invalid, ignore", ccHostInfo);
             } else {
                 ccGroupHostList.add(convertToCcHost(ccHostInfo));
             }
@@ -929,6 +866,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ccGroupHostPropDTO.setId(ccHostInfo.getHostId());
         ccGroupHostPropDTO.setName(ccHostInfo.getHostName());
         ccGroupHostPropDTO.setIp(ccHostInfo.getIp());
+        ccGroupHostPropDTO.setIpv6(ccHostInfo.getIpv6());
+        ccGroupHostPropDTO.setAgentId(ccHostInfo.getAgentId());
         CcCloudIdDTO ccCloudIdDTO = new CcCloudIdDTO();
         // 仅使用CloudId其余属性未用到，暂不设置
         ccCloudIdDTO.setInstanceId(ccHostInfo.getCloudId());
@@ -970,17 +909,17 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<ApplicationHostDTO> listBizHosts(long bizId, Collection<IpDTO> ipList) {
+    public List<ApplicationHostDTO> listBizHosts(long bizId, Collection<HostDTO> ipList) {
         if (ipList == null || ipList.isEmpty()) {
             return Collections.emptyList();
         }
         List<ApplicationHostDTO> appHosts = getHostByIp(new GetHostByIpInput(bizId, null, null,
-            ipList.stream().map(IpDTO::getIp).collect(Collectors.toList())));
+            ipList.stream().map(HostDTO::getIp).collect(Collectors.toList())));
         if (appHosts == null || appHosts.isEmpty()) {
             return Collections.emptyList();
         }
         return appHosts.stream().filter(host ->
-            ipList.contains(new IpDTO(host.getCloudAreaId(), host.getIp()))).collect(Collectors.toList());
+            ipList.contains(new HostDTO(host.getCloudAreaId(), host.getIp()))).collect(Collectors.toList());
     }
 
     @Override
@@ -1062,24 +1001,23 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostsByIps(List<IpDTO> hostIps) {
+    public List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps) {
+        if (CollectionUtils.isEmpty(cloudIps)) {
+            return Collections.emptyList();
+        }
         ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");
-        Map<Long, List<IpDTO>> hostGroups = groupHostsByCloudAreaId(hostIps);
-        hostGroups.forEach((bkCloudId, hosts) -> {
+        Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIps);
+        hostGroups.forEach((bkCloudId, ips) -> {
             ComposeRuleDTO hostRule = new ComposeRuleDTO();
             hostRule.setCondition("AND");
-            BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
-            bkCloudIdRule.setField("bk_cloud_id");
-            bkCloudIdRule.setOperator("equal");
-            bkCloudIdRule.setValue(bkCloudId);
-            hostRule.addRule(bkCloudIdRule);
+            hostRule.addRule(buildCloudIdRule(bkCloudId));
 
             BaseRuleDTO ipRule = new BaseRuleDTO();
             ipRule.setField("bk_host_innerip");
             ipRule.setOperator("in");
-            ipRule.setValue(hosts.stream().map(IpDTO::getIp).collect(Collectors.toList()));
+            ipRule.setValue(ips);
             hostRule.addRule(ipRule);
 
             condition.addRule(hostRule);
@@ -1089,24 +1027,66 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return listHostsWithoutBiz(req);
     }
 
+    @Override
+    public List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s) {
+        if (CollectionUtils.isEmpty(cloudIpv6s)) {
+            return Collections.emptyList();
+        }
+        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        PropertyFilterDTO condition = new PropertyFilterDTO();
+        condition.setCondition("OR");
+        Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIpv6s);
+        hostGroups.forEach((bkCloudId, ipv6s) -> {
+            ComposeRuleDTO hostRule = new ComposeRuleDTO();
+            hostRule.setCondition("AND");
+            hostRule.addRule(buildCloudIdRule(bkCloudId));
+
+            BaseRuleDTO ipRule = new BaseRuleDTO();
+            ipRule.setField("bk_host_innerip_v6");
+            ipRule.setOperator("in");
+            ipRule.setValue(ipv6s);
+            hostRule.addRule(ipRule);
+
+            condition.addRule(hostRule);
+        });
+        req.setCondition(condition);
+
+        return listHostsWithoutBiz(req);
+    }
+
+    private BaseRuleDTO buildCloudIdRule(Long bkCloudId) {
+        BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
+        bkCloudIdRule.setField("bk_cloud_id");
+        bkCloudIdRule.setOperator("equal");
+        bkCloudIdRule.setValue(bkCloudId);
+        return bkCloudIdRule;
+    }
+
     private List<ApplicationHostDTO> listHostsWithoutBiz(ListHostsWithoutBizReq req) {
         int limit = 500;
         int start = 0;
-        PageDTO page = new PageDTO(start, limit, "");
-        req.setPage(page);
-        EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ,
-            req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
-            });
-        ListHostsWithoutBizResult pageData = esbResp.getData();
-        if (esbResp.getData() == null || CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
-            return Collections.emptyList();
-        }
+        int total;
+        List<ApplicationHostDTO> hosts = new ArrayList<>();
+        do {
+            PageDTO page = new PageDTO(start, limit, "");
+            req.setPage(page);
+            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ,
+                req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
+                });
+            ListHostsWithoutBizResult pageData = esbResp.getData();
+            total = pageData.getCount();
+            start += limit;
+            if (esbResp.getData() == null || CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
+                break;
+            }
 
-        List<ApplicationHostDTO> hosts =
-            pageData.getInfo().stream().map(host -> convertHost(-1, host)).collect(Collectors.toList());
+            hosts.addAll(pageData.getInfo().stream()
+                .map(host -> convertHost(-1, host))
+                .collect(Collectors.toList()));
 
-        // 设置主机业务信息
-        setBizRelationInfo(hosts);
+            // 设置主机业务信息
+            setBizRelationInfo(hosts);
+        } while (start < total);
 
         return hosts;
     }
@@ -1135,8 +1115,34 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         });
     }
 
-    private Map<Long, List<IpDTO>> groupHostsByCloudAreaId(List<IpDTO> hostIps) {
-        return hostIps.stream().collect(Collectors.groupingBy(IpDTO::getCloudAreaId));
+    private Map<Long, List<String>> groupHostsByBkCloudId(List<String> cloudIps) {
+        Map<Long, List<String>> hostGroup = new HashMap<>();
+        cloudIps.forEach(cloudIp -> {
+            int i = cloudIp.indexOf(":");
+            Long bkCloudId = Long.valueOf(cloudIp.substring(0, i));
+            String ip = cloudIp.substring(i + 1);
+            List<String> ipList = hostGroup.computeIfAbsent(bkCloudId, (k) -> new ArrayList<>());
+            ipList.add(ip);
+        });
+        return hostGroup;
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostsByHostIds(List<Long> hostIds) {
+        if (CollectionUtils.isEmpty(hostIds)) {
+            return Collections.emptyList();
+        }
+
+        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        PropertyFilterDTO condition = new PropertyFilterDTO();
+        condition.setCondition("AND");
+        BaseRuleDTO ipRule = new BaseRuleDTO();
+        ipRule.setField("bk_host_id");
+        ipRule.setOperator("in");
+        ipRule.setValue(hostIds);
+        condition.addRule(ipRule);
+        req.setCondition(condition);
+        return listHostsWithoutBiz(req);
     }
 
     @Override
@@ -1151,7 +1157,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public Set<String> getAppUsersByRole(Long bizId, String role) {
+    public Set<String> listUsersByRole(Long bizId, String role) {
         CcCountInfo searchResult;
         GetAppReq req = makeBaseReqByWeb(GetAppReq.class, null, defaultUin, defaultSupplierAccount);
         Map<String, Object> condition = new HashMap<>();
@@ -1195,7 +1201,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<AppRoleDTO> getAppRoleList() {
+    public List<AppRoleDTO> listRoles() {
         List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("biz");
         return esbObjAttributeDTO.stream().filter(it ->
             it.getBkPropertyGroup().equals("role")
@@ -1204,6 +1210,45 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             it.getBkPropertyName(),
             it.getCreator())
         ).collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, String> getCloudVendorIdNameMap() {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("host");
+        List<CcObjAttributeDTO> cloudVendorAttrList = esbObjAttributeDTO.stream().filter(it ->
+            it.getBkPropertyId().equals("bk_cloud_vendor")
+        ).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(cloudVendorAttrList)) {
+            return Collections.emptyMap();
+        }
+        List<CcObjAttributeDTO.Option> optionList = parseOptionList(cloudVendorAttrList.get(0).getOption());
+        Map<String, String> map = new HashMap<>();
+        for (CcObjAttributeDTO.Option option : optionList) {
+            map.put(option.getId(), option.getName());
+        }
+        return map;
+    }
+
+    private List<CcObjAttributeDTO.Option> parseOptionList(Object option) {
+        return JsonUtils.fromJson(JsonUtils.toJson(option), new TypeReference<List<CcObjAttributeDTO.Option>>() {
+        });
+    }
+
+    @Override
+    public Map<String, String> getOsTypeIdNameMap() {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("host");
+        List<CcObjAttributeDTO> osTypeAttrList = esbObjAttributeDTO.stream().filter(it ->
+            it.getBkPropertyId().equals("bk_os_type")
+        ).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(osTypeAttrList)) {
+            return Collections.emptyMap();
+        }
+        List<CcObjAttributeDTO.Option> optionList = parseOptionList(osTypeAttrList.get(0).getOption());
+        Map<String, String> map = new HashMap<>();
+        for (CcObjAttributeDTO.Option option : optionList) {
+            map.put(option.getId(), option.getName());
+        }
+        return map;
     }
 
     @Override
@@ -1264,8 +1309,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     public ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
-        req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name", "bk_os_type",
-            "bk_cloud_id"));
+        req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_agent_id",
+            "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id", "bk_cloud_vendor"));
         req.setResource("host");
         req.setCursor(cursor);
         req.setStartTime(startTime);
@@ -1293,8 +1338,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     public ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
-        req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_biz_maintainer", "bk_supplier_account",
-            "time_zone", "bk_operate_dept_id", "bk_operate_dept_name", "language"));
+        req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
+            "time_zone", "language"));
         req.setResource("biz");
         req.setCursor(cursor);
         req.setStartTime(startTime);

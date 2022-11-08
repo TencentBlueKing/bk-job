@@ -25,49 +25,45 @@
 package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Getter;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.StringJoiner;
 
 /**
  * 脚本日志
  */
-@Getter
-@Setter
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
+@ApiModel("脚本日志")
 public class ServiceScriptLogDTO {
     /**
-     * 云IP
+     * 主机ID
      */
-    private String cloudIp;
+    @ApiModelProperty("主机ID")
+    private Long hostId;
+
     /**
      * 日志偏移 - 字节
      */
+    @ApiModelProperty("日志偏移 - 字节")
     private Integer offset;
+
     /**
      * 日志内容
      */
+    @ApiModelProperty("日志内容")
     private String content;
 
-    public ServiceScriptLogDTO(String cloudIp, Integer offset, String content) {
-        this.cloudIp = cloudIp;
+    public ServiceScriptLogDTO(Long hostId, Integer offset, String content) {
+        this.hostId = hostId;
         this.offset = offset;
         this.content = content;
     }
 
-    public ServiceScriptLogDTO(String content) {
+    public ServiceScriptLogDTO(Long hostId, String content) {
+        this.hostId = hostId;
         this.content = content;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", ServiceScriptLogDTO.class.getSimpleName() + "[", "]")
-            .add("cloudIp='" + cloudIp + "'")
-            .add("offset=" + offset)
-            .add("contentLength='" + (content == null ? 0 : content.length()) + "'")
-            .toString();
     }
 }

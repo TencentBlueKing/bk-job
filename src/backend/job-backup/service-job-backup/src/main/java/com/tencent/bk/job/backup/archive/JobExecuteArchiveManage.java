@@ -24,21 +24,43 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tencent.bk.job.backup.archive.impl.FileSourceTaskLogArchivist;
+import com.tencent.bk.job.backup.archive.impl.GseFileAgentTaskArchivist;
+import com.tencent.bk.job.backup.archive.impl.GseScriptAgentTaskArchivist;
+import com.tencent.bk.job.backup.archive.impl.GseTaskArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseTaskIpLogArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseTaskLogArchivist;
 import com.tencent.bk.job.backup.archive.impl.OperationLogArchivist;
+import com.tencent.bk.job.backup.archive.impl.RollingConfigArchivist;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceArchivist;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceConfirmArchivist;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceFileArchivist;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceRollingTaskArchivist;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceScriptArchivist;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchivist;
+import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchivist;
 import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.JobExecuteDAO;
+import com.tencent.bk.job.backup.dao.impl.FileSourceTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseFileAgentTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.RollingConfigRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceConfirmRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceFileRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceRollingTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.StepInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
@@ -47,20 +69,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JobExecuteArchiveManage implements SmartLifecycle {
 
-    private final JobExecuteDAO jobExecuteDAO;
     private final ArchiveConfig archiveConfig;
 
-    private static final ExecutorService ARCHIVE_THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(20, 20,
-        0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(20),
-        new ThreadFactoryBuilder().setNameFormat("archive-thread-pool-%d").build(),
-        new ThreadPoolExecutor.AbortPolicy());
+    private final ExecutorService archiveExecutor;
 
     private final FileSourceTaskLogArchivist fileSourceTaskLogArchivist;
     private final StepInstanceArchivist stepInstanceArchivist;
@@ -73,6 +88,13 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
     private final TaskInstanceArchivist taskInstanceArchivist;
     private final TaskInstanceVariableArchivist taskInstanceVariableArchivist;
     private final OperationLogArchivist operationLogArchivist;
+    private final GseTaskArchivist gseTaskArchivist;
+    private final GseScriptAgentTaskArchivist gseScriptAgentTaskArchivist;
+    private final GseFileAgentTaskArchivist gseFileAgentTaskArchivist;
+    private final StepInstanceRollingTaskArchivist stepInstanceRollingTaskArchivist;
+    private final RollingConfigArchivist rollingConfigArchivist;
+    private final TaskInstanceHostArchivist taskInstanceHostArchivist;
+    private final ArchiveProgressService archiveProgressService;
 
 
     /**
@@ -80,34 +102,64 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
      */
     private volatile boolean running = false;
 
-    public JobExecuteArchiveManage(JobExecuteDAO jobExecuteDAO,
+    public JobExecuteArchiveManage(TaskInstanceRecordDAO taskInstanceRecordDAO,
+                                   StepInstanceRecordDAO stepInstanceRecordDAO,
+                                   StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
+                                   StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
+                                   StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
+                                   StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
+                                   TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
+                                   OperationLogRecordDAO operationLogRecordDAO,
+                                   GseTaskLogRecordDAO gseTaskLogRecordDAO,
+                                   GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO,
+                                   FileSourceTaskRecordDAO fileSourceTaskRecordDAO,
+                                   GseTaskRecordDAO gseTaskRecordDAO,
+                                   GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
+                                   GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
+                                   StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
+                                   RollingConfigRecordDAO rollingConfigRecordDAO,
+                                   TaskInstanceHostRecordDAO taskInstanceHostRecordDAO,
                                    ExecuteArchiveDAO executeArchiveDAO,
                                    ArchiveProgressService archiveProgressService,
-                                   ArchiveConfig archiveConfig) {
+                                   ArchiveConfig archiveConfig,
+                                   ExecutorService archiveExecutor) {
         log.info("Init JobExecuteArchiveManage! archiveConfig: {}", archiveConfig);
-        this.jobExecuteDAO = jobExecuteDAO;
         this.archiveConfig = archiveConfig;
-        this.fileSourceTaskLogArchivist = new FileSourceTaskLogArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.archiveProgressService = archiveProgressService;
+        this.fileSourceTaskLogArchivist = new FileSourceTaskLogArchivist(fileSourceTaskRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceArchivist = new StepInstanceArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.stepInstanceArchivist = new StepInstanceArchivist(stepInstanceRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceConfirmArchivist = new StepInstanceConfirmArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.stepInstanceConfirmArchivist = new StepInstanceConfirmArchivist(stepInstanceConfirmRecordDAO,
+            executeArchiveDAO, archiveProgressService);
+        this.stepInstanceFileArchivist = new StepInstanceFileArchivist(stepInstanceFileRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceFileArchivist = new StepInstanceFileArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.stepInstanceScriptArchivist = new StepInstanceScriptArchivist(stepInstanceScriptRecordDAO,
+            executeArchiveDAO, archiveProgressService);
+        this.stepInstanceVariableArchivist = new StepInstanceVariableArchivist(stepInstanceVariableRecordDAO,
+            executeArchiveDAO, archiveProgressService);
+        this.gseTaskLogArchivist = new GseTaskLogArchivist(gseTaskLogRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceScriptArchivist = new StepInstanceScriptArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.gseTaskIpLogArchivist = new GseTaskIpLogArchivist(gseTaskIpLogRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.stepInstanceVariableArchivist = new StepInstanceVariableArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.taskInstanceArchivist = new TaskInstanceArchivist(taskInstanceRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.gseTaskLogArchivist = new GseTaskLogArchivist(jobExecuteDAO, executeArchiveDAO, archiveProgressService);
-        this.gseTaskIpLogArchivist = new GseTaskIpLogArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.taskInstanceVariableArchivist = new TaskInstanceVariableArchivist(taskInstanceVariableRecordDAO,
+            executeArchiveDAO, archiveProgressService);
+        this.operationLogArchivist = new OperationLogArchivist(operationLogRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.taskInstanceArchivist = new TaskInstanceArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.gseTaskArchivist = new GseTaskArchivist(gseTaskRecordDAO, executeArchiveDAO, archiveProgressService);
+        this.gseScriptAgentTaskArchivist = new GseScriptAgentTaskArchivist(gseScriptAgentTaskRecordDAO,
+            executeArchiveDAO, archiveProgressService);
+        this.gseFileAgentTaskArchivist = new GseFileAgentTaskArchivist(gseFileAgentTaskRecordDAO,
+            executeArchiveDAO, archiveProgressService);
+        this.stepInstanceRollingTaskArchivist = new StepInstanceRollingTaskArchivist(stepInstanceRollingTaskRecordDAO,
+            executeArchiveDAO, archiveProgressService);
+        this.rollingConfigArchivist = new RollingConfigArchivist(rollingConfigRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.taskInstanceVariableArchivist = new TaskInstanceVariableArchivist(jobExecuteDAO, executeArchiveDAO,
+        this.taskInstanceHostArchivist = new TaskInstanceHostArchivist(taskInstanceHostRecordDAO, executeArchiveDAO,
             archiveProgressService);
-        this.operationLogArchivist = new OperationLogArchivist(jobExecuteDAO, executeArchiveDAO,
-            archiveProgressService);
+        this.archiveExecutor = archiveExecutor;
     }
 
     @Scheduled(cron = "${job.execute.archive.cron:0 0 4 * * *}")
@@ -143,7 +195,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
 
 
     class ArchiveThread extends Thread {
-        private ArchiveConfig archiveConfig;
+        private final ArchiveConfig archiveConfig;
 
 
         ArchiveThread(ArchiveConfig archiveConfig) {
@@ -182,9 +234,8 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             try {
                 log.info("Start job execute archive before {} at {}", endTime, System.currentTimeMillis());
 
-                long maxNeedArchiveTaskInstanceId = jobExecuteDAO.getMaxNeedArchiveTaskInstanceId(endTime);
-                long maxNeedArchiveStepInstanceId =
-                    jobExecuteDAO.getMaxNeedArchiveStepInstanceId(maxNeedArchiveTaskInstanceId);
+                long maxNeedArchiveTaskInstanceId = computeMaxNeedArchiveTaskInstanceId(endTime);
+                long maxNeedArchiveStepInstanceId = computeMaxNeedArchiveStepInstanceId(maxNeedArchiveTaskInstanceId);
 
                 log.info("Compute archive instance id range, maxNeedArchiveTaskInstanceId: {}, " +
                     "maxNeedArchiveStepInstanceId: {}", maxNeedArchiveTaskInstanceId, maxNeedArchiveStepInstanceId);
@@ -201,38 +252,77 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             }
         }
 
+        public long computeMaxNeedArchiveTaskInstanceId(Long endTime) {
+            ArchiveProgressDTO archiveProgress =
+                archiveProgressService.queryArchiveProgress(taskInstanceArchivist.getTableName());
+            long lastArchivedId = archiveProgress != null ? archiveProgress.getLastArchivedId() : 0L;
+            long maxId = taskInstanceArchivist.getMaxId(endTime);
+            return Math.max(lastArchivedId, maxId);
+        }
+
+        public long computeMaxNeedArchiveStepInstanceId(Long taskInstanceId) {
+            ArchiveProgressDTO archiveProgress =
+                archiveProgressService.queryArchiveProgress(stepInstanceArchivist.getTableName());
+            long lastArchivedId = archiveProgress != null ? archiveProgress.getLastArchivedId() : 0L;
+            long maxId = stepInstanceArchivist.getMaxId(taskInstanceId);
+            return Math.max(lastArchivedId, maxId);
+        }
+
         private void archive(long maxNeedArchiveTaskInstanceId, long maxNeedArchiveStepInstanceId)
             throws InterruptedException {
-            CountDownLatch countDownLatch = new CountDownLatch(8);
+            CountDownLatch countDownLatch = new CountDownLatch(16);
             log.info("Submitting archive task...");
 
-            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> taskInstanceArchivist.archive(archiveConfig,
+            // task_instance
+            archiveExecutor.execute(() -> taskInstanceArchivist.archive(archiveConfig,
                 maxNeedArchiveTaskInstanceId, countDownLatch));
-
-
-            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> stepInstanceArchivist.archive(archiveConfig,
+            // step_instance
+            archiveExecutor.execute(() -> stepInstanceArchivist.archive(archiveConfig,
                 maxNeedArchiveStepInstanceId, countDownLatch));
-            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> stepInstanceConfirmArchivist.archive(archiveConfig,
+            // step_instance_confirm
+            archiveExecutor.execute(() -> stepInstanceConfirmArchivist.archive(archiveConfig,
                 maxNeedArchiveStepInstanceId, countDownLatch));
-            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> stepInstanceFileArchivist.archive(archiveConfig,
+            // step_instance_file
+            archiveExecutor.execute(() -> stepInstanceFileArchivist.archive(archiveConfig,
                 maxNeedArchiveStepInstanceId, countDownLatch));
-            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> stepInstanceScriptArchivist.archive(archiveConfig,
+            // step_instance_script
+            archiveExecutor.execute(() -> stepInstanceScriptArchivist.archive(archiveConfig,
                 maxNeedArchiveStepInstanceId, countDownLatch));
-
-
-//            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> gseTaskLogArchivist.archive(deleteAfterArchive,
-//                    maxNeedArchiveStepInstanceId, countDownLatch));
-//            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> fileSourceTaskLogArchivist.archive(deleteAfterArchive,
-//                    maxNeedArchiveStepInstanceId, countDownLatch));
-            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> gseTaskIpLogArchivist.archive(archiveConfig,
+            // gse_task_log
+            archiveExecutor.execute(() -> gseTaskLogArchivist.archive(archiveConfig,
                 maxNeedArchiveStepInstanceId, countDownLatch));
-
-            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> taskInstanceVariableArchivist.archive(archiveConfig,
+            // file_source_task 非正式发布功能，暂时不开启
+//            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> fileSourceTaskLogArchivist.archive(archiveConfig,
+//                maxNeedArchiveStepInstanceId, countDownLatch));
+            // gse_task_ip_log
+            archiveExecutor.execute(() -> gseTaskIpLogArchivist.archive(archiveConfig,
+                maxNeedArchiveStepInstanceId, countDownLatch));
+            // task_instance_variable
+            archiveExecutor.execute(() -> taskInstanceVariableArchivist.archive(archiveConfig,
                 maxNeedArchiveTaskInstanceId, countDownLatch));
-//            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> stepInstanceVariableArchivist.archive(deleteAfterArchive,
-//                    maxNeedArchiveStepInstanceId, countDownLatch));
-
-            ARCHIVE_THREAD_POOL_EXECUTOR.execute(() -> operationLogArchivist.archive(archiveConfig,
+            // step_instance_variable
+            archiveExecutor.execute(() -> stepInstanceVariableArchivist.archive(archiveConfig,
+                maxNeedArchiveStepInstanceId, countDownLatch));
+            // operation_log
+            archiveExecutor.execute(() -> operationLogArchivist.archive(archiveConfig,
+                maxNeedArchiveTaskInstanceId, countDownLatch));
+            // gse_task
+            archiveExecutor.execute(() -> gseTaskArchivist.archive(archiveConfig,
+                maxNeedArchiveStepInstanceId, countDownLatch));
+            // gse_script_agent_task
+            archiveExecutor.execute(() -> gseScriptAgentTaskArchivist.archive(archiveConfig,
+                maxNeedArchiveStepInstanceId, countDownLatch));
+            // gse_file_agent_task
+            archiveExecutor.execute(() -> gseFileAgentTaskArchivist.archive(archiveConfig,
+                maxNeedArchiveStepInstanceId, countDownLatch));
+            // step_instance_rolling_task
+            archiveExecutor.execute(() -> stepInstanceRollingTaskArchivist.archive(archiveConfig,
+                maxNeedArchiveStepInstanceId, countDownLatch));
+            // rolling_config
+            archiveExecutor.execute(() -> rollingConfigArchivist.archive(archiveConfig,
+                maxNeedArchiveTaskInstanceId, countDownLatch));
+            // task_instance_host
+            archiveExecutor.execute(() -> taskInstanceHostArchivist.archive(archiveConfig,
                 maxNeedArchiveTaskInstanceId, countDownLatch));
 
             log.info("Archive task submitted. Waiting for complete...");

@@ -126,7 +126,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
                 taskInstance.setStartupMode(taskInstanceDTO.getStartupMode());
                 taskInstance.setTaskId(taskInstanceDTO.getTaskId());
                 taskInstance.setOperator(taskInstanceDTO.getOperator());
-                taskInstance.setStatus(taskInstanceDTO.getStatus());
+                taskInstance.setStatus(taskInstanceDTO.getStatus().getValue());
                 taskInstance.setTemplateId(taskInstanceDTO.getTaskTemplateId());
                 taskInstance.setTotalTime(taskInstanceDTO.getTotalTime());
                 taskInstance.setType(taskInstanceDTO.getType());

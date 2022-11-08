@@ -24,12 +24,14 @@
 
 package com.tencent.bk.job.crontab.model.inner;
 
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
@@ -43,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@PersistenceObject
 @ApiModel("目标服务器，四个不可同时为空")
 @Data
 public class ServerDTO {
@@ -79,14 +82,19 @@ public class ServerDTO {
         TaskTargetVO taskTarget = new TaskTargetVO();
         taskTarget.setVariable(server.getVariable());
         TaskHostNodeVO taskHostNode = new TaskHostNodeVO();
+        // 聚合通过hostId与IP指定的主机信息
+        List<HostInfoVO> hostInfoVOList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(server.getIps())) {
-            taskHostNode.setIpList(server.getIps().parallelStream().map(HostDTO::toVO).collect(Collectors.toList()));
+            hostInfoVOList.addAll(server.getIps().parallelStream().map(HostDTO::toVO).collect(Collectors.toList()));
+        }
+        if (!hostInfoVOList.isEmpty()) {
+            taskHostNode.setHostList(hostInfoVOList);
         }
         if (CollectionUtils.isNotEmpty(server.getDynamicGroupIds())) {
-            taskHostNode.setDynamicGroupList(server.getDynamicGroupIds());
+            taskHostNode.setDynamicGroupIdList(server.getDynamicGroupIds());
         }
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
-            taskHostNode.setTopoNodeList(server.getTopoNodes().parallelStream()
+            taskHostNode.setNodeList(server.getTopoNodes().parallelStream()
                 .map(CmdbTopoNodeDTO::toVO).collect(Collectors.toList()));
         }
         taskTarget.setHostNodeInfo(taskHostNode);
@@ -101,15 +109,15 @@ public class ServerDTO {
         server.setVariable(taskTarget.getVariable());
         if (taskTarget.getHostNodeInfo() != null) {
             TaskHostNodeVO hostNodeInfo = taskTarget.getHostNodeInfo();
-            if (CollectionUtils.isNotEmpty(hostNodeInfo.getIpList())) {
-                server.setIps(hostNodeInfo.getIpList().parallelStream()
+            if (CollectionUtils.isNotEmpty(hostNodeInfo.getHostList())) {
+                server.setIps(hostNodeInfo.getHostList().parallelStream()
                     .map(HostDTO::fromVO).collect(Collectors.toList()));
             }
-            if (CollectionUtils.isNotEmpty(hostNodeInfo.getDynamicGroupList())) {
-                server.setDynamicGroupIds(hostNodeInfo.getDynamicGroupList());
+            if (CollectionUtils.isNotEmpty(hostNodeInfo.getDynamicGroupIdList())) {
+                server.setDynamicGroupIds(hostNodeInfo.getDynamicGroupIdList());
             }
-            if (CollectionUtils.isNotEmpty(hostNodeInfo.getTopoNodeList())) {
-                server.setTopoNodes(hostNodeInfo.getTopoNodeList().parallelStream()
+            if (CollectionUtils.isNotEmpty(hostNodeInfo.getNodeList())) {
+                server.setTopoNodes(hostNodeInfo.getNodeList().parallelStream()
                     .map(CmdbTopoNodeDTO::fromVO).collect(Collectors.toList()));
             }
         }
@@ -132,11 +140,18 @@ public class ServerDTO {
             server.getDynamicGroups().forEach(group -> dynamicGroupIds.add(group.getId()));
             serverDTO.setDynamicGroupIds(dynamicGroupIds);
         }
+        List<HostDTO> hosts = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(server.getIps())) {
             List<HostDTO> staticIpList = new ArrayList<>();
-            server.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getCloudAreaId(), ip.getIp())));
-            serverDTO.setIps(staticIpList);
+            server.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
+            hosts.addAll(staticIpList);
         }
+        if (CollectionUtils.isNotEmpty(server.getHostIds())) {
+            List<HostDTO> hostIdHostList = new ArrayList<>();
+            server.getHostIds().forEach(hostId -> hostIdHostList.add(HostDTO.fromHostId(hostId)));
+            hosts.addAll(hostIdHostList);
+        }
+        serverDTO.setIps(hosts);
         return serverDTO;
     }
 
@@ -169,9 +184,11 @@ public class ServerDTO {
         }
         ServiceTargetServers serviceServer = new ServiceTargetServers();
         serviceServer.setVariable(server.getVariable());
+        List<HostDTO> hosts = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(server.getIps())) {
-            serviceServer.setIps(server.getIps());
+            hosts.addAll(server.getIps());
         }
+        serviceServer.setIps(hosts);
         serviceServer.setDynamicGroupIds(server.getDynamicGroupIds());
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
             serviceServer.setTopoNodes(server.getTopoNodes());

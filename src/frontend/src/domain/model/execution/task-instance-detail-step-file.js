@@ -24,8 +24,10 @@
 */
 
 import _ from 'lodash';
-import I18n from '@/i18n';
+
 import TaskHostNodeModel from '@model/task-host-node';
+
+import I18n from '@/i18n';
 
 const transferModeMap = {
     1: I18n.t('严谨模式'),
@@ -42,9 +44,11 @@ export default class TaskInstanceDetailStepFile {
         this.duplicateHandler = payload.duplicateHandler;
         this.transferMode = payload.transferMode || 1;
         this.ignoreError = payload.ignoreError || 0;
+        this.rollingEnabled = Boolean(payload.rollingEnabled);
         
         this.fileDestination = this.initFileDestination(payload.fileDestination);
         this.fileSourceList = this.initFileSourceList(payload.fileSourceList);
+        this.rollingConfig = this.initRollingConfig(payload.rollingConfig);
     }
 
     /**
@@ -122,5 +126,28 @@ export default class TaskInstanceDetailStepFile {
             host: new TaskHostNodeModel(item.host || {}),
             account: item.account || 0,
         }));
+    }
+
+    /**
+     * @desc 处理滚动执行配置
+     * @param { Object } rollingConfig 滚动执行配置
+     * @returns { Object }
+     */
+    initRollingConfig (rollingConfig) {
+        const config = {
+            expr: '',
+            mode: 1,
+        };
+        if (rollingConfig) {
+            const {
+                expr = '',
+                mode = 0,
+            } = rollingConfig;
+            Object.assign(config, {
+                expr,
+                mode,
+            });
+        }
+        return config;
     }
 }
