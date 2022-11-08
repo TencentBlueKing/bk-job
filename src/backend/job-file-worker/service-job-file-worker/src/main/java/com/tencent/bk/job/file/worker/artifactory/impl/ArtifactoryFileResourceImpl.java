@@ -153,18 +153,20 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
                     " cannot be blank"});
         }
         String projectId = path;
-        // TODO:搜索优化，当前只支持原生前缀搜索
         com.tencent.bk.job.common.artifactory.model.dto.PageData<RepoDTO> pageData;
         Integer start = req.getStart();
         Integer pageSize = req.getPageSize();
-        if (pageSize <= 0) {
-            // 不分页，全量拉取
-            pageData = client.listRepo(projectId, req.getName(), 1, Integer.MAX_VALUE);
-        } else {
-            pageData = client.listRepo(projectId, req.getName(), start / pageSize + 1, pageSize);
+        // 全量拉取
+        pageData = client.listRepo(projectId, null, 1, Integer.MAX_VALUE);
+        List<RepoDTO> repoList = pageData.getRecords();
+        // 名称搜索过滤
+        if (StringUtils.isNotBlank(req.getName())) {
+            repoList = repoList.stream()
+                .filter(repo -> repo.getName().contains(req.getName()))
+                .collect(Collectors.toList());
         }
         // 排序
-        pageData.getRecords().sort((o1, o2) -> {
+        repoList.sort((o1, o2) -> {
             if (o1 == null && o2 == null) {
                 return 0;
             } else if (o1 == null) {
@@ -175,11 +177,8 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
                 return CompareUtil.safeCompareNullBack(o2.getLastModifiedDate(), o1.getLastModifiedDate());
             }
         });
-        PageData<Map<String, Object>> mappedPageData = new PageData<>();
-        mappedPageData.setStart((pageData.getPageNumber() - 1) * pageData.getPageSize());
-        mappedPageData.setPageSize(pageData.getPageSize());
-        mappedPageData.setTotal(pageData.getTotalRecords());
-        mappedPageData.setData(pageData.getRecords().parallelStream().map(repoDTO -> {
+        // 字段映射
+        List<Map<String, Object>> repoMapList = repoList.parallelStream().map(repoDTO -> {
             Map<String, Object> map = new HashMap<>();
             map.put("projectId", repoDTO.getProjectId());
             map.put("name", repoDTO.getName());
@@ -191,7 +190,9 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
             // 补充字段
             map.put("completePath", repoDTO.getProjectId() + "/" + repoDTO.getName());
             return map;
-        }).collect(Collectors.toList()));
+        }).collect(Collectors.toList());
+        // 内存分页
+        PageData<Map<String, Object>> mappedPageData = PageUtil.pageInMem(repoMapList, start, pageSize);
         fileNodesDTO.setPageData(mappedPageData);
     }
 

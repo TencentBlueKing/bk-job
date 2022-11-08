@@ -48,6 +48,7 @@ import com.tencent.bk.job.common.artifactory.model.req.PageLimit;
 import com.tencent.bk.job.common.artifactory.model.req.QueryNodeDetailReq;
 import com.tencent.bk.job.common.artifactory.model.req.Rule;
 import com.tencent.bk.job.common.artifactory.model.req.SearchNodePageReq;
+import com.tencent.bk.job.common.artifactory.model.req.Sort;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -336,6 +337,7 @@ public class ArtifactoryClient {
                                                      int pageSize) {
         SearchNodePageReq req = new SearchNodePageReq();
         req.setPage(new PageLimit(pageNumber, pageSize));
+        req.setSort(new Sort());
         List<Rule> innerRules = new ArrayList<>();
         // 项目ID
         Rule projectIdRule = new Rule();
