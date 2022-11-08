@@ -33,8 +33,8 @@ import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.SyncService;
+import com.tencent.bk.job.manage.service.host.HostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -155,7 +155,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
         serviceHostInfo.setAppId(appId);
         serviceHostInfo.setCloudAreaId(hostInfo.getCloudAreaId());
         serviceHostInfo.setIp(hostInfo.getIp());
-        serviceHostInfo.setDisplayIp(hostInfo.getDisplayIp());
+        serviceHostInfo.setIpv6(hostInfo.getIpv6());
         serviceHostInfo.setHostId(hostInfo.getHostId());
         return serviceHostInfo;
     }

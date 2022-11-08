@@ -31,20 +31,17 @@ import com.tencent.bk.job.manage.model.dto.whiteip.ActionScopeDTO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
 import lombok.val;
 import org.jooq.DSLContext;
-import org.jooq.Record;
 import org.jooq.generated.tables.ActionScope;
 import org.jooq.generated.tables.records.ActionScopeRecord;
-import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository
 public class ActionScopeDAOImpl implements ActionScopeDAO {
-    private DSLContext defaultDslContext;
+    private final DSLContext defaultDslContext;
     private static final ActionScope T_ACTION_SCOPE = ActionScope.ACTION_SCOPE;
     private final MessageI18nService i18nService;
 
@@ -52,42 +49,6 @@ public class ActionScopeDAOImpl implements ActionScopeDAO {
     public ActionScopeDAOImpl(DSLContext dslContext, MessageI18nService i18nService) {
         this.defaultDslContext = dslContext;
         this.i18nService = i18nService;
-    }
-
-    @Override
-    public Long insertActionScope(DSLContext dslContext, ActionScopeDTO actionScopeDTO) {
-        Record record = dslContext.insertInto(T_ACTION_SCOPE,
-                T_ACTION_SCOPE.NAME,
-                T_ACTION_SCOPE.DESCRIPTION,
-                T_ACTION_SCOPE.CREATOR,
-                T_ACTION_SCOPE.CREATE_TIME,
-                T_ACTION_SCOPE.LAST_MODIFY_USER,
-                T_ACTION_SCOPE.LAST_MODIFY_TIME
-            ).values(
-                actionScopeDTO.getName(),
-                actionScopeDTO.getDescription(),
-                actionScopeDTO.getCreator(),
-                ULong.valueOf(actionScopeDTO.getCreateTime()),
-                actionScopeDTO.getLastModifier(),
-                ULong.valueOf(actionScopeDTO.getLastModifyTime())
-            ).returning(T_ACTION_SCOPE.ID)
-            .fetchOne();
-        return record.get(T_ACTION_SCOPE.ID);
-    }
-
-    @Override
-    public int deleteActionScopeById(DSLContext dslContext, Long id) {
-        return dslContext.deleteFrom(T_ACTION_SCOPE).where(
-            T_ACTION_SCOPE.ID.eq(id)
-        ).execute();
-    }
-
-    @Override
-    public ActionScopeDTO getActionScopeById(Long id) {
-        ActionScopeRecord record = defaultDslContext.selectFrom(T_ACTION_SCOPE).where(
-            T_ACTION_SCOPE.ID.eq(id)
-        ).fetchOne();
-        return convert(record);
     }
 
     @Override
@@ -120,9 +81,6 @@ public class ActionScopeDAOImpl implements ActionScopeDAO {
     @Override
     public List<ActionScopeDTO> listActionScopeDTO() {
         val records = defaultDslContext.selectFrom(T_ACTION_SCOPE).fetch();
-        if (records == null) {
-            return new ArrayList<>();
-        }
         return records.stream().map(record ->
             new ActionScopeDTO(
                 record.getId(),
@@ -138,24 +96,11 @@ public class ActionScopeDAOImpl implements ActionScopeDAO {
     }
 
     @Override
-    public int updateActionScopeById(DSLContext dslContext, ActionScopeDTO actionScopeDTO) {
-        return dslContext.update(T_ACTION_SCOPE)
-            .set(T_ACTION_SCOPE.NAME, actionScopeDTO.getName())
-            .set(T_ACTION_SCOPE.DESCRIPTION, actionScopeDTO.getDescription())
-            .set(T_ACTION_SCOPE.CREATOR, actionScopeDTO.getCreator())
-            .set(T_ACTION_SCOPE.CREATE_TIME, ULong.valueOf(actionScopeDTO.getCreateTime()))
-            .set(T_ACTION_SCOPE.LAST_MODIFY_USER, actionScopeDTO.getLastModifier())
-            .set(T_ACTION_SCOPE.LAST_MODIFY_TIME, ULong.valueOf(actionScopeDTO.getLastModifyTime()))
-            .where(T_ACTION_SCOPE.ID.eq(actionScopeDTO.getId()))
-            .execute();
-    }
-
-    @Override
     public List<ActionScopeDTO> getActionScopeByIds(List<Long> scopeIdList) {
         val records = defaultDslContext.select(
-                T_ACTION_SCOPE.ID,
-                T_ACTION_SCOPE.CODE
-            ).from(T_ACTION_SCOPE)
+            T_ACTION_SCOPE.ID,
+            T_ACTION_SCOPE.CODE
+        ).from(T_ACTION_SCOPE)
             .where(T_ACTION_SCOPE.ID.in(scopeIdList)).fetch();
         return records.stream().map(record ->
             new ActionScopeDTO(

@@ -277,7 +277,10 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
 
     @Override
     GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<ScriptTaskResult> taskDetail) {
-
+        if (taskDetail == null || taskDetail.getResult() == null) {
+            log.info("Analyse gse task result, result is empty!");
+            return analyseExecuteResult();
+        }
         long currentTime = DateUtils.currentTimeMillis(); // 当前时间
         List<ServiceScriptLogDTO> scriptLogs = new ArrayList<>();
         StopWatch watch = new StopWatch("analyse-gse-script-task");

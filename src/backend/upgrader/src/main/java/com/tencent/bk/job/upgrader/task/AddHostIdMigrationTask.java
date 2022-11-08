@@ -59,12 +59,24 @@ public class AddHostIdMigrationTask extends BaseUpgradeTask {
     public boolean execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         try {
+            boolean dryRun = getProperties().get("dryRun") != null
+                && ((String)getProperties().get("dryRun")).equalsIgnoreCase("true");
+            if (dryRun) {
+                log.info("AddHostIdMigrationTask using dryRun mode!");
+            }
+            // 1.迁移作业模板、执行方案、IP白名单数据
             log.info("job.manage.addHostIdMigrationTask start ...");
-            Response<String> response = post(buildMigrationTaskUrl(getJobManageUrl(),
+            Response<String> manageResp = post(buildMigrationTaskUrl(getJobManageUrl(),
                 "/migration/action/addHostIdMigrationTask"),
-                JsonUtils.toJson(new AddHostIdMigrationReq(false)));
-            log.info("job.manage.addHostIdMigrationTask done, result: {}", response);
-            return response.isSuccess();
+                JsonUtils.toJson(new AddHostIdMigrationReq(dryRun)));
+            log.info("job.manage.addHostIdMigrationTask done, result: {}", manageResp);
+            // 2.迁移定时任务数据
+            log.info("job.crontab.addHostIdMigrationTask start ...");
+            Response<String> crontabResp = post(buildMigrationTaskUrl(getJobCrontabUrl(),
+                "/migration/action/addHostIdMigrationTask"),
+                JsonUtils.toJson(new AddHostIdMigrationReq(dryRun)));
+            log.info("job.crontab.addHostIdMigrationTask done, result: {}", crontabResp);
+            return manageResp.isSuccess() && crontabResp.isSuccess();
         } catch (Throwable e) {
             log.error("AddHostIdMigrationTask fail", e);
             return false;

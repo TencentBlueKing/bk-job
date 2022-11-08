@@ -189,13 +189,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private final MeterRegistry meterRegistry;
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-            build(new CacheLoader<Long, InstanceTopologyDTO>() {
-                      @Override
-                      public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
-                          return getBizInstCompleteTopology(bizId);
-                      }
+        build(new CacheLoader<Long, InstanceTopologyDTO>() {
+                  @Override
+                  public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
+                      return getBizInstCompleteTopology(bizId);
                   }
-            );
+              }
+        );
 
     public BizCmdbClient(BkApiConfig bkApiConfig,
                          CmdbConfig cmdbConfig,
@@ -315,7 +315,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
         String resourceId = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
         if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
-            if (globalFlowController != null) {
+            if (globalFlowController != null && globalFlowController.isReady()) {
                 log.debug("Flow control resourceId={}", resourceId);
                 long startTime = System.currentTimeMillis();
                 globalFlowController.acquire(resourceId);
@@ -326,7 +326,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                     log.info("Request resource {} wait flowControl for {}ms", resourceId, duration);
                 }
             } else {
-                log.debug("globalFlowController not set, ignore this time");
+                log.debug("globalFlowController not set or not ready, ignore this time");
             }
         }
         long start = System.nanoTime();
@@ -811,12 +811,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                     ccHostInfo.getHostId(),
                     ccHostInfo.getIp()
                 );
-            } else if (StringUtils.isBlank(ccHostInfo.getIp())) {
-                log.warn(
-                    "host(id={},ip={}) ip invalid, ignore",
-                    ccHostInfo.getHostId(),
-                    ccHostInfo.getIp()
-                );
+            } else if (ccHostInfo.getHostId() == null) {
+                log.warn("{} hostId is invalid, ignore", ccHostInfo);
             } else {
                 ccGroupHostList.add(convertToCcHost(ccHostInfo));
             }
@@ -1133,7 +1129,20 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<ApplicationHostDTO> listHostsByHostIds(List<Long> hostIds) {
-        return null;
+        if (CollectionUtils.isEmpty(hostIds)) {
+            return Collections.emptyList();
+        }
+
+        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        PropertyFilterDTO condition = new PropertyFilterDTO();
+        condition.setCondition("AND");
+        BaseRuleDTO ipRule = new BaseRuleDTO();
+        ipRule.setField("bk_host_id");
+        ipRule.setOperator("in");
+        ipRule.setValue(hostIds);
+        condition.addRule(ipRule);
+        req.setCondition(condition);
+        return listHostsWithoutBiz(req);
     }
 
     @Override

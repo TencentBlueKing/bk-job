@@ -1,8 +1,10 @@
 package com.tencent.bk.job.common.util;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
@@ -41,6 +43,25 @@ public class ListUtil {
             }
         }
         return Pair.of(trueList, falseList);
+    }
+
+    /**
+     * 合并集合（不去重), 并返回List
+     *
+     * @param collection1 集合列表1
+     * @param collection2 集合列表2
+     * @param <E>         集合中的元素
+     * @return 合并后的List
+     */
+    public static <E> List<E> union(Collection<? extends E> collection1, Collection<? extends E> collection2) {
+        List<E> result = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(collection1)) {
+            result.addAll(collection1);
+        }
+        if (CollectionUtils.isNotEmpty(collection2)) {
+            result.addAll(collection2);
+        }
+        return result;
     }
 
 }

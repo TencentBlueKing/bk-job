@@ -34,7 +34,8 @@ public interface HostService {
      * 通过hostId/IP查询主机信息并填充
      *
      * @param hostList 主机列表
+     * @return 实际填充的主机数量
      */
-    void fillHosts(List<HostDTO> hostList);
+    int fillHosts(List<HostDTO> hostList);
 
 }

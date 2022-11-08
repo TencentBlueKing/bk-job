@@ -39,7 +39,6 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -52,20 +51,17 @@ import java.util.concurrent.BlockingQueue;
 @Slf4j
 public class HostEventsHandler extends EventsHandler<HostEventDetail> {
 
-    private final DSLContext dslContext;
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final AgentStateClient agentStateClient;
     private final HostCache hostCache;
 
     HostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> queue,
-                      DSLContext dslContext,
                       ApplicationService applicationService,
                       ApplicationHostDAO applicationHostDAO,
                       AgentStateClient agentStateClient,
                       HostCache hostCache) {
         super(queue);
-        this.dslContext = dslContext;
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.agentStateClient = agentStateClient;
@@ -114,11 +110,7 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
     }
 
     private void deleteHostWithoutIp(ApplicationHostDTO hostInfoDTO) {
-        int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(
-            dslContext,
-            null,
-            hostInfoDTO.getHostId()
-        );
+        int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(null, hostInfoDTO.getHostId());
         log.info(
             "{} host deleted, id={} ,ip={}",
             affectedRowNum,
@@ -177,19 +169,19 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
 
     private void createOrUpdateHostInDB(ApplicationHostDTO hostInfoDTO) {
         try {
-            if (applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO.getHostId())) {
+            if (applicationHostDAO.existAppHostInfoByHostId(hostInfoDTO.getHostId())) {
                 // 只更新事件中的主机属性与agent状态
-                applicationHostDAO.updateHostAttrsById(dslContext, hostInfoDTO);
+                applicationHostDAO.updateHostAttrsById(hostInfoDTO);
             } else {
                 hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
-                int affectedNum = applicationHostDAO.insertHostWithoutTopo(dslContext, hostInfoDTO);
+                int affectedNum = applicationHostDAO.insertHostWithoutTopo(hostInfoDTO);
                 log.info("insert host: id={}, affectedNum={}", hostInfoDTO.getHostId(), affectedNum);
             }
         } catch (Throwable t) {
             log.error("handle host event fail", t);
         } finally {
             // 从拓扑表向主机表同步拓扑数据
-            int affectedNum = applicationHostDAO.syncHostTopo(dslContext, hostInfoDTO.getHostId());
+            int affectedNum = applicationHostDAO.syncHostTopo(hostInfoDTO.getHostId());
             log.info("hostTopo synced: hostId={}, affectedNum={}", hostInfoDTO.getHostId(), affectedNum);
         }
     }
@@ -206,11 +198,7 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
     }
 
     private void handleHostDelete(ApplicationHostDTO hostInfoDTO) {
-        int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(
-            dslContext,
-            null,
-            hostInfoDTO.getHostId()
-        );
+        int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(null, hostInfoDTO.getHostId());
         log.info(
             "{} host deleted, id={} ,ip={}",
             affectedRowNum,

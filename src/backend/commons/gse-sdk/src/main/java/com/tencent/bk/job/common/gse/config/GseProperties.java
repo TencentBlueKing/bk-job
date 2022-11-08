@@ -122,9 +122,9 @@ public class GseProperties {
         @Setter
         @ToString
         public static class ZooKeeper {
-            private ZooKeeperConnect connect;
+            private ZooKeeperConnect connect = new ZooKeeperConnect();
             private String path = "/gse/config/server/task/accessv3";
-            private ZooKeeperTimeout timeout;
+            private ZooKeeperTimeout timeout = new ZooKeeperTimeout();
 
             /**
              * ZooKeeper timeout

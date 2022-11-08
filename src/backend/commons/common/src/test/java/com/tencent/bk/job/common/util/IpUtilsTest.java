@@ -70,4 +70,22 @@ public class IpUtilsTest {
         assertThat(IpUtils.checkIpv6("1::1::123")).isFalse();
         assertThat(IpUtils.checkIpv6("127.0.0.1")).isFalse();
     }
+
+    @Test
+    void testRemoveBkCloudId() {
+        String ip = "0:127.0.0.1";
+        String result = IpUtils.removeBkCloudId(ip);
+        assertThat(result).isEqualTo("127.0.0.1");
+
+        ip = "0:0000:0000:0000:0000:0000:0000:0000:0001";
+        result = IpUtils.removeBkCloudId(ip);
+        assertThat(result).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001");
+
+        ip = "127.0.0.1";
+        result = IpUtils.removeBkCloudId(ip);
+        assertThat(result).isEqualTo("127.0.0.1");
+
+        result = IpUtils.removeBkCloudId(null);
+        assertThat(result).isNull();
+    }
 }

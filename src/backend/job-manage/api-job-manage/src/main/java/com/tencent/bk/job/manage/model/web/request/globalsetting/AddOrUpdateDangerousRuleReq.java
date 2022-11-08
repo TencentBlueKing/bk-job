@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.model.web.request.globalsetting;
 
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.common.validation.ValidRegexPattern;
 import com.tencent.bk.job.manage.common.consts.rule.HighRiskGrammarActionEnum;
 import com.tencent.bk.job.manage.common.consts.rule.HighRiskGrammarRuleStatusEnum;
 import com.tencent.bk.job.manage.validation.provider.DangerousRuleGroupSequenceProvider;
@@ -52,6 +53,7 @@ public class AddOrUpdateDangerousRuleReq {
     @ApiModelProperty("表达式")
     @NotEmpty(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_empty.message}")
     @Length(max = 250, message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_outOfLength.message}")
+    @ValidRegexPattern(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_wrongExpr.message}")
     private String expression;
     @ApiModelProperty("脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)")
     @NotEmpty(message = "{validation.constraints.ScriptTypeList_empty.message}")

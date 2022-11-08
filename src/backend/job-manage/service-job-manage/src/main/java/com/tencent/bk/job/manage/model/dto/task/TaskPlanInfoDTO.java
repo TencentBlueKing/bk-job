@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.dto.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -39,12 +40,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -321,30 +323,32 @@ public class TaskPlanInfoDTO {
         esbPlanInfo.setCreateTime(taskPlanInfo.getCreateTime());
         esbPlanInfo.setLastModifyUser(taskPlanInfo.getLastModifyUser());
         esbPlanInfo.setLastModifyTime(taskPlanInfo.getLastModifyTime());
-        if (CollectionUtils.isNotEmpty(taskPlanInfo.getVariableList())) {
-            esbPlanInfo.setGlobalVarList(taskPlanInfo.getVariableList().parallelStream()
-                .map(TaskVariableDTO::toEsbGlobalVarV3).collect(Collectors.toList()));
-        }
         if (CollectionUtils.isNotEmpty(taskPlanInfo.getStepList())) {
             esbPlanInfo.setStepList(taskPlanInfo.getStepList().parallelStream()
                 .map(TaskStepDTO::toEsbStepV3).collect(Collectors.toList()));
         }
+        if (CollectionUtils.isNotEmpty(taskPlanInfo.getVariableList())) {
+            Set<String> usedVars = new HashSet<>();
+            taskPlanInfo.getStepList().forEach(step -> {
+                if (CollectionUtils.isNotEmpty(step.getRefVariables())) {
+                    usedVars.addAll(
+                        step.getRefVariables().stream()
+                            .map(TaskVariableDTO::getName)
+                            .collect(Collectors.toList()));
+                }
+            });
+
+            esbPlanInfo.setGlobalVarList(
+                taskPlanInfo.getVariableList().stream()
+                    .map(var -> {
+                        EsbGlobalVarV3DTO esbGlobalVar = TaskVariableDTO.toEsbGlobalVarV3(var);
+                        esbGlobalVar.setUsed(usedVars.contains(var.getName()));
+                        return esbGlobalVar;
+                    })
+                    .collect(Collectors.toList())
+            );
+        }
         return esbPlanInfo;
     }
 
-    public boolean validate() {
-        if (templateId == null || templateId <= 0) {
-            return false;
-        }
-        if (appId == null || appId <= 0) {
-            return false;
-        }
-        if (StringUtils.isBlank(name)) {
-            return false;
-        }
-        if (CollectionUtils.isEmpty(stepList)) {
-            return false;
-        }
-        return true;
-    }
 }

@@ -22,24 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config.listener;
+package com.tencent.bk.job.manage.migration;
 
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
-import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPIPDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
+import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,89 +45,95 @@ import java.util.Map;
  * 对IP白名单数据中不存在hostId的数据使用CMDB中的完整数据补全hostId
  */
 @Slf4j
-//@Component
-public class WhiteIpMakeUpInitListener implements ApplicationListener<ApplicationReadyEvent> {
+@Service
+public class AddHostIdForWhiteIpMigrationTask {
 
-    @Value("${job.whiteIp.makeUp.enabled:true}")
-    private final boolean whiteIpMakeUpEnabled = true;
-
-    private final String REDIS_KEY_WHITEIP_MAKEUP_TASK_RUNNING_MACHINE = "whiteIp-makeUp-task-running-machine";
-
-    private final RedisTemplate<String, String> redisTemplate;
     private final WhiteIPIPDAO whiteIPIPDAO;
     private final BizCmdbClient bizCmdbClient;
 
     @Autowired
-    public WhiteIpMakeUpInitListener(
-        RedisTemplate<String, String> redisTemplate,
-        WhiteIPIPDAO whiteIPIPDAO,
-        BizCmdbClient bizCmdbClient) {
-        this.redisTemplate = redisTemplate;
+    public AddHostIdForWhiteIpMigrationTask(WhiteIPIPDAO whiteIPIPDAO, BizCmdbClient bizCmdbClient) {
         this.whiteIPIPDAO = whiteIPIPDAO;
         this.bizCmdbClient = bizCmdbClient;
     }
 
-    @Override
-    public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
-        if (whiteIpMakeUpEnabled) {
-            String runningMachine = redisTemplate.opsForValue().get(REDIS_KEY_WHITEIP_MAKEUP_TASK_RUNNING_MACHINE);
-            if (StringUtils.isNotBlank(runningMachine)) {
-                log.info("skip, whiteIp makeUp task is running at another machine:{}", runningMachine);
-                return;
+    private String getTaskName() {
+        return "migrate_white_ip_ip";
+    }
+
+    private AddHostIdResult getInitAddHostIdResult() {
+        AddHostIdResult result = new AddHostIdResult(getTaskName());
+        result.setTotalRecords(0);
+        result.setSuccessRecords(0);
+        result.setSuccess(true);
+        return result;
+    }
+
+    public AddHostIdResult execute(boolean isDryRun) {
+        StopWatch watch = new StopWatch(getTaskName());
+        try {
+            return makeUpWhiteIps(isDryRun, watch);
+        } catch (Throwable t) {
+            log.warn("Fail to makeUpWhiteIps", t);
+            AddHostIdResult result = getInitAddHostIdResult();
+            result.setSuccess(false);
+            return result;
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
             }
-            startWhiteIpMakeUpThread();
-        } else {
-            log.info("whiteIp makeUp task is canceled by config");
+            log.info("whiteIp makeUp task finished, time consuming:{}", watch.prettyPrint());
         }
     }
 
-    private void startWhiteIpMakeUpThread() {
-        new Thread(() -> {
-            // 开一个心跳子线程，维护当前机器正在跑白名单IP补全任务的状态
-            RedisKeyHeartBeatThread heartBeatThread = new RedisKeyHeartBeatThread(
-                redisTemplate,
-                REDIS_KEY_WHITEIP_MAKEUP_TASK_RUNNING_MACHINE,
-                IpUtils.getFirstMachineIP(),
-                5000L,
-                4000L
-            );
-            heartBeatThread.setName("[" + heartBeatThread.getId() +
-                "]-WhiteIpMakeUpTaskHeartBeatThread");
-            heartBeatThread.start();
-            try {
-                makeUpWhiteIps();
-            } catch (Throwable t) {
-                log.warn("Fail to makeUpWhiteIps", t);
-            } finally {
-                heartBeatThread.stopAtOnce();
-                log.info("whiteIp makeUp task finished");
-            }
-        }).start();
-    }
-
-    private void makeUpWhiteIps() {
+    private AddHostIdResult makeUpWhiteIps(boolean isDryRun, StopWatch watch) {
+        AddHostIdResult result = getInitAddHostIdResult();
         int start = 0;
         int batchSize = 100;
         List<WhiteIPIPDTO> whiteIpList;
-        int totalCount = 0;
+        int totalNullHostIdRecordsCount = 0;
+        int totalUpdatedCount = 0;
         do {
+            watch.start("listWhiteIPIPWithNullHostId_" + start + "_" + (start + batchSize));
             whiteIpList = whiteIPIPDAO.listWhiteIPIPWithNullHostId(start, batchSize);
+            watch.stop();
             if (CollectionUtils.isEmpty(whiteIpList)) {
                 continue;
             }
+            totalNullHostIdRecordsCount += whiteIpList.size();
             int count = 0;
+
+            watch.start("addHostIdForWhiteIps_" + start + "_" + (start + batchSize));
             int foundHostIdCount = addHostIdForWhiteIps(whiteIpList);
+            watch.stop();
+
+            watch.start("updateHostId_" + start + "_" + (start + batchSize));
             log.debug("{} hostIds found for {} whiteIps", foundHostIdCount, whiteIpList.size());
             for (WhiteIPIPDTO whiteIPIPDTO : whiteIpList) {
                 if (whiteIPIPDTO.getHostId() != null) {
-                    count += whiteIPIPDAO.updateHostIdById(whiteIPIPDTO.getId(), whiteIPIPDTO.getHostId());
+                    if (isDryRun) {
+                        log.info(
+                            "[DryRun]set hostId={} for whiteIpIp(id={})",
+                            whiteIPIPDTO.getHostId(),
+                            whiteIPIPDTO.getId()
+                        );
+                        count += 1;
+                    } else {
+                        count += whiteIPIPDAO.updateHostIdById(whiteIPIPDTO.getId(), whiteIPIPDTO.getHostId());
+                    }
                 }
             }
+            watch.stop();
+
             start += batchSize;
-            totalCount += count;
-            log.info("{}/{} whiteIps have been made up", count, whiteIpList.size());
+            totalUpdatedCount += count;
+            log.info((isDryRun ? "[DryRun]" : "") + "{}/{} whiteIps have been made up", count, whiteIpList.size());
         } while (!CollectionUtils.isEmpty(whiteIpList));
-        log.info("{} whiteIps have been made up in total", totalCount);
+        log.info((isDryRun ? "[DryRun]" : "") + "{} whiteIps have been made up in total", totalUpdatedCount);
+        result.setTotalRecords(totalNullHostIdRecordsCount);
+        result.setSuccessRecords(totalUpdatedCount);
+        result.setSuccess(true);
+        return result;
     }
 
     private int addHostIdForWhiteIps(List<WhiteIPIPDTO> whiteIpList) {

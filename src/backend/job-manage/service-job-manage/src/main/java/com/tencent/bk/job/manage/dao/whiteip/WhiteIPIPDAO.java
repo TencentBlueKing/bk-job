@@ -29,7 +29,7 @@ import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
 import java.util.List;
 
 public interface WhiteIPIPDAO {
-    Long insertWhiteIPIP(WhiteIPIPDTO whiteIPIPDTO);
+    void insertWhiteIPIP(WhiteIPIPDTO whiteIPIPDTO);
 
     int deleteWhiteIPIPByRecordId(Long recordId);
 

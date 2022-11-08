@@ -102,7 +102,7 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
                 // 插入拓扑数据
-                hostTopoDAO.insertHostTopo(dslContext, hostTopoDTO);
+                hostTopoDAO.insertHostTopo(hostTopoDTO);
                 // 同步拓扑数据至主机表冗余字段
                 updateTopoToHost(hostTopoDTO);
                 // 更新主机缓存
@@ -111,7 +111,6 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
             case ResourceWatchReq.EVENT_TYPE_DELETE:
                 // 删除拓扑数据
                 hostTopoDAO.deleteHostTopo(
-                    dslContext,
                     hostTopoDTO.getHostId(),
                     hostTopoDTO.getBizId(),
                     hostTopoDTO.getSetId(),
@@ -134,7 +133,7 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
      */
     private void updateTopoToHost(HostTopoDTO hostTopoDTO) {
         // 若主机存在需将拓扑信息同步至主机信息冗余字段
-        int affectedNum = applicationHostDAO.syncHostTopo(dslContext, hostTopoDTO.getHostId());
+        int affectedNum = applicationHostDAO.syncHostTopo(hostTopoDTO.getHostId());
         if (affectedNum > 0) {
             log.info("host topo synced: affectedNum={}", affectedNum);
         } else if (affectedNum == 0) {
@@ -167,12 +166,8 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
         if (host == null) {
             return;
         }
-        int curAppRelationCount = hostTopoDAO.countHostTopo(
-            dslContext, hostTopoDTO.getBizId(), hostTopoDTO.getHostId()
-        );
-        int hostRelationCount = hostTopoDAO.countHostTopo(
-            dslContext, null, hostTopoDTO.getHostId()
-        );
+        int curAppRelationCount = hostTopoDAO.countHostTopo(hostTopoDTO.getBizId(), hostTopoDTO.getHostId());
+        int hostRelationCount = hostTopoDAO.countHostTopo(null, hostTopoDTO.getHostId());
         if (curAppRelationCount != 0) {
             return;
         }

@@ -152,10 +152,6 @@ public class ApplicationHostDTO {
      */
     private List<String> ipList = new ArrayList<>();
 
-    public void setCloudAreaId(Long cloudAreaId) {
-        this.cloudAreaId = cloudAreaId;
-    }
-
     public String getCloudVendorId() {
         if (cloudVendorId != null && cloudVendorId.length() > 64) {
             return cloudVendorId.substring(0, 64);
@@ -232,6 +228,7 @@ public class ApplicationHostDTO {
         return hostInfoVO;
     }
 
+    @JsonIgnore
     public String getFinalAgentId() {
         if (StringUtils.isNotBlank(agentId)) {
             return agentId;
@@ -247,6 +244,7 @@ public class ApplicationHostDTO {
         return agentIdList;
     }
 
+    @JsonIgnore
     public String getCloudIp() {
         if (StringUtils.isNotBlank(cloudIp)) {
             return cloudIp;
@@ -255,6 +253,7 @@ public class ApplicationHostDTO {
         }
     }
 
+    @JsonIgnore
     public String getModuleIdsStr() {
         if (moduleId != null) {
             return moduleId.stream().map(Object::toString).collect(Collectors.joining(","));
@@ -262,6 +261,7 @@ public class ApplicationHostDTO {
         return null;
     }
 
+    @JsonIgnore
     public String getSetIdsStr() {
         if (setId != null) {
             return setId.stream().map(Object::toString).collect(Collectors.joining(","));
@@ -269,6 +269,7 @@ public class ApplicationHostDTO {
         return null;
     }
 
+    @JsonIgnore
     public String getModuleTypeStr() {
         if (moduleType != null) {
             return moduleType.stream().map(Object::toString).collect(Collectors.joining(","));
@@ -276,6 +277,7 @@ public class ApplicationHostDTO {
         return null;
     }
 
+    @JsonIgnore
     public int getAgentStatusValue() {
         if (gseAgentAlive == null || !gseAgentAlive) {
             return JobConstants.GSE_AGENT_STATUS_VALUE_NOT_ALIVE;

@@ -22,27 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.request;
+package com.tencent.bk.job.upgrader.model.job;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
-import java.util.List;
 
 /**
- * 检查主机是否在业务下请求
+ * IP白名单全业务ID更新为对所有业务生效ID - 请求
  */
-@Getter
-@Setter
-@ToString
+@Data
 @NoArgsConstructor
-public class ServiceCheckAppHostsReq {
-    List<HostDTO> hosts;
+public class UpdateAppIdForWhiteIpMigrationReq {
+    private boolean dryRun;
 
-    public ServiceCheckAppHostsReq(List<HostDTO> hosts) {
-        this.hosts = hosts;
+    public UpdateAppIdForWhiteIpMigrationReq(boolean dryRun) {
+        this.dryRun = dryRun;
     }
 }

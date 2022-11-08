@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
 import java.net.Inet4Address;
@@ -107,6 +108,16 @@ public class IpUtils {
     public static boolean checkIpv6(String ipv6Str) {
         InetAddressValidator validator = InetAddressValidator.getInstance();
         return validator.isValidInet6Address(ipv6Str);
+    }
+
+    /**
+     * 验证ipv4格式
+     *
+     * @param ipv4Str ipv4字符串
+     */
+    public static boolean checkIpv4(String ipv4Str) {
+        InetAddressValidator validator = InetAddressValidator.getInstance();
+        return validator.isValidInet4Address(ipv4Str);
     }
 
     /**
@@ -262,5 +273,41 @@ public class IpUtils {
             cloudIpList.add(cloudId + ":" + ip.trim());
         }
         return cloudIpList;
+    }
+
+    /**
+     * 移除ip中的云区域ID
+     *
+     * @param ip bkCloudId:ip
+     * @return 移除云区域ID后的ip
+     */
+    public static String removeBkCloudId(String ip) {
+        if (ip == null) {
+            return null;
+        }
+        if (ip.contains(":")) {
+            return ip.substring(ip.indexOf(":") + 1);
+        } else {
+            return ip;
+        }
+    }
+
+    /**
+     * 将纯IP与含云区域的IP分离开
+     *
+     * @param ipOrCloudIpList ip/cloudIp列表
+     * @return <纯IP列表，含云区域IP列表>
+     */
+    public static Pair<List<String>, List<String>> separateIpAndCloudIps(List<String> ipOrCloudIpList) {
+        List<String> ipList = new ArrayList<>();
+        List<String> cloudIpList = new ArrayList<>();
+        for (String ipOrCloudIp : ipOrCloudIpList) {
+            if (ipOrCloudIp.contains(":")) {
+                cloudIpList.add(ipOrCloudIp);
+            } else {
+                ipList.add(ipOrCloudIp);
+            }
+        }
+        return Pair.of(ipList, cloudIpList);
     }
 }

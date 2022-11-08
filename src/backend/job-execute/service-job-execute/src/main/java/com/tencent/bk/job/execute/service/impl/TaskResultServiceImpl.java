@@ -415,7 +415,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         int agentTaskSize = targetHosts.size();
         if (fuzzyFilterByIp) {
             agentTaskSize = (int) targetHosts.stream()
-                .filter(ipDTO -> ipDTO.getIp().contains(fuzzySearchIp)).count();
+                .filter(host -> isMatchByIp(host, fuzzySearchIp)).count();
         }
         resultGroup.setTotalAgentTasks(agentTaskSize);
 
@@ -423,8 +423,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             int maxAgentTasks = (maxAgentTasksForResultGroup != null ?
                 Math.min(maxAgentTasksForResultGroup, targetHosts.size()) : targetHosts.size());
             for (HostDTO targetHost : targetHosts) {
-                String ip = targetHost.getIp();
-                if (fuzzyFilterByIp && !ip.contains(fuzzySearchIp)) {
+                if (fuzzyFilterByIp && !isMatchByIp(targetHost, fuzzySearchIp)) {
                     // 如果需要根据IP过滤，那么过滤掉不匹配的任务
                     continue;
                 }
@@ -432,6 +431,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                     AgentTaskDetailDTO agentTask = new AgentTaskDetailDTO();
                     agentTask.setHostId(targetHost.getHostId());
                     agentTask.setIp(targetHost.getIp());
+                    agentTask.setCloudIp(targetHost.toCloudIp());
+                    agentTask.setIpv6(targetHost.getIpv6());
                     agentTask.setBkCloudId(targetHost.getBkCloudId());
                     agentTask.setBkCloudName(hostService.getCloudAreaName(targetHost.getBkCloudId()));
                     agentTask.setStatus(AgentTaskStatusEnum.WAITING);
@@ -532,12 +533,16 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                                                      StepInstanceBaseDTO stepInstance,
                                                                                      StepExecutionResultQuery query) {
         try {
+            StepExecutionDetailDTO executeDetail = new StepExecutionDetailDTO(stepInstance);
+            executeDetail.setExecuteCount(query.getExecuteCount());
+
             if (query.hasIpCondition()) {
                 watch.start("getMatchIps");
-                Set<Long> matchHostIds = getMatchHostIdsByIp(stepInstance, query);
+                Set<Long> matchHostIds = getMatchHostIds(stepInstance, query);
                 if (CollectionUtils.isEmpty(matchHostIds)) {
                     watch.stop();
-                    return buildExecutionDetailWhenTaskAreEmpty(stepInstance, query.getBatch());
+                    executeDetail.setResultGroups(buildEmptyResultGroups(stepInstance, query.getBatch()));
+                    return executeDetail;
                 } else {
                     query.setMatchHostIds(matchHostIds);
                 }
@@ -560,8 +565,6 @@ public class TaskResultServiceImpl implements TaskResultService {
             sortAgentTasksAndLimitSize(resultGroups, query);
             watch.stop();
 
-            StepExecutionDetailDTO executeDetail = new StepExecutionDetailDTO(stepInstance);
-            executeDetail.setExecuteCount(query.getExecuteCount());
             executeDetail.setResultGroups(resultGroups);
 
             return executeDetail;
@@ -583,8 +586,20 @@ public class TaskResultServiceImpl implements TaskResultService {
             resultGroups = fileAgentTaskService.listAndGroupAgentTasks(stepInstance, executeCount, batch);
         }
         return resultGroups;
-
     }
+
+    private List<AgentTaskResultGroupBaseDTO> listResultGroups(StepInstanceBaseDTO stepInstance,
+                                                               int executeCount,
+                                                               Integer batch) {
+        List<AgentTaskResultGroupBaseDTO> resultGroups = null;
+        if (stepInstance.isScriptStep()) {
+            resultGroups = scriptAgentTaskService.listResultGroups(stepInstance.getId(), executeCount, batch);
+        } else if (stepInstance.isFileStep()) {
+            resultGroups = fileAgentTaskService.listResultGroups(stepInstance.getId(), executeCount, batch);
+        }
+        return resultGroups;
+    }
+
 
     private void sortAgentTasksAndLimitSize(List<AgentTaskResultGroupDTO> resultGroups,
                                             StepExecutionResultQuery query) {
@@ -631,7 +646,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
 
-    private Set<Long> getMatchHostIdsByIp(StepInstanceBaseDTO stepInstance, StepExecutionResultQuery query) {
+    private Set<Long> getMatchHostIds(StepInstanceBaseDTO stepInstance, StepExecutionResultQuery query) {
         long stepInstanceId = query.getStepInstanceId();
         int executeCount = query.getExecuteCount();
 
@@ -663,13 +678,15 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
     }
 
-    private StepExecutionDetailDTO buildExecutionDetailWhenTaskAreEmpty(StepInstanceBaseDTO stepInstance,
-                                                                        Integer batch) {
-        List<AgentTaskResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance,
+    private List<AgentTaskResultGroupDTO> buildEmptyResultGroups(StepInstanceBaseDTO stepInstance,
+                                                                 Integer batch) {
+        List<AgentTaskResultGroupBaseDTO> resultGroups = listResultGroups(stepInstance,
             stepInstance.getExecuteCount(), batch);
-        StepExecutionDetailDTO executeDetail = new StepExecutionDetailDTO(stepInstance);
-        executeDetail.setResultGroups(resultGroups);
-        return executeDetail;
+        return resultGroups.stream().map(resultGroupBase -> {
+            AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO(resultGroupBase);
+            resultGroup.setTotalAgentTasks(0);
+            return resultGroup;
+        }).collect(Collectors.toList());
     }
 
     private void filterAgentTasksByMatchIp(List<AgentTaskResultGroupDTO> resultGroups, Set<Long> matchHostIds) {
@@ -845,8 +862,19 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private List<HostDTO> fuzzySearchHostsByIp(StepInstanceBaseDTO stepInstance, String searchIp) {
         return stepInstance.getTargetServers().getIpList().stream()
-            .filter(host -> host.getIp().contains(searchIp))
+            .filter(host -> isMatchByIp(host, searchIp))
             .collect(Collectors.toList());
+    }
+
+    private boolean isMatchByIp(HostDTO host, String searchIp) {
+        boolean isMatch = false;
+        if (StringUtils.isNotBlank(host.getIp())) {
+            isMatch = host.getIp().contains(searchIp);
+        }
+        if (!isMatch && StringUtils.isNotBlank(host.getIpv6())) {
+            isMatch = host.getIpv6().contains(searchIp);
+        }
+        return isMatch;
     }
 
     @Override
@@ -938,7 +966,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         Set<Long> matchHostIds = null;
         boolean filterByKeyword = StringUtils.isNotEmpty(keyword);
         if (filterByKeyword) {
-            matchHostIds = getMatchHostIdsByIp(stepInstance, query);
+            matchHostIds = getMatchHostIds(stepInstance, query);
             if (CollectionUtils.isEmpty(matchHostIds)) {
                 return Collections.emptyList();
             }

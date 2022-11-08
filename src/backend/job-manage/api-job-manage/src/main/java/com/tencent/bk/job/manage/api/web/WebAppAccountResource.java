@@ -33,6 +33,7 @@ import com.tencent.bk.job.manage.model.web.vo.AccountVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,7 +72,7 @@ public interface WebAppAccountResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "创建账号请求")
-        @RequestBody
+        @RequestBody @Validated
             AccountCreateUpdateReq accountCreateUpdateReq
     );
 
@@ -91,7 +92,7 @@ public interface WebAppAccountResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "更新账号请求")
-        @RequestBody
+        @RequestBody @Validated
             AccountCreateUpdateReq accountCreateUpdateReq
     );
 

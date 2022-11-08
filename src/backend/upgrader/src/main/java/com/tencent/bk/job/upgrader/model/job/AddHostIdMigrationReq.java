@@ -28,7 +28,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 作业模板、执行方案等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性 - 请求
+ * 作业模板、执行方案、IP白名单、定时任务等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性 - 请求
  */
 @Data
 @NoArgsConstructor

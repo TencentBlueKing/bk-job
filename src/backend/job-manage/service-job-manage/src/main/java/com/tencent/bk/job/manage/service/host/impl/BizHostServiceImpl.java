@@ -72,6 +72,11 @@ public class BizHostServiceImpl implements BizHostService {
     }
 
     @Override
+    public List<ApplicationHostDTO> getHostsByCloudIps(Collection<String> cloudIps) {
+        return applicationHostDAO.listHostInfoByCloudIps(cloudIps);
+    }
+
+    @Override
     public List<ApplicationHostDTO> getHostsByIpv6s(Collection<String> ipv6s) {
         return applicationHostDAO.listHostInfoByIpv6s(ipv6s);
     }
@@ -102,6 +107,12 @@ public class BizHostServiceImpl implements BizHostService {
     @Override
     public List<ApplicationHostDTO> getHostsByBizAndIps(Collection<Long> bizIds, Collection<String> ips) {
         return applicationHostDAO.listHostInfoByBizAndIps(bizIds, ips);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> getHostsByBizAndCloudIps(Collection<Long> bizIds,
+                                                             Collection<String> cloudIps) {
+        return applicationHostDAO.listHostInfoByBizAndCloudIps(bizIds, cloudIps);
     }
 
     @Override

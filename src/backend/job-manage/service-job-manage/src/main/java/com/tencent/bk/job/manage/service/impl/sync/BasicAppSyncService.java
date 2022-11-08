@@ -89,9 +89,7 @@ public class BasicAppSyncService {
         //先删Job业务对应主机
         if (applicationDTO.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
             long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            int deletedHostNum = applicationHostDAO.deleteBizHostInfoByBizId(
-                dslContext, bizId
-            );
+            int deletedHostNum = applicationHostDAO.deleteBizHostInfoByBizId(bizId);
             log.info("{} hosts of biz {} deleted", deletedHostNum, bizId);
         }
         //再删Job业务本身

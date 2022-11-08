@@ -38,6 +38,7 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
  * 主机通用表示-内部服务使用
@@ -235,8 +236,11 @@ public class HostDTO implements Cloneable {
     public String getFinalAgentId() {
         if (StringUtils.isNotBlank(agentId)) {
             return agentId;
-        } else {
+        } else if (StringUtils.isEmpty(ipv6) && StringUtils.isNotEmpty(ip)) {
+            // 兼容之前版本没有agentId的ipv4主机
             return toCloudIp();
+        } else {
+            return null;
         }
     }
 
@@ -252,5 +256,24 @@ public class HostDTO implements Cloneable {
         } else {
             return "HOST_IP:" + toCloudIp();
         }
+    }
+
+    /**
+     * 获取主机的ip，优先返回ipv4
+     *
+     * @return 主机ipv4/ipv6, ipv4 优先
+     */
+    @JsonIgnore
+    public String getPrimaryIp() {
+        return StringUtils.isNotEmpty(ip) ? ip : ipv6;
+    }
+
+    public String toStringBasic() {
+        return new StringJoiner(", ", HostDTO.class.getSimpleName() + "[", "]")
+            .add("hostId=" + hostId)
+            .add("bkCloudId=" + bkCloudId)
+            .add("ip='" + ip + "'")
+            .add("ipv6='" + ipv6 + "'")
+            .toString();
     }
 }
