@@ -44,7 +44,10 @@ import com.tencent.bk.job.common.artifactory.model.req.DownloadGenericFileReq;
 import com.tencent.bk.job.common.artifactory.model.req.ListNodePageReq;
 import com.tencent.bk.job.common.artifactory.model.req.ListProjectReq;
 import com.tencent.bk.job.common.artifactory.model.req.ListRepoPageReq;
+import com.tencent.bk.job.common.artifactory.model.req.PageLimit;
 import com.tencent.bk.job.common.artifactory.model.req.QueryNodeDetailReq;
+import com.tencent.bk.job.common.artifactory.model.req.Rule;
+import com.tencent.bk.job.common.artifactory.model.req.SearchNodePageReq;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -89,6 +92,7 @@ public class ArtifactoryClient {
     public static final String URL_LIST_PROJECT = "/repository/api/project/list";
     public static final String URL_LIST_REPO_PAGE = "/repository/api/repo/page/{projectId}/{pageNumber}/{pageSize}";
     public static final String URL_LIST_NODE_PAGE = "/repository/api/node/page/{projectId}/{repoName}/{fullPath}";
+    public static final String URL_NODE_SEARCH = "/repository/api/node/search";
     public static final String URL_DELETE_REPO = "/repository/api/repo/delete/{projectId}/{repoName}";
     public static final String URL_DELETE_NODE = "/repository/api/node/delete/{projectId}/{repoName}/{fullPath}";
     public static final String URL_DOWNLOAD_GENERIC_FILE = "/generic/{project}/{repo}/{path}";
@@ -319,6 +323,64 @@ public class ArtifactoryClient {
         req.setPageNumber(pageNumber);
         req.setPageSize(pageSize);
         ArtifactoryResp<PageData<NodeDTO>> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_LIST_NODE_PAGE,
+            req, new TypeReference<ArtifactoryResp<PageData<NodeDTO>>>() {
+            }, httpHelper);
+        return resp.getData();
+    }
+
+    private SearchNodePageReq buildSearchNodePageReq(String projectId,
+                                                     String repoName,
+                                                     String fullPath,
+                                                     String nameKey,
+                                                     int pageNumber,
+                                                     int pageSize) {
+        SearchNodePageReq req = new SearchNodePageReq();
+        req.setPage(new PageLimit(pageNumber, pageSize));
+        List<Rule> innerRules = new ArrayList<>();
+        // 项目ID
+        Rule projectIdRule = new Rule();
+        projectIdRule.setField("projectId");
+        projectIdRule.setOperation(Rule.RULE_OPERATION_EQ);
+        projectIdRule.setValue(projectId);
+        innerRules.add(projectIdRule);
+        // 仓库名称
+        Rule repoNameRule = new Rule();
+        repoNameRule.setField("repoName");
+        repoNameRule.setOperation(Rule.RULE_OPERATION_EQ);
+        repoNameRule.setValue(repoName);
+        innerRules.add(repoNameRule);
+        // 节点路径
+        if (fullPath != null) {
+            Rule fullPathRule = new Rule();
+            fullPathRule.setField("fullPath");
+            fullPathRule.setOperation(Rule.RULE_OPERATION_PREFIX);
+            fullPathRule.setValue(fullPath);
+            innerRules.add(fullPathRule);
+        }
+        // 文件名称
+        if (nameKey != null) {
+            Rule nameRule = new Rule();
+            nameRule.setField("name");
+            nameRule.setOperation(Rule.RULE_OPERATION_MATCH);
+            nameRule.setValue("*" + nameKey + "*");
+            innerRules.add(nameRule);
+        }
+        // 外层条件
+        Rule outerRule = new Rule();
+        outerRule.setRelation(Rule.RULE_RELATION_AND);
+        outerRule.setRules(innerRules);
+        req.setRule(outerRule);
+        return req;
+    }
+
+    public PageData<NodeDTO> searchNode(String projectId,
+                                        String repoName,
+                                        String fullPath,
+                                        String nameKey,
+                                        int pageNumber,
+                                        int pageSize) {
+        SearchNodePageReq req = buildSearchNodePageReq(projectId, repoName, fullPath, nameKey, pageNumber, pageSize);
+        ArtifactoryResp<PageData<NodeDTO>> resp = getArtifactoryRespByReq(HttpPost.METHOD_NAME, URL_NODE_SEARCH,
             req, new TypeReference<ArtifactoryResp<PageData<NodeDTO>>>() {
             }, httpHelper);
         return resp.getData();
