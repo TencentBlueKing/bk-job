@@ -54,7 +54,7 @@ public class Ipv6ReactiveLoadBalancerClientConfiguration {
 
     static class Ipv6ReactiveLoadBalancerClientFilter extends ReactiveLoadBalancerClientFilter {
 
-        public Ipv6ReactiveLoadBalancerClientFilter(
+        Ipv6ReactiveLoadBalancerClientFilter(
             LoadBalancerClientFactory clientFactory,
             GatewayLoadBalancerProperties properties,
             LoadBalancerProperties loadBalancerProperties) {
@@ -75,7 +75,7 @@ public class Ipv6ReactiveLoadBalancerClientConfiguration {
 
         final ServiceInstance delegate;
 
-        public Ipv6CapableDelegatingServiceInstance(ServiceInstance delegate) {
+        Ipv6CapableDelegatingServiceInstance(ServiceInstance delegate) {
             this.delegate = delegate;
         }
 

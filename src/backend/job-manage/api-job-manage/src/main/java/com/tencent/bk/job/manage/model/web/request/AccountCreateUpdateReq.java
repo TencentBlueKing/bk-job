@@ -29,6 +29,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.ToString;
+import org.hibernate.validator.constraints.Range;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ import java.util.List;
 @ToString(exclude = {"password", "dbPassword"})
 public class AccountCreateUpdateReq {
 
-    @ApiModelProperty(value = "ID,更新账号的时候需要传入，新建账号不需要", required = false)
+    @ApiModelProperty(value = "ID,更新账号的时候需要传入，新建账号不需要")
     private Long id;
     /**
      * 帐号名称
@@ -45,47 +46,48 @@ public class AccountCreateUpdateReq {
     @ApiModelProperty(value = "帐号名称", required = true)
     private String account;
 
-    @ApiModelProperty(value = "账号类型，新建的时候需要传入；1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2", required = false)
+    @ApiModelProperty(value = "账号类型，新建的时候需要传入；1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2")
     private Integer type;
 
-    @ApiModelProperty(value = "账号用途，新建的时候需要传入；1-系统账号，2-数据库账号", required = false)
+    @ApiModelProperty(value = "账号用途，新建的时候需要传入；1-系统账号，2-数据库账号")
     private Integer category;
 
     /**
      * 所属用户
      */
-    @ApiModelProperty(value = "所属用户", required = false)
+    @ApiModelProperty(value = "所属用户")
     private List<String> grantees;
 
     /**
      * 备注
      */
-    @ApiModelProperty(value = "备注", required = false)
+    @ApiModelProperty(value = "备注")
     private String remark;
 
     /**
      * 系统类型，Linux / Windows
      */
-    @ApiModelProperty(value = "系统类型", required = false)
+    @ApiModelProperty(value = "系统类型")
     private String os;
 
     /**
      * 别名，当重名时会让用户填写，不允许修改，并且最后会与os合并在一起生成一个标识性的
      */
-    @ApiModelProperty(value = "别名", required = false)
+    @ApiModelProperty(value = "别名")
     private String alias;
 
-    @ApiModelProperty(value = "系统账号的密码(Windows)", required = false)
+    @ApiModelProperty(value = "系统账号的密码(Windows)")
     @SkipLogFields
     private String password;
 
-    @ApiModelProperty(value = "DB端口,创建/更新DB账号的时候必传", required = false)
+    @ApiModelProperty(value = "DB端口,创建/更新DB账号的时候必传")
+    @Range(min = 0, max = 65535, message = "{validation.constraints.InvalidPort.message}")
     private Integer dbPort;
 
-    @ApiModelProperty(value = "DB账号关联的系统账号,创建/更新DB账号的时候必传", required = false)
+    @ApiModelProperty(value = "DB账号关联的系统账号,创建/更新DB账号的时候必传")
     private Long dbSystemAccountId;
 
-    @ApiModelProperty(value = "DB账号的密码,创建/更新DB账号的时候必传", required = false)
+    @ApiModelProperty(value = "DB账号的密码,创建/更新DB账号的时候必传")
     @SkipLogFields
     private String dbPassword;
 }
