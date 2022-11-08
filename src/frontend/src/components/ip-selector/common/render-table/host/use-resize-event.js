@@ -5,6 +5,7 @@ import {
 
 export default function (tableRef, tableColumnResizeRef) {
     const currentInstance = getCurrentInstance();
+    let dragable = false;
     const dragging = ref(false);
     const dragState = ref({});
 
@@ -23,6 +24,9 @@ export default function (tableRef, tableColumnResizeRef) {
     };
 
     const handleMouseDown = (event, columnKey) => {
+        if (!dragable) {
+            return;
+        }
         dragging.value = true;
 
         const tableEl = tableRef.value;
@@ -31,8 +35,6 @@ export default function (tableRef, tableColumnResizeRef) {
         const columnRect = columnEl.getBoundingClientRect();
         const minLeft = columnRect.left - tableLeft + 30;
 
-        columnEl.classList.add('noclick');
-
         dragState.value = {
             startMouseLeft: event.clientX,
             startLeft: columnRect.right - tableLeft,
@@ -40,6 +42,7 @@ export default function (tableRef, tableColumnResizeRef) {
             tableLeft,
         };
         const resizeProxy = tableColumnResizeRef.value;
+        resizeProxy.style.display = 'block';
         resizeProxy.style.left = `${dragState.value.startLeft}px`;
 
         document.onselectstart = function () {
@@ -68,15 +71,12 @@ export default function (tableRef, tableColumnResizeRef) {
                 dragState.value = {};
                 currentInstance.proxy.initalScroll();
             }
+            dragable = false;
 
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
             document.onselectstart = null;
             document.ondragstart = null;
-
-            setTimeout(() => {
-                columnEl.classList.remove('noclick');
-            }, 0);
         };
 
         document.addEventListener('mousemove', handleMouseMove);
@@ -91,8 +91,10 @@ export default function (tableRef, tableColumnResizeRef) {
         const bodyStyle = document.body.style;
         if (rect.width > 12 && rect.right - event.pageX < 8) {
             bodyStyle.cursor = 'col-resize';
+            dragable = true;
         } else if (!dragging.value) {
             bodyStyle.cursor = '';
+            dragable = false;
         }
     };
 

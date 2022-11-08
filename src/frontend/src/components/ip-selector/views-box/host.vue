@@ -55,7 +55,7 @@
                         text
                         theme="primary"
                         @click="handleRemove(row)">
-                        删除
+                        移除
                     </bk-button>
                 </template>
             </render-host-table>
@@ -283,6 +283,10 @@
                 }
             });
             return result;
+        },
+        // 返回完整的渲染数据，用与搜索
+        getTableData () {
+            return tableData.value;
         },
         refresh () {
             fetchData();

@@ -133,6 +133,7 @@ export default {
         '确认执行？': 'Are you sure to launch now?',
         '未设置全局变量，点击确认将直接执行。': 'Global Variable is not set, If confirmed will launch directly.',
         全部作业: 'All',
+        全部: 'All',
         标签名不可为空: 'Tag name is required',
         '标签名已存在，请重新输入': 'Tag name already exist, please try another one...',
         文件加密密码: 'Encrypte Code',

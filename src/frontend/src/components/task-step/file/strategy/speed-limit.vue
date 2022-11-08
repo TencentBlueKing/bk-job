@@ -102,7 +102,7 @@
         },
         created () {
             this.speedLimitTipsConfig = {
-                allowHtml: true,
+                allowHTML: true,
                 width: '325px',
                 theme: 'light',
                 trigger: 'mouseenter',

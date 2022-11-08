@@ -58,7 +58,7 @@
                             text
                             theme="primary"
                             @click.stop="handleRemove(row)">
-                            删除
+                            移除
                         </bk-button>
                     </td>
                 </tr>
@@ -80,7 +80,8 @@
             :title="`【${selectedDynamicGroup.name}】动态分组主机预览`"
             :width="dialogWidth">
             <host-list
-                :dynamic-group="selectedDynamicGroup" />
+                :dynamic-group="selectedDynamicGroup"
+                :is-show="isShowHostList" />
             <template #footer>
                 <bk-button
                     theme="primary"

@@ -31,7 +31,8 @@
                                     v-bk-tooltips="`${isHidedEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点' }`"
                                     class="topo-node-filter"
                                     :style="{
-                                        display: isHidedEmptyNode ? 'block' : 'none',
+                                        // display: isHidedEmptyNode ? 'block' : 'none',
+                                        opacity: isHidedEmptyNode ? 1 : 0
                                     }"
                                     @click.stop="handleToggleFilterWithCount">
                                     <ip-selector-icon :type="`${isHidedEmptyNode ? 'invisible1' : 'visible1'}`" />

@@ -57,7 +57,7 @@
                             text
                             theme="primary"
                             @click="handleRemove(row)">
-                            删除
+                            移除
                         </bk-button>
                     </td>
                 </tr>
@@ -79,7 +79,7 @@
             :title="`【${nodeNamePathMap[genNodeKey(selectedNode)]}】动态拓扑主机预览`"
             :width="dialogWidth">
             <node-host-list
-                v-if="selectedNode"
+                :is-show="isShowNodeHostList"
                 :node="selectedNode" />
             <template #footer>
                 <bk-button

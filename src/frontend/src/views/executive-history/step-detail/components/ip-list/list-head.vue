@@ -79,10 +79,13 @@
                             </span>
                         </th>
                     </template>
-                    <th
-                        class="list-action"
-                        @click="handleShowSetting">
-                        <i class="bk-icon icon-cog-shape" />
+                    <th class="right-fixed-column">
+                        <div
+                            id="stepDetailIpListSettingBtn"
+                            class="list-action"
+                            @click="handleShowSetting">
+                            <i class="bk-icon icon-cog-shape" />
+                        </div>
                     </th>
                 </tr>
             </thead>
@@ -150,7 +153,7 @@
         }
 
         th {
-            &.list-action {
+            .list-action {
                 width: 40px;
                 height: 40px;
                 padding: 0;
@@ -160,6 +163,14 @@
                 cursor: pointer;
                 border-left: 1px solid #dcdee5;
             }
+        }
+
+        .right-fixed-column {
+            position: sticky;
+            top: 0;
+            right: 0;
+            padding: 0;
+            background: #fff;
         }
     }
 </style>

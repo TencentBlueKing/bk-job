@@ -28,8 +28,13 @@
 <template>
     <div
         ref="download"
+        v-bk-tooltips="{
+            content: $t('history.分发文件步骤不支持日志导出'),
+            disabled: !isFile,
+            placement: 'top',
+            theme: 'dark'
+        }"
         class="step-execute-log-export"
-        :tippy-tips="isFile ? $t('history.分发文件步骤不支持日志导出') : ''"
         @click="handleShow">
         <div>{{ $t('history.导出日志') }}</div>
         <div
@@ -275,6 +280,9 @@
              * 如果没有开始打包过程则开始日志文件的打包
              */
             handleShow () {
+                if (this.isFile) {
+                    return;
+                }
                 if (!this.isPackageing) {
                     this.isPackageing = true;
                     this.handleGetLogFilePackageResult();

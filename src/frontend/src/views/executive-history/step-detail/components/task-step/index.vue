@@ -27,6 +27,7 @@
 
 <template>
     <div
+        ref="root"
         class="task-execute-bar-step"
         :class="{
             [data.displayStyle]: true,
@@ -139,6 +140,7 @@
                     const windowHeight = window.innerHeight;
                     const { height } = $popoverTarget.getBoundingClientRect();
                     const { top, left } = this.$el.getBoundingClientRect();
+                    
                     position.left = left;
                     position.top = top + offset;
                     if (top + height + 20 > windowHeight) {
@@ -148,6 +150,9 @@
                     if (position.top < 20) {
                         this.arrowPlacement = 'middle';
                         position.top = top - height / 2 + 30;
+                    }
+                    if (position.top < 110) {
+                        position.top = 110;
                     }
                     document.body.appendChild($popoverTarget);
                     this.popoverPosition = position;
@@ -283,7 +288,6 @@
     }
 
     .task-status-bar-step-popover {
-        /* position: relative; */
         font-size: 14px;
         line-height: 22px;
         color: #63656e;
@@ -292,14 +296,5 @@
         border: 1px solid #dcdee5;
         border-radius: 2px;
         box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
-
-        /* &:after{
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -15px;
-            width: 20px;
-            height: 60px;
-        } */
     }
 </style>

@@ -1,13 +1,14 @@
-@mixin tree{
+@mixin tree {
     .topo-node-box {
         display: flex;
         padding-right: 3px;
         font-size: 12px;
         align-items: center;
-        &:hover{
+
+        &:hover {
             .topo-node-filter,
-            .topo-node-expand{
-                display: block !important;
+            .topo-node-expand {
+                opacity: 100% !important;
             }
         }
     }
@@ -18,9 +19,9 @@
 
     .topo-node-filter,
     .topo-node-expand {
-        display: none;
         padding: 0 3px;
         color: #979ba5;
+        opacity: 0%;
 
         &:hover {
             color: #3a84ff;

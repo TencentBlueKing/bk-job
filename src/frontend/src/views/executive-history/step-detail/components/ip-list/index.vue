@@ -77,12 +77,13 @@
                 </template>
             </scroll-faker>
         </div>
-        <column-setting
-            v-if="isShowColumnSetting"
-            :column-list="columnList"
-            :value="allShowColumn"
-            @change="handleSubmitSetting"
-            @close="handleHideSetting" />
+        <div ref="setting">
+            <column-setting
+                :column-list="columnList"
+                :value="allShowColumn"
+                @change="handleSubmitSetting"
+                @close="handleHideSetting" />
+        </div>
     </div>
 </template>
 <script>
@@ -244,6 +245,7 @@
             },
         },
         mounted () {
+            this.initSettingPopover();
             this.calcPageSize();
             window.addEventListener('resize', this.handleScroll);
             this.$once('hook:beforeDestroy', () => {
@@ -251,6 +253,23 @@
             });
         },
         methods: {
+            initSettingPopover () {
+                this.settingPopover = this.$bkPopover(document.querySelector('#stepDetailIpListSettingBtn'), {
+                    theme: 'light step-execution-history-ip-list-setting',
+                    arrow: true,
+                    interactive: true,
+                    placement: 'bottom-start',
+                    content: this.$refs.setting,
+                    animation: 'slide-toggle',
+                    trigger: 'click',
+                    width: '450px',
+                });
+                this.$once('hook:beforeDestroy', () => {
+                    this.settingPopover.destroy();
+                    this.settingPopover.hide();
+                    this.settingPopover = null;
+                });
+            },
             /**
              * @desc 根据屏幕高度计算单页 pageSize
              */
@@ -303,6 +322,7 @@
              */
              handleHideSetting () {
                 this.isShowColumnSetting = false;
+                this.settingPopover.hide();
             },
             /**
              * @desc 表格排序
@@ -344,6 +364,7 @@
             },
         },
     };
+
 </script>
 <style lang='postcss'>
     @keyframes list-loading-ani {
@@ -357,7 +378,6 @@
     }
 
     .step-execute-host-list {
-        position: relative;
         width: 287px;
         height: 100%;
         max-height: 100%;
@@ -514,5 +534,9 @@
                 transform-origin: center center;
             }
         }
+    }
+
+    .step-execution-history-ip-list-setting-theme {
+        padding: 0 !important;
     }
 </style>

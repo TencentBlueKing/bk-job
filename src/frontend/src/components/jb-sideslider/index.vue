@@ -335,15 +335,16 @@
             overflow: unset;
         }
 
+        .bk-sideslider-footer {
+            height: auto;
+            background: #fff !important;
+            border: none;
+        }
+
         .jb-sideslider-content {
             position: relative;
             z-index: 1;
             padding: 20px 30px;
-        }
-
-        .bk-sideslider-footer {
-            height: auto;
-            background: #fff !important;
         }
 
         .jb-sideslider-footer {

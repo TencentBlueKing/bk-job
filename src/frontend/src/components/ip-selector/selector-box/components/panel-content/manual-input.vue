@@ -426,6 +426,8 @@
 </script>
 <style lang="postcss">
     .ip-selector-manual-input {
+        height: 100%;
+
         .custom-input {
             padding-right: 16px;
             padding-left: 16px;

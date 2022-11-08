@@ -836,8 +836,10 @@
             padding: 20px 24px;
 
             .container-left {
+                position: relative;
                 height: 100%;
                 overflow: hidden;
+                overflow: auto;
                 background: #fff;
                 border: 1px solid #dcdee5;
                 border-bottom-left-radius: 2px;
@@ -846,8 +848,8 @@
 
             .container-right {
                 display: flex;
-                width: 0;
                 height: 100%;
+                min-width: 800px;
                 overflow: hidden;
                 flex-direction: column;
                 flex: 1;

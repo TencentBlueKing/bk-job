@@ -116,14 +116,6 @@
 </script>
 <style lang="postcss" scoped>
     .list-column-setting {
-        position: absolute;
-        top: 45px;
-        left: 0;
-        z-index: 1;
-        width: 100%;
-        background: #fff;
-        box-shadow: 1px 1px 5px 0 #dcdee5;
-
         .select-body {
             padding: 15px 22px 30px;
 

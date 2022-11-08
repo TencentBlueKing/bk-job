@@ -96,14 +96,26 @@
             return '';
         }
         const newWidth = startWidth.value - moveOffset.value;
-        return newWidth <= props.defaultWidth * 0.6 ? 0 : newWidth;
+        if (newWidth < props.defaultWidth * 0.6) {
+            return 0;
+        }
+        if (boxWidth.value > 1 && newWidth > boxWidth.value * 0.6) {
+            return boxWidth.value * 0.6;
+        }
+        return newWidth;
     };
     const getLastRightWidth = () => {
         if (props.flexDirection !== 'right') {
             return '';
         }
         const newWidth = startWidth.value + moveOffset.value;
-        return newWidth <= props.defaultWidth * 0.6 ? 0 : newWidth;
+        if (newWidth < props.defaultWidth * 0.6) {
+            return 0;
+        }
+        if (boxWidth.value > 1 && newWidth > boxWidth.value * 0.6) {
+            return boxWidth.value * 0.6;
+        }
+        return newWidth;
     };
     const lastLeftWidth = ref('');
     const lastRightWidth = ref('');

@@ -288,10 +288,13 @@
             font-size: 14px;
             line-height: 22px;
             color: #63656e;
+            white-space: initial;
         }
 
         .step-desc {
-            padding-top: 14px;
+            max-height: 200px;
+            margin-top: 14px;
+            overflow-y: auto;
             white-space: normal;
         }
 

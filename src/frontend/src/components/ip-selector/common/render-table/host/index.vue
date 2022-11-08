@@ -424,6 +424,7 @@
             position: absolute;
             top: 0;
             bottom: 0;
+            display: none;
             width: 1px;
             background: #dfe0e5;
         }

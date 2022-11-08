@@ -3,6 +3,8 @@
         width: 100%;
         font-size: 12px;
         text-align: left;
+        border-collapse: collapse;
+        border-spacing: 0;
         table-layout: fixed;
 
         th,

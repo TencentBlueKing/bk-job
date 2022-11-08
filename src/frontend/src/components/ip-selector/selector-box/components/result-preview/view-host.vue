@@ -118,8 +118,8 @@
 
     watch(() => props.data, () => {
         if (props.data.length > 0) {
-            const needFetchHostDetail = _.find(props.data, item => !item.ip);
-            if (needFetchHostDetail || !isCreated) {
+            const needFetchHostDetail = _.find(props.data, item => !item.ip || !item.ipv6);
+            if (needFetchHostDetail && !isCreated) {
                 fetchData();
             } else {
                 validHostList.value = [...props.data];

@@ -144,6 +144,7 @@
     import UserService from '@service/user';
 
     import {
+        escapeHTML,
         formatScriptTypeValue,
         prettyDateTimeFormat,
     } from '@utils/assist';
@@ -190,9 +191,6 @@
     };
     const LOCAL_STORAGE_KEY = 'ace_editor_history';
     
-    const escapeHTML = str => str.replace(/&/g, '&#38;').replace(/"/g, '&#34;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&#60;');
     const HTMLEncode = (value) => {
         const temp = document.createElement('textarea');
         temp.value = value;
