@@ -28,6 +28,7 @@ import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public class HostCheckReq {
 
     public ActionScopeEnum getActionScope() {
         String actionScopeName = (String) meta.get("actionScope");
-        if (actionScopeName == null) {
+        if (StringUtils.isBlank(actionScopeName)) {
             return null;
         }
         return ActionScopeEnum.valueOf(actionScopeName);
