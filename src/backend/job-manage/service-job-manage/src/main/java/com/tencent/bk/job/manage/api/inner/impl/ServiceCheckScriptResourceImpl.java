@@ -32,11 +32,9 @@ import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckScriptRequest;
 import com.tencent.bk.job.manage.service.ScriptCheckService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,16 +50,8 @@ public class ServiceCheckScriptResourceImpl implements ServiceCheckScriptResourc
 
     @Override
     public InternalResponse<List<ServiceScriptCheckResultItemDTO>> check(ServiceCheckScriptRequest checkScriptRequest) {
-        if (StringUtils.isEmpty(checkScriptRequest.getScriptContent())) {
-            return InternalResponse.buildSuccessResp(Collections.emptyList());
-        }
-        ScriptTypeEnum scriptType = checkScriptRequest.getScriptType() == null ?
-            null : ScriptTypeEnum.valueOf(checkScriptRequest.getScriptType());
-        if (scriptType == null) {
-            return InternalResponse.buildSuccessResp(Collections.emptyList());
-        }
         List<ScriptCheckResultItemDTO> checkResultItems = scriptCheckService.checkScriptWithDangerousRule(
-            scriptType, checkScriptRequest.getScriptContent());
+            ScriptTypeEnum.valueOf(checkScriptRequest.getScriptType()), checkScriptRequest.getScriptContent());
         return InternalResponse.buildSuccessResp(checkResultItems.stream()
             .map(ScriptCheckResultItemDTO::toServiceScriptCheckResultDTO)
             .collect(Collectors.toList()));
