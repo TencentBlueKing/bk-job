@@ -41,7 +41,7 @@ import java.util.List;
 @Data
 public class FileUploadSettingVO {
     @ApiModelProperty("数量")
-    private Long amount;
+    private Float amount;
     @ApiModelProperty("单位")
     private String unit;
     @ApiModelProperty("限制模式，0:禁止范围，1：允许范围")
