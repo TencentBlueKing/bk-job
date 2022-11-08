@@ -81,7 +81,7 @@ public class AccountCreateUpdateReq {
     private String password;
 
     @ApiModelProperty(value = "DB端口,创建/更新DB账号的时候必传")
-    @Range(min = 0, max = 65536, message = "{validation.constraints.InvalidPort.message}")
+    @Range(min = 0, max = 65535, message = "{validation.constraints.InvalidPort.message}")
     private Integer dbPort;
 
     @ApiModelProperty(value = "DB账号关联的系统账号,创建/更新DB账号的时候必传")
