@@ -59,13 +59,13 @@ import java.util.concurrent.TimeUnit;
 public class ScriptCheckServiceImpl implements ScriptCheckService {
 
     private final DangerousRuleCache dangerousRuleCache;
-    private final ExecutorService dangerousRuleCheckExecutor;
+    private final ExecutorService scriptCheckExecutor;
 
     @Autowired
     public ScriptCheckServiceImpl(DangerousRuleCache dangerousRuleCache,
-                                  @Qualifier("dangerousRuleCheckExecutor") ExecutorService dangerousRuleCheckExecutor) {
+                                  @Qualifier("scriptCheckExecutor") ExecutorService scriptCheckExecutor) {
         this.dangerousRuleCache = dangerousRuleCache;
-        this.dangerousRuleCheckExecutor = dangerousRuleCheckExecutor;
+        this.scriptCheckExecutor = scriptCheckExecutor;
     }
 
     @Override
@@ -81,24 +81,24 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             int timeout = 5;
             ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems =
-                dangerousRuleCheckExecutor.submit(new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
+                scriptCheckExecutor.submit(new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
             if (ScriptTypeEnum.SHELL.equals(scriptType)) {
-                Future<List<ScriptCheckResultItemDTO>> grammar = dangerousRuleCheckExecutor.submit(
+                Future<List<ScriptCheckResultItemDTO>> grammar = scriptCheckExecutor.submit(
                     new ScriptGrammarChecker(scriptType, content)
                 );
 
                 Future<List<ScriptCheckResultItemDTO>> danger =
-                    dangerousRuleCheckExecutor.submit(new BuildInDangerousScriptChecker(scriptCheckParam));
+                    scriptCheckExecutor.submit(new BuildInDangerousScriptChecker(scriptCheckParam));
 
                 Future<List<ScriptCheckResultItemDTO>> logic =
-                    dangerousRuleCheckExecutor.submit(new ScriptLogicChecker(scriptCheckParam));
+                    scriptCheckExecutor.submit(new ScriptLogicChecker(scriptCheckParam));
 
-                Future<List<ScriptCheckResultItemDTO>> io = dangerousRuleCheckExecutor.submit(
+                Future<List<ScriptCheckResultItemDTO>> io = scriptCheckExecutor.submit(
                     new IOScriptChecker(scriptCheckParam)
                 );
 
                 Future<List<ScriptCheckResultItemDTO>> device =
-                    dangerousRuleCheckExecutor.submit(new DeviceCrashScriptChecker(scriptCheckParam));
+                    scriptCheckExecutor.submit(new DeviceCrashScriptChecker(scriptCheckParam));
                 checkResultList.addAll(grammar.get(timeout, TimeUnit.SECONDS));
                 checkResultList.addAll(logic.get(timeout, TimeUnit.SECONDS));
                 checkResultList.addAll(danger.get(timeout, TimeUnit.SECONDS));
@@ -109,12 +109,11 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             checkResultList.sort(Comparator.comparingInt(ScriptCheckResultItemDTO::getLine));
 
         } catch (Exception e) {
-            // 脚本检查非强制，如果检查过程中抛出异常不应该影响业务的使用
             String errorMsg = MessageFormatter.format(
                 "Check script caught exception! scriptType: {}, content: {}",
                 scriptType, content).getMessage();
             log.error(errorMsg, e);
-            return Collections.emptyList();
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
         return checkResultList;
     }
@@ -135,7 +134,7 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             if (CollectionUtils.isEmpty(dangerousRules)) {
                 return Collections.emptyList();
             }
-            Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems = dangerousRuleCheckExecutor.submit(
+            Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems = scriptCheckExecutor.submit(
                 new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
             checkResultList.addAll(dangerousRuleCheckResultItems.get(timeout, TimeUnit.SECONDS));
             checkResultList.sort(Comparator.comparingInt(ScriptCheckResultItemDTO::getLine));

@@ -109,8 +109,8 @@ public class ExecutorConfiguration {
         );
     }
 
-    @Bean("dangerousRuleCheckExecutor")
-    public ExecutorService dangerousRuleCheckExecutor() {
+    @Bean("scriptCheckExecutor")
+    public ExecutorService scriptCheckExecutor() {
         return new ThreadPoolExecutor(
             10,
             50,
