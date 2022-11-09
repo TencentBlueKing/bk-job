@@ -356,7 +356,11 @@ public class ArtifactoryClient {
             Rule fullPathRule = new Rule();
             fullPathRule.setField("fullPath");
             fullPathRule.setOperation(Rule.RULE_OPERATION_PREFIX);
-            fullPathRule.setValue(fullPath);
+            if (fullPath.endsWith("/")) {
+                fullPathRule.setValue(fullPath);
+            } else {
+                fullPathRule.setValue(fullPath + "/");
+            }
             innerRules.add(fullPathRule);
         }
         // 文件名称
