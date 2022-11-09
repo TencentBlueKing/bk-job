@@ -25,7 +25,6 @@
 package com.tencent.bk.job.file_gateway.task.dispatch;
 
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
-import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
 import com.tencent.bk.job.file_gateway.service.ReDispatchService;
 import lombok.extern.slf4j.Slf4j;
@@ -42,21 +41,17 @@ public class ReDispatchTimeoutTask {
 
     private final DSLContext dslContext;
     private final FileTaskDAO fileTaskDAO;
-    private final FileSourceTaskDAO fileSourceTaskDAO;
     private final ReDispatchService reDispatchService;
 
     @Value("${job.file-gateway.task.timeout.reDispatch.enabled:true}")
     private final boolean enableTimeoutRedispatch = true;
 
-    // 10s无响应且未结束的任务就应当被重调度了
-    private final long fileSourceTaskStatusExpireTimeMills = 10 * 1000L;
-
     @Autowired
-    public ReDispatchTimeoutTask(DSLContext dslContext, FileTaskDAO fileTaskDAO, FileSourceTaskDAO fileSourceTaskDAO,
+    public ReDispatchTimeoutTask(DSLContext dslContext,
+                                 FileTaskDAO fileTaskDAO,
                                  ReDispatchService reDispatchService) {
         this.dslContext = dslContext;
         this.fileTaskDAO = fileTaskDAO;
-        this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.reDispatchService = reDispatchService;
     }
 
@@ -65,11 +60,15 @@ public class ReDispatchTimeoutTask {
             log.info("Timeout task reDispatch not enabled, you can config it in configuration file by set job" +
                 ".file-gateway.task.timeout.reDispatch.enable=true");
         }
-        // 找出未结束且长时间无响应的任务
-//        List<FileSourceTaskDTO> timeoutFileSourceTaskList = fileSourceTaskDAO.listTimeoutTasks(dslContext,
-//       fileSourceTaskStatusExpireTimeMills, TaskStatusEnum.getRunningStatusSet(), 0, -1);
-        List<String> timeoutFileSourceTaskIdList = fileTaskDAO.listTimeoutFileSourceTaskIds(dslContext,
-            fileSourceTaskStatusExpireTimeMills, TaskStatusEnum.getRunningStatusSet(), 0, -1);
+        // 找出未结束且长时间无响应的任务，10s无响应且未结束的任务就应当被重调度了
+        long fileSourceTaskStatusExpireTimeMills = 10 * 1000L;
+        List<String> timeoutFileSourceTaskIdList = fileTaskDAO.listTimeoutFileSourceTaskIds(
+            dslContext,
+            fileSourceTaskStatusExpireTimeMills,
+            TaskStatusEnum.getRunningStatusSet(),
+            0,
+            -1
+        );
         // 进行超时重调度
         for (String fileSourceTaskId : timeoutFileSourceTaskIdList) {
             log.info("reDispatch fileSourceTask by timeout:{}", fileSourceTaskId);

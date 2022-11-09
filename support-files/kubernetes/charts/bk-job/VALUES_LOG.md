@@ -1,4 +1,20 @@
 # chart values 更新日志
+## 0.3.0-rc.37
+1.增加文件网关系统file-worker调度标签相关配置
+```shell script
+## job-file-gateway文件网关服务配置
+fileGatewayConfig:
+  # 用于确定调度范围的worker标签
+  workerTags:
+    # 能够调度的worker标签白名单，逗号分隔
+    white: "k8s"
+    # 不能调度的worker标签黑名单，逗号分隔
+    black: ""
+## job-file-worker文件源接入点配置
+fileWorkerConfig:
+  # 标签，逗号分隔
+  tags: "k8s"
+```
 
 ## 0.3.0-rc.31
 1.增加Trace及数据上报至APM相关配置

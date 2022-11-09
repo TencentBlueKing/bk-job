@@ -22,50 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.interceptor;
+package com.tencent.bk.job.common.artifactory.model.req;
 
-import com.tencent.bk.job.common.util.JobContextUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.AsyncHandlerInterceptor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Uri权限控制拦截
- */
-@Slf4j
-@Component
-public class UriPermissionInterceptor implements AsyncHandlerInterceptor {
-
-    @Autowired
-    public UriPermissionInterceptor() {
-    }
-
-    public List<String> getControlUriPatternsList() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public boolean preHandle(HttpServletRequest request,
-                             @NonNull HttpServletResponse response,
-                             @NonNull Object handler) {
-        String username = JobContextUtil.getUsername();
-        String uri = request.getRequestURI();
-        log.info("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
-            "controlUriPatterns=" + getControlUriPatternsList());
-        return true;
-    }
-
-    @Override
-    public void afterCompletion(@NonNull HttpServletRequest request,
-                                @NonNull HttpServletResponse response,
-                                @NonNull Object handler,
-                                Exception ex) {
-    }
+@Data
+@EqualsAndHashCode(callSuper = false)
+public class Sort {
+    // 必传，排序字段
+    private List<String> properties = Collections.singletonList("lastModifiedDate");
+    // 必传，排序方向
+    private String direction = "DESC";
 }

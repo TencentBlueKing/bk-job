@@ -29,25 +29,25 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class CreateRepoReq extends ArtifactoryReq {
     // 必传，项目名
-    String projectId;
+    private String projectId;
     // 必传，仓库名称
-    String name;
+    private String name;
     // 必传，仓库类型
-    String type = "GENERIC";
+    private String type = "GENERIC";
     // 非必传，仓库类别
-    String category = "COMPOSITE";
+    private String category = "COMPOSITE";
     // 非必传，仓库类型
     @JsonProperty("public")
-    boolean publicFlag = false;
+    private boolean publicFlag = false;
     // 非必传，仓库描述
-    String description;
+    private String description;
     // 非必传，仓库配置，暂未用到，需要时参考源接口文档
-    Object configuration = null;
+    private Object configuration = null;
     // 非必传，存储凭证key，暂未用到
-    Object storageCredentialsKey = null;
+    private Object storageCredentialsKey = null;
     // 非必传，仓库配额，暂未用到
-    Object quota = null;
+    private Object quota = null;
 }

@@ -43,6 +43,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -50,20 +51,15 @@ import java.util.stream.Collectors;
 public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
 
     private static final FileTask defaultTable = FileTask.FILE_TASK;
-    private DSLContext dslContext;
+    private final DSLContext dslContext;
 
     @Autowired
     public FileTaskDAOImpl(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
-    private void setDefaultValue(FileTaskDTO fileTaskDTO) {
-        //
-    }
-
     @Override
     public Long insertFileTask(DSLContext dslContext, FileTaskDTO fileTaskDTO) {
-        setDefaultValue(fileTaskDTO);
         val query = dslContext.insertInto(defaultTable,
             defaultTable.FILE_SOURCE_TASK_ID,
             defaultTable.FILE_PATH,
@@ -85,7 +81,7 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
         ).returning(defaultTable.ID);
         val sql = query.getSQL(ParamType.INLINED);
         try {
-            return query.fetchOne().getId();
+            return Objects.requireNonNull(query.fetchOne()).getId();
         } catch (Exception e) {
             log.error(sql);
             throw e;
@@ -217,7 +213,7 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
         }
         val query = dslContext.selectDistinct(defaultTable.FILE_SOURCE_TASK_ID).from(defaultTable)
             .where(conditions);
-        Result<Record1<String>> records = null;
+        Result<Record1<String>> records;
         if (start != null && start > 0 && pageSize != null && pageSize > 0) {
             records = query.limit(start, pageSize).fetch();
         } else {

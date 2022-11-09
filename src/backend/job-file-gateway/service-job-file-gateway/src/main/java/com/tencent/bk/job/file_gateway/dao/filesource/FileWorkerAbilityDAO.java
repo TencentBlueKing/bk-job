@@ -22,30 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.artifactory.model.req;
+package com.tencent.bk.job.file_gateway.dao.filesource;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.tencent.bk.job.file_gateway.model.dto.WorkerAbilityDTO;
+import com.tencent.bk.job.file_gateway.model.dto.WorkerTagDTO;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
-public class ListNodePageReq extends ArtifactoryReq {
-    // 必传，项目Id
-    private String projectId;
-    // 必传，仓库名称
-    private String repoName;
-    // 必传，完整路径
-    private String fullPath;
-    // 非必传，页码
-    private int pageNumber = 1;
-    // 非必传，页面大小
-    private int pageSize = 20;
-    // 非必传，是否包含目录
-    private Boolean includeFolder = true;
-    // 非必传，是否包含元数据
-    private Boolean includeMetadata = false;
-    // 非必传，是否查询子目录节点
-    private Boolean deep = false;
-    // 非必传，是否排序输出结果
-    private Boolean sort = true;
+import java.util.Collection;
+import java.util.List;
+
+public interface FileWorkerAbilityDAO {
+
+    int batchInsert(Long workerId, List<WorkerAbilityDTO> abilityList);
+
+    int deleteById(Collection<Long> ids);
+
+    List<WorkerAbilityDTO> listAbilityTagByWorkerId(Long workerId);
 }

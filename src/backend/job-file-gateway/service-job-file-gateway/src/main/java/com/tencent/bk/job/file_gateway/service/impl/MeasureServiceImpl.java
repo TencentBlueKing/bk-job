@@ -32,41 +32,31 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.function.ToDoubleFunction;
+import java.util.Collections;
 
 @Slf4j
 @Service
 public class MeasureServiceImpl {
 
-    private final FileWorkerDAO fileWorkerDAO;
-
     @Autowired
     public MeasureServiceImpl(MeterRegistry meterRegistry, FileWorkerDAO fileWorkerDAO) {
-        this.fileWorkerDAO = fileWorkerDAO;
         // FileWorker数量
         meterRegistry.gauge(
             MetricsConstants.NAME_FILE_WORKER_NUM,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_WORKER)),
-            this.fileWorkerDAO,
-            new ToDoubleFunction<FileWorkerDAO>() {
-                @Override
-                public double applyAsDouble(FileWorkerDAO fileWorkerDAO) {
-                    return fileWorkerDAO.countFileWorkers();
-                }
-            }
+            Collections.singletonList(
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_WORKER)
+            ),
+            fileWorkerDAO,
+            FileWorkerDAO::countFileWorkers
         );
         // 在线的FileWorker数量
         meterRegistry.gauge(
             MetricsConstants.NAME_FILE_WORKER_ONLINE_NUM,
-            Arrays.asList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_WORKER)),
-            this.fileWorkerDAO,
-            new ToDoubleFunction<FileWorkerDAO>() {
-                @Override
-                public double applyAsDouble(FileWorkerDAO fileWorkerDAO) {
-                    return fileWorkerDAO.countOnlineFileWorkers();
-                }
-            }
+            Collections.singletonList(
+                Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_WORKER)
+            ),
+            fileWorkerDAO,
+            FileWorkerDAO::countOnlineFileWorkers
         );
     }
 }

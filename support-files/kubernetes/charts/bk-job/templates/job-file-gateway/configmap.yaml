@@ -43,6 +43,11 @@ data:
         multipart:
           max-file-size: 5GB
           max-request-size: 5GB
+    job:
+      file-gateway:
+        worker-tags:
+          white: {{ .Values.fileGatewayConfig.workerTags.white }}
+          black: {{ .Values.fileGatewayConfig.workerTags.black }}
     server:
       port: {{ .Values.fileGatewayConfig.containerPort }}
 {{- end }}

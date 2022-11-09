@@ -26,6 +26,7 @@ package com.tencent.bk.job.file_gateway.service;
 
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
+import com.tencent.bk.job.file_gateway.service.impl.WorkerIdsCondition;
 
 import java.util.List;
 
@@ -41,4 +42,6 @@ public interface FileWorkerService {
     List<FileWorkerDTO> listFileWorker(String username, Long appId, WorkerSelectScopeEnum workerSelectScope);
 
     FileWorkerDTO getFileWorker(String accessHost, Integer accessPort);
+
+    WorkerIdsCondition getIncludedAndExcludedWorkerIds();
 }

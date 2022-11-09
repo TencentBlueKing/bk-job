@@ -25,38 +25,40 @@
 package com.tencent.bk.job.file_gateway.dao.filesource;
 
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
-import org.jooq.DSLContext;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface FileWorkerDAO {
-    Long insertFileWorker(DSLContext dslContext, FileWorkerDTO fileSourceDTO);
+    // 新增
+    Long insertFileWorker(FileWorkerDTO fileSourceDTO);
 
-    int updateFileWorker(DSLContext dslContext, FileWorkerDTO fileSourceDTO);
+    // 更新
+    int updateFileWorker(FileWorkerDTO fileSourceDTO);
 
-    int updateAllFileWorkerOnlineStatus(DSLContext dslContext, Integer onlineStatus, Long aliveTime);
+    int updateAllFileWorkerOnlineStatus(Integer onlineStatus, Long aliveTime);
 
-    int deleteFileWorkerById(DSLContext dslContext, Long id);
+    // 查询
+    FileWorkerDTO getFileWorkerById(Long id);
 
-    FileWorkerDTO getFileWorkerById(DSLContext dslContext, Long id);
+    List<FileWorkerDTO> listPublicFileWorkers(Collection<Long> includeIds, Collection<Long> excludeIds);
 
-    List<FileWorkerDTO> listFileWorkers(DSLContext dslContext);
+    List<FileWorkerDTO> listFileWorkers(Long appId, Collection<Long> includeIds, Collection<Long> excludeIds);
 
-    List<FileWorkerDTO> listPublicFileWorkers(DSLContext dslContext);
+    List<FileWorkerDTO> listFileWorkersByAbilityTag(Long appId,
+                                                    String tag,
+                                                    Collection<Long> includeIds,
+                                                    Collection<Long> excludeIds);
 
-    List<FileWorkerDTO> listFileWorkers(DSLContext dslContext, Long appId);
-
-    List<FileWorkerDTO> listFileWorkersByAbilityTag(DSLContext dslContext, Long appId, String tag);
-
-    List<FileWorkerDTO> listPublicFileWorkersByAbilityTag(DSLContext dslContext, String tag);
-
-    List<FileWorkerDTO> listFileWorkersByAccess(DSLContext dslContext, String accessHost, Integer accessPort);
+    List<FileWorkerDTO> listPublicFileWorkersByAbilityTag(String tag,
+                                                          Collection<Long> includeIds,
+                                                          Collection<Long> excludeIds);
 
     Long countFileWorkers();
 
     Long countOnlineFileWorkers();
 
-    boolean existsFileWorker(DSLContext dslContext, String accessHost, Integer accessPort);
+    boolean existsFileWorker(String accessHost, Integer accessPort);
 
-    FileWorkerDTO getFileWorker(DSLContext dslContext, String accessHost, Integer accessPort);
+    FileWorkerDTO getFileWorker(String accessHost, Integer accessPort);
 }
