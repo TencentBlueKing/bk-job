@@ -148,9 +148,10 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
                 "Parent path of repo must only contains projectName"});
         }
         if (StringUtils.isBlank(path)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path",
-                "path" +
-                    " cannot be blank"});
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{
+                "path",
+                "path cannot be blank"
+            });
         }
         String projectId = path;
         com.tencent.bk.job.common.artifactory.model.dto.PageData<RepoDTO> pageData;
