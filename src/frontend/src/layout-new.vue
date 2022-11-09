@@ -89,6 +89,7 @@
         </template>
         <template slot="side">
             <jb-menu
+                :active="activeMenu"
                 default-active="fastExecuteScript"
                 :flod="!isFrameSideFixed && !isSideExpand"
                 @select="handleRouterChange">
@@ -284,6 +285,8 @@
 
     import QueryGlobalSettingService from '@service/query-global-setting';
 
+    import { leaveConfirm } from '@utils/assist';
+
     import AppSelect from '@components/app-select';
     import JbMenu from '@components/jb-menu';
     import JbItem from '@components/jb-menu/item';
@@ -304,13 +307,13 @@
     const isAdmin = ref(false);
     const routerTitle = ref('');
     const isEnableFeatureFileManage = ref(false);
+    const activeMenu = ref('fastExecuteScript');
 
     const route = useRoute();
     const router = useRouter();
 
     watch(route, (currentRoute) => {
         routerTitle.value = (currentRoute.meta.title || currentRoute.meta.pageTitle);
-        routerName = currentRoute.name;
 
         // 确认路由分组
         const {
@@ -346,13 +349,21 @@
      * @param {String} routerName 跳转的路由名
      */
     const handleRouterChange = (localtionRouterName) => {
-        if (routerName === localtionRouterName) {
+        if (!routerName || routerName === localtionRouterName) {
+            routerName = localtionRouterName;
             return;
         }
-        routerName = localtionRouterName;
-        router.push({
-            name: routerName,
-        });
+        activeMenu.value = localtionRouterName;
+        leaveConfirm()
+            .then(() => {
+                routerName = localtionRouterName;
+                router.push({
+                    name: routerName,
+                });
+            })
+            .catch(() => {
+                activeMenu.value = routerName;
+            });
     };
     /**
      * @desc 获取是否是admin用户

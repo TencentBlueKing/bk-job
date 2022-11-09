@@ -101,11 +101,6 @@
                 </div>
             </template>
         </div>
-        <Icon
-            v-if="data.displayStyle !== 'success'"
-            class="approval-close"
-            type="close"
-            @click="handleClose" />
     </div>
 </template>
 <script>
@@ -147,9 +142,6 @@
                     this.$emit('on-update', data);
                     return true;
                 });
-            },
-            handleClose () {
-                this.$emit('on-close');
             },
         },
     };
@@ -334,16 +326,6 @@
                     display: none;
                 }
             }
-        }
-
-        .approval-close {
-            position: absolute;
-            top: 0;
-            right: 0;
-            padding: 10px;
-            font-size: 24px;
-            color: #c4c6cc;
-            cursor: pointer;
         }
     }
 </style>
