@@ -34,9 +34,11 @@ import java.util.List;
 @Configuration
 public class FileGatewayConfig {
 
+    // 只有worker拥有白名单中的至少一个标签时，才能被当前file-gateway实例调度
     @Value("${job.file-gateway.worker-tags.white:}")
     private List<String> workerTagWhiteList;
 
+    // 只要worker拥有黑名单中的任何一个标签时，就不能被当前file-gateway实例调度
     @Value("${job.file-gateway.worker-tags.black:}")
     private List<String> workerTagBlackList;
 

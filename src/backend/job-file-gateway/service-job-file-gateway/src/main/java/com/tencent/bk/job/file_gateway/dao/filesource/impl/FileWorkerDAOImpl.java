@@ -35,6 +35,7 @@ import com.tencent.bk.job.file_gateway.model.dto.WorkerTagDTO;
 import com.tencent.bk.job.file_gateway.util.JooqTypeUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -322,10 +323,10 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
 
     private List<Condition> buildBaseIdConditions(Collection<Long> includeIds, Collection<Long> excludeIds) {
         List<Condition> conditions = new ArrayList<>();
-        if (includeIds != null) {
+        if (CollectionUtils.isNotEmpty(includeIds)) {
             conditions.add(defaultTable.ID.in(includeIds));
         }
-        if (excludeIds != null) {
+        if (CollectionUtils.isNotEmpty(excludeIds)) {
             conditions.add(defaultTable.ID.notIn(excludeIds));
         }
         return conditions;
@@ -333,6 +334,9 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
 
     @Override
     public List<FileWorkerDTO> listPublicFileWorkers(Collection<Long> includeIds, Collection<Long> excludeIds) {
+        if (CollectionUtils.isEmpty(includeIds)) {
+            return Collections.emptyList();
+        }
         List<Condition> conditions = buildBaseIdConditions(includeIds, excludeIds);
         conditions.add(defaultTable.APP_ID.eq(-1L));
         return listFileWorkersByConditions(conditions);
@@ -340,6 +344,9 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
 
     @Override
     public List<FileWorkerDTO> listFileWorkers(Long appId, Collection<Long> includeIds, Collection<Long> excludeIds) {
+        if (CollectionUtils.isEmpty(includeIds)) {
+            return Collections.emptyList();
+        }
         List<Condition> conditions = buildBaseIdConditions(includeIds, excludeIds);
         conditions.add(defaultTable.APP_ID.eq(appId));
         return listFileWorkersByConditions(conditions);
@@ -357,6 +364,9 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
                                                            String tag,
                                                            Collection<Long> includeIds,
                                                            Collection<Long> excludeIds) {
+        if (CollectionUtils.isEmpty(includeIds)) {
+            return Collections.emptyList();
+        }
         List<Condition> conditions = buildBaseIdConditions(includeIds, excludeIds);
         conditions.add(tFileWorkerAbility.TAG.eq(tag));
         if (appId != null) {

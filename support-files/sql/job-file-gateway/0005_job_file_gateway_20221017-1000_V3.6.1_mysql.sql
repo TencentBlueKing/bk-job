@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `file_worker_tag`
     `tag`             varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '标签',
     `row_create_time` DATETIME                           NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE INDEX `unique_worker_tag` (`worker_id`, `tag`) USING BTREE,
+    UNIQUE INDEX `uk_worker_tag` (`worker_id`, `tag`) USING BTREE,
     INDEX `idx_tag` (`tag`) USING BTREE
 ) ENGINE = InnoDB
   CHARACTER SET = utf8mb4;

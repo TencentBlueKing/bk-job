@@ -83,12 +83,12 @@ public class FileServiceImpl implements FileService {
         // 访问文件Worker接口，拿到available状态信息
         HttpReq fileAvailableReq = fileSourceReqGenService.genFileAvailableReq(appId, fileWorkerDTO, fileSourceDTO);
         String respStr;
-        log.info(String.format("url=%s,body=%s,headers=%s", fileAvailableReq.getUrl(), fileAvailableReq.getBody(),
-            JsonUtils.toJson(fileAvailableReq.getHeaders())));
+        log.info("url={},body={},headers={}", fileAvailableReq.getUrl(), fileAvailableReq.getBody(),
+            JsonUtils.toJson(fileAvailableReq.getHeaders()));
         try {
             respStr = fileWorkerHttpHelper.post(fileAvailableReq.getUrl(), fileAvailableReq.getBody(),
                 fileAvailableReq.getHeaders());
-            log.info(String.format("respStr=%s", respStr));
+            log.info("respStr={}", respStr);
             Response<Boolean> resp = JsonUtils.fromJson(respStr,
                 new TypeReference<Response<Boolean>>() {
                 });
@@ -114,8 +114,8 @@ public class FileServiceImpl implements FileService {
         HttpReq listFileNodeReq = fileSourceReqGenService.genListFileNodeReq(appId, path, finalName, start, pageSize,
             fileWorkerDTO, fileSourceDTO);
         String respStr;
-        log.info(String.format("url=%s,body=%s,headers=%s", listFileNodeReq.getUrl(), listFileNodeReq.getBody(),
-            JsonUtils.toJson(listFileNodeReq.getHeaders())));
+        log.info("url={},body={},headers={}", listFileNodeReq.getUrl(), listFileNodeReq.getBody(),
+            JsonUtils.toJson(listFileNodeReq.getHeaders()));
         try {
             respStr = fileWorkerHttpHelper.post(listFileNodeReq.getUrl(), listFileNodeReq.getBody(),
                 listFileNodeReq.getHeaders());
@@ -124,7 +124,7 @@ public class FileServiceImpl implements FileService {
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE,
                 new String[]{e.getMessage()});
         }
-        log.info(String.format("respStr=%s", respStr));
+        log.info("respStr={}", respStr);
         FileNodesDTO fileNodesDTO = parseFileNodesDTO(respStr);
         FileNodesVO fileNodesVO = FileNodesDTO.toFileNodesVO(fileNodesDTO);
         fileNodesVO.setFileSourceInfo(FileSourceDTO.toSimpleFileSourceVO(fileSourceDTO));
@@ -142,8 +142,8 @@ public class FileServiceImpl implements FileService {
         HttpReq req = fileSourceReqGenService.genExecuteActionReq(appId, executeActionReq.getActionCode(),
             executeActionReq.getParams(), fileWorkerDTO, fileSourceDTO);
         String respStr;
-        log.info(String.format("url=%s,body=%s,headers=%s", req.getUrl(), req.getBody(),
-            JsonUtils.toJson(req.getHeaders())));
+        log.info("url={},body={},headers={}", req.getUrl(), req.getBody(),
+            JsonUtils.toJson(req.getHeaders()));
         try {
             respStr = fileWorkerHttpHelper.post(req.getUrl(), req.getBody(), req.getHeaders());
             Response<Boolean> resp = JsonUtils.fromJson(respStr, new TypeReference<Response<Boolean>>() {
