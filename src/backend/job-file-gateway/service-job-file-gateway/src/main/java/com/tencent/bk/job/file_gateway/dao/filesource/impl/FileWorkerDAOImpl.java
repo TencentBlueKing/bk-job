@@ -334,7 +334,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
 
     @Override
     public List<FileWorkerDTO> listPublicFileWorkers(Collection<Long> includeIds, Collection<Long> excludeIds) {
-        if (CollectionUtils.isEmpty(includeIds)) {
+        if (includeIds != null && CollectionUtils.isEmpty(includeIds)) {
             return Collections.emptyList();
         }
         List<Condition> conditions = buildBaseIdConditions(includeIds, excludeIds);
@@ -344,7 +344,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
 
     @Override
     public List<FileWorkerDTO> listFileWorkers(Long appId, Collection<Long> includeIds, Collection<Long> excludeIds) {
-        if (CollectionUtils.isEmpty(includeIds)) {
+        if (includeIds != null && CollectionUtils.isEmpty(includeIds)) {
             return Collections.emptyList();
         }
         List<Condition> conditions = buildBaseIdConditions(includeIds, excludeIds);
@@ -364,7 +364,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
                                                            String tag,
                                                            Collection<Long> includeIds,
                                                            Collection<Long> excludeIds) {
-        if (CollectionUtils.isEmpty(includeIds)) {
+        if (includeIds != null && CollectionUtils.isEmpty(includeIds)) {
             return Collections.emptyList();
         }
         List<Condition> conditions = buildBaseIdConditions(includeIds, excludeIds);
