@@ -35,8 +35,8 @@ public interface DispatchService {
     /**
      * 根据文件源找到一个最适合的FileWorker
      *
-     * @param fileSourceDTO
-     * @return
+     * @param fileSourceDTO 文件源对象
+     * @return 选中的对接文件源的FileWorker对象
      */
     FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO);
 }

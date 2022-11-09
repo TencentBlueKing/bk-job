@@ -24,41 +24,18 @@
 
 package com.tencent.bk.job.file_gateway.dao.filesource;
 
-import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
+import com.tencent.bk.job.file_gateway.model.dto.WorkerTagDTO;
 
 import java.util.Collection;
 import java.util.List;
 
-public interface FileWorkerDAO {
-    // 新增
-    Long insertFileWorker(FileWorkerDTO fileSourceDTO);
+public interface FileWorkerTagDAO {
 
-    // 更新
-    int updateFileWorker(FileWorkerDTO fileSourceDTO);
+    int batchInsert(Long workerId, List<String> tagList);
 
-    int updateAllFileWorkerOnlineStatus(Integer onlineStatus, Long aliveTime);
+    int deleteById(Collection<Long> ids);
 
-    // 查询
-    FileWorkerDTO getFileWorkerById(Long id);
+    List<WorkerTagDTO> listTagByWorkerId(Long workerId);
 
-    List<FileWorkerDTO> listPublicFileWorkers(Collection<Long> includeIds, Collection<Long> excludeIds);
-
-    List<FileWorkerDTO> listFileWorkers(Long appId, Collection<Long> includeIds, Collection<Long> excludeIds);
-
-    List<FileWorkerDTO> listFileWorkersByAbilityTag(Long appId,
-                                                    String tag,
-                                                    Collection<Long> includeIds,
-                                                    Collection<Long> excludeIds);
-
-    List<FileWorkerDTO> listPublicFileWorkersByAbilityTag(String tag,
-                                                          Collection<Long> includeIds,
-                                                          Collection<Long> excludeIds);
-
-    Long countFileWorkers();
-
-    Long countOnlineFileWorkers();
-
-    boolean existsFileWorker(String accessHost, Integer accessPort);
-
-    FileWorkerDTO getFileWorker(String accessHost, Integer accessPort);
+    List<Long> listWorkerIdByTag(Collection<String> tags);
 }

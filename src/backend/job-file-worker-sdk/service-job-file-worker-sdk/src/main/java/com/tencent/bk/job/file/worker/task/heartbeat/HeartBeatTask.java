@@ -70,6 +70,7 @@ public class HeartBeatTask {
     private HeartBeatReq getWorkerInfo() {
         HeartBeatReq heartBeatReq = new HeartBeatReq();
         heartBeatReq.setName(workerConfig.getName());
+        heartBeatReq.setTagList(workerConfig.getTagList());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
 

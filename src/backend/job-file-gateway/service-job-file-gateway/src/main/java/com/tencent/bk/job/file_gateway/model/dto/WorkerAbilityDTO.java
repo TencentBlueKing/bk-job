@@ -22,43 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.dao.filesource;
+package com.tencent.bk.job.file_gateway.model.dto;
 
-import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Collection;
-import java.util.List;
-
-public interface FileWorkerDAO {
-    // 新增
-    Long insertFileWorker(FileWorkerDTO fileSourceDTO);
-
-    // 更新
-    int updateFileWorker(FileWorkerDTO fileSourceDTO);
-
-    int updateAllFileWorkerOnlineStatus(Integer onlineStatus, Long aliveTime);
-
-    // 查询
-    FileWorkerDTO getFileWorkerById(Long id);
-
-    List<FileWorkerDTO> listPublicFileWorkers(Collection<Long> includeIds, Collection<Long> excludeIds);
-
-    List<FileWorkerDTO> listFileWorkers(Long appId, Collection<Long> includeIds, Collection<Long> excludeIds);
-
-    List<FileWorkerDTO> listFileWorkersByAbilityTag(Long appId,
-                                                    String tag,
-                                                    Collection<Long> includeIds,
-                                                    Collection<Long> excludeIds);
-
-    List<FileWorkerDTO> listPublicFileWorkersByAbilityTag(String tag,
-                                                          Collection<Long> includeIds,
-                                                          Collection<Long> excludeIds);
-
-    Long countFileWorkers();
-
-    Long countOnlineFileWorkers();
-
-    boolean existsFileWorker(String accessHost, Integer accessPort);
-
-    FileWorkerDTO getFileWorker(String accessHost, Integer accessPort);
+/**
+ * Worker、AbilityTag关联表实体
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class WorkerAbilityDTO {
+    /**
+     * id
+     */
+    private Long id;
+    /**
+     * workerId
+     */
+    private Long workerId;
+    /**
+     * 标签
+     */
+    private String tag;
+    /**
+     * 描述
+     */
+    private String description;
 }

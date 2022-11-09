@@ -24,14 +24,12 @@
 
 package com.tencent.bk.job.file_gateway.interceptor;
 
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.PathMatcher;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.AsyncHandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,14 +41,10 @@ import java.util.List;
  */
 @Slf4j
 @Component
-public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
-    private AuthService authService;
-    private PathMatcher pathMatcher;
+public class UriPermissionInterceptor implements AsyncHandlerInterceptor {
 
     @Autowired
-    public UriPermissionInterceptor(AuthService authService) {
-        this.authService = authService;
-        this.pathMatcher = new AntPathMatcher();
+    public UriPermissionInterceptor() {
     }
 
     public List<String> getControlUriPatternsList() {
@@ -58,8 +52,9 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-        throws Exception {
+    public boolean preHandle(HttpServletRequest request,
+                             @NonNull HttpServletResponse response,
+                             @NonNull Object handler) {
         String username = JobContextUtil.getUsername();
         String uri = request.getRequestURI();
         log.info("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
@@ -68,8 +63,9 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-        throws Exception {
-
+    public void afterCompletion(@NonNull HttpServletRequest request,
+                                @NonNull HttpServletResponse response,
+                                @NonNull Object handler,
+                                Exception ex) {
     }
 }

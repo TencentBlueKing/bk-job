@@ -40,9 +40,9 @@ import java.util.List;
 @Slf4j
 public class BaseDAOImpl {
     public <RecordClazz extends Record, DTOClazz> List<DTOClazz> listPage(SelectLimitStep<RecordClazz> query,
-                                                                          Integer start, Integer pageSize,
+                                                                          Integer start,
+                                                                          Integer pageSize,
                                                                           RecordDTOConverter<RecordClazz, DTOClazz> converter) {
-
         Result<RecordClazz> records = null;
         if (start == null || start < 0) {
             start = 0;

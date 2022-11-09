@@ -56,7 +56,7 @@ public class FileSourceTaskReqGenServiceImpl
     public HttpReq genDownloadFilesReq(Long appId, FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO,
                                        FileSourceTaskDTO fileSourceTaskDTO) {
         DownloadFilesTaskReq req = new DownloadFilesTaskReq();
-        String url = fillBaseReqGetUrl(req, appId, fileWorkerDTO, fileSourceDTO, "/filetask/downloadFiles/start");
+        String url = fillBaseReqGetUrl(req, fileWorkerDTO, fileSourceDTO, "/filetask/downloadFiles/start");
 
         req.setTaskId(fileSourceTaskDTO.getId());
         // 前缀生成
