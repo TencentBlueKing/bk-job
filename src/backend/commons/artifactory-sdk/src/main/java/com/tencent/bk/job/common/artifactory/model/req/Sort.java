@@ -27,25 +27,14 @@ package com.tencent.bk.job.common.artifactory.model.req;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.Collections;
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ListNodePageReq extends ArtifactoryReq {
-    // 必传，项目Id
-    private String projectId;
-    // 必传，仓库名称
-    private String repoName;
-    // 必传，完整路径
-    private String fullPath;
-    // 非必传，页码
-    private int pageNumber = 1;
-    // 非必传，页面大小
-    private int pageSize = 20;
-    // 非必传，是否包含目录
-    private Boolean includeFolder = true;
-    // 非必传，是否包含元数据
-    private Boolean includeMetadata = false;
-    // 非必传，是否查询子目录节点
-    private Boolean deep = false;
-    // 非必传，是否排序输出结果
-    private Boolean sort = true;
+public class Sort {
+    // 必传，排序字段
+    private List<String> properties = Collections.singletonList("lastModifiedDate");
+    // 必传，排序方向
+    private String direction = "DESC";
 }

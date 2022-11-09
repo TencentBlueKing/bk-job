@@ -30,16 +30,16 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class CreateUserReq extends ArtifactoryReq {
     // 必传，用户名
-    String name;
+    private String name;
     // 必传，用户密码
-    String pwd;
+    private String pwd;
     // 必传，用户Id
-    String userId;
+    private String userId;
     // 非必传，是否群组账号
-    boolean group = false;
+    private boolean group = false;
     // 非必传，关联用户
-    List<String> asstUsers = null;
+    private List<String> asstUsers = null;
 }

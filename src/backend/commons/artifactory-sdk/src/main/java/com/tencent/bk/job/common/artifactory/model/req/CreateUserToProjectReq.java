@@ -32,20 +32,20 @@ import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class CreateUserToProjectReq extends ArtifactoryReq {
     // 必传，用户名
-    String name;
+    private String name;
     // 必传，用户密码
-    String pwd;
+    private String pwd;
     // 必传，用户Id
-    String userId;
+    private String userId;
     // 必传，关联到的项目Id
-    String projectId;
+    private String projectId;
     // 非必传，是否管理员
-    boolean admin = true;
+    private boolean admin = true;
     // 非必传，是否群组账号
-    boolean group = false;
+    private boolean group = false;
     // 非必传，关联用户
-    List<String> asstUsers = null;
+    private List<String> asstUsers = null;
 }
