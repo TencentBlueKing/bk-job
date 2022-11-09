@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.artifactory.model.req;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,7 +34,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 public class Sort {
     // 必传，排序字段
-    List<String> properties = Collections.singletonList("lastModifiedDate");
+    private List<String> properties = Collections.singletonList("lastModifiedDate");
     // 必传，排序方向
-    String direction = "DESC";
+    private String direction = "DESC";
 }

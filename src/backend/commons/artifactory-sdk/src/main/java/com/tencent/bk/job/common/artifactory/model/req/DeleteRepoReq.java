@@ -28,12 +28,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class DeleteRepoReq extends ArtifactoryReq {
     // 必传，项目Id
-    String projectId;
+    private String projectId;
     // 必传，仓库名称
-    String repoName;
+    private String repoName;
     // 非必传，是否强制删除，如果为false，当仓库中存在文件时，将无法删除仓库
-    Boolean forced = false;
+    private Boolean forced = false;
 }

@@ -28,12 +28,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class CreateProjectReq extends ArtifactoryReq {
     // 必传，项目名
-    String name;
+    private String name;
     // 必传，项目显示名称
-    String displayName;
+    private String displayName;
     // 必传，项目描述
-    String description;
+    private String description;
 }

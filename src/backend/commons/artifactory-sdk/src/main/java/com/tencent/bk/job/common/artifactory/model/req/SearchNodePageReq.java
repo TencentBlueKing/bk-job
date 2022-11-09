@@ -36,7 +36,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 public class SearchNodePageReq extends ArtifactoryReq {
     // 非必传，要搜索的字段
-    List<String> select = Arrays.asList(
+    private List<String> select = Arrays.asList(
         "projectId",
         "repoName",
         "path",
@@ -52,9 +52,9 @@ public class SearchNodePageReq extends ArtifactoryReq {
         "lastModifiedDate"
     );
     // 非必传，分页参数
-    PageLimit page;
+    private PageLimit page;
     // 非必传，完整路径
-    Sort sort;
+    private Sort sort;
     // 非必传，自定义查询规则
-    Rule rule;
+    private Rule rule;
 }

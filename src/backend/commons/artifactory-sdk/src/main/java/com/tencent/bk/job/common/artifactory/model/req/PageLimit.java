@@ -33,7 +33,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class PageLimit {
     // 必传，页码
-    int pageNumber = 1;
+    private int pageNumber;
     // 必传，页面大小
-    int pageSize = 20;
+    private int pageSize;
 }

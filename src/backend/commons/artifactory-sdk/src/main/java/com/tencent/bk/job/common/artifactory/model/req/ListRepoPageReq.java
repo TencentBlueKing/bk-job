@@ -30,16 +30,16 @@ import lombok.EqualsAndHashCode;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class ListRepoPageReq extends ArtifactoryReq {
     // 必传，项目Id
-    String projectId;
+    private String projectId;
     // 必传，页码
-    int pageNumber = 1;
+    private int pageNumber = 1;
     // 必传，页面大小
-    int pageSize = 20;
+    private int pageSize = 20;
     // 非必传，名称，支持前缀匹配
-    String name;
+    private String name;
     // 非必传，仓库类型，枚举值
     // GENERIC	通用二进制文件仓库
     // DOCKER	Docker仓库
@@ -49,5 +49,5 @@ public class ListRepoPageReq extends ArtifactoryReq {
     // HELM	    Helm仓库
     // COMPOSER	Composer仓库
     // RPM	    Rpm仓库
-    String type = "GENERIC";
+    private String type = "GENERIC";
 }

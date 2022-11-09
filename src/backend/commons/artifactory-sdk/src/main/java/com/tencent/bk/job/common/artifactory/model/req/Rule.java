@@ -42,13 +42,13 @@ public class Rule {
     public static String RULE_OPERATION_PREFIX = "PREFIX";
     public static String RULE_OPERATION_MATCH = "MATCH";
     // 字段
-    String field;
+    private String field;
     // 操作符
-    String operation;
+    private String operation;
     // 字段值
-    Object value;
+    private Object value;
     // 嵌套的子规则
-    List<Rule> rules;
+    private List<Rule> rules;
     // 嵌套子规则之间的关系
-    String relation;
+    private String relation;
 }
