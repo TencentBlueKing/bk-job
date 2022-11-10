@@ -142,6 +142,7 @@
                 if (!this.popperInstance) {
                     this.popperInstance = Tippy(document.querySelector('#siteHelp'), {
                         arrow: true,
+                        allowHTML: true,
                         placement: 'bottom-end',
                         trigger: 'manual',
                         theme: 'light',

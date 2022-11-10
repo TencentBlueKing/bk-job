@@ -108,13 +108,19 @@
     .then((data) => {
         if (data[CUSTOM_SETTINGS_MODULE]
             && data[CUSTOM_SETTINGS_MODULE].panelSortList) {
+                data[CUSTOM_SETTINGS_MODULE].panelSortList = ['staticTopo', 'manualInput'];
             const panelConfigMap = makeMap(panelList);
-            panelSortList.value = data[CUSTOM_SETTINGS_MODULE].panelSortList.reduce((result, item) => {
+            
+            const newPanelList = data[CUSTOM_SETTINGS_MODULE].panelSortList.reduce((result, item) => {
                 if (panelConfigMap[item]) {
                     result.push(item);
+                    delete panelConfigMap[item];
                 }
                 return result;
             }, []);
+            newPanelList.push(...Object.keys(panelConfigMap));
+
+            panelSortList.value = newPanelList;
         }
     })
     .finally(() => {
