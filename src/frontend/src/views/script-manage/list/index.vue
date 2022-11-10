@@ -125,6 +125,7 @@
                         <jb-edit-tag
                             :key="row.id"
                             field="scriptTags"
+                            :popover="true"
                             :remote-hander="val => handleUpdateScript(row.id, val)"
                             shortcurt
                             :value="row.tags" />

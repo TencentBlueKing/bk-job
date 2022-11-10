@@ -89,7 +89,6 @@
         </template>
         <template slot="side">
             <jb-menu
-                :active="activeMenu"
                 default-active="fastExecuteScript"
                 :flod="!isFrameSideFixed && !isSideExpand"
                 @select="handleRouterChange">
@@ -285,8 +284,6 @@
 
     import QueryGlobalSettingService from '@service/query-global-setting';
 
-    import { leaveConfirm } from '@utils/assist';
-
     import AppSelect from '@components/app-select';
     import JbMenu from '@components/jb-menu';
     import JbItem from '@components/jb-menu/item';
@@ -307,7 +304,6 @@
     const isAdmin = ref(false);
     const routerTitle = ref('');
     const isEnableFeatureFileManage = ref(false);
-    const activeMenu = ref('fastExecuteScript');
 
     const route = useRoute();
     const router = useRouter();
@@ -330,6 +326,21 @@
         immediate: true,
     });
     
+     /**
+     * @desc 获取是否是admin用户
+     */
+     QueryGlobalSettingService.fetchAdminIdentity()
+        .then((result) => {
+            isAdmin.value = result;
+        });
+    /**
+     * @desc 获取系统基本配置
+     */
+    QueryGlobalSettingService.fetchJobConfig()
+        .then((data) => {
+            isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
+        });
+        
     /**
      * @desc 侧导航展开收起
      */
@@ -349,36 +360,15 @@
      * @param {String} routerName 跳转的路由名
      */
     const handleRouterChange = (localtionRouterName) => {
-        if (!routerName || routerName === localtionRouterName) {
-            routerName = localtionRouterName;
+        if (routerName === localtionRouterName) {
             return;
         }
-        activeMenu.value = localtionRouterName;
-        leaveConfirm()
-            .then(() => {
-                routerName = localtionRouterName;
-                router.push({
-                    name: routerName,
-                });
-            })
-            .catch(() => {
-                activeMenu.value = routerName;
-            });
+        
+        routerName = localtionRouterName;
+        router.push({
+            name: routerName,
+        });
     };
-    /**
-     * @desc 获取是否是admin用户
-     */
-    QueryGlobalSettingService.fetchAdminIdentity()
-        .then((result) => {
-            isAdmin.value = result;
-        });
-    /**
-     * @desc 获取系统基本配置
-     */
-    QueryGlobalSettingService.fetchJobConfig()
-        .then((data) => {
-            isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
-        });
             
 </script>
 <style lang="postcss">
