@@ -64,7 +64,6 @@
                     route.matched.forEach((currentMatch) => {
                         if (currentMatch.name === this.index) {
                             this.jbMenu.activeIndex = this.index;
-                            this.handleClick();
                         }
                     });
                 },
