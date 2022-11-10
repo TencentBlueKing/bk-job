@@ -33,7 +33,12 @@ export default () => {
                 size.height = 800;
             }
         } else {
-            size.height = Math.max(context.rootRef.value.getBoundingClientRect().height, 570);
+            const {
+                width,
+                height,
+            } = context.rootRef.value.getBoundingClientRect();
+            size.width = width;
+            size.height = context.height ? context.height : Math.max(height, 300);
         }
         size.contentHeight = size.height - headerHeight - footerHeight;
     };

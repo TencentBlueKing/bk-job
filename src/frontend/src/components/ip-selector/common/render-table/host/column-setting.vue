@@ -1,9 +1,12 @@
 <template>
-    <div ref="rootRef">
+    <div
+        ref="rootRef"
+        class="host-table-column-setting-box"
+        style="width: 100%; height: 100%;">
         <slot />
         <div
             ref="popRef"
-            class="host-table-column-setting">
+            class="host-table-column-setting-popover">
             <div class="setting-header">
                 表格设置
             </div>
@@ -140,7 +143,16 @@
     
 </script>
 <style lang="postcss" scoped>
-    .host-table-column-setting {
+    .host-table-column-setting-box {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        border-left: 1px solid rgb(220 222 229);
+    }
+
+    .host-table-column-setting-popover {
         width: 545px;
         padding-top: 24px;
         margin: -5px -9px;

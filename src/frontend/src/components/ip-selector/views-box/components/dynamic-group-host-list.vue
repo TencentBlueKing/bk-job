@@ -16,6 +16,7 @@
             </bk-button>
         </div>
         <render-host-table
+            v-if="isShow"
             :data="tableData"
             :pagination="pagination"
             @pagination-change="handlePaginationChange" />
@@ -42,6 +43,10 @@
         dynamicGroup: {
             type: Object,
             required: true,
+        },
+        isShow: {
+            type: Boolean,
+            default: false,
         },
     });
 
@@ -93,7 +98,12 @@
             [Manager.nameStyle('start')]: 0,
         })
         .then((data) => {
-            const ipList = data.data.map(item => item[hostRenderKey.value]);
+            const ipList = data.data.reduce((result, item) => {
+                if (item.alive !== 1) {
+                    result.push(item[hostRenderKey.value]);
+                }
+                return result;
+            }, []);
             execCopy(ipList.join('\n'), `复制成功 ${ipList.length} 个 IP`);
         })
         .finally(() => {
@@ -109,6 +119,7 @@
         })
         .then((data) => {
             const ipList = data.data.map(item => item[hostRenderKey.value]);
+            
             execCopy(ipList.join('\n'), `复制成功 ${ipList.length} 个 IP`);
         })
         .finally(() => {

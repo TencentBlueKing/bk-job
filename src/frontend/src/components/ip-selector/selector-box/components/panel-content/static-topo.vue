@@ -31,7 +31,8 @@
                                     v-bk-tooltips="`${isHidedEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点' }`"
                                     class="topo-node-filter"
                                     :style="{
-                                        display: isHidedEmptyNode ? 'block' : 'none',
+                                        // display: isHidedEmptyNode ? 'block' : 'none',
+                                        opacity: isHidedEmptyNode ? 1 : 0
                                     }"
                                     @click.stop="handleToggleFilterWithCount">
                                     <ip-selector-icon :type="`${isHidedEmptyNode ? 'invisible1' : 'visible1'}`" />
@@ -76,7 +77,11 @@
                                 @change="handlePageCheck" />
                         </template>
                         <template #selection="{ row }">
-                            <bk-checkbox :value="Boolean(hostCheckedMap[row.host_id])" />
+                            <span v-bk-tooltips="checkHostDisable(row).tooltips">
+                                <bk-checkbox
+                                    :disabled="checkHostDisable(row).disabled"
+                                    :value="Boolean(hostCheckedMap[row.host_id])" />
+                            </span>
                         </template>
                     </render-host-table>
                 </div>
@@ -114,6 +119,7 @@
     import useDebounceRef from '../../../hooks/use-debounced-ref';
     import useDialogSize from '../../../hooks/use-dialog-size';
     import useFetchConfig from '../../../hooks/use-fetch-config';
+    import useHostDisable from '../../../hooks/use-host-disable';
     import useInputEnter from '../../../hooks/use-input-enter';
     import useTreeExpanded from '../../../hooks/use-tree-expanded';
     import useTreeFilter from '../../../hooks/use-tree-filter';
@@ -182,6 +188,8 @@
         lazyDisabledCallbak,
         lazyMethodCallback,
     } = useTreeLazy();
+
+    const checkHostDisable = useHostDisable();
 
     // 判断 page-check 的状态
     const syncTablePageCheckValue = () => {
@@ -308,16 +316,25 @@
             .then(() => {
                 if (checkValue === 'page') {
                     hostTableData.value.forEach((hostDataItem) => {
+                        if (checkHostDisable(hostDataItem).disabled) {
+                            return;
+                        }
                         checkedMap[hostDataItem.host_id] = hostDataItem;
                     });
                 } else if (checkValue === 'pageCancle') {
                     hostTableData.value.forEach((hostDataItem) => {
+                        if (checkHostDisable(hostDataItem).disabled) {
+                            return;
+                        }
                         delete checkedMap[hostDataItem.host_id];
                     });
                 } else if (checkValue === 'allCancle') {
                     return fetchNodeAllHostId()
                         .then((data) => {
                             data.forEach((hostDataItem) => {
+                                if (checkHostDisable(hostDataItem).disabled) {
+                                    return;
+                                }
                                 delete checkedMap[hostDataItem.host_id];
                             });
                         });
@@ -325,6 +342,9 @@
                     return fetchNodeAllHostId()
                         .then((data) => {
                             data.forEach((hostDataItem) => {
+                                if (checkHostDisable(hostDataItem).disabled) {
+                                    return;
+                                }
                                 checkedMap[hostDataItem.host_id] = hostDataItem;
                             });
                         });
@@ -339,6 +359,9 @@
 
     // 选中指定主机
     const handleRowClick = (data) => {
+        if (checkHostDisable(data).disabled) {
+            return;
+        }
         const checkedMap = { ...hostCheckedMap.value };
         if (checkedMap[data.host_id]) {
             delete checkedMap[data.host_id];

@@ -16,6 +16,7 @@
             </bk-button>
         </div>
         <render-host-table
+            v-if="isShow"
             :data="tableData"
             :pagination="pagination"
             @pagination-change="handlePaginationChange" />
@@ -39,6 +40,10 @@
      } from '../../utils';
 
     const props = defineProps({
+        isShow: {
+            type: Boolean,
+            default: false,
+        },
         node: {
             type: Object,
             required: true,

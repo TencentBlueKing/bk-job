@@ -1,102 +1,110 @@
 <template>
     <div class="ip-selector-dynamic-topo">
-        <resize-layout
-            v-if="topoTreeData.length > 0"
-            :default-width="265"
-            flex-direction="left">
-            <div class="tree-box">
-                <bk-input
-                    v-model="filterKey"
-                    clearable
-                    placeholder="搜索拓扑节点"
-                    style="margin-bottom: 12px;" />
-                <bk-big-tree
-                    ref="treeRef"
-                    :check-strictly="false"
-                    :data="topoTreeData"
-                    expand-on-click
-                    :filter-method="filterMethod"
-                    :lazy-disabled="lazyDisabledCallbak"
-                    :lazy-method="lazyMethodCallback"
-                    selectable
-                    show-checkbox
-                    show-link-line
-                    @check-change="handleNodeCheckChange"
-                    @select-change="handleNodeSelect">
-                    <template #default="{ node: nodeItem, data }">
-                        <div class="topo-node-box">
-                            <div class="topo-node-name">
-                                {{ data.name }}
-                            </div>
-                            <template v-if="nodeItem.level === 0">
-                                <div
-                                    :key="`filter_${isHidedEmptyNode}`"
-                                    v-bk-tooltips="`${isHidedEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点'}`"
-                                    class="topo-node-filter"
-                                    :style="{
-                                        display: isHidedEmptyNode ? 'block' : 'none',
-                                    }"
-                                    @click.stop="handleToggleFilterWithCount">
-                                    <ip-selector-icon :type="`${isHidedEmptyNode ? 'invisible1' : 'visible1'}`" />
-                                </div>
-                            </template>
-                            <div
-                                v-if="calcShowExpanded(nodeItem)"
-                                :key="`expanded_${nodeItem.expanded}`"
-                                v-bk-tooltips="`${nodeItem.expanded ? '收起所有节点' : '展开所有节点'}`"
-                                class="topo-node-expand"
-                                @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
-                                <ip-selector-icon :type="`${nodeItem.expanded ? 'shangxiachengkai-2' : 'shangxiachengkai'}`" />
-                            </div>
-                            <div class="topo-node-count">
-                                {{ data.payload.count }}
-                            </div>
-                        </div>
-                    </template>
-                </bk-big-tree>
-            </div>
-            <template #right>
-                <div class="table-box">
-                    <template v-if="selectedTopoNode.id">
-                        <table-tab
-                            :model-value="renderTableType"
-                            @change="handleTableTypeChange">
-                            <table-tab-item name="node">
-                                {{ selectedTopoNode.name }} ({{ selectedTopoNode.children.length }})
-                            </table-tab-item>
-                            <table-tab-item name="host">
-                                主机 ({{ selectedTopoNode.data.payload.count }})
-                            </table-tab-item>
-                        </table-tab>
-                        <div :key="selectedTopoNode.id">
-                            <keep-alive>
-                                <component
-                                    :is="renderTableCom"
-                                    :checked-map="nodeCheckedMap"
-                                    :data="renderNodeList"
-                                    :node="selectedTopoNode"
-                                    style="min-height: 200px;"
-                                    @check-change="handleTableNodeCheckChange" />
-                            </keep-alive>
-                        </div>
-                    </template>
-                    <div v-else>
-                        请在右侧选择节点
-                    </div>
-                </div>
-            </template>
-        </resize-layout>
         <div
-            v-else
-            v-bkloading="{ isLoading: isConfigLoading }"
-            class="create-static-topo">
-            <span>无数据，</span>
-            <a
-                :href="config.bk_cmdb_static_topo_url"
-                target="_blank">
-                去创建
-            </a>
+            v-if="isNotSupport"
+            class="not-support-dynamic-topo">
+            <img src="../../../../images/empty.svg">
+            <p>当前业务（集）暂不支持使用动态-拓扑选择</p>
         </div>
+        <template v-else>
+            <resize-layout
+                v-if="topoTreeData.length > 0"
+                :default-width="265"
+                flex-direction="left">
+                <div class="tree-box">
+                    <bk-input
+                        v-model="filterKey"
+                        clearable
+                        placeholder="搜索拓扑节点"
+                        style="margin-bottom: 12px;" />
+                    <bk-big-tree
+                        ref="treeRef"
+                        :check-strictly="false"
+                        :data="topoTreeData"
+                        expand-on-click
+                        :filter-method="filterMethod"
+                        :lazy-disabled="lazyDisabledCallbak"
+                        :lazy-method="lazyMethodCallback"
+                        selectable
+                        show-checkbox
+                        show-link-line
+                        @check-change="handleNodeCheckChange"
+                        @select-change="handleNodeSelect">
+                        <template #default="{ node: nodeItem, data }">
+                            <div class="topo-node-box">
+                                <div class="topo-node-name">
+                                    {{ data.name }}
+                                </div>
+                                <template v-if="nodeItem.level === 0">
+                                    <div
+                                        :key="`filter_${isHidedEmptyNode}`"
+                                        v-bk-tooltips="`${isHidedEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点'}`"
+                                        class="topo-node-filter"
+                                        :style="{
+                                            display: isHidedEmptyNode ? 'block' : 'none',
+                                        }"
+                                        @click.stop="handleToggleFilterWithCount">
+                                        <ip-selector-icon :type="`${isHidedEmptyNode ? 'invisible1' : 'visible1'}`" />
+                                    </div>
+                                </template>
+                                <div
+                                    v-if="calcShowExpanded(nodeItem)"
+                                    :key="`expanded_${nodeItem.expanded}`"
+                                    v-bk-tooltips="`${nodeItem.expanded ? '收起所有节点' : '展开所有节点'}`"
+                                    class="topo-node-expand"
+                                    @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
+                                    <ip-selector-icon :type="`${nodeItem.expanded ? 'shangxiachengkai-2' : 'shangxiachengkai'}`" />
+                                </div>
+                                <div class="topo-node-count">
+                                    {{ data.payload.count }}
+                                </div>
+                            </div>
+                        </template>
+                    </bk-big-tree>
+                </div>
+                <template #right>
+                    <div class="table-box">
+                        <template v-if="selectedTopoNode.id">
+                            <table-tab
+                                :model-value="renderTableType"
+                                @change="handleTableTypeChange">
+                                <table-tab-item name="node">
+                                    {{ selectedTopoNode.name }} ({{ selectedTopoNode.children.length }})
+                                </table-tab-item>
+                                <table-tab-item name="host">
+                                    主机 ({{ selectedTopoNode.data.payload.count }})
+                                </table-tab-item>
+                            </table-tab>
+                            <div :key="selectedTopoNode.id">
+                                <keep-alive>
+                                    <component
+                                        :is="renderTableCom"
+                                        :checked-map="nodeCheckedMap"
+                                        :data="renderNodeList"
+                                        :node="selectedTopoNode"
+                                        style="min-height: 200px;"
+                                        @check-change="handleTableNodeCheckChange" />
+                                </keep-alive>
+                            </div>
+                        </template>
+                        <div v-else>
+                            请在右侧选择节点
+                        </div>
+                    </div>
+                </template>
+            </resize-layout>
+            <div
+                v-else
+                v-bkloading="{ isLoading: isConfigLoading }"
+                class="create-dynamic-topo">
+                <span>无数据，</span>
+                <a
+                    :href="config.bk_cmdb_static_topo_url"
+                    target="_blank">
+                    去创建
+                </a>
+            </div>
+        </template>
     </div>
 </template>
 <script>
@@ -142,6 +150,14 @@
         'change',
     ]);
 
+    const checkNotSupport = () => {
+        if (props.topoTreeData.length === 1
+            && props.topoTreeData[0].object_id !== 'biz_set') {
+            return true;
+        }
+        return false;
+    };
+
     const tableComMap = {
         node: RenderNodeTable,
         host: RenderHostTable,
@@ -150,6 +166,8 @@
     const treeRef = ref();
     const topoTreeSearch = useDebounceRef('');
     const renderTableType = ref('node');
+
+    const isNotSupport = ref(false);
     
     const nodeCheckedMap = shallowRef({});
 
@@ -197,6 +215,11 @@
 
     // 同步拓扑树数据
     watch(() => props.topoTreeData, () => {
+        isNotSupport.value = checkNotSupport();
+        // 业务集不支持动态拓扑
+        if (isNotSupport.value) {
+            return;
+        }
         nextTick(() => {
             if (props.topoTreeData.legnth < 1) {
                 return;
@@ -213,6 +236,9 @@
 
     // 同步节点的选中值
     watch(() => props.lastNodeList, (lastNodeList) => {
+        if (isNotSupport.value) {
+            return;
+        }
         if (isInnerChange) {
             isInnerChange = false;
             return;
@@ -230,6 +256,9 @@
 
     // 拓扑树搜索
     watch(topoTreeSearch, () => {
+        if (isNotSupport.value) {
+            return;
+        }
         treeRef.value.filter(topoTreeSearch.value);
     });
 
@@ -290,7 +319,8 @@
             padding-left: 24px;
         }
 
-        .create-static-topo {
+        .create-dynamic-topo,
+        .not-support-dynamic-topo {
             width: 100%;
             padding-top: 120px;
             text-align: center;

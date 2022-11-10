@@ -1,7 +1,7 @@
 <template>
     <div class="ip-selector-manual-input">
         <resize-layout
-            :default-width="385"
+            :default-width="resizeLayoutLeftDefaultWidth"
             flex-direction="left">
             <div
                 ref="inputRef"
@@ -49,7 +49,7 @@
                         size="small"
                         theme="primary"
                         @click="handleParseManualInput">
-                        点击解析
+                        解析并添加
                     </bk-button>
                     <bk-button
                         class="clear-btn"
@@ -79,13 +79,17 @@
                                 @change="handlePageCheck" />
                         </template>
                         <template #selection="{ row }">
-                            <bk-checkbox :value="Boolean(hostCheckedMap[row.host_id])" />
+                            <span v-bk-tooltips="checkHostDisable(row).tooltips">
+                                <bk-checkbox
+                                    :disabled="checkHostDisable(row).disabled"
+                                    :value="Boolean(hostCheckedMap[row.host_id])" />
+                            </span>
                         </template>
                         <template
                             v-if="hostTableData.length < 1"
                             #empty>
                             <ip-selector-icon type="info-circle" />
-                            请先从右侧输入主机并解析
+                            请先从左侧输入主机并解析
                         </template>
                     </render-host-table>
                     <div
@@ -118,8 +122,8 @@
 
     import IpSelectorIcon from '../../../common/ip-selector-icon';
     import RenderHostTable from '../../../common/render-table/host/index.vue';
-    // import useDebounceRef from '../../../hooks/use-debounced-ref';
     import useDialogSize from '../../../hooks/use-dialog-size';
+    import useHostDisable from '../../../hooks/use-host-disable';
     import useLocalPagination from '../../../hooks/use-local-pagination';
     import Manager from '../../../manager';
     import {
@@ -149,16 +153,19 @@
 
     const tableOffetTop = 60;
     const {
-        contentHeight: dialogContentHeight,
+        width: boxWidth,
+        contentHeight: boxContentHeight,
     } = useDialogSize();
-    const renderTableHeight = dialogContentHeight.value - tableOffetTop;
+    const renderTableHeight = boxContentHeight.value - tableOffetTop;
+    const resizeLayoutLeftDefaultWidth = (boxWidth.value - 320) / 2;
 
-    // const serachKey = useDebounceRef('');
     const pageCheckValue = ref('');
 
     const manualInputStyles = computed(() => ({
-        height: `${dialogContentHeight.value - 94}px`,
+        height: `${boxContentHeight.value - 94}px`,
     }));
+
+    const checkHostDisable = useHostDisable();
 
     const {
         isShowPagination,
@@ -289,6 +296,8 @@
         })
         .then((data) => {
             hostTableData.value = data;
+            // 接口返回后默认选中所有主机
+            handlePageCheck('all');
             syncTablePageCheckValue();
             const ipMap = makeMap(ipList);
             const ipv6Map = makeMap(ipv6List);
@@ -329,6 +338,7 @@
         });
     };
 
+    // 用户重新输入后需要清空上次的解析错误提示
     const handleManualInputChange = () => {
         invalidInputStack.value = [];
         errorInputStack.value = [];
@@ -365,18 +375,30 @@
 
         if (checkValue === 'page') {
             renderData.value.forEach((hostDataItem) => {
+                if (checkHostDisable(hostDataItem).disabled) {
+                    return;
+                }
                 checkedMap[hostDataItem.host_id] = hostDataItem;
             });
         } else if (checkValue === 'pageCancle') {
             renderData.value.forEach((hostDataItem) => {
+                if (checkHostDisable(hostDataItem).disabled) {
+                    return;
+                }
                 delete checkedMap[hostDataItem.host_id];
             });
         } else if (checkValue === 'allCancle') {
             searchWholeData.value.forEach((hostDataItem) => {
+                if (checkHostDisable(hostDataItem).disabled) {
+                    return;
+                }
                 delete checkedMap[hostDataItem.host_id];
             });
         } else if (checkValue === 'all') {
             hostTableData.value.forEach((hostDataItem) => {
+                if (checkHostDisable(hostDataItem).disabled) {
+                    return;
+                }
                 checkedMap[hostDataItem.host_id] = hostDataItem;
             });
         }
@@ -387,6 +409,9 @@
 
     // 选中指定主机
     const handleRowClick = (data) => {
+        if (checkHostDisable(data).disabled) {
+            return;
+        }
         const checkedMap = { ...hostCheckedMap.value };
         if (checkedMap[data.host_id]) {
             delete checkedMap[data.host_id];
@@ -401,6 +426,8 @@
 </script>
 <style lang="postcss">
     .ip-selector-manual-input {
+        height: 100%;
+
         .custom-input {
             padding-right: 16px;
             padding-left: 16px;

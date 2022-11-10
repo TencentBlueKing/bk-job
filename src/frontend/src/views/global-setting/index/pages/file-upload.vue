@@ -38,8 +38,8 @@
                     <div class="input-wraper">
                         <bk-input
                             v-model="info.amount"
-                            type="number"
-                            :min="1" />
+                            :min="1"
+                            type="number" />
                         <bk-select
                             v-model="info.unit"
                             class="unit-item"

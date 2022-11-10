@@ -122,3 +122,6 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .bk-ipselector-sort:before {
 	content: "\e123";
 }
+.bk-ipselector-lashen:before {
+	content: "\e129";
+}

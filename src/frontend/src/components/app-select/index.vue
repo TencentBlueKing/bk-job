@@ -363,7 +363,7 @@
                     } else {
                         renderList = _.filter(this.list, _ => rule.test(_.head)
                             || rule.test(_.sentence)
-                            || rule.test(_.id));
+                            || rule.test(_.scopeId));
                     }
                 }
                 this.renderList = Object.freeze(renderList);

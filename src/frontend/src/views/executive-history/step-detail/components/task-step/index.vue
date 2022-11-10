@@ -27,14 +27,15 @@
 
 <template>
     <div
+        ref="root"
+        v-bk-clickoutside="handleClosePopover"
         class="task-execute-bar-step"
         :class="{
             [data.displayStyle]: true,
             active: data.stepInstanceId === activeId,
         }"
         @click="handleSelect"
-        @mouseenter="handleShowPopover"
-        @mouseleave="handleHidePopover">
+        @mouseenter="handleShowPopover">
         <div class="step-wraper">
             <div class="step-icon">
                 <Icon :type="data.icon" />
@@ -55,7 +56,6 @@
             :class="['task-status-bar-step-popover', arrowPlacement]"
             :data="data"
             :style="popoverStyles"
-            @on-close="handleClosePopover"
             @on-update="handleTaskStatusUpdate" />
     </div>
 </template>
@@ -139,6 +139,7 @@
                     const windowHeight = window.innerHeight;
                     const { height } = $popoverTarget.getBoundingClientRect();
                     const { top, left } = this.$el.getBoundingClientRect();
+                    
                     position.left = left;
                     position.top = top + offset;
                     if (top + height + 20 > windowHeight) {
@@ -149,18 +150,21 @@
                         this.arrowPlacement = 'middle';
                         position.top = top - height / 2 + 30;
                     }
+                    if (position.top < 110) {
+                        position.top = 110;
+                    }
                     document.body.appendChild($popoverTarget);
                     this.popoverPosition = position;
                 });
             },
             // 人工确认步骤——如果没有确认需要手动关闭
             // 其它步骤鼠标离开自动关闭
-            handleHidePopover () {
-                if (this.data.isApproval && this.data.displayStyle !== 'success') {
-                    return;
-                }
-                this.isShowPopover = false;
-            },
+            // handleHidePopover () {
+                // if (this.data.isApproval && this.data.displayStyle !== 'success') {
+                //     return;
+                // }
+                // this.isShowPopover = false;
+            // },
             handleClosePopover () {
                 this.isShowPopover = false;
             },
@@ -283,7 +287,6 @@
     }
 
     .task-status-bar-step-popover {
-        /* position: relative; */
         font-size: 14px;
         line-height: 22px;
         color: #63656e;
@@ -292,14 +295,5 @@
         border: 1px solid #dcdee5;
         border-radius: 2px;
         box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
-
-        /* &:after{
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -15px;
-            width: 20px;
-            height: 60px;
-        } */
     }
 </style>

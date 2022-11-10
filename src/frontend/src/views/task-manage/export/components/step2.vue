@@ -218,6 +218,7 @@
                     data.forEach((plan) => {
                         currentTemplate.planSelectedMap[plan.id] = true;
                     });
+                    currentTemplate.exportAll = 1;
                     this.templateInfoMap = Object.freeze(templateInfoMap);
                 })
                     .finally(() => {
