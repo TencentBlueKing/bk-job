@@ -89,8 +89,6 @@ const IpSelector = createIpSelector({
         })),
 });
 
-console.dir(IpSelector);
-
 Vue.use(bkMagicVue);
 Vue.use(VueProgressBar, {
     color: '#3A84FF',

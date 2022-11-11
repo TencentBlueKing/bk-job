@@ -198,6 +198,7 @@
                         retryCount: this.retryCount,
                         taskStepList: data.stepExecution,
                         isTask: this.taskExecutionDetail.taskExecution.isTask,
+                        taskExecution: this.taskExecutionDetail.taskExecution,
                     });
                 })
                     .catch((error) => {
@@ -292,6 +293,7 @@
                     retryCount,
                     taskStepList: this.taskExecutionDetail.stepExecution,
                     isTask: this.taskExecutionDetail.taskExecution.isTask,
+                    taskExecution: this.taskExecutionDetail.taskExecution,
                 });
             },
             handleTaskStatusUpdate (payload) {

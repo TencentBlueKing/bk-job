@@ -386,7 +386,6 @@
              * 静态 ip 选择和手动输入的结果需要合并
              */
             handleChange (field, value) {
-                console.log(`from asda = ${field}`, value);
                 this.error = '';
                 switch (field) {
                     case 'ipList':

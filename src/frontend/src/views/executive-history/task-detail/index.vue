@@ -237,8 +237,6 @@
                         taskInstanceId: this.taskInstanceId,
                     },
                     query: {
-                        stepInstanceId: stepInstance.stepInstanceId,
-                        retryCount: stepInstance.retryCount,
                         from: this.$route.query.from || 'historyTask',
                     },
                 });
@@ -299,7 +297,6 @@
                                     },
                                 });
                                 this.taskInstanceId = taskInstanceId;
-                            // this.fetchData()
                             })
                                 .finally(() => {
                                     this.isLoading = false;
