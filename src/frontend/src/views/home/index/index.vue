@@ -77,6 +77,7 @@
 </template>
 <script>
     import marked from 'marked';
+    import xss from 'xss';
     import QueryGlobalSettingService from '@service/query-global-setting';
     import LayoutCard from './components/card';
     import User from './components/user';
@@ -84,6 +85,17 @@
     import WorkStatistics from './components/work-statistics';
     import FavorTask from './components/favor-task';
     import HistoryRecord from './components/history-record';
+
+    const xssHTML = (html) => {
+        const attrs = ['class', 'title', 'target', 'style'];
+        return xss(html, {
+            onTagAttr: (tag, name, value, isWhiteAttr) => {
+                if (attrs.includes(name)) {
+                    return `${name}=${value}`;
+                }
+            },
+        });
+    };
 
     export default {
         name: '',
@@ -109,8 +121,8 @@
                 const formatLink = link => link.replace(/(?=( href))/g, ' target="_blank"');
                 QueryGlobalSettingService.fetchFooterConfig()
                     .then((data) => {
-                        this.footerLink = formatLink(marked(`${data.footerLink}`));
-                        this.footerCopyRight = marked(data.footerCopyRight);
+                        this.footerLink = xssHTML(formatLink(marked(`${data.footerLink}`)));
+                        this.footerCopyRight = xssHTML(marked(data.footerCopyRight));
                     });
             },
         },

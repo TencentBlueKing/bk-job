@@ -37,7 +37,8 @@
     "vue-progressbar": "0.7.5",
     "vue-router": "3.5.2",
     "vuedraggable": "2.23.2",
-    "vuex": "3.6.2"
+    "vuex": "3.6.2",
+    "xss": "^1.0.14"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
