@@ -182,7 +182,6 @@
                             <jb-edit-tag
                                 :key="row.id"
                                 field="tags"
-                                :popover="true"
                                 :remote-hander="val => handleUpdateTask(row, val)"
                                 shortcurt
                                 :value="row.tags" />

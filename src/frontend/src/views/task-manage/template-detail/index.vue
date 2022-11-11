@@ -54,7 +54,6 @@
                     <jb-edit-tag
                         class="input"
                         field="tags"
-                        :popover="true"
                         :remote-hander="handleUpdateTemplate"
                         :value="formData.tags" />
                     <div slot="forbid">
