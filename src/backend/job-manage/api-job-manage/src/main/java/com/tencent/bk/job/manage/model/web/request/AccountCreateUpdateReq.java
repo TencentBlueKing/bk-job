@@ -31,6 +31,7 @@ import lombok.Data;
 import lombok.ToString;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
