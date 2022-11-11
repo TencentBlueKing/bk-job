@@ -33,7 +33,7 @@
             ref="pop"
             class="jb-edit-tag"
             :class="{ shortcurt }"
-            style="width: 170px;"
+            :style="popStyles"
             @click.stop="">
             <div
                 v-if="!isEditing"
@@ -86,7 +86,8 @@
                 <jb-tag-select
                     ref="tagSelect"
                     :value="localValue"
-                    @on-change="handleTagValueChange" />
+                    @on-change="handleTagValueChange"
+                    @toggle="handleToggle" />
             </div>
         </div>
     </div>
@@ -157,6 +158,7 @@
                 isEditing: false,
                 isLoading: false,
                 localValue: this.value,
+                popStyles: {},
             };
         },
         computed: {
@@ -198,7 +200,8 @@
                 if (!this.popover) {
                     return;
                 }
-                let tippyInstance = tippy(this.$refs.root, {
+                
+                this.tippyInstance = tippy(this.$refs.root, {
                     content: this.$refs.pop,
                     arrow: false,
                     placement: 'bottom',
@@ -211,12 +214,38 @@
                     zIndex: 1,
                     hideOnClick: false,
                 });
-                tippyInstance.show();
+                this.tippyInstance.show();
+                
+                let cacheLeft = this.$refs.root.getBoundingClientRect().left;
+                const observer = new MutationObserver(_.throttle(() => {
+                    const {
+                        width,
+                        left,
+                    } = this.$refs.root.getBoundingClientRect();
+                    this.popStyles = {
+                        width: `${width}px`,
+                    };
+                    
+                    if (cacheLeft === left) {
+                        return;
+                    }
+                    cacheLeft = left;
+                    this.tippyInstance.hide();
+                    setTimeout(() => {
+                        this.tippyInstance.show();
+                    });
+                }, 20));
+                observer.observe(document.querySelector('#app'), {
+                    attributes: true,
+                    characterData: true,
+                    childList: true,
+                    subtree: true,
+                });
                 this.$once('hook:beforeDestroy', () => {
-                    console.log('beforeDestroybeforeDestroy');
-                    tippyInstance.hide();
-                    tippyInstance.destroy();
-                    tippyInstance = null;
+                    this.tippyInstance.hide();
+                    this.tippyInstance.destroy();
+                    this.tippyInstance = null;
+                    observer.disconnect();
                 });
             },
             /**
@@ -244,6 +273,7 @@
                         this.isLoading = false;
                     });
             },
+            
             /**
              * @desc 切换编辑状态
              */
@@ -261,6 +291,14 @@
                 }
                 
                 this.triggerRemote();
+            },
+            handleToggle (toggle) {
+                if (!this.tippyInstance || !toggle) {
+                    return;
+                }
+                console.log('handleToggle', this.tippyInstance);
+                // eslint-disable-next-line no-underscore-dangle
+                this.tippyInstance.popper.style.zIndex = window.__bk_zIndex_manager.nextZIndex();
             },
             /**
              * @desc tag 值更新

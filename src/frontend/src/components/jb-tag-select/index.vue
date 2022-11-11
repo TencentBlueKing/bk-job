@@ -36,7 +36,8 @@
             multiple
             searchable
             :value="realValue"
-            @change="handleChange">
+            @change="handleChange"
+            @toggle="handleToggle">
             <bk-option
                 v-for="tagItem in list"
                 :id="tagItem.id"
@@ -127,6 +128,10 @@
              */
             show () {
                 this.$refs.select.show();
+            },
+
+            handleToggle (toggle) {
+                this.$emit('toggle', toggle);
             },
             
             /**
