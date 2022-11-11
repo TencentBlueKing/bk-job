@@ -22,14 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service.remote;
+package com.tencent.bk.job.common.util.http;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
 
 /**
- * 用于请求File-Worker的客户端
+ * 封装的用于发起Http请求的客户端
  */
-public interface FileWorkerClient {
+public interface JobHttpClient {
 
     String post(HttpReq req);
 

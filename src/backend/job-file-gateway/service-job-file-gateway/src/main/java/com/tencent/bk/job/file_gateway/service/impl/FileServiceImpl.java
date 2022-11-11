@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.http.HttpReq;
+import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
@@ -40,7 +41,6 @@ import com.tencent.bk.job.file_gateway.service.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileService;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceReqGenService;
-import com.tencent.bk.job.file_gateway.service.remote.FileWorkerClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,17 +53,17 @@ public class FileServiceImpl implements FileService {
     private final FileSourceService fileSourceService;
     private final DispatchService dispatchService;
     private final FileSourceReqGenService fileSourceReqGenService;
-    private final FileWorkerClient fileWorkerClient;
+    private final JobHttpClient jobHttpClient;
 
     @Autowired
     public FileServiceImpl(FileSourceService fileSourceService,
                            DispatchService dispatchService,
                            FileSourceReqGenService fileSourceReqGenService,
-                           FileWorkerClient fileWorkerClient) {
+                           JobHttpClient jobHttpClient) {
         this.fileSourceService = fileSourceService;
         this.dispatchService = dispatchService;
         this.fileSourceReqGenService = fileSourceReqGenService;
-        this.fileWorkerClient = fileWorkerClient;
+        this.jobHttpClient = jobHttpClient;
     }
 
     private FileWorkerDTO getFileWorker(FileSourceDTO fileSourceDTO) {
@@ -85,7 +85,7 @@ public class FileServiceImpl implements FileService {
         HttpReq req = fileSourceReqGenService.genFileAvailableReq(appId, fileWorkerDTO, fileSourceDTO);
         String respStr;
         try {
-            respStr = fileWorkerClient.post(req);
+            respStr = jobHttpClient.post(req);
             Response<Boolean> resp = JsonUtils.fromJson(respStr,
                 new TypeReference<Response<Boolean>>() {
                 });
@@ -112,7 +112,7 @@ public class FileServiceImpl implements FileService {
             fileWorkerDTO, fileSourceDTO);
         String respStr;
         try {
-            respStr = fileWorkerClient.post(req);
+            respStr = jobHttpClient.post(req);
         } catch (Exception e) {
             log.error("Fail to request remote worker:", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE,
@@ -137,7 +137,7 @@ public class FileServiceImpl implements FileService {
             executeActionReq.getParams(), fileWorkerDTO, fileSourceDTO);
         String respStr;
         try {
-            respStr = fileWorkerClient.post(req);
+            respStr = jobHttpClient.post(req);
             Response<Boolean> resp = JsonUtils.fromJson(respStr, new TypeReference<Response<Boolean>>() {
             });
             if (resp.isSuccess()) {

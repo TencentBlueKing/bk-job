@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
+import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
@@ -54,7 +55,6 @@ import com.tencent.bk.job.file_gateway.service.context.TaskContext;
 import com.tencent.bk.job.file_gateway.service.context.impl.DefaultTaskContext;
 import com.tencent.bk.job.file_gateway.service.listener.FileTaskStatusChangeListener;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
-import com.tencent.bk.job.file_gateway.service.remote.FileWorkerClient;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +85,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     private final DispatchService dispatchService;
     private final FileSourceTaskReqGenService fileSourceTaskReqGenService;
     private final RedisTemplate<Object, Object> redisTemplate;
-    private final FileWorkerClient fileWorkerClient;
+    private final JobHttpClient jobHttpClient;
     private final List<FileTaskStatusChangeListener> fileTaskStatusChangeListenerList = new ArrayList<>();
 
     @Autowired
@@ -95,7 +95,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                                      FileSourceTaskReqGenService fileSourceTaskReqGenService,
                                      RedisTemplate<Object, Object> redisTemplate,
                                      FileTaskStatusChangeListener fileTaskStatusChangeListener,
-                                     FileWorkerClient fileWorkerClient) {
+                                     JobHttpClient jobHttpClient) {
         this.dslContext = dslContext;
         this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.fileTaskDAO = fileTaskDAO;
@@ -104,7 +104,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         this.dispatchService = dispatchService;
         this.fileSourceTaskReqGenService = fileSourceTaskReqGenService;
         this.redisTemplate = redisTemplate;
-        this.fileWorkerClient = fileWorkerClient;
+        this.jobHttpClient = jobHttpClient;
         addFileTaskStatusChangeListener(fileTaskStatusChangeListener);
     }
 
@@ -379,7 +379,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     private String postHttpReq(HttpReq req) {
-        return fileWorkerClient.post(req);
+        return jobHttpClient.post(req);
     }
 
     private Integer stopTasksWithCommand(List<String> taskIdList, TaskCommandEnum command) {

@@ -22,14 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service.remote.impl;
+package com.tencent.bk.job.common.util.http;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.file_gateway.service.remote.FileWorkerClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -42,12 +41,12 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
-public class FileWorkerClientImpl implements FileWorkerClient {
+public class JobHttpClientImpl implements JobHttpClient {
 
     private final RestTemplate restTemplate;
 
     @Autowired
-    public FileWorkerClientImpl(RestTemplate restTemplate) {
+    public JobHttpClientImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
