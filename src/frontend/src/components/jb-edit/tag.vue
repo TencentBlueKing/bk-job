@@ -27,73 +27,65 @@
 
 <template>
     <div
-        ref="root"
-        :style="rootStyles">
+        class="jb-edit-tag"
+        :class="{ shortcurt }"
+        @click.stop="">
         <div
-            ref="pop"
-            class="jb-edit-tag"
-            :class="{ shortcurt }"
-            style="width: 170px;"
-            @click.stop="">
+            v-if="!isEditing"
+            class="render-value-box"
+            @click.stop="handleTextClick">
             <div
-                v-if="!isEditing"
-                class="render-value-box"
-                @click.stop="handleTextClick">
+                ref="content"
+                v-bk-overflow-tips
+                class="value-text"
+                tag-edit-tag>
+                <slot :value="text">
+                    {{ text || '--' }}
+                </slot>
+            </div>
+            <template v-if="!isLoading">
                 <div
-                    ref="content"
-                    v-bk-overflow-tips
-                    class="value-text"
-                    tag-edit-tag>
-                    <slot :value="text">
-                        {{ text || '--' }}
-                    </slot>
-                </div>
-                <template v-if="!isLoading">
-                    <div
-                        v-if="shortcurt"
-                        class="tag-shortcurt-box"
-                        @click.stop="">
-                        <div class="shortcurt-action-btn">
-                            <Icon
-                                v-bk-tooltips="$t('复制')"
-                                class="paste-btn"
-                                type="copy"
-                                @click="handleCopy" />
-                            <Icon
-                                v-bk-tooltips="$t('粘贴')"
-                                class="paste-btn"
-                                type="paste"
-                                @click="handlePaste" />
-                        </div>
-                    </div>
-                    <div
-                        v-else
-                        class="tag-normal-box">
+                    v-if="shortcurt"
+                    class="tag-shortcurt-box"
+                    @click.stop="">
+                    <div class="shortcurt-action-btn">
                         <Icon
-                            class="edit-action"
-                            type="edit-2"
-                            @click.self.stop="handleEdit" />
+                            v-bk-tooltips="$t('复制')"
+                            type="copy"
+                            @click="handleCopy" />
+                        <Icon
+                            v-bk-tooltips="$t('粘贴')"
+                            class="paste-btn"
+                            type="paste"
+                            @click="handlePaste" />
                     </div>
-                </template>
-                <Icon
-                    v-if="isLoading"
-                    class="tag-edit-loading"
-                    type="loading-circle" />
-            </div>
-            <div
-                v-else
-                class="edit-value-box">
-                <jb-tag-select
-                    ref="tagSelect"
-                    :value="localValue"
-                    @on-change="handleTagValueChange" />
-            </div>
+                </div>
+                <div
+                    v-else
+                    class="tag-normal-box">
+                    <Icon
+                        class="edit-action"
+                        type="edit-2"
+                        @click.self.stop="handleEdit" />
+                </div>
+            </template>
+            <Icon
+                v-if="isLoading"
+                class="tag-edit-loading"
+                type="loading-circle" />
+        </div>
+        <div
+            v-else
+            class="edit-value-box">
+            <jb-tag-select
+                ref="tagSelect"
+                :value="localValue"
+                @on-change="handleTagValueChange" />
         </div>
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import tippy from 'tippy.js';
 
     import { execCopy } from '@utils/assist';
 
@@ -147,10 +139,6 @@
                 type: Array,
                 default: () => [],
             },
-            popover: {
-                type: Boolean,
-                default: false,
-            },
         },
         data () {
             return {
@@ -167,14 +155,6 @@
             text () {
                 return this.localValue.map(_ => _.name).join('，');
             },
-            rootStyles () {
-                if (this.popover) {
-                    return {
-                        height: '30px',
-                    };
-                }
-                return {};
-            },
         },
         watch: {
             value: {
@@ -190,35 +170,9 @@
             this.$once('hook:beforeDestroy', () => {
                 document.body.removeEventListener('click', this.hideEdit);
             });
-            this.initPlaceholder();
         },
         
         methods: {
-            initPlaceholder () {
-                if (!this.popover) {
-                    return;
-                }
-                let tippyInstance = tippy(this.$refs.root, {
-                    content: this.$refs.pop,
-                    arrow: false,
-                    placement: 'bottom',
-                    appendTo: () => document.body,
-                    theme: 'light jb-edit-tag-placeholder',
-                    maxWidth: 'none',
-                    trigger: 'manual',
-                    interactive: true,
-                    offset: [0, -30],
-                    zIndex: 1,
-                    hideOnClick: false,
-                });
-                tippyInstance.show();
-                this.$once('hook:beforeDestroy', () => {
-                    console.log('beforeDestroybeforeDestroy');
-                    tippyInstance.hide();
-                    tippyInstance.destroy();
-                    tippyInstance = null;
-                });
-            },
             /**
              * @desc 触发标签修改操作
              */
@@ -343,19 +297,6 @@
     @keyframes tag-edit-loading {
         to {
             transform: rotateZ(360deg);
-        }
-    }
-
-    .tippy-box[data-theme~="jb-edit-tag-placeholder"] {
-        line-height: 19px !important;
-        color: #575961 !important;
-        background-color: transparent !important;
-        border: none !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-
-        .tippy-content {
-            padding: 0;
         }
     }
 
