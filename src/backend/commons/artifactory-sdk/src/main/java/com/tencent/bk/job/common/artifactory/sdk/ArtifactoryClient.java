@@ -203,8 +203,13 @@ public class ArtifactoryClient {
         String respStr
     ) {
         if (result == null) {
-            log.error("fail:artifactoryResp is null after parse|method={}|url={}|reqStr={}|respStr={}", method,
-                url, reqStr, respStr);
+            log.error(
+                "fail:artifactoryResp is null after parse|method={}|url={}|reqStr={}|respStr={}",
+                method,
+                url,
+                getSimplifiedStrForLog(reqStr),
+                getSimplifiedStrForLog(respStr)
+            );
             throw new InternalException("artifactoryResp is null after parse", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         }
         if (result instanceof ArtifactoryResp) {
@@ -217,7 +222,10 @@ public class ArtifactoryClient {
                     artifactoryResp.getTraceId(),
                     artifactoryResp.getCode(),
                     artifactoryResp.getMessage(),
-                    method, url, reqStr, respStr
+                    method,
+                    url,
+                    getSimplifiedStrForLog(reqStr),
+                    getSimplifiedStrForLog(respStr)
                 );
             }
         }
@@ -260,7 +268,13 @@ public class ArtifactoryClient {
                 log.error("fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
                 throw new InternalException("response is blank", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             } else {
-                log.info("success|method={}|url={}|reqStr={}|respStr={}", method, url, reqStr, respStr);
+                log.info(
+                    "success|method={}|url={}|reqStr={}|respStr={}",
+                    method,
+                    url,
+                    getSimplifiedStrForLog(reqStr),
+                    getSimplifiedStrForLog(respStr)
+                );
             }
             R result = JsonUtils.fromJson(respStr, typeReference);
             try {
@@ -530,7 +544,9 @@ public class ArtifactoryClient {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "upload:" + URL_UPLOAD_GENERIC_FILE));
             respStr = longHttpHelper.put(url, reqEntity, getUploadFileHeaders());
-            log.debug("respStr={}", respStr);
+            if (log.isDebugEnabled()) {
+                log.debug("respStr={}", getSimplifiedStrForLog(respStr));
+            }
             ArtifactoryResp<NodeDTO> resp = JsonUtils.fromJson(
                 respStr, new TypeReference<ArtifactoryResp<NodeDTO>>() {
                 }
@@ -620,5 +636,14 @@ public class ArtifactoryClient {
     }
 
     public void shutdown() {
+    }
+
+    private String getSimplifiedStrForLog(String respStr) {
+        String simplifiedStr = StringUtils.deleteWhitespace(respStr);
+        int maxLength = 20000;
+        if (simplifiedStr.length() > maxLength) {
+            simplifiedStr = simplifiedStr.substring(0, maxLength);
+        }
+        return simplifiedStr;
     }
 }
