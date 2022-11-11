@@ -28,10 +28,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class CheckRepoExistReq extends ArtifactoryReq {
     // 必传，项目名
-    String projectId;
+    private String projectId;
     // 必传，仓库名
-    String repoName;
+    private String repoName;
 }

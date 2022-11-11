@@ -51,7 +51,7 @@ public class BaseRemoteFileReqGenServiceImpl {
         return "http://" + host + ":" + port.toString() + "/worker/api" + url;
     }
 
-    protected String fillBaseReqGetUrl(BaseReq req, Long appId, FileWorkerDTO fileWorkerDTO,
+    protected String fillBaseReqGetUrl(BaseReq req, FileWorkerDTO fileWorkerDTO,
                                        FileSourceDTO fileSourceDTO, String url) {
         String completeUrl = getCompleteUrl(fileWorkerDTO, url);
         String credentialId = fileSourceDTO.getCredentialId();

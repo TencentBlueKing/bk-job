@@ -28,12 +28,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class DownloadGenericFileReq extends ArtifactoryReq {
     // 必传，项目Id
-    String project;
+    private String project;
     // 必传，仓库名称
-    String repo;
+    private String repo;
     // 必传，完整路径
-    String path;
+    private String path;
 }

@@ -24,28 +24,37 @@
 
 package com.tencent.bk.job.common.artifactory.model.req;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.Arrays;
+import java.util.List;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ListNodePageReq extends ArtifactoryReq {
-    // 必传，项目Id
-    private String projectId;
-    // 必传，仓库名称
-    private String repoName;
-    // 必传，完整路径
-    private String fullPath;
-    // 非必传，页码
-    private int pageNumber = 1;
-    // 非必传，页面大小
-    private int pageSize = 20;
-    // 非必传，是否包含目录
-    private Boolean includeFolder = true;
-    // 非必传，是否包含元数据
-    private Boolean includeMetadata = false;
-    // 非必传，是否查询子目录节点
-    private Boolean deep = false;
-    // 非必传，是否排序输出结果
-    private Boolean sort = true;
+public class SearchNodePageReq extends ArtifactoryReq {
+    // 非必传，要搜索的字段
+    private List<String> select = Arrays.asList(
+        "projectId",
+        "repoName",
+        "path",
+        "name",
+        "fullPath",
+        "folder",
+        "size",
+        "sha256",
+        "md5",
+        "createdBy",
+        "createdDate",
+        "lastModifiedBy",
+        "lastModifiedDate"
+    );
+    // 非必传，分页参数
+    private PageLimit page;
+    // 非必传，完整路径
+    private Sort sort;
+    // 非必传，自定义查询规则
+    private Rule rule;
 }

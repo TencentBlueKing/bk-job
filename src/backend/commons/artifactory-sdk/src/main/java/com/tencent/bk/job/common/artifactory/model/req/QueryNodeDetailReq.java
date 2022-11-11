@@ -31,9 +31,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class QueryNodeDetailReq extends ArtifactoryReq {
     // 必传，项目Id
-    String projectId;
+    private String projectId;
     // 必传，仓库名称
-    String repoName;
+    private String repoName;
     // 必传，完整路径
-    String fullPath;
+    private String fullPath;
 }

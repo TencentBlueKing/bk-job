@@ -24,28 +24,31 @@
 
 package com.tencent.bk.job.common.artifactory.model.req;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ListNodePageReq extends ArtifactoryReq {
-    // 必传，项目Id
-    private String projectId;
-    // 必传，仓库名称
-    private String repoName;
-    // 必传，完整路径
-    private String fullPath;
-    // 非必传，页码
-    private int pageNumber = 1;
-    // 非必传，页面大小
-    private int pageSize = 20;
-    // 非必传，是否包含目录
-    private Boolean includeFolder = true;
-    // 非必传，是否包含元数据
-    private Boolean includeMetadata = false;
-    // 非必传，是否查询子目录节点
-    private Boolean deep = false;
-    // 非必传，是否排序输出结果
-    private Boolean sort = true;
+public class Rule {
+    // 关系常量
+    public static String RULE_RELATION_AND = "AND";
+    public static String RULE_RELATION_OR = "OR";
+    // 操作符常量
+    public static String RULE_OPERATION_EQ = "EQ";
+    public static String RULE_OPERATION_PREFIX = "PREFIX";
+    public static String RULE_OPERATION_MATCH = "MATCH";
+    // 字段
+    private String field;
+    // 操作符
+    private String operation;
+    // 字段值
+    private Object value;
+    // 嵌套的子规则
+    private List<Rule> rules;
+    // 嵌套子规则之间的关系
+    private String relation;
 }

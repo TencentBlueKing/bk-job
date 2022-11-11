@@ -22,30 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.artifactory.model.req;
+package com.tencent.bk.job.file_gateway.config;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
-public class ListNodePageReq extends ArtifactoryReq {
-    // 必传，项目Id
-    private String projectId;
-    // 必传，仓库名称
-    private String repoName;
-    // 必传，完整路径
-    private String fullPath;
-    // 非必传，页码
-    private int pageNumber = 1;
-    // 非必传，页面大小
-    private int pageSize = 20;
-    // 非必传，是否包含目录
-    private Boolean includeFolder = true;
-    // 非必传，是否包含元数据
-    private Boolean includeMetadata = false;
-    // 非必传，是否查询子目录节点
-    private Boolean deep = false;
-    // 非必传，是否排序输出结果
-    private Boolean sort = true;
+import java.util.List;
+
+@Getter
+@Configuration
+public class FileGatewayConfig {
+
+    // 只有worker拥有白名单中的至少一个标签时，才能被当前file-gateway实例调度
+    @Value("${job.file-gateway.worker-tags.white:}")
+    private List<String> workerTagWhiteList;
+
+    // 只要worker拥有黑名单中的任何一个标签时，就不能被当前file-gateway实例调度
+    @Value("${job.file-gateway.worker-tags.black:}")
+    private List<String> workerTagBlackList;
+
 }
