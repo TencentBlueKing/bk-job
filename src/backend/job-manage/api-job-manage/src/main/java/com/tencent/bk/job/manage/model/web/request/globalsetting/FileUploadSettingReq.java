@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 import java.util.List;
@@ -48,6 +49,7 @@ import java.util.List;
 @ApiModel("文件上传参数")
 public class FileUploadSettingReq {
     @ApiModelProperty("数量")
+    @NotNull(message = "{validation.constraints.InvalidFileUploadSettingAmount.message}")
     @Positive(message = "{validation.constraints.InvalidFileUploadSettingAmount.message}")
     private Float amount;
 

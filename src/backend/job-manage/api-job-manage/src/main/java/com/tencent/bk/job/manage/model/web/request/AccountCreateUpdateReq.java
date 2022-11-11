@@ -31,6 +31,7 @@ import lombok.Data;
 import lombok.ToString;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
@@ -81,6 +82,7 @@ public class AccountCreateUpdateReq {
     private String password;
 
     @ApiModelProperty(value = "DB端口,创建/更新DB账号的时候必传")
+    @NotNull(message = "{validation.constraints.InvalidPort.message}")
     @Range(min = 0, max = 65535, message = "{validation.constraints.InvalidPort.message}")
     private Integer dbPort;
 
