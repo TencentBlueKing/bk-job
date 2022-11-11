@@ -34,8 +34,6 @@ import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
@@ -56,6 +54,7 @@ import com.tencent.bk.job.file_gateway.service.context.TaskContext;
 import com.tencent.bk.job.file_gateway.service.context.impl.DefaultTaskContext;
 import com.tencent.bk.job.file_gateway.service.listener.FileTaskStatusChangeListener;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
+import com.tencent.bk.job.file_gateway.service.remote.FileWorkerClient;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -86,7 +85,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     private final DispatchService dispatchService;
     private final FileSourceTaskReqGenService fileSourceTaskReqGenService;
     private final RedisTemplate<Object, Object> redisTemplate;
-    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final FileWorkerClient fileWorkerClient;
     private final List<FileTaskStatusChangeListener> fileTaskStatusChangeListenerList = new ArrayList<>();
 
     @Autowired
@@ -95,7 +94,8 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                                      FileSourceDAO fileSourceDAO, DispatchService dispatchService,
                                      FileSourceTaskReqGenService fileSourceTaskReqGenService,
                                      RedisTemplate<Object, Object> redisTemplate,
-                                     FileTaskStatusChangeListener fileTaskStatusChangeListener) {
+                                     FileTaskStatusChangeListener fileTaskStatusChangeListener,
+                                     FileWorkerClient fileWorkerClient) {
         this.dslContext = dslContext;
         this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.fileTaskDAO = fileTaskDAO;
@@ -104,6 +104,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         this.dispatchService = dispatchService;
         this.fileSourceTaskReqGenService = fileSourceTaskReqGenService;
         this.redisTemplate = redisTemplate;
+        this.fileWorkerClient = fileWorkerClient;
         addFileTaskStatusChangeListener(fileTaskStatusChangeListener);
     }
 
@@ -166,11 +167,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             // 分发文件任务
             HttpReq req = fileSourceTaskReqGenService.genDownloadFilesReq(appId, fileWorkerDTO, fileSourceDTO,
                 fileSourceTaskDTO);
-            String respStr;
-            log.info(String.format("url=%s,body=%s,headers=%s", req.getUrl(), req.getBody(),
-                JsonUtils.toJson(req.getHeaders())));
-            respStr = httpHelper.post(req.getUrl(), req.getBody(), req.getHeaders());
-            log.info(String.format("respStr=%s", respStr));
+            postHttpReq(req);
         } catch (Exception e) {
             log.error("Fail to dispatch FileSourceTask={}", JsonUtils.toJson(fileSourceTaskDTO), e);
             // 更新任务状态为启动失败
@@ -382,11 +379,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     private String postHttpReq(HttpReq req) {
-        log.info(String.format("url=%s,body=%s,headers=%s", req.getUrl(), req.getBody(),
-            JsonUtils.toJson(req.getHeaders())));
-        String respStr = httpHelper.post(req.getUrl(), req.getBody(), req.getHeaders());
-        log.info(String.format("respStr=%s", respStr));
-        return respStr;
+        return fileWorkerClient.post(req);
     }
 
     private Integer stopTasksWithCommand(List<String> taskIdList, TaskCommandEnum command) {
