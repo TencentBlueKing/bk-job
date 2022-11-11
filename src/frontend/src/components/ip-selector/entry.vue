@@ -106,7 +106,6 @@
     const selectorValue = shallowRef({});
 
     watch(() => props.value, () => {
-        console.log('from ip-selector watch value = ', props.value);
         selectorValue.value = props.value;
     }, {
         immediate: true,

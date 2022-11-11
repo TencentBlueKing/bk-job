@@ -261,19 +261,16 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     return router;
 };
 
-export const useRoute = () => {
-    console.log('form user route');
-    return customRef((track, trigger) => ({
-        get () {
-            setTimeout(() => {
-                window.BKApp.$watch('$route', () => {
-                    trigger();
-                });
+export const useRoute = () => customRef((track, trigger) => ({
+    get () {
+        setTimeout(() => {
+            window.BKApp.$watch('$route', () => {
+                trigger();
             });
-            track();
-            return router.currentRoute;
-        },
-    }));
-};
+        });
+        track();
+        return router.currentRoute;
+    },
+}));
 
 export const useRouter = () => router;

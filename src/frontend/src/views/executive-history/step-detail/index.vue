@@ -432,6 +432,7 @@
                 this.taskInstanceId = payload.taskInstanceId;
                 this.isTask = payload.isTask;
                 this.taskStepList = Object.freeze(payload.taskStepList);
+                this.taskExecution = payload.taskExecution;
                 appendURLParams({
                     retryCount: payload.retryCount,
                     stepInstanceId: payload.stepInstanceId,
@@ -688,6 +689,19 @@
                     });
                     return;
                 }
+                if (from === 'planList') {
+                    this.$router.push({
+                        name: 'historyTask',
+                        params: {
+                            id: this.taskInstanceId,
+                        },
+                        query: {
+                            from: 'planList',
+                        },
+                    });
+                    return;
+                }
+
                 if (from === 'plan') {
                     // 保留执行方案到步骤详情的操作路径
                     this.$router.push({
