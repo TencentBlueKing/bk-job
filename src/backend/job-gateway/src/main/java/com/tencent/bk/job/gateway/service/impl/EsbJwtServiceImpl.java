@@ -67,26 +67,27 @@ public class EsbJwtServiceImpl implements EsbJwtService {
 
     private void getPublicKeyOrRetryInBackground() {
         boolean publicKeyGotten = tryToGetAndCachePublicKeyOnce();
-        if (!publicKeyGotten) {
-            Thread esbPublicKeyGetter = new Thread(() -> {
-                boolean keyGotten;
-                int retryCount = 0;
-                int sleepMillsOnce = 5000;
-                // 最多重试一整天
-                int maxRetryCount = 24 * 3600 / 5;
-                do {
-                    log.warn("esbJwtPublicKey not gotten, retry {} after 5s", ++retryCount);
-                    ThreadUtils.sleep(sleepMillsOnce);
-                    keyGotten = tryToGetAndCachePublicKeyOnce();
-                } while (!keyGotten && retryCount <= maxRetryCount);
-                if (!keyGotten) {
-                    log.error("esbJwtPublicKey not gotten after {} retry, plz check esb", maxRetryCount);
-                }
-            });
-            esbPublicKeyGetter.setDaemon(true);
-            esbPublicKeyGetter.setName("esbPublicKeyGetter");
-            esbPublicKeyGetter.start();
+        if (publicKeyGotten) {
+            return;
         }
+        Thread esbPublicKeyGetter = new Thread(() -> {
+            boolean keyGotten;
+            int retryCount = 0;
+            int sleepMillsOnce = 5000;
+            // 最多重试3天
+            int maxRetryCount = 3 * 24 * 3600 / 5;
+            do {
+                log.warn("esbJwtPublicKey not gotten, retry {} after 5s", ++retryCount);
+                ThreadUtils.sleep(sleepMillsOnce);
+                keyGotten = tryToGetAndCachePublicKeyOnce();
+            } while (!keyGotten && retryCount <= maxRetryCount);
+            if (!keyGotten) {
+                log.error("esbJwtPublicKey not gotten after {} retry (3 days), plz check esb", maxRetryCount);
+            }
+        });
+        esbPublicKeyGetter.setDaemon(true);
+        esbPublicKeyGetter.setName("esbPublicKeyGetter");
+        esbPublicKeyGetter.start();
     }
 
     private boolean tryToGetAndCachePublicKeyOnce() {
