@@ -30,22 +30,18 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
-@Service
 public class JobHttpClientImpl implements JobHttpClient {
 
     private final RestTemplate restTemplate;
 
-    @Autowired
     public JobHttpClientImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
