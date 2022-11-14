@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.redis.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -50,16 +51,21 @@ public class JobRedisAutoConfiguration {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),
+            ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
         GenericJackson2JsonRedisSerializer jsonRedisSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
         RedisSerializer<String> stringRedisSerializer = RedisSerializer.string();
+
         redisTemplate.setKeySerializer(stringRedisSerializer);
         redisTemplate.setValueSerializer(jsonRedisSerializer);
         redisTemplate.setHashKeySerializer(stringRedisSerializer);
         redisTemplate.setHashValueSerializer(jsonRedisSerializer);
-        redisTemplate.setEnableDefaultSerializer(true);
         redisTemplate.setDefaultSerializer(jsonRedisSerializer);
+        redisTemplate.setEnableDefaultSerializer(true);
 
         redisTemplate.afterPropertiesSet();
+
         return redisTemplate;
     }
 }
