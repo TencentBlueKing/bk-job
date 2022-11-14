@@ -315,6 +315,8 @@ public class ErrorCode {
     public static final int ID_AND_CODE_AT_LEAST_ONE = 1260016;
     // 文件源[id={0}]不在业务/业务集下
     public static final int FILE_SOURCE_ID_NOT_IN_BIZ = 1260017;
+    // 接入点响应异常，详情：{0}
+    public static final int FAIL_TO_REQUEST_FILE_WORKER_WITH_REASON = 1260018;
 
     // 文件网关 end
     // 文件代理 start

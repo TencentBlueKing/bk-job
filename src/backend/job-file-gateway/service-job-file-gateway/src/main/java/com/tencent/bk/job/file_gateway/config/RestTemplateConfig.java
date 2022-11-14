@@ -24,25 +24,14 @@
 
 package com.tencent.bk.job.file_gateway.config;
 
-import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.http.JobHttpClient;
-import com.tencent.bk.job.common.util.http.JobHttpClientImpl;
-import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
-import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-public class JobFileGatewayAutoConfiguration {
-
+public class RestTemplateConfig {
     @Bean
-    AppScopeMappingService appScopeMappingService(ServiceApplicationResourceClient applicationResource) {
-        return new AppScopeMappingServiceImpl(applicationResource);
-    }
-
-    @Bean
-    JobHttpClient jobHttpClient(RestTemplate restTemplate) {
-        return new JobHttpClientImpl(restTemplate);
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }
