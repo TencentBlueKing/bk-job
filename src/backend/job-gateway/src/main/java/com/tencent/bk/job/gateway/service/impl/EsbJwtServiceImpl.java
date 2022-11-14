@@ -26,6 +26,7 @@ package com.tencent.bk.job.gateway.service.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
 import com.tencent.bk.job.gateway.service.EsbJwtPublicKeyService;
 import com.tencent.bk.job.gateway.service.EsbJwtService;
@@ -59,22 +60,48 @@ public class EsbJwtServiceImpl implements EsbJwtService {
         .maximumSize(99999).expireAfterWrite(30, TimeUnit.SECONDS).build();
 
     @Autowired
-    public EsbJwtServiceImpl(EsbJwtPublicKeyService esbJwtPublicKeyService){
+    public EsbJwtServiceImpl(EsbJwtPublicKeyService esbJwtPublicKeyService) {
         this.esbJwtPublicKeyService = esbJwtPublicKeyService;
-        getAndCachePublicKey();
+        getPublicKeyOrRetryInBackground();
     }
 
-    private void getAndCachePublicKey() {
+    private void getPublicKeyOrRetryInBackground() {
+        boolean publicKeyGotten = tryToGetAndCachePublicKeyOnce();
+        if (!publicKeyGotten) {
+            Thread esbPublicKeyGetter = new Thread(() -> {
+                boolean keyGotten;
+                int retryCount = 0;
+                int sleepMillsOnce = 5000;
+                // 最多重试一整天
+                int maxRetryCount = 24 * 3600 / 5;
+                do {
+                    log.warn("esbJwtPublicKey not gotten, retry {} after 5s", ++retryCount);
+                    ThreadUtils.sleep(sleepMillsOnce);
+                    keyGotten = tryToGetAndCachePublicKeyOnce();
+                } while (!keyGotten && retryCount <= maxRetryCount);
+                if (!keyGotten) {
+                    log.error("esbJwtPublicKey not gotten after {} retry, plz check esb", maxRetryCount);
+                }
+            });
+            esbPublicKeyGetter.setDaemon(true);
+            esbPublicKeyGetter.setName("esbPublicKeyGetter");
+            esbPublicKeyGetter.start();
+        }
+    }
+
+    private boolean tryToGetAndCachePublicKeyOnce() {
         try {
             String esbJwtPublicKey = esbJwtPublicKeyService.getEsbJWTPublicKey();
             if (StringUtils.isEmpty(esbJwtPublicKey)) {
                 log.error("Esb jwt public key is not configured!");
-                return;
+                return false;
             }
             this.publicKey = buildPublicKey(esbJwtPublicKey);
+            return true;
         } catch (Throwable e) {
             // Catch all exception
             log.error("Build esb jwt public key caught error!", e);
+            return false;
         }
     }
 
