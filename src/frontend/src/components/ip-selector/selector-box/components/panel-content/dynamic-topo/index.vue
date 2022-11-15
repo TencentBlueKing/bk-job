@@ -134,7 +134,7 @@
 
     import RenderHostTable from './render-host-table.vue';
     import RenderNodeTable from './render-node-table.vue';
-    
+
     const props = defineProps({
         topoTreeData: {
             type: Array,
@@ -145,14 +145,14 @@
             default: () => [],
         },
     });
-    
+
     const emits = defineEmits([
         'change',
     ]);
 
     const checkNotSupport = () => {
         if (props.topoTreeData.length === 1
-            && props.topoTreeData[0].object_id !== 'biz_set') {
+            && props.topoTreeData[0].object_id === 'biz_set') {
             return true;
         }
         return false;
@@ -168,7 +168,7 @@
     const renderTableType = ref('node');
 
     const isNotSupport = ref(false);
-    
+
     const nodeCheckedMap = shallowRef({});
 
     const renderNodeList = shallowRef([]);
@@ -281,7 +281,7 @@
         } else {
             delete checkedMap[nodeKey];
         }
-        
+
         nodeCheckedMap.value = checkedMap;
         triggerChange();
     };
