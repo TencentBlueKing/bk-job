@@ -388,8 +388,8 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         }
         if (CollectionUtils.isNotEmpty(taskPlan.getVariableList())) {
             for (TaskVariableVO var : taskPlan.getVariableList()) {
-                if (var.getTargetValue() != null) {
-                    isMissingHostId = isMissingHostId || fillHostId(var.getTargetValue());
+                if (var.getDefaultTargetValue() != null) {
+                    isMissingHostId = isMissingHostId || fillHostId(var.getDefaultTargetValue());
                 }
             }
         }
