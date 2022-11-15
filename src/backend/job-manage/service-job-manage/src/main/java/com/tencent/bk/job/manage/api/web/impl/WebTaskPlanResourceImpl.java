@@ -373,14 +373,14 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         boolean isMissingHostId = false;
         for (TaskStepVO step : taskPlan.getStepList()) {
             if (step.getScriptStepInfo() != null) {
-                isMissingHostId = isMissingHostId || fillHostId(step.getScriptStepInfo().getExecuteTarget());
+                isMissingHostId = fillHostId(step.getScriptStepInfo().getExecuteTarget()) || isMissingHostId;
             } else if (step.getFileStepInfo() != null) {
                 TaskFileStepVO fileStep = step.getFileStepInfo();
-                fillHostId(fileStep.getFileDestination().getServer());
+                isMissingHostId = fillHostId(fileStep.getFileDestination().getServer()) || isMissingHostId;
                 if (CollectionUtils.isNotEmpty(fileStep.getFileSourceList())) {
                     for (TaskFileSourceInfoVO source : fileStep.getFileSourceList()) {
                         if (source.getHost() != null) {
-                            isMissingHostId = isMissingHostId || fillHostId(source.getHost());
+                            isMissingHostId = fillHostId(source.getHost()) || isMissingHostId;
                         }
                     }
                 }
@@ -389,7 +389,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         if (CollectionUtils.isNotEmpty(taskPlan.getVariableList())) {
             for (TaskVariableVO var : taskPlan.getVariableList()) {
                 if (var.getDefaultTargetValue() != null) {
-                    isMissingHostId = isMissingHostId || fillHostId(var.getDefaultTargetValue());
+                    isMissingHostId = fillHostId(var.getDefaultTargetValue()) || isMissingHostId;
                 }
             }
         }
