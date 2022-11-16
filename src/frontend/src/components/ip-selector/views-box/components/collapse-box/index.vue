@@ -31,6 +31,12 @@
   const handleToggle = () => {
     isShow.value = !isShow.value;
   };
+
+  defineExpose({
+    toggle () {
+        handleToggle();
+    },
+  });
 </script>
 <style lang="postcss" scoped>
     .ip-selector-view-collsapn {

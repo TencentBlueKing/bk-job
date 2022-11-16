@@ -172,11 +172,11 @@
             }
             return viewsRef.value.getHostIpList();
         },
-        getNotAlivelHostIpList () {
+        getAbnormalHostIpList () {
             if (!viewsRef.value) {
                 return [];
             }
-            return viewsRef.value.getNotAlivelHostIpList();
+            return viewsRef.value.getAbnormalHostIpList();
         },
         resetValue () {
             if (props.value) {
@@ -186,6 +186,9 @@
         },
         refresh () {
             viewsRef.value && viewsRef.value.refresh();
+        },
+        collapseToggle () {
+            viewsRef.value && viewsRef.value.collapseToggle();
         },
     });
 </script>

@@ -2,7 +2,7 @@
     <div
         v-bkloading="{ isLoading }"
         class="ip-selector-view-dynamic-group">
-        <collapse-box>
+        <collapse-box ref="collapseBoxRef">
             <template #title>
                 <span style="font-weight: bold;">【动态分组】</span>
                 <span>
@@ -124,6 +124,7 @@
     });
     const emits = defineEmits(['change']);
 
+    const collapseBoxRef = ref();
     const isLoading = ref(false);
     const isAgentStatisticsLoading = ref(false);
     const tableData = shallowRef([]);
@@ -243,7 +244,7 @@
         }
         triggerChange();
     };
-    
+
     // 移除所有
     const handleRemoveAll = () => {
         resultList.value = [];
@@ -265,10 +266,13 @@
         refresh () {
             fetchData();
         },
+        collapseToggle () {
+            collapseBoxRef.value.toggle();
+        },
     });
 </script>
 <style lang="postcss">
-    @import "../styles/table.mixin.css";
+    @import url("../styles/table.mixin.css");
 
     .ip-selector-view-dynamic-group {
         @include table;

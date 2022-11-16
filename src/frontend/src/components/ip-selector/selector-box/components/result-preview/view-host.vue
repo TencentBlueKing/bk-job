@@ -107,6 +107,8 @@
             })),
         })
         .then((data) => {
+            // 重复设置 loading 的状态，后面需要依靠这个状态来做数据的对比
+            isLoading.value = false;
             validHostList.value = data;
         })
         .finally(() => {
@@ -130,6 +132,9 @@
     });
 
     watch(validHostList, () => {
+        if (isLoading.value) {
+            return;
+        }
         invalidHostList.value = getInvalidHostList(props.data, validHostList.value);
         removedHostList.value = getRemoveHostList(props.data, context.originalValue);
         diffMap.value = getHostDiffMap(props.data, context.originalValue, invalidHostList.value);
@@ -173,4 +178,10 @@
     const handlRemoveAll = () => {
         emits('change', 'hostList', []);
     };
+
+    defineExpose({
+        getAllHostList () {
+            return listData.value;
+        },
+    });
 </script>

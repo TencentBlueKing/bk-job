@@ -83,7 +83,7 @@
             isInnerChange = false;
             return;
         }
-        
+
         const {
             host_list: hostList,
             node_list: nodeList,
@@ -109,7 +109,7 @@
                 lastDynamicGroupList.value = value;
                 break;
         }
-        
+
         isInnerChange = true;
         emits('change', formatOutput({
             hostList: lastHostList.value,
@@ -125,16 +125,21 @@
             }
             return hostRef.value.getHostIpList();
         },
-        getNotAlivelHostIpList () {
+        getAbnormalHostIpList () {
             if (!hostRef.value) {
                 return [];
             }
-            return hostRef.value.getNotAlivelHostIpList();
+            return hostRef.value.getAbnormalHostIpList();
         },
         refresh () {
             hostRef.value && hostRef.value.refresh();
             nodeRef.value && nodeRef.value.refresh();
             dynamicGroupRef.value && dynamicGroupRef.value.refresh();
+        },
+        collapseToggle () {
+            hostRef.value && hostRef.value.collapseToggle();
+            nodeRef.value && nodeRef.value.collapseToggle();
+            dynamicGroupRef.value && dynamicGroupRef.value.collapseToggle();
         },
     });
 </script>

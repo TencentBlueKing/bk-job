@@ -12,6 +12,7 @@
             class="result-wrapper"
             :style="styles">
             <view-host
+                ref="viewHostRef"
                 :data="hostList"
                 v-on="listeners" />
             <view-node
@@ -34,15 +35,17 @@
                 <div @click="handleClear">
                     清除所有
                 </div>
-                <div @click="handleRemoveFailedIP">
-                    清除异常 IP
-                </div>
-                <div @click="handleCopyAllIP">
-                    复制所有 IP
-                </div>
-                <div @click="handleCopeFailedAIP">
-                    复制异常 IP
-                </div>
+                <template v-if="hostList.length > 0">
+                    <div @click="handleRemoveFailedIP">
+                        清除异常 IP
+                    </div>
+                    <div @click="handleCopyAllIP">
+                        复制所有 IP
+                    </div>
+                    <div @click="handleCopeFailedAIP">
+                        复制异常 IP
+                    </div>
+                </template>
             </extend-action>
         </div>
     </div>
@@ -50,6 +53,7 @@
 <script setup>
     import {
         computed,
+        ref,
         useListeners,
     } from 'vue';
 
@@ -87,6 +91,8 @@
 
     const listeners = useListeners();
 
+    const viewHostRef = ref();
+
     const resultNum = computed(() => {
         let num = 0;
         if (props.hostList.length > 0) {
@@ -113,11 +119,14 @@
         height: `${dialogContentHeight.value - 68}px`,
     }));
 
+    // 清空所有
     const handleClear = () => {
         emits('clear');
     };
+
+    // 移除异常 IP
     const handleRemoveFailedIP = () => {
-        const hostList = props.hostList.reduce((result, item) => {
+        const hostList = viewHostRef.value.getAllHostList().reduce((result, item) => {
             if (isAliveHost(item)) {
                 result.push(item);
             }
@@ -126,13 +135,16 @@
 
         emits('change', 'hostList', hostList);
     };
+
+    // 复制所有 IP
     const handleCopyAllIP = () => {
-        const IPList = props.hostList.map(item => item[hostRenderKey.value]);
+        const IPList = viewHostRef.value.getAllHostList().map(item => item[hostRenderKey.value]);
         execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
     };
 
+    // 复制异常 IP
     const handleCopeFailedAIP = () => {
-        const IPList = props.hostList.reduce((result, item) => {
+        const IPList = viewHostRef.value.getAllHostList().reduce((result, item) => {
             if (!isAliveHost(item)) {
                 result.push(item[hostRenderKey.value]);
             }
