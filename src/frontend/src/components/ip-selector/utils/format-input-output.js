@@ -4,6 +4,7 @@ export const formatInput = data => ({
     host_list: (data[Manager.nameStyle('hostList')] || []).map(item => ({
         host_id: item[Manager.nameStyle('hostId')],
         ip: item[Manager.nameStyle('ip')],
+        cloud_area: item[Manager.nameStyle('cloudArea')],
         ipv6: item[Manager.nameStyle('ipv6')],
         meta: item[Manager.nameStyle('meta')],
     })),
@@ -22,6 +23,7 @@ export const formatOutput = data => ({
     [Manager.nameStyle('hostList')]: (data.hostList || []).map(item => ({
         [Manager.nameStyle('hostId')]: item.host_id,
         [Manager.nameStyle('ip')]: item.ip,
+        [Manager.nameStyle('cloudArea')]: item.cloud_area,
         [Manager.nameStyle('ipv6')]: item.ipv6,
         [Manager.nameStyle('meta')]: item.meta,
     })),

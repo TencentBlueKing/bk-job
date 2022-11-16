@@ -97,8 +97,6 @@
 
     const newHostNum = ref(0);
 
-    let isCreated = false;
-
     // 通过 host_id 查询主机详情
     const fetchData = () => {
         isLoading.value = true;
@@ -118,13 +116,12 @@
 
     watch(() => props.data, () => {
         if (props.data.length > 0) {
-            const needFetchHostDetail = _.find(props.data, item => !item.ip || !item.ipv6);
-            if (needFetchHostDetail && !isCreated) {
+            const withHostDetail = _.every(props.data, item => item.ip || item.ipv6);
+            if (!withHostDetail) {
                 fetchData();
             } else {
                 validHostList.value = [...props.data];
             }
-            isCreated = true;
         } else {
             validHostList.value = [];
         }
@@ -171,7 +168,7 @@
         const IPList = listData.value.map(item => item[hostRenderKey.value]);
         execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
     };
-    
+
     // 移除所有IP
     const handlRemoveAll = () => {
         emits('change', 'hostList', []);
