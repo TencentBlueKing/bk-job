@@ -93,8 +93,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         TaskPlanDAO taskPlanDAO,
         @Qualifier("TaskPlanStepServiceImpl") AbstractTaskStepService taskPlanStepService,
         @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService,
-        MessageI18nService i18nService, CronJobService cronJobService
-    ) {
+        MessageI18nService i18nService, CronJobService cronJobService) {
         this.taskPlanDAO = taskPlanDAO;
         this.taskPlanStepService = taskPlanStepService;
         this.taskPlanVariableService = taskPlanVariableService;

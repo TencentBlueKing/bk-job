@@ -39,6 +39,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import com.tencent.bk.job.logsvr.service.LogService;
@@ -63,6 +64,15 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
     @Autowired
     public ServiceLogResourceImpl(LogService logService) {
         this.logService = logService;
+    }
+
+    @Override
+    public InternalResponse<?> saveLog(ServiceSaveLogRequest request) {
+        TaskHostLog taskHostLog = convertToTaskHostLog(request.getLogType(), request.getJobCreateDate(),
+            request.getStepInstanceId(), request.getExecuteCount(), request.getBatch(), request.getHostId(),
+            request.getIp(), null, request.getScriptLog(), request.getFileTaskLogs());
+        logService.saveLog(taskHostLog);
+        return InternalResponse.buildSuccessResp(null);
     }
 
     @Override

@@ -33,6 +33,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -55,6 +56,19 @@ import java.util.List;
 @RestController
 @InternalAPI
 public interface ServiceLogResource {
+
+    /**
+     * 保存执行日志
+     * tmp: ipv6版本发布完成后删除
+     * @param request 保存日志请求
+     */
+    @ApiOperation("保存执行日志")
+    @PostMapping
+    @Deprecated
+    InternalResponse<?> saveLog(
+        @ApiParam("保存日志请求报文")
+        @RequestBody ServiceSaveLogRequest request
+    );
 
     /**
      * 批量保存执行日志
