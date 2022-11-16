@@ -32,6 +32,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
@@ -202,12 +203,56 @@ public class IpUtils {
         return matcher.matches();
     }
 
+    public static String getFirstMachineIP() {
+        return getFirstMachineIpPreferV4();
+    }
+
+    private static String getFirstMachineIpPreferV4() {
+        Map<String, String> ipv4Map = getMachineIPv4Map();
+        if (!ipv4Map.isEmpty()) {
+            return ipv4Map.values().iterator().next();
+        }
+        Map<String, String> ipv6Map = getMachineIPv6Map();
+        if (!ipv6Map.isEmpty()) {
+            return ipv6Map.values().iterator().next();
+        }
+        log.error("no available ip, plz check net interface");
+        return null;
+    }
+
+    interface IpExtracter {
+        String extractIpFromInetAddress(InetAddress inetAddress);
+    }
+
     /**
-     * 获取当前服务器IP地址
+     * 获取当前服务器IPv4地址
      *
-     * @return 返回当前服务器的网卡对应IP的MAP。
+     * @return Map<网卡名称 ， IP>
      */
-    public static Map<String, String> getMachineIP() {
+    private static Map<String, String> getMachineIPv4Map() {
+        return getMachineIP(inetAddress -> {
+            if (inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
+                return inetAddress.getHostAddress();
+            }
+            return null;
+        });
+    }
+
+    /**
+     * 获取当前服务器IPv6地址
+     *
+     * @return Map<网卡名称 ， IP>
+     */
+    private static Map<String, String> getMachineIPv6Map() {
+        return getMachineIP(inetAddress -> {
+            if (inetAddress instanceof Inet6Address && !inetAddress.isLoopbackAddress()) {
+                return inetAddress.getHostAddress();
+            }
+            return null;
+        });
+    }
+
+    private static Map<String, String> getMachineIP(IpExtracter ipExtracter) {
         log.info("#####################Start getMachineIP");
         Map<String, String> allIp = new HashMap<>();
 
@@ -216,41 +261,32 @@ public class IpUtils {
             Enumeration<NetworkInterface> allNetInterfaces = NetworkInterface.getNetworkInterfaces();
             if (null == allNetInterfaces) {
                 log.error("#####################getMachineIP Can not get NetworkInterfaces");
-            } else {
-                // 循环网卡获取网卡的IP地址
-                while (allNetInterfaces.hasMoreElements()) {
-                    NetworkInterface netInterface = allNetInterfaces.nextElement();
-                    String netInterfaceName = netInterface.getName();
-                    // 过滤掉127.0.0.1的IP
-                    if (StringUtils.isBlank(netInterfaceName) || "lo".equalsIgnoreCase(netInterfaceName)) {
-                        log.info("loopback地址或网卡名称为空");
-                    } else {
-                        Enumeration<InetAddress> addresses = netInterface.getInetAddresses();
-                        while (addresses.hasMoreElements()) {
-                            InetAddress ip = addresses.nextElement();
-                            if (ip instanceof Inet4Address && !ip.isLoopbackAddress()) {
-                                String machineIp = ip.getHostAddress();
-                                log.info("###############" + "netInterfaceName=" + netInterfaceName
-                                    + " The Macheine IP=" + machineIp);
-                                allIp.put(netInterfaceName, machineIp);
-                            }
-                        }
+                return allIp;
+            }
+            // 循环网卡获取网卡的IP地址
+            while (allNetInterfaces.hasMoreElements()) {
+                NetworkInterface netInterface = allNetInterfaces.nextElement();
+                String netInterfaceName = netInterface.getName();
+                // 过滤掉127.0.0.1的IP
+                if (StringUtils.isBlank(netInterfaceName) || "lo".equalsIgnoreCase(netInterfaceName)) {
+                    log.info("loopback地址或网卡名称为空");
+                    continue;
+                }
+                Enumeration<InetAddress> addresses = netInterface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress inetAddress = addresses.nextElement();
+                    String ip = ipExtracter.extractIpFromInetAddress(inetAddress);
+                    if (StringUtils.isBlank(ip)) {
+                        continue;
                     }
+                    log.info("NetInterfaceName={}, The Machine IP={}", netInterfaceName, ip);
+                    allIp.put(netInterfaceName, ip);
                 }
             }
         } catch (Exception e) {
             log.error("获取网卡失败", e);
         }
-
         return allIp;
-    }
-
-    public static String getFirstMachineIP() {
-        String ip = getMachineIP().values().iterator().next();
-        if (ip == null) {
-            ip = "no available ip";
-        }
-        return ip;
     }
 
     /**
