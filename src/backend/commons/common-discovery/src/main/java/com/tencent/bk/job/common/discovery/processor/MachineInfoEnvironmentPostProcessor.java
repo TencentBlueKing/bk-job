@@ -25,22 +25,39 @@
 package com.tencent.bk.job.common.discovery.processor;
 
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.context.event.ApplicationContextInitializedEvent;
 import org.springframework.boot.env.EnvironmentPostProcessor;
+import org.springframework.boot.logging.DeferredLog;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class MachineInfoEnvironmentPostProcessor implements EnvironmentPostProcessor {
+public class MachineInfoEnvironmentPostProcessor implements EnvironmentPostProcessor,
+    ApplicationListener<ApplicationContextInitializedEvent> {
+
+    private static final DeferredLog log = new DeferredLog();
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment env,
                                        SpringApplication application) {
         Map<String, Object> map = new HashMap<>();
-        map.put("machine.ip", IpUtils.getFirstMachineIP());
-        env.getPropertySources().addFirst(
-            new MapPropertySource("machine-info-properties", map));
+        String firstIp = IpUtils.getFirstMachineIP();
+        if (StringUtils.isBlank(firstIp)) {
+            log.warn("Got blank ip, ignore to put ip into environment");
+            return;
+        }
+        map.put("machine.ip", firstIp);
+        env.getPropertySources().addFirst(new MapPropertySource("machine-info-properties", map));
+    }
+
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public void onApplicationEvent(ApplicationContextInitializedEvent event) {
+        log.replayTo(MachineInfoEnvironmentPostProcessor.class);
     }
 }
