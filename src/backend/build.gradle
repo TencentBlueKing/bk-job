@@ -114,6 +114,7 @@ ext {
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.9.2-alpha")
     set('commonsValidatorVersion', "1.6")
+    set('okHttpVersion', "4.9.0")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersoin:" + bkjobVersion
@@ -251,6 +252,8 @@ subprojects {
             dependency "com.cronutils:cron-utils:$cronUtilsVersion"
             dependency "commons-validator:commons-validator:$commonsValidatorVersion"
             dependency "io.opentelemetry.instrumentation:opentelemetry-jdbc:$otelJdbcVersion"
+            dependency "com.squareup.okhttp3:logging-interceptor:$okHttpVersion"
+            dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
             dependencySet(group: "org.jooq", version: "$jooqVersion") {
                 entry "jooq"
                 entry "jooq-codegen"
