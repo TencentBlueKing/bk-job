@@ -269,7 +269,7 @@ public class IpUtils {
                 String netInterfaceName = netInterface.getName();
                 // 过滤掉127.0.0.1的IP
                 if (StringUtils.isBlank(netInterfaceName) || "lo".equalsIgnoreCase(netInterfaceName)) {
-                    log.info("loopback地址或网卡名称为空");
+                    log.info("loopback address or net interface name is blank");
                     continue;
                 }
                 Enumeration<InetAddress> addresses = netInterface.getInetAddresses();
@@ -284,7 +284,7 @@ public class IpUtils {
                 }
             }
         } catch (Exception e) {
-            log.error("获取网卡失败", e);
+            log.error("Fail to get network interfaces", e);
         }
         return allIp;
     }
