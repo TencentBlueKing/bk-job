@@ -2,7 +2,9 @@
     <div
         v-bkloading="{ isLoading }"
         class="ip-selector-view-node">
-        <collapse-box ref="collapseBoxRef">
+        <collapse-box
+            ref="collapseBoxRef"
+            name="node">
             <template #title>
                 <span style="font-weight: bold;">【动态拓扑】</span>
                 <span>
@@ -114,7 +116,7 @@
     } from '../utils';
 
     import RenderAgentStatistics from './components/agent-statistics.vue';
-    import CollapseBox from './components/collapse-box/index.vue';
+    import CollapseBox from './components/collapse-box.vue';
     import NodeHostList from './components/node-host-list.vue';
 
     const props = defineProps({
@@ -288,8 +290,8 @@
         refresh () {
             fetchData();
         },
-        collapseToggle () {
-            collapseBoxRef.value.toggle();
+        collapseToggle (toggle) {
+            collapseBoxRef.value.toggle(toggle);
         },
     });
 </script>

@@ -2,7 +2,9 @@
     <div
         v-bkloading="{ isLoading }"
         class="ip-selector-view-host">
-        <collapse-box ref="collapseBoxRef">
+        <collapse-box
+            ref="collapseBoxRef"
+            name="host">
             <template #title>
                 <span style="font-weight: bold;">【静态拓扑】</span>
                 <span>
@@ -95,7 +97,7 @@
         isAliveHost,
     } from '../utils';
 
-    import CollapseBox from './components/collapse-box/index.vue';
+    import CollapseBox from './components/collapse-box.vue';
 
     const props = defineProps({
         data: {
@@ -292,8 +294,8 @@
         refresh () {
             fetchData();
         },
-        collapseToggle () {
-            collapseBoxRef.value.toggle();
+        collapseToggle (toggle) {
+            collapseBoxRef.value.toggle(toggle);
         },
     });
 </script>

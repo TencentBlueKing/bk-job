@@ -187,8 +187,8 @@
         refresh () {
             viewsRef.value && viewsRef.value.refresh();
         },
-        collapseToggle () {
-            viewsRef.value && viewsRef.value.collapseToggle();
+        collapseToggle (toggle) {
+            viewsRef.value && viewsRef.value.collapseToggle(toggle);
         },
     });
 </script>

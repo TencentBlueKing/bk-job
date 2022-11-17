@@ -2,7 +2,9 @@
     <div
         v-bkloading="{ isLoading }"
         class="ip-selector-view-dynamic-group">
-        <collapse-box ref="collapseBoxRef">
+        <collapse-box
+            ref="collapseBoxRef"
+            name="dynamicGroup">
             <template #title>
                 <span style="font-weight: bold;">【动态分组】</span>
                 <span>
@@ -113,7 +115,7 @@
     } from '../utils';
 
     import RenderAgentStatistics from './components/agent-statistics.vue';
-    import CollapseBox from './components/collapse-box/index.vue';
+    import CollapseBox from './components/collapse-box.vue';
     import HostList from './components/dynamic-group-host-list.vue';
 
     const props = defineProps({
@@ -266,8 +268,8 @@
         refresh () {
             fetchData();
         },
-        collapseToggle () {
-            collapseBoxRef.value.toggle();
+        collapseToggle (toggle) {
+            collapseBoxRef.value.toggle(toggle);
         },
     });
 </script>

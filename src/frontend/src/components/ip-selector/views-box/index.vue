@@ -136,10 +136,10 @@
             nodeRef.value && nodeRef.value.refresh();
             dynamicGroupRef.value && dynamicGroupRef.value.refresh();
         },
-        collapseToggle () {
-            hostRef.value && hostRef.value.collapseToggle();
-            nodeRef.value && nodeRef.value.collapseToggle();
-            dynamicGroupRef.value && dynamicGroupRef.value.collapseToggle();
+        collapseToggle (toggle) {
+            hostRef.value && hostRef.value.collapseToggle(toggle);
+            nodeRef.value && nodeRef.value.collapseToggle(toggle);
+            dynamicGroupRef.value && dynamicGroupRef.value.collapseToggle(toggle);
         },
     });
 </script>
