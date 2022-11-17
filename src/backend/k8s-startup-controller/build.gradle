@@ -36,28 +36,18 @@ ext {
 version "${jobVersion}"
 dependencies {
     api project(":commons:common")
-    api project(":commons:common-api")
-    api project(":commons:common-iam")
-    api project(":commons:common-utils")
-    api project(":commons:esb-sdk")
-    api project(":commons:cmdb-sdk-model")
-    api project(":commons:artifactory-sdk")
+    api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'ch.qos.logback:logback-core'
     implementation 'ch.qos.logback:logback-classic'
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.reflections:reflections'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "application"
 
 // 固定入口类 不要改
-mainClassName = "com.tencent.bk.job.upgrader.Upgrader"
+mainClassName = "com.tencent.bk.job.k8s.StartupController"
 
 shadowJar {
     classifier = null
@@ -65,7 +55,7 @@ shadowJar {
 }
 task copyToRelease(type: Copy) {
     from("build/libs") {
-        include("**/upgrader-*.jar")
+        include("**/k8s-startup-controller-*.jar")
     }
     into "${rootDir}/release"
     outputs.upToDateWhen { false }
