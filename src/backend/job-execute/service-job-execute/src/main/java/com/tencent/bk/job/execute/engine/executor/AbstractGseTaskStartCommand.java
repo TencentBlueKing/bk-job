@@ -203,6 +203,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                 watch.stop();
                 return;
             } else {
+                log.info("[{}] Start gse task successfully, gseTaskId: {}", this.gseTaskUniqueName,
+                    gseTaskResponse.getGseTaskId());
                 updateGseTaskExecutionInfo(gseTaskResponse.getGseTaskId(), RunStatusEnum.RUNNING,
                     System.currentTimeMillis(), null, null);
             }
