@@ -91,10 +91,9 @@
             :label="parent.$t('account.端口')"
             property="dbPort"
             required>
-            <bk-input
-                :placeholder="parent.$t('account.输入确认端口')"
-                type="number"
+            <jb-input-number
                 :min="1"
+                :placeholder="parent.$t('account.输入确认端口')"
                 :value="props.formData.dbPort"
                 @change="value => props.change('dbPort', value)" />
         </jb-form-item>

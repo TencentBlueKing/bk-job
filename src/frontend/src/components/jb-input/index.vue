@@ -39,7 +39,7 @@
         <span
             v-if="maxlength > 0"
             ref="number"
-            class="jb-input-number">
+            class="values-number">
             {{ inputLength }}/{{ maxlength }}
         </span>
     </div>
@@ -138,7 +138,7 @@
     .jb-input {
         position: relative;
 
-        .jb-input-number {
+        .values-number {
             position: absolute;
             top: 9px;
             right: 9px;
