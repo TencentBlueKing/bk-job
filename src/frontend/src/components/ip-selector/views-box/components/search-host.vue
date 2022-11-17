@@ -88,7 +88,7 @@
         groupHostList,
     } from '../../utils';
 
-    import CollapseBox from './collapse-box/index.vue';
+    import CollapseBox from './collapse-box.vue';
 
     const props = defineProps({
         data: {
@@ -175,7 +175,7 @@
             isInnerChange = false;
             return;
         }
-        
+
         if (props.data.length > 0) {
             fetchData();
         } else {
@@ -238,7 +238,7 @@
     };
 </script>
 <style lang="postcss">
-    @import "../../styles/table.mixin.css";
+    @import url("../../styles/table.mixin.css");
 
     .ip-selector-view-host {
         @include table;

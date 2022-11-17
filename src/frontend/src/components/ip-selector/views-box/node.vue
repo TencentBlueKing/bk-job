@@ -2,7 +2,9 @@
     <div
         v-bkloading="{ isLoading }"
         class="ip-selector-view-node">
-        <collapse-box>
+        <collapse-box
+            ref="collapseBoxRef"
+            name="node">
             <template #title>
                 <span style="font-weight: bold;">【动态拓扑】</span>
                 <span>
@@ -114,7 +116,7 @@
     } from '../utils';
 
     import RenderAgentStatistics from './components/agent-statistics.vue';
-    import CollapseBox from './components/collapse-box/index.vue';
+    import CollapseBox from './components/collapse-box.vue';
     import NodeHostList from './components/node-host-list.vue';
 
     const props = defineProps({
@@ -126,6 +128,7 @@
 
     const emits = defineEmits(['change']);
 
+    const collapseBoxRef = ref();
     const isLoading = ref(false);
     const isAgentStatisticsLoading = ref(false);
     const tableData = shallowRef([]);
@@ -183,18 +186,6 @@
             .finally(() => {
                 isLoading.value = false;
             });
-        isAgentStatisticsLoading.value = true;
-        Manager.service.fetchHostAgentStatisticsNodes(params)
-            .then((data) => {
-                const staticMap = {};
-                data.forEach((item) => {
-                    staticMap[genNodeKey(item.node)] = item.agent_statistics;
-                });
-                nodeAgentStaticMap.value = staticMap;
-            })
-            .finally(() => {
-                isAgentStatisticsLoading.value = false;
-            });
     };
 
     watch(() => props.data, () => {
@@ -211,6 +202,28 @@
         immediate: true,
     });
 
+    watch(renderData, _.debounce((currentPageData) => {
+        const params = {
+            [Manager.nameStyle('nodeList')]: currentPageData.map(item => ({
+                [Manager.nameStyle('objectId')]: item.object_id,
+                [Manager.nameStyle('instanceId')]: item.instance_id,
+                [Manager.nameStyle('meta')]: item.meta,
+            })),
+        };
+        isAgentStatisticsLoading.value = true;
+        Manager.service.fetchHostAgentStatisticsNodes(params)
+            .then((data) => {
+                const staticMap = {};
+                data.forEach((item) => {
+                    staticMap[genNodeKey(item.node)] = item.agent_statistics;
+                });
+                nodeAgentStaticMap.value = staticMap;
+            })
+            .finally(() => {
+                isAgentStatisticsLoading.value = false;
+            });
+    }), 300);
+
     watch([validNodeList, resultList], () => {
         invalidNodeList.value = getInvalidNodeList(props.data, validNodeList.value);
         removedNodeList.value = getRemoveNodeList(props.data, context.originalValue);
@@ -222,7 +235,7 @@
         } = groupNodeList(validNodeList.value, diffMap.value);
 
         newNodeNum.value = newList.legnth;
-        
+
         tableData.value = [
             ...invalidNodeList.value,
             ...newList,
@@ -277,10 +290,13 @@
         refresh () {
             fetchData();
         },
+        collapseToggle (toggle) {
+            collapseBoxRef.value.toggle(toggle);
+        },
     });
 </script>
 <style lang="postcss">
-    @import "../styles/table.mixin.css";
+    @import url("../styles/table.mixin.css");
 
     .ip-selector-view-node {
         @include table;

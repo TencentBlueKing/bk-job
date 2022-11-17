@@ -24,13 +24,33 @@
 <script setup>
   import { ref } from 'vue';
 
-  import IpSelectorIcon from '../../../common/ip-selector-icon';
+  import IpSelectorIcon from '../../common/ip-selector-icon';
+
+  const props = defineProps({
+    name: {
+        type: String,
+    },
+  });
 
   const isShow = ref(true);
 
   const handleToggle = () => {
     isShow.value = !isShow.value;
   };
+
+  defineExpose({
+    toggle (lastStatus) {
+        if (lastStatus === undefined) {
+            handleToggle();
+        } else if (lastStatus === false) {
+            isShow.value = false;
+        } else if (lastStatus === true) {
+            isShow.value = true;
+        } else if (Array.isArray(lastStatus) && props.name && lastStatus.includes(props.name)) {
+            isShow.value = true;
+        }
+    },
+  });
 </script>
 <style lang="postcss" scoped>
     .ip-selector-view-collsapn {

@@ -121,38 +121,57 @@
         });
     };
 
-    // 获取分组路径、agent状态
-    const fetchData = () => {
-        isLoading.value = true;
+    watch(() => [props.node, props.node.state.loading], ([node, lazyLoading]) => {
+        isChildrenLazyLoading.value = lazyLoading;
+        isLoading.value = lazyLoading;
+        if (!lazyLoading) {
+            isLoading.value = true;
+            // 查询节点路径
+            const params = {
+                [Manager.nameStyle('nodeList')]: props.node.children.map((children) => {
+                    const childrenData = children.data.payload;
+                    return {
+                        [Manager.nameStyle('objectId')]: childrenData.object_id,
+                        [Manager.nameStyle('instanceId')]: childrenData.instance_id,
+                        [Manager.nameStyle('meta')]: childrenData.meta,
+                    };
+                }),
+            };
+            Manager.service.fetchNodesQueryPath(params)
+                .then((data) => {
+                    tableData.value = data.reduce((result, nodeStack) => {
+                        const namePath = nodeStack.map(nodeData => nodeData.instance_name).join(' / ');
+                        const tailNode = _.last(nodeStack);
+                        result.push({
+                            key: genNodeKey(tailNode),
+                            node: tailNode,
+                            namePath,
+                        });
+                        return result;
+                    }, []);
+
+                    syncPageCheckValue();
+                })
+                .finally(() => {
+                    isLoading.value = false;
+                });
+        }
+    }, {
+        immediate: true,
+    });
+
+    // 根据分页数据获取节点 Agent 状态
+    watch(renderTableData, _.debounce((currentPageData) => {
         const params = {
-            [Manager.nameStyle('nodeList')]: props.node.children.map((children) => {
-                const childrenData = children.data.payload;
+            [Manager.nameStyle('nodeList')]: currentPageData.map((nodeDataItem) => {
+                const currentNode = nodeDataItem.node;
                 return {
-                    [Manager.nameStyle('objectId')]: childrenData.object_id,
-                    [Manager.nameStyle('instanceId')]: childrenData.instance_id,
-                    [Manager.nameStyle('meta')]: childrenData.meta,
+                    [Manager.nameStyle('objectId')]: currentNode.object_id,
+                    [Manager.nameStyle('instanceId')]: currentNode.instance_id,
+                    [Manager.nameStyle('meta')]: currentNode.meta,
                 };
             }),
         };
-        // 查询节点路径
-        Manager.service.fetchNodesQueryPath(params)
-            .then((data) => {
-                tableData.value = data.reduce((result, nodeStack) => {
-                    const namePath = nodeStack.map(nodeData => nodeData.instance_name).join(' / ');
-                    const tailNode = _.last(nodeStack);
-                    result.push({
-                        key: genNodeKey(tailNode),
-                        node: tailNode,
-                        namePath,
-                    });
-                    return result;
-                }, []);
-
-                syncPageCheckValue();
-            })
-            .finally(() => {
-                isLoading.value = false;
-            });
         // 查询节点的 agent 状态
         Manager.service.fetchHostAgentStatisticsNodes(params)
             .then((data) => {
@@ -161,18 +180,10 @@
                     return result;
                 }, {});
             });
-    };
-
-    watch(() => [props.node, props.node.state.loading], ([node, lazyLoading]) => {
-        isChildrenLazyLoading.value = lazyLoading;
-        isLoading.value = lazyLoading;
-        if (!lazyLoading) {
-            fetchData();
-        }
-    }, {
+    }, 300), {
         immediate: true,
     });
-    
+
     watch(() => props.checkedMap, () => {
         if (isInnerChange) {
             isInnerChange = false;
