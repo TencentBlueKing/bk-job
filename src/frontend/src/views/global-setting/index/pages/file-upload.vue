@@ -36,10 +36,9 @@
                 </div>
                 <jb-form-item>
                     <div class="input-wraper">
-                        <bk-input
+                        <jb-input-number
                             v-model="info.amount"
-                            :min="1"
-                            type="number" />
+                            :min="1" />
                         <bk-select
                             v-model="info.unit"
                             class="unit-item"
@@ -201,7 +200,7 @@
                 } else {
                     this.suffixError = checkSuffixError(params.suffixList);
                 }
-                
+
                 if (this.suffixError) {
                     return;
                 }

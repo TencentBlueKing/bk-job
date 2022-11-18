@@ -164,7 +164,7 @@
 
     const isHostLoading = ref(false);
     const hostTableData = shallowRef([]);
-    
+
     const pageCheckValue = ref('');
     const hostCheckedMap = shallowRef({});
     const nodeHostListSearch = ref('');
@@ -381,7 +381,7 @@
     };
 </script>
 <style lang="postcss">
-    @import "../../../styles/tree.mixin.css";
+    @import url("../../../styles/tree.mixin.css");
 
     .ip-selector-static-topo {
         height: 100%;

@@ -2,7 +2,9 @@
     <div
         v-bkloading="{ isLoading }"
         class="ip-selector-view-dynamic-group">
-        <collapse-box>
+        <collapse-box
+            ref="collapseBoxRef"
+            name="dynamicGroup">
             <template #title>
                 <span style="font-weight: bold;">【动态分组】</span>
                 <span>
@@ -113,7 +115,7 @@
     } from '../utils';
 
     import RenderAgentStatistics from './components/agent-statistics.vue';
-    import CollapseBox from './components/collapse-box/index.vue';
+    import CollapseBox from './components/collapse-box.vue';
     import HostList from './components/dynamic-group-host-list.vue';
 
     const props = defineProps({
@@ -124,6 +126,7 @@
     });
     const emits = defineEmits(['change']);
 
+    const collapseBoxRef = ref();
     const isLoading = ref(false);
     const isAgentStatisticsLoading = ref(false);
     const tableData = shallowRef([]);
@@ -243,7 +246,7 @@
         }
         triggerChange();
     };
-    
+
     // 移除所有
     const handleRemoveAll = () => {
         resultList.value = [];
@@ -265,10 +268,13 @@
         refresh () {
             fetchData();
         },
+        collapseToggle (toggle) {
+            collapseBoxRef.value.toggle(toggle);
+        },
     });
 </script>
 <style lang="postcss">
-    @import "../styles/table.mixin.css";
+    @import url("../styles/table.mixin.css");
 
     .ip-selector-view-dynamic-group {
         @include table;

@@ -299,7 +299,7 @@
     };
 </script>
 <style lang="postcss">
-    @import "../../../../styles/tree.mixin.css";
+    @import url("../../../../styles/tree.mixin.css");
 
     .ip-selector-dynamic-topo {
         display: flex;

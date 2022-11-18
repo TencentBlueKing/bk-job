@@ -97,8 +97,6 @@
 
     const newHostNum = ref(0);
 
-    let isCreated = false;
-
     // 通过 host_id 查询主机详情
     const fetchData = () => {
         isLoading.value = true;
@@ -109,6 +107,8 @@
             })),
         })
         .then((data) => {
+            // 重复设置 loading 的状态，后面需要依靠这个状态来做数据的对比
+            isLoading.value = false;
             validHostList.value = data;
         })
         .finally(() => {
@@ -118,13 +118,12 @@
 
     watch(() => props.data, () => {
         if (props.data.length > 0) {
-            const needFetchHostDetail = _.find(props.data, item => !item.ip || !item.ipv6);
-            if (needFetchHostDetail && !isCreated) {
+            const withHostDetail = _.every(props.data, item => item.ip || item.ipv6);
+            if (!withHostDetail) {
                 fetchData();
             } else {
                 validHostList.value = [...props.data];
             }
-            isCreated = true;
         } else {
             validHostList.value = [];
         }
@@ -133,6 +132,9 @@
     });
 
     watch(validHostList, () => {
+        if (isLoading.value) {
+            return;
+        }
         invalidHostList.value = getInvalidHostList(props.data, validHostList.value);
         removedHostList.value = getRemoveHostList(props.data, context.originalValue);
         diffMap.value = getHostDiffMap(props.data, context.originalValue, invalidHostList.value);
@@ -171,9 +173,15 @@
         const IPList = listData.value.map(item => item[hostRenderKey.value]);
         execCopy(IPList.join('\n'), `复制成功 ${IPList.length} 个 IP`);
     };
-    
+
     // 移除所有IP
     const handlRemoveAll = () => {
         emits('change', 'hostList', []);
     };
+
+    defineExpose({
+        getAllHostList () {
+            return listData.value;
+        },
+    });
 </script>

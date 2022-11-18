@@ -2,7 +2,9 @@
     <div
         v-bkloading="{ isLoading }"
         class="ip-selector-view-host">
-        <collapse-box>
+        <collapse-box
+            ref="collapseBoxRef"
+            name="host">
             <template #title>
                 <span style="font-weight: bold;">【静态拓扑】</span>
                 <span>
@@ -95,7 +97,7 @@
         isAliveHost,
     } from '../utils';
 
-    import CollapseBox from './components/collapse-box/index.vue';
+    import CollapseBox from './components/collapse-box.vue';
 
     const props = defineProps({
         data: {
@@ -108,6 +110,7 @@
         'change',
     ]);
 
+    const collapseBoxRef = ref();
     const isLoading = ref(false);
     const tableData = shallowRef([]);
     const diffMap = shallowRef({});
@@ -163,7 +166,7 @@
             isInnerChange = false;
             return;
         }
-        
+
         if (props.data.length > 0) {
             fetchData();
         } else {
@@ -177,7 +180,7 @@
         invalidHostList.value = getInvalidHostList(props.data, validHostList.value);
         removedHostList.value = getRemoveHostList(props.data, context.originalValue);
         diffMap.value = getHostDiffMap(props.data, context.originalValue, invalidHostList.value);
-        
+
         hostIpRepeatMap.value = getRepeatIpHostMap(validHostList.value);
 
         const {
@@ -256,7 +259,7 @@
         validHostList.value = newValidHostList;
         triggerChange();
     };
-    
+
     // 清除所有主机
     const handleRemoveAll = () => {
         resultList.value = [];
@@ -270,7 +273,7 @@
             return validHostList.value.map(item => item[hostRenderKey.value]);
         },
         // 异常 IP 列表
-        getNotAlivelHostIpList () {
+        getAbnormalHostIpList () {
             const result = validHostList.value.reduce((result, item) => {
                 if (item.alive !== 1) {
                     result.push(item[hostRenderKey.value]);
@@ -291,10 +294,13 @@
         refresh () {
             fetchData();
         },
+        collapseToggle (toggle) {
+            collapseBoxRef.value.toggle(toggle);
+        },
     });
 </script>
 <style lang="postcss">
-    @import "../styles/table.mixin.css";
+    @import url("../styles/table.mixin.css");
 
     .ip-selector-view-host {
         @include table;
