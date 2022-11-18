@@ -559,6 +559,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 for (AgentTaskDetailDTO agentTask : resultGroup.getAgentTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
                     agentTaskVO.setHostId(agentTask.getHostId());
+                    agentTaskVO.setAgentId(agentTask.getAgentId());
                     // tmp 发布兼容，发布完成后需要改成 agentTaskVO.setIp(agentTask.getIp());
                     agentTaskVO.setIp(agentTask.getCloudIp());
                     agentTaskVO.setDisplayIp(agentTask.getIp());

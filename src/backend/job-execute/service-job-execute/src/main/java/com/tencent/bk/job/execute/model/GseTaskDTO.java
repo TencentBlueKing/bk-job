@@ -69,6 +69,10 @@ public class GseTaskDTO {
      * GSE 任务ID
      */
     private String gseTaskId;
+    /**
+     * GSE 任务的唯一名称，类似于ID的作用
+     */
+    private String taskUniqueName;
 
     public GseTaskDTO(Long stepInstanceId, Integer executeCount, int batch) {
         this.stepInstanceId = stepInstanceId;
@@ -77,6 +81,15 @@ public class GseTaskDTO {
     }
 
     public String getTaskUniqueName() {
-        return "GseTask:" + id + ":" + stepInstanceId + ":" + executeCount + ":" + batch;
+        if (taskUniqueName != null) {
+            return taskUniqueName;
+        } else {
+            String taskName = "GseTask:" + id + ":" + stepInstanceId + ":" + executeCount;
+            if (batch > 0) {
+                taskName = taskName + ":" + batch;
+            }
+            taskUniqueName = taskName;
+        }
+        return taskUniqueName;
     }
 }

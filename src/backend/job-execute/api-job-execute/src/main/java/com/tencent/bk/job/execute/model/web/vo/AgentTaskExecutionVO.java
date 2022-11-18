@@ -44,6 +44,9 @@ public class AgentTaskExecutionVO {
     @ApiModelProperty("Agent对应的主机ID")
     private Long hostId;
 
+    @ApiModelProperty("Agent ID")
+    private String agentId;
+
     /**
      * tmp: 暂时返回云区域+ipv4，发布完成之后仅返回ipv4
      */
