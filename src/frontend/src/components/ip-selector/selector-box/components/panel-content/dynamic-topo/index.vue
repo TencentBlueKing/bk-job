@@ -21,7 +21,7 @@
                         ref="treeRef"
                         :check-strictly="false"
                         :data="topoTreeData"
-                        expand-on-click
+                        :expand-on-click="false"
                         :filter-method="filterMethod"
                         :lazy-disabled="lazyDisabledCallbak"
                         :lazy-method="lazyMethodCallback"
@@ -55,7 +55,11 @@
                                     @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
                                     <ip-selector-icon :type="`${nodeItem.expanded ? 'shangxiachengkai-2' : 'shangxiachengkai'}`" />
                                 </div>
-                                <div class="topo-node-count">
+                                <div
+                                    class="topo-node-count"
+                                    :class="{
+                                        'is-selected': nodeItem.selected
+                                    }">
                                     {{ data.payload.count }}
                                 </div>
                             </div>

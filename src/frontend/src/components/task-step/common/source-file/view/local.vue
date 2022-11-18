@@ -183,7 +183,7 @@
                 const { files } = event.target;
                 const uploadFileQueue = [];
                 const params = new FormData();
-                
+
                 const sameStack = [];
                 const largeStack = [];
                 const includeStask = [];
@@ -193,13 +193,13 @@
                     restrictMode,
                     suffixList = [],
                 } = this.FILE_UPLOAD_SETTING;
-                
+
                 Array.from(files).forEach((curFile) => {
                     const { name, size } = curFile;
 
                     if (suffixList && suffixList.length > 0) {
                         const fileExtRule = new RegExp(`(${suffixList.map(item => encodeRegexp(item)).join('|')})$`);
-                    
+
                         // 上传文件后缀允许范围;
                         if (restrictMode === 1
                             && !fileExtRule.test(name)) {
@@ -213,13 +213,13 @@
                             return;
                         }
                     }
-                    
+
                     // 重名检测
                     if (this.fileList.some(_ => _.fileLocationText === name)) {
                         sameStack.push(name);
                         return;
                     }
-                    
+
                     if (size > this.fileUploadMaxBytes) {
                         largeStack.push(name);
                         return;
@@ -232,7 +232,7 @@
                     uploadFileQueue.push(sourceFile);
                     params.append('uploadFiles', curFile);
                 });
-                
+
                 if (includeStask.length > 0) {
                     this.messageError(`${I18n.t('文件')}[${includeStask.join(' / ')}]${I18n.t('的类型不在允许范围：')}${suffixList.join('、')}`);
                 }
@@ -250,9 +250,9 @@
                     this.$refs.uploadInput.value = '';
                     return;
                 }
-                
+
                 this.fileList.push(...uploadFileQueue);
-                
+
                 TaskExecuteService.getUploadFileContent(params, {
                     onUploadProgress: _.throttle((event) => {
                         uploadFileQueue.forEach((sourceFile) => {

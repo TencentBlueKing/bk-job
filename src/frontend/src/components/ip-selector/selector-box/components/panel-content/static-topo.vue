@@ -13,7 +13,7 @@
                 <bk-big-tree
                     ref="treeRef"
                     :data="topoTreeData"
-                    expand-on-click
+                    :expand-on-click="false"
                     :filter-method="filterMethod"
                     :lazy-disabled="lazyDisabledCallbak"
                     :lazy-method="lazyMethodCallback"
@@ -46,7 +46,11 @@
                                 @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
                                 <ip-selector-icon :type="`${nodeItem.expanded ? 'shangxiachengkai-2' : 'shangxiachengkai'}`" />
                             </div>
-                            <div class="topo-node-count">
+                            <div
+                                class="topo-node-count"
+                                :class="{
+                                    'is-selected': nodeItem.selected
+                                }">
                                 {{ data.payload.count }}
                             </div>
                         </div>
@@ -306,6 +310,7 @@
     // 选中节点
     const handleNodeSelect = (node) => {
         selectedTopoNodeData = node.data.payload;
+        pagination.current = 1;
         fetchNodeHostList();
     };
 

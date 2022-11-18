@@ -306,7 +306,7 @@
                 });
             });
         });
-    
+
     // 提交表格列表配置
     const handleSettingChange = (selectedList, sortList) => {
         columnKeyRenderList.value = selectedList;
@@ -349,7 +349,7 @@
     });
 </script>
 <style lang="postcss">
-    @import "../../../styles/table.mixin.css";
+    @import url("../../../styles/table.mixin.css");
 
     .ip-selector-host-table {
         position: relative;

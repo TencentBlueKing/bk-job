@@ -278,7 +278,7 @@
                         transferMode,
                         uploadSpeedLimit,
                     } = data.stepInfo.fileStepInfo;
-                    
+
                     this.formData = {
                         ...this.formData,
                         name,
@@ -494,7 +494,7 @@
                             rollingExpr,
                             rollingMode,
                         } = this.formData;
-                        
+
                         return TaskExecuteService.pushFile({
                             name,
                             uploadSpeedLimit: parseInt(uploadSpeedLimit, 10),
@@ -548,7 +548,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import "@/css/mixins/media";
+    @import url("@/css/mixins/media");
 
     html[lang="en-US"] {
         .recent-result {
@@ -563,6 +563,7 @@
         }
 
         .push-file-form {
+            min-width: 1120px;
             padding: 20px 24px 0;
 
             .form-item-content {
