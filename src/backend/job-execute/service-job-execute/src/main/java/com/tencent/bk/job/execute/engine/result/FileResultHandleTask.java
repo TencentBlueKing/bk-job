@@ -277,7 +277,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 continue;
             }
 
-            log.info("[{}] Analyse file result: {}", stepInstanceId, JsonUtils.toJson(result));
+            log.info("[{}] Analyse file result: {}", gseTask.getTaskUniqueName(), JsonUtils.toJson(result));
             JobAtomicFileTaskResult jobAtomicFileTaskResult = buildJobAtomicFileTaskResult(result);
 
 
@@ -306,11 +306,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         batchSaveChangedGseAgentTasks(sourceAgentTasks.values());
         watch.stop();
 
-        log.info("Analyse gse task result [{}] -> runningTargetAgentIds={}, " +
+        log.info("[{}] Analyse gse task result -> runningTargetAgentIds={}, " +
                 "notStartedTargetAgentIds={}, runningFileSourceAgentIds={}, notStartedFileSourceAgentIds={}, " +
                 "analyseFinishedTargetAgentIds={}, analyseFinishedSourceAgentIds={}, finishedDownloadFileMap={}, " +
                 "successDownloadFileMap={}, finishedUploadFileMap={}, successUploadFileMap={}",
-            this.stepInstanceId,
+            this.gseTask.getTaskUniqueName(),
             this.runningTargetAgentIds,
             this.notStartedTargetAgentIds,
             this.runningFileSourceAgentIds,
@@ -698,8 +698,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
         AgentTaskDTO agentTask = getAgentTask(isDownloadResult, agentId);
         if (finishedNum >= fileNum) {
-            log.info("[{}] Ip analyse finished! ip: {}, finishedTaskNum: {}, expectedTaskNum: {}",
-                stepInstanceId, agentId, finishedNum, fileNum);
+            log.info("[{}] Analyse Agent task finished! agentId: {}, finishedTaskNum: {}, expectedTaskNum: {}",
+                gseTask.getTaskUniqueName(), agentId, finishedNum, fileNum);
             // 更新AgentTask结果
             if (isDownloadResult) {
                 dealTargetAgentFinish(agentId, startTime, endTime, agentTask);
@@ -723,7 +723,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      */
     private void dealUploadAgentFinished(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
         log.info("[{}]: Deal source agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
-            stepInstanceId, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
+            gseTask.getTaskUniqueName(), agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
         this.runningFileSourceAgentIds.remove(agentId);
         this.notStartedFileSourceAgentIds.remove(agentId);

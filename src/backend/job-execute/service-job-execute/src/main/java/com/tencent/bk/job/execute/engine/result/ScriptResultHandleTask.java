@@ -278,7 +278,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     @Override
     GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<ScriptTaskResult> taskDetail) {
         if (taskDetail == null || taskDetail.getResult() == null) {
-            log.info("Analyse gse task result, result is empty!");
+            log.info("[{}] Analyse gse task result, result is empty!", gseTask.getTaskUniqueName());
             return analyseExecuteResult();
         }
         long currentTime = DateUtils.currentTimeMillis(); // 当前时间
@@ -286,7 +286,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         StopWatch watch = new StopWatch("analyse-gse-script-task");
         watch.start("analyse");
         for (ScriptAgentTaskResult agentTaskResult : taskDetail.getResult().getResult()) {
-            log.info("[{}]: agentTaskResult={}", stepInstanceId, agentTaskResult);
+            log.info("[{}]: agentTaskResult={}", gseTask.getTaskUniqueName(), agentTaskResult);
 
             /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本
              *是获取上下文参数的脚本。所以m_id=0的是用户脚本的执行日志，需要分析记录；m_id=1的，则是获取上下文参数
@@ -327,7 +327,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         }
 
         if (watch.getTotalTimeMillis() > 1000L) {
-            log.info("Analyse script gse task is slow, statistics: {}", watch.prettyPrint());
+            log.info("[{}] Analyse script gse task is slow, statistics: {}", gseTask.getTaskUniqueName(),
+                watch.prettyPrint());
         }
         return rst;
     }
