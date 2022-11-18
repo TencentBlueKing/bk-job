@@ -10,6 +10,11 @@
             .topo-node-expand {
                 opacity: 100% !important;
             }
+
+            .topo-node-count {
+                color: #fff;
+                background: #a3c5fd;
+            }
         }
     }
 
@@ -20,6 +25,7 @@
     .topo-node-filter,
     .topo-node-expand {
         padding: 0 3px;
+        font-size: 16px;
         color: #979ba5;
         opacity: 0%;
 
@@ -40,5 +46,9 @@
         color: #979ba5;
         background: #f0f1f5;
         border-radius: 2px;
+
+        &.is-selected {
+            color: #3a84ff;
+        }
     }
 }

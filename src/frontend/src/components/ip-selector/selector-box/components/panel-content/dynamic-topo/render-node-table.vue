@@ -121,10 +121,16 @@
         });
     };
 
-    watch(() => [props.node, props.node.state.loading], ([node, lazyLoading]) => {
-        isChildrenLazyLoading.value = lazyLoading;
-        isLoading.value = lazyLoading;
-        if (!lazyLoading) {
+    watch(() => [
+        props.node,
+        // 节点的子节点异步加载状态
+        props.node.state.loading,
+    ], ([node, childLazyLoading]) => {
+        isChildrenLazyLoading.value = childLazyLoading;
+        isLoading.value = childLazyLoading;
+        // 等待子节点异步加载完成
+        if (!childLazyLoading) {
+            pagination.current = 1;
             isLoading.value = true;
             // 查询节点路径
             const params = {

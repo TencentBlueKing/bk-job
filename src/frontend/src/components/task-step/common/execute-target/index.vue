@@ -125,7 +125,7 @@
                     :value="searchText"
                     @change="handleHostSearch" />
             </div>
-            
+
             <!-- <server-panel
                     v-show="isShowServerPanel"
                     ref="serverPanel"
@@ -296,7 +296,7 @@
                     }
                 }
             }
-            
+
             this.rules = [
                 {
                     validator: () => {
@@ -371,7 +371,7 @@
                     this.messageWarn(I18n.t('你还未选择主机'));
                     return;
                 }
-                
+
                 execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
             },
             /**
@@ -383,7 +383,7 @@
                     this.messageWarn(I18n.t('暂无异常主机'));
                     return;
                 }
-                
+
                 execCopy(abnormalHostIpList.join('\n'), `${I18n.t('复制成功')}（${abnormalHostIpList.length}${I18n.t('个IP')}）`);
             },
             /**
@@ -434,7 +434,7 @@
     .task-step-execute-target {
         &.only-host {
             .ip-search {
-                width: 620px;
+                width: 500px;
             }
         }
 

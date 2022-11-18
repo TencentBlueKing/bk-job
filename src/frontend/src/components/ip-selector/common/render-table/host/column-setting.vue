@@ -74,6 +74,7 @@
 <script setup>
     import tippy from 'tippy.js';
     import {
+        onBeforeUnmount,
         onMounted,
         ref,
         shallowRef,
@@ -137,10 +138,18 @@
             arrow: true,
             offset: [0, 8],
             zIndex: 999999,
-            hideOnClick: false,
+            hideOnClick: true,
         });
     });
-    
+
+    onBeforeUnmount(() => {
+        if (tippyInstance) {
+            tippyInstance.hide();
+            tippyInstance.destroy();
+            tippyInstance = null;
+        }
+    });
+
 </script>
 <style lang="postcss" scoped>
     .host-table-column-setting-box {
