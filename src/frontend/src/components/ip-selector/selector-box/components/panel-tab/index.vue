@@ -60,6 +60,7 @@
     </vuedraggable>
 </template>
 <script setup>
+    import _ from 'lodash';
     import {
         computed,
         ref,
@@ -108,19 +109,20 @@
     .then((data) => {
         if (data[CUSTOM_SETTINGS_MODULE]
             && data[CUSTOM_SETTINGS_MODULE].panelSortList) {
-                data[CUSTOM_SETTINGS_MODULE].panelSortList = ['staticTopo', 'manualInput'];
             const panelConfigMap = makeMap(panelList);
-            
-            const newPanelList = data[CUSTOM_SETTINGS_MODULE].panelSortList.reduce((result, item) => {
-                if (panelConfigMap[item]) {
-                    result.push(item);
-                    delete panelConfigMap[item];
-                }
-                return result;
-            }, []);
-            newPanelList.push(...Object.keys(panelConfigMap));
 
-            panelSortList.value = newPanelList;
+            if (data[CUSTOM_SETTINGS_MODULE].panelSortList.length === panelSortList.value.length) {
+                const newPanelList = data[CUSTOM_SETTINGS_MODULE].panelSortList.reduce((result, item) => {
+                    if (panelConfigMap[item]) {
+                        result.push(item);
+                        delete panelConfigMap[item];
+                    }
+                    return result;
+                }, []);
+                newPanelList.push(_.uniq(...Object.keys(panelConfigMap)));
+
+                panelSortList.value = newPanelList;
+            }
         }
     })
     .finally(() => {
