@@ -12,10 +12,10 @@
                     :row="hostDataItem" />
             </td>
             <template
-                v-for="(columnKey, index) in columnKeySortList">
+                v-for="(columnKey) in columnKeySortList">
                 <RenderTd
                     v-if="columnKeyRenderMap[columnKey]"
-                    :key="`${columnKey}_${index}`"
+                    :key="columnKey"
                     :class="{
                         'columu-fixed': columnKey === firstRenderColumnKey,
                     }"

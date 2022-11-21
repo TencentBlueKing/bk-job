@@ -69,6 +69,9 @@ export default function (tableRef, tableColumnResizeRef) {
                 const columnWidth = Math.max(finalLeft - startColumnLeft, 60);
 
                 columnEl.style.width = `${columnWidth}px`;
+                console.log('\n\n\n\n from mouse up', columnWidth);
+                console.dir(columnEl);
+                console.log(columnEl.style.width);
                 resizeProxy.style.display = 'none';
                 document.body.style.cursor = '';
                 dragging.value = false;

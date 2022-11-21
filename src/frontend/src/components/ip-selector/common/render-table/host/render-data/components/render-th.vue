@@ -3,11 +3,7 @@
         :class="{
             [`host-column-${columnKey}`]: true,
         }"
-        :style="{
-            width: columnWidthCallback ?
-                columnWidthCallback(index)
-                : columnConfig.width,
-        }"
+        :style="styles"
         @mousedown="handleMouseDown"
         @mousemove="handleMouseMove">
         <div class="cell">
@@ -63,6 +59,12 @@
         return null;
     });
 
+    const styles = {
+        width: props.columnWidthCallback
+                ? props.columnWidthCallback(props.index)
+                : columnConfig.value.width,
+    };
+
     const handleMouseDown = (event) => {
         emits('mousedown', event);
     };
@@ -70,5 +72,4 @@
     const handleMouseMove = (event) => {
         emits('mousemove', event);
     };
-
 </script>

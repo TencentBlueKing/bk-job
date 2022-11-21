@@ -16,10 +16,10 @@
                             style="width: 60px;">
                             <slot name="header-selection" />
                         </th>
-                        <template v-for="(columnKey, index) in columnKeySortList">
+                        <template v-for="(columnKey) in columnKeySortList">
                             <RenderHead
                                 v-if="columnKeyRenderMap[columnKey]"
-                                :key="`${columnKey}_${index}`"
+                                :key="columnKey"
                                 :class="{
                                     'columu-fixed': columnKey === firstRenderColumnKey,
                                     [`host-column-first-key`]: columnKey === firstRenderColumnKey
