@@ -26,21 +26,26 @@
 -->
 
 <template>
-    <div class="job-tag-select" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="job-tag-select">
         <bk-select
             ref="select"
-            searchable
-            multiple
-            display-tag
             :clearable="false"
+            display-tag
+            multiple
+            searchable
             :value="realValue"
-            @change="handleChange">
+            @change="handleChange"
+            @toggle="handleToggle">
             <bk-option
                 v-for="tagItem in list"
-                :key="tagItem.id"
                 :id="tagItem.id"
+                :key="tagItem.id"
                 :name="tagItem.name" />
-            <template v-if="!publicScript" slot="extension">
+            <template
+                v-if="!publicScript"
+                slot="extension">
                 <auth-component auth="tag/create">
                     <div @click="handleCreate">
                         <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建标签') }}
@@ -51,7 +56,9 @@
                 </auth-component>
             </template>
         </bk-select>
-        <lower-component level="custom" :custom="isShowCreate">
+        <lower-component
+            :custom="isShowCreate"
+            level="custom">
             <operation-tag
                 v-model="isShowCreate"
                 @on-change="handleTagNew" />
@@ -61,7 +68,9 @@
 <script>
     import PubliceTagManageService from '@service/public-tag-manage';
     import TagManageService from '@service/tag-manage';
+
     import { checkPublicScript } from '@utils/assist';
+
     import OperationTag from '@components/operation-tag';
 
     export default {
@@ -119,6 +128,10 @@
              */
             show () {
                 this.$refs.select.show();
+            },
+
+            handleToggle (toggle) {
+                this.$emit('toggle', toggle);
             },
             
             /**

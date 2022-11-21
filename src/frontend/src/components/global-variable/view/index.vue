@@ -26,14 +26,16 @@
 -->
 
 <template>
-    <div class="global-variable-detail" :class="classes">
+    <div
+        class="global-variable-detail"
+        :class="classes">
         <div class="variable-name">
             <span>{{ data.name }}：</span>
         </div>
         <div class="variable-value">
             <component
-                ref="value"
                 :is="typeCom"
+                ref="value"
                 :data="data"
                 v-bind="$attrs"
                 v-on="$listeners" />
@@ -41,8 +43,8 @@
     </div>
 </template>
 <script>
-    import TypeText from './text';
     import TypeHost from './host';
+    import TypeText from './text';
 
     export default {
         props: {

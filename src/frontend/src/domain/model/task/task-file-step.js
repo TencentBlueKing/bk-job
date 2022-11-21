@@ -24,8 +24,10 @@
 */
 
 import _ from 'lodash';
-import I18n from '@/i18n';
+
 import TaskHostNodeModel from '@model/task-host-node';
+
+import I18n from '@/i18n';
 
 const transferModeMap = {
     1: I18n.t('严谨模式'),

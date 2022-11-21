@@ -28,25 +28,30 @@
 <template>
     <div v-if="isShowNotify">
         <jb-form-item>
-            <bk-checkbox v-model="isFinishBeforeNotify">{{ $t('cron.结束前通知') }}</bk-checkbox>
+            <bk-checkbox v-model="isFinishBeforeNotify">
+                {{ $t('cron.结束前通知') }}
+            </bk-checkbox>
         </jb-form-item>
-        <render-strategy v-if="isFinishBeforeNotify" left="55" class="notify-wraper">
+        <render-info-detail
+            v-if="isFinishBeforeNotify"
+            class="notify-wraper"
+            left="55">
             <execute-notify
-                v-on="$listeners"
                 v-bind="$attrs"
                 :form-data="formData"
-                :notify-offset-label="$t('cron.结束前')" />
-        </render-strategy>
+                :notify-offset-label="$t('cron.结束前')"
+                v-on="$listeners" />
+        </render-info-detail>
     </div>
 </template>
 <script>
-    import RenderStrategy from '../../render-strategy';
+    import RenderInfoDetail from '../../render-info-detail';
     import ExecuteNotify from '../execute-notify';
 
     export default {
         name: '',
         components: {
-            RenderStrategy,
+            RenderInfoDetail,
             ExecuteNotify,
         },
         props: {

@@ -49,7 +49,7 @@ public class BaseHttpHelper implements HttpHelper {
 
     private final CloseableHttpClient httpClient;
 
-    protected BaseHttpHelper(CloseableHttpClient httpClient) {
+    public BaseHttpHelper(CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 

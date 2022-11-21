@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div ref="box" class="plan-edit-title" @click.stop="">
+    <div
+        ref="box"
+        class="plan-edit-title"
+        @click.stop="">
         <div
             v-if="isEditing"
             class="input-box"
@@ -36,17 +39,14 @@
             <jb-input
                 ref="input"
                 v-model="localValue"
-                :style="{
-                    width: `${inputWidth}px`,
-                }"
+                behavior="simplicity"
+                enter-trigger
+                :maxlength="60"
                 :native-attributes="{
                     spellcheck: false,
                     autofocus: true,
                 }"
                 :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
-                enter-trigger
-                :maxlength="60"
-                behavior="simplicity"
                 @submit="handleSubmit" />
             <i
                 v-if="errorInfo"
@@ -55,9 +55,9 @@
                 style="color: #ea3636;" />
             <Icon
                 v-if="isSubmiting"
-                type="loading-circle"
                 class="edit-status-flag rotate-loading"
-                style="color: #979ba5;" />
+                style="color: #979ba5;"
+                type="loading-circle" />
         </div>
         <div
             v-else
@@ -73,9 +73,11 @@
 </template>
 <script>
     import TaskPlanService from '@service/task-plan';
-    import I18n from '@/i18n';
+
     import { getOffset } from '@utils/assist';
     import { planNameRule } from '@utils/validator';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

@@ -71,7 +71,7 @@
                     <span>{ parent.$t('history.文件名') }：{ data.fileName }</span>
                     <span>{ parent.$t('history.文件大小') }：{ data.fileSize }</span>
                     <span>{ parent.$t('history.状态.log') }：<span class="status">{ data.statusDesc }</span></span>
-                    <span>{ parent.$t('history.源服务器 IP') }：{ data.srcIp }</span>
+                    <span>{ parent.$t('history.源服务器 IP') }：{ data.srcIp || data.srcIpv6 }</span>
                     <span>{ parent.$t('history.速率') }：{ data.speed }</span>
                     <span>{ parent.$t('history.进度') }：{ data.progress }</span>
                 </div>

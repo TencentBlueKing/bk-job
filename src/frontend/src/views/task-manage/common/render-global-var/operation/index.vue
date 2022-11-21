@@ -28,66 +28,68 @@
 <template>
     <jb-form form-type="vertical">
         <jb-form-item
+            :desc="nametips"
             :label="$t('template.变量类型')"
-            required
-            :desc="nametips">
+            required>
             <div class="variable-type-wraper">
                 <bk-radio-group v-model="globalType">
                     <bk-radio-button
+                        v-bk-tooltips="$t('template.普通的字符串变量，可跨主机、跨步骤使用')"
                         class="item"
-                        value="string"
                         :disabled="isTypeDisabled"
                         :name="$t('template.字符串')"
-                        v-bk-tooltips="$t('template.普通的字符串变量，可跨主机、跨步骤使用')">
+                        value="string">
                         {{ $t('template.字符串') }}
                     </bk-radio-button>
                     <bk-radio-button
+                        v-bk-tooltips="$t('template.同一主机对象的共享变量，无法跨主机使用')"
                         class="item"
-                        value="namespace"
                         :disabled="isTypeDisabled"
-                        v-bk-tooltips="$t('template.同一主机对象的共享变量，无法跨主机使用')">
+                        value="namespace">
                         {{ $t('template.命名空间') }}
                     </bk-radio-button>
                     <bk-radio-button
+                        v-bk-tooltips="$t('template.通过拓扑、动态分组或属性筛选的主机对象')"
                         class="item"
-                        value="host"
                         :disabled="isTypeDisabled"
-                        v-bk-tooltips="$t('template.通过拓扑、动态分组或属性筛选的主机对象')">
+                        value="host">
                         {{ $t('template.主机列表') }}
                     </bk-radio-button>
                     <bk-radio-button
+                        v-bk-tooltips="$t('template.经过加密处理的变量，不会以明文形式外显')"
                         class="item"
-                        value="password"
                         :disabled="isTypeDisabled"
-                        v-bk-tooltips="$t('template.经过加密处理的变量，不会以明文形式外显')">
+                        value="password">
                         {{ $t('template.密文') }}
                     </bk-radio-button>
                     <bk-radio-button
+                        v-bk-tooltips="$t('template.Array 格式的字符串，支持关联或索引数组')"
                         class="item"
-                        value="array"
                         :disabled="isTypeDisabled"
-                        v-bk-tooltips="$t('template.Array 格式的字符串，支持关联或索引数组')">
+                        value="array">
                         {{ $t('template.数组') }}
                     </bk-radio-button>
                 </bk-radio-group>
             </div>
         </jb-form-item>
         <component
-            ref="handler"
             :is="globalVarCom"
+            ref="handler"
             :data="formData"
             v-bind="$attrs"
             v-on="$listeners" />
     </jb-form>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import VarString from './string';
-    import VarNamespace from './namespace';
-    import VarHost from './host';
-    import VarPassword from './password';
-    import VarArray from './array';
     import { createVariable } from '../util';
+
+    import VarArray from './array';
+    import VarHost from './host';
+    import VarNamespace from './namespace';
+    import VarPassword from './password';
+    import VarString from './string';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'GlobalVar',

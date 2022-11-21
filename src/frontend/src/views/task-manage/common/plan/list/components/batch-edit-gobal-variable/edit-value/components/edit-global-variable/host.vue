@@ -29,43 +29,58 @@
     <div>
         <div class="name">
             <span>{{ data.name }}</span>
-            <span class="remove-flag" @click="handleRemove">
+            <span
+                class="remove-flag"
+                @click="handleRemove">
                 <Icon type="reduce-fill" />
             </span>
         </div>
         <div>
             <bk-button
                 v-if="isValueEmpty"
-                @click="handleChooseIp"
+                v-bk-tooltips="descPopover"
                 style="width: 160px;"
-                v-bk-tooltips="descPopover">
+                @click="handleChooseIp">
                 <Icon type="plus" />
                 {{ $t('template.添加服务器') }}
             </bk-button>
-            <div v-else class="host-value-text" @click="handleChooseIp">
+            <div
+                v-else
+                class="host-value-text"
+                @click="handleChooseIp">
                 <div class="host-type">
                     <Icon type="host" />
                 </div>
                 <div>
                     {{ valueText }}
                 </div>
-                <Icon class="host-edit" type="edit-2" />
+                <Icon
+                    class="host-edit"
+                    type="edit-2" />
             </div>
         </div>
-        <choose-ip
+        <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="hostNodeInfo"
-            @on-change="handleChange" />
+            @on-change="handleChange" /> -->
+        <ip-selector
+            :original-value="originalValue"
+            :show-dialog="isShowChooseIp"
+            :value="hostNodeInfo"
+            @change="handleChange"
+            @close-dialog="handleCloseIpSelector" />
     </div>
 </template>
 <script>
+    import _ from 'lodash';
+
     import TaskHostNodeModel from '@model/task-host-node';
-    import ChooseIp from '@components/choose-ip';
+    // import ChooseIp from '@components/choose-ip';
 
     export default {
-        components: {
-            ChooseIp,
-        },
+        // components: {
+        //     ChooseIp,
+        // },
         props: {
             data: {
                 type: Object,
@@ -101,7 +116,9 @@
                 };
             },
         },
-        
+        created () {
+            this.originalValue = _.cloneDeep(this.value.hostNodeInfo);
+        },
         methods: {
             handleRemove () {
                 this.$emit('on-remove');
@@ -109,6 +126,9 @@
             handleChooseIp () {
                 this.isShowChooseIp = true;
                 this.hostNodeInfo = this.value.hostNodeInfo;
+            },
+            handleCloseIpSelector () {
+                this.isShowChooseIp = false;
             },
             handleClear () {
                 this.$emit('on-change', new TaskHostNodeModel({}));

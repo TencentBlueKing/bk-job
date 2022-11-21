@@ -32,13 +32,23 @@
         :class="{ 'path-error': !!error }"
         :data-error="error">
         <template v-if="mode === 'edit'">
-            <div class="path-text" :style="styles" @click="handleShowEdit">
+            <div
+                class="path-text"
+                :style="styles"
+                @click="handleShowEdit">
                 <bk-popover placement="right">
-                    <div v-for="(item, index) in displayRows" :key="index" class="path-text-row">
+                    <div
+                        v-for="(item, index) in displayRows"
+                        :key="index"
+                        class="path-text-row">
                         {{ item }}
                     </div>
-                    <div v-if="hasMore">...</div>
-                    <ul slot="content" class="source-file-tips-box">
+                    <div v-if="hasMore">
+                        ...
+                    </div>
+                    <ul
+                        slot="content"
+                        class="source-file-tips-box">
                         <li
                             v-for="(item, index) in renderValue"
                             :key="index"
@@ -55,29 +65,35 @@
                 class="file-path-edit"
                 :placeholder="$t('Enter 换行可输入多个路径')"
                 :value="tempValue"
-                @input="handleEditChange"
-                @blur="handleEditSubmit" />
+                @blur="handleEditSubmit"
+                @input="handleEditChange" />
         </template>
         <template v-if="mode === 'input'">
             <smart-input
-                class="file-path-create"
                 ref="pathSubmit"
+                class="file-path-create"
                 :placeholder="$t('Enter 换行可输入多个路径')"
-                @input="handleCreateSubmit"
-                @blur="handleCreteaBlur" />
+                @blur="handleCreteaBlur"
+                @input="handleCreateSubmit" />
         </template>
-        <div v-if="error" class="error-flag" v-bk-tooltips="error">
+        <div
+            v-if="error"
+            v-bk-tooltips="error"
+            class="error-flag">
             <Icon type="info" />
         </div>
     </div>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import SmartInput from '@components/smart-input';
+
     import {
         filePathRule,
     } from '@utils/validator';
+
+    import SmartInput from '@components/smart-input';
+
+    import I18n from '@/i18n';
 
     const formatValue = str => str.split('\n').reduce((result, item) => {
         const realValue = _.trim(item);
@@ -98,7 +114,7 @@
         props: {
             value: {
                 type: Array,
-                default: '',
+                default: () => [],
             },
             mode: {
                 type: String,

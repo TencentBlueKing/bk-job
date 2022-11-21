@@ -26,46 +26,76 @@
 -->
 
 <template>
-    <div class="distro-file-view" :class="{ loading: isLoading }" v-bkloading="{ isLoading }">
-        <detail-item :label="$t('template.超时时长：')">{{ stepInfo.timeout }} (s)</detail-item>
-        <detail-item :label="$t('template.错误处理：')">{{ stepInfo.ignoreErrorText }}</detail-item>
-        <detail-item :label="$t('template.上传限速：')">{{ stepInfo.uploadSpeedLimitText }}</detail-item>
-        <detail-item :label="$t('template.下载限速：')">{{ stepInfo.downloadSpeedLimitText }}</detail-item>
-        <detail-item :label="$t('template.文件来源：')" layout="vertical">
+    <div
+        v-bkloading="{ isLoading }"
+        class="distro-file-view"
+        :class="{ loading: isLoading }">
+        <detail-item :label="$t('template.超时时长：')">
+            {{ stepInfo.timeout }} (s)
+        </detail-item>
+        <detail-item :label="$t('template.错误处理：')">
+            {{ stepInfo.ignoreErrorText }}
+        </detail-item>
+        <detail-item :label="$t('template.上传限速：')">
+            {{ stepInfo.uploadSpeedLimitText }}
+        </detail-item>
+        <detail-item :label="$t('template.下载限速：')">
+            {{ stepInfo.downloadSpeedLimitText }}
+        </detail-item>
+        <detail-item
+            :label="$t('template.文件来源：')"
+            layout="vertical">
             <render-source-file
                 v-if="!isLoading"
+                :account="account"
                 :data="stepInfo.fileSourceList"
-                :variable="variable"
-                :account="account" />
+                :variable="variable" />
         </detail-item>
-        <detail-item :label="$t('template.目标路径：')">{{ stepInfo.fileDestination.path }}</detail-item>
-        <detail-item :label="$t('template.传输模式：')">{{ stepInfo.transferModeText }}</detail-item>
-        <detail-item :label="$t('template.执行帐号：')">{{ executeAccountText }}</detail-item>
-        <detail-item v-if="stepInfo.fileDestination.server.variable" :label="$t('template.执行目标：')">
+        <detail-item :label="$t('template.目标路径：')">
+            {{ stepInfo.fileDestination.path }}
+        </detail-item>
+        <detail-item :label="$t('template.传输模式：')">
+            {{ stepInfo.transferModeText }}
+        </detail-item>
+        <detail-item :label="$t('template.执行帐号：')">
+            {{ executeAccountText }}
+        </detail-item>
+        <detail-item
+            v-if="stepInfo.fileDestination.server.variable"
+            :label="$t('template.执行目标：')">
             <render-global-variable
-                :type="$t('template.执行目标')"
                 :data="variable"
-                :name="stepInfo.fileDestination.server.variable" />
+                :name="stepInfo.fileDestination.server.variable"
+                :type="$t('template.执行目标')" />
         </detail-item>
-        <detail-item v-else :label="$t('template.执行目标：')" layout="vertical">
-            <server-panel
+        <detail-item
+            v-else
+            :label="$t('template.执行目标：')"
+            layout="vertical">
+            <!-- <server-panel
                 detail-fullscreen
-                :host-node-info="stepInfo.fileDestination.server.hostNodeInfo" />
+                :host-node-info="stepInfo.fileDestination.server.hostNodeInfo" /> -->
+            <ip-selector
+                readonly
+                show-view
+                :value="stepInfo.fileDestination.server.hostNodeInfo" />
         </detail-item>
         <slot />
     </div>
 </template>
 <script>
     import AccountManageService from '@service/account-manage';
-    import ServerPanel from '@components/choose-ip/server-panel';
-    import RenderSourceFile from './components/render-source-file';
+
     import DetailItem from '@components/detail-layout/item';
+
     import RenderGlobalVariable from './components/render-global-variable';
+    // import ServerPanel from '@components/choose-ip/server-panel';
+    import RenderSourceFile from './components/render-source-file';
 
     export default {
         name: '',
         components: {
-            ServerPanel,
+            // ServerPanel,
             RenderSourceFile,
             RenderGlobalVariable,
             DetailItem,

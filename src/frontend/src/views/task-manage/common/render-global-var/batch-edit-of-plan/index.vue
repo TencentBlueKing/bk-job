@@ -29,15 +29,15 @@
     <global-variable-layout type="vertical">
         <global-variable
             v-for="variable in usedList"
-            ref="used"
-            :type="variable.type"
             :key="variable.id"
-            :data="variable" />
+            ref="used"
+            :data="variable"
+            :type="variable.type" />
         <Empty
             v-if="usedList.length < 1"
             key="empty"
-            :title="$t('template.暂无引用的变量')"
-            style="height: 160px; max-width: 960px; background-color: #f0f1f5;" />
+            style="height: 160px; max-width: 960px; background-color: #f0f1f5;"
+            :title="$t('template.暂无引用的变量')" />
         <toggle-display
             v-if="unusedList.length > 0"
             :count="unusedList.length"
@@ -45,17 +45,17 @@
             <div style="margin-top: 20px;">
                 <global-variable
                     v-for="variable in unusedList"
-                    ref="unused"
-                    :type="variable.type"
                     :key="variable.id"
-                    :data="variable" />
+                    ref="unused"
+                    :data="variable"
+                    :type="variable.type" />
             </div>
         </toggle-display>
     </global-variable-layout>
 </template>
 <script>
-    import GlobalVariableLayout from '@components/global-variable/layout';
     import GlobalVariable from '@components/global-variable/edit';
+    import GlobalVariableLayout from '@components/global-variable/layout';
     import ToggleDisplay from '@components/global-variable/toggle-display';
 
     export default {

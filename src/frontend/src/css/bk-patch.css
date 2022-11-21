@@ -123,7 +123,8 @@
         background-color: #fff !important;
         border: 1px solid #3a84ff !important;
     }
-    &.only-bottom-border{
+
+    &.only-bottom-border {
         border-top-color: transparent !important;
         border-right-color: transparent !important;
         border-left-color: transparent !important;
@@ -163,27 +164,31 @@
  */
 .bk-dialog-wrapper {
     text-align: center;
-    &:after{
-        content: "";
+
+    &::after {
         display: inline-block;
-        height: 100%;
         width: 1px;
+        height: 100%;
         vertical-align: middle;
+        content: "";
     }
+
     .bk-dialog {
         top: unset;
         display: inline-block;
         margin: unset;
         text-align: initial;
         vertical-align: middle;
-        &.bk-dialog-fullscreen{
+
+        &.bk-dialog-fullscreen {
             top: 0;
             right: 0;
             bottom: 0;
             left: 0;
         }
-        &.bk-info-box{
-            .bk-dialog-content-drag{
+
+        &.bk-info-box {
+            .bk-dialog-content-drag {
                 position: relative;
             }
         }
@@ -261,7 +266,7 @@
 
         &:first-child {
             .bk-radio-button-text {
-                border-left: 1px solid currentColor !important;
+                border-left: 1px solid currentcolor !important;
             }
         }
     }
@@ -275,7 +280,7 @@
         z-index: 0;
         color: #dcdee5;
         background: #fafbfd;
-        border-left: 1px solid currentColor !important;
+        border-left: 1px solid currentcolor !important;
     }
 
     .bk-radio-button-input:checked + .bk-radio-button-text {
@@ -283,13 +288,13 @@
         z-index: 3;
         color: #3a84ff;
         background: #e1ecff;
-        border-left: 1px solid currentColor !important;
+        border-left: 1px solid currentcolor !important;
     }
 }
 
 /**
     覆盖 bk-button 样式
  */
-.bk-button-text{
+.bk-button-text {
     line-height: 22px;
 }

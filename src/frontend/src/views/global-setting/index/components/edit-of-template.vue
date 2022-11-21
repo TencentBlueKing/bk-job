@@ -51,14 +51,30 @@
                 </div>
             </div>
         </div>
-        <jb-form class="notify-template-form" ref="templateForm" :model="formData" form-type="vertical" :rules="rules">
-            <jb-form-item v-if="formData.code === 'mail'" :label="$t('setting.邮件主题')" required :property="'title'">
+        <jb-form
+            ref="templateForm"
+            class="notify-template-form"
+            form-type="vertical"
+            :model="formData"
+            :rules="rules">
+            <jb-form-item
+                v-if="formData.code === 'mail'"
+                :label="$t('setting.邮件主题')"
+                :property="'title'"
+                required>
                 <bk-input
                     v-model="formData.title"
                     @change="value => handleChange(value, 'title')" />
             </jb-form-item>
-            <jb-form-item :label="$t('setting.模板内容')" required :property="'content'">
-                <bk-button text @click="toggleShowVariable(true)">{{ $t('setting.内置变量') }}</bk-button>
+            <jb-form-item
+                :label="$t('setting.模板内容')"
+                :property="'content'"
+                required>
+                <bk-button
+                    text
+                    @click="toggleShowVariable(true)">
+                    {{ $t('setting.内置变量') }}
+                </bk-button>
                 <bk-input
                     v-model="formData.content"
                     type="textarea"
@@ -66,19 +82,25 @@
             </jb-form-item>
         </jb-form>
         <div class="message-preview">
-            <bk-button text @click="isShowPreviewSend = !isShowPreviewSend">{{ $t('setting.消息预览') }}</bk-button>
-            <render-strategy left="20" v-if="isShowPreviewSend">
+            <bk-button
+                text
+                @click="isShowPreviewSend = !isShowPreviewSend">
+                {{ $t('setting.消息预览') }}
+            </bk-button>
+            <render-strategy
+                v-if="isShowPreviewSend"
+                left="20">
                 <div class="send-message-content">
                     <jb-user-selector
-                        :placeholder="$t('setting.请输入接收消息预览的用户名（请确保接受人对应的账号配置正常）')"
                         class="input"
-                        :user="reciverList"
+                        :placeholder="$t('setting.请输入接收消息预览的用户名（请确保接受人对应的账号配置正常）')"
                         :show-role="false"
+                        :user="reciverList"
                         @on-change="handleApprovalUserChange" />
                     <bk-button
-                        theme="primary"
-                        :loading="isLoading"
                         :disabled="!reciverList.length"
+                        :loading="isLoading"
+                        theme="primary"
                         @click="handleSend">
                         {{ $t('setting.发送') }}
                     </bk-button>
@@ -88,19 +110,22 @@
         <jb-dialog
             v-model="isShowVariable"
             class="internal-variable-dialog"
-            :width="960"
-            :show-footer="false">
+            :show-footer="false"
+            :width="960">
             <internalVariable :handle-close="toggleShowVariable" />
         </jb-dialog>
     </div>
 </template>
 
 <script>
-    import I18n from '@/i18n';
     import GlobalSettingService from '@service/global-setting';
-    import RenderStrategy from '@components/render-strategy';
-    import InternalVariable from './internal-variable';
+
     import JbUserSelector from '@components/jb-user-selector';
+    import RenderStrategy from '@components/render-strategy';
+
+    import InternalVariable from './internal-variable';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         // 渠道code

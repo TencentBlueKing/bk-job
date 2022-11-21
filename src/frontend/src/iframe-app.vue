@@ -26,9 +26,13 @@
 -->
 
 <template>
-    <div class="iframe-navigation-container" :class="{ loading }">
+    <div
+        class="iframe-navigation-container"
+        :class="{ loading }">
         <div class="container-header">
-            <div id="sitePageTitle" class="container-header-title">
+            <div
+                id="sitePageTitle"
+                class="container-header-title">
                 <router-back mode="iframe" />
                 <span>{{ routerTitle }}</span>
                 <div id="siteHeaderStatusBar" />

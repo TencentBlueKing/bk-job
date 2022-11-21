@@ -26,49 +26,62 @@
 -->
 
 <template>
-    <smart-action class="create-script-page" offset-target="bk-form-content">
+    <smart-action
+        class="create-script-page"
+        offset-target="bk-form-content">
         <jb-form
-            :model="formData"
-            :rules="rules"
+            ref="form"
             v-test="{ type: 'form', value: 'create_script' }"
-            ref="form">
-            <jb-form-item :label="$t('script.脚本名称.label')" required property="name">
+            :model="formData"
+            :rules="rules">
+            <jb-form-item
+                :label="$t('script.脚本名称.label')"
+                property="name"
+                required>
                 <div class="script-name input">
                     <jb-input
                         v-model="formData.name"
-                        :placeholder="$t('script.推荐按照该脚本逻辑提供的使用场景来取名...')"
-                        :maxlength="60" />
+                        :maxlength="60"
+                        :placeholder="$t('script.推荐按照该脚本逻辑提供的使用场景来取名...')" />
                 </div>
             </jb-form-item>
-            <jb-form-item :label="$t('script.场景标签.label')" property="tags">
+            <jb-form-item
+                :label="$t('script.场景标签.label')"
+                property="tags">
                 <jb-tag-select
-                    :placeholder="$t('script.标签对资源的分类管理有很大帮助')"
+                    v-model="formData.tags"
                     class="input"
-                    v-model="formData.tags" />
+                    :placeholder="$t('script.标签对资源的分类管理有很大帮助')" />
             </jb-form-item>
             <jb-form-item :label="$t('script.描述')">
                 <bk-input
-                    class="input"
                     v-model="formData.description"
-                    :placeholder="$t('script.在此处标注该脚本的备注和使用说明')"
-                    type="textarea"
-                    :maxlength="200" />
-            </jb-form-item>
-            <jb-form-item :label="$t('script.版本号.label')" required property="version">
-                <jb-input
                     class="input"
-                    v-model="formData.version"
-                    :placeholder="$t('script.输入版本号')"
-                    :maxlength="30" />
+                    :maxlength="200"
+                    :placeholder="$t('script.在此处标注该脚本的备注和使用说明')"
+                    type="textarea" />
             </jb-form-item>
-            <jb-form-item :label="$t('script.脚本内容')" required property="content">
+            <jb-form-item
+                :label="$t('script.版本号.label')"
+                property="version"
+                required>
+                <jb-input
+                    v-model="formData.version"
+                    class="input"
+                    :maxlength="30"
+                    :placeholder="$t('script.输入版本号')" />
+            </jb-form-item>
+            <jb-form-item
+                :label="$t('script.脚本内容')"
+                property="content"
+                required>
                 <div ref="content">
                     <ace-editor
                         v-model="formData.content"
-                        :lang="scriptType"
+                        v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
                         :height="contentHeight"
-                        @on-mode-change="handleTypeChange"
-                        v-bkloading="{ isLoading: isContentLoading, opacity: .2 }" />
+                        :lang="scriptType"
+                        @on-mode-change="handleTypeChange" />
                 </div>
             </jb-form-item>
         </jb-form>
@@ -90,12 +103,13 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
-    import ScriptService from '@service/script-manage';
+
     import PublicScriptService from '@service/public-script-manage';
+    import ScriptService from '@service/script-manage';
+
     import {
-        formatScriptTypeValue,
         checkPublicScript,
+        formatScriptTypeValue,
         getOffset,
         scriptErrorConfirm,
     } from '@utils/assist';
@@ -103,9 +117,12 @@
         scriptNameRule,
         scriptVersionRule,
     } from '@utils/validator';
-    import JbInput from '@components/jb-input';
+
     import AceEditor from '@components/ace-editor';
+    import JbInput from '@components/jb-input';
     import JbTagSelect from '@components/jb-tag-select';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

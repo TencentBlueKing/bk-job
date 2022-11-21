@@ -37,51 +37,56 @@
                     v-if="hostList.length > 0 || renderWithEmpty"
                     ref="host"
                     :data="hostList"
-                    :editable="editable"
                     :diff="hostDiff"
+                    :editable="editable"
                     @on-change="handleHostChange" />
                 <server-node
                     v-if="nodeInfo.length > 0 || renderWithEmpty"
                     ref="node"
                     :data="nodeInfo"
-                    :editable="editable"
                     :diff="nodeDiff"
-                    @on-view="handleView"
-                    @on-change="handleNodeChange" />
+                    :editable="editable"
+                    @on-change="handleNodeChange"
+                    @on-view="handleView" />
                 <server-group
                     v-if="groupList.length > 0 || renderWithEmpty"
                     ref="group"
                     :data="groupList"
-                    :editable="editable"
                     :diff="groupDiff"
-                    @on-view="handleView"
-                    @on-change="handleGroupChange" />
+                    :editable="editable"
+                    @on-change="handleGroupChange"
+                    @on-view="handleView" />
             </bk-collapse>
         </div>
-        <lower-component level="custom" :custom="showDetail">
+        <lower-component
+            :custom="showDetail"
+            level="custom">
             <host-detail
                 v-model="showDetail"
-                :data="viewInfo"
-                :append="hostDetailAppend" />
+                :append="hostDetailAppend"
+                :data="viewInfo" />
         </lower-component>
-        <lower-component level="custom" :custom="searchMode">
+        <lower-component
+            :custom="searchMode"
+            level="custom">
             <host-search
                 v-show="searchMode"
                 :data="searchData"
                 :editable="editable"
-                @on-change="handleSearchChange" />
+                @on-remove="handleSearchRemove" />
         </lower-component>
     </div>
 </template>
 <script>
-    import { encodeRegexp } from '@utils/assist';
     import TaskHostNodeModel from '@model/task-host-node';
-    import ServerNode from './view/node';
-    import ServerHost from './view/host';
+
+    import { encodeRegexp } from '@utils/assist';
+
     import ServerGroup from './view/group';
+    import ServerHost from './view/host';
     import HostDetail from './view/host-detail';
     import HostSearch from './view/host-search';
-    import { generateHostRealId } from './components/utils';
+    import ServerNode from './view/node';
 
     const addCollapsePanel = (target, name) => {
         if (target.length > 0) {
@@ -173,7 +178,11 @@
         watch: {
             hostNodeInfo: {
                 handler (hostNodeInfo) {
-                    const { dynamicGroupList, ipList, topoNodeList } = hostNodeInfo;
+                    const {
+                        dynamicGroupList,
+                        ipList,
+                        topoNodeList,
+                    } = hostNodeInfo;
                     this.hostList = Object.freeze(ipList);
                     if (ipList.length > 0) {
                         addCollapsePanel(this.activePanel, 'host');
@@ -241,9 +250,9 @@
                 const hostMap = {};
                 
                 if (this.$refs.host) {
-                    this.$refs.host.getAllHost().forEach((host) => {
-                        if (filterReg.test(host.ip)) {
-                            hostMap[generateHostRealId(host)] = host;
+                    this.$refs.host.getAllHost().forEach((ipInfo) => {
+                        if (filterReg.test(ipInfo.ip)) {
+                            hostMap[ipInfo.hostId] = ipInfo;
                         }
                     });
                 }
@@ -271,7 +280,12 @@
             /**
              * @desc 触发值的改变
              */
-            trigger () {
+            triggerChange () {
+                console.log('from server panel = ', {
+                    ipList: this.hostList,
+                    topoNodeList: this.nodeInfo,
+                    dynamicGroupList: this.groupList,
+                });
                 this.$emit('on-change', {
                     ipList: this.hostList,
                     topoNodeList: this.nodeInfo,
@@ -303,7 +317,7 @@
              */
             handleHostChange (hostList) {
                 this.hostList = Object.freeze(hostList);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 更新节点
@@ -311,7 +325,7 @@
              */
             handleNodeChange (nodeInfo) {
                 this.nodeInfo = Object.freeze(nodeInfo);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 更新分组
@@ -319,26 +333,28 @@
              */
             handleGroupChange (groupList) {
                 this.groupList = Object.freeze(groupList);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 搜索主机面板删除了主机
              * @param {Array} removeHostList 在搜索面板中被删除的主机
              */
-            handleSearchChange (removeHostList) {
+            handleSearchRemove (removeHostInfoList) {
                 const removeHostMap = {};
-                removeHostList.forEach((item) => {
-                    removeHostMap[item.realId] = true;
+                removeHostInfoList.forEach((hostInfo) => {
+                    removeHostMap[hostInfo.hostId] = true;
                 });
 
                 const result = [];
-                this.$refs.host.list.forEach((currentHost) => {
-                    if (!removeHostMap[currentHost.realId]) {
-                        result.push(currentHost);
+                this.$refs.host.getAllHost().forEach((hostInfo) => {
+                    if (!removeHostMap[hostInfo.hostId]) {
+                        result.push({
+                            hostId: hostInfo.hostId,
+                        });
                     }
                 });
                 this.hostList = Object.freeze(result);
-                this.trigger();
+                this.triggerChange();
             },
         },
     };

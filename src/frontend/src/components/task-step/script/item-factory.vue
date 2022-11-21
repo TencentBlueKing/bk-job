@@ -27,23 +27,24 @@
 
 <template>
     <component
-        ref="item"
         :is="itemCom"
+        ref="item"
         v-bind="$attrs"
         v-on="$listeners" />
 </template>
 <script>
-    import ScriptName from '../common/name';
     import ErrorHandle from '../common/error-handle';
+    import ScriptName from '../common/name';
     import Rolling from '../common/rolling';
     import ScriptTimeout from '../common/timeout';
-    import ScriptSourceOfExecution from './strategy/script-source-of-execution';
-    import ScriptSourceOfTemplate from './strategy/script-source-of-template';
+
+    import ExecuteAccount from './strategy/execute-account';
+    import ExecuteTargetOfExecution from './strategy/execute-target-of-execution';
+    import ExecuteTargetOfTemplate from './strategy/execute-target-of-template';
     import ScriptContent from './strategy/script-content';
     import ScriptParam from './strategy/script-param';
-    import ExecuteAccount from './strategy/execute-account';
-    import ExecuteTargetOfTemplate from './strategy/execute-target-of-template';
-    import ExecuteTargetOfExecution from './strategy/execute-target-of-execution';
+    import ScriptSourceOfExecution from './strategy/script-source-of-execution';
+    import ScriptSourceOfTemplate from './strategy/script-source-of-template';
 
     export default {
         name: 'ExecuteScriptItemFactory',

@@ -26,6 +26,8 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
+import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 
@@ -56,22 +58,13 @@ public interface HostService {
 
     /**
      * 查询主机在白名单中允许的操作
+     * tmp: 发布完成后可以仅仅支持使用hostId查询白名单
      *
      * @param appId 业务ID
      * @param host  主机
      * @return 允许的操作
      */
     List<String> getHostAllowedAction(long appId, HostDTO host);
-
-    /**
-     * 判断IP白名单是否配置该主机的对应操作
-     *
-     * @param appId   业务ID
-     * @param cloudIp 主机IP
-     * @param action  操作
-     * @return 是否配置规则
-     */
-    boolean isMatchWhiteIpRule(long appId, String cloudIp, String action);
 
     /**
      * 获取业务下的主机列表
@@ -89,7 +82,19 @@ public interface HostService {
      * @param groupId 动态分组ID
      * @return 主机列表
      */
-    List<HostDTO> getIpByDynamicGroupId(long appId, String groupId);
+    List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId);
+
+    /**
+     * 批量获取动态分组主机，并根据动态分组ID对主机进行分组
+     *
+     * @param appId    业务ID
+     * @param groupIds 动态分组ID列表
+     * @return Map, key: 动态分组 value: 动态分组下的主机列表
+     */
+    Map<DynamicServerGroupDTO, List<HostDTO>> batchGetAndGroupHostsByDynamicGroup(
+        long appId,
+        Collection<DynamicServerGroupDTO> groupIds);
+
 
     /**
      * 根据topo节点获取主机
@@ -98,7 +103,20 @@ public interface HostService {
      * @param ccInstances topo节点列表
      * @return 主机列表
      */
-    List<HostDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances);
+    List<HostDTO> getHostsByTopoNodes(long appId, List<CcInstanceDTO> ccInstances);
+
+    /**
+     * 根据topo节点获取主机并分组
+     *
+     * @param appId     Job业务ID
+     * @param topoNodes topo节点列表
+     * @return Map, key: topo 节点, value: 主机列表
+     */
+    Map<DynamicServerTopoNodeDTO, List<HostDTO>> getAndGroupHostsByTopoNodes(
+        long appId,
+        Collection<DynamicServerTopoNodeDTO> topoNodes
+    );
+
 
     /**
      * 获取主机云区域名称

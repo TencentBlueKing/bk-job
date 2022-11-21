@@ -38,9 +38,9 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
         }
 
         List<AgentTaskDetailDTO> agentTaskDetailList;
-        // 历史版本AgentTask会包含ip信息,从当前版本开始AgentTask不会包含ip信息，需要从StepInstance反查
         boolean hasIpInfo = StringUtils.isNotEmpty(agentTasks.get(0).getCloudIp());
         if (!hasIpInfo) {
+            // 从当前版本开始AgentTask不会包含ip信息，需要从StepInstance反查
             Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
             agentTaskDetailList = agentTasks.stream()
                 .map(agentTask -> {
@@ -49,10 +49,12 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
                     agentTaskDetail.setCloudIp(host.toCloudIp());
                     agentTaskDetail.setBkCloudId(host.getBkCloudId());
                     agentTaskDetail.setIp(host.getIp());
+                    agentTaskDetail.setIpv6(host.getIpv6());
                     agentTaskDetail.setBkCloudName(hostService.getCloudAreaName(host.getBkCloudId()));
                     return agentTaskDetail;
                 }).collect(Collectors.toList());
         } else {
+            // 历史版本AgentTask会包含ip信息
             agentTaskDetailList = agentTasks.stream()
                 .map(agentTask -> {
                     AgentTaskDetailDTO agentTaskDetail = new AgentTaskDetailDTO(agentTask);

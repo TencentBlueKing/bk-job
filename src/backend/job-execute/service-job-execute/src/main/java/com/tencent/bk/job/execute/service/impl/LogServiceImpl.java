@@ -25,11 +25,11 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.LogServiceResourceClient;
-import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -49,7 +49,6 @@ import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -89,7 +88,7 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public ServiceScriptLogDTO buildSystemScriptLog(HostDTO host, String content, int offset,
+    public ServiceScriptLogDTO buildSystemScriptLog(long hostId, String content, int offset,
                                                     Long logTimeInMillSeconds) {
         String logDateTime;
         if (logTimeInMillSeconds != null) {
@@ -101,7 +100,7 @@ public class LogServiceImpl implements LogService {
         }
         String logContentWithDateTime = "[" + logDateTime + "] " + content + "\n";
         int length = logContentWithDateTime.getBytes(StandardCharsets.UTF_8).length;
-        return new ServiceScriptLogDTO(host, offset + length, logContentWithDateTime);
+        return new ServiceScriptLogDTO(hostId, offset + length, logContentWithDateTime);
     }
 
     @Override
@@ -134,7 +133,6 @@ public class LogServiceImpl implements LogService {
         logDTO.setExecuteCount(executeCount);
         logDTO.setBatch(batch);
         logDTO.setHostId(scriptLog.getHostId());
-        logDTO.setIp(scriptLog.getCloudIp());
         logDTO.setScriptLog(scriptLog);
         return logDTO;
     }
@@ -374,7 +372,7 @@ public class LogServiceImpl implements LogService {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
-        InternalResponse<List<HostDTO>> resp = logServiceResourceClient.getIpsByKeyword(taskCreateDateStr,
+        InternalResponse<List<HostDTO>> resp = logServiceResourceClient.questHostsByLogKeyword(taskCreateDateStr,
             stepInstanceId, executeCount, batch, keyword);
 
         if (!resp.isSuccess()) {
@@ -385,65 +383,42 @@ public class LogServiceImpl implements LogService {
         return resp.getData();
     }
 
-    @Override
-    public void writeFileLogWithTimestamp(long jobCreateTime,
-                                          long stepInstanceId,
-                                          int executeCount,
-                                          Integer batch,
-                                          HostDTO host,
-                                          ServiceHostLogDTO executionLog,
-                                          Long logTimeInMillSeconds) {
+    public void writeFileLogsWithTimestamp(long jobCreateTime,
+                                           List<ServiceHostLogDTO> hostFileLogs,
+                                           Long logTimeInMillSeconds) {
 
-        if (executionLog == null || CollectionUtils.isEmpty(executionLog.getFileTaskLogs())) {
+        if (CollectionUtils.isEmpty(hostFileLogs)) {
             return;
         }
-
-        String logDateTime = "[";
-        if (logTimeInMillSeconds != null) {
-            logDateTime += DateUtils.formatUnixTimestamp(logTimeInMillSeconds, ChronoUnit.MILLIS, "yyyy-MM-dd " +
-                "HH:mm:ss", ZoneId.systemDefault());
-        } else {
-            logDateTime += DateUtils.formatUnixTimestamp(System.currentTimeMillis(), ChronoUnit.MILLIS, "yyyy-MM-dd " +
-                "HH:mm:ss", ZoneId.systemDefault());
-        }
-        logDateTime += "] ";
-        for (ServiceFileTaskLogDTO fileTaskLog : executionLog.getFileTaskLogs()) {
-            fileTaskLog.setContent(logDateTime + fileTaskLog.getContent() + "\n");
-        }
-        ServiceSaveLogRequest request = new ServiceSaveLogRequest();
-        request.setLogType(LogTypeEnum.FILE.getValue());
-        request.setStepInstanceId(stepInstanceId);
-        request.setExecuteCount(executeCount);
-        request.setBatch(batch);
-        request.setIp(host.getIp());
-        request.setHostId(host.getHostId());
-        request.setJobCreateDate(DateUtils.formatUnixTimestamp(jobCreateTime, ChronoUnit.MILLIS, "yyyy_MM_dd",
-            ZoneId.of("UTC")));
-        request.setFileTaskLogs(executionLog.getFileTaskLogs());
-        logServiceResourceClient.saveLog(request);
-    }
-
-    @Override
-    public void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> fileLogs) {
-        if (CollectionUtils.isEmpty(fileLogs)) {
-            return;
-        }
-
-        String logDateTime = "[" + DateUtils.formatUnixTimestamp(System.currentTimeMillis(), ChronoUnit.MILLIS,
-            "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault()) + "]";
-        fileLogs.forEach(fileLog -> {
-            if (CollectionUtils.isNotEmpty(fileLog.getFileTaskLogs())) {
-                fileLog.getFileTaskLogs().stream()
-                    .filter(fileTaskLog -> StringUtils.isNotEmpty(fileTaskLog.getContent()))
-                    .forEach(fileTaskLog -> fileTaskLog.setContent(logDateTime + fileTaskLog.getContent() + "\n"));
-            }
-        });
 
         ServiceBatchSaveLogRequest request = new ServiceBatchSaveLogRequest();
         request.setJobCreateDate(DateUtils.formatUnixTimestamp(jobCreateTime, ChronoUnit.MILLIS, "yyyy_MM_dd",
             ZoneId.of("UTC")));
-        request.setLogs(fileLogs);
         request.setLogType(LogTypeEnum.FILE.getValue());
+
+        String logDateTime = "[";
+        if (logTimeInMillSeconds != null) {
+            logDateTime += DateUtils.formatUnixTimestamp(logTimeInMillSeconds, ChronoUnit.MILLIS,
+                "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault());
+        } else {
+            logDateTime += DateUtils.formatUnixTimestamp(System.currentTimeMillis(), ChronoUnit.MILLIS,
+                "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault());
+        }
+        logDateTime += "] ";
+        for (ServiceHostLogDTO hostFileLog : hostFileLogs) {
+            for (ServiceFileTaskLogDTO fileTaskLog : hostFileLog.getFileTaskLogs()) {
+                if (StringUtils.isBlank(fileTaskLog.getContent())) {
+                    continue;
+                }
+                fileTaskLog.setContent(logDateTime + fileTaskLog.getContent() + "\n");
+            }
+            request.setLogs(hostFileLogs);
+        }
         logServiceResourceClient.saveLogs(request);
+    }
+
+    @Override
+    public void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> hostFileLogs) {
+        writeFileLogsWithTimestamp(jobCreateTime, hostFileLogs, System.currentTimeMillis());
     }
 }

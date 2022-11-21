@@ -30,51 +30,55 @@
         <div @click="handleInputClick">
             <bk-input
                 ref="input"
-                type="textarea"
                 :class="{
                     'focus-error': isFocusError,
                 }"
-                :rows="inputRows"
-                :value="ipInputText"
                 :placeholder="$t('请输入 IP 地址，多IP可用 空格 换行 ; , |分隔 \n带云区域请用冒号分隔，如（ 0:192.168.1.101 ）')"
+                :rows="inputRows"
+                type="textarea"
+                :value="ipInputText"
                 @change="handleIPChange" />
         </div>
         <div class="input-action">
-            <div v-if="isError" class="input-error">
+            <div
+                v-if="isError"
+                class="input-error">
                 <div>{{ $t('以上内容存在错误：') }}</div>
                 <div v-if="invalidIPList.length > 0">
                     <span>{{ $t('IP 在本业务下不存在') }}</span>
                     <Icon
-                        type="ip-audit"
-                        class="error-action"
                         v-bk-tooltips="$t('标识错误')"
+                        class="error-action"
+                        type="ip-audit"
                         @click="handleHighlightInvilad" />
                     <Icon
-                        type="delete"
-                        class="error-action"
                         v-bk-tooltips="$t('一键清除')"
+                        class="error-action"
+                        type="delete"
                         @click="handleRemoveInvalid" />
                 </div>
-                <div v-if="invalidIPList.length > 0 && errorIPList.length > 0">；</div>
+                <div v-if="invalidIPList.length > 0 && errorIPList.length > 0">
+                    ；
+                </div>
                 <div v-if="errorIPList.length > 0">
                     <span>{{ $t('内容格式错误，无法识别') }}</span>
                     <Icon
-                        type="ip-audit"
-                        class="error-action"
                         v-bk-tooltips="$t('标识错误')"
+                        class="error-action"
+                        type="ip-audit"
                         @click="handleHightlightError" />
                     <Icon
-                        type="delete"
-                        class="error-action"
                         v-bk-tooltips="$t('一键清除')"
+                        class="error-action"
+                        type="delete"
                         @click="handleRemoveError" />
                 </div>
             </div>
             <bk-button
                 class="submit-btn"
-                theme="primary"
-                outline
                 :loading="isSubmiting"
+                outline
+                theme="primary"
                 @click="handleAddHost">
                 <span>{{ $t('添加到已选择') }}</span>
                 <div
@@ -89,9 +93,10 @@
 </template>
 <script>
     import _ from 'lodash';
-    import AppManageService from '@service/app-manage';
+
+    import HostManageService from '@service/host-manage';
+
     import { encodeRegexp } from '@utils/assist';
-    import { generateHostRealId } from './utils';
 
     export default {
         name: '',
@@ -248,31 +253,26 @@
                     params.actionScope = window.IPInputScope;
                 }
 
-                AppManageService.fetchHostOfHost(params)
+                HostManageService.fetchHostOfHost(params)
                     .then((data) => {
                         // 输入的有效 IP
-                        const hostList = [];
+                        const resultIPList = [];
                         const hostIPMap = {};
                         
                         data.forEach((host) => {
                             const {
+                                hostId,
                                 ip,
                                 cloudAreaInfo,
                             } = host;
-                            hostList.push({
-                                realId: generateHostRealId(host),
-                                ip,
-                                cloudAreaInfo: {
-                                    id: cloudAreaInfo.id,
-                                },
-                            });
+                            resultIPList.push({ hostId });
                             // 记录 IP 和 云区域 ID + IP 组成的检索
                             hostIPMap[ip] = true;
                             hostIPMap[`${cloudAreaInfo.id}:${ip}`] = true;
                         });
                         // 提交输入内容
-                        if (hostList.length > 0) {
-                            this.$emit('on-change', 'ipInput', hostList);
+                        if (resultIPList.length > 0) {
+                            this.$emit('on-change', 'ipInput', resultIPList);
                         }
                         // 正确的 IP 输入，但是 IP 不存于当前业务下
                         this.invalidIPList = ipList.reduce((result, IPItem) => {

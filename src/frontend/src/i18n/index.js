@@ -23,11 +23,12 @@
  * IN THE SOFTWARE.
 */
 
-import Vue from 'vue';
-import VueI18n from 'vue-i18n';
+import BKMagicBox from 'bk-magic-vue';
 import Cookie from 'js-cookie';
 import _ from 'lodash';
-import BKMagicBox from 'bk-magic-vue';
+import Vue from 'vue';
+import VueI18n from 'vue-i18n';
+
 import Local from './local';
 
 Vue.use(VueI18n);

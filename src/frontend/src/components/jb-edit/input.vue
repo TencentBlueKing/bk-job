@@ -27,40 +27,48 @@
 
 <template>
     <div
+        :key="value"
         class="jb-edit-input"
-        :class="mode"
-        :key="value">
+        :class="mode">
         <template v-if="!isEditing">
             <div
                 class="render-value-box"
                 @click.stop="handleBlockShowEdit">
-                <div class="value-text" v-bk-overflow-tips>
-                    <slot v-bind:value="newVal">
+                <div
+                    v-bk-overflow-tips
+                    class="value-text">
+                    <slot :value="newVal">
                         <span>{{ newVal || '--' }}</span>
                     </slot>
                 </div>
                 <div class="edit-action-box">
                     <Icon
                         v-if="!isBlock && !isSubmiting"
-                        type="edit-2"
                         class="edit-action"
+                        type="edit-2"
                         @click.self.stop="handleShowEdit" />
                     <Icon
                         v-if="isSubmiting"
-                        type="loading-circle"
-                        class="edit-loading" />
+                        class="edit-loading"
+                        type="loading-circle" />
                 </div>
             </div>
         </template>
         <template v-else>
-            <div class="edit-value-box" :class="{ 'edit-error': !!error }" @click.stop="">
+            <div
+                class="edit-value-box"
+                :class="{ 'edit-error': !!error }"
+                @click.stop="">
                 <bk-input
                     ref="input"
                     :value="newVal"
-                    @change="handleInputChange"
                     @blur="handleInputBlur"
+                    @change="handleInputChange"
                     @keyup="handleInputEnter" />
-                <div v-if="error" class="input-edit-info" v-bk-tooltips.top="error">
+                <div
+                    v-if="error"
+                    v-bk-tooltips.top="error"
+                    class="input-edit-info">
                     <Icon type="info" />
                 </div>
             </div>

@@ -28,14 +28,18 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -166,7 +170,7 @@ public class IpUtils {
     }
 
     /**
-     * 将long转换为ip
+     * 将数值转换为ip
      *
      * @return ip
      */
@@ -179,13 +183,13 @@ public class IpUtils {
     }
 
     /**
-     * 将long转换为ip
+     * 将数值转换为ip
      *
      * @return ip
      */
-    public static String revertIpFromLongStr(String longStr) {
+    public static String revertIpFromNumericalStr(String numericalStr) {
         try {
-            InetAddress addr = InetAddress.getByName(longStr);
+            InetAddress addr = InetAddress.getByName(numericalStr);
             return addr.getHostAddress();
         } catch (UnknownHostException e) {
             return "";
@@ -247,5 +251,63 @@ public class IpUtils {
             ip = "no available ip";
         }
         return ip;
+    }
+
+    /**
+     * 通过含多个IP的字符串与云区域ID构造多个cloudIp
+     *
+     * @param cloudId    云区域ID
+     * @param multiIpStr 含多个IP的字符串
+     * @return cloudIp列表
+     */
+    public static List<String> buildCloudIpListByMultiIp(Long cloudId, String multiIpStr) {
+        if (StringUtils.isBlank(multiIpStr)) {
+            return Collections.emptyList();
+        }
+        if (!multiIpStr.contains(",") && !multiIpStr.contains(":")) {
+            return Collections.singletonList(cloudId + ":" + multiIpStr.trim());
+        }
+        String[] ipArr = multiIpStr.split("[,;]");
+        List<String> cloudIpList = new ArrayList<>(ipArr.length);
+        for (String ip : ipArr) {
+            cloudIpList.add(cloudId + ":" + ip.trim());
+        }
+        return cloudIpList;
+    }
+
+    /**
+     * 移除ip中的云区域ID
+     *
+     * @param ip bkCloudId:ip
+     * @return 移除云区域ID后的ip
+     */
+    public static String removeBkCloudId(String ip) {
+        if (ip == null) {
+            return null;
+        }
+        if (ip.contains(":")) {
+            return ip.substring(ip.indexOf(":") + 1);
+        } else {
+            return ip;
+        }
+    }
+
+    /**
+     * 将纯IP与含云区域的IP分离开
+     *
+     * @param ipOrCloudIpList ip/cloudIp列表
+     * @return <纯IP列表，含云区域IP列表>
+     */
+    public static Pair<List<String>, List<String>> separateIpAndCloudIps(List<String> ipOrCloudIpList) {
+        List<String> ipList = new ArrayList<>();
+        List<String> cloudIpList = new ArrayList<>();
+        for (String ipOrCloudIp : ipOrCloudIpList) {
+            if (ipOrCloudIp.contains(":")) {
+                cloudIpList.add(ipOrCloudIp);
+            } else {
+                ipList.add(ipOrCloudIp);
+            }
+        }
+        return Pair.of(ipList, cloudIpList);
     }
 }

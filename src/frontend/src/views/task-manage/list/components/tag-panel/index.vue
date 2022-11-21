@@ -26,53 +26,57 @@
 -->
 
 <template>
-    <div class="template-list-tag-panel" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="template-list-tag-panel">
         <tab-item
-            :name="$t('template.全部作业')"
             :id="1"
-            :value="classesId"
-            icon="business-manage"
             :count="totalCount"
+            icon="business-manage"
+            :name="$t('template.全部作业')"
             :tooltips-disabled="true"
+            :value="classesId"
             @on-select="handleClassesSelect" />
         <tab-item
-            :name="$t('template.未分类')"
             :id="2"
-            :value="classesId"
-            icon="unclassified"
             :count="unclassifiedCount"
+            icon="unclassified"
+            :name="$t('template.未分类')"
             :tooltips-disabled="true"
+            :value="classesId"
             @on-select="handleClassesSelect" />
         <tab-item
-            :name="$t('template.待更新')"
             :id="3"
-            :value="classesId"
-            icon="update"
             :count="needUpdateCount"
+            icon="update"
+            :name="$t('template.待更新')"
             :tooltips-disabled="true"
+            :value="classesId"
             @on-select="handleClassesSelect" />
         <div class="line" />
         <template v-for="item in list">
             <tab-item
                 v-if="item.relatedTaskTemplateNum > 0"
-                :key="item.id"
                 :id="item.id"
-                :count="item.relatedTaskTemplateNum"
-                :name="item.name"
-                :description="item.description"
-                :value="tagId"
+                :key="item.id"
                 :can-edit="true"
+                :count="item.relatedTaskTemplateNum"
+                :description="item.description"
+                :name="item.name"
                 :tag-list="list"
-                @on-select="handleSelect"
-                @on-edit="handleEdit" />
+                :value="tagId"
+                @on-edit="handleEdit"
+                @on-select="handleSelect" />
         </template>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TaskManageService from '@service/task-manage';
     import TagManageService from '@service/tag-manage';
+    import TaskManageService from '@service/task-manage';
+
     import TabItem from './tab-item';
+
+    import I18n from '@/i18n';
 
     export default {
         name: 'RenderTagTabItem',

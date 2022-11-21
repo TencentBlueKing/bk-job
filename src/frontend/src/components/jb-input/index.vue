@@ -26,18 +26,20 @@
 -->
 
 <template>
-    <div class="jb-input" ref="jbInput">
+    <div
+        ref="jbInput"
+        class="jb-input">
         <bk-input
             ref="input"
             :value="localValue"
-            @input="handleInput"
+            v-bind="$attrs"
             @blur="handleBlur"
-            @keyup="handleKeyup"
-            v-bind="$attrs" />
+            @input="handleInput"
+            @keyup="handleKeyup" />
         <span
             v-if="maxlength > 0"
             ref="number"
-            class="jb-input-number">
+            class="values-number">
             {{ inputLength }}/{{ maxlength }}
         </span>
     </div>
@@ -136,7 +138,7 @@
     .jb-input {
         position: relative;
 
-        .jb-input-number {
+        .values-number {
             position: absolute;
             top: 9px;
             right: 9px;

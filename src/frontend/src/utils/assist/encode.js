@@ -49,3 +49,12 @@ export const encodeMult = (text) => {
     temp.value = text;
     return temp.value;
 };
+
+/**
+ * @desc 格式化用户输入的HTML
+ * @param { String } str
+ * @returns { String }
+ */
+export const escapeHTML = str => str.replace(/&/g, '&#38;').replace(/"/g, '&#34;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&#60;');

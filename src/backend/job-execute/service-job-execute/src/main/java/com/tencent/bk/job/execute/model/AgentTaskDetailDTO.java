@@ -40,10 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor
 public class AgentTaskDetailDTO extends AgentTaskDTO {
     /**
-     * 服务器IP,不包含云区域
-     */
-    private String ip;
-    /**
      * 云区域ID
      */
     private Long bkCloudId;
@@ -52,24 +48,20 @@ public class AgentTaskDetailDTO extends AgentTaskDTO {
      */
     private String bkCloudName;
     /**
-     * 展示给用户的IP
+     * 主机 ipv4
      */
-    private String displayIp;
+    private String ip;
+    /**
+     * 主机ipv6
+     */
+    private String ipv6;
 
     public AgentTaskDetailDTO(AgentTaskDTO agentTask) {
         super(agentTask);
         if (StringUtils.isNotEmpty(agentTask.getCloudIp())) {
-            HostDTO host = HostDTO.fromCloudIp(agentTask.getAgentId());
+            HostDTO host = HostDTO.fromCloudIp(agentTask.getCloudIp());
             this.ip = host.getIp();
             this.bkCloudId = host.getBkCloudId();
-        }
-    }
-
-    public String getDisplayIp() {
-        if (StringUtils.isNotEmpty(displayIp)) {
-            return displayIp;
-        } else {
-            return ip;
         }
     }
 
@@ -79,7 +71,6 @@ public class AgentTaskDetailDTO extends AgentTaskDTO {
         host.setIp(getIp());
         host.setBkCloudId(getBkCloudId());
         host.setBkCloudName(getBkCloudName());
-        host.setDisplayIp(getDisplayIp());
         host.setAgentId(getAgentId());
         return host;
     }

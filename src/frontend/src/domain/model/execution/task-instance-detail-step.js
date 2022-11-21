@@ -24,6 +24,7 @@
 */
 
 import _ from 'lodash';
+
 import TaskInstanceDetailStepFileModel from '@model/execution/task-instance-detail-step-file';
 import TaskInstanceDetailStepScriptModel from '@model/execution/task-instance-detail-step-script';
 

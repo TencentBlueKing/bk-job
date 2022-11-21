@@ -30,42 +30,54 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 130px;">{{ $t('template.变量类型') }}<span class="require-flag" /></th>
+                    <th style="width: 130px;">
+                        {{ $t('template.变量类型') }}<span class="require-flag" />
+                    </th>
                     <th>{{ $t('template.变量名称') }}<span class="require-flag" /></th>
                     <th>
-                        <span v-bk-tooltips="$t('template.请输入变量的初始值 [可选]')" class="hover-tips">
+                        <span
+                            v-bk-tooltips="$t('template.请输入变量的初始值 [可选]')"
+                            class="hover-tips">
                             {{ $t('template.初始值') }}
                         </span>
                     </th>
-                    <th style="width: 320px;">{{ $t('template.变量描述') }}</th>
+                    <th style="width: 320px;">
+                        {{ $t('template.变量描述') }}
+                    </th>
                     <th style="width: 80px;">
-                        <span v-bk-tooltips="$t('template.变量的值在执行中可变')" class="hover-tips">
+                        <span
+                            v-bk-tooltips="$t('template.变量的值在执行中可变')"
+                            class="hover-tips">
                             {{ $t('template.赋值可变') }}
                         </span>
                     </th>
-                    <th style="width: 100px;">{{ $t('template.执行时必填') }}</th>
-                    <th style="width: 80px;">{{ $t('template.操作') }}</th>
+                    <th style="width: 100px;">
+                        {{ $t('template.执行时必填') }}
+                    </th>
+                    <th style="width: 80px;">
+                        {{ $t('template.操作') }}
+                    </th>
                 </tr>
             </thead>
             <template v-for="(variableItem, index) in variableList">
                 <render-table-row
                     v-if="variableItem.id > 0 && variableItem.delete !== 1"
-                    ref="variableEdit"
-                    :variable-name-list="calcExcludeNameList(variableItem)"
-                    :data="variableItem"
                     :key="variableItem.id"
+                    ref="variableEdit"
+                    :data="variableItem"
+                    :variable-name-list="calcExcludeNameList(variableItem)"
+                    @on-append="handleAppendVariable(index)"
                     @on-change="value => handleChange(index, value)"
-                    @on-delete="handleDelete(index)"
-                    @on-append="handleAppendVariable(index)" />
+                    @on-delete="handleDelete(index)" />
                 <create-table-row
                     v-else-if="variableItem.id < 0"
-                    ref="variableCreate"
                     :key="variableItem.id"
-                    :variable-name-list="calcExcludeNameList(variableItem)"
+                    ref="variableCreate"
                     :data="variableItem"
+                    :variable-name-list="calcExcludeNameList(variableItem)"
+                    @on-append="handleAppendVariable(index)"
                     @on-change="value => handleChange(index, value)"
-                    @on-delete="handleDelete(index)"
-                    @on-append="handleAppendVariable(index)" />
+                    @on-delete="handleDelete(index)" />
             </template>
         </table>
         <div
@@ -79,10 +91,13 @@
 </template>
 <script>
     import _ from 'lodash';
+
     import GlobalVariableModel from '@model/task/global-variable';
-    import RenderTableRow from './render-table-row.vue';
-    import CreateTableRow from './create-table-row.vue';
+
     import { createVariable } from '../util';
+
+    import CreateTableRow from './create-table-row.vue';
+    import RenderTableRow from './render-table-row.vue';
 
     export default {
         name: '',

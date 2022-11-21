@@ -23,9 +23,12 @@
  * IN THE SOFTWARE.
 */
 
-import Vue from 'vue';
-import VueRouter from 'vue-router';
 import _ from 'lodash';
+import Vue, {
+    customRef,
+} from 'vue';
+import VueRouter from 'vue-router';
+
 import {
     leaveConfirm,
 } from '@utils/assist';
@@ -33,33 +36,33 @@ import {
     routerCache,
 } from '@utils/cache-helper';
 
-import Entry from '@views/index';
-import BusinessPermission from '@views/business-permission';
 import NotFound from '@views/404';
-
-import Home from '@views/home/routes';
 import AccountManage from '@views/account-manage/routes';
-import NotifyManage from '@views/notify-manage/routes';
-import PublicScriptManage from '@views/public-script-manage/routes';
-import GlobalSetting from '@views/global-setting/routes';
-import WhiteIP from '@views/white-ip/routes';
-import TaskManage from '@views/task-manage/routes';
-import PlanManage from '@views/plan-manage/routes';
+import BusinessPermission from '@views/business-permission';
+import CronJob from '@views/cron-job/routes';
+import DangerousRuleManage from '@views/dangerous-rule-manage/routes';
+import Dashboard from '@views/dashboard/routes';
+import DetectRecords from '@views/detect-records/routes';
+import ExecutiveHistory from '@views/executive-history/routes';
 import FastExecution from '@views/fast-execution/routes';
+import FileManage from '@views/file-manage/routes';
+import GlobalSetting from '@views/global-setting/routes';
+import Home from '@views/home/routes';
+import Entry from '@views/index';
+import NotifyManage from '@views/notify-manage/routes';
+import PlanManage from '@views/plan-manage/routes';
+import PublicScriptManage from '@views/public-script-manage/routes';
 import ScriptManage from '@views/script-manage/routes';
 import ScriptTemplate from '@views/script-template/routes';
-import CronJob from '@views/cron-job/routes';
-import ExecutiveHistory from '@views/executive-history/routes';
-import Dashboard from '@views/dashboard/routes';
-import FileManage from '@views/file-manage/routes';
-import TicketManage from '@views/ticket-manage/routes';
 import ServiceState from '@views/service-state/routes';
-import DetectRecords from '@views/detect-records/routes';
-import DangerousRuleManage from '@views/dangerous-rule-manage/routes';
 import TagManage from '@views/tag-manage/routes';
+import TaskManage from '@views/task-manage/routes';
+import TicketManage from '@views/ticket-manage/routes';
+import WhiteIP from '@views/white-ip/routes';
 
 Vue.use(VueRouter);
 
+let router;
 let lastRouterHrefCache = '/';
 
 const renderPageWithComponent = (route, component) => {
@@ -79,7 +82,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     let isValidScope = false;
     // scope 是有有权限查看
     let hasScopePermission = false;
-    
+
     const appInfo = appList.find(_ => _.scopeType === scopeType && _.scopeId === scopeId);
     // scope 存在于业务列表中——有效的 scope
     if (appInfo) {
@@ -157,7 +160,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
         systemManageRoute.push(DetectRecords);
     }
 
-    const router = new VueRouter({
+    router = new VueRouter({
         mode: 'history',
         routes,
         scrollBehavior () {
@@ -230,7 +233,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
             window.location.href = lastRouterHrefCache;
         }
     });
-    
+
     router.afterEach(() => {
         history.pushState(null, null, document.URL);
         const callback = () => {
@@ -243,17 +246,37 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
                     history.pushState(null, null, document.URL);
                 });
         };
-        
+
         window.addEventListener('popstate', callback);
 
         const currentRoute = _.last(router.currentRoute.matched);
-        setTimeout(() => {
-            if (currentRoute) {
-                currentRoute.instances.default.$once('hook:beforeDestroy', () => {
+        if (currentRoute && currentRoute.instances.default) {
+            const routerDefault = currentRoute.instances.default;
+            setTimeout(() => {
+                routerDefault.$once('hook:beforeDestroy', () => {
                     window.removeEventListener('popstate', callback);
                 });
-            }
-        });
+            });
+        }
     });
     return router;
 };
+
+let isRouteWatch = false;
+export const useRoute = () => customRef((track, trigger) => ({
+    get () {
+        setTimeout(() => {
+            if (isRouteWatch) {
+                return;
+            }
+            window.BKApp.$watch('$route', () => {
+                trigger();
+            });
+            isRouteWatch = true;
+        });
+        track();
+        return router.currentRoute;
+    },
+}));
+
+export const useRouter = () => router;

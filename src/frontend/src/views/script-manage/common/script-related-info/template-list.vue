@@ -28,17 +28,17 @@
 <template>
     <div>
         <jb-search-select
-            @on-change="handleSearch"
             :data="searchSelect"
-            :popover-zindex="99999"
             :placeholder="$t('script.搜索名称，版本号')"
-            style="width: 100%; margin-bottom: 20px;" />
+            :popover-zindex="99999"
+            style="width: 100%; margin-bottom: 20px;"
+            @on-change="handleSearch" />
         <div v-bkloading="{ isLoading }">
             <bk-table :data="renderList">
                 <!-- 作业模板引用 -->
                 <bk-table-column
-                    :label="$t('script.作业模板')"
                     align="left"
+                    :label="$t('script.作业模板')"
                     show-overflow-tooltip>
                     <template slot-scope="{ row }">
                         <bk-button
@@ -49,13 +49,13 @@
                     </template>
                 </bk-table-column>
                 <bk-table-column
+                    align="left"
                     :label="$t('script.引用的版本号')"
-                    prop="scriptVersion"
-                    align="left" />
+                    prop="scriptVersion" />
                 <bk-table-column
+                    align="left"
                     :label="$t('script.状态')"
                     prop="scriptStatusDesc"
-                    align="left"
                     width="120">
                     <template slot-scope="{ row }">
                         <span v-html="row.statusHtml" />
@@ -66,14 +66,17 @@
     </div>
 </template>
 <script>
-    import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
-    import I18n from '@/i18n';
+    import ScriptService from '@service/script-manage';
+
     import {
         checkPublicScript,
         encodeRegexp,
     } from '@utils/assist';
+
     import JbSearchSelect from '@components/jb-search-select';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

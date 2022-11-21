@@ -24,8 +24,9 @@
 */
 
 /* eslint-disable no-param-reassign */
-import fileWorker from '../source/file-worker';
 import FileWorkerModel from '@model/file/file-worker';
+
+import fileWorker from '../source/file-worker';
 
 export default {
     workersList (params) {

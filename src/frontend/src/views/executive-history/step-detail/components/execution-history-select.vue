@@ -31,8 +31,12 @@
         ref="target"
         class="step-execution-history-select">
         <span>{{ retryCountText }}</span>
-        <Icon type="down-small" style="font-size: 16px;" />
-        <div ref="content" class="dropdown-menu">
+        <Icon
+            style="font-size: 16px;"
+            type="down-small" />
+        <div
+            ref="content"
+            class="dropdown-menu">
             <div
                 v-for="item in executionList"
                 :key="item.retryCount"
@@ -41,15 +45,21 @@
                     active: item.retryCount === retryCount,
                 }"
                 @click="handleSelectRetryCount(item.retryCount)">
-                <div class="retry-count">{{ item.text }}</div>
-                <div class="time">{{ item.createTime }}</div>
+                <div class="retry-count">
+                    {{ item.text }}
+                </div>
+                <div class="time">
+                    {{ item.createTime }}
+                </div>
             </div>
         </div>
     </div>
 </template>
 <script>
     import _ from 'lodash';
+
     import TaskExecuteService from '@service/task-execute';
+
     import { ordinalSuffixOf } from '@utils/assist';
 
     export default {

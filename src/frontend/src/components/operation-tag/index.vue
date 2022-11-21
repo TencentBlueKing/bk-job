@@ -27,23 +27,23 @@
 
 <template>
     <jb-dialog
-        :value="value"
-        :title="dialogInfo.title"
+        class="job-tag-create-dialog"
         header-position="left"
         :mask-close="false"
-        class="job-tag-create-dialog"
+        :title="dialogInfo.title"
+        :value="value"
         :width="480">
         <jb-form
             v-if="value"
-            :model="formData"
             ref="formRef"
             form-type="vertical"
-            style="margin-top: 5px;"
-            :rules="rules">
+            :model="formData"
+            :rules="rules"
+            style="margin-top: 5px;">
             <jb-form-item
                 :label="$t('标签名称')"
-                required
-                property="name">
+                property="name"
+                required>
                 <jb-input
                     v-model="formData.name"
                     :maxlength="20"
@@ -54,36 +54,42 @@
                 style="margin-bottom: 0;">
                 <bk-input
                     v-model="formData.description"
-                    type="textarea"
-                    :maxlength="100" />
+                    :maxlength="100"
+                    type="textarea" />
             </jb-form-item>
         </jb-form>
         <template slot="footer">
             <bk-button
-                theme="primary"
                 class="mr10"
                 :loading="isSubmiting"
+                theme="primary"
                 @click="handleSubmit">
                 {{ dialogInfo.okText }}
             </bk-button>
-            <bk-button @click="handleCancel">{{ $t('取消') }}</bk-button>
+            <bk-button @click="handleCancel">
+                {{ $t('取消') }}
+            </bk-button>
         </template>
     </jb-dialog>
 </template>
 <script>
     import {
+        computed,
+        getCurrentInstance,
         reactive,
         ref,
         toRefs,
         watch,
-        computed,
-        getCurrentInstance,
-    } from '@vue/composition-api';
-    import I18n from '@/i18n';
+    } from 'vue';
+
     import TagManageService from '@service/tag-manage';
+
     import TagModel from '@model/tag';
+
     import { leaveConfirm } from '@utils/assist';
     import { tagNameRule } from '@utils/validator';
+
+    import I18n from '@/i18n';
 
     const genDefaultData = () => ({
         name: '',

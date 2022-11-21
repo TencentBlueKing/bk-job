@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
 
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.List;
 /**
  * 作业-全局变量-命名空间-主机变量
  */
+@PersistenceObject
 @Data
 public class HostVariableValuesDTO {
     /**

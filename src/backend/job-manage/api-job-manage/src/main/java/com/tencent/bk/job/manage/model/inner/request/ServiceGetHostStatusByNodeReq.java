@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner.request;
 
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,5 +35,5 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class ServiceGetHostStatusByNodeReq {
-    List<AppTopologyTreeNode> treeNodeList;
+    List<BizTopoNode> treeNodeList;
 }

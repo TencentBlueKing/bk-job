@@ -28,11 +28,11 @@
 <template>
     <jb-popover-confirm
         class="step-action-confirm"
-        :title="confirmInfo.title"
-        :content="confirmInfo.desc"
         :confirm-handler="handleConfirm"
-        @show="handleConfirmShow"
-        @cancel="handleConfirmCancel">
+        :content="confirmInfo.desc"
+        :title="confirmInfo.title"
+        @cancel="handleConfirmCancel"
+        @show="handleConfirmShow">
         <component
             :is="actionCom"
             class="step-instance-action"
@@ -40,17 +40,18 @@
     </jb-popover-confirm>
 </template>
 <script>
-    import I18n from '@/i18n';
+    import ActionAllRetry from './all-retry';
     import ActionConfirm from './confirm';
     import ActionConfirmForced from './confirm-forced';
     import ActionConfirmRetry from './confirm-retry';
-    import ActionAllRetry from './all-retry';
     import ActionFailIpRetry from './fail-ip-retry';
-    import ActionSkip from './skip';
     import ActionForced from './forced';
     import ActionForcedRetry from './forced-retry';
     import ActionForcedSkip from './forced-skip';
     import ActionNext from './next';
+    import ActionSkip from './skip';
+
+    import I18n from '@/i18n';
 
     const ACTION_FAIL_IP_RETRY = 2;
     const ACTION_SKIP = 3;

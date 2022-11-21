@@ -31,6 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -189,5 +190,32 @@ public class PageUtil {
             List<T> templates = new ArrayList<>(pageData.getData().subList(0, length));
             pageData.setData(templates);
         }
+    }
+
+    /**
+     * 对分页数据内含的数据进行类型转换后得到新的分页数据
+     *
+     * @param srcPageData 源分页数据
+     * @param mapper      映射函数
+     * @param <T>         原始元素类型
+     * @param <R>         目标元素类型
+     * @return 转换后的分页数据
+     */
+    public static <T, R> PageData<R> transferPageData(PageData<T> srcPageData,
+                                                      Function<? super T, ? extends R> mapper) {
+        if (srcPageData == null) {
+            return null;
+        }
+        PageData<R> targetPageData = new PageData<R>();
+        targetPageData.setStart(srcPageData.getStart());
+        targetPageData.setPageSize(srcPageData.getPageSize());
+        targetPageData.setTotal(srcPageData.getTotal());
+        targetPageData.setCanCreate(srcPageData.getCanCreate());
+        targetPageData.setExistAny(srcPageData.getExistAny());
+        List<T> data = srcPageData.getData();
+        if (data != null) {
+            targetPageData.setData(data.parallelStream().map(mapper).collect(Collectors.toList()));
+        }
+        return targetPageData;
     }
 }

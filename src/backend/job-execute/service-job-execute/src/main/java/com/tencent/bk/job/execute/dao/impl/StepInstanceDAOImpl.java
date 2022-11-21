@@ -245,7 +245,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public FileStepInstanceDTO getFileStepInstance(long stepInstanceId) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        Record record = CTX.select(t.STEP_INSTANCE_ID, t.FILE_SOURCE, t.RESOLVED_FILE_SOURCE, t.FILE_TARGET_PATH,
+        Record record = CTX.select(t.STEP_INSTANCE_ID, t.FILE_SOURCE, t.FILE_TARGET_PATH,
             t.FILE_TARGET_NAME, t.RESOLVED_FILE_TARGET_PATH, t.FILE_UPLOAD_SPEED_LIMIT, t.FILE_DOWNLOAD_SPEED_LIMIT,
             t.FILE_DUPLICATE_HANDLE,
             t.NOT_EXIST_PATH_HANDLER, t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT)
@@ -266,12 +266,6 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             new TypeReference<List<FileSourceDTO>>() {
             });
         stepInstance.setFileSourceList(fileSourceList);
-        if (StringUtils.isNotEmpty(record.get(t.RESOLVED_FILE_SOURCE))) {
-            List<FileSourceDTO> resolvedFileSourceList = JsonUtils.fromJson(record.get(t.RESOLVED_FILE_SOURCE),
-                new TypeReference<List<FileSourceDTO>>() {
-                });
-            stepInstance.setResolvedFileSourceList(resolvedFileSourceList);
-        }
         stepInstance.setFileTargetPath(record.get(t.FILE_TARGET_PATH));
         stepInstance.setFileTargetName(record.get(t.FILE_TARGET_NAME));
         stepInstance.setResolvedFileTargetPath(record.get(t.RESOLVED_FILE_TARGET_PATH));
@@ -348,7 +342,6 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         if (StringUtils.isNotBlank(record.get(t.TARGET_SERVERS))) {
             ServersDTO targetServers = JsonUtils.fromJson(record.get(t.TARGET_SERVERS), ServersDTO.class);
             stepInstance.setTargetServers(targetServers);
-            stepInstance.setIpList(targetServers.buildIpListStr());
         }
         stepInstance.setCreateTime(record.get(t.CREATE_TIME));
         stepInstance.setIgnoreError(JooqDataTypeUtil.toInteger(record.get(t.IGNORE_ERROR)) != null

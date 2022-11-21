@@ -25,8 +25,6 @@
 package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -47,13 +45,6 @@ public class ServiceScriptLogDTO {
     private Long hostId;
 
     /**
-     * 云区域+IP
-     */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续使用hostId替换", version = "3.7.x")
-    @ApiModelProperty("云区域+IP")
-    private String cloudIp;
-
-    /**
      * 日志偏移 - 字节
      */
     @ApiModelProperty("日志偏移 - 字节")
@@ -65,18 +56,14 @@ public class ServiceScriptLogDTO {
     @ApiModelProperty("日志内容")
     private String content;
 
-    public ServiceScriptLogDTO(HostDTO host, Integer offset, String content) {
-        this.hostId = host.getHostId();
-        if (host.getIp() != null && host.getBkCloudId() != null) {
-            this.cloudIp = host.toCloudIp();
-        }
+    public ServiceScriptLogDTO(Long hostId, Integer offset, String content) {
+        this.hostId = hostId;
         this.offset = offset;
         this.content = content;
     }
 
-    public ServiceScriptLogDTO(Long hostId, String cloudIp, String content) {
+    public ServiceScriptLogDTO(Long hostId, String content) {
         this.hostId = hostId;
-        this.cloudIp = cloudIp;
         this.content = content;
     }
 }

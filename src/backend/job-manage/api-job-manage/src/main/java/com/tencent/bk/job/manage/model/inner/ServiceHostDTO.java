@@ -60,9 +60,14 @@ public class ServiceHostDTO {
     private Long cloudAreaId;
 
     /**
-     * ip
+     * ipv4
      */
     private String ip;
+
+    /**
+     * ipv6
+     */
+    private String ipv6;
 
     /**
      * 业务ID
@@ -94,6 +99,7 @@ public class ServiceHostDTO {
             .hostId(host.getHostId())
             .cloudAreaId(host.getCloudAreaId())
             .ip(host.getIp())
+            .ipv6(host.getIpv6())
             .agentId(host.getAgentId())
             .build();
     }

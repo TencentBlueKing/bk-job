@@ -23,10 +23,11 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import {
     prettyDateTimeFormat,
 } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 export default class DangerousRecord {
     static scriptTypeMap = {

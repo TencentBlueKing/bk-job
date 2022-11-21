@@ -48,11 +48,6 @@ public class JobManageAutoConfiguration {
             meterRegistry);
     }
 
-    static class CmdbConfigSetter {
-        CmdbConfigSetter() {
-        }
-    }
-
     @Bean
     public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
         return new EsbApiTimedAspect(meterRegistry);

@@ -41,8 +41,14 @@ public class ListHostsWithoutBizReq extends EsbReq {
     private PropertyFilterDTO condition;
 
     @JsonProperty("fields")
-    private List<String> fields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name",
-        "bk_cloud_id");
+    private List<String> fields = Arrays.asList(
+        "bk_host_id",
+        "bk_host_innerip",
+        "bk_host_innerip_v6",
+        "bk_host_name",
+        "bk_os_name",
+        "bk_cloud_id"
+    );
 
     private PageDTO page;
 }

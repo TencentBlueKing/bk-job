@@ -24,6 +24,7 @@
 */
 
 import _ from 'lodash';
+
 import AgentTaskModel from '@model/execution/agent-task-execution';
 
 const STATUS_PENDING = 5;

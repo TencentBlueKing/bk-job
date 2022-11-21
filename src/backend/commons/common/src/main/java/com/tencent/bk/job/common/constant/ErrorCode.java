@@ -77,6 +77,8 @@ public class ErrorCode {
     public static final int NOT_SUPPORT_FEATURE = 1241011;
 
     public static final int ILLEGAL_PARAM_WITH_REASON = 1241012;
+    // 该功能暂不支持业务集
+    public static final int NOT_SUPPORT_FEATURE_FOR_BIZ_SET = 1241013;
     // 业务通用 end
 
     // 配置服务 start
@@ -183,12 +185,16 @@ public class ErrorCode {
     public static final int UPLOAD_FILE_SUFFIX_NOT_ALLOW = 1243050;
     // 资源范围不存在:{0}
     public static final int SCOPE_NOT_EXIST = 1243051;
+    // IP（含云区域ID）在CMDB中不存在:{0}
+    public static final int IP_NOT_EXIST_IN_CMDB = 1243052;
+    // 主机ID在CMDB中不存在:{0}
+    public static final int HOST_ID_NOT_EXIST_IN_CMDB = 1243053;
     // 作业管理 end
 
     // 作业执行 start
     // 主机为空
     public static final int SERVER_EMPTY = 1244001;
-    // 主机[{0}]无效，请检查源或目标主机是否存在于配置平台；另外，主机跨业务需要联系作业平台管理员先将其添加到IP白名单。
+    // 主机[{0}]无效，请检查源或目标主机的IPv4或AgentID字段值是否存在于配置平台；另外，主机需跨业务执行请联系作业平台管理员将其添加到主机白名单。
     public static final int HOST_INVALID = 1244002;
     // 账号不存在
     public static final int ACCOUNT_NOT_EXIST = 1244003;
@@ -330,6 +336,10 @@ public class ErrorCode {
     public static final int FAIL_TO_REQUEST_THIRD_FILE_SOURCE_GET_OBJECT = 1262006;
     // 文件Worker end
 
+    // 迁移升级
+    // 迁移失败，任务: {0}, 详情: {1}
+    public static final int MIGRATION_FAIL = 1263001;
+
     // ==================================== 系统级错误 ================================================//
     // ======== 系统错误-权限错误 ==================//
     // 用户权限不足
@@ -388,6 +398,8 @@ public class ErrorCode {
     public static final int LICENSE_ERROR = 1210101;
     // GSE 不可用
     public static final int GSE_ERROR = 1210001;
+    // GSE数据异常：{0}
+    public static final int GSE_API_DATA_ERROR = 1210002;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析

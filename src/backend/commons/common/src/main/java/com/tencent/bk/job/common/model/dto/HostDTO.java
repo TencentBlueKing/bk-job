@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -39,13 +38,13 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
  * 主机通用表示-内部服务使用
  */
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @ToString
@@ -76,19 +75,14 @@ public class HostDTO implements Cloneable {
     private String bkCloudName;
 
     /**
-     * 主机IP - ipv4
+     * 主机IP - IPv4
      */
     @JsonProperty("ip")
     private String ip;
 
-    /**
-     * 主机显示IP
-     */
-    @JsonProperty("displayIp")
-    private String displayIp;
 
     /**
-     * 主机IP - ipv6
+     * 主机IP - IPv6
      */
     @JsonProperty("ipv6")
     private String ipv6;
@@ -99,6 +93,7 @@ public class HostDTO implements Cloneable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer alive;
 
+    @Deprecated
     public HostDTO(Long bkCloudId, String ip) {
         this.bkCloudId = bkCloudId;
         this.ip = ip;
@@ -110,18 +105,7 @@ public class HostDTO implements Cloneable {
         return hostDTO;
     }
 
-    public static HostDTO fromHostIdAndCloudIp(Long hostId, String cloudIp) {
-        HostDTO hostDTO = new HostDTO();
-        hostDTO.setHostId(hostId);
-        if (StringUtils.isNotBlank(cloudIp)) {
-            String[] ipProps = cloudIp.split(IpUtils.COLON);
-            hostDTO.setBkCloudId(Long.valueOf(ipProps[0]));
-            hostDTO.setIp(ipProps[1]);
-        }
-
-        return hostDTO;
-    }
-
+    @Deprecated
     public static HostDTO fromCloudIp(String cloudIp) {
         if (!IpUtils.checkCloudIp(cloudIp)) {
             throw new IllegalArgumentException("Invalid cloudIp : " + cloudIp);
@@ -130,42 +114,80 @@ public class HostDTO implements Cloneable {
         return new HostDTO(Long.valueOf(ipProps[0]), ipProps[1]);
     }
 
-    public String toCloudIp() {
-        return bkCloudId + ":" + ip;
-    }
-
-    public String getDisplayIp() {
-        if (StringUtils.isNotEmpty(displayIp)) {
-            return displayIp;
-        } else {
-            return ip;
-        }
-    }
-
-    public static HostInfoVO toVO(HostDTO host) {
-        if (host == null) {
-            return null;
-        }
-        HostInfoVO hostInfo = new HostInfoVO();
-        hostInfo.setIp(host.getIp());
-        hostInfo.setAlive(host.getAlive());
-        CloudAreaInfoVO cloudAreaInfo = new CloudAreaInfoVO();
-        cloudAreaInfo.setId(host.getBkCloudId());
-        cloudAreaInfo.setName(host.getBkCloudName());
-        hostInfo.setCloudAreaInfo(cloudAreaInfo);
-        return hostInfo;
-    }
-
-    public static HostDTO fromVO(HostInfoVO hostInfo) {
-        if (hostInfo == null) {
-            return null;
-        }
+    @Deprecated
+    public static HostDTO fromHostIdOrCloudIp(Long hostId, String cloudIp) {
         HostDTO host = new HostDTO();
-        host.setIp(hostInfo.getIp());
-        host.setBkCloudId(hostInfo.getCloudAreaInfo().getId());
-        host.setBkCloudName(hostInfo.getCloudAreaInfo().getName());
-        host.setAlive(hostInfo.getAlive());
+        host.setHostId(hostId);
+        if (StringUtils.isNotEmpty(cloudIp)) {
+            String[] ipProps = cloudIp.split(IpUtils.COLON);
+            host.setBkCloudId(Long.valueOf(ipProps[0]));
+            host.setIp(ipProps[1]);
+        }
         return host;
+    }
+
+    @Deprecated
+    public static HostDTO fromHostIdOrCloudIp(Long hostId, Long bkCloudId, String ip) {
+        HostDTO host = new HostDTO();
+        host.setHostId(hostId);
+        host.setBkCloudId(bkCloudId);
+        host.setIp(ip);
+        return host;
+    }
+
+    /**
+     * 返回主机 云区域:ipv4
+     */
+    public String toCloudIp() {
+        if (StringUtils.isEmpty(ip)) {
+            return null;
+        } else {
+            return bkCloudId + ":" + ip;
+        }
+    }
+
+    /**
+     * 返回主机 云区域:ipv6
+     */
+    public String toCloudIpv6() {
+        if (StringUtils.isEmpty(ipv6)) {
+            return null;
+        } else {
+            return bkCloudId + ":" + ipv6;
+        }
+    }
+
+    public static HostInfoVO toVO(HostDTO hostDTO) {
+        if (hostDTO == null) {
+            return null;
+        }
+        HostInfoVO hostInfoVO = new HostInfoVO();
+        hostInfoVO.setHostId(hostDTO.getHostId());
+        hostInfoVO.setIp(hostDTO.getIp());
+        hostInfoVO.setIpv6(hostDTO.getIpv6());
+        hostInfoVO.setAgentStatus(hostDTO.getAlive());
+        CloudAreaInfoVO cloudAreaInfo = new CloudAreaInfoVO();
+        cloudAreaInfo.setId(hostDTO.getBkCloudId());
+        cloudAreaInfo.setName(hostDTO.getBkCloudName());
+        hostInfoVO.setCloudArea(cloudAreaInfo);
+        return hostInfoVO;
+    }
+
+    public static HostDTO fromVO(HostInfoVO hostInfoVO) {
+        if (hostInfoVO == null) {
+            return null;
+        }
+        HostDTO hostDTO = new HostDTO();
+        hostDTO.setHostId(hostInfoVO.getHostId());
+        hostDTO.setIp(hostInfoVO.getIp());
+        hostDTO.setIpv6(hostInfoVO.getIpv6());
+        CloudAreaInfoVO cloudAreaInfo = hostInfoVO.getCloudArea();
+        if (cloudAreaInfo != null) {
+            hostDTO.setBkCloudId(cloudAreaInfo.getId());
+            hostDTO.setBkCloudName(cloudAreaInfo.getName());
+        }
+        hostDTO.setAlive(hostInfoVO.getAgentStatus());
+        return hostDTO;
     }
 
     @Override
@@ -192,6 +214,7 @@ public class HostDTO implements Cloneable {
         }
     }
 
+    @SuppressWarnings("all")
     public HostDTO clone() {
         HostDTO clone = new HostDTO();
         clone.setHostId(hostId);
@@ -213,8 +236,11 @@ public class HostDTO implements Cloneable {
     public String getFinalAgentId() {
         if (StringUtils.isNotBlank(agentId)) {
             return agentId;
-        } else {
+        } else if (StringUtils.isEmpty(ipv6) && StringUtils.isNotEmpty(ip)) {
+            // 兼容之前版本没有agentId的ipv4主机
             return toCloudIp();
+        } else {
+            return null;
         }
     }
 
@@ -230,5 +256,24 @@ public class HostDTO implements Cloneable {
         } else {
             return "HOST_IP:" + toCloudIp();
         }
+    }
+
+    /**
+     * 获取主机的ip，优先返回ipv4
+     *
+     * @return 主机ipv4/ipv6, ipv4 优先
+     */
+    @JsonIgnore
+    public String getPrimaryIp() {
+        return StringUtils.isNotEmpty(ip) ? ip : ipv6;
+    }
+
+    public String toStringBasic() {
+        return new StringJoiner(", ", HostDTO.class.getSimpleName() + "[", "]")
+            .add("hostId=" + hostId)
+            .add("bkCloudId=" + bkCloudId)
+            .add("ip='" + ip + "'")
+            .add("ipv6='" + ipv6 + "'")
+            .toString();
     }
 }

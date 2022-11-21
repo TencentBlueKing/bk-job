@@ -187,8 +187,8 @@ public class FileAgentTaskServiceImpl
             .findFirst()
             .orElse(null);
         if (queryHost == null) {
-            if (CollectionUtils.isNotEmpty(stepInstance.getResolvedFileSourceList())) {
-                for (FileSourceDTO fileSource : stepInstance.getResolvedFileSourceList()) {
+            if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
+                for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
                     if (fileSource.getServers() != null
                         && CollectionUtils.isNotEmpty(fileSource.getServers().getIpList())) {
                         queryHost = fileSource.getServers().getIpList().stream()

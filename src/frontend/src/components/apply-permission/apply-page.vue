@@ -32,8 +32,8 @@
             <div class="footer">
                 <bk-button
                     v-if="isAppleFlag"
-                    theme="primary"
                     class="mr10"
+                    theme="primary"
                     @click="handleApply">
                     {{ applyText }}
                 </bk-button>
@@ -48,8 +48,9 @@
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import AskPermission from './index';
+
+    import I18n from '@/i18n';
 
     export default {
         components: {

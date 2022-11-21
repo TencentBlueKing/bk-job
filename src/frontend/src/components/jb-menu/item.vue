@@ -26,11 +26,16 @@
 -->
 
 <template>
-    <div :class="classes" v-test="{ type: 'navigation', value: index }" @click="handleClick">
+    <div
+        v-test="{ type: 'navigation', value: index }"
+        :class="classes"
+        @click="handleClick">
         <slot />
     </div>
 </template>
 <script>
+    import { leaveConfirm } from '@utils/assist';
+
     export default {
         name: 'JbMenuItem',
         inject: ['jbMenu'],
@@ -72,8 +77,11 @@
         },
         methods: {
             handleClick () {
-                this.jbMenu.$emit('item-click', this);
-                this.$emit('click', this);
+                leaveConfirm()
+                    .then(() => {
+                        this.jbMenu.$emit('item-click', this);
+                        this.$emit('click', this);
+                    });
             },
         },
     };

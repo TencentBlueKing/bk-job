@@ -26,24 +26,36 @@
 -->
 
 <template>
-    <div v-if="value" id="chooseIPServerPreview" class="server-preview">
+    <div
+        v-if="value"
+        id="chooseIPServerPreview"
+        class="server-preview">
         <div class="preview-header">
             <div>{{ $t('已选项预览') }}</div>
             <div class="server-description">
                 <span v-html="resultText" />
             </div>
         </div>
-        <scroll-faker class="preview-content" style="height: calc(100% - 118px);">
+        <scroll-faker
+            class="preview-content"
+            style="height: calc(100% - 118px);">
             <server-panel
-                :host-node-info="hostNodeInfo"
-                :host-detail-append="getElementTarget"
                 editable
+                :host-detail-append="getElementTarget"
+                :host-node-info="hostNodeInfo"
                 render-with-empty
                 @on-change="handleServerPanelChange" />
         </scroll-faker>
         <div class="preview-footer">
-            <bk-button class="mr10" theme="primary" @click="handleSubmit">{{ $t('确定') }}</bk-button>
-            <bk-button @click="handleClose">{{ $t('关闭') }}</bk-button>
+            <bk-button
+                class="mr10"
+                theme="primary"
+                @click="handleSubmit">
+                {{ $t('确定') }}
+            </bk-button>
+            <bk-button @click="handleClose">
+                {{ $t('关闭') }}
+            </bk-button>
         </div>
     </div>
 </template>
@@ -51,8 +63,9 @@
 /**
      * 预览已选主机数据
     */
-    import I18n from '@/i18n';
     import ServerPanel from './server-panel';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

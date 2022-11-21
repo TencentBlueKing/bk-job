@@ -26,70 +26,77 @@
 -->
 
 <template>
-    <jb-form ref="form" :model="formData" fixed :label-width="110">
+    <jb-form
+        ref="form"
+        fixed
+        :label-width="110"
+        :model="formData">
         <item-factory
-            name="scriptName"
             field="name"
-            :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
             :form-data="formData"
+            name="scriptName"
+            :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
             @on-change="handleChange" />
         <item-factory
-            name="scriptSourceOfTemplate"
-            script-source-field="scriptSource"
             content-field="content"
-            language-field="scriptLanguage"
-            script-id-field="scriptId"
-            script-version-id-field="scriptVersionId"
-            script-status-field="status"
             :form-data="formData"
+            language-field="scriptLanguage"
+            name="scriptSourceOfTemplate"
+            script-id-field="scriptId"
+            script-source-field="scriptSource"
+            script-status-field="status"
+            script-version-id-field="scriptVersionId"
             @on-change="handleChange"
             @on-reset="handleScriptContentReset" />
         <item-factory
+            content-field="content"
+            :form-data="formData"
+            language-field="scriptLanguage"
             name="scriptContent"
             script-source-field="scriptSource"
-            content-field="content"
-            language-field="scriptLanguage"
-            :form-data="formData"
             :script-variables="scriptVariables"
             @on-change="handleChange" />
         <item-factory
+            :form-data="formData"
             name="scriptParam"
             param-field="scriptParam"
             secure-field="secureParam"
-            :form-data="formData"
             @on-change="handleChange" />
         <item-factory
-            name="scriptTimeout"
             field="timeout"
             :form-data="formData"
+            name="scriptTimeout"
             @on-change="handleChange" />
         <item-factory
-            name="errorHandle"
             field="ignoreError"
             :form-data="formData"
+            name="errorHandle"
             @on-change="handleChange" />
         <item-factory
-            name="scriptAccount"
             field="account"
-            script-language-field="scriptLanguage"
             :form-data="formData"
+            name="scriptAccount"
+            script-language-field="scriptLanguage"
             @on-change="handleChange" />
         <item-factory
-            name="executeTargetOfTemplate"
             field="executeTarget"
-            :variable="variable"
             :form-data="formData"
+            name="executeTargetOfTemplate"
+            :variable="variable"
             @on-change="handleChange" />
     </jb-form>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
+
     import {
         scriptErrorConfirm,
     } from '@utils/assist';
+
     import ItemFactory from '@components/task-step/script/item-factory';
+
+    import I18n from '@/i18n';
 
     const getDefaultData = () => ({
         isScriptContentLoading: false,
@@ -135,7 +142,7 @@
         props: {
             data: {
                 type: Object,
-                default: () => [],
+                default: () => ({}),
             },
             variable: {
                 type: Array,

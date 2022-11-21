@@ -26,21 +26,25 @@
 -->
 
 <template>
-    <bk-button v-if="showRaw" v-bind="$attrs" v-on="$listeners">
+    <bk-button
+        v-if="showRaw"
+        v-bind="$attrs"
+        v-on="$listeners">
         <slot />
     </bk-button>
     <bk-button
         v-else
         v-cursor
         v-bind="$attrs"
-        :loading="isLoading"
         class="permission-disable"
+        :loading="isLoading"
         @click.stop="handleRequestPermission">
         <slot />
     </bk-button>
 </template>
 <script>
     import PermissionCheckService from '@service/permission-check';
+
     import {
         permissionDialog,
     } from '@/common/bkmagic';

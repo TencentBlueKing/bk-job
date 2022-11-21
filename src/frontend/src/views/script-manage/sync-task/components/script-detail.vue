@@ -28,22 +28,29 @@
 <template>
     <jb-sideslider
         :is-show="isShow"
-        :show-footer="false"
-        @update:isShow="handleCancel"
         :quick-close="true"
+        :show-footer="false"
+        :title="$t('script.查看脚本')"
         :width="900"
-        :title="$t('script.查看脚本')">
-        <div v-if="isShow" v-bkloading="{ isLoading }">
-            <script-detail v-if="!isLoading" :script-info="scriptInfo" :offset-bottom="0" />
+        @update:isShow="handleCancel">
+        <div
+            v-if="isShow"
+            v-bkloading="{ isLoading }">
+            <script-detail
+                v-if="!isLoading"
+                :offset-bottom="0"
+                :script-info="scriptInfo" />
         </div>
     </jb-sideslider>
 </template>
 <script>
-    import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
+    import ScriptService from '@service/script-manage';
+
     import {
         checkPublicScript,
     } from '@utils/assist';
+
     import ScriptDetail from '../../common/detail';
 
     export default {

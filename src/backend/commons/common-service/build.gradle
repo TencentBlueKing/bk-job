@@ -35,6 +35,7 @@ dependencies {
     api 'org.springframework.boot:spring-boot-starter-logging'
     api 'org.springframework.cloud:spring-cloud-starter-openfeign'
     api 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    api 'org.springframework.cloud:spring-cloud-loadbalancer'
     if (k8s) {
         println("Compile with kubernetes mode")
         api project(":commons:common-k8s")

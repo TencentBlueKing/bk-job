@@ -29,20 +29,20 @@
     <lower-component>
         <div>
             <div
-                class="action-btn"
                 v-bk-tooltips.bottom="$t('history.步骤内容')"
+                class="action-btn"
                 @click="handleShowStepDetail">
                 <Icon type="detail-line" />
             </div>
             <jb-sideslider
                 :is-show.sync="isShow"
-                :title="$t('history.查看步骤内容')"
                 :quick-close="true"
                 :show-footer="false"
+                :title="$t('history.查看步骤内容')"
                 :width="960">
                 <step-detail-view
-                    :task-id="taskInstanceId"
-                    :id="stepInstanceId" />
+                    :id="stepInstanceId"
+                    :task-id="taskInstanceId" />
             </jb-sideslider>
         </div>
     </lower-component>

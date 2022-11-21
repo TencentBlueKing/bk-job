@@ -24,11 +24,14 @@
 */
 
 import Vue from 'vue';
-import PassLogin from '@blueking/paas-login';
-import ApplyPermissionDialog from '@components/apply-permission/apply-dialog';
+
 import {
     parseURL,
 } from '@utils/assist';
+
+import ApplyPermissionDialog from '@components/apply-permission/apply-dialog';
+
+import PassLogin from '@blueking/paas-login';
 
 // 全量引入
 import './fully-import';

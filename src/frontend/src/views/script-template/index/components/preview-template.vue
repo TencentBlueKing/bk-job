@@ -26,10 +26,12 @@
 -->
 
 <template>
-    <resizeable-box :parent-width="parentWidth" :width="parentWidth / 2">
+    <resizeable-box
+        :parent-width="parentWidth"
+        :width="parentWidth / 2">
         <div
-            class="script-template-preview-template"
-            v-bkloading="{ isLoading }">
+            v-bkloading="{ isLoading }"
+            class="script-template-preview-template">
             <div class="preview-result">
                 <span>{{ $t('scriptTemplate.渲染结果') }}</span>
                 <div
@@ -42,18 +44,23 @@
                     <span style="color: #d74242;">{{ $t('scriptTemplate.有更新') }}</span>
                 </div>
             </div>
-            <div :id="editorId" class="preview-content" />
+            <div
+                :id="editorId"
+                class="preview-content" />
         </div>
     </resizeable-box>
 </template>
 <script>
-    import _ from 'lodash';
+    import ace from 'ace/ace';
     import { Base64 } from 'js-base64';
+    import _ from 'lodash';
+
     import ScriptTemplateService from '@service/script-template';
+
     import {
         formatScriptTypeValue,
     } from '@utils/assist';
-    import ace from 'ace/ace';
+
     import ResizeableBox from './resizeable-box';
 
     const LANG_MAP = {

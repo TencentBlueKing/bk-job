@@ -31,19 +31,28 @@ import org.jooq.DSLContext;
 import org.jooq.generated.tables.WhiteIpAppRel;
 import org.jooq.generated.tables.records.WhiteIpAppRelRecord;
 import org.jooq.types.ULong;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository
 public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
+
     private static final WhiteIpAppRel T_WHITE_IP_APP_REL = WhiteIpAppRel.WHITE_IP_APP_REL;
 
+    private final DSLContext defaultContext;
+
+    @Autowired
+    public WhiteIPAppRelDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext defaultContext) {
+        this.defaultContext = defaultContext;
+    }
+
     @Override
-    public int insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId) {
-        return dslContext.insertInto(T_WHITE_IP_APP_REL,
+    public void insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId) {
+        dslContext.insertInto(T_WHITE_IP_APP_REL,
             T_WHITE_IP_APP_REL.RECORD_ID,
             T_WHITE_IP_APP_REL.APP_ID,
             T_WHITE_IP_APP_REL.CREATOR,
@@ -57,16 +66,17 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
     }
 
     @Override
-    public int deleteWhiteIPAppRelByRecordId(DSLContext dslContext, Long recordId) {
-        return dslContext.deleteFrom(T_WHITE_IP_APP_REL).where(
-            T_WHITE_IP_APP_REL.RECORD_ID.eq(recordId)
-        ).execute();
+    public int updateAppId(Long srcAppId, Long targetAppId) {
+        return defaultContext.update(T_WHITE_IP_APP_REL)
+            .set(T_WHITE_IP_APP_REL.APP_ID, targetAppId)
+            .where(T_WHITE_IP_APP_REL.APP_ID.eq(srcAppId))
+            .execute();
     }
 
     @Override
-    public int deleteWhiteIPAppRelByAppId(DSLContext dslContext, Long appId) {
+    public int deleteWhiteIPAppRelByRecordId(DSLContext dslContext, Long recordId) {
         return dslContext.deleteFrom(T_WHITE_IP_APP_REL).where(
-            T_WHITE_IP_APP_REL.APP_ID.eq(appId)
+            T_WHITE_IP_APP_REL.RECORD_ID.eq(recordId)
         ).execute();
     }
 
@@ -75,9 +85,6 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
         val records = dslContext.selectFrom(T_WHITE_IP_APP_REL).where(
             T_WHITE_IP_APP_REL.RECORD_ID.eq(recordId)
         ).fetch();
-        if (records == null) {
-            return new ArrayList<>();
-        }
         return records.stream().map(WhiteIpAppRelRecord::getAppId).collect(Collectors.toList());
     }
 
@@ -89,10 +96,31 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
             ).fetch();
         return records.stream().map(record ->
             new WhiteIPAppRelDTO(
-                record.get(T_WHITE_IP_APP_REL.RECORD_ID).longValue(),
-                record.get(T_WHITE_IP_APP_REL.APP_ID).longValue(),
+                record.get(T_WHITE_IP_APP_REL.RECORD_ID),
+                record.get(T_WHITE_IP_APP_REL.APP_ID),
                 null,
                 null
+            )
+        ).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<WhiteIPAppRelDTO> listAppRelByAppId(Long appId) {
+        val records =
+            defaultContext.select(
+                T_WHITE_IP_APP_REL.APP_ID,
+                T_WHITE_IP_APP_REL.RECORD_ID,
+                T_WHITE_IP_APP_REL.CREATOR,
+                T_WHITE_IP_APP_REL.CREATE_TIME
+            ).from(T_WHITE_IP_APP_REL)
+                .where(T_WHITE_IP_APP_REL.APP_ID.eq(appId))
+                .fetch();
+        return records.stream().map(record ->
+            new WhiteIPAppRelDTO(
+                record.get(T_WHITE_IP_APP_REL.RECORD_ID),
+                record.get(T_WHITE_IP_APP_REL.APP_ID),
+                record.get(T_WHITE_IP_APP_REL.CREATOR),
+                record.get(T_WHITE_IP_APP_REL.CREATE_TIME).longValue()
             )
         ).collect(Collectors.toList());
     }

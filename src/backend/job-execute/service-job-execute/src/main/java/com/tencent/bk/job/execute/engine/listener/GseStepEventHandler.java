@@ -669,11 +669,14 @@ public class GseStepEventHandler implements StepEventHandler {
             case ABNORMAL_STATE:
                 onAbnormalState(stepInstance);
                 break;
+            case ABANDONED:
+                onAbandonState(stepInstance);
+                break;
             default:
                 log.error("Refresh step fail because of unexpected gse task status. stepInstanceId: {}, " +
                         "gseTaskStatus: {}",
                     stepInstanceId, gseTaskStatus.getValue());
-                setAbnormalStatusForStep(stepInstance);
+                finishStep(stepInstance, RunStatusEnum.ABNORMAL_STATE);
                 break;
         }
 
@@ -777,21 +780,21 @@ public class GseStepEventHandler implements StepEventHandler {
     }
 
     private void onAbnormalState(StepInstanceDTO stepInstance) {
-        setAbnormalStatusForStep(stepInstance);
+        finishStep(stepInstance, RunStatusEnum.ABNORMAL_STATE);
         if (stepInstance.isRollingStep()) {
             finishRollingTask(stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(),
                 RunStatusEnum.ABNORMAL_STATE);
         }
     }
 
-    private void setAbnormalStatusForStep(StepInstanceDTO stepInstance) {
+    private void finishStep(StepInstanceDTO stepInstance, RunStatusEnum status) {
         long endTime = System.currentTimeMillis();
         if (!RunStatusEnum.isFinishedStatus(stepInstance.getStatus())) {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             taskInstanceService.updateStepExecutionInfo(
                 stepInstance.getId(),
-                RunStatusEnum.ABNORMAL_STATE,
+                status,
                 null,
                 endTime,
                 totalTime
@@ -802,6 +805,14 @@ public class GseStepEventHandler implements StepEventHandler {
                 stepInstance.getId(),
                 stepInstance.getStatus()
             );
+        }
+    }
+
+    private void onAbandonState(StepInstanceDTO stepInstance) {
+        finishStep(stepInstance, RunStatusEnum.ABANDONED);
+        if (stepInstance.isRollingStep()) {
+            finishRollingTask(stepInstance.getId(), stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                RunStatusEnum.ABANDONED);
         }
     }
 

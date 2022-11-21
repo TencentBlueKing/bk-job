@@ -24,9 +24,10 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
-import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -39,9 +40,7 @@ import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.engine.util.FilePathUtils;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
-import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -102,6 +101,7 @@ public class ResultHandleResumeListener {
     private final FileAgentTaskService fileAgentTaskService;
 
     private final StepInstanceService stepInstanceService;
+    private final GseClient gseClient;
 
     @Autowired
     public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
@@ -117,7 +117,8 @@ public class ResultHandleResumeListener {
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                       ScriptAgentTaskService scriptAgentTaskService,
                                       FileAgentTaskService fileAgentTaskService,
-                                      StepInstanceService stepInstanceService) {
+                                      StepInstanceService stepInstanceService,
+                                      GseClient gseClient) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -132,6 +133,7 @@ public class ResultHandleResumeListener {
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.stepInstanceService = stepInstanceService;
+        this.gseClient = gseClient;
     }
 
 
@@ -193,6 +195,7 @@ public class ResultHandleResumeListener {
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
+            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -207,16 +210,12 @@ public class ResultHandleResumeListener {
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                 GseTaskDTO gseTask,
                                 String requestId) {
-        Set<JobFile> sendFiles = JobSrcFileUtils.parseSendFileList(stepInstance,
+        Set<JobFile> sendFiles = JobSrcFileUtils.parseSrcFiles(stepInstance,
             agentService.getLocalAgentHost(),
             storageSystemConfig.getJobStorageRootPath());
         String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
-        Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
+        Map<JobFile, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
             sendFiles, targetDir, stepInstance.getFileTargetName());
-        Map<String, String> sourceDestPathMap = buildSourceDestPathMap(srcAndDestMap);
-        // 初始化显示名称映射Map
-        Map<String, String> sourceFileDisplayMap = JobSrcFileUtils.buildSourceFileDisplayMapping(sendFiles,
-            NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(), FileDirTypeConf.UPLOAD_FILE_DIR));
 
         Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
         Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
@@ -240,24 +239,16 @@ public class ResultHandleResumeListener {
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
+            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
             targetAgentTaskMap,
             sourceAgentTaskMap,
             gseTask,
-            sendFiles,
-            storageSystemConfig.getJobStorageRootPath(),
-            sourceDestPathMap,
-            sourceFileDisplayMap,
+            srcAndDestMap,
             requestId);
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
-    }
-
-    private Map<String, String> buildSourceDestPathMap(Map<String, FileDest> srcAndDestMap) {
-        Map<String, String> sourceDestPathMap = new HashMap<>();
-        srcAndDestMap.forEach((fileKey, dest) -> sourceDestPathMap.put(fileKey, dest.getDestPath()));
-        return sourceDestPathMap;
     }
 
     private boolean checkIsTaskResumeable(StepInstanceDTO stepInstance, GseTaskDTO gseTask) {

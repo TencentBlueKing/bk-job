@@ -26,23 +26,34 @@
 -->
 
 <template>
-    <div class="host-list-wrapper" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="host-list-wrapper">
         <bk-table
-            ext-cls="host-table"
             :data="hostList"
+            ext-cls="host-table"
             :pagination="pagination"
             width="100%"
             @page-change="handlePageChange"
             @page-limit-change="handleLimitChange">
-            <bk-table-column prop="ip" label="IP" class-name="ip-item" />
+            <bk-table-column
+                class-name="ip-item"
+                label="IP"
+                prop="ip" />
             <bk-table-column :label="$t('home.云区域')">
-                <template slot-scope="{ row }">{{ row.cloudAreaInfo.name || '--' }}</template>
+                <template slot-scope="{ row }">
+                    {{ row.cloudAreaInfo.name || '--' }}
+                </template>
             </bk-table-column>
             <bk-table-column :label="$t('home.主机名')">
-                <template slot-scope="{ row }">{{ row.ipDesc || '--' }}</template>
+                <template slot-scope="{ row }">
+                    {{ row.ipDesc || '--' }}
+                </template>
             </bk-table-column>
             <bk-table-column :label="$t('home.操作系统名称')">
-                <template slot-scope="{ row }">{{ row.os || '--' }}</template>
+                <template slot-scope="{ row }">
+                    {{ row.os || '--' }}
+                </template>
             </bk-table-column>
         </bk-table>
     </div>

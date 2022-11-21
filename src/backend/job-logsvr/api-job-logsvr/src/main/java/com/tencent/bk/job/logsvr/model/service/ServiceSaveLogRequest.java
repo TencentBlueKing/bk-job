@@ -49,6 +49,7 @@ public class ServiceSaveLogRequest {
 
     /**
      * ip
+     * tmp: 发布之后可删除
      */
     @CompatibleImplementation(name = "rolling_execute", explain = "兼容参数,由于IP不再唯一，后续使用hostId参数替换",
         version = "3.7.x")

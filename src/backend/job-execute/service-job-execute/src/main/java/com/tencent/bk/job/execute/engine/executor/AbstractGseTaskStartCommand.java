@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -32,7 +34,6 @@ import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
@@ -125,6 +126,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 GseTasksExceptionCounter gseTasksExceptionCounter,
                                 Tracer tracer,
+                                GseClient gseClient,
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
@@ -135,6 +137,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             gseTaskService,
             agentTaskService,
             tracer,
+            gseClient,
             taskInstance,
             stepInstance,
             gseTask);

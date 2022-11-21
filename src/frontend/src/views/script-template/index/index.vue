@@ -28,21 +28,21 @@
 <template>
     <div
         ref="container"
-        class="script-template-page"
-        v-bkloading="{ isLoading }">
+        v-bkloading="{ isLoading }"
+        class="script-template-page">
         <ace-editor
             ref="editor"
-            class="script-template-editor"
-            :lang="scriptLanguage"
-            :height="editorHeight"
-            :custom-enable="false"
             :before-lang-change="beforeLangChange"
+            class="script-template-editor"
+            :custom-enable="false"
+            :height="editorHeight"
+            :lang="scriptLanguage"
             @change="handleContentChange"
             @on-mode-change="handleLangChange">
             <template slot="action">
                 <Icon
-                    type="variable"
                     v-bk-tooltips="$t('scriptTemplate.内置变量')"
+                    type="variable"
                     @click="handleSidePanelShow('renderVariable')" />
             </template>
             <div
@@ -52,9 +52,9 @@
                 <component
                     :is="renderSideComponent"
                     :parent-width="editorWidth"
-                    @on-resize="handleSidePanelResize"
+                    :script-content="scriptContent"
                     :script-language="scriptLanguage"
-                    :script-content="scriptContent" />
+                    @on-resize="handleSidePanelResize" />
                 <div
                     class="panel-close"
                     @click="handleSidePanelHide">
@@ -64,15 +64,23 @@
         </ace-editor>
         <div class="action-box">
             <bk-button
-                theme="primary"
                 class="mr10"
-                style="width: 86px;"
                 :loading="isSubmiting"
+                style="width: 86px;"
+                theme="primary"
                 @click="handleSave">
                 {{ $t('scriptTemplate.保存') }}
             </bk-button>
-            <div class="action-btn mr10" @click="handleEditReset">{{ $t('scriptTemplate.重置') }}</div>
-            <div class="action-btn" @click="handleUseDefault">{{ $t('scriptTemplate.还原默认') }}</div>
+            <div
+                class="action-btn mr10"
+                @click="handleEditReset">
+                {{ $t('scriptTemplate.重置') }}
+            </div>
+            <div
+                class="action-btn"
+                @click="handleUseDefault">
+                {{ $t('scriptTemplate.还原默认') }}
+            </div>
             <div
                 class="action-btn"
                 :class="{
@@ -87,16 +95,21 @@
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import ScriptTemplateService from '@service/script-template';
+
     import {
+        formatScriptTypeValue,
         getOffset,
         leaveConfirm,
-        formatScriptTypeValue,
     } from '@utils/assist';
+
     import AceEditor, { builtInScript } from '@components/ace-editor';
-    import RenderVariable from './components/render-variable';
+
     import PreviewTemplate from './components/preview-template';
+    import RenderVariable from './components/render-variable';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

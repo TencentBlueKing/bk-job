@@ -33,28 +33,42 @@
             <span>{{ $t('个节点.result') }}</span>
         </span>
         <action-extend v-if="editable">
-            <div class="action-item" @click="handleRemoveAll">{{ $t('移除全部') }}</div>
+            <div
+                class="action-item"
+                @click="handleRemoveAll">
+                {{ $t('移除全部') }}
+            </div>
         </action-extend>
         <template #content>
-            <div class="server-panel-node-view" v-bkloading="{ isLoading }">
+            <div
+                v-bkloading="{ isLoading }"
+                class="server-panel-node-view">
                 <host-table
                     v-if="!isRequestError"
-                    :max-height="410"
+                    :append-nums="invalidList.length"
                     :list="list"
-                    :append-nums="invalidList.length">
+                    :max-height="410">
                     <tbody
                         v-if="invalidList.length > 0"
-                        class="invalid-list"
-                        slot="appendBefore">
-                        <tr v-for="(row, index) in invalidList" :key="`invalid_${index}`">
+                        slot="appendBefore"
+                        class="invalid-list">
+                        <tr
+                            v-for="(row, index) in invalidList"
+                            :key="`invalid_${index}`">
                             <td class="table-cell">
-                                <span class="invalid" v-bk-tooltips="$t('该节点在配置平台已被删除')">
+                                <span
+                                    v-bk-tooltips="$t('该节点在配置平台已被删除')"
+                                    class="invalid">
                                     {{ $t('无效') }}
                                 </span>
                                 <span>{{ row.type }}#{{ row.id }}</span>
                             </td>
-                            <td colspan="2">--</td>
-                            <td v-if="editable" class="action-column">
+                            <td colspan="2">
+                                --
+                            </td>
+                            <td
+                                v-if="editable"
+                                class="action-column">
                                 <bk-button
                                     text
                                     @click="handleInvalidRemove(index)">
@@ -92,10 +106,12 @@
                             <td @click="handleViewHostList(row.key)">
                                 <statistics-text
                                     v-if="!row.isHostLoading"
-                                    style="cursor: pointer;"
-                                    :data="row" />
+                                    :data="row"
+                                    style="cursor: pointer;" />
                             </td>
-                            <td v-if="editable" class="action-column">
+                            <td
+                                v-if="editable"
+                                class="action-column">
                                 <bk-button
                                     text
                                     @click="handleRemoveOne(index)">
@@ -107,11 +123,15 @@
                 </host-table>
                 <bk-exception
                     v-if="isRequestError"
-                    type="500"
-                    style="padding-bottom: 50px;">
+                    style="padding-bottom: 50px;"
+                    type="500">
                     <div style="display: flex; font-size: 14px;">
                         <span>数据拉取失败，请</span>
-                        <bk-button text @click="handleRefresh">重试</bk-button>
+                        <bk-button
+                            text
+                            @click="handleRefresh">
+                            重试
+                        </bk-button>
                     </div>
                 </bk-exception>
             </div>
@@ -120,15 +140,19 @@
 </template>
 <script>
     import _ from 'lodash';
-    import AppService from '@service/app-manage';
-    import I18n from '@/i18n';
+
+    import HostManageService from '@service/host-manage';
+
     import JbCollapseItem from '@components/jb-collapse-item';
+
     import ActionExtend from '../components/action-extend';
     import HostTable from '../components/host-table';
     import StatisticsText from '../components/statistics-text';
     import {
         statisticsHost,
     } from '../components/utils';
+
+    import I18n from '@/i18n';
 
     const genNodeKey = ({ objectId, instanceId }) => `#${objectId}#${instanceId}`;
 
@@ -197,7 +221,7 @@
                     return result;
                 }, {});
                 
-                AppService.fetchNodePath(this.data)
+                HostManageService.fetchNodePath(this.data)
                     .then((data) => {
                         this.nodeMap = {};
                         const list = [];
@@ -247,7 +271,7 @@
                 }, {});
                 // 更新节点主机列表的loading状态
                 this.list = Object.freeze(Object.values(nodeMap));
-                AppService.fetchNodeInfo(this.list.map(({ id, type }) => ({
+                HostManageService.fetchNodeInfo(this.list.map(({ id, type }) => ({
                     id,
                     type,
                 })))

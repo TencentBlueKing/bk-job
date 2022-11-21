@@ -40,6 +40,7 @@
         },
         props: {
             defaultActive: String,
+            active: String,
             flod: {
                 type: Boolean,
                 default: false,
@@ -54,6 +55,11 @@
             defaultActive (defaultActive) {
                 if (!this.items[defaultActive]) {
                     this.activeIndex = null;
+                }
+            },
+            active (active) {
+                if (this.items[active]) {
+                    this.activeIndex = active;
                 }
             },
         },

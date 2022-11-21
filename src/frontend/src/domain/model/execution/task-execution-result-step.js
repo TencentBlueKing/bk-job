@@ -23,10 +23,12 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import {
+    escapeHTML,
     transformTimeFriendly,
 } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 // 步骤类型
 const TYPE_SCRIPT = 1;
@@ -255,7 +257,7 @@ export default class TaskExecutionResultStep {
      */
     get confirmReasonHtml () {
         if (this.confirmReason) {
-            return `<span>${this.confirmReason}</span>`;
+            return `<span>${escapeHTML(this.confirmReason)}</span>`;
         }
         return `<span style="color: #bcbec5">${I18n.t('（未发表确认信息）')}</span>`;
     }

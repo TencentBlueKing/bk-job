@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -98,6 +99,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
     private final StepInstanceService stepInstanceService;
+    private final GseClient gseClient;
 
     private final Object lifecycleMonitor = new Object();
     private final RunningTaskCounter<String> counter = new RunningTaskCounter<>("GseTask-Counter");
@@ -152,7 +154,8 @@ public class GseTaskManager implements SmartLifecycle {
                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                           ScriptAgentTaskService scriptAgentTaskService,
                           FileAgentTaskService fileAgentTaskService,
-                          StepInstanceService stepInstanceService) {
+                          StepInstanceService stepInstanceService,
+                          GseClient gseClient) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -173,6 +176,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.stepInstanceService = stepInstanceService;
+        this.gseClient = gseClient;
     }
 
     /**
@@ -330,6 +334,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
                 tracer,
+                gseClient,
                 requestId,
                 taskInstance,
                 stepInstance,
@@ -356,6 +361,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTasksExceptionCounter,
                 jobBuildInVariableResolver,
                 tracer,
+                gseClient,
                 requestId,
                 taskInstance,
                 stepInstance,
@@ -381,6 +387,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTasksExceptionCounter,
                 stepInstanceService,
                 tracer,
+                gseClient,
                 requestId,
                 taskInstance,
                 stepInstance,
@@ -459,6 +466,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTaskService,
                 scriptAgentTaskService,
                 tracer,
+                gseClient,
                 taskInstance,
                 stepInstance,
                 gseTask
@@ -471,6 +479,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTaskService,
                 fileAgentTaskService,
                 tracer,
+                gseClient,
                 taskInstance,
                 stepInstance,
                 gseTask

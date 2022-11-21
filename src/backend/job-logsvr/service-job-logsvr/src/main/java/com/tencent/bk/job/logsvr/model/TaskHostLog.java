@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.logsvr.model;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -39,10 +38,6 @@ import java.util.StringJoiner;
 @Setter
 public class TaskHostLog {
     /**
-     * 文件任务执行日志
-     */
-    List<FileTaskLogDoc> fileTaskLogs;
-    /**
      * 作业实例创建时间,格式yyyy_MM_dd
      */
     private String jobCreateDate;
@@ -51,10 +46,13 @@ public class TaskHostLog {
      */
     private Long stepInstanceId;
     /**
-     * 执行任务的主机ip
+     * 执行任务的主机ipv4
      */
-    @CompatibleImplementation(explain = "兼容参数,由于IP不再唯一，后续使用hostId参数替换", version = "3.7.x")
     private String ip;
+    /**
+     * 执行任务的主机ipv6
+     */
+    private String ipv6;
     /**
      * 主机ID
      */
@@ -75,6 +73,10 @@ public class TaskHostLog {
      * 脚本任务执行日志内容
      */
     private String scriptContent;
+    /**
+     * 文件任务执行日志
+     */
+    List<FileTaskLogDoc> fileTaskLogs;
     /**
      * 日志类型
      *

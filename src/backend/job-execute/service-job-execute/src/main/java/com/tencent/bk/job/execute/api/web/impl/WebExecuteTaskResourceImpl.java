@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -64,7 +65,6 @@ import com.tencent.bk.job.execute.model.web.request.WebStepOperation;
 import com.tencent.bk.job.execute.model.web.request.WebTaskExecuteRequest;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteHostVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
@@ -274,35 +274,15 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast execute script, target server is null!");
             return false;
         }
-        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getIpList()) &&
-            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getTopoNodeList())
-            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupList())) {
+        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getHostList()) &&
+            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getNodeList())
+            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupIdList())) {
             log.warn("Fast execute script, target server is null!");
-            return false;
-        }
-        if (!checkIpValid(targetServers.getHostNodeInfo().getIpList())) {
             return false;
         }
         if (request.getAccount() == null || request.getAccount() < 1) {
             log.warn("Fast execute script, accountId is invalid! accountId={}", request.getAccount());
             return false;
-        }
-        return true;
-    }
-
-    private boolean checkIpValid(List<ExecuteHostVO> hosts) {
-        if (CollectionUtils.isEmpty(hosts)) {
-            return true;
-        }
-        for (ExecuteHostVO host : hosts) {
-            if (host.getCloudAreaInfo() == null || host.getCloudAreaInfo().getId() == null) {
-                log.warn("Check host:{}, cloudAreaId is empty!", host);
-                return false;
-            }
-            if (StringUtils.isEmpty(host.getIp())) {
-                log.warn("Check host:{}, ip is empty!", host);
-                return false;
-            }
         }
         return true;
     }
@@ -426,13 +406,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast send file, target server is null!");
             return false;
         }
-        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getIpList()) &&
-            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getTopoNodeList())
-            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupList())) {
+        if (CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getHostList()) &&
+            CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getNodeList())
+            && CollectionUtils.isEmpty(targetServers.getHostNodeInfo().getDynamicGroupIdList())) {
             log.warn("Fast send file, target server is null!");
-            return false;
-        }
-        if (!checkIpValid(targetServers.getHostNodeInfo().getIpList())) {
             return false;
         }
         if (fileDestination.getAccountId() == null || fileDestination.getAccountId() < 1) {
@@ -510,28 +487,38 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return stepInstance;
     }
 
+    @CompatibleImplementation(name = "ipv6", explain = "兼容IP，发布完成之后使用hostId，不再使用IP", version = "3.6.x")
     private ServersDTO convertToServersDTO(ExecuteTargetVO target) {
         if (target == null || target.getHostNodeInfo() == null) {
             return null;
         }
         ExecuteServersVO hostNode = target.getHostNodeInfo();
         ServersDTO serversDTO = new ServersDTO();
-        if (CollectionUtils.isNotEmpty(hostNode.getIpList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
             List<HostDTO> staticIpList = new ArrayList<>();
-            hostNode.getIpList().forEach(host -> staticIpList.add(new HostDTO(host.getCloudAreaInfo().getId(),
-                host.getIp())));
+            hostNode.getHostList().forEach(host -> {
+                HostDTO targetHost = new HostDTO();
+                if (host.getHostId() != null) {
+                    targetHost.setHostId(host.getHostId());
+                } else {
+                    // 兼容IP，发布完成后删除
+                    targetHost.setBkCloudId(host.getCloudId());
+                    targetHost.setIp(host.getIp());
+                }
+                staticIpList.add(targetHost);
+            });
             serversDTO.setStaticIpList(staticIpList);
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
-            hostNode.getDynamicGroupList().forEach(
+            hostNode.getDynamicGroupIdList().forEach(
                 groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
             serversDTO.setDynamicServerGroups(dynamicServerGroups);
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getTopoNodeList())) {
+        if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
             List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
-            hostNode.getTopoNodeList().forEach(
-                topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(), topoNode.getType())));
+            hostNode.getNodeList().forEach(
+                topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getInstanceId(), topoNode.getObjectId())));
             serversDTO.setTopoNodes(topoNodes);
         }
         return serversDTO;

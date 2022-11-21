@@ -26,27 +26,34 @@
 -->
 
 <template>
-    <div class="do-sync-plan" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="do-sync-plan">
         <div class="sync-plan-step">
-            <bk-steps class="step-process" :steps="stepList" :cur-step.sync="curStep" />
+            <bk-steps
+                class="step-process"
+                :cur-step.sync="curStep"
+                :steps="stepList" />
         </div>
         <div class="step-wraper">
             <component
-                v-if="!isLoading"
                 :is="stepCom"
-                :template-info="templateInfo"
+                v-if="!isLoading"
                 :plan-info="planInfo"
-                @on-change="handleStepChange"
-                @on-cancel="handleCancel" />
+                :template-info="templateInfo"
+                @on-cancel="handleCancel"
+                @on-change="handleStepChange" />
         </div>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskPlanService from '@service/task-plan';
+
     import Step1 from './pages/step1';
     import Step2 from './pages/step2';
     import Step3 from './pages/step3';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',

@@ -37,7 +37,7 @@ public class ErrorDetailDTO {
      */
     private Integer type;
 
-    @JsonProperty("bad_request_detail")
+    @JsonProperty("badRequestDetail")
     private BadRequestDetailDTO badRequestDetail;
 
     public ErrorDetailDTO(BadRequestDetailDTO badRequestDetail) {

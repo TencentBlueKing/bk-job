@@ -33,11 +33,16 @@
             contenteditable="true"
             spellcheck="false"
             :style="stylees"
-            @input="handleInput"
-            @focus="handleFocus"
             @blur="handleBlur"
+            @focus="handleFocus"
+            @input="handleInput"
             @paste="handlePaste" />
-        <div v-if="showPlaceholder" class="job-smart-input-placeholder" @click="handleInputFocus">{{ placeholder }}</div>
+        <div
+            v-if="showPlaceholder"
+            class="job-smart-input-placeholder"
+            @click="handleInputFocus">
+            {{ placeholder }}
+        </div>
     </div>
 </template>
 <script>

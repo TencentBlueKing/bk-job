@@ -144,9 +144,6 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getIpList())) {
             hosts.addAll(stepInstance.getTargetServers().getIpList());
         }
-        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getInvalidIpList())) {
-            hosts.addAll(stepInstance.getTargetServers().getInvalidIpList());
-        }
         if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
             stepInstance.getFileSourceList().forEach(fileSource -> {
                 if (fileSource.getServers() != null

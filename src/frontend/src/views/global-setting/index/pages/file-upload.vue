@@ -27,8 +27,8 @@
 
 <template>
     <div
-        class="file-upload-manage-page"
-        v-bkloading="{ isLoading }">
+        v-bkloading="{ isLoading }"
+        class="file-upload-manage-page">
         <smart-action offset-target="input-wraper">
             <jb-form style="width: 480px; margin-bottom: 20px;">
                 <div class="block-title">
@@ -36,16 +36,19 @@
                 </div>
                 <jb-form-item>
                     <div class="input-wraper">
-                        <bk-input
+                        <jb-input-number
                             v-model="info.amount"
-                            type="number"
                             :min="1" />
                         <bk-select
                             v-model="info.unit"
                             class="unit-item"
                             :clearable="false">
-                            <bk-option id="GB" name="GB" />
-                            <bk-option id="MB" name="MB" />
+                            <bk-option
+                                id="GB"
+                                name="GB" />
+                            <bk-option
+                                id="MB"
+                                name="MB" />
                         </bk-select>
                     </div>
                 </jb-form-item>
@@ -71,20 +74,22 @@
                 <div v-if="info.restrictMode > -1">
                     <jb-form-item>
                         <bk-tag-input
+                            :key="info.restrictMode"
                             v-model="info.suffixList"
                             allow-create
                             has-delete-icon
-                            :key="info.restrictMode"
                             @change="handleRestSuffixError" />
                     </jb-form-item>
-                    <div class="form-item-error" v-html="suffixError" />
+                    <div
+                        class="form-item-error"
+                        v-html="suffixError" />
                 </div>
             </jb-form>
             <template #action>
                 <bk-button
                     class="w120"
-                    theme="primary"
                     :loading="isSubmiting"
+                    theme="primary"
                     @click="handleSubmit">
                     {{ $t('setting.保存') }}
                 </bk-button>
@@ -94,6 +99,7 @@
 </template>
 <script>
     import GlobalSettingService from '@service/global-setting';
+
     import I18n from '@/i18n';
 
     const checkSuffixError = (suffixList) => {
@@ -194,7 +200,7 @@
                 } else {
                     this.suffixError = checkSuffixError(params.suffixList);
                 }
-                
+
                 if (this.suffixError) {
                     return;
                 }

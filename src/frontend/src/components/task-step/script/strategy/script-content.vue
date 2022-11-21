@@ -29,27 +29,31 @@
     <jb-form-item
         ref="item"
         :label="$t('脚本内容')"
-        required
         :property="contentField"
+        required
         :rules="rules">
         <ace-editor
             ref="aceEditor"
             v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
-            :value="formData[contentField]"
+            :constants="scriptVariables"
             :lang="lang"
             :readonly="isReadonly"
-            :constants="scriptVariables"
             :readonly-tips="$t('引用的脚本不支持编辑')"
-            @on-mode-change="handleTypeChange"
-            @change="handleChange" />
+            :value="formData[contentField]"
+            @change="handleChange"
+            @on-mode-change="handleTypeChange" />
     </jb-form-item>
 </template>
 <script>
     import _ from 'lodash';
-    import I18n from '@/i18n';
+
     import ScriptManageService from '@service/script-manage';
+
     import TaskStepModel from '@model/task/task-step';
+
     import AceEditor from '@components/ace-editor';
+
+    import I18n from '@/i18n';
     import {
         formatScriptTypeValue,
     } from '@/utils/assist';

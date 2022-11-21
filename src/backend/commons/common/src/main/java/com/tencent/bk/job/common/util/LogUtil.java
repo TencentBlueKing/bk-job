@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.util;
 
+import java.util.List;
+
 /**
  * @Description
  * @Date 2019/12/23
@@ -31,13 +33,35 @@ package com.tencent.bk.job.common.util;
  */
 public class LogUtil {
 
+    /**
+     * 构建日志中需要打印出的部分列表元素字符串
+     *
+     * @param list          原始列表
+     * @param maxElementNum 打印出的最大元素个数，-1表示无限制
+     * @return 日志字符串
+     */
+    public static <T> String buildListLog(List<T> list, int maxElementNum) {
+        if (list == null) {
+            return "";
+        }
+        if (list.isEmpty() || maxElementNum == 0) {
+            return "[]";
+        } else if (list.size() <= maxElementNum || maxElementNum < 0) {
+            return "[" + StringUtil.concatCollection(list) + "]";
+        } else {
+            return "(" + list.size() + " elements)["
+                + StringUtil.concatCollection(list.subList(0, maxElementNum))
+                + ",...]";
+        }
+    }
+
     private static String joinBySeparator(String separator, Object... args) {
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < args.length; i++) {
-            if (args[i] == null) {
+        for (Object arg : args) {
+            if (arg == null) {
                 builder.append("null");
             } else {
-                builder.append(args[i].toString());
+                builder.append(arg.toString());
             }
             builder.append(separator);
         }

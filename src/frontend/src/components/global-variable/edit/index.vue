@@ -26,14 +26,21 @@
 -->
 
 <template>
-    <div class="global-variable-edit-box" ref="varBox" :class="boxClasses">
-        <div class="variable-name" ref="varName">
+    <div
+        ref="varBox"
+        class="global-variable-edit-box"
+        :class="boxClasses">
+        <div
+            ref="varName"
+            class="variable-name">
             <span class="name-text">{{ data.name }}</span>
         </div>
-        <div class="variable-value" ref="varValue">
+        <div
+            ref="varValue"
+            class="variable-value">
             <component
-                ref="target"
                 :is="typeCom"
+                ref="target"
                 :data="data"
                 :placement="placement"
                 v-bind="$attrs"
@@ -43,11 +50,12 @@
 </template>
 <script>
     import VariableModel from '@model/task/global-variable';
-    import TypeString from './string';
-    import TypeNamespace from './namespace';
-    import TypeHost from './host';
-    import TypePassword from './password';
+
     import TypeArray from './array';
+    import TypeHost from './host';
+    import TypeNamespace from './namespace';
+    import TypePassword from './password';
+    import TypeString from './string';
 
     export default {
         props: {

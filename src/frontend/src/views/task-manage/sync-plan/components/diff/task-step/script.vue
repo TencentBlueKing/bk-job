@@ -27,31 +27,45 @@
 
 <template>
     <div>
-        <div class="row" :class="diff.scriptSourceText">
+        <div
+            class="row"
+            :class="diff.scriptSourceText">
             <span class="label">{{ $t('template.脚本来源：') }}</span>
             <span class="value">{{ data.scriptSourceText }}</span>
         </div>
-        <div class="row" :class="[diff.content, diff.scriptVersionId]">
+        <div
+            class="row"
+            :class="[diff.content, diff.scriptVersionId]">
             <span class="label">{{ $t('template.脚本内容：') }}</span>
             <script-content />
         </div>
-        <div class="row" :class="diff.scriptParam">
+        <div
+            class="row"
+            :class="diff.scriptParam">
             <span class="label">{{ $t('template.脚本参数：') }}</span>
             <span class="value">{{ data.scriptParam || '-' }}</span>
         </div>
-        <div class="row" :class="diff.timeout">
+        <div
+            class="row"
+            :class="diff.timeout">
             <span class="label">{{ $t('template.超时时长：') }}</span>
             <span class="value">{{ data.timeout }}(s)</span>
         </div>
-        <div class="row" :class="diff.ignoreError">
+        <div
+            class="row"
+            :class="diff.ignoreError">
             <span class="label">{{ $t('template.错误处理：') }}</span>
             <span class="value">{{ data.ignoreErrorText }}</span>
         </div>
-        <div class="row" :class="diff.executeAccount">
+        <div
+            class="row"
+            :class="diff.executeAccount">
             <span class="label">{{ $t('template.执行账号：') }}</span>
             <span class="value">{{ findName(data.executeAccount) || '-' }}</span>
         </div>
-        <div class="row" :class="diff.executeTarget">
+        <div
+            class="row"
+            :class="diff.executeTarget">
             <span class="label">{{ $t('template.执行目标：') }}</span>
             <script-execute-target />
         </div>

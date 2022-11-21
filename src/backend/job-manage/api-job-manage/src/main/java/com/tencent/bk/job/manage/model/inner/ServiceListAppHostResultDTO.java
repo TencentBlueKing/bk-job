@@ -22,9 +22,4 @@ public class ServiceListAppHostResultDTO {
      * 在其他业务下的主机
      */
     private List<HostDTO> notInAppHosts;
-//    /**
-//     * 主机白名单
-//     */
-//    private Map<HostDTO, List<String>> whiteHosts;
-
 }

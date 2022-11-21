@@ -26,12 +26,15 @@
 -->
 
 <template>
-    <component :is="com" v-bind="$attrs" v-on="$listeners" />
+    <component
+        :is="com"
+        v-bind="$attrs"
+        v-on="$listeners" />
 </template>
 <script>
+    import EndTime from './end-time';
     import ExecuteBeforeNotify from './execute-before-notify';
     import FinishBeforeNotify from './finish-before-notify';
-    import EndTime from './end-time';
 
     const itemMap = {
         executeBeforeNotify: ExecuteBeforeNotify,

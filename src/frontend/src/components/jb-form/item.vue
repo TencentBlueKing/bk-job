@@ -29,8 +29,8 @@
     <bk-form-item
         ref="bkFormItem"
         :class="classes"
-        :label="label"
         :error-display-type="errorDisplayType"
+        :label="label"
         v-bind="$attrs"
         v-on="$listeners">
         <div class="jb-form-item-content">

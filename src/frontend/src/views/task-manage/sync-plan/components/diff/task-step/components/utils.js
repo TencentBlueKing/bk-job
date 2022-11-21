@@ -24,6 +24,7 @@
 */
 
 import _ from 'lodash';
+
 import TaskStepModel from '@model/task/task-step';
 
 export const findStepInfo = (target, id, type) => {

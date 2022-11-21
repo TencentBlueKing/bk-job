@@ -30,8 +30,8 @@ import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -50,7 +50,6 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.web.WebTaskExecutionResultResource;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.client.ServiceNotificationResourceClient;
-import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -97,6 +96,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
@@ -558,8 +558,11 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             if (resultGroup.getAgentTasks() != null) {
                 for (AgentTaskDetailDTO agentTask : resultGroup.getAgentTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
+                    agentTaskVO.setHostId(agentTask.getHostId());
+                    // tmp 发布兼容，发布完成后需要改成 agentTaskVO.setIp(agentTask.getIp());
                     agentTaskVO.setIp(agentTask.getCloudIp());
-                    agentTaskVO.setDisplayIp(agentTask.getDisplayIp());
+                    agentTaskVO.setDisplayIp(agentTask.getIp());
+                    agentTaskVO.setIpv6(agentTask.getIpv6());
                     agentTaskVO.setEndTime(agentTask.getEndTime());
                     agentTaskVO.setStartTime(agentTask.getStartTime());
                     agentTaskVO.setStatus(agentTask.getStatus().getValue());
@@ -601,31 +604,22 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     }
 
     @Override
-    public Response<IpScriptLogContentVO> getScriptLogContentByIp(String username,
-                                                                  AppResourceScope appResourceScope,
-                                                                  String scopeType,
-                                                                  String scopeId,
-                                                                  Long stepInstanceId,
-                                                                  Integer executeCount,
-                                                                  String ip,
-                                                                  Integer batch) {
-
-        if (stepInstanceId == null || executeCount == null || ip == null) {
-            log.warn("Get ip log content, param is illegal!");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-        if (!IpUtils.checkCloudIp(ip)) {
-            log.warn("Get ip log content, param ip is illegal! ip={}", ip);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-
+    public Response<IpScriptLogContentVO> getScriptLogContentByHost(String username,
+                                                                    AppResourceScope appResourceScope,
+                                                                    String scopeType,
+                                                                    String scopeId,
+                                                                    Long stepInstanceId,
+                                                                    Integer executeCount,
+                                                                    String ip,
+                                                                    Long hostId,
+                                                                    Integer batch) {
         authViewStepInstance(username, appResourceScope, stepInstanceId);
 
         ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId, executeCount,
-            batch, HostDTO.fromCloudIp(ip));
+            batch, HostDTO.fromHostIdOrCloudIp(hostId, ip));
         IpScriptLogContentVO ipScriptLogContentVO = new IpScriptLogContentVO();
-        ipScriptLogContentVO.setDisplayIp(ip);
         if (scriptHostLogContent != null) {
+            ipScriptLogContentVO.setDisplayIp(scriptHostLogContent.getIp());
             ipScriptLogContentVO.setLogContent(scriptHostLogContent.getContent());
             ipScriptLogContentVO.setFinished(scriptHostLogContent.isFinished());
         }
@@ -758,24 +752,16 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public Response<IpFileLogContentVO> getFileLogContentByIp(String username,
-                                                              AppResourceScope appResourceScope,
-                                                              String scopeType,
-                                                              String scopeId,
-                                                              Long stepInstanceId,
-                                                              Integer executeCount,
-                                                              String ip,
-                                                              String mode,
-                                                              Integer batch) {
-
-        if (stepInstanceId == null || executeCount == null || ip == null) {
-            log.warn("Get ip log content, param is illegal!");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-        if (!IpUtils.checkCloudIp(ip)) {
-            log.warn("Get ip log content, param ip is illegal! ip={}", ip);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
+    public Response<IpFileLogContentVO> getFileLogContentByHost(String username,
+                                                                AppResourceScope appResourceScope,
+                                                                String scopeType,
+                                                                String scopeId,
+                                                                Long stepInstanceId,
+                                                                Integer executeCount,
+                                                                String ip,
+                                                                Long hostId,
+                                                                String mode,
+                                                                Integer batch) {
 
         authViewStepInstance(username, appResourceScope, stepInstanceId);
 
@@ -785,7 +771,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
         if ("download".equals(mode)) {
             FileIpLogContent downloadLog = logService.getFileIpLogContent(stepInstanceId, executeCount, batch,
-                HostDTO.fromCloudIp(ip), FileDistModeEnum.DOWNLOAD.getValue());
+                HostDTO.fromHostIdOrCloudIp(hostId, ip), FileDistModeEnum.DOWNLOAD.getValue());
             // downloadLog为null说明步骤还未下发至GSE就被终止
             if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {
                 downloadLog.getFileTaskLogs().forEach(fileLog -> {
@@ -845,13 +831,16 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         fileDistDetailVO.setTaskId(fileLog.getTaskId());
         fileDistDetailVO.setMode(fileLog.getMode());
         if (FileDistModeEnum.UPLOAD.getValue().equals(fileLog.getMode())) {
-            fileDistDetailVO.setSrcIp(fileLog.getDisplaySrcIp());
             fileDistDetailVO.setFileName(fileLog.getDisplaySrcFile());
         } else {
-            fileDistDetailVO.setSrcIp(fileLog.getDisplaySrcIp());
-            fileDistDetailVO.setDestIp(fileLog.getDestIp());
+            fileDistDetailVO.setDestIp(IpUtils.removeBkCloudId(fileLog.getDestIp()));
+            fileDistDetailVO.setDestIpv6(IpUtils.removeBkCloudId(fileLog.getDestIpv6()));
             fileDistDetailVO.setFileName(fileLog.getDestFile());
         }
+        boolean hideSrcIp = fileLog.getSrcFileType() != null
+            && TaskFileTypeEnum.valueOf(fileLog.getSrcFileType()) != TaskFileTypeEnum.SERVER;
+        fileDistDetailVO.setSrcIp(hideSrcIp ? "--" : IpUtils.removeBkCloudId(fileLog.getSrcIp()));
+        fileDistDetailVO.setSrcIpv6(hideSrcIp ? "--" : IpUtils.removeBkCloudId(fileLog.getSrcIpv6()));
         fileDistDetailVO.setFileSize(fileLog.getSize());
         fileDistDetailVO.setProgress(fileLog.getProcess());
         fileDistDetailVO.setSpeed(fileLog.getSpeed());

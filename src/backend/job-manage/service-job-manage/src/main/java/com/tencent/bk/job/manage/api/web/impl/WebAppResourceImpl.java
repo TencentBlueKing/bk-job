@@ -24,48 +24,28 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
-import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
-import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
-import com.tencent.bk.job.manage.model.web.request.IpCheckReq;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
-import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
-import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
-import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,18 +59,15 @@ public class WebAppResourceImpl implements WebAppResource {
     private final ApplicationService applicationService;
     private final ApplicationFavorService applicationFavorService;
     private final AppAuthService appAuthService;
-    private final HostService hostService;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebAppResourceImpl(ApplicationService applicationService,
                               ApplicationFavorService applicationFavorService,
                               AppAuthService appAuthService,
-                              HostService hostService,
                               AppScopeMappingService appScopeMappingService) {
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
-        this.hostService = hostService;
         this.appAuthService = appAuthService;
         this.appScopeMappingService = appScopeMappingService;
     }
@@ -227,254 +204,5 @@ public class WebAppResourceImpl implements WebAppResource {
         return Response.buildSuccessResp(
             applicationFavorService.cancelFavorApp(username, applicationDTO.getId())
         );
-    }
-
-    @Override
-    public Response<PageData<HostInfoVO>> listAppHost(String username,
-                                                      AppResourceScope appResourceScope,
-                                                      String scopeType,
-                                                      String scopeId,
-                                                      Integer start,
-                                                      Integer pageSize,
-                                                      Long moduleType,
-                                                      String ipCondition) {
-        ApplicationHostDTO applicationHostInfoCondition = new ApplicationHostDTO();
-        applicationHostInfoCondition.setBizId(appResourceScope.getAppId());
-        applicationHostInfoCondition.setIp(ipCondition);
-        if (moduleType != null) {
-            applicationHostInfoCondition.getModuleType().add(moduleType);
-        }
-
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        if (start == null || start < 0) {
-            start = 0;
-        }
-        if (pageSize == null || pageSize <= 0) {
-            pageSize = 10;
-        }
-        baseSearchCondition.setStart(start);
-        baseSearchCondition.setLength(pageSize);
-
-        PageData<ApplicationHostDTO> appHostInfoPageData =
-            hostService.listAppHost(applicationHostInfoCondition, baseSearchCondition);
-        PageData<HostInfoVO> finalHostInfoPageData = new PageData<>();
-        finalHostInfoPageData.setTotal(appHostInfoPageData.getTotal());
-        finalHostInfoPageData.setStart(appHostInfoPageData.getStart());
-        finalHostInfoPageData.setPageSize(appHostInfoPageData.getPageSize());
-        finalHostInfoPageData
-            .setData(appHostInfoPageData.getData().stream()
-                .map(TopologyHelper::convertToHostInfoVO).collect(Collectors.toList()));
-        return Response.buildSuccessResp(finalHostInfoPageData);
-    }
-
-    @Override
-    public Response<CcTopologyNodeVO> listAppTopologyTree(String username,
-                                                          AppResourceScope appResourceScope,
-                                                          String scopeType,
-                                                          String scopeId) {
-        return Response.buildSuccessResp(
-            hostService.listAppTopologyTree(username, appResourceScope)
-        );
-    }
-
-    @Override
-    public Response<CcTopologyNodeVO> listAppTopologyHostTree(String username,
-                                                              AppResourceScope appResourceScope,
-                                                              String scopeType,
-                                                              String scopeId) {
-        return Response.buildSuccessResp(hostService.listAppTopologyHostTree(username, appResourceScope));
-    }
-
-    @Override
-    public Response<CcTopologyNodeVO> listAppTopologyHostCountTree(String username,
-                                                                   AppResourceScope appResourceScope,
-                                                                   String scopeType,
-                                                                   String scopeId) {
-        return Response.buildSuccessResp(hostService.listAppTopologyHostCountTree(username,
-            appResourceScope));
-    }
-
-    @Override
-    public Response<PageData<HostInfoVO>> listHostByBizTopologyNodes(String username,
-                                                                     AppResourceScope appResourceScope,
-                                                                     String scopeType,
-                                                                     String scopeId,
-                                                                     ListHostByBizTopologyNodesReq req) {
-        return Response.buildSuccessResp(
-            hostService.listHostByAppTopologyNodes(
-                username, appResourceScope, req
-            )
-        );
-    }
-
-    @Override
-    public Response<PageData<String>> listIpByBizTopologyNodes(String username,
-                                                               AppResourceScope appResourceScope,
-                                                               String scopeType,
-                                                               String scopeId,
-                                                               ListHostByBizTopologyNodesReq req) {
-        return Response.buildSuccessResp(
-            hostService.listIPByBizTopologyNodes(
-                username, appResourceScope, req
-            )
-        );
-    }
-
-    @Override
-    public Response<List<AppTopologyTreeNode>> getNodeDetail(String username,
-                                                             AppResourceScope appResourceScope,
-                                                             String scopeType,
-                                                             String scopeId,
-                                                             List<TargetNodeVO> targetNodeVOList) {
-        List<AppTopologyTreeNode> treeNodeList = hostService.getAppTopologyTreeNodeDetail(username,
-            appResourceScope,
-            targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
-                it.getType(),
-                "",
-                it.getId(),
-                "",
-                null
-            )).collect(Collectors.toList()));
-        return Response.buildSuccessResp(treeNodeList);
-    }
-
-    @Override
-    public Response<List<List<CcTopologyNodeVO>>> queryNodePaths(String username,
-                                                                 AppResourceScope appResourceScope,
-                                                                 String scopeType,
-                                                                 String scopeId,
-                                                                 List<TargetNodeVO> targetNodeVOList) {
-        ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
-        if (appDTO.isBizSet()) {
-            return Response.buildSuccessResp(Collections.emptyList());
-        }
-        List<List<InstanceTopologyDTO>> pathList = hostService.queryBizNodePaths(
-            username,
-            appDTO.getBizIdIfBizApp(),
-            targetNodeVOList.stream().map(it -> {
-                InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
-                instanceTopologyDTO.setObjectId(it.getType());
-                instanceTopologyDTO.setInstanceId(it.getId());
-                return instanceTopologyDTO;
-            }).collect(Collectors.toList()));
-        List<List<CcTopologyNodeVO>> resultList = new ArrayList<>();
-        for (List<InstanceTopologyDTO> instanceTopologyDTOS : pathList) {
-            if (instanceTopologyDTOS == null) {
-                resultList.add(null);
-            } else {
-                resultList.add(instanceTopologyDTOS.stream().map(it -> {
-                    CcTopologyNodeVO ccTopologyNodeVO = new CcTopologyNodeVO();
-                    ccTopologyNodeVO.setObjectId(it.getObjectId());
-                    ccTopologyNodeVO.setObjectName(it.getObjectName());
-                    ccTopologyNodeVO.setInstanceId(it.getInstanceId());
-                    ccTopologyNodeVO.setInstanceName(it.getInstanceName());
-                    return ccTopologyNodeVO;
-                }).collect(Collectors.toList()));
-            }
-        }
-        return Response.buildSuccessResp(resultList);
-    }
-
-    @Override
-    public Response<List<NodeInfoVO>> listHostByNode(String username,
-                                                     AppResourceScope appResourceScope,
-                                                     String scopeType,
-                                                     String scopeId,
-                                                     List<TargetNodeVO> targetNodeVOList) {
-        ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
-        if (appDTO.isBizSet()) {
-            String msg = "topo node of bizset not supported yet";
-            throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
-        }
-        List<NodeInfoVO> moduleHostInfoList = hostService.getBizHostsByNode(
-            username,
-            appDTO.getBizIdIfBizApp(),
-            targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
-                it.getType(),
-                "",
-                it.getId(),
-                "",
-                null
-            )).collect(Collectors.toList())
-        );
-        return Response.buildSuccessResp(moduleHostInfoList);
-    }
-
-    @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(String username,
-                                                                  AppResourceScope appResourceScope,
-                                                                  String scopeType,
-                                                                  String scopeId) {
-        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appResourceScope.getAppId());
-        // 业务集动态分组暂不支持
-        if (!applicationDTO.isBiz()) {
-            return Response.buildSuccessResp(new ArrayList<>());
-        }
-        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
-            username, appResourceScope
-        );
-        List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
-            .map(TopologyHelper::convertToDynamicGroupInfoVO)
-            .collect(Collectors.toList());
-        return Response.buildSuccessResp(dynamicGroupInfoList);
-    }
-
-    @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(String username,
-                                                                      AppResourceScope appResourceScope,
-                                                                      String scopeType,
-                                                                      String scopeId, List<String> dynamicGroupIds) {
-        // 目前只有业务支持动态分组
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
-            List<DynamicGroupInfoDTO> dynamicGroupList =
-                hostService.getBizDynamicGroupHostList(
-                    username, Long.parseLong(appResourceScope.getId()), dynamicGroupIds
-                );
-            List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
-                .map(TopologyHelper::convertToDynamicGroupInfoVO)
-                .collect(Collectors.toList());
-            return Response.buildSuccessResp(dynamicGroupInfoList);
-        }
-        return Response.buildSuccessResp(Collections.emptyList());
-    }
-
-    @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(String username,
-                                                                              AppResourceScope appResourceScope,
-                                                                              String scopeType,
-                                                                              String scopeId,
-                                                                              List<String> dynamicGroupIds) {
-        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
-            username, appResourceScope
-        );
-        List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
-            .filter(dynamicGroupInfoDTO -> dynamicGroupIds.contains(dynamicGroupInfoDTO.getId()))
-            .map(TopologyHelper::convertToDynamicGroupInfoVO)
-            .collect(Collectors.toList());
-        return Response.buildSuccessResp(dynamicGroupInfoList);
-    }
-
-    @Override
-    public Response<List<HostInfoVO>> listHostByIp(String username,
-                                                   AppResourceScope appResourceScope,
-                                                   String scopeType,
-                                                   String scopeId,
-                                                   IpCheckReq req) {
-        return Response.buildSuccessResp(hostService.getHostsByIp(
-            username,
-            appResourceScope.getAppId(),
-            req.getActionScope(),
-            req.getIpList())
-        );
-    }
-
-    @Override
-    public Response<AgentStatistics> agentStatistics(String username,
-                                                     AppResourceScope appResourceScope,
-                                                     String scopeType,
-                                                     String scopeId,
-                                                     AgentStatisticsReq agentStatisticsReq) {
-        return Response.buildSuccessResp(hostService.getAgentStatistics(username, appResourceScope.getAppId(),
-            agentStatisticsReq));
     }
 }

@@ -41,13 +41,15 @@ public interface ApplicationHostDAO {
 
     boolean existsHost(long bizId, String ip);
 
-    boolean existAppHostInfoByHostId(ApplicationHostDTO applicationHostDTO);
-
     boolean existAppHostInfoByHostId(Long hostId);
 
     ApplicationHostDTO getHostById(Long hostId);
 
     ApplicationHostDTO getLatestHost(long bizId, long cloudAreaId, String ip);
+
+    List<ApplicationHostDTO> listHostInfoByIps(Collection<String> ips);
+
+    List<ApplicationHostDTO> listHostInfoByCloudIps(Collection<String> cloudIps);
 
     /**
      * 查询近期未更新的主机ID
@@ -59,6 +61,8 @@ public interface ApplicationHostDAO {
      */
     List<Long> listHostId(long bizId, long minUpdateTimeMills, long maxUpdateTimeMills);
 
+    List<ApplicationHostDTO> listHostInfoByIps(Long bizId, Collection<String> ips);
+
     List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
 
     List<ApplicationHostDTO> listAllHostInfo(Long start, Long limit);
@@ -66,6 +70,10 @@ public interface ApplicationHostDAO {
     List<ApplicationHostDTO> listHostInfoByBizIds(Collection<Long> bizIds, Long start, Long limit);
 
     List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds);
+
+    List<ApplicationHostDTO> listHostInfoByIpv6s(Collection<String> ipv6s);
+
+    List<ApplicationHostDTO> listHostInfoByHostNames(Collection<String> hostNames);
 
     List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,
                                                           Collection<Long> moduleIds,
@@ -82,12 +90,50 @@ public interface ApplicationHostDAO {
     PageData<ApplicationHostDTO> listHostInfoByPage(ApplicationHostDTO applicationHostInfoCondition,
                                                     BaseSearchCondition baseSearchCondition);
 
-    // count类操作
+    List<Long> getHostIdListBySearchContents(Collection<Long> appIds,
+                                             Collection<Long> moduleIds,
+                                             Collection<Long> cloudAreaIds,
+                                             List<String> searchContents,
+                                             Integer agentAlive,
+                                             Long start,
+                                             Long limit);
+
     Long countHostInfoBySearchContents(Collection<Long> bizIds,
                                        Collection<Long> moduleIds,
                                        Collection<Long> cloudAreaIds,
                                        List<String> searchContents,
                                        Integer agentStatus);
+
+    List<ApplicationHostDTO> listHostInfoByMultiKeys(Collection<Long> bizIds,
+                                                     Collection<Long> moduleIds,
+                                                     Collection<Long> cloudAreaIds,
+                                                     Collection<String> ipKeys,
+                                                     Collection<String> ipv6Keys,
+                                                     Collection<String> hostNameKeys,
+                                                     Collection<String> osNameKeys,
+                                                     Integer agentAlive,
+                                                     Long start,
+                                                     Long limit);
+
+    List<Long> getHostIdListByMultiKeys(Collection<Long> bizIds,
+                                        Collection<Long> moduleIds,
+                                        Collection<Long> cloudAreaIds,
+                                        Collection<String> ipKeys,
+                                        Collection<String> ipv6Keys,
+                                        Collection<String> hostNameKeys,
+                                        Collection<String> osNameKeys,
+                                        Integer agentAlive,
+                                        Long start,
+                                        Long limit);
+
+    Long countHostInfoByMultiKeys(Collection<Long> bizIds,
+                                  Collection<Long> moduleIds,
+                                  Collection<Long> cloudAreaIds,
+                                  Collection<String> ipKeys,
+                                  Collection<String> ipv6Keys,
+                                  Collection<String> hostNameKeys,
+                                  Collection<String> osNameKeys,
+                                  Integer agentAlive);
 
     /**
      * 根据ID与Agent状态查询主机数量
@@ -104,12 +150,14 @@ public interface ApplicationHostDAO {
 
     long countHostsByOsType(String osType);
 
-    /**
-     * 根据ip查询主机
-     *
-     * @param cloudIps 主机ip(云区域+ip)列表
-     */
-    List<ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps);
+    List<ApplicationHostDTO> listHostInfoByBizAndIps(Collection<Long> bizIds, Collection<String> ips);
+
+    List<ApplicationHostDTO> listHostInfoByBizAndCloudIps(Collection<Long> bizIds, Collection<String> cloudIps);
+
+    List<ApplicationHostDTO> listHostInfoByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s);
+
+    List<ApplicationHostDTO> listHostInfoByBizAndHostNames(Collection<Long> bizIds, Collection<String> hostNames);
+
 
     // 新增、更新类操作
 
@@ -128,6 +176,7 @@ public interface ApplicationHostDAO {
     int batchUpdateBizHostInfoByHostId(List<ApplicationHostDTO> applicationHostDTOList);
 
     int syncHostTopo(Long hostId);
+
 
     // 删除类操作
 
@@ -149,6 +198,15 @@ public interface ApplicationHostDAO {
      * @return 删除的主机数量
      */
     int batchDeleteBizHostInfoById(Long bizId, List<Long> hostIdList);
+
+    /**
+     * 根据ip查询主机
+     * 删除某个业务下的全部主机，用于业务被删除后清理主机
+     * 根据cloudIp查询主机
+     *
+     * @param cloudIps 主机ip(云区域+ip)集合
+     */
+    List<ApplicationHostDTO> listHostsByCloudIps(Collection<String> cloudIps);
 
     /**
      * 删除某个业务下的全部主机，用于业务被删除后清理主机

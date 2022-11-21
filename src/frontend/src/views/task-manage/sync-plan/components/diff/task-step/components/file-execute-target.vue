@@ -26,12 +26,15 @@
 -->
 
 <template>
-    <ip-detail :pre-host="preHost" :last-host="lastHost" />
+    <ip-detail
+        :last-host="lastHost"
+        :pre-host="preHost" />
 </template>
 <script>
     import {
         findParent,
     } from '@utils/vdom';
+
     import IpDetail from '../../common/ip-detail';
     import {
         findStep,

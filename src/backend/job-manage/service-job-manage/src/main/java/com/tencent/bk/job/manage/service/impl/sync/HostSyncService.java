@@ -31,7 +31,8 @@ import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.service.HostService;
+import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -53,14 +54,17 @@ public class HostSyncService {
     private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostService hostService;
+    private final AgentStatusService agentStatusService;
 
     @Autowired
     public HostSyncService(AppHostsUpdateHelper appHostsUpdateHelper,
                            ApplicationHostDAO applicationHostDAO,
-                           HostService hostService) {
+                           HostService hostService,
+                           AgentStatusService agentStatusService) {
         this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.applicationHostDAO = applicationHostDAO;
         this.hostService = hostService;
+        this.agentStatusService = agentStatusService;
     }
 
     private List<ApplicationHostDTO> getHostsByAppInfo(IBizCmdbClient bizCmdbClient, ApplicationDTO applicationDTO) {
@@ -69,7 +73,7 @@ public class HostSyncService {
         List<ApplicationHostDTO> hosts = bizCmdbClient.getHosts(applicationDTO.getBizIdIfBizApp(),
             ccInstanceDTOList);
         // 获取Agent状态
-        hostService.fillAgentStatus(hosts);
+        agentStatusService.fillRealTimeAgentStatus(hosts);
         return hosts;
     }
 
@@ -197,12 +201,12 @@ public class HostSyncService {
 
     private Pair<Long, Long> syncBizHostsIndeed(ApplicationDTO applicationDTO) {
         Long bizId = Long.valueOf(applicationDTO.getScope().getId());
-        Long cmdbInterfaceTimeConsuming = 0L;
-        Long writeToDBTimeConsuming = 0L;
+        long cmdbInterfaceTimeConsuming = 0L;
+        long writeToDBTimeConsuming = 0L;
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         StopWatch bizHostsWatch = new StopWatch();
         bizHostsWatch.start("getHostsByAppInfo from CMDB");
-        Long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         log.info("begin to syncBizHosts:bizId={}", bizId);
         List<ApplicationHostDTO> hosts = getHostsByAppInfo(bizCmdbClient, applicationDTO);
         cmdbInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
