@@ -41,10 +41,8 @@ class FileSourceManage extends ModuleBase {
 
     // 检查文件源别名是否已存在（可用返回true）
     getAliasCheck (params = {}) {
-        const realParams = { ...params };
-        delete realParams.alias;
-        return Request.get(`${this.path}/checkAlias/${params.alias}`, {
-            params: realParams,
+        return Request.get(`${this.path}/checkAlias`, {
+            params,
         });
     }
 
