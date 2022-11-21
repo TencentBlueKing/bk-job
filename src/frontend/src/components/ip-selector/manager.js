@@ -34,6 +34,8 @@ const config = {
     panelList: ['staticTopo', 'manualInput'], // 'staticTopo' | 'dynamicTopo' | 'dynamicGroup' | 'manualInput'
     unqiuePanelValue: false,
     nameStyle: 'kebabCase', // 'camelCase' | 'kebabCase'
+    hostTableCustomColumnList: [],
+    hostTableRenderColumnList: [],
 };
 
 const service = {};
