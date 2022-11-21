@@ -1,4 +1,19 @@
 @mixin tree {
+    .big-tree-box {
+        overflow: auto;
+
+        .bk-big-tree {
+            min-width: max-content;
+            overflow: unset;
+
+            .bk-big-tree-node {
+                .node-content {
+                    overflow: unset;
+                }
+            }
+        }
+    }
+
     .topo-node-box {
         display: flex;
         padding-right: 3px;
