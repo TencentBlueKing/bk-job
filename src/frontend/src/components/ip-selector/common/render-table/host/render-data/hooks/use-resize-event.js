@@ -63,7 +63,8 @@ export default function (tableRef, tableColumnResizeRef) {
             if (dragging.value) {
                 const { startColumnLeft } = dragState.value;
                 const finalLeft = Number.parseInt(resizeProxy.style.left, 10);
-                const columnWidth = finalLeft - startColumnLeft;
+                const columnWidth = Math.max(finalLeft - startColumnLeft, 60);
+
                 columnEl.style.width = `${columnWidth}px`;
                 resizeProxy.style.display = 'none';
                 document.body.style.cursor = '';

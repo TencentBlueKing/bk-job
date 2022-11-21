@@ -28,7 +28,7 @@
                                 name="selection"
                                 :row="row" />
                         </td>
-                        
+
                         <td>
                             <div class="cell">
                                 {{ row.namePath || '--' }}
@@ -105,11 +105,11 @@
     };
 
     const handleChooseAbnormal = () => {
-        
+
     };
 
     const handleChooseAll = () => {
-        
+
     };
 </script>
 <style lang="postcss">
@@ -146,9 +146,11 @@
             padding: 0 4px;
             align-items: center;
 
-            &:hover {
-                /* background: #eaebf0; */
-            }
+            /* &:hover { */
+
+            /* background: #eaebf0; */
+
+            /* } */
 
             .agent-desc {
                 padding-right: 4px;
