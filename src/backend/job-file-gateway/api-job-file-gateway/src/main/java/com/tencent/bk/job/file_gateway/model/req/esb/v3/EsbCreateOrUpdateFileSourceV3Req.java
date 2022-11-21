@@ -18,19 +18,19 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      * 文件源Code
      */
     @ApiModelProperty(value = "文件源Code")
-    @NotContainSpecialChar
+    @NotContainSpecialChar(fieldName = "code")
     private String code;
     /**
      * 文件源别名
      */
     @ApiModelProperty(value = "文件源名称")
-    @NotContainSpecialChar
+    @NotContainSpecialChar(fieldName = "alias")
     private String alias;
     /**
      * 文件源类型
      */
     @ApiModelProperty(value = "文件源类型")
-    @NotContainSpecialChar
+    @NotContainSpecialChar(fieldName = "type")
     private String type;
 
     /**
@@ -44,7 +44,7 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      */
     @ApiModelProperty(value = "文件源凭证Id")
     @JsonProperty(value = "credential_id")
-    @NotContainSpecialChar
+    @NotContainSpecialChar(fieldName = "credential_id")
     private String credentialId;
     /**
      * 文件前缀

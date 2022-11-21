@@ -52,11 +52,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface NotContainSpecialChar {
 
-    String message() default "{validation.constraints.NotContainSpecialChar.message}";
+    String message() default "{fieldName} {validation.constraints.NotContainSpecialChar.message}";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
+
+    String fieldName();
 
     class Validator implements ConstraintValidator<NotContainSpecialChar, String> {
 

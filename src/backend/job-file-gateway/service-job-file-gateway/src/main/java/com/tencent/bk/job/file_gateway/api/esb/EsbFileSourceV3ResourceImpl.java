@@ -46,7 +46,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         String username = req.getUserName();
         checkCreateFileSourcePermission(username, req.getAppResourceScope());
         checkCreateParam(req);
-        FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
+        FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, null, req);
         Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
         boolean registerResult = fileSourceAuthService.registerFileSource(
             username, fileSourceId, fileSourceDTO.getAlias());
@@ -59,12 +59,11 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
     @Override
     public EsbResp<EsbFileSourceSimpleInfoV3DTO> updateFileSource(EsbCreateOrUpdateFileSourceV3Req req) {
         req.fillAppResourceScope(appScopeMappingService);
-        checkUpdateParam(req);
+        Integer id = checkUpdateParamAndGetId(req);
         Long appId = req.getAppId();
         String username = req.getUserName();
-        Integer id = req.getId();
         checkManageFileSourcePermission(username, req.getAppResourceScope(), id);
-        FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
+        FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, id, req);
         int affectedNum = fileSourceService.updateFileSourceById(appId, fileSourceDTO);
         log.info("{} fileSource updated", affectedNum);
         return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(id));
@@ -94,31 +93,26 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         checkCommonParam(req);
     }
 
-    private void checkUpdateParam(EsbCreateOrUpdateFileSourceV3Req req) {
+    private Integer checkUpdateParamAndGetId(EsbCreateOrUpdateFileSourceV3Req req) {
         Long appId = req.getAppId();
-        Integer id = req.getId();
         String code = req.getCode();
-        if (id == null && StringUtils.isBlank(code)) {
-            throw new InvalidParamException(ErrorCode.ID_AND_CODE_AT_LEAST_ONE);
-        }
+        Integer id = fileSourceService.getFileSourceIdByCode(appId, code);
         if (id == null) {
-            id = fileSourceService.getFileSourceIdByCode(appId, code);
-            if (id == null) {
-                throw new FailedPreconditionException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
-            }
+            throw new FailedPreconditionException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
         }
-        req.setId(id);
         if (!fileSourceService.existsFileSource(appId, id)) {
             throw new FailedPreconditionException(ErrorCode.FILE_SOURCE_ID_NOT_IN_BIZ, new String[]{id.toString()});
         }
-        checkCommonParam(req);
+        return id;
     }
 
-    private FileSourceDTO buildFileSourceDTO(String username, Long appId,
+    private FileSourceDTO buildFileSourceDTO(String username,
+                                             Long appId,
+                                             Integer id,
                                              EsbCreateOrUpdateFileSourceV3Req fileSourceCreateUpdateReq) {
         FileSourceDTO fileSourceDTO = new FileSourceDTO();
         fileSourceDTO.setAppId(appId);
-        fileSourceDTO.setId(fileSourceCreateUpdateReq.getId());
+        fileSourceDTO.setId(id);
         fileSourceDTO.setCode(fileSourceCreateUpdateReq.getCode());
         fileSourceDTO.setAlias(fileSourceCreateUpdateReq.getAlias());
         fileSourceDTO.setStatus(null);
