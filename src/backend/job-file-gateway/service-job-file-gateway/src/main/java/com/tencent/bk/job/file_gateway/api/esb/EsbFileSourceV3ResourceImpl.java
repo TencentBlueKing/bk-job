@@ -12,6 +12,7 @@ import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
@@ -87,6 +88,13 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
             throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
                 new String[]{"code"});
         }
+        FileSourceTypeDTO fileSourceTypeDTO = fileSourceService.getFileSourceTypeByCode(
+            req.getType()
+        );
+        if (fileSourceTypeDTO == null) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                new String[]{"type"});
+        }
         if (fileSourceService.existsCode(req.getAppId(), code)) {
             throw new FailedPreconditionException(ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS, new String[]{code});
         }
@@ -102,6 +110,15 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         }
         if (!fileSourceService.existsFileSource(appId, id)) {
             throw new FailedPreconditionException(ErrorCode.FILE_SOURCE_ID_NOT_IN_BIZ, new String[]{id.toString()});
+        }
+        if (StringUtils.isNotBlank(req.getType())) {
+            FileSourceTypeDTO fileSourceTypeDTO = fileSourceService.getFileSourceTypeByCode(
+                req.getType()
+            );
+            if (fileSourceTypeDTO == null) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                    new String[]{"type"});
+            }
         }
         return id;
     }
