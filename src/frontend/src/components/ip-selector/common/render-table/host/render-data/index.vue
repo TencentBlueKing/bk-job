@@ -97,7 +97,7 @@
     import useResizeEvent from './hooks/use-resize-event.js';
     import useScroll from './hooks/use-scroll';
 
-    export const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorHostList');
+    export const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorHostList_1');
 
     // 列的显示顺序
     export const columnKeySortList = shallowRef([]);
@@ -140,11 +140,11 @@
 
     const {
         hostTableColumnSortList,
-        hostTableColumns,
+        hostTableCustomColumnList,
     } = Manager.config;
-    if (hostTableColumns) {
+    if (hostTableCustomColumnList) {
         const keySortList = Object.keys(tableColumnConfig);
-        hostTableColumns.forEach((columnConfig) => {
+        hostTableCustomColumnList.forEach((columnConfig) => {
             if (columnConfig.index) {
                 keySortList.splice(columnConfig.index, 0, columnConfig.key);
             } else {
@@ -206,13 +206,13 @@
         if (!data[CUSTOM_SETTINGS_MODULE]) {
             return;
         }
-        // const {
-        //     hostListColumn = [],
-        //     hostListColumnSort = [],
-        // } = data[CUSTOM_SETTINGS_MODULE];
+        const {
+            hostListColumn = [],
+            hostListColumnSort = [],
+        } = data[CUSTOM_SETTINGS_MODULE];
 
-        // columnKeySortList.value = hostListColumnSort;
-        // columnKeyRenderList.value = hostListColumn;
+        columnKeySortList.value = hostListColumnSort;
+        columnKeyRenderList.value = hostListColumn;
         setHostListRenderPrimaryKey();
     })
     .finally(() => {
@@ -249,7 +249,7 @@
     });
 </script>
 <style lang="postcss">
-    @import url("../../../../styles/table.mixin.css");
+    @import "../../../../styles/table.mixin.css";
 
     .render-table-host-content {
         position: relative;

@@ -35,9 +35,6 @@ export default function (tableRef, tableColumnResizeRef) {
         const columnRect = columnEl.getBoundingClientRect();
         const minLeft = columnRect.left - tableLeft + 30;
 
-        console.log('from handleMouseDown = ', event, columnKey);
-        console.log(tableEl, columnEl, '\n\n\n\n');
-
         dragState.value = {
             startMouseLeft: event.clientX,
             startLeft: columnRect.right - tableLeft,
@@ -69,9 +66,6 @@ export default function (tableRef, tableColumnResizeRef) {
                 const columnWidth = Math.max(finalLeft - startColumnLeft, 60);
 
                 columnEl.style.width = `${columnWidth}px`;
-                console.log('\n\n\n\n from mouse up', columnWidth);
-                console.dir(columnEl);
-                console.log(columnEl.style.width);
                 resizeProxy.style.display = 'none';
                 document.body.style.cursor = '';
                 dragging.value = false;

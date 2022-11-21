@@ -102,9 +102,9 @@
         'close',
     ]);
 
-    const { hostTableColumns } = Manager.config;
+    const { hostTableCustomColumnList } = Manager.config;
 
-    const tableCustomColumnConfig = hostTableColumns.reduce((result, item) => ({
+    const tableCustomColumnConfig = hostTableCustomColumnList.reduce((result, item) => ({
         ...result,
         [item.key]: item,
     }), {});

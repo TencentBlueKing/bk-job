@@ -5,9 +5,11 @@
         </template>
         <template v-else>
             <div class="cell">
-                <RenderTdCell
-                    :config="columnConfig"
-                    :data="data" />
+                <div class="cell-text">
+                    <RenderTdCell
+                        :config="columnConfig"
+                        :data="data" />
+                </div>
                 <div class="cell-append">
                     <slot />
                 </div>
@@ -33,8 +35,8 @@
         },
     });
 
-    const { hostTableColumns } = Manager.config;
-    const tableCustomColumnConfig = hostTableColumns.reduce((result, item) => ({
+    const { hostTableCustomColumnList } = Manager.config;
+    const tableCustomColumnConfig = hostTableCustomColumnList.reduce((result, item) => ({
         ...result,
         [item.key]: item,
     }), {});

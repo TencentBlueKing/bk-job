@@ -1,9 +1,10 @@
 <template>
     <th
+        ref="rootRef"
         :class="{
             [`host-column-${columnKey}`]: true,
         }"
-        :style="styles"
+        :data-date="Date.now()"
         @mousedown="handleMouseDown"
         @mousemove="handleMouseMove">
         <div class="cell">
@@ -17,7 +18,11 @@
     </th>
 </template>
 <script setup>
-    import { computed } from 'vue';
+    import {
+        computed,
+        onMounted,
+        ref,
+    } from 'vue';
 
     import Manager from '../../../../../manager';
     import tableColumnConfig from '../../column-config';
@@ -43,13 +48,14 @@
         'mousemove',
     ]);
 
-    const { hostTableColumns } = Manager.config;
+    const { hostTableCustomColumnList } = Manager.config;
 
-    const tableCustomColumnConfig = hostTableColumns.reduce((result, item) => ({
+    const tableCustomColumnConfig = hostTableCustomColumnList.reduce((result, item) => ({
         ...result,
         [item.key]: item,
     }), {});
 
+    const rootRef = ref();
     const columnConfig = computed(() => {
         if (tableColumnConfig[props.columnKey]) {
             return tableColumnConfig[props.columnKey];
@@ -59,12 +65,6 @@
         return null;
     });
 
-    const styles = {
-        width: props.columnWidthCallback
-                ? props.columnWidthCallback(props.index)
-                : columnConfig.value.width,
-    };
-
     const handleMouseDown = (event) => {
         emits('mousedown', event);
     };
@@ -72,4 +72,10 @@
     const handleMouseMove = (event) => {
         emits('mousemove', event);
     };
+
+    onMounted(() => {
+        rootRef.value.style.width = props.columnWidthCallback
+                ? props.columnWidthCallback(props.index)
+                : columnConfig.value.width;
+    });
 </script>

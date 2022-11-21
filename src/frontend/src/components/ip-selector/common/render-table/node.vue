@@ -113,7 +113,7 @@
     };
 </script>
 <style lang="postcss">
-    @import url("../../styles/table.mixin.css");
+    @import "../../styles/table.mixin.css";
 
     .ip-selector-node-table {
         .node-talbe-wrapper {
