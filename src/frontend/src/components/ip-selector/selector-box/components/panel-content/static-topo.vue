@@ -386,7 +386,7 @@
     };
 </script>
 <style lang="postcss">
-    @import url("../../../styles/tree.mixin.css");
+    @import "../../../styles/tree.mixin.css";
 
     .ip-selector-static-topo {
         height: 100%;

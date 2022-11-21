@@ -139,7 +139,7 @@
     });
 
     const {
-        hostTableColumnSortList,
+        hostTableRenderColumnList,
         hostTableCustomColumnList,
     } = Manager.config;
     if (hostTableCustomColumnList) {
@@ -153,8 +153,8 @@
         });
         columnKeySortList.value = keySortList;
     }
-    if (hostTableColumnSortList.length > 0) {
-        columnKeyRenderList.value = [...hostTableColumnSortList];
+    if (hostTableRenderColumnList.length > 0) {
+        columnKeyRenderList.value = [...hostTableRenderColumnList];
     }
 
     const slots = useSlots();

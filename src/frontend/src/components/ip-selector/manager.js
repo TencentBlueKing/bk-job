@@ -35,7 +35,7 @@ const config = {
     unqiuePanelValue: false,
     nameStyle: 'kebabCase', // 'camelCase' | 'kebabCase'
     hostTableCustomColumnList: [],
-    hostTableColumnSortList: [],
+    hostTableRenderColumnList: [],
 };
 
 const service = {};
