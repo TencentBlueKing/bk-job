@@ -20,7 +20,7 @@
                     :list="renderColumnList">
                     <div
                         v-for="item in renderColumnList"
-                        :key="item.name"
+                        :key="item.label"
                         class="column-item">
                         <span
                             v-if="item.key === 'ip'"
@@ -31,7 +31,7 @@
                             <bk-checkbox
                                 :disabled="!selectedList.includes('ipv6')"
                                 :value="item.key">
-                                {{ item.name }}
+                                {{ item.label }}
                             </bk-checkbox>
                         </span>
                         <span
@@ -43,12 +43,12 @@
                             <bk-checkbox
                                 :disabled="!selectedList.includes('ip')"
                                 :value="item.key">
-                                {{ item.name }}
+                                {{ item.label }}
                             </bk-checkbox>
                         </span>
                         <template v-else>
                             <bk-checkbox :value="item.key">
-                                {{ item.name }}
+                                {{ item.label }}
                             </bk-checkbox>
                         </template>
                         <div class="column-item-drag">
@@ -81,9 +81,9 @@
     } from 'vue';
     import vuedraggable from 'vuedraggable';
 
-    import IpSelectorIcon from '../../ip-selector-icon';
-
-    import columnConfig from './column-config';
+    import Manager from '../../../../../manager';
+    import IpSelectorIcon from '../../../../ip-selector-icon';
+    import tableColumnConfig from '../../column-config';
 
     const props = defineProps({
         selectedList: {
@@ -102,15 +102,29 @@
         'close',
     ]);
 
+    const { hostTableColumns } = Manager.config;
+
+    const tableCustomColumnConfig = hostTableColumns.reduce((result, item) => ({
+        ...result,
+        [item.key]: item,
+    }), {});
+
     const rootRef = ref();
     const popRef = ref();
     const selectedList = shallowRef([...props.selectedList]);
 
     const renderColumnList = ref(props.sortList.reduce((result, key) => {
-        result.push({
-            key,
-            ...columnConfig[key],
-        });
+        if (tableColumnConfig[key]) {
+            result.push({
+                key,
+                ...tableColumnConfig[key],
+            });
+        } else if (tableCustomColumnConfig[key]) {
+            result.push({
+                key,
+                ...tableCustomColumnConfig[key],
+            });
+        }
         return result;
     }, []));
 
