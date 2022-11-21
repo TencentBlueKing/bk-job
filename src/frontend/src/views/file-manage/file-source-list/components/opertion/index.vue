@@ -47,10 +47,11 @@
                 :label="$t('file.文件源别名.label')"
                 property="alias"
                 required>
-                <jb-input
+                <bk-input
                     v-model="formData.alias"
                     :maxlength="32"
-                    :placeholder="$t('file.为文件源起一个可读性较好的别名')" />
+                    :placeholder="$t('file.为文件源起一个可读性较好的别名')"
+                    show-word-limit />
             </jb-form-item>
             <jb-form-item
                 :label="$t('file.类型.label')"
@@ -491,7 +492,7 @@
                 return this.$refs.fileSourceform.validate()
                     .then(() => {
                         const params = Object.assign({}, this.formData);
-                        
+
                         // workerId 不为空手动选择接入点
                         // workerId 为空自动选择接入点
                         params.workerSelectMode = params.workerId ? 'MANUAL' : 'AUTO';
@@ -505,7 +506,7 @@
                                 id,
                             };
                         });
-                        
+
                         if (params.id < 0) {
                             return FileSourceManageService.addSource(params)
                                 .then(() => {
