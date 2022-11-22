@@ -290,7 +290,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * @return 是否应当继续后续流程
      */
     private boolean pullGSEResultAndAnalyse(StopWatch watch) {
-        log.info("[{}]: Start pull gse task result, times: {}", stepInstanceId, pullLogTimes.addAndGet(1));
+        log.info("[{}]: Start pull gse task result, times: {}", gseTask.getTaskUniqueName(),
+            pullLogTimes.addAndGet(1));
         GseLogBatchPullResult<T> gseLogBatchPullResult;
         int batch = 0;
         do {
@@ -321,7 +322,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 this.executeResult = analyseGseTaskResult(gseTaskResult);
                 watch.stop();
             } catch (Throwable e) {
-                log.error("[" + stepInstanceId + "]: analyse gse task result error.", e);
+                log.error("[" + gseTask.getTaskUniqueName() + "]: analyse gse task result error.", e);
                 throw e;
             }
         } while (!gseLogBatchPullResult.isLastBatch());
@@ -659,7 +660,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     /**
-     * 获取G步骤执行结果
+     * 获取执行结果
      *
      * @return 执行结果
      */
@@ -668,14 +669,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     /**
-     * 分批拉取GSE日志
+     * 分批拉取GSE任务结果
      *
      * @return 日志
      */
     abstract GseLogBatchPullResult<T> pullGseTaskResultInBatches();
 
     /**
-     * 解析GSE日志并获取结果
+     * 解析GSE任务结果
      *
      * @param gseTaskResult GSE日志
      * @return 任务执行结果
