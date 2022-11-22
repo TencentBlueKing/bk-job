@@ -33,6 +33,7 @@ const AGENT_STATUS_LAST_SUCCESS = 3;
 export default class AgentTaskExecutionDetail extends Model {
     constructor (payload) {
         super();
+        this.agentId = payload.agentId;
         this.batch = payload.batch;
         this.cloudAreaId = payload.cloudAreaId;
         this.cloudAreaName = payload.cloudAreaName;
