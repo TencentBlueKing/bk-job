@@ -875,6 +875,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
             .set(TABLE.IP, applicationHostDTO.getIp())
             .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+            .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
             .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
             .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
             .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
