@@ -11,6 +11,7 @@
     import { computed } from 'vue';
 
     import IpSelectorIcon from './ip-selector-icon';
+
     const props = defineProps({
         data: {
             type: Number,

@@ -37,8 +37,23 @@ export default (treeRef) => {
         return false;
     };
 
+    const handleClick = (node) => {
+        if (!node.expanded) {
+            treeRef.value.setExpanded(node.id);
+        } else {
+            if (node.selected) {
+                treeRef.value.setExpanded(node.id, {
+                    expanded: false,
+                });
+            } else {
+                treeRef.value.setExpanded(node.id);
+            }
+        }
+    };
+
     return {
         toggleExpanded,
         calcShowExpanded,
+        handleClick,
     };
 };

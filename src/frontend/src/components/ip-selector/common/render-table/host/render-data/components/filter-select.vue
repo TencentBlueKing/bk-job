@@ -20,7 +20,7 @@
     </div>
 </template>
 <script setup>
-    import IpSelectorIcon from '../../ip-selector-icon';
+    import IpSelectorIcon from '../../../../ip-selector-icon';
 
     defineProps({
         data: {

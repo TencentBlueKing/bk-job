@@ -20,7 +20,7 @@
                     :list="renderColumnList">
                     <div
                         v-for="item in renderColumnList"
-                        :key="item.name"
+                        :key="item.label"
                         class="column-item">
                         <span
                             v-if="item.key === 'ip'"
@@ -31,7 +31,7 @@
                             <bk-checkbox
                                 :disabled="!selectedList.includes('ipv6')"
                                 :value="item.key">
-                                {{ item.name }}
+                                {{ item.label }}
                             </bk-checkbox>
                         </span>
                         <span
@@ -43,12 +43,12 @@
                             <bk-checkbox
                                 :disabled="!selectedList.includes('ip')"
                                 :value="item.key">
-                                {{ item.name }}
+                                {{ item.label }}
                             </bk-checkbox>
                         </span>
                         <template v-else>
                             <bk-checkbox :value="item.key">
-                                {{ item.name }}
+                                {{ item.label }}
                             </bk-checkbox>
                         </template>
                         <div class="column-item-drag">
@@ -74,15 +74,16 @@
 <script setup>
     import tippy from 'tippy.js';
     import {
+        onBeforeUnmount,
         onMounted,
         ref,
         shallowRef,
     } from 'vue';
     import vuedraggable from 'vuedraggable';
 
-    import IpSelectorIcon from '../../ip-selector-icon';
-
-    import columnConfig from './column-config';
+    import Manager from '../../../../../manager';
+    import IpSelectorIcon from '../../../../ip-selector-icon';
+    import tableColumnConfig from '../../column-config';
 
     const props = defineProps({
         selectedList: {
@@ -101,15 +102,29 @@
         'close',
     ]);
 
+    const { hostTableCustomColumnList } = Manager.config;
+
+    const tableCustomColumnConfig = hostTableCustomColumnList.reduce((result, item) => ({
+        ...result,
+        [item.key]: item,
+    }), {});
+
     const rootRef = ref();
     const popRef = ref();
     const selectedList = shallowRef([...props.selectedList]);
 
-    const renderColumnList = ref(props.sortList.reduce((result, key) => {
-        result.push({
-            key,
-            ...columnConfig[key],
-        });
+    const renderColumnList = shallowRef(props.sortList.reduce((result, key) => {
+        if (tableColumnConfig[key]) {
+            result.push({
+                key,
+                ...tableColumnConfig[key],
+            });
+        } else if (tableCustomColumnConfig[key]) {
+            result.push({
+                key,
+                ...tableCustomColumnConfig[key],
+            });
+        }
         return result;
     }, []));
 
@@ -137,10 +152,18 @@
             arrow: true,
             offset: [0, 8],
             zIndex: 999999,
-            hideOnClick: false,
+            hideOnClick: true,
         });
     });
-    
+
+    onBeforeUnmount(() => {
+        if (tippyInstance) {
+            tippyInstance.hide();
+            tippyInstance.destroy();
+            tippyInstance = null;
+        }
+    });
+
 </script>
 <style lang="postcss" scoped>
     .host-table-column-setting-box {

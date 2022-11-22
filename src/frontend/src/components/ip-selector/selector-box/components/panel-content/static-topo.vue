@@ -10,48 +10,54 @@
                     clearable
                     placeholder="搜索拓扑节点"
                     style="margin-bottom: 12px;" />
-                <bk-big-tree
-                    ref="treeRef"
-                    :data="topoTreeData"
-                    expand-on-click
-                    :filter-method="filterMethod"
-                    :lazy-disabled="lazyDisabledCallbak"
-                    :lazy-method="lazyMethodCallback"
-                    selectable
-                    show-link-line
-                    @select-change="handleNodeSelect">
-                    <template #default="{ node: nodeItem, data }">
-                        <div class="topo-node-box">
-                            <div class="topo-node-name">
-                                {{ data.name }}
-                            </div>
-                            <template v-if="nodeItem.level === 0">
-                                <div
-                                    :key="`filter_${isHidedEmptyNode}`"
-                                    v-bk-tooltips="`${isHidedEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点' }`"
-                                    class="topo-node-filter"
-                                    :style="{
-                                        // display: isHidedEmptyNode ? 'block' : 'none',
-                                        opacity: isHidedEmptyNode ? 1 : 0
-                                    }"
-                                    @click.stop="handleToggleFilterWithCount">
-                                    <ip-selector-icon :type="`${isHidedEmptyNode ? 'invisible1' : 'visible1'}`" />
+                <div class="big-tree-box">
+                    <bk-big-tree
+                        ref="treeRef"
+                        :data="topoTreeData"
+                        :expand-on-click="false"
+                        :filter-method="filterMethod"
+                        :lazy-disabled="lazyDisabledCallbak"
+                        :lazy-method="lazyMethodCallback"
+                        selectable
+                        show-link-line
+                        @node-click="handleTreeClick"
+                        @select-change="handleNodeSelect">
+                        <template #default="{ node: nodeItem, data }">
+                            <div class="topo-node-box">
+                                <div class="topo-node-name">
+                                    {{ data.name }}
                                 </div>
-                            </template>
-                            <div
-                                v-if="calcShowExpanded(nodeItem)"
-                                :key="`expanded_${nodeItem.expanded}`"
-                                v-bk-tooltips="`${nodeItem.expanded ? '收起所有节点' : '展开所有节点'}`"
-                                class="topo-node-expand"
-                                @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
-                                <ip-selector-icon :type="`${nodeItem.expanded ? 'shangxiachengkai-2' : 'shangxiachengkai'}`" />
+                                <template v-if="nodeItem.level === 0">
+                                    <div
+                                        :key="`filter_${isHidedEmptyNode}`"
+                                        v-bk-tooltips="`${isHidedEmptyNode ? '显示没有主机的节点' : '隐藏没有主机的节点' }`"
+                                        class="topo-node-filter"
+                                        :style="{
+                                            opacity: isHidedEmptyNode ? 1 : 0
+                                        }"
+                                        @click.stop="handleToggleFilterWithCount">
+                                        <ip-selector-icon :type="`${isHidedEmptyNode ? 'invisible1' : 'visible1'}`" />
+                                    </div>
+                                </template>
+                                <div
+                                    v-if="calcShowExpanded(nodeItem)"
+                                    :key="`expanded_${nodeItem.expanded}`"
+                                    v-bk-tooltips="`${nodeItem.expanded ? '收起所有节点' : '展开所有节点'}`"
+                                    class="topo-node-expand"
+                                    @click.stop="handleToggleTopoTreeExpanded(nodeItem)">
+                                    <ip-selector-icon :type="`${nodeItem.expanded ? 'shangxiachengkai-2' : 'shangxiachengkai'}`" />
+                                </div>
+                                <div
+                                    class="topo-node-count"
+                                    :class="{
+                                        'is-selected': nodeItem.selected
+                                    }">
+                                    {{ data.payload.count }}
+                                </div>
                             </div>
-                            <div class="topo-node-count">
-                                {{ data.payload.count }}
-                            </div>
-                        </div>
-                    </template>
-                </bk-big-tree>
+                        </template>
+                    </bk-big-tree>
+                </div>
             </div>
             <template #right>
                 <div
@@ -182,6 +188,7 @@
     const {
         toggleExpanded: handleToggleTopoTreeExpanded,
         calcShowExpanded,
+        handleClick: handleTreeClick,
     } = useTreeExpanded(treeRef);
 
     const {
@@ -306,6 +313,7 @@
     // 选中节点
     const handleNodeSelect = (node) => {
         selectedTopoNodeData = node.data.payload;
+        pagination.current = 1;
         fetchNodeHostList();
     };
 
@@ -381,7 +389,7 @@
     };
 </script>
 <style lang="postcss">
-    @import url("../../../styles/tree.mixin.css");
+    @import "../../../styles/tree.mixin.css";
 
     .ip-selector-static-topo {
         height: 100%;
