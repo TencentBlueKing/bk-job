@@ -119,7 +119,7 @@
                     $parentEle = $parentEle.parentNode;
                 }
             };
-            
+
             document.addEventListener('click', focusCallbacks);
             document.addEventListener('keydown', this.handleKeyDownSelect);
             this.$once('hook:beforeDestroy', () => {
