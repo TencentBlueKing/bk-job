@@ -97,12 +97,15 @@
     import useResizeEvent from './hooks/use-resize-event.js';
     import useScroll from './hooks/use-scroll';
 
-    export const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorHostList_1');
-
     // 列的显示顺序
     export const columnKeySortList = shallowRef([]);
     // 默认需要显示的列
-    export const columnKeyRenderList = shallowRef(['ip', 'ipv6', 'alive', 'osName']);
+    export const columnKeyRenderList = shallowRef([
+        'ip',
+        'ipv6',
+        'alive',
+        'osName',
+    ]);
     // 默认需要显示的列
     export const columnKeyRenderMap = computed(() => makeMap(columnKeyRenderList.value));
 
@@ -137,6 +140,8 @@
             type: Boolean,
         },
     });
+
+    const CUSTOM_SETTINGS_MODULE = Manager.nameStyle(`ipSelectorHostList${Manager.config.version}`);
 
     const {
         hostTableRenderColumnList,
@@ -211,8 +216,10 @@
             hostListColumnSort = [],
         } = data[CUSTOM_SETTINGS_MODULE];
 
-        columnKeySortList.value = hostListColumnSort;
-        columnKeyRenderList.value = hostListColumn;
+        if (hostListColumnSort.length === columnKeySortList.value.length) {
+            columnKeySortList.value = hostListColumnSort;
+            columnKeyRenderList.value = hostListColumn;
+        }
         setHostListRenderPrimaryKey();
     })
     .finally(() => {
