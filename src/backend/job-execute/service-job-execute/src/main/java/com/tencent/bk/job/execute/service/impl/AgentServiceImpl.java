@@ -58,7 +58,7 @@ public class AgentServiceImpl implements AgentService {
     private final AgentStateClient agentStateClient;
     private final HostService hostService;
     private final LoadingCache<String, HostDTO> agentHostCache = CacheBuilder.newBuilder()
-        .maximumSize(10000).expireAfterWrite(60, TimeUnit.SECONDS).
+        .maximumSize(1).expireAfterWrite(60, TimeUnit.SECONDS).
             build(new CacheLoader<String, HostDTO>() {
                       @SuppressWarnings("all")
                       @Override
