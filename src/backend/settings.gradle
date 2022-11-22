@@ -89,6 +89,7 @@ include 'job-analysis:api-job-analysis'
 include 'job-analysis:service-job-analysis'
 include 'job-analysis:boot-job-analysis'
 include 'job-analysis:model-job-analysis'
-include 'k8s-startup-controller'
+include 'job-tools'
+include 'job-tools:k8s-startup-controller'
 include 'upgrader'
 

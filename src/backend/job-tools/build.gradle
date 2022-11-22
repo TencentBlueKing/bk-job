@@ -21,45 +21,25 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.1"
-}
+
 ext {
-    if (System.getProperty("jobVersion")) {
-        set("jobVersion", System.getProperty("jobVersion"))
+    if (System.getProperty("jobToolsVersion")) {
+        set("jobToolsVersion", System.getProperty("jobToolsVersion"))
     } else if (System.getProperty("bkjobVersion")) {
-        set("jobVersion", System.getProperty("bkjobVersion"))
+        set("jobToolsVersion", System.getProperty("bkjobVersion"))
     } else {
-        set("jobVersion", "1.0.0")
+        set("jobToolsVersion", "1.0.0")
     }
 }
-version "${jobVersion}"
-dependencies {
-    api project(":commons:common")
-    api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    implementation 'ch.qos.logback:logback-core'
-    implementation 'ch.qos.logback:logback-classic'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-}
-apply plugin: "com.github.johnrengelman.shadow"
-apply plugin: "application"
-
-// 固定入口类 不要改
-mainClassName = "com.tencent.bk.job.k8s.StartupController"
-
-shadowJar {
-    classifier = null
-    zip64 true
-}
-task copyToRelease(type: Copy) {
-    from("build/libs") {
-        include("**/k8s-startup-controller-*.jar")
+version "${jobToolsVersion}"
+subprojects {
+    version "${jobToolsVersion}"
+    dependencies {
+        api project(":commons:common")
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        implementation 'ch.qos.logback:logback-core'
+        implementation 'ch.qos.logback:logback-classic'
+        testImplementation 'org.junit.jupiter:junit-jupiter'
     }
-    into "${rootDir}/release"
-    outputs.upToDateWhen { false }
 }
-
-copyToRelease.dependsOn shadowJar
-build.dependsOn copyToRelease
