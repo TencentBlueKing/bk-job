@@ -597,7 +597,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
         applicationHostDTO.setBizId(bizId);
         applicationHostDTO.setDisplayIp(multiIp);
-        applicationHostDTO.setIpv6(host.getIpv6());
+        String ipv6 = host.getIpv6();
+        int ipv6MaxLength = 2000;
+        if (ipv6 != null && ipv6.length() > ipv6MaxLength) {
+            log.warn("trunc ipv6 with ipv6MaxLength {}, ipv6={}, host={}", ipv6MaxLength, ipv6, hostWithModules);
+            ipv6 = ipv6.substring(0, ipv6MaxLength);
+        }
+        applicationHostDTO.setIpv6(ipv6);
         applicationHostDTO.setAgentId(host.getAgentId());
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         applicationHostDTO.setHostId(host.getHostId());
