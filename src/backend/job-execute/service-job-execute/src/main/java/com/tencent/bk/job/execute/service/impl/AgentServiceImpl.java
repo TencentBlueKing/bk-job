@@ -122,10 +122,22 @@ public class AgentServiceImpl implements AgentService {
             String agentBindIp = agentStateClient.chooseOneAgentIdPreferAlive(cloudIpList);
             log.info("Local agent bind ip is {}", agentBindIp);
             ServiceHostDTO host = hostService.getHost(HostDTO.fromCloudIp(agentBindIp));
-            HostDTO hostDTO = HostDTO.fromHostIdOrCloudIp(host.getHostId(), agentBindIp);
-            hostDTO.setAgentId(hostDTO.getFinalAgentId());
-            return hostDTO;
+            if (host == null) {
+                log.error("Invalid host for ip: {}", agentBindIp);
+                return null;
+            }
+            return toHostDTO(host);
         }
+    }
+
+    private HostDTO toHostDTO(ServiceHostDTO host) {
+        HostDTO result = new HostDTO();
+        result.setHostId(host.getHostId());
+        result.setBkCloudId(host.getCloudAreaId());
+        result.setIp(host.getIp());
+        result.setIpv6(host.getIpv6());
+        result.setAgentId(host.getFinalAgentId());
+        return result;
     }
 
     private Map<String, String> getMachineIP() {
