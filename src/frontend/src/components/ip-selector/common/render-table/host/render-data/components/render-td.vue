@@ -1,5 +1,5 @@
 <template>
-    <td v-if="columnConfig">
+    <td>
         <template v-if="columnKey === 'alive'">
             <agent-status :data="data.alive" />
         </template>

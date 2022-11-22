@@ -15,7 +15,7 @@ export default {
     },
     render (h) {
         return _.isFunction(this.config.renderCell)
-            ? this.config.renderCell(h)
+            ? this.config.renderCell(h, this.data)
             : h('span', {}, getObjectValueByPath(this.data, this.config.field) || '--');
     },
 };

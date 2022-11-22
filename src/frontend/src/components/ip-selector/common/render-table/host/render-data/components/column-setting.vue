@@ -113,7 +113,7 @@
     const popRef = ref();
     const selectedList = shallowRef([...props.selectedList]);
 
-    const renderColumnList = ref(props.sortList.reduce((result, key) => {
+    const renderColumnList = shallowRef(props.sortList.reduce((result, key) => {
         if (tableColumnConfig[key]) {
             result.push({
                 key,

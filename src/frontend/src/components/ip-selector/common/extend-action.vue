@@ -33,7 +33,7 @@
         .action-menu {
             position: absolute;
             top: 20px;
-            left: 0;
+            right: -10px;
             z-index: 1;
             display: none;
             font-size: 12px;
@@ -42,7 +42,6 @@
             background: #fff;
             border: 1px solid #dcdee5;
             border-radius: 2px;
-            transform: translateX(-50%);
             box-shadow: 0 2px 6px 0 rgb(0 0 0 / 10%);
 
             & > * {

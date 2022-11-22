@@ -30,6 +30,8 @@ const typeServeiceMap = {
     ],
 };
 
+let lastVersion = '';
+
 const config = {
     panelList: ['staticTopo', 'manualInput'], // 'staticTopo' | 'dynamicTopo' | 'dynamicGroup' | 'manualInput'
     unqiuePanelValue: false,
@@ -47,6 +49,9 @@ const getServiceListByPanelList
 ));
 
 export const merge = (options) => {
+    if (options.version) {
+        lastVersion = options.version;
+    }
     Object.keys(config).forEach((key) => {
         if (options[key]) {
             config[key] = options[key];
@@ -75,6 +80,9 @@ export const mergeLocalConfig = (config) => {
 export default {
     config: new Proxy({}, {
         get (target, propKey) {
+            if (propKey === 'version') {
+                return `${lastVersion}`;
+            }
             if (localConfig[propKey]) {
                 return localConfig[propKey];
             }

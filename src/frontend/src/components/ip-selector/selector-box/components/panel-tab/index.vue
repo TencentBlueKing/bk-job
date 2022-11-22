@@ -92,7 +92,7 @@
         'update:value',
     ]);
 
-    const CUSTOM_SETTINGS_MODULE = Manager.nameStyle('ipSelectorPanelTab');
+    const CUSTOM_SETTINGS_MODULE = Manager.nameStyle(`ipSelectorPanelTab${Manager.config.version}`);
 
     const {
         unqiuePanelValue,
