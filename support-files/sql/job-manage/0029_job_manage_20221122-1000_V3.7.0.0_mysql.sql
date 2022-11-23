@@ -14,10 +14,10 @@ BEGIN
   SELECT DATABASE() INTO db;
   
   -- Update `host` schema
-  ALTER TABLE host MODIFY COLUMN ip_v6 VARCHAR(2000) DEFAULT NULL COMMENT '主机IPv6地址，可能存在多个';
+  ALTER TABLE host MODIFY COLUMN ip_v6 TEXT DEFAULT NULL COMMENT '主机IPv6地址，可能存在多个';
 
   -- Update `white_ip_ip` schema
-  ALTER TABLE white_ip_ip MODIFY COLUMN ip_v6 VARCHAR(2000) DEFAULT NULL COMMENT '主机IPv6地址，可能存在多个';
+  ALTER TABLE white_ip_ip MODIFY COLUMN ip_v6 TEXT DEFAULT NULL COMMENT '主机IPv6地址，可能存在多个';
 
 COMMIT;
 END <JOB_UBF>
