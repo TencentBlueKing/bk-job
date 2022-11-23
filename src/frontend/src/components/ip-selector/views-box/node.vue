@@ -229,6 +229,8 @@
         removedNodeList.value = getRemoveNodeList(props.data, context.originalValue);
         diffMap.value = getNodeDiffMap(props.data, context.originalValue, invalidNodeList.value);
 
+        console.log('from watch diff = ', props.data, context.originalValue, invalidNodeList.value);
+
         const {
             newList,
             originalList,
@@ -296,7 +298,7 @@
     });
 </script>
 <style lang="postcss">
-    @import url("../styles/table.mixin.css");
+    @import "../styles/table.mixin.css";
 
     .ip-selector-view-node {
         @include table;

@@ -181,6 +181,8 @@
         removedHostList.value = getRemoveHostList(props.data, context.originalValue);
         diffMap.value = getHostDiffMap(props.data, context.originalValue, invalidHostList.value);
 
+        console.log('from watch diff = ', props.data, context.originalValue, invalidHostList.value);
+
         hostIpRepeatMap.value = getRepeatIpHostMap(validHostList.value);
 
         const {

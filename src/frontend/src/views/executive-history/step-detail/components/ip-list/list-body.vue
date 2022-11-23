@@ -47,6 +47,7 @@
                 :class="{
                     active: selectRow === item.key,
                 }"
+                :data-id="item.key"
                 @click="handleSelect(item)">
                 <td
                     v-for="(showKey, colIndex) in showColumns"
