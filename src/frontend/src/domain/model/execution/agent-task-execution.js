@@ -57,7 +57,7 @@ export default class AgentTaskExecutionDetail extends Model {
      * @returns { String }
      */
     get key () {
-        return `${this.cloudAreaId}:${this.displayIp}`;
+        return `${this.hostId}_${this.ip}_${this.ipv6}`;
     }
 
     /**
