@@ -165,7 +165,6 @@
         });
         columnKeySortList.value = keySortList;
     }
-    console.log('Manager.config = ', hostTableCustomColumnList, hostTableRenderColumnList);
     if (hostTableRenderColumnList.length > 0) {
         columnKeyRenderList.value = [...hostTableRenderColumnList];
     }
@@ -216,8 +215,6 @@
     Manager.service.fetchCustomSettings({
         [Manager.nameStyle('moduleList')]: [CUSTOM_SETTINGS_MODULE],
     }).then((data) => {
-        console.log('print default sortlist, renderlist', columnKeySortList.value, columnKeyRenderList.value);
-
         if (!data[CUSTOM_SETTINGS_MODULE]) {
             return;
         }
@@ -230,7 +227,6 @@
             columnKeySortList.value = hostListColumnSort;
             columnKeyRenderList.value = hostListColumn;
         }
-        console.log('print custom sortlist, renderlist', columnKeySortList.value, columnKeyRenderList.value);
         setHostListRenderPrimaryKey();
     })
     .finally(() => {

@@ -58,8 +58,6 @@ export const merge = (options) => {
         }
     });
 
-    console.log('from merge = ', config);
-
     getServiceListByPanelList(config.panelList).forEach((serviceName) => {
         if (!_.isFunction(options[serviceName])) {
             console.error(`使用 IP 选择器需要配置 *${serviceName}*`);
