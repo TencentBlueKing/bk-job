@@ -229,8 +229,6 @@
         removedNodeList.value = getRemoveNodeList(props.data, context.originalValue);
         diffMap.value = getNodeDiffMap(props.data, context.originalValue, invalidNodeList.value);
 
-        console.log('from watch diff = ', props.data, context.originalValue, invalidNodeList.value);
-
         const {
             newList,
             originalList,
