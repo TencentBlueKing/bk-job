@@ -56,6 +56,8 @@ spec:
       {{- if .Values.logsvrConfig.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.logsvrConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
+      initContainers:
+      {{- include "job.initContainer.waitForDependServices"   ( dict "appName" "job-logsvr" "global" $) | nindent 8 }}
       containers:
         - name: "job-logsvr"
           {{- if .Values.logsvrConfig.containerSecurityContext.enabled }}

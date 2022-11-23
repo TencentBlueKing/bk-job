@@ -1288,3 +1288,22 @@ waitForMigration:
     tag: v1.5.1
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+
+## 服务Pod等待依赖的其他服务完成启动的init任务配置
+waitForDependServices:
+  image:
+    # 镜像拉取仓库根地址
+    registry: "hub.bktencent.com"
+    # 镜像拉取仓库组织与镜像名称
+    repository: "blueking/job-tools-k8s-startup-controller"
+    # 镜像标签
+    tag: "{{APP_VERSION}}"
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+  # 是否开启服务启动顺序控制，不开启则所有服务并行启动，默认不开启
+  enabled: false
+  # 服务间的依赖关系定义，多个依赖关系用逗号分隔
+  # 例如：(A:B,C),(B:D)表示服务A必须在服务B与服务C启动完成后才启动，服务B必须在服务D启动完成后才启动
+  # 全量服务名称：job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,job-file-worker
+  #            job-gateway,job-logsvr,job-manage,job-frontend
+  dependencies: (job-execute:job-manage,job-logsvr),(job-frontend:job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,job-gateway,job-manage)

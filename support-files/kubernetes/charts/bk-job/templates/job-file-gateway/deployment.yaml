@@ -58,6 +58,7 @@ spec:
       {{- end }}
       initContainers:
       {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
+      {{- include "job.initContainer.waitForDependServices"   ( dict "appName" "job-file-gateway" "global" $) | nindent 8 }}
       containers:
         - name: "job-file-gateway"
           {{- if .Values.fileGatewayConfig.containerSecurityContext.enabled }}
