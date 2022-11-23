@@ -29,11 +29,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-@Slf4j
 @Data
 public class HostEventDetail {
 
@@ -69,13 +67,7 @@ public class HostEventDetail {
         hostInfoDTO.setHostId(eventDetail.hostId);
         List<String> ipList = StringUtil.strToList(eventDetail.hostInnerIp, String.class, ",");
         hostInfoDTO.setDisplayIp(eventDetail.hostInnerIp);
-        String ipv6 = eventDetail.innerIpv6;
-        int ipv6MaxLength = 2000;
-        if (ipv6 != null && ipv6.length() > ipv6MaxLength) {
-            log.warn("trunc ipv6 with ipv6MaxLength {}, ipv6={}, event={}", ipv6MaxLength, ipv6, eventDetail);
-            ipv6 = ipv6.substring(0, ipv6MaxLength);
-        }
-        hostInfoDTO.setIpv6(ipv6);
+        hostInfoDTO.setIpv6(eventDetail.innerIpv6);
         hostInfoDTO.setAgentId(eventDetail.agentId);
         hostInfoDTO.setIpList(ipList);
         if (ipList != null && !ipList.isEmpty()) {
