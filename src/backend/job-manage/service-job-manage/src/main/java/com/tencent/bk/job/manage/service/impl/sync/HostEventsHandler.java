@@ -109,16 +109,6 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
         }
     }
 
-    private void deleteHostWithoutIp(ApplicationHostDTO hostInfoDTO) {
-        int affectedRowNum = applicationHostDAO.deleteBizHostInfoById(null, hostInfoDTO.getHostId());
-        log.info(
-            "{} host deleted, id={} ,ip={}",
-            affectedRowNum,
-            hostInfoDTO.getHostId(),
-            hostInfoDTO.getIp()
-        );
-    }
-
     private List<String> buildAgentIdByMultiIp(Long cloudId, String multiIp) {
         if (StringUtils.isBlank(multiIp)) {
             return Collections.emptyList();

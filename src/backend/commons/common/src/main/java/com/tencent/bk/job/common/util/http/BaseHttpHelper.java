@@ -73,7 +73,7 @@ public class BaseHttpHelper implements HttpHelper {
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug("getRawResp,url={},headers={}", url, header);
+                log.debug("getRawResp,url={}", url);
             }
         }
     }
@@ -101,10 +101,9 @@ public class BaseHttpHelper implements HttpHelper {
             get.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "get:keepAlive={},url={},headers={},httpStatusCode={},respStr={}",
+                    "get:keepAlive={},url={},httpStatusCode={},respStr={}",
                     keepAlive,
                     url,
-                    header,
                     httpStatusCode,
                     respStr
                 );
@@ -130,12 +129,11 @@ public class BaseHttpHelper implements HttpHelper {
                     respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
                 }
                 log.warn(
-                    "Post request fail, httpStatusCode={}, errorReason={}, body={}, url={}, headers={}",
+                    "Post request fail, httpStatusCode={}, errorReason={}, body={}, url={}",
                     httpStatusCode,
                     message,
                     respStr,
-                    url,
-                    headers
+                    url
                 );
                 throw new InternalException(message, ErrorCode.API_ERROR);
             }
@@ -190,9 +188,8 @@ public class BaseHttpHelper implements HttpHelper {
             put.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "put:url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
+                    "put:url={},requestEntity={},httpStatusCode={},respStr={}",
                     url,
-                    headers,
                     requestEntity,
                     httpStatusCode,
                     respStr
@@ -240,9 +237,8 @@ public class BaseHttpHelper implements HttpHelper {
             delete.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "delete:url={},headers={},body={},httpStatusCode={},respStr={}",
+                    "delete:url={},body={},httpStatusCode={},respStr={}",
                     url,
-                    headers,
                     content,
                     httpStatusCode,
                     respStr
