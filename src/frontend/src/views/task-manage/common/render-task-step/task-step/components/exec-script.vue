@@ -228,8 +228,8 @@
                 return this.$refs.form.validate()
                     .then(() => true, () => false)
                     .then(validate => scriptErrorConfirm().then(() => {
-                            this.$emit('on-change', result, validate);
-                        }));
+                        this.$emit('on-change', result, validate);
+                    }));
             },
         },
     };
