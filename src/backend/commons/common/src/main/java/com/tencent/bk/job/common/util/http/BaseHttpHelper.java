@@ -73,7 +73,7 @@ public class BaseHttpHelper implements HttpHelper {
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug("getRawResp,url={}", url);
+                log.debug("getRawResp,url={},headers={}", url, header);
             }
         }
     }
@@ -101,7 +101,7 @@ public class BaseHttpHelper implements HttpHelper {
             get.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "get:keepAlive={},url={},httpStatusCode={},respStr={}",
+                    "get:keepAlive={},url={},headers={},httpStatusCode={},respStr={}",
                     keepAlive,
                     url,
                     httpStatusCode,
@@ -188,8 +188,9 @@ public class BaseHttpHelper implements HttpHelper {
             put.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "put:url={},requestEntity={},httpStatusCode={},respStr={}",
+                    "put:url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
                     url,
+                    headers,
                     requestEntity,
                     httpStatusCode,
                     respStr
@@ -237,8 +238,9 @@ public class BaseHttpHelper implements HttpHelper {
             delete.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "delete:url={},body={},httpStatusCode={},respStr={}",
+                    "delete:url={},headers={},body={},httpStatusCode={},respStr={}",
                     url,
+                    headers,
                     content,
                     httpStatusCode,
                     respStr
