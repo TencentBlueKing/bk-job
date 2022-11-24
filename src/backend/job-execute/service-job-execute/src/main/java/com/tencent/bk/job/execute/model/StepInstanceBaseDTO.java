@@ -81,7 +81,6 @@ public class StepInstanceBaseDTO {
     protected String operator;
     /**
      * 执行状态
-     *
      */
     protected RunStatusEnum status;
     /**
@@ -196,5 +195,12 @@ public class StepInstanceBaseDTO {
      */
     public boolean isFirstRollingBatch() {
         return this.batch == 1;
+    }
+
+    public String getUniqueKey() {
+        if (executeCount == 0) {
+            return id.toString();
+        }
+        return id + "_" + executeCount;
     }
 }
