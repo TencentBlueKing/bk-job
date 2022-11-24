@@ -38,7 +38,7 @@ import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostDTO;
 import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
@@ -802,8 +802,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return ccGroupDTO;
     }
 
-    private List<CcGroupHostPropDTO> convertToCcGroupHostPropList(List<CcHostInfoDTO> hostInfoList) {
-        List<CcGroupHostPropDTO> ccGroupHostList = new ArrayList<>();
+    private List<DynamicGroupHostDTO> convertToCcGroupHostPropList(List<CcHostInfoDTO> hostInfoList) {
+        List<DynamicGroupHostDTO> ccGroupHostList = new ArrayList<>();
         for (CcHostInfoDTO ccHostInfo : hostInfoList) {
             if (ccHostInfo.getCloudId() == null || ccHostInfo.getCloudId() < 0) {
                 log.warn(
@@ -821,7 +821,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<CcGroupHostPropDTO> getDynamicGroupIp(long bizId, String groupId) {
+    public List<DynamicGroupHostDTO> getDynamicGroupIp(long bizId, String groupId) {
         ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, defaultUin, defaultSupplierAccount);
         req.setBizId(bizId);
         req.setGroupId(groupId);
@@ -829,7 +829,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         int start = 0;
         req.getPage().setLimit(limit);
 
-        List<CcGroupHostPropDTO> ccGroupHostList = new ArrayList<>();
+        List<DynamicGroupHostDTO> ccGroupHostList = new ArrayList<>();
         boolean isLastPage = false;
         while (!isLastPage) {
             req.getPage().setStart(start);
@@ -861,18 +861,18 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return ccGroupHostList;
     }
 
-    private CcGroupHostPropDTO convertToCcHost(CcHostInfoDTO ccHostInfo) {
-        CcGroupHostPropDTO ccGroupHostPropDTO = new CcGroupHostPropDTO();
-        ccGroupHostPropDTO.setId(ccHostInfo.getHostId());
-        ccGroupHostPropDTO.setName(ccHostInfo.getHostName());
-        ccGroupHostPropDTO.setIp(ccHostInfo.getIp());
-        ccGroupHostPropDTO.setIpv6(ccHostInfo.getIpv6());
-        ccGroupHostPropDTO.setAgentId(ccHostInfo.getAgentId());
+    private DynamicGroupHostDTO convertToCcHost(CcHostInfoDTO ccHostInfo) {
+        DynamicGroupHostDTO dynamicGroupHostDTO = new DynamicGroupHostDTO();
+        dynamicGroupHostDTO.setId(ccHostInfo.getHostId());
+        dynamicGroupHostDTO.setName(ccHostInfo.getHostName());
+        dynamicGroupHostDTO.setIp(ccHostInfo.getIp());
+        dynamicGroupHostDTO.setIpv6(ccHostInfo.getIpv6());
+        dynamicGroupHostDTO.setAgentId(ccHostInfo.getAgentId());
         CcCloudIdDTO ccCloudIdDTO = new CcCloudIdDTO();
         // 仅使用CloudId其余属性未用到，暂不设置
         ccCloudIdDTO.setInstanceId(ccHostInfo.getCloudId());
-        ccGroupHostPropDTO.setCloudIdList(Collections.singletonList(ccCloudIdDTO));
-        return ccGroupHostPropDTO;
+        dynamicGroupHostDTO.setCloudIdList(Collections.singletonList(ccCloudIdDTO));
+        return dynamicGroupHostDTO;
     }
 
     @Override

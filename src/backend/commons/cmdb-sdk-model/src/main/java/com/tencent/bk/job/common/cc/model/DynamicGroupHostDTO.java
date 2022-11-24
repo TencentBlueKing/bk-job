@@ -37,7 +37,7 @@ import java.util.List;
  * 接口实体类，CMDB动态分组中的主机属性
  */
 @Data
-public class CcGroupHostPropDTO {
+public class DynamicGroupHostDTO {
 
     @JsonProperty("bk_host_id")
     private Long id;

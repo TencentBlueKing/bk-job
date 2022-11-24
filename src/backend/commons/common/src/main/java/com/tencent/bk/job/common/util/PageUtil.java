@@ -206,16 +206,31 @@ public class PageUtil {
         if (srcPageData == null) {
             return null;
         }
+        List<T> data = srcPageData.getData();
+        List<R> newDataList = null;
+        if (data != null) {
+            newDataList = data.parallelStream().map(mapper).collect(Collectors.toList());
+        }
+        return copyPageWithNewData(srcPageData, newDataList);
+    }
+
+    /**
+     * 拷贝分页数据，并使用新的列表数据填充
+     *
+     * @param srcPageData 源分页数据
+     * @return 新的分页数据
+     */
+    public static <T, R> PageData<R> copyPageWithNewData(PageData<T> srcPageData, List<R> newDataList) {
+        if (srcPageData == null) {
+            return null;
+        }
         PageData<R> targetPageData = new PageData<R>();
         targetPageData.setStart(srcPageData.getStart());
         targetPageData.setPageSize(srcPageData.getPageSize());
         targetPageData.setTotal(srcPageData.getTotal());
         targetPageData.setCanCreate(srcPageData.getCanCreate());
         targetPageData.setExistAny(srcPageData.getExistAny());
-        List<T> data = srcPageData.getData();
-        if (data != null) {
-            targetPageData.setData(data.parallelStream().map(mapper).collect(Collectors.toList()));
-        }
+        targetPageData.setData(newDataList);
         return targetPageData;
     }
 }

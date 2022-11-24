@@ -439,7 +439,7 @@ public class WebHostResourceImpl implements WebHostResource {
             DynamicGroupHostStatisticsVO statisticsVO = new DynamicGroupHostStatisticsVO();
             statisticsVO.setDynamicGroup(dynamicGroupDTO.toBasicVO());
             List<ApplicationHostDTO> hostList = bizDynamicGroupHostService.listHostByDynamicGroup(
-                Long.parseLong(scopeId),
+                appResourceScope,
                 dynamicGroupDTO.getId()
             );
             AgentStatistics agentStatistics = agentStatusService.calcAgentStatistics(hostList);
@@ -457,7 +457,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                       String scopeId,
                                                                       PageListHostsByDynamicGroupReq req) {
         PageData<ApplicationHostDTO> pageData = bizDynamicGroupHostService.pageHostByDynamicGroup(
-            Long.parseLong(scopeId),
+            appResourceScope,
             req.getId(),
             req.getStart().intValue(),
             req.getPageSize().intValue()
@@ -652,7 +652,7 @@ public class WebHostResourceImpl implements WebHostResource {
             long bizId = Long.parseLong(scopeId);
             List<ApplicationHostDTO> hostsByDynamicGroup = new ArrayList<>();
             for (String id : dynamicGroupIdList) {
-                hostsByDynamicGroup.addAll(bizDynamicGroupHostService.listHostByDynamicGroup(bizId, id));
+                hostsByDynamicGroup.addAll(bizDynamicGroupHostService.listHostByDynamicGroup(appResourceScope, id));
             }
             log.debug("hostsByDynamicGroup={}", hostsByDynamicGroup);
             allHostList.addAll(hostsByDynamicGroup);

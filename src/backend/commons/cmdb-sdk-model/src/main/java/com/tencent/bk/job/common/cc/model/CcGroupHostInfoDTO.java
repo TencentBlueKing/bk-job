@@ -34,5 +34,5 @@ import lombok.Data;
  */
 @Data
 public class CcGroupHostInfoDTO {
-    private CcGroupHostPropDTO host;
+    private DynamicGroupHostDTO host;
 }

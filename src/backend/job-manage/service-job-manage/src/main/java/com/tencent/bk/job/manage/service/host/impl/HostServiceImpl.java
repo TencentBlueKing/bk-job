@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
@@ -495,11 +495,11 @@ public class HostServiceImpl implements HostService {
                     ccGroupInfoMap.remove(customerGroupId);
                     continue;
                 }
-                List<CcGroupHostPropDTO> ccGroupHostProps =
+                List<DynamicGroupHostDTO> ccGroupHostProps =
                     CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
                         .getDynamicGroupIp(groupBizId, customerGroupId);
                 List<String> cloudIpList = new ArrayList<>();
-                for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
+                for (DynamicGroupHostDTO groupHost : ccGroupHostProps) {
                     if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
                         cloudIpList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
                     } else {
