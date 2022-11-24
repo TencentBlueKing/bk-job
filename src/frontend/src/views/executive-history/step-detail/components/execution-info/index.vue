@@ -128,7 +128,7 @@
                 :ip="host.ip"
                 :line-feed="isScriptLogLineFeed"
                 :mode="activePanel"
-                :name="`${stepInstanceId}_${host.ip}_${retryCount}`"
+                :name="`${stepInstanceId}_${host.key}_${retryCount}`"
                 :retry-count="retryCount"
                 :step-instance-id="stepInstanceId"
                 v-bind="$attrs"
