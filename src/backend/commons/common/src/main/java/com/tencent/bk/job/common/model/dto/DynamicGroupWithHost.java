@@ -22,12 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.model.dto;
 
-import com.tencent.bk.job.common.cc.model.CcGroupHostInfoDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @date 2019/3/7
+ * 含有主机信息的动态分组
  */
-public class SearchCustomGroupIpResult extends AbstractCcSearchResult<CcGroupHostInfoDTO> {
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class DynamicGroupWithHost {
+
+    private Long bizId;
+
+    private String bizName;
+
+    private String id;
+
+    private String owner;
+
+    private String ownerName;
+
+    private String name;
+
+    private String type;
+
+    private List<String> ipList;
+
+    private List<ApplicationHostDTO> ipListStatus = new ArrayList<>();
+
 }

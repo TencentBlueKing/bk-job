@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
@@ -815,7 +814,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<CcGroupDTO> getDynamicGroupList(long bizId) {
+    public List<CcDynamicGroupDTO> getDynamicGroupList(long bizId) {
         SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, defaultUin,
             defaultSupplierAccount);
         req.setBizId(bizId);
@@ -850,15 +849,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 }
             }
         }
-        return ccDynamicGroupList.parallelStream().map(this::convertToCcGroupDTO).collect(Collectors.toList());
-    }
-
-    private CcGroupDTO convertToCcGroupDTO(CcDynamicGroupDTO ccDynamicGroupDTO) {
-        CcGroupDTO ccGroupDTO = new CcGroupDTO();
-        ccGroupDTO.setBizId(ccDynamicGroupDTO.getBizId());
-        ccGroupDTO.setId(ccDynamicGroupDTO.getId());
-        ccGroupDTO.setName(ccDynamicGroupDTO.getName());
-        return ccGroupDTO;
+        return ccDynamicGroupList;
     }
 
     private List<CcGroupHostPropDTO> convertToCcGroupHostPropList(List<CcHostInfoDTO> hostInfoList) {
