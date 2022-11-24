@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
-import com.tencent.bk.job.common.cc.model.DynamicGroupHostDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -87,13 +87,13 @@ public class BizDynamicGroupHostService {
             throw new NotImplementedException(ErrorCode.NOT_SUPPORT_FEATURE_FOR_BIZ_SET);
         }
         long bizId = Long.parseLong(appResourceScope.getId());
-        List<DynamicGroupHostDTO> dynamicGroupHostList = bizCmdbClient.getDynamicGroupIp(bizId, id);
+        List<DynamicGroupHostPropDTO> dynamicGroupHostList = bizCmdbClient.getDynamicGroupIp(bizId, id);
         if (CollectionUtils.isEmpty(dynamicGroupHostList)) {
             return Collections.emptyList();
         }
         return dynamicGroupHostList.parallelStream()
             .filter(Objects::nonNull)
-            .map(DynamicGroupHostDTO::getId)
+            .map(DynamicGroupHostPropDTO::getId)
             .collect(Collectors.toList());
     }
 }

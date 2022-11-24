@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.common.cc.model.result;
 
-import com.tencent.bk.job.common.cc.model.CcGroupHostInfoDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostInfoDTO;
 
 /**
  * @date 2019/3/7
  */
-public class SearchCustomGroupIpResult extends AbstractCcSearchResult<CcGroupHostInfoDTO> {
+public class SearchCustomGroupIpResult extends AbstractCcSearchResult<DynamicGroupHostInfoDTO> {
 }

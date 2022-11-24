@@ -29,7 +29,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
-import com.tencent.bk.job.common.cc.model.DynamicGroupHostDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
@@ -171,13 +171,13 @@ public class HostServiceImpl implements HostService {
     public List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
-        List<DynamicGroupHostDTO> cmdbGroupHostList =
+        List<DynamicGroupHostPropDTO> cmdbGroupHostList =
             bizCmdbClient.getDynamicGroupIp(Long.parseLong(resourceScope.getId()), groupId);
         List<HostDTO> hostList = new ArrayList<>();
         if (cmdbGroupHostList == null || cmdbGroupHostList.isEmpty()) {
             return hostList;
         }
-        for (DynamicGroupHostDTO hostProp : cmdbGroupHostList) {
+        for (DynamicGroupHostPropDTO hostProp : cmdbGroupHostList) {
             List<CcCloudIdDTO> hostCloudIdList = hostProp.getCloudIdList();
             if (hostCloudIdList == null || hostCloudIdList.isEmpty()) {
                 log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, groupId={}, " +
