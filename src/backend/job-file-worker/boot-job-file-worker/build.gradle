@@ -33,7 +33,7 @@ dependencies {
         api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
     }
     implementation project(":job-file-worker:service-job-file-worker")
-    implementation project(":job-file-worker-sdk:boot-job-file-worker-sdk")
+    implementation project(":job-file-worker-sdk:service-job-file-worker-sdk")
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'

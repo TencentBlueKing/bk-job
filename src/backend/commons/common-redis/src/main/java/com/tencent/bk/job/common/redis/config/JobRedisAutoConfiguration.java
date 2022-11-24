@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.common.redis.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +35,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 @AutoConfigureAfter(RedisAutoConfiguration.class)
@@ -43,16 +48,24 @@ public class JobRedisAutoConfiguration {
         RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
 
-        RedisSerializer<Object> jsonRedisSerializer = RedisSerializer.json();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),
+            ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        GenericJackson2JsonRedisSerializer jsonRedisSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
         RedisSerializer<String> stringRedisSerializer = RedisSerializer.string();
+
         redisTemplate.setKeySerializer(stringRedisSerializer);
         redisTemplate.setValueSerializer(jsonRedisSerializer);
         redisTemplate.setHashKeySerializer(stringRedisSerializer);
         redisTemplate.setHashValueSerializer(jsonRedisSerializer);
-        redisTemplate.setEnableDefaultSerializer(true);
         redisTemplate.setDefaultSerializer(jsonRedisSerializer);
+        redisTemplate.setEnableDefaultSerializer(true);
 
         redisTemplate.afterPropertiesSet();
+
         return redisTemplate;
     }
 }

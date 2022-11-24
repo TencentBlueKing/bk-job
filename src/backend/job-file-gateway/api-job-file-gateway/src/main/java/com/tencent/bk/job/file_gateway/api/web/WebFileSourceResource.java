@@ -56,7 +56,7 @@ import java.util.List;
 public interface WebFileSourceResource {
 
     @ApiOperation(value = "检查文件源别名是否已存在（可用返回true）", produces = "application/json")
-    @GetMapping("/checkAlias/{alias}")
+    @GetMapping("/checkAlias")
     Response<Boolean> checkAlias(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -71,8 +71,8 @@ public interface WebFileSourceResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "文件源别名")
-        @PathVariable String alias,
-        @ApiParam(value = "文件源 ID", required = false)
+        @RequestParam String alias,
+        @ApiParam(value = "文件源 ID")
         @RequestParam(value = "fileSourceId", required = false)
             Integer fileSourceId
     );

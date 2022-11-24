@@ -22,33 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    implementation project(":job-file-worker-sdk:service-job-file-worker-sdk")
-    implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-}
-springBoot {
-    mainClassName = "com.tencent.bk.job.file.worker.JobFileWorkerBootApplication"
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-file-worker-sdk-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-file-worker-sdk-${version}.jar", "job-file-worker-sdk-${version}.jar"
-}
-renameArtifacts.dependsOn jar
-assemble.dependsOn renameArtifacts
+package com.tencent.bk.job.common.util.http;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-file-worker-sdk-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-file-worker-sdk-${version}.jar", "job-file-worker-sdk.jar"
-}
-copyToLatestJar.dependsOn assemble
+import com.tencent.bk.job.common.model.http.HttpReq;
 
-apply from: "$rootDir/task_job_package.gradle"
+/**
+ * 封装的用于发起Http请求的客户端
+ */
+public interface JobHttpClient {
+
+    String post(HttpReq req);
+
+}
