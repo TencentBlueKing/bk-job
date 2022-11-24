@@ -9,7 +9,7 @@ export default {
         field: 'ipv6',
         width: '180px',
     },
-    coludArea: {
+    cloudArea: {
         label: '云区域',
         field: 'cloud_area.name',
         width: '150px',

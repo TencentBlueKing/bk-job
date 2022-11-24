@@ -32,6 +32,16 @@
                         name="action"
                         :row="row" />
                 </template>
+                <template #ip="{ row }">
+                    <slot
+                        name="ip"
+                        :row="row" />
+                </template>
+                <template #ipv6="{ row }">
+                    <slot
+                        name="ipv6"
+                        :row="row" />
+                </template>
             </RenderDataRow>
         </RenderData>
         <bk-pagination

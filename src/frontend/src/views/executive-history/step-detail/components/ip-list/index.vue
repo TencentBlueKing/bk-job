@@ -142,6 +142,20 @@
             width: 100,
             checked: true,
         },
+        {
+            label: 'Agent ID',
+            name: 'agentId',
+            width: 140,
+            checked: true,
+        },
+        {
+            label: 'Host ID',
+            name: 'hostId',
+            orderField: 'hostId',
+            order: '',
+            width: 90,
+            checked: true,
+        },
     ];
 
     export default {
@@ -211,7 +225,7 @@
                     }
                     return result;
                 }, 65);
-                
+
                 return {
                     width: `${Math.max(allShowColumnWidth, 217)}px`,
                 };
@@ -224,7 +238,7 @@
                 return this.page * this.pageSize < this.total;
             },
         },
-        
+
         watch: {
             /**
              * @desc IP 列表名称变化时重置翻页
@@ -289,7 +303,7 @@
                 }
                 const windowHeight = window.innerHeight;
                 const { top } = this.$refs.loading.getBoundingClientRect();
-                
+
                 if (top - 80 < windowHeight) {
                     // 增加分页
                     this.page += 1;
@@ -335,7 +349,7 @@
                 } = column;
                 const newOrder = order === 1 ? 0 : 1;
                 column.order = newOrder;
-                
+
                 this.columnList = Object.freeze(this.columnList.map((item) => {
                     item.order = '';
                     if (item.orderField === orderField) {

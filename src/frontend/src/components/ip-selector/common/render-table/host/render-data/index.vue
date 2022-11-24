@@ -123,6 +123,13 @@
     export default {
         inheritAttrs: false,
     };
+
+    // eslint-disable-next-line no-underscore-dangle
+    window.__bk_ip_selector__ = {
+        columnKeySortList,
+        columnKeyRenderList,
+        columnKeyRenderMap,
+    };
 </script>
 <script setup>
     const props = defineProps({

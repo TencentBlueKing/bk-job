@@ -47,6 +47,7 @@
                 :class="{
                     active: selectRow === item.key,
                 }"
+                :data-id="item.key"
                 @click="handleSelect(item)">
                 <td
                     v-for="(showKey, colIndex) in showColumns"
@@ -119,7 +120,7 @@
                     $parentEle = $parentEle.parentNode;
                 }
             };
-            
+
             document.addEventListener('click', focusCallbacks);
             document.addEventListener('keydown', this.handleKeyDownSelect);
             this.$once('hook:beforeDestroy', () => {

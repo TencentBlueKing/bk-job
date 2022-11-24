@@ -236,7 +236,7 @@
             ViewGlobalVariable,
             ViewOperationRecord,
             ViewStepInfo,
-            
+
         },
         mixins: [
             mixins,
@@ -312,7 +312,7 @@
                 } else {
                     text = `${text} ${I18n.t('history.脚本执行')}`;
                 }
-                
+
                 return text;
             },
             /**
@@ -363,7 +363,7 @@
                 if (this.params.id < 1 || this.params.maxIpsPerResultGroup < 1) {
                     return;
                 }
-                
+
                 this.isLoading = true;
                 TaskExecuteService.fetchStepExecutionResult({
                     ...this.params,
@@ -389,7 +389,7 @@
                         this.$Progress.finish();
                         return;
                     }
-                    
+
                     this.$pollingQueueRun(this.fetchStep);
                 })
                     .catch((error) => {
