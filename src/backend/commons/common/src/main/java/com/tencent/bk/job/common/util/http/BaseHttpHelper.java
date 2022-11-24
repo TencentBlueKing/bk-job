@@ -104,7 +104,6 @@ public class BaseHttpHelper implements HttpHelper {
                     "get:keepAlive={},url={},headers={},httpStatusCode={},respStr={}",
                     keepAlive,
                     url,
-                    header,
                     httpStatusCode,
                     respStr
                 );
@@ -130,12 +129,11 @@ public class BaseHttpHelper implements HttpHelper {
                     respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
                 }
                 log.warn(
-                    "Post request fail, httpStatusCode={}, errorReason={}, body={}, url={}, headers={}",
+                    "Post request fail, httpStatusCode={}, errorReason={}, body={}, url={}",
                     httpStatusCode,
                     message,
                     respStr,
-                    url,
-                    headers
+                    url
                 );
                 throw new InternalException(message, ErrorCode.API_ERROR);
             }

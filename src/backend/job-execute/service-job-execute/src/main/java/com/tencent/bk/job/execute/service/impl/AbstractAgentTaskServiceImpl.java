@@ -38,7 +38,7 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
         }
 
         List<AgentTaskDetailDTO> agentTaskDetailList;
-        boolean hasIpInfo = StringUtils.isNotEmpty(agentTasks.get(0).getCloudIp());
+        boolean hasIpInfo = agentTasks.stream().anyMatch(agentTask -> StringUtils.isNotEmpty(agentTask.getCloudIp()));
         if (!hasIpInfo) {
             // 从当前版本开始AgentTask不会包含ip信息，需要从StepInstance反查
             Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
@@ -54,7 +54,7 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
                     return agentTaskDetail;
                 }).collect(Collectors.toList());
         } else {
-            // 历史版本AgentTask会包含ip信息
+            // 历史版本AgentTask会包含ipv4信息
             agentTaskDetailList = agentTasks.stream()
                 .map(agentTask -> {
                     AgentTaskDetailDTO agentTaskDetail = new AgentTaskDetailDTO(agentTask);

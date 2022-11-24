@@ -1,6 +1,7 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.util.json.SkipLogFields;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +72,19 @@ public class ScriptAgentTaskResult {
      * 脚本输出日志
      */
     @JsonProperty("screen")
+    @SkipLogFields
     private String screen;
+
+    /**
+     * 非协议内容，仅用于日志输出
+     */
+    private long contentLength;
+
+
+    public void setScreen(String screen) {
+        this.screen = screen;
+        this.contentLength = StringUtils.isEmpty(screen) ? 0 : screen.length();
+    }
 
     @Override
     public String toString() {
@@ -85,7 +98,7 @@ public class ScriptAgentTaskResult {
             .add("endTime=" + endTime)
             .add("exitCode=" + exitCode)
             .add("tag='" + tag + "'")
-            .add("contentLength=" + (StringUtils.isEmpty(screen) ? 0 : screen.length()))
+            .add("contentLength=" + contentLength)
             .toString();
     }
 }
