@@ -83,7 +83,6 @@
     </jb-form>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
     import {
