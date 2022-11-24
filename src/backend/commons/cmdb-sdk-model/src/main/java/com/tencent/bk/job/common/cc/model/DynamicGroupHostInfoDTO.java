@@ -27,12 +27,9 @@ package com.tencent.bk.job.common.cc.model;
 import lombok.Data;
 
 /**
- * CC动态分组-主机
- *
- * @description
- * @date 2019/3/7
+ * CMDB动态分组-主机
  */
 @Data
-public class CcGroupHostInfoDTO {
-    private CcGroupHostPropDTO host;
+public class DynamicGroupHostInfoDTO {
+    private DynamicGroupHostPropDTO host;
 }
