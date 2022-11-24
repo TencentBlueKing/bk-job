@@ -24,12 +24,16 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.inner;
 
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -41,5 +45,23 @@ public class BatchTaskStatusDTO {
 
     public boolean isDone() {
         return TaskStatusEnum.isDone(status);
+    }
+
+    /**
+     * 通过一些关键字段描述对象，通常用于日志打印忽略非关键字段
+     *
+     * @return 描述信息
+     */
+    public String getSimpleDesc() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("batchTaskId", batchTaskId);
+        map.put("status", status);
+        if (fileSourceTaskStatusInfoList != null) {
+            List<String> fileSourceTaskDescList = fileSourceTaskStatusInfoList.stream()
+                .map(FileSourceTaskStatusDTO::getSimpleDesc)
+                .collect(Collectors.toList());
+            map.put("fileSourceTasks", fileSourceTaskDescList);
+        }
+        return JsonUtils.toJson(map);
     }
 }

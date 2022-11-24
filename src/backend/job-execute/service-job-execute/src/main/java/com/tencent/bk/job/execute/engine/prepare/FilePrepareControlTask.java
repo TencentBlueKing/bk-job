@@ -119,7 +119,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     private void doExecute() {
         // 强制终止检测
         if (needToStop(stepInstance)) {
-            filePrepareService.stopPrepareFile(stepInstance.getId());
+            filePrepareService.stopPrepareFile(stepInstance);
             setDoneStatus();
         }
         // 文件准备任务进度监控

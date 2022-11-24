@@ -106,6 +106,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
             doExecute();
         } catch (Exception e) {
             span.error(e);
+            throw e;
         } finally {
             span.end();
         }
