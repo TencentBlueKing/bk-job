@@ -157,7 +157,7 @@
                         :is-file="isFile"
                         :is-task="isTask"
                         :log-filter="params.keyword"
-                        :name="`${params.id}_${params.retryCount}_${dispalyGroup.groupName}_${currentHost.ip}_${params.keyword}`"
+                        :name="`${params.id}_${params.retryCount}_${dispalyGroup.groupName}_${currentHost.key}_${params.keyword}`"
                         :retry-count="params.retryCount"
                         :step-instance-id="data.stepInstanceId"
                         @on-search="handleLogSearch" />
