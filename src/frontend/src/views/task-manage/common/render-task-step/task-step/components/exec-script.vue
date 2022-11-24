@@ -83,7 +83,6 @@
     </jb-form>
 </template>
 <script>
-    import I18n from '@/i18n';
     import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
     import {
@@ -228,8 +227,8 @@
                 return this.$refs.form.validate()
                     .then(() => true, () => false)
                     .then(validate => scriptErrorConfirm().then(() => {
-                            this.$emit('on-change', result, validate);
-                        }));
+                        this.$emit('on-change', result, validate);
+                    }));
             },
         },
     };
