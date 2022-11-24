@@ -54,7 +54,12 @@
                     :key="showKey"
                     :class="colIndex === 0 && item.result">
                     <div class="cell-text">
-                        {{ item[showKey] || '--' }}
+                        <template v-if="showKey === 'exitCode'">
+                            {{ item[showKey] }}
+                        </template>
+                        <template v-else>
+                            {{ item[showKey] || '--' }}
+                        </template>
                     </div>
                 </td>
                 <td class="active-flag">
