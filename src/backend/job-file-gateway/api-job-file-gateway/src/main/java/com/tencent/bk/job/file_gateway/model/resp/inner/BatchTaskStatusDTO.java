@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.inner;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import lombok.AllArgsConstructor;
@@ -52,6 +53,7 @@ public class BatchTaskStatusDTO {
      *
      * @return 描述信息
      */
+    @JsonIgnore
     public String getSimpleDesc() {
         Map<String, Object> map = new HashMap<>();
         map.put("batchTaskId", batchTaskId);
