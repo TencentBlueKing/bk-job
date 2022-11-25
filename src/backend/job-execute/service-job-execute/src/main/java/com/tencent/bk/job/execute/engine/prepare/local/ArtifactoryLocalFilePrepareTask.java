@@ -33,6 +33,7 @@ import com.tencent.bk.job.execute.constants.Consts;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -58,7 +59,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
 
-    private final Long stepInstanceId;
+    private final StepInstanceDTO stepInstance;
     private final boolean isForRetry;
     private final List<FileSourceDTO> fileSourceList;
     private final LocalFilePrepareTaskResultHandler resultHandler;
@@ -71,7 +72,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     public static FinalResultHandler finalResultHandler = null;
 
     public ArtifactoryLocalFilePrepareTask(
-        Long stepInstanceId,
+        StepInstanceDTO stepInstance,
         boolean isForRetry,
         List<FileSourceDTO> fileSourceList,
         LocalFilePrepareTaskResultHandler resultHandler,
@@ -81,7 +82,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         String jobStorageRootPath,
         ThreadPoolExecutor threadPoolExecutor
     ) {
-        this.stepInstanceId = stepInstanceId;
+        this.stepInstance = stepInstance;
         this.isForRetry = isForRetry;
         this.fileSourceList = fileSourceList;
         this.resultHandler = resultHandler;
@@ -111,7 +112,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     public void execute() {
         for (FileSourceDTO fileSourceDTO : fileSourceList) {
             if (fileSourceDTO == null) {
-                log.warn("[{}]:fileSourceDTO is null", stepInstanceId);
+                log.warn("[{}]:fileSourceDTO is null", stepInstance.getUniqueKey());
                 continue;
             }
             if (fileSourceDTO.isLocalUpload() || fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType()) {
@@ -150,24 +151,35 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
                 try {
                     resultList.add(future.get(30, TimeUnit.MINUTES));
                 } catch (InterruptedException e) {
-                    log.info("[{}]:task stopped", stepInstanceId);
+                    log.info("[{}]:task stopped", stepInstance.getUniqueKey());
                     resultHandler.onStopped(artifactoryLocalFilePrepareTask);
                     return;
                 } catch (ExecutionException e) {
-                    log.info("[{}]:task download failed", stepInstanceId);
+                    log.info("[{}]:task download failed", stepInstance.getUniqueKey());
                     resultHandler.onFailed(artifactoryLocalFilePrepareTask);
                     return;
                 } catch (TimeoutException e) {
-                    log.info("[{}]:task download timeout", stepInstanceId);
+                    log.info("[{}]:task download timeout", stepInstance.getUniqueKey());
                     resultHandler.onFailed(artifactoryLocalFilePrepareTask);
                     return;
                 }
             }
             if (ListUtil.isAllTrue(resultList)) {
-                log.info("[{}]:all task success", stepInstanceId);
+                log.info("[{}]:all task success", stepInstance.getUniqueKey());
                 resultHandler.onSuccess(artifactoryLocalFilePrepareTask);
             } else {
-                log.warn("[{}]:some localFile prepare tasks failed", stepInstanceId);
+                int failCount = 0;
+                for (Boolean result : resultList) {
+                    if (!result) {
+                        failCount++;
+                    }
+                }
+                log.warn(
+                    "[{}]:{}/{} localFile prepare tasks failed",
+                    stepInstance.getUniqueKey(),
+                    failCount,
+                    resultList.size()
+                );
                 resultHandler.onFailed(artifactoryLocalFilePrepareTask);
             }
         }
@@ -188,7 +200,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             } catch (Throwable t) {
                 FormattingTuple msg = MessageFormatter.format(
                     "[{}]:Unexpected error when prepare localFile {}",
-                    stepInstanceId,
+                    stepInstance.getUniqueKey(),
                     file.getFilePath()
                 );
                 log.error(msg.getMessage(), t);
@@ -204,7 +216,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             File localFile = new File(localPath);
             // 如果本地文件还未下载就已存在，说明是分发配置文件，直接完成准备阶段
             if (localFile.exists()) {
-                log.debug("[{}]:local file already exists", stepInstanceId);
+                log.debug("[{}]:local file already exists", stepInstance.getUniqueKey());
                 return true;
             }
             // 制品库的完整路径
@@ -212,7 +224,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             if (nodeDTO == null) {
                 log.warn(
                     "[{}]:File {} not exists in project {} repo {}",
-                    stepInstanceId,
+                    stepInstance.getUniqueKey(),
                     filePath,
                     artifactoryProject,
                     artifactoryRepo
@@ -232,7 +244,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             try {
                 log.debug(
                     "[{}]:begin to download {} to {}",
-                    stepInstanceId,
+                    stepInstance.getUniqueKey(),
                     filePath,
                     localPath
                 );
@@ -241,14 +253,14 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             } catch (InterruptedException e) {
                 log.warn(
                     "[{}]:Interrupted:Download {} to {}",
-                    stepInstanceId,
+                    stepInstance.getUniqueKey(),
                     filePath,
                     localPath
                 );
             } catch (Exception e) {
                 log.error(
                     "[{}]:Fail to download {} to {}",
-                    stepInstanceId,
+                    stepInstance.getUniqueKey(),
                     filePath,
                     localPath
                 );

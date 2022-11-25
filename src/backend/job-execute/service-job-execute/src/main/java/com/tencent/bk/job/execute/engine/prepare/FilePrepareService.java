@@ -37,9 +37,9 @@ public interface FilePrepareService {
     /**
      * 停止正在进行的准备文件过程
      *
-     * @param stepInstanceId 步骤实例Id
+     * @param stepInstance 步骤实例
      */
-    void stopPrepareFile(long stepInstanceId);
+    void stopPrepareFile(StepInstanceDTO stepInstance);
 
     /**
      * 重新为分发准备文件
