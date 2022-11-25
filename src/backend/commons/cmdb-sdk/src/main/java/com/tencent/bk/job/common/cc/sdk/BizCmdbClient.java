@@ -662,30 +662,33 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return applicationHostDTOList;
     }
 
-    private ApplicationHostDTO convertHost(long bizId, CcHostInfoDTO hostInfo) {
-        ApplicationHostDTO ipInfo = new ApplicationHostDTO();
-        ipInfo.setHostId(hostInfo.getHostId());
-        // 部分从cmdb同步过来的资源没有ip，需要过滤掉
-        if (StringUtils.isBlank(hostInfo.getIp())) {
+    private ApplicationHostDTO convertHost(long bizId, CcHostInfoDTO ccHostInfo) {
+        // 部分从cmdb同步过来的资源没有hostId，需要过滤掉
+        if (ccHostInfo.getHostId() == null) {
+            log.warn("host with no hostId ignored:{}", ccHostInfo);
             return null;
         }
+        ApplicationHostDTO hostDTO = new ApplicationHostDTO();
+        hostDTO.setHostId(ccHostInfo.getHostId());
 
-        if (hostInfo.getOs() != null && hostInfo.getOs().length() > 512) {
-            ipInfo.setOsName(hostInfo.getOs().substring(0, 512));
+        if (ccHostInfo.getOs() != null && ccHostInfo.getOs().length() > 512) {
+            log.warn("osName truncated to 512, host={}", ccHostInfo);
+            hostDTO.setOsName(ccHostInfo.getOs().substring(0, 512));
         } else {
-            ipInfo.setOsName(hostInfo.getOs());
+            hostDTO.setOsName(ccHostInfo.getOs());
         }
-        if (hostInfo.getCloudId() != null) {
-            ipInfo.setCloudAreaId(hostInfo.getCloudId());
+        if (ccHostInfo.getCloudId() != null) {
+            hostDTO.setCloudAreaId(ccHostInfo.getCloudId());
         } else {
-            log.warn("Host does not have cloud area id!|{}", hostInfo);
+            log.warn("Host does not have cloud area id!|{}", ccHostInfo);
             return null;
         }
-        ipInfo.setIp(hostInfo.getIp());
-        ipInfo.setBizId(bizId);
-        ipInfo.setHostName(hostInfo.getHostName());
-
-        return ipInfo;
+        hostDTO.setIp(ccHostInfo.getIp());
+        hostDTO.setIpv6(ccHostInfo.getIpv6());
+        hostDTO.setAgentId(ccHostInfo.getAgentId());
+        hostDTO.setBizId(bizId);
+        hostDTO.setHostName(ccHostInfo.getHostName());
+        return hostDTO;
     }
 
     @Override
@@ -1036,33 +1039,27 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");
         Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIpv6s);
-        hostGroups.forEach((bkCloudId, ipv6s) -> {
-            ComposeRuleDTO hostRule = new ComposeRuleDTO();
-            hostRule.setCondition("AND");
-            hostRule.addRule(buildCloudIdRule(bkCloudId));
+        hostGroups.forEach((bkCloudId, ipv6s) ->
+            ipv6s.forEach(ipv6 -> {
+                ComposeRuleDTO hostRule = new ComposeRuleDTO();
+                hostRule.setCondition("AND");
+                hostRule.addRule(buildCloudIdRule(bkCloudId));
 
-            ComposeRuleDTO multiIpv6Rule = buildMultiIpv6LikeRule(ipv6s);
-            hostRule.addRule(multiIpv6Rule);
-
-            condition.addRule(hostRule);
-        });
+                BaseRuleDTO ipv6Rule = buildIpv6Rule(ipv6);
+                hostRule.addRule(ipv6Rule);
+                condition.addRule(hostRule);
+            }));
         req.setCondition(condition);
-
         return listHostsWithoutBiz(req);
     }
 
-    private ComposeRuleDTO buildMultiIpv6LikeRule(List<String> ipv6s) {
-        ComposeRuleDTO multiIpv6Rule = new ComposeRuleDTO();
-        multiIpv6Rule.setCondition("OR");
-        ipv6s.forEach(ipv6 -> {
-            BaseRuleDTO ipv6Rule = new BaseRuleDTO();
-            // ipv6字段可能包含多个IPv6地址，故此处使用contains
-            ipv6Rule.setField("bk_host_innerip_v6");
-            ipv6Rule.setOperator("contains");
-            ipv6Rule.setValue(ipv6);
-            multiIpv6Rule.addRule(ipv6Rule);
-        });
-        return multiIpv6Rule;
+    private BaseRuleDTO buildIpv6Rule(String ipv6) {
+        BaseRuleDTO ipv6Rule = new BaseRuleDTO();
+        // ipv6字段可能包含多个IPv6地址，故此处使用contains
+        ipv6Rule.setField("bk_host_innerip_v6");
+        ipv6Rule.setOperator("contains");
+        ipv6Rule.setValue(ipv6);
+        return ipv6Rule;
     }
 
     private BaseRuleDTO buildCloudIdRule(Long bkCloudId) {
@@ -1093,6 +1090,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
             hosts.addAll(pageData.getInfo().stream()
                 .map(host -> convertHost(-1, host))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
 
             // 设置主机业务信息
